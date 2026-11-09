@@ -29,22 +29,23 @@
 <div class="abstract">
 <p>We run a 125B-parameter mixture-of-experts model (Qwen3.8-Flash-Next:
 48 layers, 512 routed experts per layer, 10 per token) on one MacBook
-Pro (M5 Pro, 64 GB), with the routed experts streamed from the internal
-SSD at about 3.2 bits per weight and the process's lifetime peak at most
-45 GB (plus a 7.45 GB expert tier that macOS may reclaim). The pieces
-are mostly published; this paper is about how they depend on each other
-and what each adds. Speculative decoding pays one pass of the large
-model for up to 16 drafted tokens, but it is exact only if that pass
-computes the same bits as one-token decoding. Batch-invariant kernels on
-the GPU and its matrix units make it so, and we audit it on every run
-(96 of 96 code runs, 24 of 24 chat and 24 of 24 math runs
-token-identical to one-token greedy decoding). Exactness then turns
-every later optimisation into a test of token equality that takes
-minutes: the levers of the streamed engine, such as per-layer expert
-pools and expert reads hidden behind the GPU's work, were each adopted
-that way. On top of the exact engine, a lossy layer lets drafted rows of
-code answers skip cold experts and run 3-bit parts, and ships only if it
-scores the same as the exact reference on the model's benchmarks.</p>
+Pro (M5 Pro, 18-core CPU, 20-core GPU, 64 GB, 2 TB SSD), with the routed
+experts streamed from the internal SSD at about 3.2 bits per weight and
+the process's lifetime peak at most 45 GB (plus a 7.45 GB expert tier
+that macOS may reclaim). The pieces are mostly published; this paper is
+about how they depend on each other and what each adds. Speculative
+decoding pays one pass of the large model for up to 16 drafted tokens,
+but it is exact only if that pass computes the same bits as one-token
+decoding. Batch-invariant kernels on the GPU and its matrix units make
+it so, and we audit it on every run (96 of 96 code runs, 24 of 24 chat
+and 24 of 24 math runs token-identical to one-token greedy decoding).
+Exactness then turns every later optimisation into a test of token
+equality that takes minutes: the levers of the streamed engine, such as
+per-layer expert pools and expert reads hidden behind the GPU's work,
+were each adopted that way. On top of the exact engine, a lossy layer
+lets drafted rows of code answers skip cold experts and run 3-bit parts,
+and ships only if it scores the same as the exact reference on the
+model's benchmarks.</p>
 <p>The exact configuration decodes 101.4 tok/s on 12 HumanEval prompts,
 70.4 on 12 MBPP, 77.9 on 12 math and 37.1 on 12 chat (IFEval) prompts,
 at a lifetime peak of 41.7-42.5 GB [K]. The lossy configuration we ship
