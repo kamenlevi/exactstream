@@ -1,5 +1,9 @@
 # Configs
 
+ExactStream streams the model's experts from the internal SSD into fixed memory pools, with speculative decoding checked
+on the matrix units. Exact configs produce tokens bitwise equal to the exact reference; lossy configs are labelled by
+gates on the model's known benchmarks. This is research code, released as measured.
+
 | config | memory line | what it is | label |
 |---|---|---|---|
 | `exact` | 45 (C 256) / 32 (C 160) | config E: exact, tokens bitwise equal to the exact reference (NAX6-N) | exact |
