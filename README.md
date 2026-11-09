@@ -4,7 +4,7 @@ ExactStream runs Qwen3.8-Flash-Next, a 125-billion-parameter model, on a 64 GB M
 
 The model is the 4-bit (Q4) version, and its routed experts take 68.5 GB on the SSD. At run time each token's two strongest experts use all 4 bits and the other eight use 3, about 3.2 bits per expert weight on average.
 
-On a MacBook Pro with an M5 Pro (18-core CPU, 20-core GPU), 64 GB of memory and a 2 TB SSD, staying under 45 GB of memory (plus a 7.45 GB cache that macOS can reclaim), it generates about 164 tokens per second on HumanEval, 113 on MBPP, 79 on math and 51 on chat. Those numbers use the lossy and chat settings, which scored the same as the exact model on its known benchmarks. The exact settings give 101, 70, 78 and 37. The first token on a chat prompt takes about 2.3 seconds.
+On a MacBook Pro with an M5 Pro (18-core CPU, 20-core GPU), 64 GB of memory and a 2 TB SSD, staying under 45 GB of memory (plus a 7.45 GB cache that macOS can reclaim), it generates about 164 tokens per second on HumanEval, 113 on MBPP, 79 on math and 51 on chat. Those numbers use the lossy and chat settings, which scored the same as the exact model on its known benchmarks. The exact settings give 101, 70, 78 and 37. These are averages over 12 prompts per set, from a single run for the lossy and chat settings, and speed depends on the prompt: on the lossy setting the 12 HumanEval prompts ranged from 130 to 198 tokens per second, and the fastest ran above 190. The first token on a chat prompt takes about 2.3 seconds.
 
 This is research code, released as measured, and it has only been tested on that one MacBook Pro.
 
