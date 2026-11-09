@@ -2,6 +2,8 @@
 
 ExactStream runs Qwen3.8-Flash-Next, a 125-billion-parameter model, on a 64 GB Mac. The model doesn't fit in memory, so its experts are streamed from the SSD as they are needed, and a small drafter guesses tokens ahead so the big model can check several at once.
 
+The model is the 4-bit (Q4) version, and its routed experts take 68.5 GB on the SSD. At run time each token's two strongest experts use all 4 bits and the other eight use 3, about 3.2 bits per expert weight on average.
+
 On a MacBook Pro with an M5 Pro and 64 GB, staying under 45 GB of memory (plus a 7.45 GB cache that macOS can reclaim), it generates about 164 tokens per second on HumanEval, 113 on MBPP, 79 on math and 51 on chat. Those numbers use the lossy and chat settings, which scored the same as the exact model on its known benchmarks. The exact settings give 101, 70, 78 and 37. The first token on a chat prompt takes about 2.3 seconds.
 
 This is research code, released as measured, and it has only been tested on that one MacBook Pro.
@@ -19,7 +21,7 @@ You need an Apple-silicon Mac with 64 GB of memory, macOS 26, Python 3.12, CMake
 
     .venv/bin/python run.py --config chat --mem 45 --prompt "Explain how a refrigerator works."
 
-`--config` picks the settings: `exact` gives the same tokens as normal decoding, `lossy` is the fastest on code, and `chat` is tuned for conversation. `--mem` is the memory limit in GB, 45 or 32. [CONFIGS.md](CONFIGS.md) lists every setting, [RESULTS.md](RESULTS.md) has the full numbers and [LIMITS.md](LIMITS.md) has the known limits and what we did not test.
+`--config` picks the settings: `exact` gives the same tokens as decoding one token at a time with these same weights, `lossy` is the fastest on code, and `chat` is tuned for conversation. `--mem` is the memory limit in GB, 45 or 32. [CONFIGS.md](CONFIGS.md) lists every setting, [RESULTS.md](RESULTS.md) has the full numbers and [LIMITS.md](LIMITS.md) has the known limits and what we did not test.
 
 ## Papers
 
