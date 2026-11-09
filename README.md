@@ -2,12 +2,11 @@
 
 Kamen Levi
 
-The engine that runs Qwen3.8-Flash-Next (125B parameters, 512 experts per layer) on one Apple-silicon laptop by
-streaming the experts from the internal SSD into fixed memory pools, with speculative decoding checked on the matrix
+The engine that runs Qwen3.8-Flash-Next (125B parameters, 512 experts per layer) on a 64 GB Mac by streaming the experts from the internal SSD into fixed memory pools, with speculative decoding checked on the matrix
 units. Exact configs produce tokens bitwise equal to the exact reference; lossy configs passed (or are labelled as not
 having passed) gates on the model's known benchmarks. The papers that describe it (an overview: `docs/index.html`):
 - [Complete report](docs/pdf/complete.pdf): all five papers in one PDF, as Parts I-V
-- [MAIN](docs/pdf/main.pdf): exact and gated lossy decoding of the 125B model on one 64 GB laptop
+- [MAIN](docs/pdf/main.pdf): What It Takes to Run a 125B LLM Fast on a 64 GB Mac, and How to Go Faster
 - [KERNELS](docs/pdf/kernels.pdf): batch-invariant kernels on Apple's M5 GPU and its matrix units
 - [DRAFTER](docs/pdf/drafter.pdf): drafting for a model that does not fit in memory
 - [EVALUATION](docs/pdf/evaluation.pdf): same-scores gates on the model's known benchmarks
