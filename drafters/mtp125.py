@@ -1,5 +1,5 @@
 """TrainLab: chained-drafting fine-tune of the 125B's native MTP head (NewIdeas 23:05; exact-safe: drafts are verified).
-Chat1000 (data/agent125): the stock head's chain on real Claude Code turns gives tau ~3.9 (bash 3.4, text 3.8, edit
+Chat1000 (data/agent125): the stock head's chain on real coding-agent turns gives tau ~3.9 (bash 3.4, text 3.8, edit
 5.6, write 2.8) vs the 35B head's 8-10. Kill if tau(16) does not rise >= ~30 %.
 
 Head (MTPLX's reconstruction, qwen4_exp.Qwen4ExpMTP): the trunk's pre-mixer WIDENED stream W [S, 4 x 2560] -> full-
@@ -11,7 +11,7 @@ the MoE with mx.gather_qmm on the frozen 4-bit experts. Trained (fp32 copies): f
 q/k/v/o, router, shared expert. Frozen: experts, HC mixers, norms, lm_head, embeddings.
 Depths (DeepSeek-V3's MTP recipe, no custom masks): depth j is a causal pass over the previous depth's outputs with
 token t+j; KL to the trunk's distribution at position t+j (top-64 + tail) at every depth.
-Data: Kamen's Claude Code turns (SpecDecode extract/render, read-only), disjoint from SpecDecode's 29 samples (which
+Data: coding-agent turns (SpecDecode extract/render, read-only), disjoint from SpecDecode's 29 samples (which
 contain Chat1000's 12 test turns); the trunk prefills each turn once (streamed BigMoE engine) and every position of it
 becomes training data (no disk: features live in RAM for one turn).
   mtp125.py probe | check | train --run NAME [--depth 4] [--lr 1e-5] [--time-limit S] | export --run NAME
@@ -260,7 +260,7 @@ def general_items():
 
 
 def rendered_full(s, render, tok):
-    """prompt ids (forced prefix) + Claude's real continuation (teacher-forced text; the trunk scores it)."""
+    """prompt ids (forced prefix) + the agent's real continuation (teacher-forced text; the trunk scores it)."""
     ids, rest = render(s, tok)
     cont = tok.encode(rest, add_special_tokens=False)[:512]
     full = ids + cont

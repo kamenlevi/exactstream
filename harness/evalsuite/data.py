@@ -298,7 +298,7 @@ def build_mgsm(tok, per_lang=8):
 def decode_items_extra(tok=None):
     """the behaviour rows without gold, scored as agreement with the reference next to the floor (decode_report.AGREE):
     dec_multi = the 24 multilingual teacher-forced prompts (8 languages, 384 tokens, as cache/ref/tf_gen.jsonl);
-    dec_agent = 29 real Claude Code turns (SpecDecode's route4: ~9K-token contexts, 125B token ids), the next 128 tokens;
+    dec_agent = 29 real coding-agent turns (SpecDecode's route4: ~9K-token contexts, 125B token ids), the next 128 tokens;
     and the scored multilingual set dec_mgsm (build_mgsm). tok: the runtime's (MTPLX restores the pre-tokenizer regex
     that keeps combining marks on their letters: Thai, Telugu, Bengali), so the stage passes rt.tokenizer"""
     if not os.path.exists(os.path.join(ITEMS, "dec_mgsm.jsonl")):
