@@ -5,8 +5,14 @@ Kamen Levi
 The engine that runs Qwen3.8-Flash-Next (125B parameters, 512 experts per layer) on one Apple-silicon laptop by
 streaming the experts from the internal SSD into fixed memory pools, with speculative decoding checked on the matrix
 units. Exact configs produce tokens bitwise equal to the exact reference; lossy configs passed (or are labelled as not
-having passed) gates on the model's known benchmarks. The papers that describe it (MAIN, KERNELS, SMALL_RAM, DRAFTER,
-EVALUATION and RELEASE) are in `docs/`.
+having passed) gates on the model's known benchmarks. The papers that describe it (an overview: `docs/index.html`):
+- [MAIN](docs/pdf/main.pdf): exact and gated lossy decoding of the 125B model on one 64 GB laptop
+- [KERNELS](docs/pdf/kernels.pdf): batch-invariant kernels on Apple's M5 GPU and its matrix units
+- [DRAFTER](docs/pdf/drafter.pdf): drafting for a model that does not fit in memory
+- [EVALUATION](docs/pdf/evaluation.pdf): same-scores gates on the model's known benchmarks
+- [RELEASE](docs/pdf/release.pdf): this engine package
+
+A paper on the 12 GB and 24 GB lines is coming soon. We will publish it by Wednesday, 11 November 2026.
 
 Status: research code, released as measured. The decode loop is the research harness's own loop, unchanged; `run.py`
 only turns a text prompt into a prompt item and prints the answer and the loop's timing.
@@ -59,10 +65,13 @@ loads the model and runs one discarded warm-up prompt (`--no-warmup` skips it; t
 |---|---|---|---|
 | `exact` | 45 (C 256) / 32 (C 160) | config E: exact, tokens bitwise equal to the exact reference (NAX6-N) | exact |
 | `lossy` | 45 / 32 | config L + COH | 45: lossy, same scores as `exact` on IFBench, GPQA Diamond and LiveCodeBench v6 (a card gate, both orders); 32: lossy, not gated (no gate ran at C 160; on IFEval it gives the 45 GB line's tokens on 12 / 12 prompts) |
-| `chat` | 45 / 32 | config zs = M1-B + COH + SB1 | 45: [[TBD-2: the m1b card gate's result, after Mon 16:20]]; 32: lossy, not gated (its card gate did not run) |
+| `chat` | 45 / 32 | config zs = M1-B + COH + SB1 | 45: lossy, same scores as `exact` on IFEval, IFBench, GPQA Diamond and LiveCodeBench v6 (gates on M1-B + COH, both orders; the shipped config gives its tokens on all 12 IFEval prompts); 32: lossy, not gated (its card gate did not run) |
 
 Each config is one environment line in `configs/<config>-<mem>.env`, as the research runs used it. `--kind
-chat|code|math` picks which benchmark family's switches apply to a prompt (default chat).
+chat|code|math` picks which benchmark family's switches apply to a prompt (default chat). The memory line (45 or 32 GB)
+is the engine's lifetime peak footprint (phys_footprint, GB = 10^9 bytes). Besides it, every config holds a 7.45 GB
+volatile expert tier as purgeable memory, which macOS reclaims before it compresses or swaps and which the footprint does
+not count.
 
 ## Results
 Measured on the test Mac, pooled over 12 prompts per set, 256 new tokens, greedy: whole decode / whole request (tok/s) /
@@ -100,8 +109,8 @@ verifier that checks every expert from disk), and `convert/convert_records_p11.p
 
 runs the three steps one layer at a time: about 3-4.4 GB of extra disk at a time beside the growing 68.5 GB store, and a
 stopped run resumes at the next unfinished layer. `convert/test_layers.sh` runs them on a few layers and compares the
-bytes with an existing store. We did not run a full conversion (the test Mac's disk could not hold a second store); from
-runs on two layers, the full store takes about 15-31 minutes.
+bytes with an existing store. On the test Mac a full conversion of all 48 layers took 9.5 minutes, and the store it built
+equals, byte for byte, the one all our measurements used.
 
 ## Limits
 - MLX is pinned to 0.32.2. Its sorted gather_qmm leaves rows unwritten past 32,767 sorted rows when the row count is
@@ -113,10 +122,10 @@ runs on two layers, the full store takes about 15-31 minutes.
 - The chat prefill path (PF-D) is on for `chat` at 45 GB only and was measured on chat-length prompts (37-101 tokens).
 - Lifetime peaks go above 45.0 GB on long prompts (45.1-46.4 GB on 7.9K tokens).
 - At 32 GB, `exact` was measured on chat (IFEval) only, and `lossy` has no code or math rows of its own.
-- The lossy configs are gated on the named benchmarks only.
+- The lossy configs are gated on the named benchmarks only. On a multilingual chat set, M1-B (the `chat` configs' lossy
+  part) fails our own blunder check, which is information only.
 - Tested on one Mac, with two IFEval prompts per config in the clean-clone test; other Macs and macOS versions are
   untested.
-[[TBD: re-check against RELEASE section 5 after Mon 16:00]]
 
 ## Licence and credits
 Powered by MTPLX
