@@ -1,6 +1,7 @@
 # Known limits
 
-Everything was measured on one MacBook Pro, with an M5 Pro and 64 GB, on macOS 26.5 (25F71).
+Everything was measured on one MacBook Pro with an M5 Pro (18-core CPU, 20-core GPU), 64 GB of memory and a 2 TB SSD,
+on macOS 26.5 (25F71).
 
 - MLX is pinned to 0.32.2. Its sorted gather_qmm leaves rows unwritten past 32,767 sorted rows when the row count is
   not a multiple of 64 (MLX issue #4632); the engine pads to 64. 0.32.4 fixes the bug but changes tokens against our

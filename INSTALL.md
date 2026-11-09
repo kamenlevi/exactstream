@@ -1,8 +1,8 @@
 # Install and run
 
 ## Requirements
-- An Apple-silicon Mac with 64 GB of unified memory and the model on its internal SSD. Tested: MacBook Pro, M5 Pro,
-  64 GB; macOS 26.5 (25F71).
+- An Apple-silicon Mac with 64 GB of unified memory and the model on its internal SSD. Tested: MacBook Pro, M5 Pro
+  (18-core CPU, 20-core GPU), 64 GB, 2 TB SSD; macOS 26.5 (25F71).
 - Python 3.12, CMake >= 3.27 and the Xcode command-line tools (for the extension).
 - Disk: about 174 GB in all, for the model's own files (about 105 GB without its vision tower; [WEIGHTS.md](WEIGHTS.md))
   and the converted expert store (48 layers x 512 experts x 2.79 MB = 68.5 GB; [CONVERSION.md](CONVERSION.md)); keep
