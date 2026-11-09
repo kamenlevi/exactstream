@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What It Takes to Run a 125B LLM Fast on a 64 GB Mac, and How to Go Faster</title>
+<meta name="citation_title" content="What It Takes to Run a 125B LLM Fast on a 64 GB Mac, and How to Go Faster">
+<meta name="citation_author" content="Kamen Levi">
+<meta name="citation_publication_date" content="2026/11/09">
+<meta name="citation_pdf_url" content="https://kamenlevi.github.io/exactstream/pdf/main.pdf">
+<style>body{max-width:52rem;margin:2rem auto;padding:0 1rem;font:16px/1.5 Georgia,serif;color:#111;background:#fff}h1{font-size:1.6rem;line-height:1.25}h2{font-size:1.2rem;line-height:1.3;margin-bottom:.2rem}.author,.date{color:#333;margin:.2rem 0}.paper{border-top:1px solid #ccc;padding:1rem 0}.abstract{font-size:.95rem}a{color:#0645ad}</style>
+</head>
+<body>
+<p><a href="index.html">All papers</a></p>
+<h1>What It Takes to Run a 125B LLM Fast on a 64 GB Mac, and How to Go Faster</h1>
+<p><em>How batch-invariant speculative checks, SSD-streamed experts and a certified lossy layer build on each other within a 45 GB memory line, and what each piece adds.</em></p>
+<p class="author">Kamen Levi</p>
+<p class="affiliation">Independent researcher</p>
+<p class="date">9 November 2026</p>
+<p><a href="pdf/main.pdf">PDF</a></p>
+<h2>Abstract</h2>
+<div class="abstract">
+<p>We run a 125B-parameter mixture-of-experts model (Qwen3.8-Flash-Next:
+48 layers, 512 routed experts per layer, 10 per token) on one MacBook
+Pro (M5 Pro, 64 GB), with the routed experts streamed from the internal
+SSD at about 3.2 bits per weight and the process's lifetime peak at most
+45 GB (plus a 7.45 GB expert tier that macOS may reclaim). The pieces
+are mostly published; this paper is about how they depend on each other
+and what each adds. Speculative decoding pays one pass of the large
+model for up to 16 drafted tokens, but it is exact only if that pass
+computes the same bits as one-token decoding. Batch-invariant kernels on
+the GPU and its matrix units make it so, and we audit it on every run
+(96 of 96 code runs, 24 of 24 chat and 24 of 24 math runs
+token-identical to one-token greedy decoding). Exactness then turns
+every later optimisation into a test of token equality that takes
+minutes: the levers of the streamed engine, such as per-layer expert
+pools and expert reads hidden behind the GPU's work, were each adopted
+that way. On top of the exact engine, a lossy layer lets drafted rows of
+code answers skip cold experts and run 3-bit parts, and ships only if it
+scores the same as the exact reference on the model's benchmarks.</p>
+<p>The exact configuration decodes 101.4 tok/s on 12 HumanEval prompts,
+70.4 on 12 MBPP, 77.9 on 12 math and 37.1 on 12 chat (IFEval) prompts,
+at a lifetime peak of 41.7-42.5 GB [K]. The lossy configuration we ship
+scores the same as the exact reference on the model card's IFBench, GPQA
+Diamond and LiveCodeBench v6 in both prompt orders, and decodes 164.0,
+112.7, 78.9 and 45.2 tok/s on the same sets at 42.4-43.2 GB [K]. Our
+first token is slow, a median of 2.7-4.6 s on these short prompts: on
+the same machine and prompts the open engine Strata's takes 0.54-1.01 s,
+and Strata wins or ties every whole request of up to 256 tokens,
+although our lossy decode is 2.5-3.5x its decode on code [K]. None of
+the methods is specific to this model's layers; we tested one model on
+one machine. We also report negative results, including three headline
+numbers we corrected or withdrew.</p>
+<hr />
+</div>
+
+</body>
+</html>

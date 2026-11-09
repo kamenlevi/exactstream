@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Certifying lossy decoding on the model&#x27;s known benchmarks: same-scores gates for a 125B mixture-of-experts model on one 64 GB Mac</title>
+<meta name="citation_title" content="Certifying lossy decoding on the model&#x27;s known benchmarks: same-scores gates for a 125B mixture-of-experts model on one 64 GB Mac">
+<meta name="citation_author" content="Kamen Levi">
+<meta name="citation_publication_date" content="2026/11/09">
+<meta name="citation_pdf_url" content="https://kamenlevi.github.io/exactstream/pdf/evaluation.pdf">
+<style>body{max-width:52rem;margin:2rem auto;padding:0 1rem;font:16px/1.5 Georgia,serif;color:#111;background:#fff}h1{font-size:1.6rem;line-height:1.25}h2{font-size:1.2rem;line-height:1.3;margin-bottom:.2rem}.author,.date{color:#333;margin:.2rem 0}.paper{border-top:1px solid #ccc;padding:1rem 0}.abstract{font-size:.95rem}a{color:#0645ad}</style>
+</head>
+<body>
+<p><a href="index.html">All papers</a></p>
+<h1>Certifying lossy decoding on the model&#x27;s known benchmarks: same-scores gates for a 125B mixture-of-experts model on one 64 GB Mac</h1>
+<p class="author">Kamen Levi</p>
+<p class="affiliation">Independent researcher</p>
+<p class="date">9 November 2026</p>
+<p><a href="pdf/evaluation.pdf">PDF</a></p>
+<h2>Abstract</h2>
+<div class="abstract">
+<p>Lossy decoding is what makes a 125B mixture-of-experts model fast on
+one 64 GB Mac ([MAIN]), and it changes the output. We ask a narrow
+question: does a lossy configuration score the same as its exact
+reference on the model's known benchmarks?</p>
+<ul>
+<li><strong>The gate:</strong> pre-registered and paired, one benchmark
+at a time.
+<ul>
+<li>The paired accuracy delta must be above −5 points, and the exact
+two-sided McNemar test must not reject (p &gt;= 0.05).</li>
+<li>It runs in two prompt orders, against the exact one-token greedy
+reference of the same memory mode.</li>
+</ul></li>
+<li><strong>Exactness</strong> is audited separately: every token, and
+the logits row behind every kept token, must be bitwise equal to the
+reference's own one-token decode.</li>
+<li><strong>What passed, 20 October to 9 November 2026 [K]:</strong>
+<ul>
+<li>L + COH, the 45 GB configuration we publish, and the chat
+configuration (M1-B + COH) passed the model card's IFBench, GPQA Diamond
+and LiveCodeBench v6 in both orders.</li>
+<li>Its certified base ("v1' + wired"; L adds to it a bundle of kernel
+changes that is bitwise in the exact mode) passed all 10 of its
+pre-registered lines: HumanEval+, MBPP, math and IFEval in both orders,
+a pooled line and a long-code line. A certificate covers only the
+configuration it tested, so it does not carry to L + COH.</li>
+<li>Exact decode paths that differ only in numerics (REF2, REF2b, NAX6)
+passed the same gate against each other.</li>
+<li>Four more lossy configurations passed on the benchmarks they were
+gated on: 8-bit mixers; a short stack gate; a 32 GB point on HumanEval+
+only; the chat configuration on IFEval (before its card gate).</li>
+</ul></li>
+<li><strong>What failed [K]:</strong>
+<ul>
+<li>six quality-defined modes;</li>
+<li>a code profile on the −5-point boundary;</li>
+<li>every 12 GB candidate we gated on task scores.</li>
+</ul></li>
+<li><strong>Where we lose:</strong>
+<ul>
+<li>The gate is coarse. Exact paths that differ only in numerics moved
+one benchmark by 8 points on 50 items [K]. An arm with no true loss
+fails one order of one benchmark with a probability we price at 5-15 %
+[P].</li>
+<li>Most of our gates ran on subsets of public benchmarks and on
+home-made lines. The model card's own benchmarks (IFBench, GPQA Diamond,
+LiveCodeBench v6) were adopted as the gate on 8 November, on 381 keys:
+IFBench 150 of 300, GPQA Diamond 100 of 198 and one 131-problem
+LiveCodeBench window. L + COH has passed them, and so has the chat
+configuration (M1-B + COH; 6 of 6 lines); the 32 GB point (zs32) is not
+gated (no card gate ran).</li>
+<li>We list our mistakes, among them a reference switched after we had
+seen a result, and a chat path we called exact without having measured
+it.</li>
+</ul></li>
+</ul>
+</div>
+
+</body>
+</html>

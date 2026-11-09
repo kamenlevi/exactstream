@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Batch-invariant kernels on Apple&#x27;s M5 GPU and its matrix units</title>
+<meta name="citation_title" content="Batch-invariant kernels on Apple&#x27;s M5 GPU and its matrix units">
+<meta name="citation_author" content="Kamen Levi">
+<meta name="citation_publication_date" content="2026/11/09">
+<meta name="citation_pdf_url" content="https://kamenlevi.github.io/exactstream/pdf/kernels.pdf">
+<style>body{max-width:52rem;margin:2rem auto;padding:0 1rem;font:16px/1.5 Georgia,serif;color:#111;background:#fff}h1{font-size:1.6rem;line-height:1.25}h2{font-size:1.2rem;line-height:1.3;margin-bottom:.2rem}.author,.date{color:#333;margin:.2rem 0}.paper{border-top:1px solid #ccc;padding:1rem 0}.abstract{font-size:.95rem}a{color:#0645ad}</style>
+</head>
+<body>
+<p><a href="index.html">All papers</a></p>
+<h1>Batch-invariant kernels on Apple&#x27;s M5 GPU and its matrix units</h1>
+<p><em>An exact speculative-decoding reference for a streamed 125B mixture-of-experts model, and what MLX 0.32.2 computes at each row count.</em></p>
+<p class="author">Kamen Levi</p>
+<p class="affiliation">Independent researcher</p>
+<p class="date">9 November 2026</p>
+<p><a href="pdf/kernels.pdf">PDF</a></p>
+<h2>Abstract</h2>
+<div class="abstract">
+<p>Speculative decoding is exact only if verifying k drafted tokens in
+one batched call produces the same bits as decoding them one at a time.
+On Apple's M5 GPU with MLX 0.32.2 it does not. The framework picks a
+different kernel for 1, 2-8, 16 and thousands of rows (vector kernels,
+split-K kernels, matrix-unit GEMMs), and each rounds differently. With
+the stock kernels, all 16 rows of a verify pass already differ from
+one-token decoding at the first matmul of a 125B mixture-of-experts
+model [K].</p>
+<p>We build a batch-invariant kernel set for that model (48 layers, 512
+experts per layer, 10 per token; the expert store runs at about 3.2 bits
+per expert weight):</p>
+<ul>
+<li>dense projections padded to one 16-row shape, on a matrix-unit
+kernel that multiplies the raw codes;</li>
+<li>routed experts on one 16-row matrix-unit tile per expert, then a
+fixed split-K over a record layout native to the matrix unit's
+fragments;</li>
+<li>a hyper-connection read that replicates MLX's own split-K loop bit
+for bit;</li>
+<li>attention pinned to fixed key buckets and length classes.</li>
+</ul>
+<p>Under it, 16 one-token steps and one 16-row verify agree on all 37
+records of a forward through a 12-layer slice [K], and full-length
+audits agree on every kept row ([MAIN] section 3.2). The dense part of a
+check falls from 56.8 to 27.4 ms [K]. On the expert path the matrix-unit
+kernel beats our ALU kernel by x1.062 in whole decode in an engine A/B
+[K]. Batching a prompt's MoE layers over all chunks is exact once two
+kernels are pinned, and prefills 1.6K-7.9K-token prompts x1.14-1.21
+faster [K]. We map which MLX kernels are row-invariant at decode and
+prefill widths, and report ten MLX findings with reproductions, among
+them a sorted-gather bug that leaves rows unwritten past 32,767 rows
+(independently of its upstream report) and stale reads of CPU-written
+memory inside one command buffer.</p>
+<p><strong>Where we lose.</strong> One-token decoding through the padded
+kernels runs at x0.75 of the stock kernels [K]. Our exact expert kernel
+runs at 70-74 % of the rate its own loads stream at [K]. The exact
+batched prefill peaks at 46.2 GB, over the 45 GB line [K]. And on the
+same machine and the same 48 prompts, against Strata (MIT;
+github.com/Niko1221/Strata), our decode is ahead on code and math and
+about level on chat, exact chat decode is behind, and Strata's first
+token (0.5-1.0 s) beats ours (about 2.7-4.6 s), so up to 256 generated
+tokens Strata wins or ties every whole-request number ([MAIN] Appendix G
+has the table).</p>
+<hr />
+</div>
+
+</body>
+</html>

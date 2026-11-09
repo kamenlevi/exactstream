@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Papers</title>
+<style>body{max-width:52rem;margin:2rem auto;padding:0 1rem;font:16px/1.5 Georgia,serif;color:#111;background:#fff}h1{font-size:1.6rem;line-height:1.25}h2{font-size:1.2rem;line-height:1.3;margin-bottom:.2rem}.author,.date{color:#333;margin:.2rem 0}.paper{border-top:1px solid #ccc;padding:1rem 0}.abstract{font-size:.95rem}a{color:#0645ad}</style>
+</head>
+<body>
+<h1>Papers</h1>
+<p class="author">Kamen Levi</p>
+<p class="date">9 November 2026</p>
+<div class="paper">
+<h2><a href="complete.html">What It Takes to Run a 125B LLM Fast on a 64 GB Mac, and How to Go Faster (complete report, Parts I-V)</a></h2>
+<p class="author">Kamen Levi</p>
+<div class="abstract">
+<p>Complete report: the main paper and four companion papers as Parts I-V.</p>
+<ol class="parts">
+<li>Part I: <a href="main.html">What It Takes to Run a 125B LLM Fast on a 64 GB Mac, and How to Go Faster</a> (from page 3; <a href="pdf/main.pdf">separate PDF</a>)</li>
+<li>Part II: <a href="kernels.html">Batch-invariant kernels on Apple&#x27;s M5 GPU and its matrix units</a> (from page 35; <a href="pdf/kernels.pdf">separate PDF</a>)</li>
+<li>Part III: <a href="evaluation.html">Certifying lossy decoding on the model&#x27;s known benchmarks: same-scores gates for a 125B mixture-of-experts model on one 64 GB Mac</a> (from page 48; <a href="pdf/evaluation.pdf">separate PDF</a>)</li>
+<li>Part IV: <a href="drafter.html">Drafting for a 125B mixture-of-experts model that does not fit in RAM: training its own MTP head, one drafter per text type, and the levers that failed</a> (from page 60; <a href="pdf/drafter.pdf">separate PDF</a>)</li>
+<li>Part V: <a href="release.html">Running a 125B mixture-of-experts model on a 64 GB Mac: the engine package</a> (from page 77; <a href="pdf/release.pdf">separate PDF</a>)</li>
+</ol>
+</div>
+<p><a href="pdf/complete.pdf">PDF</a> &middot; <a href="complete.html">Abstract page</a></p>
+</div>
+<div class="paper">
+<h2><a href="main.html">What It Takes to Run a 125B LLM Fast on a 64 GB Mac, and How to Go Faster</a></h2>
+<p class="author">Kamen Levi</p>
+<div class="abstract">
+<p>We run a 125B-parameter mixture-of-experts model (Qwen3.8-Flash-Next:
+48 layers, 512 routed experts per layer, 10 per token) on one MacBook
+Pro (M5 Pro, 64 GB), with the routed experts streamed from the internal
+SSD at about 3.2 bits per weight and the process's lifetime peak at most
+45 GB (plus a 7.45 GB expert tier that macOS may reclaim). The pieces
+are mostly published; this paper is about how they depend on each other
+and what each adds. Speculative decoding pays one pass of the large
+model for up to 16 drafted tokens, but it is exact only if that pass
+computes the same bits as one-token decoding. Batch-invariant kernels on
+the GPU and its matrix units make it so, and we audit it on every run
+(96 of 96 code runs, 24 of 24 chat and 24 of 24 math runs
+token-identical to one-token greedy decoding). Exactness then turns
+every later optimisation into a test of token equality that takes
+minutes: the levers of the streamed engine, such as per-layer expert
+pools and expert reads hidden behind the GPU's work, were each adopted
+that way. On top of the exact engine, a lossy layer lets drafted rows of
+code answers skip cold experts and run 3-bit parts, and ships only if it
+scores the same as the exact reference on the model's benchmarks.</p>
+<p>The exact configuration decodes 101.4 tok/s on 12 HumanEval prompts,
+70.4 on 12 MBPP, 77.9 on 12 math and 37.1 on 12 chat (IFEval) prompts,
+at a lifetime peak of 41.7-42.5 GB [K]. The lossy configuration we ship
+scores the same as the exact reference on the model card's IFBench, GPQA
+Diamond and LiveCodeBench v6 in both prompt orders, and decodes 164.0,
+112.7, 78.9 and 45.2 tok/s on the same sets at 42.4-43.2 GB [K]. Our
+first token is slow, a median of 2.7-4.6 s on these short prompts: on
+the same machine and prompts the open engine Strata's takes 0.54-1.01 s,
+and Strata wins or ties every whole request of up to 256 tokens,
+although our lossy decode is 2.5-3.5x its decode on code [K]. None of
+the methods is specific to this model's layers; we tested one model on
+one machine. We also report negative results, including three headline
+numbers we corrected or withdrew.</p>
+<hr />
+</div>
+<p><a href="pdf/main.pdf">PDF</a> &middot; <a href="main.html">Abstract page</a></p>
+</div>
+<div class="paper">
+<h2><a href="kernels.html">Batch-invariant kernels on Apple&#x27;s M5 GPU and its matrix units</a></h2>
+<p class="author">Kamen Levi</p>
+<div class="abstract">
+<p>Speculative decoding is exact only if verifying k drafted tokens in
+one batched call produces the same bits as decoding them one at a time.
+On Apple's M5 GPU with MLX 0.32.2 it does not. The framework picks a
+different kernel for 1, 2-8, 16 and thousands of rows (vector kernels,
+split-K kernels, matrix-unit GEMMs), and each rounds differently. With
+the stock kernels, all 16 rows of a verify pass already differ from
+one-token decoding at the first matmul of a 125B mixture-of-experts
+model [K].</p>
+<p>We build a batch-invariant kernel set for that model (48 layers, 512
+experts per layer, 10 per token; the expert store runs at about 3.2 bits
+per expert weight):</p>
+<ul>
+<li>dense projections padded to one 16-row shape, on a matrix-unit
+kernel that multiplies the raw codes;</li>
+<li>routed experts on one 16-row matrix-unit tile per expert, then a
+fixed split-K over a record layout native to the matrix unit's
+fragments;</li>
+<li>a hyper-connection read that replicates MLX's own split-K loop bit
+for bit;</li>
+<li>attention pinned to fixed key buckets and length classes.</li>
+</ul>
+<p>Under it, 16 one-token steps and one 16-row verify agree on all 37
+records of a forward through a 12-layer slice [K], and full-length
+audits agree on every kept row ([MAIN] section 3.2). The dense part of a
+check falls from 56.8 to 27.4 ms [K]. On the expert path the matrix-unit
+kernel beats our ALU kernel by x1.062 in whole decode in an engine A/B
+[K]. Batching a prompt's MoE layers over all chunks is exact once two
+kernels are pinned, and prefills 1.6K-7.9K-token prompts x1.14-1.21
+faster [K]. We map which MLX kernels are row-invariant at decode and
+prefill widths, and report ten MLX findings with reproductions, among
+them a sorted-gather bug that leaves rows unwritten past 32,767 rows
+(independently of its upstream report) and stale reads of CPU-written
+memory inside one command buffer.</p>
+<p><strong>Where we lose.</strong> One-token decoding through the padded
+kernels runs at x0.75 of the stock kernels [K]. Our exact expert kernel
+runs at 70-74 % of the rate its own loads stream at [K]. The exact
+batched prefill peaks at 46.2 GB, over the 45 GB line [K]. And on the
+same machine and the same 48 prompts, against Strata (MIT;
+github.com/Niko1221/Strata), our decode is ahead on code and math and
+about level on chat, exact chat decode is behind, and Strata's first
+token (0.5-1.0 s) beats ours (about 2.7-4.6 s), so up to 256 generated
+tokens Strata wins or ties every whole-request number ([MAIN] Appendix G
+has the table).</p>
+<hr />
+</div>
+<p><a href="pdf/kernels.pdf">PDF</a> &middot; <a href="kernels.html">Abstract page</a></p>
+</div>
+<div class="paper">
+<h2><a href="evaluation.html">Certifying lossy decoding on the model&#x27;s known benchmarks: same-scores gates for a 125B mixture-of-experts model on one 64 GB Mac</a></h2>
+<p class="author">Kamen Levi</p>
+<div class="abstract">
+<p>Lossy decoding is what makes a 125B mixture-of-experts model fast on
+one 64 GB Mac ([MAIN]), and it changes the output. We ask a narrow
+question: does a lossy configuration score the same as its exact
+reference on the model's known benchmarks?</p>
+<ul>
+<li><strong>The gate:</strong> pre-registered and paired, one benchmark
+at a time.
+<ul>
+<li>The paired accuracy delta must be above −5 points, and the exact
+two-sided McNemar test must not reject (p &gt;= 0.05).</li>
+<li>It runs in two prompt orders, against the exact one-token greedy
+reference of the same memory mode.</li>
+</ul></li>
+<li><strong>Exactness</strong> is audited separately: every token, and
+the logits row behind every kept token, must be bitwise equal to the
+reference's own one-token decode.</li>
+<li><strong>What passed, 20 October to 9 November 2026 [K]:</strong>
+<ul>
+<li>L + COH, the 45 GB configuration we publish, and the chat
+configuration (M1-B + COH) passed the model card's IFBench, GPQA Diamond
+and LiveCodeBench v6 in both orders.</li>
+<li>Its certified base ("v1' + wired"; L adds to it a bundle of kernel
+changes that is bitwise in the exact mode) passed all 10 of its
+pre-registered lines: HumanEval+, MBPP, math and IFEval in both orders,
+a pooled line and a long-code line. A certificate covers only the
+configuration it tested, so it does not carry to L + COH.</li>
+<li>Exact decode paths that differ only in numerics (REF2, REF2b, NAX6)
+passed the same gate against each other.</li>
+<li>Four more lossy configurations passed on the benchmarks they were
+gated on: 8-bit mixers; a short stack gate; a 32 GB point on HumanEval+
+only; the chat configuration on IFEval (before its card gate).</li>
+</ul></li>
+<li><strong>What failed [K]:</strong>
+<ul>
+<li>six quality-defined modes;</li>
+<li>a code profile on the −5-point boundary;</li>
+<li>every 12 GB candidate we gated on task scores.</li>
+</ul></li>
+<li><strong>Where we lose:</strong>
+<ul>
+<li>The gate is coarse. Exact paths that differ only in numerics moved
+one benchmark by 8 points on 50 items [K]. An arm with no true loss
+fails one order of one benchmark with a probability we price at 5-15 %
+[P].</li>
+<li>Most of our gates ran on subsets of public benchmarks and on
+home-made lines. The model card's own benchmarks (IFBench, GPQA Diamond,
+LiveCodeBench v6) were adopted as the gate on 8 November, on 381 keys:
+IFBench 150 of 300, GPQA Diamond 100 of 198 and one 131-problem
+LiveCodeBench window. L + COH has passed them, and so has the chat
+configuration (M1-B + COH; 6 of 6 lines); the 32 GB point (zs32) is not
+gated (no card gate ran).</li>
+<li>We list our mistakes, among them a reference switched after we had
+seen a result, and a chat path we called exact without having measured
+it.</li>
+</ul></li>
+</ul>
+</div>
+<p><a href="pdf/evaluation.pdf">PDF</a> &middot; <a href="evaluation.html">Abstract page</a></p>
+</div>
+<div class="paper">
+<h2><a href="drafter.html">Drafting for a 125B mixture-of-experts model that does not fit in RAM: training its own MTP head, one drafter per text type, and the levers that failed</a></h2>
+<p class="author">Kamen Levi</p>
+<div class="abstract">
+<p>We study the drafter side of exact speculative decoding for
+Qwen3.8-Flash-Next, a 125B mixture-of-experts model (48 layers, 512
+routed experts per layer, 10 per token) whose experts stream from the
+internal SSD of one 64 GB Mac ([MAIN]). The engine verifies up to 16
+drafted rows per check and keeps the output bit-identical to one-token
+greedy decoding, so a drafter can change speed but never the output.</p>
+<p>We compare two drafters: a 5-layer block drafter that proposes 16
+positions in one pass (DFlash2-style), and the model's own
+multi-token-prediction (MTP) layer, run as a chain, as MTPLX does. Three
+findings:</p>
+<ul>
+<li><strong>Training the MTP layer the way it is used</strong>, over its
+own chain (EAGLE-3's training-time test), raises its code kept tokens
+per 16-row check from 7.78 to 10.98 (x1.41) [K]. That is above the block
+drafter's 10.44 on the same answers. Chat moves by only 2-3 %, not
+significant.</li>
+<li><strong>The chained MTP head beats the block drafter on chat and
+agent text</strong> (x1.08-1.32 tokens per check [K]) and loses on code
+(x0.75). So the engine routes by text type. On 19 fresh chat prompts the
+switch gave:
+<ul>
+<li>whole decode 23.1 -&gt; 28.8 tok/s (+24.5 %);</li>
+<li>whole request 18.6 -&gt; 22.0 tok/s (+18.3 %);</li>
+<li>first token 1.9 s in both arms;</li>
+<li>lifetime peak 37.9 GB;</li>
+<li>every token identical.</li>
+</ul></li>
+<li><strong>Most other levers failed.</strong> Of 83 drafter-side items
+we tried (Appendix A), 41 ended in a KILL (by a pre-registered line, or
+at the desk or on paper), and 27 ended between lines, parked or as
+information.</li>
+</ul>
+<p>Where we lose is chat. We keep 2.3-2.5 tokens per chat check, and the
+check's fixed cost is ~75-85 % of a chat check. So a drafter that never
+missed would still reach only ~105-115 tok/s of chat decode at today's
+check cost [P]. Against Strata on the same machine, our chat decode is
+about level, and Strata's first token wins every whole-request number up
+to 256 generated tokens. We also continued the chat head overnight on
+the model's own chat features. A memory guard stopped capture at 0.10M
+tokens, and the head kept x1.014 on held-out chat: a KILL by its own
+line, at 8 % of its planned data [K].</p>
+<p>We also hit a training pitfall. MLX runs fp32 matmuls as TF32 unless
+told otherwise, which moved our drafter's training losses by 1.3-3.5 %
+against a float32 port.</p>
+<hr />
+</div>
+<p><a href="pdf/drafter.pdf">PDF</a> &middot; <a href="drafter.html">Abstract page</a></p>
+</div>
+<div class="paper">
+<h2><a href="release.html">Running a 125B mixture-of-experts model on a 64 GB Mac: the engine package</a></h2>
+<p class="author">Kamen Levi</p>
+<div class="abstract">
+<p>This paper documents the engine package behind [MAIN]. The engine
+runs Qwen3.8-Flash-Next, a 125B mixture-of-experts model, on one MacBook
+Pro (M5 Pro, 64 GB): the experts are stored once on the internal SSD,
+and each layer keeps a fixed pool of them in memory. It installs from a
+clean clone (tested on one machine) and ships six configurations: exact,
+lossy and chat, each at a 45 GB and a 32 GB memory line, labelled as
+[MAIN] section 2 defines. At 45 GB, the exact configuration,
+bit-identical to one-token greedy decoding under our reference NAX6-N,
+decodes 37.1-101.4 tok/s; the shipped lossy one, which scored the same
+as the exact reference on the model card's IFBench, GPQA Diamond and
+LiveCodeBench v6 in both orders, decodes 45.2-164.0 tok/s; both stay at
+a lifetime peak of 41.7-43.2 GB, plus a 7.45 GB expert tier that macOS
+may reclaim [K, section 2]. Where we lose: on the same machine and
+prompts, Strata's first token (0.5-1.0 s) beats ours (2.7-4.6 s; 2.26 s
+on chat as shipped), so up to 256 generated tokens Strata wins or ties
+every whole-request number [K, section 2]. The code is GPL-3; the
+model's weights keep their own licence (section 7).</p>
+</div>
+<p><a href="pdf/release.pdf">PDF</a> &middot; <a href="release.html">Abstract page</a></p>
+</div>
+<div class="paper note">
+<p>A paper on the 12 GB and 24 GB lines is coming soon. We will publish
+it by Wednesday, 11 November 2026.</p>
+</div>
+
+</body>
+</html>

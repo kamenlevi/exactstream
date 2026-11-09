@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drafting for a 125B mixture-of-experts model that does not fit in RAM: training its own MTP head, one drafter per text type, and the levers that failed</title>
+<meta name="citation_title" content="Drafting for a 125B mixture-of-experts model that does not fit in RAM: training its own MTP head, one drafter per text type, and the levers that failed">
+<meta name="citation_author" content="Kamen Levi">
+<meta name="citation_publication_date" content="2026/11/09">
+<meta name="citation_pdf_url" content="https://kamenlevi.github.io/exactstream/pdf/drafter.pdf">
+<style>body{max-width:52rem;margin:2rem auto;padding:0 1rem;font:16px/1.5 Georgia,serif;color:#111;background:#fff}h1{font-size:1.6rem;line-height:1.25}h2{font-size:1.2rem;line-height:1.3;margin-bottom:.2rem}.author,.date{color:#333;margin:.2rem 0}.paper{border-top:1px solid #ccc;padding:1rem 0}.abstract{font-size:.95rem}a{color:#0645ad}</style>
+</head>
+<body>
+<p><a href="index.html">All papers</a></p>
+<h1>Drafting for a 125B mixture-of-experts model that does not fit in RAM: training its own MTP head, one drafter per text type, and the levers that failed</h1>
+<p class="author">Kamen Levi</p>
+<p class="affiliation">Independent researcher</p>
+<p class="date">9 November 2026</p>
+<p><a href="pdf/drafter.pdf">PDF</a></p>
+<h2>Abstract</h2>
+<div class="abstract">
+<p>We study the drafter side of exact speculative decoding for
+Qwen3.8-Flash-Next, a 125B mixture-of-experts model (48 layers, 512
+routed experts per layer, 10 per token) whose experts stream from the
+internal SSD of one 64 GB Mac ([MAIN]). The engine verifies up to 16
+drafted rows per check and keeps the output bit-identical to one-token
+greedy decoding, so a drafter can change speed but never the output.</p>
+<p>We compare two drafters: a 5-layer block drafter that proposes 16
+positions in one pass (DFlash2-style), and the model's own
+multi-token-prediction (MTP) layer, run as a chain, as MTPLX does. Three
+findings:</p>
+<ul>
+<li><strong>Training the MTP layer the way it is used</strong>, over its
+own chain (EAGLE-3's training-time test), raises its code kept tokens
+per 16-row check from 7.78 to 10.98 (x1.41) [K]. That is above the block
+drafter's 10.44 on the same answers. Chat moves by only 2-3 %, not
+significant.</li>
+<li><strong>The chained MTP head beats the block drafter on chat and
+agent text</strong> (x1.08-1.32 tokens per check [K]) and loses on code
+(x0.75). So the engine routes by text type. On 19 fresh chat prompts the
+switch gave:
+<ul>
+<li>whole decode 23.1 -&gt; 28.8 tok/s (+24.5 %);</li>
+<li>whole request 18.6 -&gt; 22.0 tok/s (+18.3 %);</li>
+<li>first token 1.9 s in both arms;</li>
+<li>lifetime peak 37.9 GB;</li>
+<li>every token identical.</li>
+</ul></li>
+<li><strong>Most other levers failed.</strong> Of 83 drafter-side items
+we tried (Appendix A), 41 ended in a KILL (by a pre-registered line, or
+at the desk or on paper), and 27 ended between lines, parked or as
+information.</li>
+</ul>
+<p>Where we lose is chat. We keep 2.3-2.5 tokens per chat check, and the
+check's fixed cost is ~75-85 % of a chat check. So a drafter that never
+missed would still reach only ~105-115 tok/s of chat decode at today's
+check cost [P]. Against Strata on the same machine, our chat decode is
+about level, and Strata's first token wins every whole-request number up
+to 256 generated tokens. We also continued the chat head overnight on
+the model's own chat features. A memory guard stopped capture at 0.10M
+tokens, and the head kept x1.014 on held-out chat: a KILL by its own
+line, at 8 % of its planned data [K].</p>
+<p>We also hit a training pitfall. MLX runs fp32 matmuls as TF32 unless
+told otherwise, which moved our drafter's training losses by 1.3-3.5 %
+against a float32 port.</p>
+<hr />
+</div>
+
+</body>
+</html>
