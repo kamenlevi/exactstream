@@ -1,0 +1,12 @@
+d22_b5.safetensors (the MTP head's trained tensors) is a modified version of the multi-token-prediction (MTP) head of
+Qwen3.8-Flash-Next by Qwen, Copyright (c) 2026 Qwen, which is licensed under the Qwen Community License 1.0
+(text: third_party/LICENSE-qwen).
+
+Changes (ours, October-November 2026): we trained 11 of the head's tensors further: its two input projections
+(fc_embedding, fc_hidden), its attention projections (q_proj, k_proj, v_proj, o_proj), its router, and its shared
+expert's projections (se_gate, se_up, se_down, se_gatew). The file holds those tensors in float32. The engine loads the
+model's own MTP head and then these tensors over it; the head's experts, norms and output layer stay as the model ships
+them. The training is described in the DRAFTER paper (run D-22 b5).
+
+The file is distributed under the Qwen Community License 1.0, together with this notice and the licence text.
+It is not part of this repository; README, Weights, says where it is published.
