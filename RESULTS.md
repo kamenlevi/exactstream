@@ -1,6 +1,6 @@
 # Results
 
-Measured on the test Mac, pooled over 12 prompts per set, 256 new tokens, greedy: whole decode / whole request (tok/s) /
+Measured on the test MacBook Pro, pooled over 12 prompts per set, 256 new tokens, greedy: whole decode / whole request (tok/s) /
 first token (median, s) / lifetime peak (GB). From the RELEASE paper, section 2, which gives the sources.
 
 | config | line | HumanEval | MBPP | IFEval (chat) | math |
