@@ -151,7 +151,8 @@ def main():
     ap.add_argument("--out", default=os.path.join(ROOT, "out"))
     ap.add_argument("--trace", action="store_true", help="log every file the engine opens (closure check)")
     ap.add_argument("--env", action="append", default=[], help="extra KEY=VALUE for the engine (research switches, e.g. the "
-                    "prefill paths: R57_PFLM=1 PF-A, R57_PFLM=3 PF-B, R57_PFD=1 PF-D; all exact)")
+                    "prefill paths: R57_PFLM=1 PF-A and R57_PFD=1 PF-D, both exact; R57_PFLM=3 PF-B, exact only up to about "
+                    "8K tokens)")
     ap.add_argument("--dry-run", action="store_true", help="print the engine command and environment, run nothing")
     a = ap.parse_args()
 

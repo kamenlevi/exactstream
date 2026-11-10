@@ -15,15 +15,15 @@
 <h1>What It Takes to Run a 125B LLM Fast on a 64 GB Mac, and How to Go Faster (complete report, Parts I-V)</h1>
 <p class="author">Kamen Levi</p>
 <p class="date">9 November 2026</p>
-<p><a href="pdf/complete.pdf">PDF</a> (86 pages)</p>
+<p><a href="pdf/complete.pdf">PDF</a> (88 pages)</p>
 <h2>Contents</h2>
 <p>Complete report: the main paper and four companion papers as Parts I-V.</p>
 <ol class="parts">
 <li>Part I: <a href="main.html">What It Takes to Run a 125B LLM Fast on a 64 GB Mac, and How to Go Faster</a> (from page 3; <a href="pdf/main.pdf">separate PDF</a>)</li>
-<li>Part II: <a href="kernels.html">Batch-invariant kernels on Apple&#x27;s M5 GPU and its matrix units</a> (from page 37; <a href="pdf/kernels.pdf">separate PDF</a>)</li>
-<li>Part III: <a href="evaluation.html">Certifying lossy decoding on the model&#x27;s known benchmarks: same-scores gates for a 125B mixture-of-experts model on one 64 GB Mac</a> (from page 50; <a href="pdf/evaluation.pdf">separate PDF</a>)</li>
-<li>Part IV: <a href="drafter.html">Drafting for a 125B mixture-of-experts model that does not fit in RAM: training its own MTP head, one drafter per text type, and the levers that failed</a> (from page 62; <a href="pdf/drafter.pdf">separate PDF</a>)</li>
-<li>Part V: <a href="release.html">Running a 125B mixture-of-experts model on a 64 GB Mac: the engine package</a> (from page 79; <a href="pdf/release.pdf">separate PDF</a>)</li>
+<li>Part II: <a href="kernels.html">Batch-invariant kernels on Apple&#x27;s M5 GPU and its matrix units</a> (from page 38; <a href="pdf/kernels.pdf">separate PDF</a>)</li>
+<li>Part III: <a href="evaluation.html">Certifying lossy decoding on the model&#x27;s known benchmarks: same-scores gates for a 125B mixture-of-experts model on one 64 GB Mac</a> (from page 52; <a href="pdf/evaluation.pdf">separate PDF</a>)</li>
+<li>Part IV: <a href="drafter.html">Drafting for a 125B mixture-of-experts model that does not fit in RAM: training its own MTP head, one drafter per text type, and the levers that failed</a> (from page 64; <a href="pdf/drafter.pdf">separate PDF</a>)</li>
+<li>Part V: <a href="release.html">Running a 125B mixture-of-experts model on a 64 GB Mac: the engine package</a> (from page 81; <a href="pdf/release.pdf">separate PDF</a>)</li>
 </ol>
 <h2>Abstract of Part I</h2>
 <div class="abstract">
@@ -31,21 +31,21 @@
 48 layers, 512 routed experts per layer, 10 per token) on one MacBook
 Pro (M5 Pro, 18-core CPU, 20-core GPU, 64 GB, 2 TB SSD), with the routed
 experts streamed from the internal SSD at about 3.2 bits per weight and
-the process's lifetime peak at most 45 GB (plus a 7.45 GB expert tier
-that macOS may reclaim). The pieces are mostly published; this paper is
-about how they depend on each other and what each adds. Speculative
-decoding pays one pass of the large model for up to 16 drafted tokens,
-but it is exact only if that pass computes the same bits as one-token
-decoding. Batch-invariant kernels on the GPU and its matrix units make
-it so, and we audit it on every run (96 of 96 code runs, 24 of 24 chat
-and 24 of 24 math runs token-identical to one-token greedy decoding).
-Exactness then turns every later optimisation into a test of token
-equality that takes minutes: the levers of the streamed engine, such as
-per-layer expert pools and expert reads hidden behind the GPU's work,
-were each adopted that way. On top of the exact engine, a lossy layer
-lets drafted rows of code answers skip cold experts and run 3-bit parts,
-and ships only if it scores the same as the exact reference on the
-model's benchmarks.</p>
+the process's lifetime peak at most 45 GB on the benchmark prompts (plus
+a 7.45 GB expert tier that macOS may reclaim; longer prompts go over it,
+section 6.1). The pieces are mostly published; this paper is about how
+they depend on each other and what each adds. Speculative decoding pays
+one pass of the large model for up to 16 drafted tokens, but it is exact
+only if that pass computes the same bits as one-token decoding.
+Batch-invariant kernels on the GPU and its matrix units make it so, and
+we audit it on every run (96 of 96 code runs, 24 of 24 chat and 24 of 24
+math runs token-identical to one-token greedy decoding). Exactness then
+turns every later optimisation into a test of token equality that takes
+minutes: the levers of the streamed engine, such as per-layer expert
+pools and expert reads hidden behind the GPU's work, were each adopted
+that way. On top of the exact engine, a lossy layer lets drafted rows of
+code answers skip cold experts and run 3-bit parts, and ships only if it
+scores the same as the exact reference on the model's benchmarks.</p>
 <p>The exact configuration decodes 101.4 tok/s on 12 HumanEval prompts,
 70.4 on 12 MBPP, 77.9 on 12 math and 37.1 on 12 chat (IFEval) prompts,
 at a lifetime peak of 41.7-42.5 GB [K]. The lossy configuration we ship

@@ -9,8 +9,12 @@ on macOS 26.5 (25F71).
 - First token on short prompts at 45 GB takes 2.7-4.6 s (2.26 s on `chat`). Strata (MIT; github.com/Niko1221/Strata),
   which we ran on the same MacBook Pro and prompts, takes 0.5-1.0 s, so up to 256 generated tokens it wins or ties every
   whole-request number; our decode is ahead on code and math, about level on chat, and behind on exact chat.
-- The chat prefill path (PF-D) is on for `chat` at 45 GB only and was measured on chat-length prompts (37-101 tokens).
-- Lifetime peaks go above 45.0 GB on long prompts (45.1-46.4 GB on 7.9K tokens).
+- The chat prefill path (PF-D) is on for `chat` at 45 GB only. It was measured on chat-length prompts (37-101 tokens)
+  and checked exact on 10K and 30K-token prompts, where it shortens the first token by only 3-4 % and adds about 2 GB
+  to the lifetime peak.
+- Lifetime peaks go above the memory line on long prompts. At 45 GB: 45.1-46.4 GB on 7.9K tokens, and `chat` as shipped
+  (with PF-D) reaches 47.5 GB on 10K tokens and 48.6 GB on 30K. At 32 GB, `chat` reaches 34.0 GB on 10K tokens and
+  35.5 GB on 30K.
 - At 32 GB, `exact` was measured on chat (IFEval) only, and `lossy` has no code or math rows of its own.
 - The lossy configs are gated on the named benchmarks only. On a multilingual chat set, M1-B (the `chat` configs' lossy
   part) fails our own blunder check, which is information only.
