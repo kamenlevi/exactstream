@@ -12,7 +12,7 @@ This is research code, released as measured, and it has only been tested on that
 
 You need an Apple-silicon Mac with 64 GB of memory (36 GB or more for the 24 GB setting, which we have not tested on such a Mac; see [INSTALL.md](INSTALL.md)), macOS 26, Python 3.12, CMake, the Xcode command-line tools and about 195 GB of free disk. The model weights are not in this repository; [WEIGHTS.md](WEIGHTS.md) says where to get them.
 
-    git clone https://github.com/kamenlevi/exactstream && cd exactstream
+    git clone --single-branch https://github.com/kamenlevi/exactstream && cd exactstream
     bash install.sh --store /path/to/model-dir --weights /path/to/drafter-dir
 
 [INSTALL.md](INSTALL.md) has the details and a way to check the install.
@@ -30,6 +30,8 @@ You need an Apple-silicon Mac with 64 GB of memory (36 GB or more for the 24 GB 
 The whole project is written up in [What It Takes to Run a 125B LLM Fast on a 64 GB Mac, and How to Go Faster](docs/pdf/complete.pdf). The parts are also available separately: [main paper](docs/pdf/main.pdf), [kernels](docs/pdf/kernels.pdf), [evaluation](docs/pdf/evaluation.pdf), [drafter](docs/pdf/drafter.pdf) and [release](docs/pdf/release.pdf).
 
 The 24 GB and 12 GB lines are written up in [A 125B mixture-of-experts model in 32, 24 and 12 GB of memory on one Mac](docs/pdf/small-ram.pdf).
+
+Research data (every measurement, script and record the papers cite): the [`research` branch](https://github.com/kamenlevi/exactstream/tree/research).
 
 ## Credits
 

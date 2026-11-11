@@ -15,7 +15,7 @@
   about 20 GB free for swap.
 
 ## Install
-    git clone https://github.com/kamenlevi/exactstream && cd exactstream
+    git clone --single-branch https://github.com/kamenlevi/exactstream && cd exactstream
     bash install.sh --store /path/to/model-dir --weights /path/to/drafter-dir
 
 `install.sh` writes the clone's path into the code (where it says `@ROOT@`), creates `.venv` with the pinned packages
