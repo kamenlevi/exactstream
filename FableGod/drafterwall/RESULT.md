@@ -2,13 +2,14 @@
 
 Marks: [K] measured here on recorded data (script named), [P] arithmetic on measured numbers, [G] judgment.
 Rules kept: no training of anything; exact (drafts only propose); CPU only, no GPU job was run; no downloads; writes
-only in this folder; 31 ideas tagged against ~/TRIED; five tests pre-registered in PREREG.md (commit 602d66d) before
+only in this folder; 34 ideas tagged against ~/TRIED (LEDGER.md); five tests pre-registered in PREREG.md (commit 602d66d) before
 they ran, exploratory reads disclosed there. "Reader" below = a drafter (DFlash2 L1-20 or the MTP head b5).
 "Sweep" = one check = one read of the 125B's trunk.
 
 ## 0. Verdict in seven lines
 1. **The wall was not broken.** Nothing exact and training-free moves kept per check by 20 %. Of the five
-   pre-registered tests, four are KILL and one is BETWEEN; the other 26 ideas die on existing numbers or arithmetic.
+   pre-registered tests, four are KILL and one is BETWEEN; the rest of the 34 ideas die on existing numbers or
+   arithmetic, or are doors outside the rules.
 2. **Law 1, causality** [K T1]: a sweep is one round of parallel next-token questions, and everything after the first
    wrong draft is about a different text. After a miss only 13.2 % (HumanEval+), 11.9 % (MBPP), 7.0 % (IFEval) and
    5.9 % (multilingual) of the later drafts are the 125B's tokens. Every "second look" at rejected rows dies here.
@@ -47,6 +48,8 @@ Line: PASS at 40 % (code) or 30 % (chat), KILL under 25 % and 15 %. Result: KILL
 - The 125B's outputs on the rows after a miss were computed on inputs that are wrong 84-94 % of the time. That is
   why MoonShots' recycling test kept 0.6 tokens (M-06), and it kills the wider family in one number: reuse where
   the new draft agrees with the old one, Jacobi started from the drafter, the MTP head on rejected rows' states.
+- It is not a hidden one-token shift: comparing the later drafts with the true tokens one or two positions earlier
+  or later matches less often, 4.6-10.5 % against 13.6 % on the code map windows [K `scripts/s0_align.py`].
 - A tail that does not derail cannot be built either [K `scripts/a2_tail_tf.py`]: told the true previous token at
   every step, the readers are right on only 47.6 % (DFlash2) and 76.5 % (MTP) of the later positions of the same
   block on code, 23.0 / 42.5 % on IFEval. Soft or per-position tails need tokens nobody has.
@@ -80,6 +83,11 @@ there at depth 0. It needs an exact trunk state for every token, which is the au
 6.23.) Predictions: P-a true (97.7 at depth 0, 90.8 at depths 7-10), P-b true (93.5 to 76.2), P-c true for the MTP
 alone on HumanEval+ (20.12 against a line of 20) and for MBPP (12.20 under 16; t2 and a3 differ by 0.07-0.08 in how they end a window), false for the either-oracle on the 12
 map windows (22.75 against 25). By the letter: BETWEEN. The law holds; its ceiling is lower than I predicted.
+
+Window-level bootstrap, 90 % intervals [K `scripts/a6_ci.py`]: HumanEval+ chain 12.55 [10.62, 15.07], lag-2 MTP 20.05
+[16.64, 24.20], ratio x1.60 [1.53, 1.68], perfect pick x1.95 [1.81, 2.08]; MBPP chain 6.23 [5.88, 6.61], lag-2 MTP 12.12
+[11.26, 13.11], ratio x1.95 [1.88, 2.02], perfect pick x2.70 [2.61, 2.79]. Twenty-four answers make the HumanEval+ levels
+loose; the ratios are tight.
 
 How fresh the state must be [K `scripts/a5_refresh.py`]: the chain restarted from an exact trunk state every k positions
 keeps, per 32 rows, HumanEval+ 20.05 / 18.32 / 16.95 / 15.82 / 14.39 / 12.55 and MBPP 12.12 / 9.88 / 8.68 / 8.03 / 6.82 /
@@ -145,6 +153,10 @@ The runner-up cache (the 125B's rank 2-3 tokens at verified rows as tie-breakers
   lag-2 accuracy at depth. Its measured ceiling is section 1.2's table: x1.60 on HumanEval+, x1.95 on MBPP, x1.5 on
   chat with one reader; x1.95, x2.7 and x1.8-2.0 with a perfect pick of two. It needs training, so it is not this
   mission's result. D-22 was a first step on this road (the stock chain fell to 0.70 by depth 15; b5 holds 0.89).
+- Where that gain sits [K `scripts/a1_decisions.py`, 16-row checks on the map windows, MTP]: giving lag-2 accuracy only to
+  the 125B's close calls moves code 9.50 to 10.80 and IFEval 2.74 to 3.67; only to its sure rows, 10.24 and 2.80; to
+  all rows, 11.94 and 3.95. And half of it needs a state no older than four tokens (1.2). So the reader to train is
+  one that predicts the model's close calls several tokens ahead, which is the hard half.
 - **What even that ceiling buys** [P `scripts/a5_refresh.py`, byte floor 284 GB/s, trunk 2.7 GB, BREAK_THE_WALL's union
   bytes]: HumanEval+ exact 373 tok/s at 32 rows (today's kept: 269 at 16 rows); with the lossy oracle gate 706 (964
   with the perfect pick at 64 rows); MBPP 441 (591). One stream at 1,000 tok/s on real code is outside the reach of any
@@ -177,12 +189,13 @@ such table: the stored agent windows give the readers a cut context (`scripts/a4
 - The row counts of the trees are an estimate from the readers' own probabilities, not a count of real off-path nodes.
 - The class split (sure / mid / tie) exists only for the 36 map windows; MBPP, GSM and agent have no classes here.
 - All tables are teacher-forced along the 125B's own answers; no live engine run and no GPU job was made in this mission.
+- One temporary copy of out/ was written to this session's scratch folder under /private/tmp for the re-run diff.
 - The timestamps in PREREG.md were first written an hour late (21:4x for 20:4x) and corrected before T1 ran; the
   commit times are the record.
 
 ## 6. Reproduce
 `~/BigMoE/.venv/bin/python -I scripts/<name>.py` (numpy only, each under 30 s): t1_secondlook, t2_laglaw, t3_rowslog,
 t45_fusion_runnerup (pre-registered); s0_align, s0_class, s0_look (exploratory, before the lines); a1_decisions,
-a2_tail_tf, a3_lag2_either, a4_lag2_dflash_all, a5_refresh (descriptive, after). Outputs are in `out/`.
+a2_tail_tf, a3_lag2_either, a4_lag2_dflash_all, a5_refresh, a6_ci (descriptive, after). Outputs are in `out/`.
 Inputs, read-only: `~/TrainLab/data/` (d02b_walk_hpd0_*, d02b_walk_d23h_dfl_*, d02b_walk_d17e_*, d23h/, d24/, tree3_map/),
 `~/BigMoE/models/bare/vocab.json`.
