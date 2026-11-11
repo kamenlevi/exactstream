@@ -1,0 +1,19 @@
+code: kept per 32-row check when the chain restarts from an exact trunk state every k positions: k=1: 20.05, k=2: 18.32, k=3: 16.95, k=4: 15.82, k=6: 14.93, k=8: 14.39, k=12: 13.23, k=16: 13.01, k=31: 12.55
+mbpp: kept per 32-row check when the chain restarts from an exact trunk state every k positions: k=1: 12.12, k=2: 9.88, k=3: 8.68, k=4: 8.03, k=6: 7.23, k=8: 6.82, k=12: 6.41, k=16: 6.31, k=31: 6.22
+
+[P] byte floor: tok/s = kept x 284 GB/s / (2.7 GB trunk + union bytes of the check); union bytes at 16 / 32 / 64 rows from BREAK_THE_WALL section 3:
+  today, HumanEval (DFlash2 16 rows 10.5; MTP 32 rows 12.6) | exact: 269 / 235 / - tok/s at 16 / 32 / 64 rows
+  today, HumanEval (DFlash2 16 rows 10.5; MTP 32 rows 12.6) | banded gate (lossy): 393 / 342 / - tok/s at 16 / 32 / 64 rows
+  today, HumanEval (DFlash2 16 rows 10.5; MTP 32 rows 12.6) | oracle gate (lossy): 492 / 444 / - tok/s at 16 / 32 / 64 rows
+  lag-2 ceiling, MTP alone, HumanEval+ | exact: 324 / 373 / 373 tok/s at 16 / 32 / 64 rows
+  lag-2 ceiling, MTP alone, HumanEval+ | banded gate (lossy): 472 / 543 / 534 tok/s at 16 / 32 / 64 rows
+  lag-2 ceiling, MTP alone, HumanEval+ | oracle gate (lossy): 592 / 706 / 707 tok/s at 16 / 32 / 64 rows
+  lag-2 ceiling, perfect pick of two readers, HumanEval+ | exact: 359 / 455 / 509 tok/s at 16 / 32 / 64 rows
+  lag-2 ceiling, perfect pick of two readers, HumanEval+ | banded gate (lossy): 523 / 662 / 728 tok/s at 16 / 32 / 64 rows
+  lag-2 ceiling, perfect pick of two readers, HumanEval+ | oracle gate (lossy): 655 / 860 / 964 tok/s at 16 / 32 / 64 rows
+  lag-2 ceiling, MTP alone, MBPP | exact: 241 / 226 / 184 tok/s at 16 / 32 / 64 rows
+  lag-2 ceiling, MTP alone, MBPP | banded gate (lossy): 352 / 329 / 264 tok/s at 16 / 32 / 64 rows
+  lag-2 ceiling, MTP alone, MBPP | oracle gate (lossy): 441 / 427 / 350 tok/s at 16 / 32 / 64 rows
+  lag-2 ceiling, perfect pick of two readers, MBPP | exact: 294 / 312 / 285 tok/s at 16 / 32 / 64 rows
+  lag-2 ceiling, perfect pick of two readers, MBPP | banded gate (lossy): 429 / 455 / 408 tok/s at 16 / 32 / 64 rows
+  lag-2 ceiling, perfect pick of two readers, MBPP | oracle gate (lossy): 537 / 591 / 540 tok/s at 16 / 32 / 64 rows

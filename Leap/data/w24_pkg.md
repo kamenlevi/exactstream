@@ -401,3 +401,29 @@ the 64K / 128K line under it.
 **Release.** A draft (gh release create --draft), "ExactStream 1.1.0", tag v1.1.0 (created when published), target
 eb72552, 0 assets (the drafter files stay on v1.0.0). Its body equals release/staged/v110_notes.md. URL (draft):
 https://github.com/kamenlevi/exactstream/releases/tag/untagged-b046589ed7cb86bf3e68. The orchestrator publishes it.
+
+## Clone only main: docs-only commit e52af19 (Wed 11 Nov ~21:00; Kamen's ask via the orchestrator, PUBLIC_OK=1)
+
+Kamen moved the 350-tps snapshot into exactstream as a `research` branch (the orchestrator, 0b908df). A plain `git clone`
+would also fetch it, so the package now clones main only. No new tag: v1.1.0 stays on eb72552, and the code is unchanged.
+
+**The change, built on eb72552 in release/out/pkg_110m** (not a rebuild, so nothing from release/next or later code
+came in). The same three files are mirrored in release/src.
+- INSTALL.md line 18 and README.md line 15: `git clone --single-branch https://github.com/kamenlevi/exactstream && cd exactstream`.
+- README, under the papers: "Research data (every measurement, script and record the papers cite): the
+  [`research` branch](https://github.com/kamenlevi/exactstream/tree/research)." The link is the only addition to the
+  orchestrator's wording.
+- tools/clean_clone_test.sh: its own clone is `git clone -q --single-branch`. This is the package's only other
+  `git clone`.
+- MANIFEST.json: the three files' sha256 (README cd7dc8838e8c, INSTALL 8c61e4ffc884, clean_clone_test e29851590642).
+
+**Tests.**
+- **Clean-clone prep on e52af19** (release/cleanclone/docs1111, the package's own updated test, CPU only): cloned
+  e52af19 with only main; install.sh --offline rc 0 in 7 s; dry runs of all 8 configs OK; PREP DONE.
+- **The README command against GitHub, before the push** (main eb72552): 13.0 s; only main, tags v1.0.0 / v1.0.1 /
+  v1.1.0; pack 8.20 MiB, .git 9.2 MB, 20 MB on disk.
+- **Push:** `DRY=1 push_pkg.sh pkg` showed only the four files; then `PUBLIC_OK=1` gave "PUSHED e52af19 to main
+  (fast-forward)", and the remote main equals the local HEAD.
+- **The README command after the push:** 9.0 s; HEAD e52af19; only main and the three tags; pack 8.20 MiB, .git 8.5 MB,
+  19 MB on disk. Both clone lines and the research line are present, and the three files' hashes match MANIFEST.json.
+  research = 0b908df on GitHub.

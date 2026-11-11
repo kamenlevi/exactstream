@@ -33,7 +33,7 @@ keys_for() {    # a config's keys: the given ones, else the first two of its shi
 }
 if [ "$PHASE" = prep ]; then
   rm -rf "$CL" "$W/home" "$W/out"; : > "$R"
-  git clone -q "$PKG" "$CL" || { say "clone failed"; exit 2; }
+  git clone -q --single-branch "$PKG" "$CL" || { say "clone failed"; exit 2; }
   say "cloned $(git -C "$CL" log -1 --format='%h %s' | cut -c1-100)"
   if [ -z "$WEIGHTS" ]; then                      # the research machine: the two weight files live in two trees
     WEIGHTS="$W/weights_src"; mkdir -p "$WEIGHTS"
