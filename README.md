@@ -10,7 +10,7 @@ This is research code, released as measured, and it has only been tested on that
 
 ## Install
 
-You need an Apple-silicon Mac with 64 GB of memory, macOS 26, Python 3.12, CMake, the Xcode command-line tools and about 195 GB of free disk. The model weights are not in this repository; [WEIGHTS.md](WEIGHTS.md) says where to get them.
+You need an Apple-silicon Mac with 64 GB of memory (36 GB or more for the 24 GB setting, which we have not tested on such a Mac; see [INSTALL.md](INSTALL.md)), macOS 26, Python 3.12, CMake, the Xcode command-line tools and about 195 GB of free disk. The model weights are not in this repository; [WEIGHTS.md](WEIGHTS.md) says where to get them.
 
     git clone https://github.com/kamenlevi/exactstream && cd exactstream
     bash install.sh --store /path/to/model-dir --weights /path/to/drafter-dir
@@ -21,13 +21,15 @@ You need an Apple-silicon Mac with 64 GB of memory, macOS 26, Python 3.12, CMake
 
     .venv/bin/python run.py --config chat --mem 45 --prompt "Explain how a refrigerator works."
 
-`--config` picks the settings: `exact` gives the same tokens as decoding one token at a time with these same weights, `lossy` is the fastest on code, and `chat` is tuned for conversation. `--mem` is the memory limit in GB, 45 or 32. [CONFIGS.md](CONFIGS.md) lists every setting, [RESULTS.md](RESULTS.md) has the full numbers and [LIMITS.md](LIMITS.md) has the known limits and what we did not test.
+`--config` picks the settings: `exact` gives the same tokens as decoding one token at a time with these same weights, `lossy` is the fastest on code, and `chat` is tuned for conversation. `--mem` is the memory limit in GB, 45, 32 or 24. `--mem 24` runs one lossy setting (with `--config lossy` or `chat`) that scored the same as the exact model on IFBench, GPQA Diamond and LiveCodeBench and generates about 130 tokens per second on HumanEval, 91 on MBPP, 41 on math and 31 on chat. It stays under 24 GB on prompts up to about 500 tokens and uses more on longer ones, up to 28.2 GB at 30K tokens. [CONFIGS.md](CONFIGS.md) lists every setting, [RESULTS.md](RESULTS.md) has the full numbers and [LIMITS.md](LIMITS.md) has the known limits and what we did not test.
+
+`chat.py` is a chat in the terminal that shows the speed as it writes, and `serve.py` serves chat apps on your Mac in the OpenAI and Anthropic API formats, text only for now ([INSTALL.md](INSTALL.md)).
 
 ## Papers
 
 The whole project is written up in [What It Takes to Run a 125B LLM Fast on a 64 GB Mac, and How to Go Faster](docs/pdf/complete.pdf). The parts are also available separately: [main paper](docs/pdf/main.pdf), [kernels](docs/pdf/kernels.pdf), [evaluation](docs/pdf/evaluation.pdf), [drafter](docs/pdf/drafter.pdf) and [release](docs/pdf/release.pdf).
 
-A 12 GB and 24 GB paper is coming soon; we will publish it by Wednesday, 11 November 2026.
+The 24 GB and 12 GB lines are written up in [A 125B mixture-of-experts model in 32, 24 and 12 GB of memory on one Mac](docs/pdf/small-ram.pdf).
 
 ## Credits
 

@@ -48,22 +48,25 @@ check falls from 56.8 to 27.4 ms [K]. On the expert path the matrix-unit
 kernel beats our ALU kernel by x1.062 in whole decode in an engine A/B
 [K]. Batching a prompt's MoE layers over all chunks is exact on
 1.6K-7.9K-token prompts once two kernels are pinned, and prefills them
-x1.14-1.21 faster [K]; a 30K-token prompt still breaks it, for a reason
-not yet found [K]. We map which MLX kernels are row-invariant at decode
-and prefill widths, and report ten MLX findings with reproductions,
-among them a sorted-gather bug that leaves rows unwritten past 32,767
-rows (independently of its upstream report) and stale reads of
-CPU-written memory inside one command buffer.</p>
+x1.14-1.21 faster [K]. A short last chunk sharing the batched call still
+breaks it, as in a 30K-token prompt; computing the router and the shared
+expert per chunk fixes that in a research copy [K]. We map which MLX
+kernels are row-invariant at decode and prefill widths, and report ten
+MLX findings with reproductions, among them a sorted-gather bug that
+leaves rows unwritten past 32,767 rows (independently of its upstream
+report) and stale reads of CPU-written memory inside one command
+buffer.</p>
 <p><strong>Where we lose.</strong> One-token decoding through the padded
 kernels runs at x0.75 of the stock kernels [K]. Our exact expert kernel
 runs at 70-74 % of the rate its own loads stream at [K]. The batched
-prefill peaks at 46.2 GB, over the 45 GB line [K], and on a 30K-token
-prompt it is not exact (section 4.6) [K]. And on the same machine and
-the same 48 prompts, against Strata (MIT; github.com/Niko1221/Strata),
-our decode is ahead on code and math and about level on chat, exact chat
-decode is behind, and Strata's first token (0.5-1.0 s) beats ours (about
-2.7-4.6 s), so up to 256 generated tokens Strata wins or ties every
-whole-request number ([MAIN] Appendix G has the table).</p>
+prefill peaks at 46.2 GB, over the 45 GB line [K], and it is not exact
+when a prompt's last chunk is short, as at 30K tokens (section 4.6) [K].
+And on the same machine and the same 48 prompts, against Strata (MIT;
+github.com/Niko1221/Strata), our decode is ahead on code and math and
+about level on chat, exact chat decode is behind, and Strata's first
+token (0.5-1.0 s) beats ours (about 2.7-4.6 s), so up to 256 generated
+tokens Strata wins or ties every whole-request number ([MAIN] Appendix G
+has the table).</p>
 <hr />
 </div>
 

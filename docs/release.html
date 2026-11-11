@@ -25,18 +25,21 @@ Pro (M5 Pro, 18-core CPU, 20-core GPU, 64 GB, 2 TB SSD): the experts are
 stored once on the internal SSD, and each layer keeps a fixed pool of
 them in memory. It installs from a clean clone (tested on one machine)
 and ships six configurations: exact, lossy and chat, each at a 45 GB and
-a 32 GB memory line, labelled as [MAIN] section 2 defines. At 45 GB, the
-exact configuration, bit-identical to one-token greedy decoding under
-our reference NAX6-N, decodes 37.1-101.4 tok/s; the shipped lossy one,
-which scored the same as the exact reference on the model card's
-IFBench, GPQA Diamond and LiveCodeBench v6 in both orders, decodes
-45.2-164.0 tok/s; both stay at a lifetime peak of 41.7-43.2 GB, plus a
-7.45 GB expert tier that macOS may reclaim [K, section 2]. Where we
-lose: on the same machine and prompts, Strata's first token (0.5-1.0 s)
-beats ours (2.7-4.6 s; 2.26 s on chat as shipped), so up to 256
-generated tokens Strata wins or ties every whole-request number [K,
-section 2]. The code is GPL-3; the model's weights keep their own
-licence (section 7).</p>
+a 32 GB memory line, labelled as [MAIN] section 2 defines. Package 1.1.0
+adds a 24 GB line: one gated lossy configuration, under the names lossy
+and chat (section 2; [SMALL-RAM]). It also adds a chat in the terminal
+and a local server for chat apps in two common API formats, text only
+(section 4). At 45 GB, the exact configuration, bit-identical to
+one-token greedy decoding under our reference NAX6-N, decodes 37.1-101.4
+tok/s; the shipped lossy one, which scored the same as the exact
+reference on the model card's IFBench, GPQA Diamond and LiveCodeBench v6
+in both orders, decodes 45.2-164.0 tok/s; both stay at a lifetime peak
+of 41.7-43.2 GB, plus a 7.45 GB expert tier that macOS may reclaim [K,
+section 2]. Where we lose: on the same machine and prompts, Strata's
+first token (0.5-1.0 s) beats ours (2.7-4.6 s; 2.26 s on chat as
+shipped), so up to 256 generated tokens Strata wins or ties every
+whole-request number [K, section 2]. The code is GPL-3; the model's
+weights keep their own licence (section 7).</p>
 </div>
 
 </body>

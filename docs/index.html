@@ -9,18 +9,20 @@
 <body>
 <h1>Papers</h1>
 <p class="author">Kamen Levi</p>
-<p class="date">9 November 2026</p>
+<p class="date">11 November 2026</p>
 <div class="paper">
-<h2><a href="complete.html">What It Takes to Run a 125B LLM Fast on a 64 GB Mac, and How to Go Faster (complete report, Parts I-V)</a></h2>
+<h2><a href="complete.html">What It Takes to Run a 125B LLM Fast on a 64 GB Mac, and How to Go Faster (complete report, Parts I-VI)</a></h2>
 <p class="author">Kamen Levi</p>
+<p class="date">11 November 2026</p>
 <div class="abstract">
-<p>Complete report: the main paper and four companion papers as Parts I-V.</p>
+<p>Complete report: the main paper and five companion papers as Parts I-VI.</p>
 <ol class="parts">
 <li>Part I: <a href="main.html">What It Takes to Run a 125B LLM Fast on a 64 GB Mac, and How to Go Faster</a> (from page 3; <a href="pdf/main.pdf">separate PDF</a>)</li>
 <li>Part II: <a href="kernels.html">Batch-invariant kernels on Apple&#x27;s M5 GPU and its matrix units</a> (from page 38; <a href="pdf/kernels.pdf">separate PDF</a>)</li>
-<li>Part III: <a href="evaluation.html">Certifying lossy decoding on the model&#x27;s known benchmarks: same-scores gates for a 125B mixture-of-experts model on one 64 GB Mac</a> (from page 52; <a href="pdf/evaluation.pdf">separate PDF</a>)</li>
-<li>Part IV: <a href="drafter.html">Drafting for a 125B mixture-of-experts model that does not fit in RAM: training its own MTP head, one drafter per text type, and the levers that failed</a> (from page 64; <a href="pdf/drafter.pdf">separate PDF</a>)</li>
-<li>Part V: <a href="release.html">Running a 125B mixture-of-experts model on a 64 GB Mac: the engine package</a> (from page 81; <a href="pdf/release.pdf">separate PDF</a>)</li>
+<li>Part III: <a href="evaluation.html">Certifying lossy decoding on the model&#x27;s known benchmarks: same-scores gates for a 125B mixture-of-experts model on one 64 GB Mac</a> (from page 53; <a href="pdf/evaluation.pdf">separate PDF</a>)</li>
+<li>Part IV: <a href="drafter.html">Drafting for a 125B mixture-of-experts model that does not fit in RAM: training its own MTP head, one drafter per text type, and the levers that failed</a> (from page 65; <a href="pdf/drafter.pdf">separate PDF</a>)</li>
+<li>Part V: <a href="release.html">Running a 125B mixture-of-experts model on a 64 GB Mac: the engine package</a> (from page 82; <a href="pdf/release.pdf">separate PDF</a>)</li>
+<li>Part VI: <a href="small-ram.html">A 125B mixture-of-experts model in 32, 24 and 12 GB of memory on one Mac</a> (from page 92; <a href="pdf/small-ram.pdf">separate PDF</a>)</li>
 </ol>
 </div>
 <p><a href="pdf/complete.pdf">PDF</a> &middot; <a href="complete.html">Abstract page</a></p>
@@ -28,6 +30,7 @@
 <div class="paper">
 <h2><a href="main.html">What It Takes to Run a 125B LLM Fast on a 64 GB Mac, and How to Go Faster</a></h2>
 <p class="author">Kamen Levi</p>
+<p class="date">9 November 2026</p>
 <div class="abstract">
 <p>We run a 125B-parameter mixture-of-experts model (Qwen3.8-Flash-Next:
 48 layers, 512 routed experts per layer, 10 per token) on one MacBook
@@ -70,6 +73,7 @@ results, including three headline numbers we corrected or withdrew.</p>
 <div class="paper">
 <h2><a href="kernels.html">Batch-invariant kernels on Apple&#x27;s M5 GPU and its matrix units</a></h2>
 <p class="author">Kamen Levi</p>
+<p class="date">9 November 2026</p>
 <div class="abstract">
 <p>Speculative decoding is exact only if verifying k drafted tokens in
 one batched call produces the same bits as decoding them one at a time.
@@ -99,22 +103,25 @@ check falls from 56.8 to 27.4 ms [K]. On the expert path the matrix-unit
 kernel beats our ALU kernel by x1.062 in whole decode in an engine A/B
 [K]. Batching a prompt's MoE layers over all chunks is exact on
 1.6K-7.9K-token prompts once two kernels are pinned, and prefills them
-x1.14-1.21 faster [K]; a 30K-token prompt still breaks it, for a reason
-not yet found [K]. We map which MLX kernels are row-invariant at decode
-and prefill widths, and report ten MLX findings with reproductions,
-among them a sorted-gather bug that leaves rows unwritten past 32,767
-rows (independently of its upstream report) and stale reads of
-CPU-written memory inside one command buffer.</p>
+x1.14-1.21 faster [K]. A short last chunk sharing the batched call still
+breaks it, as in a 30K-token prompt; computing the router and the shared
+expert per chunk fixes that in a research copy [K]. We map which MLX
+kernels are row-invariant at decode and prefill widths, and report ten
+MLX findings with reproductions, among them a sorted-gather bug that
+leaves rows unwritten past 32,767 rows (independently of its upstream
+report) and stale reads of CPU-written memory inside one command
+buffer.</p>
 <p><strong>Where we lose.</strong> One-token decoding through the padded
 kernels runs at x0.75 of the stock kernels [K]. Our exact expert kernel
 runs at 70-74 % of the rate its own loads stream at [K]. The batched
-prefill peaks at 46.2 GB, over the 45 GB line [K], and on a 30K-token
-prompt it is not exact (section 4.6) [K]. And on the same machine and
-the same 48 prompts, against Strata (MIT; github.com/Niko1221/Strata),
-our decode is ahead on code and math and about level on chat, exact chat
-decode is behind, and Strata's first token (0.5-1.0 s) beats ours (about
-2.7-4.6 s), so up to 256 generated tokens Strata wins or ties every
-whole-request number ([MAIN] Appendix G has the table).</p>
+prefill peaks at 46.2 GB, over the 45 GB line [K], and it is not exact
+when a prompt's last chunk is short, as at 30K tokens (section 4.6) [K].
+And on the same machine and the same 48 prompts, against Strata (MIT;
+github.com/Niko1221/Strata), our decode is ahead on code and math and
+about level on chat, exact chat decode is behind, and Strata's first
+token (0.5-1.0 s) beats ours (about 2.7-4.6 s), so up to 256 generated
+tokens Strata wins or ties every whole-request number ([MAIN] Appendix G
+has the table).</p>
 <hr />
 </div>
 <p><a href="pdf/kernels.pdf">PDF</a> &middot; <a href="kernels.html">Abstract page</a></p>
@@ -122,6 +129,7 @@ whole-request number ([MAIN] Appendix G has the table).</p>
 <div class="paper">
 <h2><a href="evaluation.html">Certifying lossy decoding on the model&#x27;s known benchmarks: same-scores gates for a 125B mixture-of-experts model on one 64 GB Mac</a></h2>
 <p class="author">Kamen Levi</p>
+<p class="date">9 November 2026</p>
 <div class="abstract">
 <p>Lossy decoding is what makes a 125B mixture-of-experts model fast on
 one 64 GB Mac ([MAIN]), and it changes the output. We ask a narrow
@@ -185,6 +193,7 @@ it.</li>
 <div class="paper">
 <h2><a href="drafter.html">Drafting for a 125B mixture-of-experts model that does not fit in RAM: training its own MTP head, one drafter per text type, and the levers that failed</a></h2>
 <p class="author">Kamen Levi</p>
+<p class="date">9 November 2026</p>
 <div class="abstract">
 <p>We study the drafter side of exact speculative decoding for
 Qwen3.8-Flash-Next, a 125B mixture-of-experts model (48 layers, 512
@@ -238,6 +247,7 @@ against a float32 port.</p>
 <div class="paper">
 <h2><a href="release.html">Running a 125B mixture-of-experts model on a 64 GB Mac: the engine package</a></h2>
 <p class="author">Kamen Levi</p>
+<p class="date">9 November 2026</p>
 <div class="abstract">
 <p>This paper documents the engine package behind [MAIN]. The engine
 runs Qwen3.8-Flash-Next, a 125B mixture-of-experts model, on one MacBook
@@ -245,24 +255,110 @@ Pro (M5 Pro, 18-core CPU, 20-core GPU, 64 GB, 2 TB SSD): the experts are
 stored once on the internal SSD, and each layer keeps a fixed pool of
 them in memory. It installs from a clean clone (tested on one machine)
 and ships six configurations: exact, lossy and chat, each at a 45 GB and
-a 32 GB memory line, labelled as [MAIN] section 2 defines. At 45 GB, the
-exact configuration, bit-identical to one-token greedy decoding under
-our reference NAX6-N, decodes 37.1-101.4 tok/s; the shipped lossy one,
-which scored the same as the exact reference on the model card's
-IFBench, GPQA Diamond and LiveCodeBench v6 in both orders, decodes
-45.2-164.0 tok/s; both stay at a lifetime peak of 41.7-43.2 GB, plus a
-7.45 GB expert tier that macOS may reclaim [K, section 2]. Where we
-lose: on the same machine and prompts, Strata's first token (0.5-1.0 s)
-beats ours (2.7-4.6 s; 2.26 s on chat as shipped), so up to 256
-generated tokens Strata wins or ties every whole-request number [K,
-section 2]. The code is GPL-3; the model's weights keep their own
-licence (section 7).</p>
+a 32 GB memory line, labelled as [MAIN] section 2 defines. Package 1.1.0
+adds a 24 GB line: one gated lossy configuration, under the names lossy
+and chat (section 2; [SMALL-RAM]). It also adds a chat in the terminal
+and a local server for chat apps in two common API formats, text only
+(section 4). At 45 GB, the exact configuration, bit-identical to
+one-token greedy decoding under our reference NAX6-N, decodes 37.1-101.4
+tok/s; the shipped lossy one, which scored the same as the exact
+reference on the model card's IFBench, GPQA Diamond and LiveCodeBench v6
+in both orders, decodes 45.2-164.0 tok/s; both stay at a lifetime peak
+of 41.7-43.2 GB, plus a 7.45 GB expert tier that macOS may reclaim [K,
+section 2]. Where we lose: on the same machine and prompts, Strata's
+first token (0.5-1.0 s) beats ours (2.7-4.6 s; 2.26 s on chat as
+shipped), so up to 256 generated tokens Strata wins or ties every
+whole-request number [K, section 2]. The code is GPL-3; the model's
+weights keep their own licence (section 7).</p>
 </div>
 <p><a href="pdf/release.pdf">PDF</a> &middot; <a href="release.html">Abstract page</a></p>
 </div>
-<div class="paper note">
-<p>A paper on the 12 GB and 24 GB lines is coming soon. We will publish
-it by Wednesday, 11 November 2026.</p>
+<div class="paper">
+<h2><a href="small-ram.html">A 125B mixture-of-experts model in 32, 24 and 12 GB of memory on one Mac</a></h2>
+<p class="author">Kamen Levi</p>
+<p class="date">11 November 2026</p>
+<div class="abstract">
+<p>We run Qwen3.8-Flash-Next, a 125B mixture-of-experts model (48
+layers, 512 routed experts per layer, 10 per token), on one MacBook Pro
+(M5 Pro, 18-core CPU, 20-core GPU, 64 GB, 2 TB SSD). Experts are
+streamed from the internal SSD. On our speed sets the process's own
+lifetime peak footprint stays under 32, 24 or 12 GB, except for one
+520-token math prompt at 24 GB (24.01 GB); longer prompts go over the 24
+and 32 GB lines (section 6.3).</p>
+<p><strong>At 12 GB</strong> a block drafter's 15 drafts are checked by
+the 12 GB model in calls of 2-4 rows. Experts are stored at about 3.2
+bits per weight.</p>
+<ul>
+<li>The loop is <strong>verified</strong>: every committed token is the
+model's greedy argmax at its computed width. It is not bit-identical to
+one-token decoding.</li>
+<li>It is deterministic and independent of the cache contents and of the
+prompt order.</li>
+<li>On 12 HumanEval + 12 MBPP it runs 18.3 tok/s whole decode, 13.1
+tok/s whole request and 4.3 s first token, at an 11.14 GB peak. On chat
+(12 IFEval) it runs 12.8 / 10.1 tok/s and 2.9 s, at 10.96 GB [K].</li>
+</ul>
+<p><strong>At 24 GB</strong> a lossy configuration ([MAIN]'s L + COH
+with 141 + 26 expert slots per layer and checks of at most 13 rows) runs
+130.3 tok/s whole decode, 40.8 tok/s whole request and 3.54 s first
+token on 12 HumanEval, at a 23.82 GB peak [K].</p>
+<ul>
+<li>It passed its quality gate: the same scores as the exact reference
+on IFBench, GPQA Diamond and LiveCodeBench v6, in both orders [K].</li>
+<li>In our runs it stayed under 24 GB on prompts of up to about 500
+tokens, with little room: a 448-token prompt reached 23.954 GB and a
+520-token one 24.01 GB. Longer prompts use more: about 25.0 GB at 3K
+tokens, 25.8 GB at 10K and 28.2 GB at 30K [K].</li>
+<li>On 12 MBPP it runs 91.2 / 26.1 tok/s and 3.3 s, on chat (12 IFEval)
+30.6 / 18.1 tok/s and 3.1 s, and on 12 math prompts 40.8 / 27.4 tok/s
+and 2.9 s [K].</li>
+<li>An older exact configuration (exact to its own stock-kernel
+reference) runs 41.1 tok/s whole decode on 12 HumanEval and 37.4 on 12
+MBPP, at a 23.86 GB peak [K]. Its whole request and first token were not
+recorded.</li>
+</ul>
+<p><strong>At 32 GB</strong>, on chat (12 IFEval) [K]:</p>
+<ul>
+<li>The exact configuration, token-identical to the 45 GB reference on
+12 / 12 prompts, runs 33.8 tok/s whole decode, 19.8 whole request and
+2.8 s first token, at a 30.62 GB peak.</li>
+<li>A lossy chat configuration, not gated at 32 GB, runs 51.3 / 22.5 /
+3.0 s at 31.22 GB.</li>
+</ul>
+<p><strong>Where we lose.</strong></p>
+<ul>
+<li>Strata (MIT; github.com/Niko1221/Strata), an open-source engine for
+this model, cannot run at 12 GB: its smallest setting peaks at 14.19
+GB.</li>
+<li>But at that setting its chat beats ours: 14.4 vs 12.8 tok/s decode,
+11.2 vs 10.1 whole request, 2.8 vs 2.9 s first token.</li>
+<li>At 24 GB, on the same prompts, its first token (1.3-2.3 s) is ahead
+of ours (2.9-3.5 s). On chat its whole request is also ahead (20.3-21.0
+vs 18.1 tok/s), and our decode leads only 1.1x. On code and math our
+whole decode (40.8-130.3 vs 26.1-28.0 tok/s) and whole request
+(26.1-40.8 vs 20.3-23.0) lead.</li>
+<li>Our 24 GB configuration can go over 24 GB on prompts longer than
+about 500 tokens: 25.0 GB at 3K tokens, 28.2 GB at 30K. On six long gate
+prompts (726-2,801 tokens), 256-token prompt-pass chunks kept it under,
+but cost 2.0-2.9x the first token and changed the tokens, so its gate
+does not cover them.</li>
+<li>Our 12 GB first token is 2.9-4.3 s, because the prompt pass streams
+experts from the SSD: about 22 GB for a 63-token prompt.</li>
+<li>Our 12 GB lossy two-pass mode failed its HumanEval+ gate at every
+threshold tried.</li>
+</ul>
+<p>Two early headlines were wrong. "12 GB, 40.8 tok/s exact" was a lossy
+arm, and "the likely first at &lt;= 12 GB, exact" falls with it.</p>
+<p>We measure where a 12 GB verify call spends its time. Levers priced
+and not yet run:</p>
+<ul>
+<li>two-row verify calls on chat [P: +10-15 %]</li>
+<li>Strata's next-layer read-ahead</li>
+<li>a lossy 24 GB chat route that reads 81.7 MB of SSD per kept token
+instead of 210.2 [P]</li>
+</ul>
+</div>
+<p><a href="pdf/small-ram.pdf">PDF</a> &middot; <a href="small-ram.html">Abstract page</a></p>
 </div>
 
 </body>

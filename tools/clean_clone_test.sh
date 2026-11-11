@@ -12,17 +12,25 @@
 # Writes <work dir>/report.txt (last line: CLEAN-CLONE PASS / FAIL).
 set -uo pipefail
 PKG=${1:?package repo}; W=${2:?work dir}; PHASE=${3:?prep|run}
-KEYS=${4:-ifeval/1220,ifeval/3280}; CAP=${5:-256}
-# The default keys are the first two of every shipped reference run (12 IFEval prompts in this order, cap 256). The lossy
+KEYS_ARG=${4:-}; KEYS=${4:-ifeval/1220,ifeval/3280}; CAP=${5:-256}
+# Without [keys], each config runs the first two prompts of its own shipped reference run, cap 256: the 45 / 32 GB
+# references are 12 IFEval prompts (ifeval/1220, ifeval/3280 first), the 24 GB ones 12 HumanEval prompts. The lossy
 # and chat configs' tokens depend on what the process decoded before (the relaxed acceptance takes the drafter's proposals),
 # so their check needs the reference's earlier prompts run to the same length: hence the same cap (check_tokens.py --history
 # reports a prompt whose history differs as information only). The exact configs do not depend on history.
 STORE=${STORE:-$HOME/BigMoE/models/bare}; WEIGHTS=${WEIGHTS:-}; HFH=${HF_HOME_REAL:-$HOME/.cache/huggingface}
 WHEELS=${WHEELS:-}                                  # a local wheel dir for install.sh --offline --find-links (mtplx)
 export HF_HUB_OFFLINE=1
-CONFIGS=${CONFIGS:-exact-45 exact-32 lossy-45 lossy-32 chat-45 chat-32}
+CONFIGS=${CONFIGS:-exact-45 exact-32 lossy-45 lossy-32 chat-45 chat-32 lossy-24 chat-24}
 mkdir -p "$W"; W=$(cd "$W" && pwd -P); R="$W/report.txt"; CL="$W/clone"
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" | tee -a "$R"; }
+keys_for() {    # a config's keys: the given ones, else the first two of its shipped reference run, else the default
+  local ref k=""
+  [ -n "$KEYS_ARG" ] && { echo "$KEYS_ARG"; return; }
+  ref=$(ls "$CL/verify/$1"*.json 2>/dev/null | head -1)
+  [ -n "$ref" ] && k=$("$CL/.venv/bin/python" -c 'import json, sys; print(",".join(list(json.load(open(sys.argv[1])))[:2]))' "$ref" 2>/dev/null)
+  echo "${k:-$KEYS}"
+}
 if [ "$PHASE" = prep ]; then
   rm -rf "$CL" "$W/home" "$W/out"; : > "$R"
   git clone -q "$PKG" "$CL" || { say "clone failed"; exit 2; }
@@ -38,7 +46,7 @@ if [ "$PHASE" = prep ]; then
   left=$(grep -rlF "@ROOT@" "$CL" --include='*.py' --include='*.sh' 2>/dev/null | grep -v '/third_party/nanobind/' | grep -v '/install.sh$' | grep -v '/tools/' | head -3)
   [ -z "$left" ] || { say "@ROOT@ left in: $left"; exit 3; }
   for c in $CONFIGS; do
-    "$CL/.venv/bin/python" "$CL/run.py" --config ${c%-*} --mem ${c#*-} --keys "$KEYS" --dry-run > "$W/dry_$c.txt" 2>&1 \
+    "$CL/.venv/bin/python" "$CL/run.py" --config ${c%-*} --mem ${c#*-} --keys "$(keys_for $c)" --dry-run > "$W/dry_$c.txt" 2>&1 \
       && say "dry run $c OK: $(head -1 "$W/dry_$c.txt" | cut -c1-110)" || { say "dry run $c FAILED"; cat "$W/dry_$c.txt"; exit 3; }
   done
   say "PREP DONE"; exit 0
@@ -48,8 +56,9 @@ fi
 mkdir -p "$W/home" "$W/out"; [ -z "$(ls -A "$W/home")" ] || { rm -rf "$W/home"; mkdir -p "$W/home"; }
 fails=0
 for c in $CONFIGS; do
-  say "run $c: keys $KEYS, cap $CAP"
-  HOME="$W/home" HF_HOME="$HFH" "$CL/.venv/bin/python" "$CL/run.py" --config ${c%-*} --mem ${c#*-} --keys "$KEYS" \
+  K=$(keys_for $c)
+  say "run $c: keys $K, cap $CAP"
+  HOME="$W/home" HF_HOME="$HFH" "$CL/.venv/bin/python" "$CL/run.py" --config ${c%-*} --mem ${c#*-} --keys "$K" \
     --max-tokens "$CAP" --trace --out "$W/out/$c" > "$W/out/$c.txt" 2>&1
   rc=$?
   grep -E "^whole decode|^=== " "$W/out/$c.txt" | sed 's/^/    /' | tee -a "$R"
@@ -99,6 +108,39 @@ if [ -n "${TEXT_PROMPT:-Explain in three sentences how a refrigerator keeps food
     --prompt "${TEXT_PROMPT:-Explain in three sentences how a refrigerator keeps food cold.}" --out "$W/out/text" > "$W/out/text.txt" 2>&1
   rc=$?; sed -n '/^=== /,$p' "$W/out/text.txt" | head -12 | sed 's/^/    /' | tee -a "$R"
   [ $rc = 0 ] || { say "  text prompt rc $rc"; fails=$((fails + 1)); }
+fi
+if [ "${CHAT_SERVE:-1}" = 1 ]; then              # chat.py and serve.py on the real engine, one short run each (CS_MEM GB)
+  m=${CS_MEM:-24}
+  say "chat.py --mem $m: one message"
+  printf '%s\n/exit\n' "Explain in two sentences what a mixture-of-experts language model is." \
+    | HOME="$W/home" HF_HOME="$HFH" "$CL/.venv/bin/python" "$CL/chat.py" --mem $m --max-tokens 128 > "$W/out/chat.txt" 2>&1
+  rc=$?; s=$(grep -a -o -E "\[[0-9]+ tokens \| whole decode [0-9.]+ tok/s[^]]*\]" "$W/out/chat.txt" | tail -1)
+  say "  chat.py rc $rc: ${s:-no answer line (see out/chat.txt)}"
+  { [ $rc = 0 ] && [ -n "$s" ]; } || fails=$((fails + 1))
+  say "serve.py --mem $m: one streamed OpenAI and one streamed Anthropic request, then SIGTERM"
+  PORT=${CS_PORT:-8093}
+  HOME="$W/home" HF_HOME="$HFH" "$CL/.venv/bin/python" "$CL/serve.py" --mem $m --port $PORT > "$W/out/serve.txt" 2>&1 &
+  SPID=$!; t0=$(date +%s); ok=1
+  until [ "$(curl -s -m 2 http://127.0.0.1:$PORT/health 2>/dev/null | grep -o ready)" = ready ]; do
+    kill -0 $SPID 2>/dev/null && [ $(( $(date +%s) - t0 )) -lt 300 ] || { ok=0; break; }
+    sleep 2
+  done
+  if [ $ok = 1 ]; then
+    curl -sN -m 120 http://127.0.0.1:$PORT/v1/chat/completions -H 'content-type: application/json' \
+      -d '{"model":"exactstream","messages":[{"role":"user","content":"Say hello in five words."}],"stream":true,"max_tokens":64}' > "$W/out/serve_openai.sse"
+    curl -sN -m 120 http://127.0.0.1:$PORT/v1/messages -H 'content-type: application/json' -H 'anthropic-version: 2023-06-01' \
+      -d '{"model":"exactstream","max_tokens":64,"stream":true,"messages":[{"role":"user","content":"Say hello in five words."}]}' > "$W/out/serve_anthropic.sse"
+    o=$(grep -c -E '^data: \[DONE\]' "$W/out/serve_openai.sse"); f=$(grep -c '"finish_reason": *"[a-z]' "$W/out/serve_openai.sse")
+    a=$(grep -c -E '^event: message_stop' "$W/out/serve_anthropic.sse"); d=$(grep -c -E '^event: content_block_delta' "$W/out/serve_anthropic.sse")
+    say "  OpenAI stream: [DONE] $o, finish_reason $f; Anthropic stream: message_stop $a, text deltas $d"
+    { [ "$o" = 1 ] && [ "$f" -ge 1 ] && [ "$a" = 1 ] && [ "$d" -ge 1 ]; } || fails=$((fails + 1))
+  else
+    say "  serve.py did not come up within 300 s (see out/serve.txt)"; fails=$((fails + 1))
+  fi
+  kill -TERM $SPID 2>/dev/null
+  for i in $(seq 1 30); do kill -0 $SPID 2>/dev/null || break; sleep 1; done
+  if kill -0 $SPID 2>/dev/null; then say "  serve.py ignored SIGTERM for 30 s"; kill -KILL $SPID; fails=$((fails + 1))
+  else say "  serve.py stopped on SIGTERM: $(grep -a -c 'stopped; log:' "$W/out/serve.txt") 'stopped' line(s)"; fi
 fi
 [ -z "$(ls -A "$W/home" 2>/dev/null)" ] || say "note: the engine wrote into the empty HOME: $(cd "$W/home" && find . -maxdepth 3 | head -5 | tr '\n' ' ')"
 [ $fails = 0 ] && say "CLEAN-CLONE PASS" || say "CLEAN-CLONE FAIL ($fails)"

@@ -73,7 +73,8 @@ def _streamed_class(cls):
             mx.async_eval(x)                # the remaining layers (MTPLX decodes synchronously otherwise)
         if bm["full"]:                                       # fully resident: expert id == slot id
             return cls.__call__(self, x, indices, *a, **kw)
-        if indices.size <= GATE_N[0] and (indices.size <= 92 or indices.size <= bm["C"]):   # decode / verify: sync-free
+        gr = bm.get("gate_req")                              # W24 (Mon 9 Nov): a caller's bound on this call's DISTINCT ids
+        if indices.size <= GATE_N[0] and (indices.size <= 92 or indices.size <= bm["C"] or (gr is not None and gr <= bm["C"])):   # decode / verify: sync-free
             # exact gate; a wide call (R-55, > 92 ids) only when the pool can hold all its experts (ensure aborts past C)
             if _S10B is not None:                            # S10b trace (bigmoe/s10b.py): lazy references, no sync
                 _S10B.rec(bm, x, indices)
