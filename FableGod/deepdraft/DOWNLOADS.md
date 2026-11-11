@@ -1,0 +1,1 @@
+- 2026-11-12 00:03 orchestrator approved under Kamen's 11-07 standing download OK (>= 20 GB free; 233 GB free): BigMoE downloads Magicoder-OSS-Instruct-75K (HF ise-uiuc, ~150 MB) as code prompts for the DEEPDRAFT capture. Name / source / size to Kamen in the morning.

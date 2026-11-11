@@ -1,0 +1,10 @@
+DEEPDRAFT drift (BigMoE scripts/dd_drift.py, Thu 12 Nov): mean cosine of a feature at answer row t vs t + d, over the 125B's own answers; raw / ctr (each window's mean answer feature removed). Files per source <= 40, name order.
+source                         files  d1  raw/ctr  d2  raw/ctr  d3  raw/ctr  d5  raw/ctr  d10 raw/ctr  d15 raw/ctr  d20 raw/ctr  d25 raw/ctr  d30 raw/ctr
+code h (dlog d1102mbpp)           30  0.757/+0.528  0.656/+0.328  0.601/+0.220  0.555/+0.131  0.521/+0.068  0.516/+0.058  0.499/+0.029  0.491/+0.013  0.490/+0.012
+chat h (dlog n1101)               40  0.767/+0.542  0.658/+0.323  0.604/+0.216  0.557/+0.123  0.529/+0.067  0.514/+0.039  0.509/+0.029  0.504/+0.018  0.498/+0.007
+code wd trunk (d1102mbpp)         30  0.651/+0.367  0.567/+0.211  0.530/+0.143  0.499/+0.087  0.478/+0.050  0.475/+0.046  0.461/+0.022  0.453/+0.011  0.453/+0.012
+chat wd trunk (n1101)             40  0.659/+0.404  0.550/+0.214  0.511/+0.146  0.473/+0.080  0.454/+0.045  0.443/+0.025  0.440/+0.018  0.435/+0.009  0.432/+0.004
+ifeval tap L5 (d02a)              26  0.588/+0.198  0.520/+0.085  0.500/+0.055  0.487/+0.031  0.488/+0.037  0.486/+0.035  0.480/+0.021  0.484/+0.033  0.479/+0.020
+ifeval tap L45 (d02a)             26  0.741/+0.497  0.635/+0.296  0.587/+0.206  0.547/+0.130  0.518/+0.081  0.508/+0.063  0.495/+0.038  0.490/+0.032  0.484/+0.021
+multi tap L45 (d02a)              24  0.767/+0.536  0.658/+0.318  0.611/+0.227  0.566/+0.139  0.530/+0.068  0.512/+0.035  0.505/+0.020  0.503/+0.017  0.499/+0.010
+READING: the token-specific state drifts FAST: centered cosine 0.53 -> 0.13 by d5 and ~0.01 by d30 (drafter input h; the trunk's last-layer wd 0.37 -> 0.09 -> 0.01), code and chat alike. Only the window-level part is slow (raw cosine plateaus ~0.45-0.50 from d~10). A stand-in cannot be carried forward unchanged: it must be re-derived from each drafted token, so this is hard, though the persistent half comes free.
