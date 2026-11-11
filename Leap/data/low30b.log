@@ -1,0 +1,24 @@
+L1-30b: profile + K-paired layout; 128 experts x 4 layers; prep 132 s
+  4-bit: low30b == low30 bitwise True; K-paired == row-paired bitwise True
+  3-bit: low30b == low30 bitwise True; K-paired == row-paired bitwise True
+  2-bit: low30b == low30 bitwise True; K-paired == row-paired bitwise True
+  profile 2-bit, 16 rows (59 distinct, 4 layers; floor 1.289 ms):
+    MODE 0 full        2.314 ms (9.8 us per expert; 56% of floor)
+    MODE 1 no multiply 1.709 ms (7.3 us per expert; 75% of floor)
+    MODE 2 no unpack   1.917 ms (8.2 us per expert; 67% of floor)
+    MODE 3 no x work   2.151 ms (9.2 us per expert; 60% of floor)
+    MODE 4 reads only  1.647 ms (7.0 us per expert; 78% of floor)
+  profile 4-bit, 16 rows (59 distinct, 4 layers; floor 2.320 ms):
+    MODE 0 full        2.793 ms (11.9 us per expert; 83% of floor)
+    MODE 1 no multiply 2.684 ms (11.4 us per expert; 86% of floor)
+    MODE 2 no unpack   2.753 ms (11.7 us per expert; 84% of floor)
+    MODE 3 no x work   2.758 ms (11.7 us per expert; 84% of floor)
+    MODE 4 reads only  2.705 ms (11.5 us per expert; 86% of floor)
+Traceback (most recent call last):
+  File "/Users/kamen/Leap/scripts/test_low30b.py", line 119, in <module>
+    res = ab(fns)
+          ^^^^^^^
+  File "/Users/kamen/Leap/scripts/test_low30b.py", line 33, in ab
+    res[k].append(t_once(fns[k]))
+    ~~~^^^
+TypeError: unhashable type: 'numpy.ndarray'

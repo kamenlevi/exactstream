@@ -1,0 +1,9 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=12.9 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+planes125: plan4433333333 (4433333333; patched SwitchGLU)
+125B C=256 plan4433333333: GSM8K 146/150 of 150 target (3064s for 150 problems, 11.6 tok/s incl. prefill; mixed calls 1713072) per-problem 111111111111011111111111111111111111111111111111111111111111111111111111111111111111111011111011111111111111111111111110111111111111111111111111111111
+  vs BigMoE eager: answers equal 147/150; correct eager 147 vs plan4433333333 146; eager-only 1, plan4433333333-only 0
+  vs BigMoE v2a: answers equal 146/150; correct v2a 147 vs plan4433333333 146; v2a-only 1, plan4433333333-only 0
+  noise arm (BigMoE v2a vs eager, first 150): answers equal 147/150

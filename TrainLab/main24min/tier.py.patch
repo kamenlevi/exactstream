@@ -1,0 +1,110 @@
+--- /Users/kamen/BigMoE/bigmoe/tier.py	2026-10-21 12:49:36
++++ main24min/bigmoe/tier.py	2026-10-22 06:06:13
+@@ -217,6 +217,10 @@
+     t = bm["tier"]
+     ids = np.array(indices)
+     uniq = np.unique(ids)
++    if _PF_GROUP and len(uniq) > _PF_GROUP and ids.size >= 16 and ids.size >= 4 * len(uniq):
++        y = _prefill_grouped(cls, self, x, indices, ids, uniq, bm, *a, **kw)
++        if y is not None:
++            return y
+     compact = np.searchsorted(uniq, ids).astype(np.int32)
+     scr = [mx.zeros((len(uniq), *sh), dt) for sh, dt in t["shapes4"]]
+     mx.eval(*scr)
+@@ -238,8 +242,96 @@
+ 
+ def prefill_done():
+     pass
++
++
++# ---------------------------------------------------------------- grouped exact prefill (TrainLab D1i, 10-22)
++# BIGMOE_TIER_PF_GROUP=G: the call's experts run in ascending-id groups of ~G, each group on its own (row, slot) pairs
++# with a scratch of only its experts, read_rebuilt of group g+1 running while the GPU computes group g. Bit-identical to
++# the single call: only when the reference call itself takes the sorted rhs gather (>= 16 pairs, >= 4 per expert), and
++# every group keeps it too (>= 16 rows, >= 4 per expert; a group grows past G until it holds, a short tail joins the one
++# before), rows padded to a multiple of 64 (BUG1); the pairs go back to their (row, slot) places before the model's own
++# combine. (v3's non-tier PF_GROUP lacked these conditions and was not exact on prose, LEDGER M24d/M24e.)
++_PF_GROUP = int(os.environ.get("BIGMOE_TIER_PF_GROUP", "0") or 0)
++
++
++def _groups(uniq, flat, G):
++    cnt = np.bincount(flat, minlength=int(uniq[-1]) + 1)[uniq]
++    ok = lambda n, r: r >= 16 and r >= 4 * n
++    groups, a, rows = [], 0, 0
++    for i in range(len(uniq)):
++        rows += int(cnt[i])
++        n = i + 1 - a
++        if n >= G and ok(n, rows):
++            groups.append(uniq[a:i + 1]); a, rows = i + 1, 0
++    if a < len(uniq):
++        if ok(len(uniq) - a, rows) or not groups:
++            groups.append(uniq[a:])
++        else:
++            groups[-1] = uniq[len(uniq) - len(groups[-1]) - (len(uniq) - a):]
++    if max(len(g) for g in groups) > 2 * G:
++        return None
++    for g in groups:
++        if not ok(len(g), int(cnt[np.searchsorted(uniq, g)].sum())):
++            return None
++    return groups
++
++
++def _prefill_grouped(cls, self, x, indices, ids, uniq, bm, *a, **kw):
++    from .stream import PIECES
++    t = bm["tier"]
++    k = ids.shape[-1]
++    lead = x.shape[:-1]
++    flat = ids.reshape(-1)                                       # pair p = row * k + slot
++    groups = _groups(uniq, flat, _PF_GROUP)
++    if groups is None:
++        return None
++    poss = [np.nonzero(np.isin(flat, grp))[0] for grp in groups]
++    G = max(len(g) for g in groups)
++    x2 = x.reshape(-1, x.shape[-1])
++    nb = min(2, len(groups))
++    bufs = [[mx.zeros((G, *sh), dt) for sh, dt in t["shapes4"]] for _ in range(nb)]
++    mx.eval(*[arr for b_ in bufs for arr in b_])
+ 
++    def fill(i):
++        grp = groups[i]
++        t["ext"].read_rebuilt(t["path"], t["recsz"], t["msb_sz"], t["pers4"], grp.astype(np.int32).tolist(),
++                              list(range(len(grp))), bufs[i % nb])
+ 
++    saved = [getattr(getattr(self, proj), field) for proj, field in PIECES]
++    outs, prev = [], []
++    fill(0)
++    try:
++        for i, (grp, pos) in enumerate(zip(groups, poss)):
++            scr = bufs[i % nb] if len(grp) == G else [arr[:len(grp)] for arr in bufs[i % nb]]
++            for (proj, field), arr in zip(PIECES, scr):
++                setattr(getattr(self, proj), field, arr)
++            xp = mx.take(x2, mx.array((pos // k).astype(np.int32)), axis=0)
++            cpn = np.searchsorted(grp, flat[pos]).astype(np.int32)
++            pad = (-len(pos)) % 64
++            if pad:
++                xp = mx.concatenate([xp, mx.zeros((pad, xp.shape[-1]), xp.dtype)])
++                cpn = np.concatenate([cpn, np.zeros(pad, np.int32)])
++            cp = mx.array(cpn).reshape(-1, 1).astype(indices.dtype)
++            y = cls.__call__(self, xp, cp, *a, **kw).reshape(len(cpn), -1)[:len(pos)]
++            mx.async_eval(y)
++            if i + 1 < len(groups):
++                if prev:
++                    mx.eval(*prev)                               # the other buffer's last user is finished
++                fill(i + 1)
++            prev = [y]
++            outs.append(y)
++        mx.eval(*prev)
++    finally:
++        for (proj, field), arr in zip(PIECES, saved):
++            setattr(getattr(self, proj), field, arr)
++    order = np.argsort(np.concatenate(poss), kind="stable").astype(np.int32)
++    y = mx.take(mx.concatenate(outs, axis=0), mx.array(order), axis=0).reshape(*lead, k, -1)
++    mx.eval(y)
++    del bufs, outs
++    mx.clear_cache()
++    return y
++
++
+ # ---------------------------------------------------------------- MoE block: rank-ordered top-k on streamed tier layers
+ def install_block():
+     """Decode/verify rows (<= 8) on tier layers: the top-k sorted by score (descending), as planes125's evaluated

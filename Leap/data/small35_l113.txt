@@ -1,0 +1,38 @@
+L1-13 profile: tf_code/HumanEval/103, context 235 tokens, 40 layers (30 GDN + 10 attention)
+S = 16 rows: expert union 58.5 per layer of 256
+  whole pass + 8 taps (as the loop)            44.78 ms
+  whole pass + taps + GDN rollback capture     45.05 ms
+  GDN mixers (30)                              12.20 ms   floor  2.04 ms ( 17% of floor speed)
+  full-attn mixers (10)                         3.82 ms   floor  0.55 ms ( 14% of floor speed)
+  router + top-8 (40)                           0.60 ms   floor  0.08 ms ( 13% of floor speed)
+  routed experts (40)                          22.02 ms   floor 14.79 ms ( 67% of floor speed)
+  shared expert (40)                            1.52 ms   floor  0.25 ms ( 17% of floor speed)
+  lm_head + argmax                              1.84 ms   floor  1.02 ms ( 55% of floor speed)
+  sum of components                            42.01 ms (rest of the whole pass = norms, residual, glue)
+S =  8 rows: expert union 40.3 per layer of 256
+  whole pass + 8 taps (as the loop)            28.24 ms
+  whole pass + taps + GDN rollback capture     29.14 ms
+  GDN mixers (30)                               6.61 ms   floor  2.04 ms ( 31% of floor speed)
+  full-attn mixers (10)                         2.56 ms   floor  0.55 ms ( 21% of floor speed)
+  router + top-8 (40)                           0.50 ms   floor  0.08 ms ( 16% of floor speed)
+  routed experts (40)                          12.99 ms   floor 10.18 ms ( 78% of floor speed)
+  shared expert (40)                            0.98 ms   floor  0.25 ms ( 26% of floor speed)
+  lm_head + argmax                              2.35 ms   floor  1.02 ms ( 43% of floor speed)
+  sum of components                            25.98 ms (rest of the whole pass = norms, residual, glue)
+S =  1 rows: expert union 8.0 per layer of 256
+  whole pass + 8 taps (as the loop)            10.94 ms
+  whole pass + taps + GDN rollback capture     10.94 ms
+  GDN mixers (30)                               3.72 ms   floor  2.04 ms ( 55% of floor speed)
+  full-attn mixers (10)                         1.19 ms   floor  0.55 ms ( 46% of floor speed)
+  router + top-8 (40)                           0.39 ms   floor  0.08 ms ( 20% of floor speed)
+  routed experts (40)                           2.45 ms   floor  2.02 ms ( 82% of floor speed)
+  shared expert (40)                            0.63 ms   floor  0.25 ms ( 40% of floor speed)
+  lm_head + argmax                              1.20 ms   floor  1.02 ms ( 85% of floor speed)
+  sum of components                             9.57 ms (rest of the whole pass = norms, residual, glue)
+drafter 16-block forward (+ argmax): 5.51 ms   floor 0.00 ms (its 0.77 GB + the target head)
+L1-14: z-lab DFlash block 16 with confidence truncation, 12 HumanEval+ prompts (decode tok/s from the first token)
+  t = 0  :  221.9 tok/s, 10.92 accepted + 1 per block, 300 blocks, 3277 tokens
+  t = 0.3:  240.6 tok/s, 10.11 accepted + 1 per block, 326 blocks, 3295 tokens
+  t = 0.5:  237.3 tok/s, 9.10 accepted + 1 per block, 365 blocks, 3323 tokens
+  t = 0.7:  233.7 tok/s, 8.17 accepted + 1 per block, 407 blocks, 3326 tokens
+peak 21.1 GB

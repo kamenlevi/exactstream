@@ -1,0 +1,4 @@
+L1-29: bf16 16-row tensor-unit matmul for the HC mixers (per 16-row check)
+  HC mix down 320x10240 x97: floor 2.27 ms; MLX form b 5.11 (44%); bmm16 (10, 1) 2.59 (88%); paired x1.97 (IQR 1.97-1.98); max |err| vs fp32 MLX 0.00777, bmm16 0.00777; invariant True; next configs 2.63(5, 2), 2.66(8, 2), 2.66(5, 1)
+  HC mix up   10240x320 x97: floor 2.27 ms; MLX form c 2.63 (86%); bmm16 (5, 1) 2.71 (84%); paired x0.97 (IQR 0.96-0.98); max |err| vs fp32 MLX 0.00195, bmm16 0.00195; invariant True; next configs 2.77(1, 2), 2.84(5, 2), 2.87(1, 1)
+  ple key     10240x2560 x1: floor 0.19 ms; MLX form b 0.42 (45%); bmm16 (1, 1) 0.35 (53%); paired x1.18 (IQR 1.17-1.21); max |err| vs fp32 MLX 0.00633, bmm16 0.00633; invariant True; next configs 0.48(1, 2), 0.49(2, 1), 0.51(4, 1)

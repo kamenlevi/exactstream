@@ -1,0 +1,18 @@
+"""Usage (BigMoE venv): python run_map.py baseline | <ablation name> | report | ctx512 | ctx2048 [--max 12]
+Night 1 order and expected time are in run_night1.sh. ctxN re-runs the baseline with the prompt cut to its last N tokens
+(context-length sensitivity: answer positions keep their text, the model sees less prefix)."""
+import sys, os
+import dm_common as C
+from dm_ablations import ABLATIONS
+name = sys.argv[1]; maxw = int(sys.argv[sys.argv.index("--max") + 1]) if "--max" in sys.argv else 12
+if name == "report": C.report(); sys.exit(0)
+model, tok = C.load_model(); C.discover_layers(model); C.install()
+windows = C.load_windows(maxw)
+if name.startswith("ctx"):
+    n = int(name[3:]); cut = []
+    for dom, nm, ids, off, gen in windows:
+        a = gen + 1 - off; start = max(0, a - n)
+        cut.append((dom, nm, ids[start:], off + start, gen))
+    C.measure(model, cut, name, lambda: None)
+elif name == "baseline": C.measure(model, windows, "baseline", lambda: None)
+else: C.measure(model, windows, name, ABLATIONS[name])

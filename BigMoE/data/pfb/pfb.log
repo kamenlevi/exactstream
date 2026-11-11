@@ -1,0 +1,50 @@
+11-08 09:46:11 NO-SWAP 41.7 GB < 47.2: not run
+11-08 16:26:59 PFB start (pid 10967, NO-SWAP 50.4 GB, snapshot b5e0d1f)
+11-08 16:28:04 pa1 rc=0
+11-08 16:28:59 pb3 rc=0
+11-08 16:30:00 pb3n rc=0
+11-08 16:30:55 pb38 rc=0
+11-08 16:31:55 pb3c rc=0
+11-08 16:32:55 ct1 rc=0
+11-08 16:35:21 fb0r rc=0
+PFB (data/pfb; snapshot b5e0d1f; exact E, C 256, CAP 64; quiet): prefill TTFT (pfs) and tok/s; x vs pa1 (PF-A); decode tokens and logits hash vs pa1; lifetime peak (line 45.0)
+  pa1 PF-A (R57_PFLM=1, control): lifetime peak 45.10 GB
+      edit10 P 1565: 8.3 s = 189 tok/s (x1.00; tokens ==; logits hash 8/8; scratch {'reads': 22845, 'hits': 16210, 'calls': 96})
+      write13 P 4730: 13.1 s = 360 tok/s (x1.00; tokens ==; logits hash 28/28; scratch {'reads': 23855, 'hits': 70648, 'calls': 240})
+      write11 P 7932: 18.7 s = 425 tok/s (x1.00; tokens ==; logits hash 22/22; scratch {'reads': 24236, 'hits': 129396, 'calls': 384})
+  pb3 PF-B (PFLM=3, TOK 4096, read-ahead): lifetime peak 46.00 GB
+      edit10 P 1565: 7.2 s = 218 tok/s (x1.15; tokens ==; logits hash 0/7; scratch {'reads': 24576, 'hits': 22842, 'calls': 48})
+      write13 P 4730: 11.1 s = 428 tok/s (x1.19; tokens DIFF; logits hash 0/24; scratch {'reads': 24576, 'hits': 41636, 'calls': 96})
+      write11 P 7932: 16.2 s = 490 tok/s (x1.15; tokens DIFF; logits hash 0/22; scratch {'reads': 24576, 'hits': 46951, 'calls': 96})
+  pb3n PF-B without the read-ahead: lifetime peak 45.80 GB
+      edit10 P 1565: 7.9 s = 197 tok/s (x1.04; tokens ==; logits hash 0/7; scratch {'reads': 22842, 'hits': 0, 'calls': 48})
+      write13 P 4730: 12.3 s = 384 tok/s (x1.06; tokens DIFF; logits hash 0/24; scratch {'reads': 23866, 'hits': 17770, 'calls': 96})
+      write11 P 7932: 17.4 s = 456 tok/s (x1.07; tokens DIFF; logits hash 0/22; scratch {'reads': 24229, 'hits': 22722, 'calls': 96})
+  pb38 PF-B at TOK 8192: lifetime peak 46.20 GB
+      edit10 P 1565: 7.2 s = 218 tok/s (x1.15; tokens ==; logits hash 0/7; scratch {'reads': 24576, 'hits': 22842, 'calls': 48})
+      write13 P 4730: 10.8 s = 438 tok/s (x1.22; tokens DIFF; logits hash 0/28; scratch {'reads': 24576, 'hits': 23891, 'calls': 48})
+      write11 P 7932: 15.9 s = 499 tok/s (x1.17; tokens DIFF; logits hash 0/21; scratch {'reads': 24576, 'hits': 24247, 'calls': 48})
+  pb3c PF-B + clear_cache per layer: lifetime peak 45.80 GB
+      edit10 P 1565: 7.9 s = 197 tok/s (x1.04; tokens ==; logits hash 0/7; scratch {'reads': 24576, 'hits': 22842, 'calls': 48})
+      write13 P 4730: 11.7 s = 404 tok/s (x1.12; tokens DIFF; logits hash 0/24; scratch {'reads': 24576, 'hits': 41636, 'calls': 96})
+      write11 P 7932: 16.4 s = 483 tok/s (x1.14; tokens DIFF; logits hash 0/22; scratch {'reads': 24576, 'hits': 46951, 'calls': 96})
+CT1 (NewIdeas; zs = M1-B + COH + SB1 on the 12 IFEval prompts, CAP 16; lifetime peak 42.30 GB): per prompt P, TTFT, prefill SSD GB, expert-layers resident at start (base / side, of 24576), routed expert-layers and those resident (base / side)
+  ifeval/1219: P 74, TTFT 3.57 s, SSD 24.1 GB, resident base 12390 / side 3981, routed 8638 of which resident base 6168 / side 2478
+  ifeval/1220: P 43, TTFT 2.74 s, SSD 17.0 GB, resident base 9117 / side 2785, routed 6094 of which resident base 3243 / side 1167
+  ifeval/1262: P 57, TTFT 3.27 s, SSD 22.1 GB, resident base 12483 / side 4013, routed 7916 of which resident base 5404 / side 2194
+  ifeval/1561: P 66, TTFT 3.25 s, SSD 21.8 GB, resident base 10348 / side 3204, routed 7818 of which resident base 4642 / side 1675
+  ifeval/2239: P 37, TTFT 2.38 s, SSD 15.6 GB, resident base 11560 / side 3587, routed 5599 of which resident base 3883 / side 1500
+  ifeval/2439: P 78, TTFT 3.72 s, SSD 24.4 GB, resident base 12129 / side 3848, routed 8741 of which resident base 6036 / side 2322
+  ifeval/2590: P 48, TTFT 3.01 s, SSD 19.3 GB, resident base 11760 / side 3630, routed 6939 of which resident base 4884 / side 1838
+  ifeval/2853: P 52, TTFT 3.00 s, SSD 19.7 GB, resident base 10720 / side 3263, routed 7082 of which resident base 4454 / side 1679
+  ifeval/2870: P 42, TTFT 2.62 s, SSD 16.9 GB, resident base 12035 / side 3791, routed 6063 of which resident base 4474 / side 1831
+  ifeval/3280: P 46, TTFT 2.90 s, SSD 18.9 GB, resident base 9962 / side 3043, routed 6793 of which resident base 3803 / side 1406
+  ifeval/3407: P 54, TTFT 2.90 s, SSD 19.2 GB, resident base 11319 / side 3486, routed 6878 of which resident base 4774 / side 1893
+  ifeval/374: P 101, TTFT 3.86 s, SSD 25.9 GB, resident base 11061 / side 3440, routed 9286 of which resident base 5796 / side 2065
+  MEAN: TTFT 3.10 s, SSD 20.4 GB, base residency at start 45.7%, routed expert-layers 7321, resident share of the routed: base 65.5% / side 25.1%
+FU re-check (the orchestrator's publish job ran beside FU's quiet lock 09:24:44-09:29, over fb0): L at C 256, CAP 16, TTFT s by prompt
+  fb0 FU's L at C 256 (perturbed): lifetime peak 45.10 GB; TTFT {'edit10': 16.5, 'write11': 68.1, 'write13': 41.4}
+  fb0r the same, re-run in PFB: lifetime peak 45.10 GB; TTFT {'edit10': 16.7, 'write11': 66.6, 'write13': 40.9}
+  fb4 FU's L + PF-A: lifetime peak 45.50 GB; TTFT {'edit10': 8.5, 'write11': 19.2, 'write13': 13.7}
+  fb5 FU's L + PF-A + CACHE_GB 2: lifetime peak 46.40 GB; TTFT {'edit10': 8.5, 'write11': 19.2, 'write13': 13.6}
+11-08 16:35:21 report rc=0 (data/pfb/pfb_report.txt)

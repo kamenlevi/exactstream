@@ -1,0 +1,20 @@
+PASS starts and shows a prompt
+PASS waiting for a message: non-canonical, no tty echo: 0xc3
+PASS 3-line bracketed paste, then Enter: 33 chars
+PASS 3,000-character one-line bracketed paste, then Enter: 3000 chars
+PASS 3,000-character one-line paste without markers: 3000 chars
+PASS 3 lines arriving together without markers: 16 chars
+PASS Backspace while typing: 11 chars
+PASS Ctrl-U erases the message: 5 chars
+PASS Ctrl-W erases a word: 9 chars
+PASS arrow keys are ignored: 3 chars
+PASS UTF-8, wide characters and their Backspace: 8 chars
+PASS Backspace across a wrapped row (redraw): 90 chars
+PASS while answering: canonical mode and echo restored: 0x200005cb
+PASS whole session incl. a 2,000-character single-line answer: no scroll region or cursor save / restore, live numbers in the window title, the answer and its numbers on screen: cursor / region sequences 0, title updates 244, last title '0;last answer: 402 tokens, 89.2 tok/s, first token 0.2 s, pe'
+PASS Ctrl-C at the prompt: the note, then a new prompt
+PASS after Ctrl-C: reading again in non-canonical mode: 0xc3
+PASS Ctrl-D on an empty message quits, rc 0: rc 0
+PASS bracketed paste switched off at the end
+PASS SIGTERM while reading: exits through the finally (paste mode off, terminal restored): rc 143
+PTY TEST: 19 of 19 pass

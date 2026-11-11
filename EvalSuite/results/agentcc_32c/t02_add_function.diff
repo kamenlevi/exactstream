@@ -1,0 +1,82 @@
+diff --git a/__pycache__/textutil.cpython-314.pyc b/__pycache__/textutil.cpython-314.pyc
+new file mode 100644
+index 0000000..f2f3b3c
+Binary files /dev/null and b/__pycache__/textutil.cpython-314.pyc differ
+diff --git a/tests/__pycache__/__init__.cpython-314.pyc b/tests/__pycache__/__init__.cpython-314.pyc
+new file mode 100644
+index 0000000..ba28db0
+Binary files /dev/null and b/tests/__pycache__/__init__.cpython-314.pyc differ
+diff --git a/tests/__pycache__/test_textutil.cpython-314.pyc b/tests/__pycache__/test_textutil.cpython-314.pyc
+new file mode 100644
+index 0000000..96da6ce
+Binary files /dev/null and b/tests/__pycache__/test_textutil.cpython-314.pyc differ
+diff --git a/tests/test_textutil.py b/tests/test_textutil.py
+index 44ea3f6..87885af 100644
+--- a/tests/test_textutil.py
++++ b/tests/test_textutil.py
+@@ -1,7 +1,45 @@
+ import unittest
+-from textutil import title_case
++from textutil import slugify, title_case
+ 
+ 
+ class T(unittest.TestCase):
+     def test_title(self):
+         self.assertEqual(title_case('a b'), 'A B')
++
++    def test_slugify_spaces(self):
++        self.assertEqual(
++            slugify('Hello, World! This is A TEST.'),
++            'hello-world-this-is-a-test',
++        )
++
++    def test_slugify_collapses_runs(self):
++        # A run of separators of any length becomes a single hyphen.
++        self.assertEqual(
++            slugify('foo  --__  bar/baz'),
++            'foo-bar-baz',
++        )
++
++    def test_slugify_strips_ends(self):
++        self.assertEqual(
++            slugify('--Hello World--'), 'hello-world'
++        )
++
++    def test_slugify_keeps_digits(self):
++        self.assertEqual(
++            slugify('ABC 123 def'), 'abc-123-def'
++        )
++
++    def test_slugify_all_separators(self):
++        # Everything collapses, then the hyphens are stripped -> empty.
++        self.assertEqual(
++            slugify('!!! ??? --'), ''
++        )
++
++    def test_slugify_empty(self):
++        self.assertEqual(
++            slugify(''), ''
++        )
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/textutil.py b/textutil.py
+index 62d0d8b..0ed1c4c 100644
+--- a/textutil.py
++++ b/textutil.py
+@@ -1,2 +1,14 @@
++import re
++
++
+ def title_case(s):
+     return ' '.join(w.capitalize() for w in s.split())
++
++
++def slugify(text):
++    """Lowercase `text` and collapse runs of non-alphanumeric chars to '-'.
++
++    Hyphens are stripped from both ends, so a leading/trailing run of
++    separators yields an empty string (e.g. 'Hello!' -> 'hello').
++    """
++    return re.sub(r'[^a-z0-9]+', '-', text.lower()).strip('-')

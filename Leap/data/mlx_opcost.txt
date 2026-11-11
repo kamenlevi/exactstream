@@ -1,0 +1,7 @@
+chain of adds                              N 2000: build   0.2 us/op + eval   2.1 us/op =   2.3 us/op
+chain of rms_norm / mul / sigmoid / add    N 2000: build   0.1 us/op + eval   1.8 us/op =   1.9 us/op
+fan of independent adds                    N 2000: build   0.3 us/op + eval   1.7 us/op =   2.0 us/op
+chain of custom metal_kernel calls         N 2000: build   0.7 us/op + eval   2.8 us/op =   3.6 us/op
+chain_mix under mx.compile                 N 2000:   1.2 us per original op
+verify pass graph, GDN kernels off: 0 DOT nodes, ~0 op nodes; top: []
+verify pass graph, GDN kernels on : 0 DOT nodes, ~0 op nodes; top: []

@@ -1,0 +1,30 @@
+# Friday 00:30 (the orchestrator 07:2x per Fable C's audit AUDIT_1105 sections 2-3): <arm> <est min> <start by HH:MM> <primary twin> <info twins...>
+# 1. Test 1 on all 36 windows (code decisive, chat the control): the DRAFT17 _ball splits and their twin, then c3_b2d / c3_b2c.
+qom_0_split0.9_live_ball 6 10:00 qom_0_live_ball qom_0_split0.99_live_ball
+qom_0_split0.99_live_ball 6 10:00 qom_0_live_ball qom_0_split0.9_live_ball
+qom_0_live_ball 6 10:00 qom_0_live_bq
+c3_b2d 7 10:00 c3_b2c qom_0_live_ball
+c3_b2c 7 10:00 c3_b2d qom_0_live_ball
+# 2. Fable C's WALL arms on code only (the orchestrator Thu 18:5x; build_1105 INSTALL.md section 4, in place of reach07+code):
+#    K8, K6, A (split 0.99 + reach 0.7), A' (middle-layer split 0.9), B (A + z999), then K4 as a probe. Read with code_read.py's
+#    VERDICT2: PASS = all-row <= 1.34 % AND non-tie <= 0.87 %.
+qom_0_split0.99_k8_live_ball+code 4 10:10 qom_0_live_ball+code qom_0_split0.99_live_ball+code qom_0_split0.9_live_ball+code
+qom_0_split0.99_k6_live_ball+code 4 10:10 qom_0_live_ball+code qom_0_split0.99_live_ball+code qom_0_split0.9_live_ball+code
+qom_0_split0.99_r0.7_live_ball+code 4 10:10 qom_0_live_ball+code qom_0_split0.99_live_ball+code qom_0_split0.9_live_ball+code
+qom_0_split0.99_m0.9_live_ball+code 4 10:10 qom_0_live_ball+code qom_0_split0.99_live_ball+code qom_0_split0.9_live_ball+code
+qom_0_split0.99_r0.7_z0.999_live_ball+code 4 10:10 qom_0_live_ball+code qom_0_split0.99_r0.7_live_ball+code
+qom_0_split0.99_k4_live_ball+code 4 10:10 qom_0_live_ball+code qom_0_split0.99_k6_live_ball+code
+# 3. R15, then R15b only if R15 leaves >= 0.5 of margin on multi (<= 3.19 %).
+qom_0.5_u8_live_c147_bonus5g 5 10:00 qom_0.5_live_c147_bonus5g
+qom_0.5_u8_reach0.5_live_c147_bonus5g 5 10:00 qom_0.5_live_c147_bonus5g qom_0.5_u8_live_c147_bonus5g
+WHEN qom_0.5_u8_reach0.5_live_c147_bonus5g multile qom_0.5_u8_live_c147_bonus5g 3.19
+# 4. band5 and top1 on code only (after test 1).
+c3_b2b_band5+code 3 10:05 c3_b2d
+c3_b2b_top1+code 3 10:05 c3_b2d
+# Thursday leftovers if they did not run (skipped automatically when done): DENSE-3, the bq splits, cf04.
+qom_0_live_ball_c147_t3+dense3 10 10:05 qom_0_live_ball_c147_t3
+qom_0_split0.9_live_bq 6 10:05 qom_0_live_bq qom_0_split0.9_live_ball
+qom_0_split0.99_live_bq 6 10:05 qom_0_live_bq qom_0_split0.99_live_ball
+qom_0.3_live_c147_bonus4g 5 10:05 qom_0.3_live_c147_bonus3g qom_0.5_live_c147_bonus5g
+# 5. The low-priority tail: topk8 (then the capture + massB_0.5, run by fri_c3.sh after this runner).
+topk8 6 10:15 qom_0_live_ball

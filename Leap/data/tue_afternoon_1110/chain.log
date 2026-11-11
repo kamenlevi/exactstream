@@ -1,0 +1,55 @@
+13:42:34 armed (pid 67804): after BigMoE's W24g; tests 1-3; end 16:45
+13:45:24 stopped by a signal
+13:45:24 exit (NO-SWAP 47 GB, swap 6659 MB)
+13:45:45 armed (pid 69112): after BigMoE's W24g; tests 1-3; end 16:45
+13:46:16 GO: NO-SWAP 47 GB, swap 6659 MB
+[transformers] PyTorch was not found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
+prompt_3k.txt: 2991 tokens before the template
+prompt_15k.txt: 14990 tokens before the template
+prompt_20k.txt: 19991 tokens before the template
+13:46:17 test 1: NO-SWAP 47 GB before any ballast -> case A ballast 22 GB (engine room ~25 GB), case B 28 GB
+13:46:18 test 1 case A: ballast 22 GB: ballast: 22.00 GB locked in 0.6 s ; NO-SWAP 47 -> 25 GB
+13:47:38   simA_he12: whole decode 138.1 tok/s | whole request 41.3 tok/s | first token 3.61 s (3.22-4.80) | lifetime peak 23.77 GB | 12 prompt(s), 2610 tokens, process wall 79 s (load + warm-up included) | wall 80 s | swap now 6659 MB
+13:48:23   simA_long: whole decode 26.9 tok/s | whole request 9.3 tok/s | first token 17.98 s (17.98-17.98) | lifetime peak 25.03 GB | 1 prompt(s), 256 tokens, process wall 43 s (load + warm-up included) | wall 45 s | swap now 6659 MB
+13:48:59   simA_chat:  | wall 36 s | swap now 6659 MB
+13:48:59   case A wired-limit lines:    3 R57_WIRED: mx.set_wired_limit(27.00 GB) 
+13:49:10 test 1 case A done: ballast released; NO-SWAP 55 GB, swap 6659 MB (case start 6659)
+13:49:11 test 1 case B: ballast 28 GB: ballast: 28.00 GB locked in 0.7 s ; NO-SWAP 55 -> 27 GB
+13:50:31   simB_he12: whole decode 137.3 tok/s | whole request 40.9 tok/s | first token 3.66 s (3.30-4.89) | lifetime peak 23.78 GB | 12 prompt(s), 2610 tokens, process wall 79 s (load + warm-up included) | wall 80 s | swap now 6643 MB
+13:51:18   simB_long: whole decode 26.5 tok/s | whole request 8.8 tok/s | first token 19.36 s (19.36-19.36) | lifetime peak 25.04 GB | 1 prompt(s), 256 tokens, process wall 45 s (load + warm-up included) | wall 47 s | swap now 7062 MB
+13:51:56   simB_chat:  | wall 38 s | swap now 7062 MB
+13:51:56   case B wired-limit lines:    3 R57_WIRED: mx.set_wired_limit(27.00 GB) 
+13:52:07 test 1 case B done: ballast released; NO-SWAP 54 GB, swap 7062 MB (case start 6659)
+13:52:55   pfa24_pfa:  | wall 48 s | swap now 7062 MB
+13:54:06   pfa24_default:  | wall 71 s | swap now 7062 MB
+13:54:44   bis_10k_pfa: whole decode 22.5 tok/s | whole request 2.6 tok/s | first token 21.36 s (21.36-21.36) | lifetime peak 34.26 GB | 1 prompt(s), 64 tokens, process wall 37 s (load + warm-up included) | wall 38 s | swap now 7062 MB
+13:55:18   bis_10k_pfb8k: whole decode 22.5 tok/s | whole request 3.0 tok/s | first token 18.14 s (18.14-18.14) | lifetime peak 35.50 GB | 1 prompt(s), 64 tokens, process wall 32 s (load + warm-up included) | wall 34 s | swap now 7062 MB
+13:56:05   bis_15k_pfa: whole decode 19.2 tok/s | whole request 1.9 tok/s | first token 30.19 s (30.19-30.19) | lifetime peak 35.43 GB | 1 prompt(s), 64 tokens, process wall 45 s (load + warm-up included) | wall 47 s | swap now 7062 MB
+13:56:49   bis_15k_pfb8k: whole decode 19.2 tok/s | whole request 2.2 tok/s | first token 25.81 s (25.81-25.81) | lifetime peak 36.77 GB | 1 prompt(s), 64 tokens, process wall 41 s (load + warm-up included) | wall 44 s | swap now 7062 MB
+13:57:45   bis_20k_pfa: whole decode 20.2 tok/s | whole request 1.5 tok/s | first token 40.08 s (40.08-40.08) | lifetime peak 36.57 GB | 1 prompt(s), 64 tokens, process wall 55 s (load + warm-up included) | wall 56 s | swap now 7062 MB
+13:58:36   bis_20k_pfb8k: whole decode 20.1 tok/s | whole request 1.7 tok/s | first token 33.74 s (33.74-33.74) | lifetime peak 38.06 GB | 1 prompt(s), 64 tokens, process wall 49 s (load + warm-up included) | wall 51 s | swap now 7062 MB
+13:58:36 unlocked
+== 1. 36 GB simulation
+simA_he12: 12 prompt(s), P HE12, 2610 tokens, whole decode 138.1 tok/s, first token median 3.61 s, lifetime peak 23.77 GB
+  tokens vs BigMoE w13eh (free memory): 12/12 identical
+simA_long: 1 prompt(s), P [3003], 256 tokens, whole decode 26.9 tok/s, first token median 17.98 s, lifetime peak 25.03 GB
+simB_he12: 12 prompt(s), P HE12, 2610 tokens, whole decode 137.3 tok/s, first token median 3.66 s, lifetime peak 23.78 GB
+  tokens vs BigMoE w13eh (free memory): 12/12 identical
+simB_long: 1 prompt(s), P [3003], 256 tokens, whole decode 26.5 tok/s, first token median 19.36 s, lifetime peak 25.04 GB
+sim_chat turn 1: P 27, 92 tokens, whole decode 29.7 tok/s, first token 2.2785 s, peak 23.665104384 GB, drafter mtp, answer 'A mixture-of-experts (MoE) language model is an architecture'
+sim_chat turn 2: P 148, 256 tokens, whole decode 43.0 tok/s, first token 3.2783 s, peak 23.880195192 GB, drafter mtp, answer '```python\nimport torch\nimport torch.nn as nn\n\nclass Top2Rout'
+sim_chat turn 3: P 430, 43 tokens, whole decode 27.5 tok/s, first token 4.6819 s, peak 23.95803512 GB, drafter mtp, answer 'The function computes routing logits for each input token an'
+== 2. PF-A at 24 GB
+short: P 24; answers IDENTICAL (77 / 77 tokens); first token PF-A 1.9813 vs default 2.025 s; peak 23.615362584 vs 23.610677024 GB; decode 27.3 vs 27.5
+long: P 6980; answers IDENTICAL (256 / 256 tokens); first token PF-A 17.703 vs default 42.0629 s; peak 25.976872464 vs 25.672702928 GB; decode 24.9 vs 25.0
+== 3. PF-B bisect (exact-32, TOK 8192 vs PF-A)
+10k: P 9988; PF-B calls 96; tokens EQUAL; hashes equal on 25 of 25; first token PF-A 21.4 / PF-B 18.1 s; peaks 34.26 / 35.50 GB
+15k: P 15002; PF-B calls 96; tokens EQUAL; hashes equal on 28 of 28; first token PF-A 30.2 / PF-B 25.8 s; peaks 35.43 / 36.77 GB
+20k: P 20003; PF-B calls 144; tokens EQUAL; hashes equal on 25 of 25; first token PF-A 40.1 / PF-B 33.7 s; peaks 36.57 / 38.06 GB
+13:58:36 chain end
+13:58:36 exit (NO-SWAP 52 GB, swap 7062 MB)
+[transformers] PyTorch was not found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
+prompt_25k.txt written
+14:01:05   bis_25k_pfa: whole decode 18.8 tok/s | whole request 1.2 tok/s | first token 50.11 s (50.11-50.11) | lifetime peak 37.31 GB | 1 prompt(s), 64 tokens, process wall 
+14:02:06   bis_25k_pfb8k: whole decode 18.8 tok/s | whole request 1.4 tok/s | first token 41.15 s (41.15-41.15) | lifetime peak 39.01 GB | 1 prompt(s), 64 tokens, process wall 
+25k: P 25003; PF-B calls 192; tokens EQUAL; hashes equal on 24 of 24; peaks 37.31 / 39.01 GB

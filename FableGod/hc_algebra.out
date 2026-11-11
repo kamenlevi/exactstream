@@ -1,0 +1,49 @@
+## 1. bytes and FLOPs per read (16 rows) and per check (97 reads: 48 layers x 2 + the final mixer)
+  weights per read: Wd 6.55 MB + Wu 6.55 + Wi 0.082 + w 0.020 = 13.21 MB bf16; per check 1.281 GB
+  activation traffic per read (S4 chain), KB: h_in 328, block_out 82, hn_out 328, normed_out 328, normed_in_gemm_tiles 3604, partials 124, mix1 20, g_out 328, g_in 328, normed_in_tail 328, mixed_out 82; sum 5.88 MB (of it 3.60 MB are the 11 column tiles' re-reads of normed, cache-level)
+  FLOPs per read 211.0 M (down + inject 106.2, up 104.9); per check 20.5 GFLOP
+  byte floor per check at 258 GB/s: weights 4.97 ms; at 8 bits 2.48 ms
+  byte floor per check at 284 GB/s: weights 4.51 ms; at 8 bits 2.26 ms
+  byte floor per check at 294 GB/s: weights 4.36 ms; at 8 bits 2.18 ms
+
+## 2. design 1 (two kernels, the same arithmetic) vs the reference chain: must be bitwise
+  D1 c                                     bits differ   0.00 %   |delta| median 0.00 / mean 0.000 / max     0.0 bf16 ulp   within 1 ulp 100.00 %   rel rms 0.00e+00
+  D1 inject                                bits differ   0.00 %   |delta| median 0.00 / mean 0.000 / max     0.0 bf16 ulp   within 1 ulp 100.00 %   rel rms 0.00e+00
+  D1 g                                     bits differ   0.00 %   |delta| median 0.00 / mean 0.000 / max     0.0 bf16 ulp   within 1 ulp 100.00 %   rel rms 0.00e+00
+  D1 mixed                                 bits differ   0.00 %   |delta| median 0.00 / mean 0.000 / max     0.0 bf16 ulp   within 1 ulp 100.00 %   rel rms 0.00e+00
+
+## 3. a split-K order change alone (16 even partitions instead of MLX's 3; fp32 partials; same inputs)
+  order-only c                             bits differ   0.02 %   |delta| median 0.00 / mean 0.000 / max     1.0 bf16 ulp   within 1 ulp 100.00 %   rel rms 5.39e-05
+  order-only inject                        bits differ   0.00 %   |delta| median 0.00 / mean 0.000 / max     0.0 bf16 ulp   within 1 ulp 100.00 %   rel rms 0.00e+00
+  order-only mixed                         bits differ   0.07 %   |delta| median 0.00 / mean 0.001 / max     4.0 bf16 ulp   within 1 ulp  99.98 %   rel rms 1.48e-04
+
+## 4. design 2 (row-invariant read) vs the reference, next to HC8 on the same inputs
+  D2 4 stream partitions, fold rounded:
+     c                                     bits differ  55.20 %   |delta| median 1.00 / mean 2.199 / max   398.0 bf16 ulp   within 1 ulp  79.20 %   rel rms 3.59e-03
+     inject                                bits differ   4.69 %   |delta| median 0.00 / mean 0.047 / max     1.0 bf16 ulp   within 1 ulp 100.00 %   rel rms 1.16e-03
+     g                                     bits differ  64.09 %   |delta| median 1.00 / mean 2.836 / max   465.0 bf16 ulp   within 1 ulp  70.80 %   rel rms 4.57e-03
+     mixed                                 bits differ  18.07 %   |delta| median 0.00 / mean 0.567 / max   256.0 bf16 ulp   within 1 ulp  93.29 %   rel rms 2.19e-03
+  D2 16 partitions, fold rounded:
+     c                                     bits differ  55.20 %   |delta| median 1.00 / mean 2.199 / max   398.0 bf16 ulp   within 1 ulp  79.22 %   rel rms 3.59e-03
+     inject                                bits differ   4.69 %   |delta| median 0.00 / mean 0.047 / max     1.0 bf16 ulp   within 1 ulp 100.00 %   rel rms 1.16e-03
+     g                                     bits differ  64.09 %   |delta| median 1.00 / mean 2.836 / max   465.0 bf16 ulp   within 1 ulp  70.80 %   rel rms 4.57e-03
+     mixed                                 bits differ  18.08 %   |delta| median 0.00 / mean 0.567 / max   256.0 bf16 ulp   within 1 ulp  93.29 %   rel rms 2.19e-03
+  D2 16 partitions, fold in fp32:
+     c                                     bits differ  49.86 %   |delta| median 0.00 / mean 1.880 / max   386.0 bf16 ulp   within 1 ulp  82.36 %   rel rms 3.18e-03
+     inject                                bits differ   0.00 %   |delta| median 0.00 / mean 0.000 / max     0.0 bf16 ulp   within 1 ulp 100.00 %   rel rms 0.00e+00
+     g                                     bits differ  60.61 %   |delta| median 1.00 / mean 2.528 / max   466.0 bf16 ulp   within 1 ulp  74.15 %   rel rms 4.12e-03
+     mixed                                 bits differ  15.76 %   |delta| median 0.00 / mean 0.498 / max   272.0 bf16 ulp   within 1 ulp  94.09 %   rel rms 2.02e-03
+  HC8 (8-bit g64 affine RTN on Wd, Wu, Wi; the reference arithmetic):
+     c                                     bits differ  70.61 %   |delta| median 1.00 / mean 3.616 / max   351.0 bf16 ulp   within 1 ulp  63.98 %   rel rms 5.78e-03
+     inject                                bits differ   9.38 %   |delta| median 0.00 / mean 0.094 / max     1.0 bf16 ulp   within 1 ulp 100.00 %   rel rms 1.64e-03
+     g                                     bits differ  79.56 %   |delta| median 1.00 / mean 5.170 / max   465.0 bf16 ulp   within 1 ulp  50.13 %   rel rms 8.45e-03
+     mixed                                 bits differ  32.56 %   |delta| median 0.00 / mean 1.131 / max   258.0 bf16 ulp   within 1 ulp  87.51 %   rel rms 3.03e-03
+  ratio HC8 / D2(16, rounded) of the relative rms deviation: c 1.6x, g 1.8x, mixed 1.4x, inject 1.4x
+
+## 5. row invariance of design 2: each row alone vs inside the 16-row batch (the same fixed-order code)
+  rows 0 / 7 / 15 alone == the batch's rows, all outputs bitwise: True
+
+## 6. 'merge the two reads': (hn + inject (x) o) @ W^T = hn @ W^T + sum_s inject_s (o @ W_s^T) in fp64
+  max |lhs - rhs| / max |lhs| = 7.4e-15: the identity holds, and the right side needs every one of the 4 weight slices (all 6.6 MB) plus the new rms; nothing is saved
+
+(0.6 s, numpy 2.5.4, CPU only)

@@ -1,0 +1,22 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=19.0 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+R-57 harness: full 125B via load_streamed (C = 176), loaded in 1 s, 27.3 GB active; REF2 + SB; gate rows MAXK 160 (ext build_next), PRED_LINES 1 (ranked list <= 61), PF_B 32, PF_JIT 1, PF_QD 4, PF_VICTIM 0; 47 look-ahead layers; CAP 256
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  warm-up (discarded): gsm8k/708 [gate+pf] 64 tokens, 20.0 tok/s
+  humaneval/HumanEval/68: forecast correction corr_fit1640_694_708.npz (held out)
+  humaneval/HumanEval/68 [gate+pf]: 256 tokens in 17 checks (kept 15.41), 45.9 tok/s (steady state, checks >= 2: 48.2), median cycle 328.0 ms, check + commit 306.5 ms; per check (medians) 990 misses, demand SSD 195.1 ms; tokens == REF2 row 256 / 256
+  math500/test/prealgebra/1640.json: forecast correction corr_fit68_91_1282.npz (held out)
+  math500/test/prealgebra/1640.json [gate+pf]: 256 tokens in 48 checks (kept 5.31), 23.8 tok/s (steady state, checks >= 2: 23.6), median cycle 222.6 ms, check + commit 212.1 ms; per check (medians) 558 misses, demand SSD 111.3 ms; tokens == REF2 row 256 / 256
+  humaneval/HumanEval/91: forecast correction corr_fit1640_694_708.npz (held out)
+  humaneval/HumanEval/91 [gate+pf]: 256 tokens in 32 checks (kept 8.09), 3.0 tok/s (steady state, checks >= 2: 30.7), median cycle 229.5 ms, check + commit 220.2 ms; per check (medians) 636 misses, demand SSD 119.4 ms; tokens == REF2 row 256 / 256 PAUSED (77.4 s waited, 0 gaps)
+  math500/test/algebra/694.json: forecast correction corr_fit68_91_1282.npz (held out)
+  math500/test/algebra/694.json [gate+pf]: 256 tokens in 33 checks (kept 7.73), 27.8 tok/s (steady state, checks >= 2: 27.5), median cycle 279.0 ms, check + commit 268.7 ms; per check (medians) 882 misses, demand SSD 161.5 ms; tokens == REF2 row 256 / 256
+  math500/test/algebra/1282.json: forecast correction corr_fit1640_694_708.npz (held out)
+  math500/test/algebra/1282.json [gate+pf]: 256 tokens in 37 checks (kept 6.89), 28.8 tok/s (steady state, checks >= 2: 29.3), median cycle 229.0 ms, check + commit 219.0 ms; per check (medians) 604 misses, demand SSD 120.3 ms; tokens == REF2 row 256 / 256
+  gsm8k/708: forecast correction corr_fit68_91_1282.npz (held out)
+  gsm8k/708 [gate+pf]: 197 tokens in 32 checks (kept 6.16), 24.6 tok/s (steady state, checks >= 2: 25.9), median cycle 239.9 ms, check + commit 228.8 ms; per check (medians) 671 misses, demand SSD 126.9 ms; tokens == REF2 row 197 / 197
+  gate+pf: tok/s 27.8 (steady state 27.5), cycle 239.9 ms, check + commit 228.8 ms, misses 671, demand SSD 126.9 ms per check (medians over valid runs, then prompts)
+R-57 verdict (PASS: demand SSD per check -50 % AND check + commit -25 %, gate+pf vs gate, every token == REF2; KILL: cycle under -10 %): BETWEEN (SSD +nan%, check + commit +nan%, cycle +nan%)
+  footprint now 29.9 GB, lifetime peak 34.7 GB; 165 s

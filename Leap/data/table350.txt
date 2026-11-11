@@ -1,0 +1,13 @@
+model | route                                                                     | residency                 | tokens per pass   | GB/pass | ms/pass | tok/s at floor |                                
+125B  | DFlash2 block 8, bit-exact 4-bit                                          | 71.7 GB: cannot fit 64 GB | 6.87 @ 8 rows     | 9.4     | 36.9    | 186            |                                
+125B  | DFlash2 block 8, bit-exact 4-bit + dense diet                             | 71.7 GB: cannot fit       | 6.87 @ 8 rows     | 8.0     | 32.1    | 214            |                                
+125B  | DFlash2 block 8, v3 tiers + dense diet                                    | ~56 GB: > 45 GB rule      | 6.87 @ 8 rows     | 6.7     | 27.4    | 251            |                                
+125B  | DFlash2 block 16 fine-tuned, bit-exact 4-bit                              | 71.7 GB: cannot fit 64 GB | 9.88 @ 16 rows    | 13.2    | 50.5    | 196            |                                
+125B  | DFlash2 block 16 fine-tuned, bit-exact 4-bit + dense diet                 | 71.7 GB: cannot fit       | 9.88 @ 16 rows    | 11.8    | 45.7    | 216            |                                
+125B  | DFlash2 block 16 fine-tuned, v3 tiers + dense diet                        | ~56 GB: > 45 GB rule      | 9.88 @ 16 rows    | 9.7     | 38.0    | 260            |                                
+125B  | block 16 fine-tuned + confidence truncation, bit-exact 4-bit              | 71.7 GB: cannot fit 64 GB | 9.38 @ 10.34 rows | 10.5    | 41.2    | 228            |                                
+125B  | block 16 fine-tuned + confidence truncation, bit-exact 4-bit + dense diet | 71.7 GB: cannot fit       | 9.38 @ 10.34 rows | 9.2     | 36.4    | 258            |                                
+125B  | block 16 fine-tuned + confidence truncation, v3 tiers + dense diet        | ~56 GB: > 45 GB rule      | 9.38 @ 10.34 rows | 7.6     | 30.7    | 305            |                                
+125B  | block 16 fine-tuned, v3 + diet + budget U=32                              | ~56 GB: > 45 GB rule      | 9.88 @ 16 rows    | 5.4     | 22.8    | 433            | non-exact twice (tiers, budget)
+35B   | z-lab DFlash block 8 (measured 207.6)                                     | 20.4 GB: fits             | 7.69 @ 8 rows     | 3.4     | 16.1    | 477            |                                
+35B   | z-lab DFlash block 16 (measured 218.9)                                    | 20.4 GB: fits             | 11.92 @ 16 rows   | 4.9     | 21.4    | 557            |                                

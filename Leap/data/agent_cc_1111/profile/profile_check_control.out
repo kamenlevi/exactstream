@@ -1,0 +1,43 @@
+mock serve.py ready in 1 s (pid 1518)
+tasks.out:
+  08:13:06 t00a: start (timeout 240 s)
+  08:13:08 t00a: claude rc 0, 2 s, check rc 0
+  08:13:08 t00b: start (timeout 240 s)
+  08:13:10 t00b: claude rc 0, 2 s, check rc 0
+  TASKS DONE
+== t00a profile tail:
+  tool result (is_error True):
+    Exit code 1
+    WRITE_TASK ok
+    OWN_FOLDER READ_OK
+    GIT READ_OK
+    RUN_TASKS READ_OK
+    OTHER_TASK DENIED
+    RUNNER_LOG READ_OK
+    OWN_TRANSCRIPT READ_OK
+    EVAL_LS READ_OK
+    EVAL_MANIFEST READ_OK
+    (eval):12: can't create temp file for here document: operation not permitted
+  result success, turns 2
+  check: CHECK_OK 
+  stderr: 
+== t00b profile tail:
+  tool result (is_error True):
+    Exit code 1
+    WRITE_TASK ok
+    OWN_FOLDER READ_OK
+    GIT READ_OK
+    RUN_TASKS READ_OK
+    OTHER_TASK READ_OK
+    RUNNER_LOG READ_OK
+    OWN_TRANSCRIPT READ_OK
+    EVAL_LS READ_OK
+    EVAL_MANIFEST READ_OK
+    (eval):12: can't create temp file for here document: operation not permitted
+  result success, turns 2
+  check: CHECK_OK 
+  stderr: 
+results:
+{"id": "t00a", "claude_rc": 0, "timed_out": false, "wall_s": 2.0, "check_rc": 0}
+{"id": "t00b", "claude_rc": 0, "timed_out": false, "wall_s": 2.0, "check_rc": 0}
+mock serve.py stopped

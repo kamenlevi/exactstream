@@ -1,0 +1,33 @@
+weights per layer (no routed experts): 68.8 MB
+M=1: SoL layer 0.426 ms (216 GB/s of 91.8 MB; 10 distinct experts; finite True) | byte floor at 300 GB/s 0.306 ms | today's interval 0.89-0.93 ms (M=4) | Python graph build 0.031 ms per layer (not in the GPU time)
+    wall incl. graph build: eager 0.459 ms/layer, mx.compile 0.425 ms/layer (GPU side 0.426)
+    hc_down v2        30.9 us per dependent dispatch |    26.4 us independent
+    hc_up v2          33.7 us per dependent dispatch |    30.8 us independent
+    g4 epi3          106.7 us per dependent dispatch |    93.9 us independent
+    rec               30.1 us per dependent dispatch |    27.6 us independent
+    g4 epi4           52.3 us per dependent dispatch |    37.6 us independent
+    hc_down v2        32.6 us per dependent dispatch |    26.9 us independent
+    hc_up v2          34.5 us per dependent dispatch |    31.5 us independent
+    g4 epi5           17.8 us per dependent dispatch |    11.5 us independent
+    topk               7.1 us per dependent dispatch |     4.5 us independent
+    tier_glu A+B      93.3 us per dependent dispatch |    99.2 us independent
+    fin               11.0 us per dependent dispatch |     9.4 us independent
+    sum of parts 0.450 ms dependent, 0.399 ms independent, vs layer 0.426 ms
+M=2: SoL layer 0.547 ms (210 GB/s of 114.8 MB; 20 distinct experts; finite True) | byte floor at 300 GB/s 0.383 ms | today's interval 0.89-0.93 ms (M=4) | Python graph build 0.031 ms per layer (not in the GPU time)
+    wall incl. graph build: eager 0.588 ms/layer, mx.compile 0.545 ms/layer (GPU side 0.547)
+M=4: SoL layer 0.894 ms (173 GB/s of 154.5 MB; 37 distinct experts; finite True) | byte floor at 300 GB/s 0.515 ms | today's interval 0.89-0.93 ms (M=4) | Python graph build 0.030 ms per layer (not in the GPU time)
+    wall incl. graph build: eager 0.929 ms/layer, mx.compile 0.898 ms/layer (GPU side 0.894)
+    hc_down v2        39.6 us per dependent dispatch |    27.6 us independent
+    hc_up v2          39.6 us per dependent dispatch |    32.1 us independent
+    g4 epi3          272.0 us per dependent dispatch |   240.8 us independent
+    rec               39.8 us per dependent dispatch |    31.7 us independent
+    g4 epi4           58.3 us per dependent dispatch |    47.3 us independent
+    hc_down v2        44.7 us per dependent dispatch |    30.7 us independent
+    hc_up v2          38.6 us per dependent dispatch |    33.3 us independent
+    g4 epi5           46.5 us per dependent dispatch |    27.7 us independent
+    topk               8.0 us per dependent dispatch |     4.7 us independent
+    tier_glu A+B     307.2 us per dependent dispatch |   384.6 us independent
+    fin               23.1 us per dependent dispatch |    20.2 us independent
+    sum of parts 0.917 ms dependent, 0.881 ms independent, vs layer 0.894 ms
+M=8: SoL layer 8.119 ms (25 GB/s of 206.4 MB; 59 distinct experts; finite True) | byte floor at 300 GB/s 0.688 ms | today's interval 0.89-0.93 ms (M=4) | Python graph build 0.032 ms per layer (not in the GPU time)
+    wall incl. graph build: eager 8.157 ms/layer, mx.compile 8.119 ms/layer (GPU side 8.119)

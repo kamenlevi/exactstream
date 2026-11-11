@@ -1,0 +1,45 @@
+--- ../../release/next/tools/claude_code.sh	2026-11-10 23:23:19
++++ next_patch/tools/claude_code.sh	2026-11-11 08:13:34
+@@ -12,6 +12,11 @@
+ MEM=32
+ if [ "$1" = "--mem" ]; then MEM=$2; shift 2; fi
+ case $MEM in 45|32|24) ;; *) echo "claude_code.sh: --mem takes 45, 32 or 24" >&2; exit 2;; esac
++# The context window Claude Code is told (EXACTSTREAM_CONTEXT overrides it): 64K at 45 and 32 GB, 128K at 24 GB.
++# A cold 128K prefill at 32 GB with the layer-major prefill was forecast at ~61 GB, and 45 GB at 128K at ~59 GB, above
++# what a 64 GB Mac can spare; at 24 GB it peaked at 51.6 GB (data/long_ctx_1111.md).
++case $MEM in 24) CTX_DEFAULT=131072;; *) CTX_DEFAULT=65536;; esac
++export EXACTSTREAM_CONTEXT=${EXACTSTREAM_CONTEXT:-$CTX_DEFAULT}
+ PORT=${EXACTSTREAM_PORT:-8080}
+ health() { curl -s -m 2 "http://127.0.0.1:$PORT/health" 2>/dev/null; }
+ STARTED=""
+--- ../../release/next/tools/codex_code.sh	2026-11-11 01:59:26
++++ next_patch/tools/codex_code.sh	2026-11-11 08:13:34
+@@ -12,6 +12,11 @@
+ MEM=32
+ if [ "$1" = "--mem" ]; then MEM=$2; shift 2; fi
+ case $MEM in 45|32|24) ;; *) echo "codex_code.sh: --mem takes 45, 32 or 24" >&2; exit 2;; esac
++# The context window Codex is told (EXACTSTREAM_CONTEXT overrides it): 64K at 45 and 32 GB, 128K at 24 GB.
++# A cold 128K prefill at 32 GB with the layer-major prefill was forecast at ~61 GB, and 45 GB at 128K at ~59 GB, above
++# what a 64 GB Mac can spare; at 24 GB it peaked at 51.6 GB (data/long_ctx_1111.md).
++case $MEM in 24) CTX_DEFAULT=131072;; *) CTX_DEFAULT=65536;; esac
++export EXACTSTREAM_CONTEXT=${EXACTSTREAM_CONTEXT:-$CTX_DEFAULT}
+ PORT=${EXACTSTREAM_PORT:-8080}
+ health() { curl -s -m 2 "http://127.0.0.1:$PORT/health" 2>/dev/null; }
+ STARTED=""
+--- ../../release/next/tools/claude_local.sh	2026-11-10 23:16:29
++++ next_patch/tools/claude_local.sh	2026-11-11 08:13:34
+@@ -3,10 +3,12 @@
+ # process only; ~/.claude is not changed. EXACTSTREAM_PORT / EXACTSTREAM_CONTEXT override the port and the context window.
+ # All three model names run the same engine; the suffixes tell serve.py which calls are Claude Code's background ones
+ # (-side: titles, command checks) and which are a subagent's (-sub), so a conversation cache can keep the main one.
+-# Claude Code does not know this model's window: MAX_CONTEXT_TOKENS tells it, AUTO_COMPACT_WINDOW makes it compact there.
++# Claude Code does not know this model's window: MAX_CONTEXT_TOKENS tells it, and Claude Code compacts inside it.
++# AUTO_COMPACT_WINDOW takes 100K-1M only (Claude Code 2.1.321 reads a smaller value as 100K), so it is set only from 100K up.
+ PORT=${EXACTSTREAM_PORT:-8080}; CTX=${EXACTSTREAM_CONTEXT:-131072}
+ export ANTHROPIC_BASE_URL=http://127.0.0.1:$PORT ANTHROPIC_AUTH_TOKEN=local ANTHROPIC_MODEL=exactstream \
+   ANTHROPIC_DEFAULT_HAIKU_MODEL=exactstream-side ANTHROPIC_SMALL_FAST_MODEL=exactstream-side \
+   CLAUDE_CODE_SUBAGENT_MODEL=exactstream-sub \
+-  CLAUDE_CODE_MAX_CONTEXT_TOKENS=$CTX CLAUDE_CODE_AUTO_COMPACT_WINDOW=$CTX CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
++  CLAUDE_CODE_MAX_CONTEXT_TOKENS=$CTX CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
++if [ "$CTX" -ge 100000 ]; then export CLAUDE_CODE_AUTO_COMPACT_WINDOW=$CTX; else unset CLAUDE_CODE_AUTO_COMPACT_WINDOW; fi
+ exec "${CLAUDE_BIN:-claude}" "$@"

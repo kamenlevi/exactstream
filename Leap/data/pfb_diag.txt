@@ -1,0 +1,9 @@
+PF-B DIAG 08:16:33: T 7932
+  (a) 1,024-token calls twice: 79320 / 79320 rows equal; one call twice: 79320 / 79320; one vs 1,024: 46544 / 79320
+  (b) up_proj gather_qmm alone: 46544 / 79320 rows equal (chunked vs one call)
+      experts with 0-64 rows in the one call: 1074 rows, 474 differ
+      experts with 64-128 rows in the one call: 28603 rows, 10381 differ
+      experts with 128-192 rows in the one call: 13325 rows, 3592 differ
+      experts with 192-256 rows in the one call: 7661 rows, 2504 differ
+      experts with 256-max rows in the one call: 28657 rows, 15825 differ
+      experts with any differing row: 187 of 512; with ALL rows differing: 185; segment lengths of all-differing experts (min / max): 55 / 1271; of the rest (min / max): 57 / 2473

@@ -1,0 +1,4 @@
+D32 (Mon 10:01): dense part of an exact check, 32 rows vs 16, MLX 0.32.2, random weights at the 125B's shapes x per-check counts (cold); ms per check; 8 interleaved rounds x median of 5 [SMOKE]
+shared down: mlx 32-row call != 2x16, pad-indep; mr2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2)]; best (1, 1) pad-indep; mg2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2)]; best (2, 1) pad-indep; mma 16 sweep best (1, 2) 0.318 ms (1 s)
+HC mix down: mlx a 32-row call = 2x16, pad-indep; mlx b 32-row call = 2x16, pad-indep; mlx c 32-row call = 2x16, pad-indep; mr2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2), (4, 1), (4, 2), (5, 1), (5, 2), (8, 1), (8, 2), (10, 1)]; best (8, 1) pad-indep; mg2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2), (4, 1), (4, 2), (5, 1), (5, 2), (8, 1), (8, 2), (10, 1)]; best (4, 1) pad-indep; mma 16 sweep best (10, 1) 0.228 ms (2 s)
+done in 3 s

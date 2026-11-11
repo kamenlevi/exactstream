@@ -1,0 +1,21 @@
+1. the patch
+  ok   apply_v2.py: all 8 anchors found once
+  ok   the patched copy compiles
+  ok   R57_RELAX_V2=0 keeps v1's statements (both rules' own sync and decodes)
+  ok   v2: dlm / rank join the argmax readback's single mx.eval
+  ok   may_touch('x = 1  # a') = True (a '#' anywhere in a draft counts, even in a string)
+  ok   may_touch('x = 1') = False (a '#' anywhere in a draft counts, even in a string)
+  ok   may_touch("s = 'a#b'") = True (a '#' anywhere in a draft counts, even in a string)
+  ok   may_touch is true inside an open comment
+2. recorded checks: v1 vs v2 host work (span tagger), decisions and us per check
+  ok   map 12: v2's span rows and kept equal v1's on all 391 checks (rule C and rule C + R1 0.5)
+     map 12: host us per check v1 36.5 -> v2 20.3 (x0.56); the tagger ran on 182 of 391 blocks in v2 (47 %); GPU syncs per check: v1 2 (argmax + dlm / rank), v2 1
+  ok   fresh HumanEval+ 12: v2's span rows and kept equal v1's on all 275 checks (rule C and rule C + R1 0.5)
+     fresh HumanEval+ 12: host us per check v1 31.2 -> v2 14.8 (x0.48); the tagger ran on 77 of 275 blocks in v2 (28 %); GPU syncs per check: v1 2 (argmax + dlm / rank), v2 1
+  ok   fresh MBPP 100: v2's span rows and kept equal v1's on all 2630 checks (rule C and rule C + R1 0.5)
+     fresh MBPP 100: host us per check v1 29.0 -> v2 15.3 (x0.53); the tagger ran on 1018 of 2630 blocks in v2 (39 %); GPU syncs per check: v1 2 (argmax + dlm / rank), v2 1
+3. replay kept (span_relax_c, answer feed; the profile ratio to exact): R1 0.5, rule C, rule C + R1 0.5
+     map 12: R1 0.5 x1.107, rule C x1.189, rule C + R1 0.5 x1.227 (stacking: 77 % of the sum of the two gains)
+     fresh HumanEval+ 12: R1 0.5 x1.051, rule C x1.074, rule C + R1 0.5 x1.099 (stacking: 80 % of the sum of the two gains)
+     fresh MBPP 100: R1 0.5 x1.135, rule C x1.125, rule C + R1 0.5 x1.231 (stacking: 89 % of the sum of the two gains)
+ALL OK

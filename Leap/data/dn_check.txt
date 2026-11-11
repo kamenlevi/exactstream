@@ -1,0 +1,21 @@
+
+DENSE-N Wed 14:02:59 (quiet lock); rounds 10 x median of 7
+
+DENSE-N Wed 14:04:00 (quiet lock); rounds 10 x median of 7
+  in_proj_qkv 10240x2560 x36 (floor 1.896 ms; built + repacked in 1.2 s): bits n11 2/2, n12 2/2, c12 2/2, n14 2/2, c14 2/2, nF22==c22 2/2, c22==c11 0/2 -> OK
+    ms per check: c11 2.727 (70%; x1.00 IQR 1.00-1.00); c12 2.683 (71%; x1.02 IQR 1.00-1.03); c14 2.672 (71%; x1.02 IQR 1.01-1.03); n11 2.308 (82%; x1.19 IQR 1.17-1.20); n12 2.275 (83%; x1.20 IQR 1.18-1.21); n14 2.275 (83%; x1.20 IQR 1.19-1.21); nF22 2.311 (82%; x1.18 IQR 1.17-1.20)
+  in_proj_z 6144x2560 x36 (floor 1.138 ms; built + repacked in 0.7 s): bits n11 2/2, n12 2/2, c12 2/2, n14 2/2, c14 2/2, nF22==c22 2/2, c22==c11 0/2 -> OK
+    ms per check: c11 1.804 (63%; x1.00 IQR 1.00-1.00); c12 1.794 (63%; x1.01 IQR 1.00-1.02); c14 1.795 (63%; x1.01 IQR 1.00-1.01); n11 1.517 (75%; x1.19 IQR 1.19-1.21); n12 1.508 (75%; x1.19 IQR 1.19-1.21); n14 1.512 (75%; x1.19 IQR 1.17-1.20); nF22 1.507 (75%; x1.20 IQR 1.19-1.20)
+  out_proj+o_proj 2560x6144 x48 (floor 1.517 ms; built + repacked in 0.9 s): bits n11 2/2, n12 2/2, c12 2/2, n14 2/2, c14 2/2, nF22==c22 2/2, c22==c11 0/2 -> OK
+    ms per check: c11 2.505 (61%; x1.00 IQR 1.00-1.00); c12 2.535 (60%; x1.00 IQR 0.98-1.00); c14 2.530 (60%; x0.99 IQR 0.98-1.01); n11 2.039 (74%; x1.24 IQR 1.21-1.24); n12 2.015 (75%; x1.24 IQR 1.23-1.26); n14 2.041 (74%; x1.23 IQR 1.22-1.24); nF22 1.968 (77%; x1.27 IQR 1.25-1.29)
+  q_proj 12288x2560 x12 (floor 0.758 ms; built + repacked in 0.5 s): bits n11 2/2, n12 2/2, c12 2/2, n14 2/2, c14 2/2, nF22==c22 2/2, c22==c11 0/2 -> OK
+    ms per check: c11 1.252 (61%; x1.00 IQR 1.00-1.00); c12 1.259 (60%; x0.99 IQR 0.98-1.01); c14 1.242 (61%; x0.99 IQR 0.99-1.01); n11 1.038 (73%; x1.20 IQR 1.19-1.21); n12 1.046 (72%; x1.19 IQR 1.19-1.19); n14 1.068 (71%; x1.19 IQR 1.14-1.20); nF22 1.019 (74%; x1.22 IQR 1.21-1.24)
+  shared down 2560x640 x48 (floor 0.158 ms; built + repacked in 0.2 s): bits n11 2/2, n12 2/2, c12 2/2, n14 2/2, c14 2/2, nF22==c22 2/2, c22==c11 0/2 -> OK
+    ms per check: c11 0.567 (28%; x1.00 IQR 1.00-1.00); c12 0.569 (28%; x1.00 IQR 0.98-1.01); c14 0.572 (28%; x1.00 IQR 0.97-1.01); n11 0.550 (29%; x1.04 IQR 1.02-1.05); n12 0.550 (29%; x1.03 IQR 1.02-1.06); n14 0.560 (28%; x1.01 IQR 1.00-1.03); nF22 0.556 (28%; x1.03 IQR 1.01-1.04)
+  qkv|z concat (R-83) 16384x2560 x36 (floor 3.033 ms; built + repacked in 1.7 s): bits n11 2/2, n12 2/2, c12 2/2, n14 2/2, c14 2/2, nF22==c22 2/2, c22==c11 0/2 -> OK
+    ms per check: c11 4.980 (61%; x1.00 IQR 1.00-1.00); c12 4.827 (63%; x1.01 IQR 0.97-1.07); c14 5.026 (60%; x1.01 IQR 1.00-1.03); n11 3.698 (82%; x1.33 IQR 1.24-1.38); n12 3.731 (81%; x1.28 IQR 1.24-1.34); n14 3.830 (79%; x1.24 IQR 1.20-1.33); nF22 3.679 (82%; x1.22 IQR 1.18-1.35)
+  lm_head 248320x2560 x1 (floor 1.277 ms; built + repacked in 1.6 s): bits n11 1/1, n12 1/1, c12 1/1, n14 1/1, c14 1/1, nF22==c22 1/1, c22==c11 0/1 -> OK
+    ms per check: c11 1.868 (68%; x1.00 IQR 1.00-1.00); c12 1.903 (67%; x0.98 IQR 0.98-1.00); c14 1.913 (67%; x0.97 IQR 0.96-1.00); n11 1.597 (80%; x1.19 IQR 1.13-1.20); n12 1.611 (79%; x1.16 IQR 1.14-1.19); n14 1.579 (81%; x1.18 IQR 1.18-1.19); nF22 1.626 (79%; x1.18 IQR 1.13-1.21)
+  the set (in_proj_qkv, in_proj_z, out_proj+o_proj, q_proj, shared down; floor 5.47 ms): c11 8.85, c12 8.84, c14 8.81, n11 7.45, n12 7.39, n14 7.46, nF22 7.36  (an arm missing for a shape counts that shape at its nt 1 form)
+  best exact native n12: -1.46 ms per check vs c11 (1.20x; 74% of the floor); best qmm16c nt c14: -0.04 ms; FAST nF22 -1.49 ms (74% of the floor)
+DENSE-N verdict: PASS (bits OK; saving 1.46 ms per check)

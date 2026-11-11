@@ -1,0 +1,31 @@
+[11:02:17] lock: shared run reserved until 11:22 (about 800% CPU, 20% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done.
+[11:02:17] port_plain: start (swap 10621.38 MB, 21 GB available)
+[11:02:27] port_plain: rc=0, footprint 3.88 GB: [port] grad loss 12.748799 (norm 43); 19 parameters; rss peak 4.20 GB
+[11:02:27] port_ckpt: start (swap 10621.38 MB, 13 GB available)
+[11:02:37] port_ckpt: rc=0, footprint 3.87 GB: [port] grad loss 12.748799 (norm 43); 19 parameters; rss peak 4.25 GB
+[11:02:37] mlx_sel: start (swap 10621.38 MB, 26 GB available)
+[11:02:47] mlx_sel: rc=0, footprint 5.21 GB: [ref] grad loss 2.022318 (norm 43); 4 parameters; MLX peak 5.05 GB
+[11:02:47] port_sel: start (swap 10621.38 MB, 25 GB available)
+[11:02:57] port_sel: rc=0, footprint 4.91 GB: [port] grad loss 2.025148 (norm 43); 4 parameters; rss peak 5.34 GB
+lock released
+[11:02:57] == 2a: port_plain vs port_ckpt
+loss: mlx 12.748799  port 12.748799  rel 0.00e+00
+total grad norm: mlx 16.169520  port 16.169520  ratio 1.00000
+layers.0.self_attn.k_norm.weight                             norm mlx 1.1035e-01 port 1.1035e-01 ratio 1.0000  rel diff ~5.99e-08 (exact 7.25e-08)
+layers.0.self_attn.k_proj.weight                             norm mlx 7.5949e-01 port 7.5949e-01 ratio 1.0000  rel diff ~5.56e-08
+layers.0.self_attn.v_proj.weight                             norm mlx 2.1403e+00 port 2.1403e+00 ratio 1.0000  rel diff ~3.99e-08
+norm.weight                                                  norm mlx 8.6460e-01 port 8.6460e-01 ratio 1.0000  rel diff ~0.00e+00 (exact 0.00e+00)
+layers.0.self_attn.q_proj.weight                             norm mlx 6.4105e-01 port 6.4105e-01 ratio 1.0000  rel diff ~0.00e+00
+layers.0.self_attn.q_norm.weight                             norm mlx 1.0686e-01 port 1.0686e-01 ratio 1.0000  rel diff ~0.00e+00 (exact 0.00e+00)
+layers.0.self_attn.o_proj.weight                             norm mlx 2.2914e+00 port 2.2914e+00 ratio 1.0000  rel diff ~0.00e+00
+layers.0.post_attention_layernorm.weight                     norm mlx 4.4200e-01 port 4.4200e-01 ratio 1.0000  rel diff ~0.00e+00 (exact 0.00e+00)
+layers.0.mlp_conv.kernel_projection.weight                   norm mlx 1.1736e+00 port 1.1736e+00 ratio 1.0000  rel diff ~0.00e+00
+layers.0.mlp_conv.base_kernel                                norm mlx 1.7494e-01 port 1.7494e-01 ratio 1.0000  rel diff ~0.00e+00 (exact 0.00e+00)
+[11:02:57] == 2b: mlx_sel vs port_sel
+loss: mlx 2.022318  port 2.025148  rel 1.40e-03
+total grad norm: mlx 10.948747  port 10.921202  ratio 0.99748
+candidate_selector.successor_codebook.weight                 norm mlx 3.3629e+00 port 3.3666e+00 ratio 1.0011  rel diff ~1.10e-02
+candidate_selector.hidden_projection.weight                  norm mlx 1.0416e+01 port 1.0386e+01 ratio 0.9971  rel diff ~7.68e-03
+candidate_selector.predecessor_codebook.weight               norm mlx 2.1429e-01 port 2.1335e-01 ratio 0.9956  rel diff ~7.38e-03
+norm.weight                                                  norm mlx 1.7883e-01 port 1.7890e-01 ratio 1.0004  rel diff ~6.99e-03 (exact 6.11e-03)
+[11:02:57] DONE

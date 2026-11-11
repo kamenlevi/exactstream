@@ -1,0 +1,31 @@
+L1-13 profile: tf_code/HumanEval/103, context 235 tokens, 40 layers (30 GDN + 10 attention)
+S = 16 rows: expert union 58.5 per layer of 256
+  whole pass + 8 taps (as the loop)            44.64 ms
+  whole pass + taps + GDN rollback capture     45.08 ms
+  GDN mixers (30)                              12.05 ms   floor  2.04 ms ( 17% of floor speed)
+  full-attn mixers (10)                         3.80 ms   floor  0.55 ms ( 14% of floor speed)
+  router + top-8 (40)                           0.62 ms   floor  0.08 ms ( 13% of floor speed)
+  routed experts (40)                          22.14 ms   floor 14.79 ms ( 67% of floor speed)
+  shared expert (40)                            1.54 ms   floor  0.25 ms ( 16% of floor speed)
+  lm_head + argmax                              1.83 ms   floor  1.02 ms ( 56% of floor speed)
+  sum of components                            41.98 ms (rest of the whole pass = norms, residual, glue)
+S =  8 rows: expert union 40.3 per layer of 256
+  whole pass + 8 taps (as the loop)            28.27 ms
+  whole pass + taps + GDN rollback capture     28.18 ms
+  GDN mixers (30)                               6.57 ms   floor  2.04 ms ( 31% of floor speed)
+  full-attn mixers (10)                         2.55 ms   floor  0.55 ms ( 21% of floor speed)
+  router + top-8 (40)                           0.51 ms   floor  0.08 ms ( 15% of floor speed)
+  routed experts (40)                          13.24 ms   floor 10.18 ms ( 77% of floor speed)
+  shared expert (40)                            1.37 ms   floor  0.25 ms ( 19% of floor speed)
+  lm_head + argmax                              2.44 ms   floor  1.02 ms ( 42% of floor speed)
+  sum of components                            26.67 ms (rest of the whole pass = norms, residual, glue)
+S =  1 rows: expert union 8.0 per layer of 256
+  whole pass + 8 taps (as the loop)            11.71 ms
+  whole pass + taps + GDN rollback capture     11.00 ms
+  GDN mixers (30)                               3.72 ms   floor  2.04 ms ( 55% of floor speed)
+  full-attn mixers (10)                         1.19 ms   floor  0.55 ms ( 46% of floor speed)
+  router + top-8 (40)                           0.40 ms   floor  0.08 ms ( 20% of floor speed)
+  routed experts (40)                           2.45 ms   floor  2.02 ms ( 82% of floor speed)
+  shared expert (40)                            0.62 ms   floor  0.25 ms ( 41% of floor speed)
+  lm_head + argmax                              1.20 ms   floor  1.02 ms ( 85% of floor speed)
+  sum of components                             9.58 ms (rest of the whole pass = norms, residual, glue)

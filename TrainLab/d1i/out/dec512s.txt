@@ -1,0 +1,12 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=30.9 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.00 GB pools
+b12: hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks none, pools 6.00 GB, active 9.28 GB
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (64, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (386, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (450, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[long] d1i cold chunk 2048 attn/moe 512/4096 split 1 gpu 0 nologits 1 group 64 warm 0: prefill 2617 tokens in 9.35 s (280 tok/s); waited misses/token 0-16 105.4 16-32 79.6 32-64 77.3; decode 19.6 tok/s, reads/token 84.9; peak active 9.9 GB, cache 0.1 GB, max RSS 9.9 GB, PEAK FOOTPRINT 11.7 GB; sha 3b63bb9e7a | pf {'grouped': 46, 'single': 2, 'fallback': 2, 'groups': 328, 't_read': 4.53, 'warm_base': 0, 'warm_side': 0, 't_warm': 0.0, 'act_in_gb': 9.63, 'peak_pre_gb': 10.4, 'peak_moe_gb': 11.18} | 'Here is a section-by-section summary of the provided Python '
+[long] d1i repeat chunk 2048 attn/moe 512/4096 split 1 gpu 0 nologits 1 group 64 warm 0: prefill 2617 tokens in 9.24 s (283 tok/s); waited misses/token 0-16 77.6 16-32 59.9 32-64 66.0; decode 22.0 tok/s, reads/token 67.4; peak active 9.9 GB, cache 0.1 GB, max RSS 11.1 GB, PEAK FOOTPRINT 11.7 GB; sha 15a05c3bef | pf {'grouped': 46, 'single': 2, 'fallback': 2, 'groups': 328, 't_read': 4.54, 'warm_base': 0, 'warm_side': 0, 't_warm': 0.0, 'act_in_gb': 9.63, 'peak_pre_gb': 10.4, 'peak_moe_gb': 11.18} | 'This Python script is designed to evaluate and compare diffe'

@@ -1,0 +1,29 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=37.2 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 15M, prefetch on)
+[bigmoe] tier 4433333333: C_m=47 C_l=32 per layer, 6.03 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: engine v3p, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+b12: C_m=47 C_l=32 (9 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.03 GB, active 8.96 GB
+[chw18s] PR1 installed: keep-1 commits replay the PLE layer on 2 rows
+[chw18s] bt_b12 8db71cc537, engine /Users/kamen/Breakthrough/v3p, C_m 47 C_l 32, cap 128; drafter 0.928 GB (own params), SW 2048; after load: lifetime 10.585 GB, MLX active 9.529; prompts ifeval/1220 (n 43), ifeval/3280 (n 46), ifbench/10 (n 63)
+[chw18s] start (SSD <= 55 C, no PAUSE): SSD 46 C, no PAUSE (waited 0 s)
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[chw18s] ifeval/1220 ex PHASES draft: 70 runs, 10.4 ms, 0 MB, 0 misses, 0.00 passes per run, 0.00 GB/s | exact: 70 runs, 115.7 ms, 752 MB, 400 misses, 1.09 passes per run, 6.50 GB/s
+[chw18s] ifeval/1220 ex theta None  | tok 128 sha 11289bff08 | lsha 39152dc1f6 | = ex tokens True (first divergence None) | checks 70, kept 1.83 | pass2 0 exact 70 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 209 in 76 calls, refused 0 | prefill 2.30 s, decode 8.86 s, 14.44 tok/s | lifetime 10.605 GB | per check ms: draft 10.4 pass 1 0.0 pass 2 / exact 115.7 commit 0.0; misses per check pass 1 0 pass 2 400
+[chw18s] ifeval/1220 ex PREFILL n 43 smoe 4096 | 2.304 s, 18.2 tok/s, SSD 16741 MB | lifetime 10.605 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[chw18s] PAIR ifeval/1220: SSD per arm (C) ex 46->46 | PAUSE 0.0 s inside -> ok
+[chw18s] ifeval/3280 ex PHASES draft: 52 runs, 10.3 ms, 0 MB, 0 misses, 0.00 passes per run, 0.00 GB/s | exact: 52 runs, 171.1 ms, 1305 MB, 714 misses, 1.25 passes per run, 7.63 GB/s
+[chw18s] ifeval/3280 ex theta None  | tok 128 sha d372ce0bf1 | lsha 89ff4072ba | = ex tokens True (first divergence None) | checks 52, kept 2.46 | pass2 0 exact 52 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 187 in 65 calls, refused 0 | prefill 2.46 s, decode 9.46 s, 13.53 tok/s | lifetime 10.758 GB | per check ms: draft 10.3 pass 1 0.0 pass 2 / exact 171.1 commit 0.0; misses per check pass 1 0 pass 2 714
+[chw18s] ifeval/3280 ex PREFILL n 46 smoe 4096 | 2.462 s, 18.3 tok/s, SSD 18718 MB | lifetime 10.758 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[chw18s] PAIR ifeval/3280: SSD per arm (C) ex 46->46 | PAUSE 0.0 s inside -> ok
+[chw18s] ifbench/10 ex PHASES draft: 43 runs, 10.4 ms, 0 MB, 0 misses, 0.00 passes per run, 0.00 GB/s | exact: 43 runs, 125.8 ms, 894 MB, 493 misses, 1.09 passes per run, 7.10 GB/s
+[chw18s] ifbench/10 ex theta None  | tok 76 sha fda85f2bd6 | lsha f6262d7536 | = ex tokens True (first divergence None) | checks 43, kept 1.77 | pass2 0 exact 43 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 114 in 47 calls, refused 0 | prefill 2.91 s, decode 5.88 s, 12.93 tok/s | lifetime 10.906 GB | per check ms: draft 10.4 pass 1 0.0 pass 2 / exact 125.8 commit 0.0; misses per check pass 1 0 pass 2 493
+[chw18s] ifbench/10 ex PREFILL n 63 smoe 4096 | 2.906 s, 21.3 tok/s, SSD 21986 MB | lifetime 10.906 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[chw18s] PAIR ifbench/10: SSD per arm (C) ex 46->46 | PAUSE 0.0 s inside -> ok
+[chw18s] PAUSE summary: intervals [] s from the start; re-run []; excluded []
+[chw18s] TOTAL ex: 3 prompts, 332 tokens in 24.20 s = 13.72 tok/s | 165 checks, kept 2.01 | pass2 0 exact 165 | per check ms: draft 10.4 pass 1 0.0 pass 2 / exact 135.8 commit 0.0; misses per check pass 1 0 pass 2 523
+[chw18s] IDS: 3 keys -> /Users/kamen/Fit12/data/scr/chw18/chw18s_ids.json
+[chw18s] PR1: 87 keep-1 commits replayed on 2 rows
+[chw18s] done; lifetime 10.906 GB

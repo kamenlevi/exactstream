@@ -1,0 +1,19 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+fit12 trim: embed_tokens streamed (4-bit g64); the resident table is never evaluated
+fit12 trim: hc8 applied before the loader's eval: 196 modules, 1337 -> 710 MB
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=32.8 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=59 C_l=20 per layer, 7.02 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: C_m=59 C_l=20 (12 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 7.02 GB, active 10.15 GB
+[o59all] after load: footprint now 10.48 GB, lifetime peak 10.48 GB, MLX peak 10.15 GB, active 10.15 GB
+[o59all] code: prefill 326 tokens in 4.85 s
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[o59all] code k=3: 23.7 tok/s, 3.37 tok/pass, 38 passes | per pass: verify 133.0 ms, draft 8.8 ms, head 0.4 ms, waited 531.3, reads 543.2, pf issued 0.0 used 110.3, SSD 7.3 GB/s 1034 MB | peak footprint 11.21 GB | loader per pass: stalled calls 83.2 of 99.0, stall 91.3 ms, io 90.2 ms | sha 259e67193e | '```python\nimport re\nimport argparse\nfrom collections import defaultdict\nfrom typing import List, Dict, Tuple, Optional\n\n# Regex to match log lines\nLINE = re.compile(\n    r'
+[o59all] prose: prefill 53 tokens in 2.91 s
+[o59all] prose k=3: 14.5 tok/s, 2.17 tok/pass, 59 passes | per pass: verify 139.2 ms, draft 9.7 ms, head 0.4 ms, waited 570.2, reads 587.0, pf issued 0.0 used 133.7, SSD 7.4 GB/s 1099 MB | peak footprint 11.73 GB | loader per pass: stalled calls 91.5 of 99.0, stall 97.4 ms, io 96.2 ms | sha b5cc227c26 | 'Imagine you are doing homework at your desk, but all your reference books are stored in a library across town. Every time you need to look up a fact, you have to drive to the library,'
+[o59all] OoO block calls (graph builds): 5314
+[o59all] done

@@ -1,0 +1,28 @@
+T2 FIXED COST PROFILE (/Users/kamen/Fit12/data/scr/chw16, chw16p): 629 exact calls; ms per call (mean). ev = mx.eval window = loader proc (io + ovh) + loader idle (the GPU side's path); proc_b = loader busy while forward() built the graph
+  group            n   GB   miss |  build     ev   proc     io    ovh   idle   host commit    hsh    tot   busy     rd     nl  cpu_f  cpu_e | proc_b
+  first w1        3  0.28      8 |   59.5    5.5    2.5    2.4    0.1    3.0    0.0    0.0    0.5   65.6   32.8   31.5   32.3   25.9    0.3 | 30.28
+  first w2      340  0.61     19 |   85.8    7.6    4.4    4.3    0.1    3.2    0.0    1.1    0.7   95.2   60.8   59.5   32.5   23.0    0.3 | 56.45
+  first w3        6  0.70     30 |   99.4    9.6    5.7    5.7    0.0    3.9    0.0    1.0    1.0  111.0   71.3   70.8   37.8   21.5    0.3 | 65.57
+  first w4      164  1.24     46 |  148.5   12.7    8.3    8.3    0.0    4.4    0.0    1.5    1.2  164.0  117.6  117.1   43.7   23.4    0.3 | 109.24
+  later w2        2  0.34     14 |   62.4    6.0    2.9    2.8    0.1    3.1    0.0    1.2    0.7   70.3   37.4   36.0   31.0   21.8    0.3 | 34.49
+  later w3        1  1.52     64 |  159.4   17.4   13.3   13.3    0.0    4.1    0.0    2.1    0.5  179.4  137.2  136.7   39.5   23.0    0.3 | 123.91
+  later w4      113  1.47     48 |  165.2   13.8    9.7    9.6    0.0    4.1    0.0    1.9    0.9  181.8  135.3  134.8   43.7   23.6    0.3 | 125.62
+  all            629  0.93        |  116.5   10.0    6.4    6.3    0.1    3.7    0.0    1.3    0.9  128.7   89.0   88.1   37.5   23.2    0.3
+  fit per stage: ms = a[w] + b * GB (least squares over all calls; a[w] = the stage's fixed part at width w)
+    build : a[1]   38.2, a[2]   38.6, a[3]   45.2, a[4]   52.5; b   77.0 ms per GB; rms 10.1
+    ev    : a[1]    3.7, a[2]    3.4, a[3]    5.2, a[4]    4.1; b    6.8 ms per GB; rms 2.0
+    proc  : a[1]    0.7, a[2]    0.3, a[3]    1.4, a[4]    0.1; b    6.6 ms per GB; rms 1.9
+    io    : a[1]    0.6, a[2]    0.2, a[3]    1.4, a[4]    0.0; b    6.6 ms per GB; rms 1.9
+    ovh   : a[1]    0.1, a[2]    0.1, a[3]    0.0, a[4]    0.0; b    0.0 ms per GB; rms 0.1
+    idle  : a[1]    3.0, a[2]    3.1, a[3]    3.8, a[4]    4.1; b    0.2 ms per GB; rms 0.2
+    host  : a[1]    0.0, a[2]    0.0, a[3]    0.0, a[4]    0.0; b    0.0 ms per GB; rms 0.0
+    commit: a[1]    0.0, a[2]    1.2, a[3]    1.2, a[4]    1.8; b   -0.1 ms per GB; rms 0.9
+    hsh   : a[1]    0.5, a[2]    0.7, a[3]    0.9, a[4]    1.1; b    0.0 ms per GB; rms 0.3
+    tot   : a[1]   42.4, a[2]   43.9, a[3]   52.5, a[4]   59.4; b   83.7 ms per GB; rms 10.8
+    busy  : a[1]   10.2, a[2]   11.0, a[3]   14.3, a[4]   16.2; b   81.4 ms per GB; rms 10.4
+    rd    : a[1]    8.9, a[2]    9.7, a[3]   13.8, a[4]   15.6; b   81.4 ms per GB; rms 10.4
+    nl    : a[1]   31.6, a[2]   31.0, a[3]   36.1, a[4]   40.4; b    2.4 ms per GB; rms 0.8
+    cpu_f : a[1]   25.3, a[2]   21.8, a[3]   20.2, a[4]   20.9; b    1.9 ms per GB; rms 1.7
+    cpu_e : a[1]    0.3, a[2]    0.3, a[3]    0.3, a[4]    0.3; b    0.0 ms per GB; rms 0.0
+  per check: draft 10.5 ms (n 513), exact phase 158.1 ms (n 513); exact calls sum 81.0 s vs exact phases 81.1 s, drafts 5.4 s
+  share of draft + exact time: build 84.7 %, proc 4.6 %, io 4.6 %, ovh 0.1 %, idle 2.7 %, host 0.0 %, commit 1.0 %, hsh 0.6 %, busy 64.8 %, rd 64.1 %, nl 27.3 %

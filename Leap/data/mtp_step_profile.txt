@@ -1,0 +1,87 @@
+
+MTP-STEP-2 Wed 16:28:10: MLX 0.32.2; MTP head built standalone (13 quantized modules [(4, 32), (4, 64), (8, 64)]), 1.67 GB; loaded in 0 s
+(1) MTP step (fuse_and_run + mixer + screened head + argmax / p + one sync), 12 chains x 8 depths: median 1.145 ms (p10 1.122, p90 1.312)
+(2) pieces alone at 1 row (us per call; 20 per eval, median of 9): fc prep (norms + fc_hidden x4 + fc_embedding) 76; attn HC read 50; mlp HC read (+ pending write) 56; MoE block (router + 10 experts + shared) 165; residual write 16; mixer 48; screened head + argmax / p 191; QSA attention (one per eval, incl. sync) 406
+  sum of pieces 1008 us; mlx peak 2.50 GB; 1 s
+
+MTP-STEP-2 Wed 16:28:49: MLX 0.32.2; MTP head built standalone (13 quantized modules [(4, 32), (4, 64), (8, 64)]), 1.67 GB; loaded in 0 s
+(1) MTP step (fuse_and_run + mixer + screened head + argmax / p + one sync), 12 chains x 8 depths: median 1.158 ms (p10 1.119, p90 1.316)
+(2) pieces alone at 1 row (us per call; 20 per eval, median of 9): fc prep (norms + fc_hidden x4 + fc_embedding) 77; attn HC read 50; mlp HC read (+ pending write) 56; MoE block (router + 10 experts + shared) 166; residual write 16; mixer 48; screened head + argmax / p 190; QSA attention (one per eval, incl. sync) 406
+  sum of pieces 1009 us; mlx peak 2.50 GB; 0 s
+(3) ablation inside the step (ms, median of 3 interleaved rounds): full 1.330 (+0 %), no-attn 0.904 (-32 %), no-moe 0.982 (-26 %), no-hc (reads + write) 0.571 (-57 %), no-mixer 1.241 (-7 %), no-fc 1.203 (-10 %), no-head 1.001 (-25 %), skeleton 0.004 (-100 %)
+
+MTP-STEP-2 Wed 16:30:52: MLX 0.32.2; MTP head built standalone (13 quantized modules [(4, 32), (4, 64), (8, 64)]), 1.67 GB; loaded in 0 s
+(1) MTP step (fuse_and_run + mixer + screened head + argmax / p + one sync), 12 chains x 8 depths: median 1.163 ms (p10 1.126, p90 1.319)
+STEP_ONLY flags {'MTPLX_FUSED_MOE_DECODE': '', 'MTPLX_FUSED_HC': '', 'MTPLX_FUSED_HC_V3': '', 'MTPLX_FUSED_QSA_INDEXER': ''}: step median 1.163 ms; 8-step output hash 999be437ddec
+
+MTP-STEP-2 Wed 16:30:53: MLX 0.32.2; MTP head built standalone (13 quantized modules [(4, 32), (4, 64), (8, 64)]), 1.67 GB; loaded in 0 s
+(1) MTP step (fuse_and_run + mixer + screened head + argmax / p + one sync), 12 chains x 8 depths: median 1.288 ms (p10 1.161, p90 1.464)
+STEP_ONLY flags {'MTPLX_FUSED_MOE_DECODE': '1', 'MTPLX_FUSED_HC': '', 'MTPLX_FUSED_HC_V3': '', 'MTPLX_FUSED_QSA_INDEXER': ''}: step median 1.288 ms; 8-step output hash dda966b4d572
+
+MTP-STEP-2 Wed 16:30:54: MLX 0.32.2; MTP head built standalone (13 quantized modules [(4, 32), (4, 64), (8, 64)]), 1.67 GB; loaded in 0 s
+(1) MTP step (fuse_and_run + mixer + screened head + argmax / p + one sync), 12 chains x 8 depths: median 5.849 ms (p10 5.683, p90 6.101)
+STEP_ONLY flags {'MTPLX_FUSED_MOE_DECODE': '', 'MTPLX_FUSED_HC': '1', 'MTPLX_FUSED_HC_V3': '', 'MTPLX_FUSED_QSA_INDEXER': ''}: step median 5.849 ms; 8-step output hash e1b553e718e4
+
+MTP-STEP-2 Wed 16:30:56: MLX 0.32.2; MTP head built standalone (13 quantized modules [(4, 32), (4, 64), (8, 64)]), 1.67 GB; loaded in 0 s
+(1) MTP step (fuse_and_run + mixer + screened head + argmax / p + one sync), 12 chains x 8 depths: median 1.166 ms (p10 1.123, p90 1.268)
+STEP_ONLY flags {'MTPLX_FUSED_MOE_DECODE': '', 'MTPLX_FUSED_HC': '1 MTPLX_FUSED_HC_V3=1', 'MTPLX_FUSED_HC_V3': '', 'MTPLX_FUSED_QSA_INDEXER': ''}: step median 1.166 ms; 8-step output hash d8a236f51808
+
+MTP-STEP-2 Wed 16:30:57: MLX 0.32.2; MTP head built standalone (13 quantized modules [(4, 32), (4, 64), (8, 64)]), 1.67 GB; loaded in 0 s
+(1) MTP step (fuse_and_run + mixer + screened head + argmax / p + one sync), 12 chains x 8 depths: median 1.159 ms (p10 1.113, p90 1.329)
+STEP_ONLY flags {'MTPLX_FUSED_MOE_DECODE': '', 'MTPLX_FUSED_HC': '', 'MTPLX_FUSED_HC_V3': '', 'MTPLX_FUSED_QSA_INDEXER': '1'}: step median 1.159 ms; 8-step output hash 7d076da092dc
+
+MTP-STEP-2 Wed 16:30:58: MLX 0.32.2; MTP head built standalone (13 quantized modules [(4, 32), (4, 64), (8, 64)]), 1.67 GB; loaded in 0 s
+(1) MTP step (fuse_and_run + mixer + screened head + argmax / p + one sync), 12 chains x 8 depths: median 1.178 ms (p10 1.119, p90 1.330)
+STEP_ONLY flags {'MTPLX_FUSED_MOE_DECODE': '1 MTPLX_FUSED_HC=1 MTPLX_FUSED_HC_V3=1 MTPLX_FUSED_QSA_INDEXER=1', 'MTPLX_FUSED_HC': '', 'MTPLX_FUSED_HC_V3': '', 'MTPLX_FUSED_QSA_INDEXER': ''}: step median 1.178 ms; 8-step output hash be39530dbe5e
+
+MTP-STEP-2 Wed 16:30:59: MLX 0.32.2; MTP head built standalone (13 quantized modules [(4, 32), (4, 64), (8, 64)]), 1.67 GB; loaded in 0 s
+(1) MTP step (fuse_and_run + mixer + screened head + argmax / p + one sync), 12 chains x 8 depths: median 1.171 ms (p10 1.131, p90 1.317)
+STEP_ONLY flags {'MTPLX_FUSED_MOE_DECODE': '', 'MTPLX_FUSED_HC': '', 'MTPLX_FUSED_HC_V3': '', 'MTPLX_FUSED_QSA_INDEXER': ''}: step median 1.171 ms; 8-step output hash a9763fa071a1
+
+MTP-STEP-2 Wed 16:31:14: MLX 0.32.2; MTP head built standalone (13 quantized modules [(4, 32), (4, 64), (8, 64)]), 1.67 GB; loaded in 0 s
+(1) MTP step (fuse_and_run + mixer + screened head + argmax / p + one sync), 12 chains x 8 depths: median 1.207 ms (p10 1.133, p90 1.357)
+STEP_ONLY flags {'MTPLX_FUSED_MOE_DECODE': '', 'MTPLX_FUSED_HC': '', 'MTPLX_FUSED_HC_V3': '', 'MTPLX_FUSED_QSA_INDEXER': ''}: step median 1.207 ms; 8-step output hash 540813ff92f8
+
+MTP-STEP-2 Wed 16:31:15: MLX 0.32.2; MTP head built standalone (13 quantized modules [(4, 32), (4, 64), (8, 64)]), 1.67 GB; loaded in 0 s
+(1) MTP step (fuse_and_run + mixer + screened head + argmax / p + one sync), 12 chains x 8 depths: median 2.602 ms (p10 2.530, p90 2.752)
+STEP_ONLY flags {'MTPLX_FUSED_MOE_DECODE': '', 'MTPLX_FUSED_HC': '1', 'MTPLX_FUSED_HC_V3': '1', 'MTPLX_FUSED_QSA_INDEXER': ''}: step median 2.602 ms; 8-step output hash 75b8f7ef0d4d
+
+MTP-STEP-2 Wed 16:31:16: MLX 0.32.2; MTP head built standalone (13 quantized modules [(4, 32), (4, 64), (8, 64)]), 1.67 GB; loaded in 0 s
+(1) MTP step (fuse_and_run + mixer + screened head + argmax / p + one sync), 12 chains x 8 depths: median 2.622 ms (p10 2.537, p90 2.757)
+STEP_ONLY flags {'MTPLX_FUSED_MOE_DECODE': '1', 'MTPLX_FUSED_HC': '1', 'MTPLX_FUSED_HC_V3': '1', 'MTPLX_FUSED_QSA_INDEXER': '1'}: step median 2.622 ms; 8-step output hash 75b8f7ef0d4d
+
+MTP-STEP-2 Wed 16:31:17: MLX 0.32.2; MTP head built standalone (13 quantized modules [(4, 32), (4, 64), (8, 64)]), 1.67 GB; loaded in 0 s
+(1) MTP step (fuse_and_run + mixer + screened head + argmax / p + one sync), 12 chains x 8 depths: median 1.433 ms (p10 1.322, p90 1.569)
+STEP_ONLY flags {'MTPLX_FUSED_MOE_DECODE': '', 'MTPLX_FUSED_HC': '', 'MTPLX_FUSED_HC_V3': '', 'MTPLX_FUSED_QSA_INDEXER': '1'}: step median 1.433 ms; 8-step output hash 540813ff92f8
+
+MTP-STEP-2 Wed 16:31:18: MLX 0.32.2; MTP head built standalone (13 quantized modules [(4, 32), (4, 64), (8, 64)]), 1.67 GB; loaded in 0 s
+(1) MTP step (fuse_and_run + mixer + screened head + argmax / p + one sync), 12 chains x 8 depths: median 1.168 ms (p10 1.115, p90 1.309)
+STEP_ONLY flags {'MTPLX_FUSED_MOE_DECODE': '', 'MTPLX_FUSED_HC': '', 'MTPLX_FUSED_HC_V3': '', 'MTPLX_FUSED_QSA_INDEXER': ''}: step median 1.168 ms; 8-step output hash 540813ff92f8
+
+MTP-STEP-2 Wed 16:31:38: MLX 0.32.2; MTP head built standalone (13 quantized modules [(4, 32), (4, 64), (8, 64)]), 1.67 GB; loaded in 0 s
+(1) MTP step (fuse_and_run + mixer + screened head + argmax / p + one sync), 12 chains x 8 depths: median 1.375 ms (p10 1.141, p90 1.475)
+STEP_ONLY flags {'MTPLX_FUSED_MOE_DECODE': '', 'MTPLX_FUSED_HC': '', 'MTPLX_FUSED_HC_V3': '', 'MTPLX_FUSED_QSA_INDEXER': '', 'MTP_REF2': ''}: step median 1.375 ms; 8-step output hash 540813ff92f8
+
+MTP-STEP-2 Wed 16:31:39: MLX 0.32.2; MTP head built standalone (13 quantized modules [(4, 32), (4, 64), (8, 64)]), 1.67 GB; loaded in 0 s
+REF2 applied: ref2.CFG.get('experts')=True
+(1) MTP step (fuse_and_run + mixer + screened head + argmax / p + one sync), 12 chains x 8 depths: median 2.212 ms (p10 2.060, p90 2.814)
+STEP_ONLY flags {'MTPLX_FUSED_MOE_DECODE': '', 'MTPLX_FUSED_HC': '', 'MTPLX_FUSED_HC_V3': '', 'MTPLX_FUSED_QSA_INDEXER': '', 'MTP_REF2': '1', 'counts': {'qmm16c': 416, 'mlx16': 728, 'linear': 208, 'hc_read': 208, 'hc_eager16': 104, 'attention': 104, 'verify_old': 104, 'verify_old_eligible': 104}}: step median 2.212 ms; 8-step output hash e352a2540d7a
+
+MTP-STEP-2 Wed 16:31:40: MLX 0.32.2; MTP head built standalone (13 quantized modules [(4, 32), (4, 64), (8, 64)]), 1.67 GB; loaded in 0 s
+(1) MTP step (fuse_and_run + mixer + screened head + argmax / p + one sync), 12 chains x 8 depths: median 1.202 ms (p10 1.133, p90 1.354)
+STEP_ONLY flags {'MTPLX_FUSED_MOE_DECODE': '', 'MTPLX_FUSED_HC': '', 'MTPLX_FUSED_HC_V3': '', 'MTPLX_FUSED_QSA_INDEXER': '', 'MTP_REF2': ''}: step median 1.202 ms; 8-step output hash 540813ff92f8
+
+MTP-STEP-2 Wed 16:31:41: MLX 0.32.2; MTP head built standalone (13 quantized modules [(4, 32), (4, 64), (8, 64)]), 1.67 GB; loaded in 0 s
+REF2 applied: ref2.CFG.get('experts')=True
+(1) MTP step (fuse_and_run + mixer + screened head + argmax / p + one sync), 12 chains x 8 depths: median 2.007 ms (p10 1.928, p90 2.114)
+STEP_ONLY flags {'MTPLX_FUSED_MOE_DECODE': '', 'MTPLX_FUSED_HC': '', 'MTPLX_FUSED_HC_V3': '', 'MTPLX_FUSED_QSA_INDEXER': '', 'MTP_REF2': '1', 'counts': {'qmm16c': 416, 'mlx16': 728, 'linear': 208, 'hc_read': 208, 'hc_eager16': 104, 'attention': 104, 'verify_old': 104, 'verify_old_eligible': 104}}: step median 2.007 ms; 8-step output hash e352a2540d7a
+
+MTP-STEP-2 Wed 16:33:13: MLX 0.32.2; MTP head built standalone (13 quantized modules [(4, 32), (4, 64), (8, 64)]), 1.67 GB; loaded in 0 s
+(1) MTP step (fuse_and_run + mixer + screened head + argmax / p + one sync), 12 chains x 8 depths: median 1.364 ms (p10 1.232, p90 1.460)
+(2) pieces alone at 1 row (us per call; 20 per eval, median of 9): fc prep (norms + fc_hidden x4 + fc_embedding) 76; attn HC read 51; mlp HC read (+ pending write) 59; MoE block (router + 10 experts + shared) 170; residual write 17; mixer 51; screened head + argmax / p 194; QSA attention (one per eval, incl. sync) 422
+  sum of pieces 1039 us; mlx peak 2.50 GB; 0 s
+(3) ablation inside the step (ms, median of 3 interleaved rounds): full 1.123 (+0 %), no-attn 0.857 (-24 %), no-moe 0.885 (-21 %), no-hc (reads + write) 0.529 (-53 %), no-mixer 1.065 (-5 %), no-fc 1.076 (-4 %), no-head 0.861 (-23 %), skeleton 0.004 (-100 %)
+
+MTP-STEP-2 Wed 16:33:15: MLX 0.32.2; MTP head built standalone (13 quantized modules [(4, 32), (4, 64), (8, 64)]), 1.67 GB; loaded in 0 s
+(1) MTP step (fuse_and_run + mixer + screened head + argmax / p + one sync), 12 chains x 8 depths: median 1.144 ms (p10 1.115, p90 1.324)
+MTP-STEP-5 chunked chain (8 depths, ms per step, median of 7): chunk 1: 1.185, chunk 2: 1.104, chunk 4: 1.036, chunk 8: 0.998; tokens identical across chunk sizes: True

@@ -1,0 +1,69 @@
+== PRE-REGISTERED Fri 10-23 07:15 (before the GPU turn) ==
+code read (Breakthrough/v3f/ext/bigmoe_ext.cpp loader_main flag mode, ensure, make_room; gated.py; bt_b12 block):
+  wait-all multi-row verify is SAFE: protect = waited ids + resident ids in list order while slots remain; an unprotected
+  resident id evicted for a waited read is published as -1 (ring built after ensure); no writes into layer L's pool after
+  its release until L's next call (B8: no spare, no JIT, no victim prefetch, no late ids in FL_MR rows); the fast path
+  (table a pass ahead) needs every waited id resident, so its call reads nothing. The hazard exists only for phase-B reads
+  after phase A (the dead mr arm; bt_b12's 1-row late path fits whole: 20 ids <= C_m 26 / 51).
+  Fragility (not a bug today): a block evaluated without new_pass() (same seq) would read a stale region; MTPLX's PLE
+  replay builds such a block but its output is never evaluated (lazy; late part dropped at L == 0 since 1a5eee1).
+stress predictions: wait arm logits sha and gen shas identical across normal / delay / GPU load, gen shas equal last night's
+  (code 318cfb727a, prose b1f2bed3a0). mr positive control under GPU load: differs with p ~ 0.3 (victims are LRU-tail
+  experts outside the just-touched ranks 0-9, so rarely a selected substitute).
+A7 predictions: drafter share = 1 - replay loop / MTP loop: B8 code 6-9 %, prose 7-10 %; v3 24 GB code 5-8 %, prose 6-9 %
+  (v3 in-loop accounting from defer runs: draft+head 6.2 % code, 7.3 % prose, 2.5 % edit). Kill line 10 % -> expect KILL
+  in today's regime; the share scales ~1/pass time (in-RAM S=4 passes ~37 ms would put a 3-step MTP chain at ~15-20 %).
+07:02:29 stress + A7 turn start
+07:02:40 tfs wait n: [tfs4_wait_n] 128 positions, logits sha d05102587e, top-1 sha ba113a75b8, mr calls 0, defer stats [3072, 17015, 0, 0]
+07:02:56 gen code wait n: [code_wait_n] 26.6 tok/s, 3.25 tok/pass, 59 passes; per pass: S 3.98, verify 113.9 ms, reads 408.7, waited 390.9, late 0.0, io 74.5 ms; loop 123.1 ms/pass (draft 9.9, head 0.4); mr calls 0 (0 rows); sha 318cfb727a | '```python
+import re
+import argparse
+from collections import defaultdic'
+07:03:13 gen prose wait n: [prose_wait_n] 17.2 tok/s, 2.21 tok/pass, 87 passes; per pass: S 3.94, verify 118.3 ms, reads 460.3, waited 438.5, late 0.7, io 79.5 ms; loop 129.2 ms/pass (draft 10.4, head 0.3); mr calls 0 (0 rows); sha b1f2bed3a0 | 'Imagine you are building a massive LEGO castle, but all your pieces ar'
+07:03:24 tfs mr n: [tfs4_mr_n] 128 positions, logits sha 30f860a80b, top-1 sha b2619ecc04, mr calls 1504, defer stats [3072, 11749, 5272, 0]
+07:33:11 stress + A7 turn start
+07:33:22 tfs wait delay: [tfs4_wait_delay] 128 positions, logits sha d05102587e, top-1 sha ba113a75b8, mr calls 0, defer stats [3072, 17015, 0, 0]
+07:33:38 gen code wait delay: [code_wait_delay] 24.5 tok/s, 3.25 tok/pass, 59 passes; per pass: S 3.98, verify 123.7 ms, reads 408.7, waited 390.9, late 0.0, io 74.0 ms; loop 133.6 ms/pass (draft 10.5, head 0.3); mr calls 0 (0 rows); sha 318cfb727a | '```python
+import re
+import argparse
+from collections import defaultdic'
+07:33:57 gen prose wait delay: [prose_wait_delay] 15.5 tok/s, 2.21 tok/pass, 87 passes; per pass: S 3.94, verify 131.8 ms, reads 460.3, waited 438.5, late 0.7, io 82.4 ms; loop 143.7 ms/pass (draft 11.5, head 0.3); mr calls 0 (0 rows); sha b1f2bed3a0 | 'Imagine you are building a massive LEGO castle, but all your pieces ar'
+07:34:09 tfs wait gpu: [tfs4_wait_gpu] 128 positions, logits sha 5f29ed8c8f, top-1 sha ba113a75b8, mr calls 0, defer stats [3072, 17013, 0, 0]
+07:34:27 gen code wait gpu: [code_wait_gpu] 19.1 tok/s, 3.25 tok/pass, 59 passes; per pass: S 3.97, verify 158.8 ms, reads 412.5, waited 394.5, late 0.0, io 74.0 ms; loop 171.5 ms/pass (draft 13.6, head 0.4); mr calls 0 (0 rows); sha 5878c7faf8 | '```python
+import re
+import argparse
+from collections import defaultdic'
+07:34:49 gen prose wait gpu: [prose_wait_gpu] 12.8 tok/s, 2.37 tok/pass, 81 passes; per pass: S 3.98, verify 171.2 ms, reads 485.5, waited 463.5, late 0.0, io 84.3 ms; loop 186.9 ms/pass (draft 15.1, head 0.3); mr calls 0 (0 rows); sha 25a497a8ca | 'Imagine you are building a massive LEGO castle, but all your pieces ar'
+07:35:01 tfs mr gpu: [tfs4_mr_gpu] 128 positions, logits sha 30f860a80b, top-1 sha b2619ecc04, mr calls 1504, defer stats [3072, 11749, 5272, 0]
+07:35:22 gen code mr gpu: [code_mr_gpu] 16.2 tok/s, 3.10 tok/pass, 62 passes; per pass: S 3.98, verify 179.3 ms, reads 463.4, waited 308.2, late 137.6, io 86.5 ms; loop 193.3 ms/pass (draft 13.9, head 0.3); mr calls 3211 (12776 rows); sha 5fe15c8944 | '```python
+"""
+Log parser module: parses HTTP access logs and reports s'
+07:35:37 A7 b8 code replay: [code_wait_replay] 29.7 tok/s, 3.25 tok/pass, 59 passes; per pass: S 3.98, verify 110.9 ms, reads 390.9, waited 390.9, late 0.0, io 67.2 ms; loop 110.2 ms/pass (draft 0.0, head 0.0); mr calls 0 (0 rows); sha 318cfb727a | '```python
+import re
+import argparse
+from collections import defaultdic'
+07:35:52 A7 b8 code mtp2: [code_wait_mtp2] 27.3 tok/s, 3.25 tok/pass, 59 passes; per pass: S 3.98, verify 111.1 ms, reads 408.7, waited 390.9, late 0.0, io 72.3 ms; loop 120.1 ms/pass (draft 9.6, head 0.3); mr calls 0 (0 rows); sha 318cfb727a | '```python
+import re
+import argparse
+from collections import defaultdic'
+07:36:08 A7 b8 prose replay: [prose_wait_replay] 18.9 tok/s, 2.21 tok/pass, 87 passes; per pass: S 3.94, verify 117.8 ms, reads 439.2, waited 438.5, late 0.7, io 73.4 ms; loop 118.2 ms/pass (draft 0.0, head 0.0); mr calls 0 (0 rows); sha b1f2bed3a0 | 'Imagine you are building a massive LEGO castle, but all your pieces ar'
+07:36:25 A7 b8 prose mtp2: [prose_wait_mtp2] 17.2 tok/s, 2.21 tok/pass, 87 passes; per pass: S 3.94, verify 118.4 ms, reads 460.3, waited 438.5, late 0.7, io 79.7 ms; loop 129.2 ms/pass (draft 10.4, head 0.3); mr calls 0 (0 rows); sha b1f2bed3a0 | 'Imagine you are building a massive LEGO castle, but all your pieces ar'
+07:36:46 A7 v3 code mtp: [code_v3_a7] 32.4 tok/s, 3.02 tok/pass, 53 passes, verify 87.0 ms/pass, draft 0.31 s; reads 15125 (0 late, 0 waited in flag rows), stalled 3180, io 2.38 s; sha 127b6932ba | '```python
+import re
+import argparse
+from collections import defaultdict
+from typing import'
+07:37:05 A7 v3 code replay: [code_v3_replay] 36.2 tok/s, 3.02 tok/pass, 53 passes, verify 83.3 ms/pass, draft 0.00 s; reads 14276 (0 late, 0 waited in flag rows), stalled 3080, io 2.03 s; sha 127b6932ba | '```python
+import re
+import argparse
+from collections import defaultdict
+from typing import'
+07:37:24 A7 v3 code mtp2: [code_v3_a7b] 32.6 tok/s, 3.02 tok/pass, 53 passes, verify 86.3 ms/pass, draft 0.31 s; reads 15205 (0 late, 0 waited in flag rows), stalled 3204, io 2.42 s; sha 127b6932ba | '```python
+import re
+import argparse
+from collections import defaultdict
+from typing import'
+07:37:39 A7 v3 prose mtp: [prose_v3_a7] 29.4 tok/s, 1.72 tok/pass, 93 passes, verify 54.3 ms/pass, draft 0.36 s; reads 12040 (0 late, 0 waited in flag rows), stalled 4257, io 2.14 s; sha d4ef51baea | 'Imagine you are doing homework at your desk. You have a huge library across the street (th'
+07:37:53 A7 v3 prose replay: [prose_v3_replay] 31.8 tok/s, 1.72 tok/pass, 93 passes, verify 54.1 ms/pass, draft 0.00 s; reads 11218 (0 late, 0 waited in flag rows), stalled 4141, io 1.90 s; sha d4ef51baea | 'Imagine you are doing homework at your desk. You have a huge library across the street (th'
+07:38:08 A7 v3 prose mtp2: [prose_v3_a7b] 29.6 tok/s, 1.72 tok/pass, 93 passes, verify 54.0 ms/pass, draft 0.36 s; reads 12041 (0 late, 0 waited in flag rows), stalled 4259, io 2.13 s; sha d4ef51baea | 'Imagine you are doing homework at your desk. You have a huge library across the street (th'
+07:38:08 stress + A7 turn finished

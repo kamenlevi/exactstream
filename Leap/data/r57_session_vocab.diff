@@ -1,0 +1,53 @@
+--- /private/tmp/claude-501/-Users-kamen-OjoX/f2971937-6c95-4e86-a049-05beff6a8e32/scratchpad/r57sv/r57_screen.py.orig	2026-11-04 17:18:13
++++ /private/tmp/claude-501/-Users-kamen-OjoX/f2971937-6c95-4e86-a049-05beff6a8e32/scratchpad/r57sv/r57_screen.py	2026-11-04 17:27:04
+@@ -718,7 +718,16 @@
+ if HEADC:                                                # (-0.56 ms per propose; falls back for a non-4-bit / native head or
+     sys.path.insert(0, os.path.expanduser("~/Leap/scripts"))   # > 16 rows). Not yet smoked: next slot.
+     import d7b_nax as _D7N
++SV = None                                                # SESSION-VOCAB (Leap ~/Leap/scripts/session_vocab.py): one session-id
++if os.environ.get("R57_SVH") == "1" or os.environ.get("R57_DSUB") == "1":   # feed for SVH (R57_SVH=1: the screened VERIFIER
++    sys.path.insert(0, os.path.expanduser("~/Leap/scripts"))                 # head, ref2 CFG screened_head, FAST) and BP-9
++    import session_vocab as _SVM                                              # (R57_DSUB=1: the drafter's screened head on
++    SV = _SVM.SessionVocab(model.language_model.lm_head, svh=os.environ.get("R57_SVH") == "1",   # qmm16c, exact-safe; it
++                           dsub=os.environ.get("R57_DSUB") == "1",                              # supersedes R57_HEADC);
++                           check=os.environ.get("R57_SV_CHECK") == "1")                         # R57_SV_CHECK=1: smoke counters
+ def head2s(hid):
++    if SV is not None and SV.dsub:                       # BP-9: the drafter's head over FR-Spec 98,304 + the session's ids
++        return SV.head2s(draft, hid)
+     lg = _D7N.head_logits(draft, hid) if HEADC else draft.compute_logits(hid)
+     B, s = 128, lg.shape
+     blk = lg.reshape(*s[:-1], s[-1] // B, B)
+@@ -829,6 +838,8 @@
+     cold_ = bool(FAST and (FASTARMS[FAST].get(fset) or {}).get("cold")) and not mtp
+     if cold_:                                            # U3C: the prompt's own footprint per layer, during its prefill
+         FG["cap"] = np.zeros((48, 512), bool)
++    if SV is not None:                                   # SESSION-VOCAB: this prompt's ids join both subsets (before the prefill:
++        SV.new_prompt(ids)                               # a short last prefill chunk takes SVH's <= 16-row path too)
+     cache, last, T, ws = prefill(ids, mtp)
+     if cold_:
+         cap_, FG["cap"] = FG["cap"], None
+@@ -846,6 +857,8 @@
+         ctx = T[start:P]
+     a = P
+     tok = int(mx.argmax(last).item())
++    if SV is not None:
++        SV.committed([tok])
+     set_arm(arm)
+     a6 = {}                                              # A6's pre-loop steps (outside the decode clock), in this order
+     R_ = R if cg is not None else 16                     # R57_ROWS=32 only where the copy runs (MATCH 2.5), 16 elsewhere
+@@ -1119,6 +1132,8 @@
+                 new = new[:j + 1]
+                 break
+         out += new
++        if SV is not None:                               # SESSION-VOCAB: the committed ids (kept drafts + the target's token)
++            SV.committed(new)
+         if scan is not None:
+             scan.feed("".join(_TKZ.decode([int(x)]) for x in new))
+         if cg is not None:                               # R57_COPY: the check labels the duel; the kept tokens join the window
+@@ -1404,4 +1419,6 @@
+         json.dump(PRALL, open(os.path.join(OUT, f"{TAG}_preroute.json"), "w"))
+ except Exception as e:
+     say(f"  checks.json / runs.json not written: {e}")
++if SV is not None:                                       # SESSION-VOCAB: the smoke's counters (svh_calls ~ checks; head2s ==
++    say(f"SESSION-VOCAB {SV.report()}")                  # proposes; chk_out ~0 with R57_SV_CHECK=1; dsub_extra == svh_extra)
+ open(os.path.join(OUT, f"{TAG}_screen.txt"), "w").write("\n".join(lines) + "\n")

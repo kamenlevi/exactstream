@@ -1,0 +1,33 @@
+[Sun 11:39:20] chw15 armed: 6 clear minutes (1 with /Users/kamen/Fit12/data/scr/chw15/GO; held while /Users/kamen/Fit12/data/scr/chw15/WAIT exists), start by Sun 18:00
+[Sun 12:02:04] chw15: clear for 6 min (36 GB free): no quiet ticket for 5 min, then the share lock
+[Sun 12:02:13] chw15: chw15p (W1 cf:0.9:2, CAP 128) start
+[Sun 12:04:19] chw15: chw15p end rc 0
+T2 CHAT WIDTH stage 1b (/Users/kamen/Fit12/data/scr/chw15): reference A' = chw14c2; arms chw15p
+  chw14c2: whole decode geo 13.89 (pooled 13.97) tok/s over 12 prompts; 491 MB per kept token; kept 2.326 per check; first-call widths {1: 3, 2: 340, 3: 6, 4: 164}; PR1 replays 260; lifetime 11.012 GB
+      = chw14c2: tokens 12 / 12, lsha 12 / 12; = chat12 (no PR1) tokens 5 / 12
+  chw15p: whole decode geo 13.80 (pooled 13.90) tok/s over 12 prompts; 491 MB per kept token; kept 2.326 per check; first-call widths {1: 3, 2: 340, 3: 6, 4: 164}; PR1 replays 260; lifetime 10.991 GB
+      = chw14c2: tokens 12 / 12, lsha 12 / 12; = chat12 (no PR1) tokens 5 / 12
+  chw15p vs chw14c2: x0.993 whole decode geo, x0.995 pooled; MB per kept token x1.000
+T2 FIXED COST PROFILE (/Users/kamen/Fit12/data/scr/chw15, chw15p): 629 exact calls; ms per call (mean). ev = mx.eval window = loader proc (io + ovh) + loader idle (the GPU side's path); proc_b = loader busy while forward() built t
+  group            n   GB   miss |  build     ev   proc     io    ovh   idle   host commit    hsh    tot | proc_b
+  first w1        3  0.28      8 |   60.1    5.6    2.5    2.4    0.1    3.1    0.0    0.0    0.5   66.3 | 30.49
+  first w2      340  0.61     19 |   84.9    7.5    4.3    4.2    0.1    3.2    0.0    1.2    0.7   94.3 | 55.57
+  first w3        6  0.70     30 |   99.1    9.6    5.7    5.6    0.0    3.9    0.0    1.1    1.0  110.8 | 65.34
+  first w4      164  1.24     46 |  146.6   12.5    8.2    8.2    0.0    4.3    0.0    1.5    1.2  161.9 | 107.36
+  later w2        2  0.34     14 |   62.6    6.0    2.9    2.8    0.1    3.1    0.0    1.3    0.8   70.7 | 34.64
+  later w3        1  1.52     64 |  159.1   17.3   13.3   13.3    0.0    4.0    0.0    2.1    0.6  179.1 | 122.86
+  later w4      113  1.47     47 |  163.2   13.6    9.5    9.5    0.0    4.1    0.0    1.9    0.9  179.7 | 123.74
+  all            629  0.93        |  115.1    9.9    6.3    6.2    0.1    3.7    0.0    1.4    0.9  127.3
+  fit per stage: ms = a[w] + b * GB (least squares over all calls; a[w] = the stage's fixed part at width w)
+    build : a[1]   39.0, a[2]   38.3, a[3]   45.6, a[4]   51.7; b   76.2 ms per GB; rms 2.6
+    ev    : a[1]    3.8, a[2]    3.5, a[3]    5.3, a[4]    4.2; b    6.6 ms per GB; rms 1.7
+    proc  : a[1]    0.7, a[2]    0.4, a[3]    1.5, a[4]    0.1; b    6.4 ms per GB; rms 1.7
+    io    : a[1]    0.6, a[2]    0.3, a[3]    1.5, a[4]    0.1; b    6.4 ms per GB; rms 1.7
+    ovh   : a[1]    0.1, a[2]    0.1, a[3]    0.0, a[4]    0.0; b    0.0 ms per GB; rms 0.0
+    idle  : a[1]    3.0, a[2]    3.1, a[3]    3.8, a[4]    4.1; b    0.1 ms per GB; rms 0.2
+    host  : a[1]    0.0, a[2]    0.0, a[3]    0.0, a[4]    0.0; b    0.0 ms per GB; rms 0.0
+    commit: a[1]    0.0, a[2]    1.2, a[3]    1.3, a[4]    1.8; b   -0.1 ms per GB; rms 0.9
+    hsh   : a[1]    0.5, a[2]    0.7, a[3]    0.9, a[4]    1.1; b    0.0 ms per GB; rms 0.3
+    tot   : a[1]   43.3, a[2]   43.6, a[3]   53.2, a[4]   58.8; b   82.7 ms per GB; rms 2.4
+  per check: draft 10.4 ms (n 513), exact phase 156.3 ms (n 513); exact calls sum 80.1 s vs exact phases 80.2 s, drafts 5.4 s
+  share of draft + exact time: build 84.6 %, proc 4.6 %, io 4.6 %, ovh 0.1 %, idle 2.7 %, host 0.0 %, commit 1.0 %, hsh 0.6 %

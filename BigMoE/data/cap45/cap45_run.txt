@@ -1,0 +1,33 @@
+Traceback (most recent call last):
+  File "/Users/kamen/BigMoE/scripts/r57_screen.py", line 82, in <module>
+    rt, st = EM.load(EM.variant("ref"), C=C)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/EvalSuite/evalsuite/model.py", line 432, in load
+    from bigmoe.loader import load_streamed
+  File "/Users/kamen/BigMoE/bigmoe/loader.py", line 9, in <module>
+    from .stream import ExpertStreamer
+  File "/Users/kamen/BigMoE/bigmoe/stream.py", line 139, in <module>
+    from . import s10b as _S10B
+  File "/Users/kamen/BigMoE/bigmoe/s10b.py", line 13, in <module>
+    LAYERS = tuple(int(v) for v in os.environ.get("BIGMOE_S10B_LAYERS", "2,8,14,20,26,32,38,44").split(","))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/bigmoe/s10b.py", line 13, in <genexpr>
+    LAYERS = tuple(int(v) for v in os.environ.get("BIGMOE_S10B_LAYERS", "2,8,14,20,26,32,38,44").split(","))
+                   ^^^^^^
+ValueError: invalid literal for int() with base 10: ''
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=15.2 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+R-57 harness: full 125B via load_streamed (C = 160), loaded in 2 s, 25.1 GB active; REF2 + SB; gate rows MAXK 160 (ext build_next), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 256
+  routers.npz: 47 layers, 123 MB
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  humaneval/HumanEval/68 [gate]: 256 tokens in 17 checks (kept 15.41), 34.5 tok/s (steady state, checks >= 2: 40.5), median cycle 384.1 ms, check + commit 352.9 ms; per check (medians) 970 misses, demand SSD 235.3 ms; tokens == REF2 row 256 / 256
+  math500/test/prealgebra/1640.json [gate]: 256 tokens in 48 checks (kept 5.31), 19.7 tok/s (steady state, checks >= 2: 19.6), median cycle 269.0 ms, check + commit 256.2 ms; per check (medians) 552 misses, demand SSD 143.0 ms; tokens == REF2 row 256 / 256
+  humaneval/HumanEval/91 [gate]: 256 tokens in 32 checks (kept 8.09), 25.6 tok/s (steady state, checks >= 2: 25.1), median cycle 284.8 ms, check + commit 273.4 ms; per check (medians) 624 misses, demand SSD 160.3 ms; tokens == REF2 row 256 / 256
+  math500/test/algebra/694.json [gate]: 256 tokens in 33 checks (kept 7.73), 22.3 tok/s (steady state, checks >= 2: 22.3), median cycle 347.9 ms, check + commit 333.9 ms; per check (medians) 870 misses, demand SSD 214.9 ms; tokens == REF2 row 256 / 256
+  math500/test/algebra/1282.json [gate]: 256 tokens in 37 checks (kept 6.89), 23.3 tok/s (steady state, checks >= 2: 23.7), median cycle 291.0 ms, check + commit 280.6 ms; per check (medians) 601 misses, demand SSD 158.7 ms; tokens == REF2 row 256 / 256
+  gsm8k/708 [gate]: 197 tokens in 32 checks (kept 6.16), 19.4 tok/s (steady state, checks >= 2: 20.6), median cycle 313.3 ms, check + commit 293.9 ms; per check (medians) 666 misses, demand SSD 171.8 ms; tokens == REF2 row 197 / 197
+  gate: tok/s 22.8 (steady state 23.0), cycle 302.2 ms, check + commit 287.2 ms, misses 646, demand SSD 166.0 ms per check (medians over valid runs, then prompts)
+  footprint now 28.2 GB, lifetime peak 32.7 GB; 98 s
+[bigmoe] s10b: 712198 ints -> /Users/kamen/BigMoE/data/cap45/miss.bin

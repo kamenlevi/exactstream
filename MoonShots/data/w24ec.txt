@@ -1,0 +1,10 @@
+R-16 W24-ec (Tue 27 Oct 19:45:22), MLX 0.32.2: interleaved rANS on MSB-3 codes, layers (0, 24, 47), 32 experts each, chunk 65536 symbols, 10-bit table per layer
+PASS = decode >= 25 GB/s of codes AND <= 2.80 b / weight (all stored bytes); KILL = < 10 GB/s or > 2.90 b; any decoded byte != records3 -> KILL
+L0: experts [6, 10, 22, 35, 45, 66]...; H0 2.6891 b; freqs [28, 44, 110, 207, 264, 208, 109, 54]; coded 2.6851 b + states 0.0156 + offsets/table 0.0005 = 2.7013 b / weight (3.1 s, CPU ref decode of 2 chunks OK)
+L24: experts [3, 29, 31, 49, 53, 71]...; H0 2.7267 b; freqs [30, 50, 120, 208, 249, 200, 111, 56]; coded 2.7228 b + states 0.0156 + offsets/table 0.0005 = 2.7389 b / weight (2.9 s, CPU ref decode of 2 chunks OK)
+L47: experts [37, 41, 43, 62, 63, 70]...; H0 2.7169 b; freqs [29, 48, 117, 207, 252, 203, 112, 56]; coded 2.7130 b + states 0.0156 + offsets/table 0.0005 = 2.7291 b / weight (3.0 s, CPU ref decode of 2 chunks OK)
+  GPU decode, 1 simdgroup(s) per threadgroup: 7200 chunks, 176.9 MB of codes in 3.88 ms = 45.6 GB/s (min 42.7, max 46.6); mismatching bytes 0
+  GPU decode, 2 simdgroup(s) per threadgroup: 7200 chunks, 176.9 MB of codes in 3.83 ms = 46.2 GB/s (min 37.9, max 46.5); mismatching bytes 0
+  GPU decode, 4 simdgroup(s) per threadgroup: 7200 chunks, 176.9 MB of codes in 4.81 ms = 36.8 GB/s (min 35.5, max 46.5); mismatching bytes 0
+  GPU decode, 8 simdgroup(s) per threadgroup: 7200 chunks, 176.9 MB of codes in 3.90 ms = 45.3 GB/s (min 36.8, max 46.7); mismatching bytes 0
+VERDICT: PASS: 2.7231 b / weight over 471.9 M weights (9.23 % fewer code bytes than 3 b), best decode 46.2 GB/s at 2 simdgroup(s) / threadgroup; 9 s

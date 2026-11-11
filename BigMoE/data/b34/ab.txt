@@ -1,0 +1,22 @@
+PASS (each B arm vs A1 + A2 pooled): late + demand misses at the 8 target layers (MSB pool + LSB sidecar) per token
+-15 % or more AND SSD bytes per token (rusage) up by no more than 2 %; OR SSD bytes per token at the 8 target layers
+(reads in the ext trace x part size) -10 % or more at tok/s no worse than -1 %. KILL: misses < 5 % fewer, or rusage
+bytes up > 5 %. Else BETWEEN. INVALID if any prompt's output sha differs between runs (the decode must stay exact).
+exact: yes, every prompt sha equal across the 4 runs  (p00_code4, p01_prose4, p02_edit4, p03_math4)
+run    late+dem@T8  on-time@T8  late+dem other  disk MB/tok  T8 MB/tok (dem/pf/joint reads)  gate wait ms/tok  SSD busy ms/tok  pf iss/used per tok  tok/s
+A1          13.23        5.85           68.06        355.8      45.47 (9.00/10.34/4.73)             19.44            28.78      65.4 /  56.3   22.50
+B12         12.12        7.05           68.52        352.4      41.20 (8.72/8.64/4.77)             19.16            28.10      64.0 /  57.3   23.45
+B16         12.21        6.94           68.45        356.8      45.75 (8.49/10.97/4.77)             19.03            28.19      66.4 /  57.6   23.41
+A2          13.29        5.82           68.14        351.5      44.93 (9.20/9.90/4.73)             19.03            27.78      62.6 /  55.6   23.37
+A           13.26        5.83           68.10        353.7      45.20 (9.10/10.12/4.73)             19.24            28.28      64.0 /  56.0   22.93
+A1 vs A2 (run-to-run noise): ld8 0.4 %, mb 1.2 %, mb8 1.2 %, gw 2.1 %, tps 3.9 %
+B12 vs A: late + demand at T8 -8.6 %, other layers +0.6 %; disk bytes/tok -0.4 %; T8 bytes/tok -8.8 %; gate wait/tok -0.4 %; tok/s +2.3 %  -> BETWEEN
+    p00_code4: tok/s A 25.17  B12 25.86  (+2.8 %)
+    p01_prose4: tok/s A 20.96  B12 21.15  (+0.9 %)
+    p02_edit4: tok/s A 26.76  B12 28.01  (+4.7 %)
+    p03_math4: tok/s A 18.86  B12 18.79  (-0.4 %)
+B16 vs A: late + demand at T8 -7.9 %, other layers +0.5 %; disk bytes/tok +0.9 %; T8 bytes/tok +1.2 %; gate wait/tok -1.1 %; tok/s +2.1 %  -> BETWEEN
+    p00_code4: tok/s A 25.17  B16 25.02  (-0.6 %)
+    p01_prose4: tok/s A 20.96  B16 21.03  (+0.3 %)
+    p02_edit4: tok/s A 26.76  B16 28.53  (+6.6 %)
+    p03_math4: tok/s A 18.86  B16 19.06  (+1.1 %)

@@ -1,0 +1,52 @@
+LAST-ROW reconciliation: SSD MB per kept token on today's live checks (plain LRU; ten_x_ledger conventions); map = bonus row exact (what the map tested), engine = bonus row gated by its own draft's cf (my capture price's convention), all = every bonus row gated (Fable C's bound); disc = the engine's gate on discarded last rows only (quality-free: the map's PASS covers it)
+  code: live segments 428; ending in a realized bonus row 198; last row has a draft to verify (engine gates it) 292
+  ifeval: live segments 1467; ending in a realized bonus row 488; last row has a draft to verify (engine gates it) 1448
+  multi: live segments 1921; ending in a realized bonus row 707; last row has a draft to verify (engine gates it) 1907
+| domain | pool | rule | map | disc | engine | all |
+|---|---|---|---|---|---|---|
+| code | 45 GB | EXACT | 55.4 | 55.4 | 55.4 | 55.4 |
+| code | 45 GB | QOM cf 0.5 | 24.0 (-57 %) | 23.1 (-58 %) | 22.8 (-59 %) | 19.1 (-66 %) |
+| code | 45 GB | QOM cf 0.5 + 3b | 13.4 (-76 %) | 12.2 (-78 %) | 11.7 (-79 %) | 6.8 (-88 %) |
+| code | 45 GB | QOM cf 0 | 23.0 (-59 %) | 21.2 (-62 %) | 19.8 (-64 %) | 17.6 (-68 %) |
+| code | 45 GB | QOM cf 0 + 3b | 12.0 (-78 %) | 9.5 (-83 %) | 7.7 (-86 %) | 4.7 (-92 %) |
+| code | 24 GB | EXACT | 212.8 | 212.8 | 212.8 | 212.8 |
+| code | 24 GB | QOM cf 0.5 | 79.1 (-63 %) | 73.7 (-65 %) | 72.3 (-66 %) | 55.1 (-74 %) |
+| code | 24 GB | QOM cf 0.5 + 3b | 59.4 (-72 %) | 53.3 (-75 %) | 51.7 (-76 %) | 32.2 (-85 %) |
+| code | 24 GB | QOM cf 0 | 74.8 (-65 %) | 63.6 (-70 %) | 58.3 (-73 %) | 49.0 (-77 %) |
+| code | 24 GB | QOM cf 0 + 3b | 54.5 (-74 %) | 42.0 (-80 %) | 35.7 (-83 %) | 25.2 (-88 %) |
+| code | 12 GB | EXACT | 461.3 | 461.3 | 461.3 | 461.3 |
+| code | 12 GB | QOM cf 0.5 | 158.4 (-66 %) | 146.4 (-68 %) | 143.2 (-69 %) | 105.8 (-77 %) |
+| code | 12 GB | QOM cf 0.5 + 3b | 134.3 (-71 %) | 121.4 (-74 %) | 117.9 (-74 %) | 77.7 (-83 %) |
+| code | 12 GB | QOM cf 0 | 148.5 (-68 %) | 123.6 (-73 %) | 110.9 (-76 %) | 92.7 (-80 %) |
+| code | 12 GB | QOM cf 0 + 3b | 123.6 (-73 %) | 96.9 (-79 %) | 83.1 (-82 %) | 63.5 (-86 %) |
+| ifeval | 45 GB | EXACT | 37.7 | 37.7 | 37.7 | 37.7 |
+| ifeval | 45 GB | QOM cf 0.5 | 27.4 (-27 %) | 25.7 (-32 %) | 25.5 (-32 %) | 20.8 (-45 %) |
+| ifeval | 45 GB | QOM cf 0.5 + 3b | 22.0 (-42 %) | 19.5 (-48 %) | 19.2 (-49 %) | 12.1 (-68 %) |
+| ifeval | 45 GB | QOM cf 0 | 25.5 (-32 %) | 20.5 (-46 %) | 15.9 (-58 %) | 15.9 (-58 %) |
+| ifeval | 45 GB | QOM cf 0 + 3b | 19.2 (-49 %) | 11.5 (-70 %) | 4.5 (-88 %) | 4.5 (-88 %) |
+| ifeval | 24 GB | EXACT | 200.4 | 200.4 | 200.4 | 200.4 |
+| ifeval | 24 GB | QOM cf 0.5 | 116.8 (-42 %) | 103.7 (-48 %) | 101.9 (-49 %) | 67.1 (-67 %) |
+| ifeval | 24 GB | QOM cf 0.5 + 3b | 101.5 (-49 %) | 86.1 (-57 %) | 84.0 (-58 %) | 43.3 (-78 %) |
+| ifeval | 24 GB | QOM cf 0 | 102.7 (-49 %) | 65.6 (-67 %) | 47.3 (-76 %) | 47.2 (-76 %) |
+| ifeval | 24 GB | QOM cf 0 + 3b | 84.4 (-58 %) | 41.4 (-79 %) | 19.4 (-90 %) | 19.3 (-90 %) |
+| ifeval | 12 GB | EXACT | 546.4 | 546.4 | 546.4 | 546.4 |
+| ifeval | 12 GB | QOM cf 0.5 | 308.1 (-44 %) | 274.7 (-50 %) | 268.6 (-51 %) | 168.6 (-69 %) |
+| ifeval | 12 GB | QOM cf 0.5 + 3b | 287.9 (-47 %) | 251.7 (-54 %) | 245.1 (-55 %) | 137.2 (-75 %) |
+| ifeval | 12 GB | QOM cf 0 | 262.6 (-52 %) | 161.8 (-70 %) | 108.8 (-80 %) | 108.6 (-80 %) |
+| ifeval | 12 GB | QOM cf 0 + 3b | 238.7 (-56 %) | 129.9 (-76 %) | 72.6 (-87 %) | 72.3 (-87 %) |
+| multi | 45 GB | EXACT | 33.0 | 33.0 | 33.0 | 33.0 |
+| multi | 45 GB | QOM cf 0.5 | 26.0 (-21 %) | 25.0 (-24 %) | 24.7 (-25 %) | 19.4 (-41 %) |
+| multi | 45 GB | QOM cf 0.5 + 3b | 22.7 (-31 %) | 21.2 (-36 %) | 20.9 (-37 %) | 13.5 (-59 %) |
+| multi | 45 GB | QOM cf 0 | 24.2 (-27 %) | 19.1 (-42 %) | 12.9 (-61 %) | 12.9 (-61 %) |
+| multi | 45 GB | QOM cf 0 + 3b | 20.2 (-39 %) | 13.0 (-61 %) | 4.4 (-87 %) | 4.4 (-87 %) |
+| multi | 24 GB | EXACT | 175.8 | 175.8 | 175.8 | 175.8 |
+| multi | 24 GB | QOM cf 0.5 | 109.2 (-38 %) | 100.1 (-43 %) | 98.5 (-44 %) | 57.5 (-67 %) |
+| multi | 24 GB | QOM cf 0.5 + 3b | 99.5 (-43 %) | 89.1 (-49 %) | 87.2 (-50 %) | 40.6 (-77 %) |
+| multi | 24 GB | QOM cf 0 | 93.7 (-47 %) | 57.1 (-68 %) | 34.4 (-80 %) | 34.4 (-80 %) |
+| multi | 24 GB | QOM cf 0 + 3b | 81.7 (-54 %) | 40.3 (-77 %) | 13.9 (-92 %) | 13.9 (-92 %) |
+| multi | 12 GB | EXACT | 444.6 | 444.6 | 444.6 | 444.6 |
+| multi | 12 GB | QOM cf 0.5 | 275.2 (-38 %) | 253.2 (-43 %) | 249.2 (-44 %) | 139.4 (-69 %) |
+| multi | 12 GB | QOM cf 0.5 + 3b | 262.7 (-41 %) | 239.0 (-46 %) | 234.7 (-47 %) | 117.2 (-74 %) |
+| multi | 12 GB | QOM cf 0 | 233.1 (-48 %) | 138.0 (-69 %) | 79.4 (-82 %) | 79.4 (-82 %) |
+| multi | 12 GB | QOM cf 0 + 3b | 217.5 (-51 %) | 115.8 (-74 %) | 52.9 (-88 %) | 52.9 (-88 %) |
+(72 s; percentages vs EXACT under the map convention)

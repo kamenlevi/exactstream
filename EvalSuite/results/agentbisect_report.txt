@@ -1,0 +1,25 @@
+== per arm and order (three turns: write12-14)
+base  fwd: 3/3 rows scored, 2865 tokens, deviations 308 (10.75 %), blunders 21
+base  rev: 3/3 rows scored, 2731 tokens, deviations 299 (10.95 %), blunders 18
+d17   fwd: 3/3 rows scored, 2840 tokens, deviations 298 (10.49 %), blunders 9
+hc8   fwd: 3/3 rows scored, 2813 tokens, deviations 353 (12.55 %), blunders 20
+nax   fwd: 3/3 rows scored, 2957 tokens, deviations 380 (12.85 %), blunders 20
+qom   fwd: 3/3 rows scored, 3072 tokens, deviations 212 (6.90 %), blunders 4
+qom   rev: 3/3 rows scored, 2264 tokens, deviations 177 (7.82 %), blunders 0
+small fwd: 3/3 rows scored, 3072 tokens, deviations 345 (11.23 %), blunders 21
+
+== the lines (vs base forward: 21 blunders)
+BISECT qom: 4 blunders = 19 % of base: carries it
+BISECT d17: 9 blunders = 43 % of base: partial
+BISECT hc8: 20 blunders = 95 % of base: not the main cause
+BISECT nax: 20 blunders = 95 % of base: not the main cause
+BISECT small: 21 blunders = 100 % of base: not the main cause
+BISECT sharp test qom: the two orders token-identical on 0 of 3 turns; first differences write12 @4, write13 @64, write14 @4
+BISECT sharp test base: the two orders token-identical on 0 of 3 turns; first differences write12 @2, write13 @9, write14 @4
+
+== each arm's forward tokens vs base's forward (first divergence)
+  qom: write12 @2, write13 @8, write14 @2
+  d17: write12 @2, write13 @19, write14 @11
+  hc8: write12 @8, write13 @6, write14 @4
+  nax: write12 @21, write13 @6, write14 @4
+  small: write12 @8, write13 @6, write14 @4

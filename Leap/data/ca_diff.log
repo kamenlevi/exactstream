@@ -1,0 +1,25 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=17.6 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+CA diff: 12 layers resident (GGGAGGGAGGGA), 18.5 GB active, loaded in 4 s, pid 49283
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[mtplx] verify SDPA head-chunked: q_len=8 heads_per_chunk=4 chunks=6
+  ctx  1024,  8 rows (12 layers; commits landed True): A 22.36, M 24.37, D 23.77 ms (CPU build 18.21), L0 6.87, all 7.62; commit 2.31, flush 0.33, PLE stage 3.53
+    D - D-class (ms): dense_gdn 1.48, dense_qsa 1.36, dense_moe 1.05, experts 7.99, gather 0.43, hc 2.73, gdn_rec 1.07, attn 0.95, ple -2.22, head 1.57, all 16.71
+    disjoint classes sum 15.03 vs D - D-all 16.71 (additivity -1.68 ms)
+  ctx  1024, 16 rows (12 layers; commits landed True): A 36.04, M 34.91, D 34.86 ms (CPU build 29.09), L0 5.02, all 5.97; commit 2.42, flush 0.31, PLE stage 0.75
+    D - D-class (ms): dense_gdn 4.23, dense_qsa 1.63, dense_moe 0.95, experts 14.65, gather 0.73, hc 7.67, gdn_rec 1.35, attn 1.69, ple -0.43, head 0.42, all 29.14
+    disjoint classes sum 31.27 vs D - D-all 29.14 (additivity +2.12 ms)
+  ctx  1024, 32 rows (12 layers; commits landed True): A 52.16, M 49.52, D 49.14 ms (CPU build 41.75), L0 3.72, all 6.49; commit 2.84, flush 0.37, PLE stage 1.03
+    D - D-class (ms): dense_gdn 4.41, dense_qsa 0.36, dense_moe -1.17, experts 25.50, gather 0.50, hc 6.52, gdn_rec 0.34, attn 1.39, ple -2.21, head -0.12, all 42.46
+    disjoint classes sum 35.15 vs D - D-all 42.46 (additivity -7.30 ms)
+  ctx  8192,  8 rows (12 layers; commits landed True): A 23.15, M 24.41, D 24.13 ms (CPU build 18.62), L0 5.41, all 5.83; commit 2.16, flush 0.26, PLE stage 3.09
+    D - D-class (ms): dense_gdn 2.54, dense_qsa 1.10, dense_moe 0.51, experts 8.27, gather 0.39, hc 2.99, gdn_rec 0.18, attn 2.73, ple -0.32, head 2.39, all 18.51
+    disjoint classes sum 19.68 vs D - D-all 18.51 (additivity +1.18 ms)
+  ctx  8192, 16 rows (12 layers; commits landed True): A 37.91, M 37.55, D 36.63 ms (CPU build 30.32), L0 4.65, all 5.80; commit 2.27, flush 0.26, PLE stage 0.72
+    D - D-class (ms): dense_gdn 4.79, dense_qsa 0.38, dense_moe -0.58, experts 13.63, gather -0.43, hc 8.01, gdn_rec 0.86, attn 4.46, ple 0.02, head 1.57, all 32.00
+    disjoint classes sum 32.33 vs D - D-all 32.00 (additivity +0.33 ms)
+  ctx  8192, 32 rows (12 layers; commits landed True): A 53.88, M 51.41, D 51.82 ms (CPU build 44.21), L0 3.16, all 4.43; commit 2.37, flush 0.32, PLE stage 0.85
+    D - D-class (ms): dense_gdn 4.28, dense_qsa 0.53, dense_moe 0.77, experts 25.98, gather -0.46, hc 8.39, gdn_rec 1.39, attn 6.83, ple -0.68, head 1.72, all 47.06
+    disjoint classes sum 48.22 vs D - D-all 47.06 (additivity +1.15 ms)

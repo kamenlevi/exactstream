@@ -1,0 +1,24 @@
+C45 report (data/c45): 8 runs with results
+  tag          OOO  tok/s steady  cycle  check  misses  SSD ms (share)  gate svc  draft  MB/kept  miss/kept  peak GB  tokens==REF2-T
+  c45_224        F   43.0   45.2  133.2  122.4     279    60.8   (50%)      61.3   11.6     96.2       53.7     37.5  yes (0 OOO calls)
+  c45_224r       F   43.1   45.6  131.2  120.5     279    58.2   (48%)      58.8   11.4     96.0       53.7     37.4  yes (0 OOO calls)
+  c45k_224       T   51.2   55.2  111.0  102.1     279    60.6   (59%)      61.2   11.9     96.0       53.7     37.5  yes (11035 OOO calls)
+  c45l_224       T   53.5   58.4  107.9   99.2     248    56.2   (57%)      56.8   11.6     79.5       48.6     37.4  yes (11035 OOO calls)
+  c45o_224       T   49.9   53.9  112.1  102.9     279    58.6   (57%)      59.1   11.5     96.0       53.7     37.4  yes (11035 OOO calls)
+  c45p_224       T   50.8   54.7  110.8  101.1     253    54.5   (54%)      55.9   11.4     91.8       51.8     37.4  yes (11035 OOO calls)
+  c45o_240       T   52.0   56.7  117.6  105.7     249    59.6   (56%)      60.1   11.5     84.4       48.3     39.4  yes (11035 OOO calls)
+  c45o_256       T   53.5   59.3  108.1   99.6     219    53.5   (54%)      54.1   11.6     74.0       43.5     41.7  yes (11035 OOO calls)
+  c45_224      mem: MLX peak prefill max 36.8 / decode max 35.8 GB; cache at the end max 0.8 GB; lifetime peak rose in prefill 1 / decode 0 of 6 prompts (end 37.5 GB)
+  c45_224r     mem: MLX peak prefill max 36.8 / decode max 35.8 GB; cache at the end max 0.9 GB; lifetime peak rose in prefill 1 / decode 0 of 6 prompts (end 37.4 GB)
+  c45k_224     mem: MLX peak prefill max 36.9 / decode max 35.9 GB; cache at the end max 0.8 GB; lifetime peak rose in prefill 1 / decode 0 of 6 prompts (end 37.5 GB)
+  c45l_224     mem: MLX peak prefill max 36.8 / decode max 35.8 GB; cache at the end max 0.9 GB; lifetime peak rose in prefill 1 / decode 0 of 6 prompts (end 37.4 GB)
+  c45o_224     mem: MLX peak prefill max 36.8 / decode max 35.8 GB; cache at the end max 0.9 GB; lifetime peak rose in prefill 1 / decode 0 of 6 prompts (end 37.4 GB)
+  c45o_240     mem: MLX peak prefill max 38.9 / decode max 37.9 GB; cache at the end max 0.9 GB; lifetime peak rose in prefill 1 / decode 0 of 6 prompts (end 39.4 GB)
+  c45o_256     mem: MLX peak prefill max 41.0 / decode max 40.0 GB; cache at the end max 0.8 GB; lifetime peak rose in prefill 1 / decode 0 of 6 prompts (end 41.7 GB)
+  c45p_224     mem: MLX peak prefill max 36.8 / decode max 35.8 GB; cache at the end max 0.9 GB; lifetime peak rose in prefill 1 / decode 0 of 6 prompts (end 37.4 GB)
+OOO A-B-A at C 224: steady tok/s 45.4 -> 53.9 (+18.7%); whole run 43.0 -> 49.9; cycle 132.2 -> 112.1 ms; per-prompt steady ratio median +18.5% (range +16.0% .. +40.8%, 6 prompts); A2 vs A +0.9%; every token == REF2-T: True; OOO calls 11035
+K-73 stack at C 224 (K c45k vs B, both the default): every token == REF2-T: True; steady tok/s 53.9 -> 55.2 (+2.4%) (run-to-run: A2 vs A +0.9%); check + commit 102.9 -> 102.1 ms; cycle 112.1 -> 111.0 ms; draft 11.5 -> 11.9 ms; drafts identical (checks + kept per prompt == B): True; per-prompt steady ratio median +1.8% (range +0.2% .. +3.1%); exact MoE block calls 11035; ref2 att_rope 2724, idx_prep 5616, hc_write 11035 (counted at graph build)
+L per-layer pool sizes at C 224 (vs B, the same pool bytes; MoonShots' lines: PASS = SSD MB per kept token -10 % or more with steady tok/s +3 % or more, KILL = bytes above -3 %; the replay said -20.7 %): PASS (SSD MB per kept token 96.0 -> 79.5, -17.2%; misses per kept token 53.7 -> 48.6; steady tok/s 53.9 -> 58.4, +8.3% (run-to-run: A2 vs A +0.9%); whole run 49.9 -> 53.5; SSD busy 58.6 -> 56.2 ms per check; lifetime peak 37.4 -> 37.4 GB; every token == REF2-T: True)
+Prior arm at C 224 (vs B, both on OOO; PASS = misses per check -7 % or more, tokens identical, steady tok/s not lower): PASS (misses 279 -> 253, -9.3%; steady tok/s 53.9 -> 54.7, +1.5%; SSD 58.6 -> 54.5 ms)
+Sizing on the default (OOO on): C 224: 53.9 steady (49.9 whole run), 53.7 misses + 96.0 MB per kept token, lifetime peak 37.4 GB, SSD 58.6 ms of a 102.9 ms check; C 240: 56.7 steady (52.0 whole run), 48.3 misses + 84.4 MB per kept token, lifetime peak 39.4 GB, SSD 59.6 ms of a 105.7 ms check; C 256: 59.3 steady (53.5 whole run), 43.5 misses + 74.0 MB per kept token, lifetime peak 41.7 GB, SSD 53.5 ms of a 99.6 ms check
+Not run, cut short or paused: c45o_300 skipped by the NO-SWAP gate (46 GB free < 52 needed); c45o_320 skipped by the NO-SWAP gate (46 GB free < 55 needed); c45o_272 skipped by the NO-SWAP gate (46 GB free < 48 needed)

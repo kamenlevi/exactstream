@@ -1,0 +1,26 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=32.7 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.20 GB pools
+b12: hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.20 GB, active 9.68 GB
+fit12: budget b16: 48 routers
+fit12: uncertainty gate: budget only on passes whose min MTP draft prob >= 0.8
+[u_g80] after load: footprint now 11.05 GB, lifetime peak 11.35 GB, MLX peak 10.80 GB, active 9.68 GB
+[u_g80] code: prefill 326 tokens in 4.82 s
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[u_g80] code k=3 gate: budget on 17 of 38 drafted passes (45 %)
+[u_g80] code k=3: 25.0 tok/s, 3.37 tok/pass, 38 passes | per pass: verify 126.1 ms, draft 8.1 ms, head 0.3 ms, waited 451.6, reads 463.9, pf issued 0.0 used 0.0, SSD 6.4 GB/s 861 MB | peak footprint 11.35 GB | loader per pass: stalled calls 83.7 of 99.0, stall 84.8 ms, io 84.2 ms | sha 06035b51da | '```python\nimport re\nimport argparse\nfrom collections import defaultdict\nfrom typing import List, Dict, Tuple, Optional\n\n# Regex to match log lines\nLINE = re.compile(\n    r'
+[u_g80] prose: prefill 53 tokens in 2.96 s
+[u_g80] prose k=3 gate: budget on 12 of 55 drafted passes (22 %)
+[u_g80] prose k=3: 14.0 tok/s, 2.33 tok/pass, 55 passes | per pass: verify 156.4 ms, draft 9.9 ms, head 0.3 ms, waited 538.7, reads 555.2, pf issued 0.0 used 0.0, SSD 6.3 GB/s 1043 MB | peak footprint 11.35 GB | loader per pass: stalled calls 91.0 of 99.0, stall 114.5 ms, io 113.8 ms | sha 9e1625286d | 'Imagine you are doing homework at your desk, but all your reference books are stored in a library across town. Every time you need to look up a fact, you have to drive all the way to'
+[u_g80] math: prefill 82 tokens in 3.94 s
+[u_g80] math k=3 gate: budget on 24 of 39 drafted passes (62 %)
+[u_g80] math k=3: 20.4 tok/s, 3.28 tok/pass, 39 passes | per pass: verify 150.1 ms, draft 10.1 ms, head 0.4 ms, waited 565.4, reads 582.3, pf issued 0.0 used 0.0, SSD 6.8 GB/s 1092 MB | peak footprint 11.43 GB | loader per pass: stalled calls 89.0 of 99.0, stall 109.2 ms, io 108.6 ms | sha ffcd89bacc | "Here is the step-by-step solution to determine how much money Janet makes every day:\n\n**Step 1: Determine the total number of eggs laid per day.**\nJanet's ducks lay **"
+[u_g80] write: prefill 47 tokens in 2.65 s
+[u_g80] write k=3 gate: budget on 11 of 56 drafted passes (20 %)
+[u_g80] write k=3: 15.8 tok/s, 2.29 tok/pass, 56 passes | per pass: verify 136.5 ms, draft 7.9 ms, head 0.3 ms, waited 510.9, reads 522.8, pf issued 0.0 used 0.0, SSD 6.8 GB/s 979 MB | peak footprint 11.62 GB | loader per pass: stalled calls 84.7 of 99.0, stall 94.1 ms, io 93.4 ms | sha 67c2e27bc6 | '*   crafted from durable stainless steel to withstand rugged trails and rocky terrain\n*   double-wall vacuum insulation keeps drinks cold for twenty-four hours or hot for twelve\n*   features a leak-proof lid'
+[u_g80] done

@@ -1,0 +1,55 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=21.8 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 15M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.20 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: engine v3o, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.20 GB, active 9.33 GB
+[pmin12] bt_b12 31e4333196 engine /Users/kamen/Breakthrough/v3o mode fast | stock MTP head | load 3.5 s | footprint 9.671 GB, lifetime 9.671
+[mtplx] verify SDPA head-chunked: q_len=27 heads_per_chunk=1 chunks=24
+[pmin12] ifeval/3091 p_min 0.0 RESULT 192 tok, 74 passes, 3.93 rows / pass, 2.595 tok / pass | decode 12.76 s = 15.05 tok/s | first diff vs run 0: None | lifetime 11.322 GB
+[pmin12] ifeval/3091 p_min 0.3 RESULT 192 tok, 71 passes, 3.58 rows / pass, 2.704 tok / pass | decode 12.55 s = 15.30 tok/s | first diff vs run 0: 36 | lifetime 11.328 GB
+[pmin12] ifeval/3091 p_min 0.5 RESULT 192 tok, 76 passes, 3.12 rows / pass, 2.526 tok / pass | decode 11.19 s = 17.16 tok/s | first diff vs run 0: 17 | lifetime 11.331 GB
+[pmin12] ifeval/3091 p_min 0.0 RESULT 192 tok, 74 passes, 3.93 rows / pass, 2.595 tok / pass | decode 12.80 s = 15.00 tok/s | first diff vs run 0: None | lifetime 11.335 GB
+[pmin12] ifeval/1051 p_min 0.0 RESULT 93 tok, 40 passes, 4.00 rows / pass, 2.325 tok / pass | decode 5.78 s = 16.08 tok/s | first diff vs run 0: None | lifetime 11.335 GB
+[pmin12] ifeval/1051 p_min 0.3 RESULT 93 tok, 42 passes, 3.38 rows / pass, 2.214 tok / pass | decode 5.53 s = 16.81 tok/s | first diff vs run 0: 16 | lifetime 11.356 GB
+[pmin12] ifeval/1051 p_min 0.5 RESULT 69 tok, 32 passes, 2.72 rows / pass, 2.156 tok / pass | decode 4.07 s = 16.95 tok/s | first diff vs run 0: 16 | lifetime 11.356 GB
+[pmin12] ifeval/1051 p_min 0.0 RESULT 93 tok, 40 passes, 4.00 rows / pass, 2.325 tok / pass | decode 5.97 s = 15.59 tok/s | first diff vs run 0: None | lifetime 11.356 GB
+[pmin12] multi/zh15 p_min 0.0 RESULT 192 tok, 111 passes, 3.97 rows / pass, 1.730 tok / pass | decode 16.45 s = 11.67 tok/s | first diff vs run 0: None | lifetime 11.356 GB
+[pmin12] multi/zh15 p_min 0.3 RESULT 192 tok, 106 passes, 3.15 rows / pass, 1.811 tok / pass | decode 13.81 s = 13.91 tok/s | first diff vs run 0: 160 | lifetime 11.356 GB
+[pmin12] multi/zh15 p_min 0.5 RESULT 192 tok, 113 passes, 2.58 rows / pass, 1.699 tok / pass | decode 13.37 s = 14.37 tok/s | first diff vs run 0: 55 | lifetime 11.356 GB
+[pmin12] multi/zh15 p_min 0.0 RESULT 192 tok, 111 passes, 3.97 rows / pass, 1.730 tok / pass | decode 16.09 s = 11.93 tok/s | first diff vs run 0: None | lifetime 11.356 GB
+[pmin12] multi/ja18 p_min 0.0 RESULT 127 tok, 75 passes, 4.00 rows / pass, 1.693 tok / pass | decode 11.25 s = 11.29 tok/s | first diff vs run 0: None | lifetime 11.356 GB
+[pmin12] multi/ja18 p_min 0.3 RESULT 128 tok, 76 passes, 2.47 rows / pass, 1.684 tok / pass | decode 9.05 s = 14.15 tok/s | first diff vs run 0: 69 | lifetime 11.356 GB
+[pmin12] multi/ja18 p_min 0.5 RESULT 133 tok, 83 passes, 2.10 rows / pass, 1.602 tok / pass | decode 9.09 s = 14.63 tok/s | first diff vs run 0: 69 | lifetime 11.356 GB
+[pmin12] multi/ja18 p_min 0.0 RESULT 127 tok, 75 passes, 4.00 rows / pass, 1.693 tok / pass | decode 11.21 s = 11.33 tok/s | first diff vs run 0: None | lifetime 11.356 GB
+[pmin12] humaneval/HumanEval/45 p_min 0.0 RESULT 60 tok, 16 passes, 4.00 rows / pass, 3.750 tok / pass | decode 3.34 s = 17.98 tok/s | first diff vs run 0: None | lifetime 11.727 GB
+[pmin12] humaneval/HumanEval/45 p_min 0.3 RESULT 60 tok, 16 passes, 4.00 rows / pass, 3.750 tok / pass | decode 3.31 s = 18.12 tok/s | first diff vs run 0: None | lifetime 11.727 GB
+[pmin12] humaneval/HumanEval/45 p_min 0.5 RESULT 60 tok, 16 passes, 4.00 rows / pass, 3.750 tok / pass | decode 3.31 s = 18.15 tok/s | first diff vs run 0: None | lifetime 11.734 GB
+[pmin12] humaneval/HumanEval/45 p_min 0.0 RESULT 60 tok, 16 passes, 4.00 rows / pass, 3.750 tok / pass | decode 3.31 s = 18.15 tok/s | first diff vs run 0: None | lifetime 11.734 GB
+[pmin12] humaneval/HumanEval/27 p_min 0.0 RESULT 58 tok, 17 passes, 4.00 rows / pass, 3.412 tok / pass | decode 3.42 s = 16.96 tok/s | first diff vs run 0: None | lifetime 11.787 GB
+[pmin12] humaneval/HumanEval/27 p_min 0.3 RESULT 58 tok, 17 passes, 4.00 rows / pass, 3.412 tok / pass | decode 3.37 s = 17.19 tok/s | first diff vs run 0: None | lifetime 11.787 GB
+[pmin12] humaneval/HumanEval/27 p_min 0.5 RESULT 58 tok, 17 passes, 4.00 rows / pass, 3.412 tok / pass | decode 3.38 s = 17.16 tok/s | first diff vs run 0: None | lifetime 11.787 GB
+[pmin12] humaneval/HumanEval/27 p_min 0.0 RESULT 58 tok, 17 passes, 4.00 rows / pass, 3.412 tok / pass | decode 3.38 s = 17.15 tok/s | first diff vs run 0: None | lifetime 11.787 GB
+[pmin12] math500/test/prealgebra/1973.json p_min 0.0 RESULT 192 tok, 57 passes, 3.98 rows / pass, 3.368 tok / pass | decode 10.11 s = 19.00 tok/s | first diff vs run 0: None | lifetime 11.787 GB
+[pmin12] math500/test/prealgebra/1973.json p_min 0.3 RESULT 192 tok, 57 passes, 3.98 rows / pass, 3.368 tok / pass | decode 10.12 s = 18.98 tok/s | first diff vs run 0: None | lifetime 11.787 GB
+[pmin12] math500/test/prealgebra/1973.json p_min 0.5 RESULT 192 tok, 58 passes, 3.90 rows / pass, 3.310 tok / pass | decode 10.23 s = 18.77 tok/s | first diff vs run 0: None | lifetime 11.787 GB
+[pmin12] math500/test/prealgebra/1973.json p_min 0.0 RESULT 192 tok, 57 passes, 3.98 rows / pass, 3.368 tok / pass | decode 10.13 s = 18.96 tok/s | first diff vs run 0: None | lifetime 11.787 GB
+[pmin12] gsm8k/708 p_min 0.0 RESULT 192 tok, 53 passes, 4.00 rows / pass, 3.623 tok / pass | decode 11.36 s = 16.90 tok/s | first diff vs run 0: None | lifetime 11.787 GB
+[pmin12] gsm8k/708 p_min 0.3 RESULT 192 tok, 53 passes, 4.00 rows / pass, 3.623 tok / pass | decode 9.71 s = 19.76 tok/s | first diff vs run 0: None | lifetime 11.787 GB
+[pmin12] gsm8k/708 p_min 0.5 RESULT 192 tok, 53 passes, 3.92 rows / pass, 3.623 tok / pass | decode 171.62 s = 1.12 tok/s | first diff vs run 0: None | lifetime 11.787 GB
+[pmin12] gsm8k/708 p_min 0.0 RESULT 192 tok, 53 passes, 4.00 rows / pass, 3.623 tok / pass | decode 9.31 s = 20.63 tok/s | first diff vs run 0: None | lifetime 11.787 GB
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (64, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[pmin12] agent/edit10 p_min 0.0 RESULT 103 tok, 29 passes, 4.00 rows / pass, 3.552 tok / pass | decode 6.04 s = 17.04 tok/s | first diff vs run 0: None | lifetime 11.787 GB
+[pmin12] agent/edit10 p_min 0.3 RESULT 103 tok, 29 passes, 4.00 rows / pass, 3.552 tok / pass | decode 6.05 s = 17.04 tok/s | first diff vs run 0: None | lifetime 11.787 GB
+[pmin12] agent/edit10 p_min 0.5 RESULT 103 tok, 29 passes, 4.00 rows / pass, 3.552 tok / pass | decode 6.06 s = 17.00 tok/s | first diff vs run 0: None | lifetime 11.787 GB
+[pmin12] agent/edit10 p_min 0.0 RESULT 103 tok, 29 passes, 4.00 rows / pass, 3.552 tok / pass | decode 6.05 s = 17.01 tok/s | first diff vs run 0: None | lifetime 11.787 GB
+[pmin12] SUMMARY chat: p_min 0 13.09 tok/s; 0.3 14.78 (+12.9 %); 0.5 15.54 (+18.7 %) | runs equal to run 0: {0.0: 4, 0.3: 0, 0.5: 0}
+[pmin12] SUMMARY code: p_min 0 17.55 tok/s; 0.3 17.65 (+0.6 %); 0.5 17.65 (+0.5 %) | runs equal to run 0: {0.0: 2, 0.3: 2, 0.5: 2}
+[pmin12] SUMMARY math: p_min 0 18.78 tok/s; 0.3 19.36 (+3.1 %); 0.5 2.11 (-88.8 %) | runs equal to run 0: {0.0: 2, 0.3: 2, 0.5: 2}
+[pmin12] SUMMARY agent: p_min 0 17.03 tok/s; 0.3 17.04 (+0.1 %); 0.5 17.00 (-0.2 %) | runs equal to run 0: {0.0: 1, 0.3: 1, 0.5: 1}
+[pmin12] SUMMARY all: p_min 0 15.23 tok/s; 0.3 16.46 (+8.1 %); 0.5 5.13 (-66.3 %) | runs equal to run 0: {0.0: 9, 0.3: 5, 0.5: 5}
+[pmin12] done, lifetime 11.787 GB

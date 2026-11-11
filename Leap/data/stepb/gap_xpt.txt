@@ -1,0 +1,66 @@
+11-07 00:23:25 gap_xpt start (pid 85010, WAITFOR bigmoe, HAVE_LOCK: the lock was granted to a separate peer lock command; NO-SWAP 51.3 GB)
+11-07 00:23:45 NO-SWAP 50.9 GB -> C 224
+11-07 00:23:45 STEP B start (pid 85526, NO-SWAP 50.9 GB -> C 224, arms: bstackF; md5 probe 63221d8d k d27a87fe)
+11-07 00:23:45 run stepb_bstackF_224_xpt2 (swap 6750 MB)
+11-07 00:24:55 done stepb_bstackF_224_xpt2 rc=0:   step B calibration: round trip 140 us (p10-p90 119-182), dependent dispatch 2.25 us; read floor (KB: cold / warm GB/s) 16: 2 / 6, 64: 14 / 27, 256: 38 / 26214 FLAT-2 VERDICT: INVALID (FLAT <= nan ms; lines: PASS <= 30, BETWEEN 30-36, KILL > 36; 350 tok/s itself needs <= 25 at K 12: +nan ms from it); only 0 steady zero 
+11-07 00:24:55 STEP B end (rc 0)
+11-07 00:24:55 STEP B start (pid 89750, NO-SWAP 50.4 GB -> C 224, arms: bstackF; md5 probe 63221d8d k d27a87fe)
+11-07 00:24:55 run stepb_bstackF_224_xpt4 (swap 6750 MB)
+11-07 00:26:06 done stepb_bstackF_224_xpt4 rc=0:   step B calibration: round trip 142 us (p10-p90 122-176), dependent dispatch 2.14 us; read floor (KB: cold / warm GB/s) 16: 4 / 5, 64: 65536 / 65536, 256: 449  FLAT-2 VERDICT: INVALID (FLAT <= nan ms; lines: PASS <= 30, BETWEEN 30-36, KILL > 36; 350 tok/s itself needs <= 25 at K 12: +nan ms from it); only 0 steady zero 
+11-07 00:26:06 STEP B end (rc 0)
+11-07 00:26:06 S2 smoke start (C 224)
+11-07 00:26:26 S2 smoke rc=0
+11-07 00:26:26 STEP B start (pid 94143, NO-SWAP 51.1 GB -> C 224, arms: bstackF; md5 probe 63221d8d k d27a87fe)
+11-07 00:26:26 run stepb_bstackF_224_xptp (swap 6750 MB)
+11-07 00:27:26 done stepb_bstackF_224_xptp rc=0:   step B calibration: round trip 141 us (p10-p90 121-172), dependent dispatch 2.16 us; read floor (KB: cold / warm GB/s) 16: 2 / 3, 64: 65536 / 65536, 256: 213  FLAT-2 VERDICT: INVALID (FLAT <= nan ms; lines: PASS <= 30, BETWEEN 30-36, KILL > 36; 350 tok/s itself needs <= 25 at K 12: +nan ms from it); only 0 steady zero 
+11-07 00:27:26 STEP B end (rc 0)
+lock released
+11-07 00:27:26 runs done, lock released
+== stepb_bstackF_224_xpt2_flat2.json (C 224; sync 0.153 ms)
+  pass 1 (cold, discarded)                     meas :  50 checks, rows 2-2, kept 2.00; draft 7.32, check+commit 54.90 (build 49.13, wait 4.98), misses 4506; GPU busy 54 % over 9.3 s
+  measured pass 1                              meas :  50 checks, rows 2-2, kept 2.00; draft 7.06, check+commit 38.83 (build 34.68, wait 3.86), misses 540; GPU busy 39 % over 8.1 s
+  stage pass                                   stage:  50 checks, rows 2-2, kept 2.00; draft 7.12, check+commit 38.41 (build 34.19, wait 3.75), misses 139; GPU busy 42 % over 8.3 s
+  probe pass                                   probe:  50 checks, rows 2-2, kept 2.00; draft 7.11, check+commit 38.03 (build 33.74, wait 3.73), misses 65; GPU busy 42 % over 8.4 s
+  real-block pass 1 (discarded)                meas :  12 checks, rows 13-16, kept 14.17; draft 9.00, check+commit 77.31 (build 67.30, wait 6.51), misses 1564; GPU busy 39 % over 7.1 s
+      XPT check forward (16 rows): 48 layer calls wall 15.79 / CPU 15.71 ms (0.329 / 0.327 per layer); inside them the expert calls wall 3.81 / CPU 3.81 ms (48 calls: 0.079 / 0.079 per call), the rest (dense + glue) wall 11.98 / CPU 11.91; async_eval in its loop wall 38.06 / CPU 19.17 ms; engine build 56.19
+      XPT cycle: the Python thread's CPU 39.49 ms of 74.93 ms wall (draft + check + commit + loop): the floor if the GPU and every wait were free
+      XPT commit (1 forwards): layers wall 0.29 / CPU 0.29, experts wall 0.06 / CPU 0.06, async_eval wall 0.70 / CPU 0.70; every async_eval of the cycle wall 39.56 / CPU 19.50 ms
+  real-block pass 2                            meas :  12 checks, rows 13-16, kept 14.42; draft 7.89, check+commit 61.18 (build 54.40, wait 5.61), misses 321; GPU busy 40 % over 7.0 s
+      XPT check forward (16 rows): 48 layer calls wall 16.20 / CPU 16.16 ms (0.338 / 0.337 per layer); inside them the expert calls wall 3.97 / CPU 3.97 ms (48 calls: 0.083 / 0.083 per call), the rest (dense + glue) wall 12.23 / CPU 12.18; async_eval in its loop wall 37.50 / CPU 18.89 ms; engine build 54.30
+      XPT cycle: the Python thread's CPU 40.94 ms of 68.72 ms wall (draft + check + commit + loop): the floor if the GPU and every wait were free
+      XPT commit (0 forwards): layers wall 0.00 / CPU 0.00, experts wall 0.00 / CPU 0.00, async_eval wall 0.00 / CPU 0.00; every async_eval of the cycle wall 37.72 / CPU 18.96 ms
+  real-block pass 3                            meas :  12 checks, rows 12-16, kept 14.42; draft 7.88, check+commit 59.96 (build 53.43, wait 5.47), misses 244; GPU busy 39 % over 7.0 s
+      XPT check forward (16 rows): 48 layer calls wall 15.24 / CPU 15.24 ms (0.318 / 0.318 per layer); inside them the expert calls wall 3.75 / CPU 3.75 ms (48 calls: 0.078 / 0.078 per call), the rest (dense + glue) wall 11.49 / CPU 11.49; async_eval in its loop wall 37.36 / CPU 18.02 ms; engine build 52.93
+      XPT cycle: the Python thread's CPU 38.91 ms of 68.00 ms wall (draft + check + commit + loop): the floor if the GPU and every wait were free
+      XPT commit (0 forwards): layers wall 0.00 / CPU 0.00, experts wall 0.00 / CPU 0.00, async_eval wall 0.00 / CPU 0.00; every async_eval of the cycle wall 37.65 / CPU 18.02 ms
+  real-block commit pass                       stage:  12 checks, rows 12-16, kept 14.42; draft 7.63, check+commit 59.37 (build 51.92, wait 5.30), misses 47; GPU busy 36 % over 7.0 s
+      XPT check forward (16 rows): 48 layer calls wall 16.10 / CPU 16.10 ms (0.335 / 0.335 per layer); inside them the expert calls wall 3.91 / CPU 3.91 ms (48 calls: 0.081 / 0.081 per call), the rest (dense + glue) wall 12.19 / CPU 12.20; async_eval in its loop wall 34.90 / CPU 19.29 ms; engine build 51.91
+      XPT cycle: the Python thread's CPU 40.15 ms of 66.52 ms wall (draft + check + commit + loop): the floor if the GPU and every wait were free
+      XPT commit (0 forwards): layers wall 0.00 / CPU 0.00, experts wall 0.00 / CPU 0.00, async_eval wall 0.00 / CPU 0.00; every async_eval of the cycle wall 34.93 / CPU 19.29 ms
+== stepb_bstackF_224_xpt4_flat2.json (C 224; sync 0.134 ms)
+  pass 1 (cold, discarded)                     meas :  50 checks, rows 2-2, kept 2.00; draft 7.34, check+commit 55.95 (build 50.11, wait 6.03), misses 4506; GPU busy 52 % over 9.4 s
+  measured pass 1                              meas :  50 checks, rows 2-2, kept 2.00; draft 7.14, check+commit 46.49 (build 41.08, wait 5.07), misses 540; GPU busy 46 % over 8.7 s
+  stage pass                                   stage:  50 checks, rows 2-2, kept 2.00; draft 7.14, check+commit 45.71 (build 40.19, wait 4.98), misses 139; GPU busy 46 % over 8.7 s
+  probe pass                                   probe:  50 checks, rows 2-2, kept 2.00; draft 7.14, check+commit 45.50 (build 39.93, wait 5.00), misses 65; GPU busy 45 % over 8.8 s
+  real-block pass 1 (discarded)                meas :  12 checks, rows 13-16, kept 14.17; draft 9.14, check+commit 81.46 (build 70.13, wait 7.80), misses 1564; GPU busy 40 % over 7.3 s
+      XPT check forward (16 rows): 48 layer calls wall 16.12 / CPU 16.10 ms (0.336 / 0.335 per layer); inside them the expert calls wall 3.95 / CPU 3.95 ms (48 calls: 0.082 / 0.082 per call), the rest (dense + glue) wall 12.17 / CPU 12.15; async_eval in its loop wall 40.90 / CPU 19.40 ms; engine build 62.60
+      XPT cycle: the Python thread's CPU 42.53 ms of 83.08 ms wall (draft + check + commit + loop): the floor if the GPU and every wait were free
+      XPT commit (1 forwards): layers wall 0.38 / CPU 0.38, experts wall 0.07 / CPU 0.07, async_eval wall 0.83 / CPU 0.83; every async_eval of the cycle wall 42.53 / CPU 20.23 ms
+  real-block pass 2                            meas :  12 checks, rows 13-16, kept 14.42; draft 7.88, check+commit 63.04 (build 54.98, wait 6.51), misses 321; GPU busy 39 % over 7.0 s
+      XPT check forward (16 rows): 48 layer calls wall 15.66 / CPU 15.64 ms (0.326 / 0.326 per layer); inside them the expert calls wall 3.80 / CPU 3.80 ms (48 calls: 0.079 / 0.079 per call), the rest (dense + glue) wall 11.86 / CPU 11.85; async_eval in its loop wall 38.42 / CPU 17.20 ms; engine build 54.81
+      XPT cycle: the Python thread's CPU 39.86 ms of 70.51 ms wall (draft + check + commit + loop): the floor if the GPU and every wait were free
+      XPT commit (0 forwards): layers wall 0.00 / CPU 0.00, experts wall 0.00 / CPU 0.00, async_eval wall 0.00 / CPU 0.00; every async_eval of the cycle wall 38.97 / CPU 18.28 ms
+  real-block pass 3                            meas :  12 checks, rows 12-16, kept 14.42; draft 7.83, check+commit 62.05 (build 54.15, wait 6.50), misses 244; GPU busy 38 % over 7.0 s
+      XPT check forward (16 rows): 48 layer calls wall 15.50 / CPU 15.50 ms (0.323 / 0.323 per layer); inside them the expert calls wall 3.82 / CPU 3.82 ms (48 calls: 0.080 / 0.080 per call), the rest (dense + glue) wall 11.68 / CPU 11.68; async_eval in its loop wall 37.09 / CPU 17.25 ms; engine build 53.94
+      XPT cycle: the Python thread's CPU 39.72 ms of 69.99 ms wall (draft + check + commit + loop): the floor if the GPU and every wait were free
+      XPT commit (0 forwards): layers wall 0.00 / CPU 0.00, experts wall 0.00 / CPU 0.00, async_eval wall 0.00 / CPU 0.00; every async_eval of the cycle wall 37.95 / CPU 17.54 ms
+  real-block commit pass                       stage:  12 checks, rows 12-16, kept 14.42; draft 7.56, check+commit 60.40 (build 52.29, wait 6.24), misses 47; GPU busy 37 % over 6.9 s
+      XPT check forward (16 rows): 48 layer calls wall 15.53 / CPU 15.53 ms (0.324 / 0.324 per layer); inside them the expert calls wall 3.77 / CPU 3.77 ms (48 calls: 0.079 / 0.078 per call), the rest (dense + glue) wall 11.76 / CPU 11.76; async_eval in its loop wall 36.35 / CPU 17.23 ms; engine build 51.94
+      XPT cycle: the Python thread's CPU 39.37 ms of 67.79 ms wall (draft + check + commit + loop): the floor if the GPU and every wait were free
+      XPT commit (0 forwards): layers wall 0.00 / CPU 0.00, experts wall 0.00 / CPU 0.00, async_eval wall 0.00 / CPU 0.00; every async_eval of the cycle wall 36.59 / CPU 17.66 ms
+SESSION-VOCAB {'prompts': 2, 'committed': 517, 'head2s': 69, 'chk_rows': 1104, 'chk_out': 0, 'svh_extra': 3, 'svh_calls': 69, 'dsub_extra': 3}
+  C1 NAX6 (ref2 tier_nax_ooo): engagement nax6_ooo 3359 OOO calls, nax6 0 other tier calls (counted at graph build); tokens are NAX6's own reference: compare across NAX processes only
+  chat switch: MTP head d22_b5 (md5 pinned) resident, K15, cut t 0.3 with early exit; type rule runs: {'chat': 0, 'code': 1, 'math': 1, 'agent': 0} (chat -> MTP, the rest -> DFlash2)
+  footprint now 37.6 GB, lifetime peak 38.6 GB; 19 s
+SESSION-VOCAB {'prompts': 2, 'committed': 517, 'head2s': 69, 'chk_rows': 1104, 'chk_out': 0, 'svh_extra': 3, 'svh_calls': 69, 'dsub_extra': 3}
+11-07 00:27:26 gap_xpt end

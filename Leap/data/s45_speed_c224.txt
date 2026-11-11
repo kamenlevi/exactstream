@@ -1,0 +1,15 @@
+R-40 STEP 3k: full 125B via load_streamed (C = 224), loaded in 2 s, 33.6 GB active; EvalSuite's PF1 True (full scratch True): on for prefills, off for checks / commits
+  self-test: {'qmm16c 6144x2560': True, 'MLX 16-row 512x2560': True, 'experts split == fused': True, 'experts rows alone': True, 'bf16 Linear': True}
+  humaneval/HumanEval/68 [SDPA classes on] P 367: 256 tokens in 17 checks (kept 15.41), 28.0 tok/s, median cycle 371.9 ms; tokens == EvalSuite's REF2 row 256 / 256; logits rows bitwise vs AR 0 / 0; slot calls per check 48.3, SDPA splits per check 0.00
+    S45: per cycle (medians) drafter 15.3 ms + check and commit 354.4 ms; per check 610.4 misses, SSD reads 157.9 ms; prefill 10.3 s
+  math500/test/prealgebra/1640.json [SDPA classes on] P 62: 256 tokens in 48 checks (kept 5.31), 20.5 tok/s, median cycle 242.2 ms; tokens == EvalSuite's REF2 row 256 / 256; logits rows bitwise vs AR 0 / 0; slot calls per check 48.5, SDPA splits per check 0.75
+    S45: per cycle (medians) drafter 12.0 ms + check and commit 230.2 ms; per check 304.4 misses, SSD reads 84.6 ms; prefill 3.9 s
+  humaneval/HumanEval/91 [SDPA classes on] P 144: 256 tokens in 32 checks (kept 8.09), 21.5 tok/s, median cycle 265.8 ms; tokens == EvalSuite's REF2 row 256 / 256; logits rows bitwise vs AR 0 / 0; slot calls per check 48.4, SDPA splits per check 0.00
+    S45: per cycle (medians) drafter 12.2 ms + check and commit 253.8 ms; per check 435.1 misses, SSD reads 116.9 ms; prefill 5.5 s
+  math500/test/algebra/694.json [SDPA classes on] P 98: 256 tokens in 33 checks (kept 7.73), 23.3 tok/s, median cycle 316.9 ms; tokens == EvalSuite's REF2 row 256 / 256; logits rows bitwise vs AR 0 / 0; slot calls per check 48.8, SDPA splits per check 0.73
+    S45: per cycle (medians) drafter 13.0 ms + check and commit 304.3 ms; per check 480.4 misses, SSD reads 126.5 ms; prefill 4.1 s
+  math500/test/algebra/1282.json [SDPA classes on] P 50: 256 tokens in 37 checks (kept 6.89), 24.0 tok/s, median cycle 261.9 ms; tokens == EvalSuite's REF2 row 256 / 256; logits rows bitwise vs AR 0 / 0; slot calls per check 48.5, SDPA splits per check 0.65
+    S45: per cycle (medians) drafter 12.3 ms + check and commit 250.5 ms; per check 363.3 misses, SSD reads 98.9 ms; prefill 4.3 s
+  gsm8k/708 [SDPA classes on] P 53: 197 tokens in 32 checks (kept 6.16), 19.7 tok/s, median cycle 276.1 ms; tokens == EvalSuite's REF2 row 197 / 197; logits rows bitwise vs AR 0 / 0; slot calls per check 48.6, SDPA splits per check 0.75
+    S45: per cycle (medians) drafter 12.7 ms + check and commit 263.3 ms; per check 399.8 misses, SSD reads 109.4 ms; prefill 3.8 s
+S45 (REF2's exact path at C = 224, DFlash2 L1-20 drafting, 256 tokens): tok/s code 24.7 (2 prompts), math 21.9 (4); median cycle 270.9 ms; kept 8.27 per check; misses 432 and SSD reads 115.7 ms per check (means); every token == EvalSuite's REF2 row: True; footprint now 36.2 GB, lifetime peak 40.5 GB, MLX peak 40.1 GB; 99 s running (100 s wall)

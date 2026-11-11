@@ -1,0 +1,32 @@
+D1-B screen Mon 21:02
+96 mixers; up GEMM M 16 x N 10240 x K 320; hc_norm eps 1e-06
+1. replica (debug variant B2p4) == MLX's up GEMM / tail / inject, of 96 mixers: scalar up 96, scalar mixed 96, scalar inject 96, v4 up 96, v4 mixed 96, v4 inject 96
+2. chains: reads bitwise == the S4 chain (mixed, written, inject), of 96: S4g 96, B1p4 96, B2p4 96, B4p4 96, B2p1 96, B2p2 96, B2p4v 96
+3. kernels per read: S4 6, S4g 5, B2p4 3
+4. ms per 96-read chain (median of 40, shared GPU, rough): S4 10.79 [10.38-11.57], S4g 10.59 [10.27-11.48], B1p4 11.04 [10.45-11.60], B2p4 10.40 [9.91-10.91], B4p4 9.90 [9.55-10.53], B2p1 10.06 [9.76-10.48], B2p2 10.22 [9.75-10.65], B2p4v 9.85 [9.50-10.50]
+   saved vs S4 + R-82 (S4g): S4 -0.20, B1p4 -0.45, B2p4 +0.19, B4p4 +0.68, B2p1 +0.53, B2p2 +0.37, B2p4v +0.74
+D1-B verdict (PASS >= 1.9 ms saved per 96 reads vs S4 + R-82 AND bitwise; KILL < 0.8): KILL (best bitwise arm B2p4v: 0.74 ms saved vs S4g, 0.94 vs S4; shared GPU, rough)
+--- follow-up (post-hoc arms, not the verdict): Mon 21:03
+D1-B screen Mon 21:03
+96 mixers; up GEMM M 16 x N 10240 x K 320; hc_norm eps 1e-06
+1. replica (debug variant B2p4) == MLX's up GEMM / tail / inject, of 96 mixers: scalar up 96, scalar mixed 96, scalar inject 96, v4 up 96, v4 mixed 96, v4 inject 96
+2. chains: reads bitwise == the S4 chain (mixed, written, inject), of 96: S4g 96, B2p4v 96, B4p4v 96, B4p2v 96, B4p1v 96, B2p1v 96
+--- follow-up rerun (census fix): Mon 21:04
+D1-B screen Mon 21:04
+96 mixers; up GEMM M 16 x N 10240 x K 320; hc_norm eps 1e-06
+1. replica (debug variant B2p4) == MLX's up GEMM / tail / inject, of 96 mixers: scalar up 96, scalar mixed 96, scalar inject 96, v4 up 96, v4 mixed 96, v4 inject 96
+2. chains: reads bitwise == the S4 chain (mixed, written, inject), of 96: S4g 96, B2p4v 96, B4p4v 96, B4p2v 96, B4p1v 96, B2p1v 96
+3. kernels per read: S4 6, S4g 5, B2p4v 3
+4. ms per 96-read chain (median of 40, shared GPU, rough): S4 14.56 [12.54-27.27], S4g 14.17 [12.82-20.98], B2p4v 12.60 [11.48-18.76], B4p4v 12.74 [11.42-20.32], B4p2v 12.45 [11.14-15.86], B4p1v 12.54 [11.43-21.05], B2p1v 13.10 [12.17-19.62]
+   saved vs S4 + R-82 (S4g): S4 -0.39, B2p4v +1.57, B4p4v +1.43, B4p2v +1.71, B4p1v +1.63, B2p1v +1.07
+D1-B verdict (PASS >= 1.9 ms saved per 96 reads vs S4 + R-82 AND bitwise; KILL < 0.8): BETWEEN (best bitwise arm B4p2v: 1.71 ms saved vs S4g, 2.10 vs S4; shared GPU, rough)
+--- QUIET verdict run (quiet lock 21:11; all arms; Kamen's apps open: Telegram ~110 % CPU, GPU ~45 % before start): Mon 21:11
+D1-B screen Mon 21:11
+96 mixers; up GEMM M 16 x N 10240 x K 320; hc_norm eps 1e-06
+1. replica (debug variant B2p4) == MLX's up GEMM / tail / inject, of 96 mixers: scalar up 96, scalar mixed 96, scalar inject 96, v4 up 96, v4 mixed 96, v4 inject 96
+2. chains: reads bitwise == the S4 chain (mixed, written, inject), of 96: S4g 96, B1p4 96, B2p4 96, B4p4 96, B2p1 96, B2p2 96, B2p4v 96, B4p4v 96, B4p2v 96, B4p1v 96, B2p1v 96
+3. kernels per read: S4 6, S4g 5, B1p4 3
+4. ms per 96-read chain (median of 40, shared GPU, rough): S4 10.59 [10.03-11.48], S4g 10.51 [10.16-11.17], B1p4 10.85 [10.63-11.53], B2p4 10.17 [9.91-10.71], B4p4 9.91 [9.71-10.33], B2p1 10.05 [9.87-10.49], B2p2 9.99 [9.79-10.27], B2p4v 9.78 [9.58-10.41], B4p4v 9.56 [9.40-10.17], B4p2v 9.48 [9.29-9.76], B4p1v 9.66 [9.40-10.06], B2p1v 9.64 [9.21-9.97]
+   saved vs S4 + R-82 (S4g): S4 -0.08, B1p4 -0.33, B2p4 +0.34, B4p4 +0.60, B2p1 +0.46, B2p2 +0.52, B2p4v +0.73, B4p4v +0.95, B4p2v +1.03, B4p1v +0.85, B2p1v +0.87
+D1-B verdict (PASS >= 1.9 ms saved per 96 reads vs S4 + R-82 AND bitwise; KILL < 0.8): BETWEEN (best bitwise arm B4p2v: 1.03 ms saved vs S4g, 1.11 vs S4; shared GPU, rough)
+(note: the '(shared GPU, rough)' labels in the QUIET block above are the script's fixed text; that block ran under the quiet lock granted 21:11, Kamen's apps open)

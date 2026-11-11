@@ -1,0 +1,12 @@
+N7-2 NAX7 pipelined kernel A Mon 21:42 (shared lock, GPU ~50 % free); layer 20
+1. bits NAX7 == NAX6 (4 traces x S 8 / 16 / 32 x 8 passes): kernel A h 96 / 96, whole call y 96 / 96
+2. S 16: kernel A NAX6 0.569 -> NAX7 0.632 ms (-11.2 %); whole call NAX6 0.973 -> NAX7 0.991 ms (-1.8 %)
+2. S 8: kernel A NAX6 0.350 -> NAX7 0.369 ms (-5.3 %); whole call NAX6 0.612 -> NAX7 0.629 ms (-2.7 %)
+2. S 32: kernel A NAX6 0.894 -> NAX7 0.948 ms (-6.0 %); whole call NAX6 1.436 -> NAX7 1.458 ms (-1.6 %)
+N7-2 verdict (bits 96 / 96; PASS kernel A >= 20 % faster at S 16, KILL < 5 %): KILL (-11.2 %)
+N7-5 NAX7-WS kernel A (loader / op simdgroups) Mon 21:49 (shared lock, GPU ~50 % free); layer 20
+1. bits NAX7 == NAX6 (4 traces x S 8 / 16 / 32 x 8 passes): kernel A h 96 / 96, whole call y 96 / 96
+2. S 16: kernel A NAX6 0.562 -> NAX7 0.758 ms (-34.8 %); whole call NAX6 0.939 -> NAX7 1.104 ms (-17.5 %)
+2. S 8: kernel A NAX6 0.318 -> NAX7 0.454 ms (-43.0 %); whole call NAX6 0.596 -> NAX7 0.709 ms (-18.9 %)
+2. S 32: kernel A NAX6 0.889 -> NAX7 1.161 ms (-30.6 %); whole call NAX6 1.395 -> NAX7 1.709 ms (-22.6 %)
+N7-5 verdict (bits 96 / 96; PASS kernel A >= 20 % faster at S 16, KILL < 5 %): KILL (-34.8 %)

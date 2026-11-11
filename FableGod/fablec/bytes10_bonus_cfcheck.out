@@ -1,0 +1,85 @@
+code: real bonus rows 188 = A (cut inside an accepted run) 37, B (cut on the first miss) 68, C (end of a fully kept check, no draft) 83
+  cf >= 0.5: 34 gated = A 21 + B 13 + C 0
+  cf >= 0.9: 3 gated = A 2 + B 1 + C 0
+  kind A: median cf 0.551, share >= 0.5 56.8 %, >= 0.9 5.4 %, < 0.3 10.8 %
+  kind B: median cf 0.372, share >= 0.5 19.1 %, >= 0.9 1.5 %, < 0.3 32.4 %
+  1(c) at cf 0.5: 5 / 1 discordant pairs, net +4 flips on 34 gated rows = 11.8 % per gated row (sd ~7.2 points); at cf 0 every bonus row is gated: see the note
+ifeval: real bonus rows 481 = A (cut inside an accepted run) 94, B (cut on the first miss) 386, C (end of a fully kept check, no draft) 1
+  cf >= 0.5: 73 gated = A 27 + B 46 + C 0
+  cf >= 0.9: 3 gated = A 2 + B 1 + C 0
+  kind A: median cf 0.338, share >= 0.5 28.7 %, >= 0.9 2.1 %, < 0.3 44.7 %
+  kind B: median cf 0.301, share >= 0.5 11.9 %, >= 0.9 0.3 %, < 0.3 49.7 %
+  1(c) at cf 0.5: 48 / 41 discordant pairs, net +7 flips on 73 gated rows = 9.6 % per gated row (sd ~12.9 points); at cf 0 every bonus row is gated: see the note
+multi: real bonus rows 699 = A (cut inside an accepted run) 76, B (cut on the first miss) 623, C (end of a fully kept check, no draft) 0
+  cf >= 0.5: 58 gated = A 19 + B 39 + C 0
+  cf >= 0.9: 1 gated = A 1 + B 0 + C 0
+  kind A: median cf 0.353, share >= 0.5 25.0 %, >= 0.9 1.3 %, < 0.3 34.2 %
+  kind B: median cf 0.259, share >= 0.5 6.3 %, >= 0.9 0.0 %, < 0.3 75.4 %
+  1(c) at cf 0.5: 33 / 23 discordant pairs, net +10 flips on 58 gated rows = 17.2 % per gated row (sd ~12.9 points); at cf 0 every bonus row is gated: see the note
+
+part 2: all-row flips of qom_0.5_live_bonus5g vs the exact reference (s7_ref), by row kind [K map 19:38, CPU join]
+code: bonus A gated 2/21 = 9.5 %; bonus B gated 2/13 = 15.4 %; bonus A ungated 0/16 = 0.0 %; bonus B ungated 5/55 = 9.1 %; bonus C (exact) 0/83 = 0.0 %; drafted rows, cf >= 0.5 (QOM-gated) 17/3097 = 0.5 %; drafted rows, cf < 0.5 5/81 = 6.2 %; all answer rows 31/3366 = 0.9 %
+ifeval: bonus A gated 3/27 = 11.1 %; bonus B gated 9/46 = 19.6 %; bonus A ungated 7/67 = 10.4 %; bonus B ungated 43/340 = 12.6 %; bonus C (exact) 0/1 = 0.0 %; drafted rows, cf >= 0.5 (QOM-gated) 106/2432 = 4.4 %; drafted rows, cf < 0.5 51/484 = 10.5 %; all answer rows 219/3397 = 6.4 %
+multi: bonus A gated 1/19 = 5.3 %; bonus B gated 3/39 = 7.7 %; bonus A ungated 4/56 = 7.1 %; bonus B ungated 52/583 = 8.9 %; drafted rows, cf >= 0.5 (QOM-gated) 74/2271 = 3.3 %; drafted rows, cf < 0.5 43/585 = 7.4 %; all answer rows 177/3553 = 5.0 %
+
+part 3 (20:1x): the same join on LIVE rows only (each check's rows A0 .. A0 + k0: drafted-and-kept rows, then its first-miss or bonus row)
+code: live-row flips 31/3366 = 0.92 % (read-out: 16/3366, 98/3397, 68/3553)
+   kept drafted row, cf >= 0.5 (QOM-gated in both arms): 6/2918 = 0.2 %
+   bonus C (exact): 0/83 = 0.0 %
+   first-miss row (drafter wrong), cf >= 0.5: gated in both arms: 11/179 = 6.1 %
+   bonus A gated: 2/21 = 9.5 %
+   bonus B ungated: 5/55 = 9.1 %
+   kept drafted row, cf < 0.5: 3/30 = 10.0 %
+   bonus B gated: 2/13 = 15.4 %
+   first-miss row, cf < 0.5: 2/51 = 3.9 %
+   bonus A ungated: 0/16 = 0.0 %
+ifeval: live-row flips 219/3397 = 6.45 % (read-out: 16/3366, 98/3397, 68/3553)
+   kept drafted row, cf >= 0.5 (QOM-gated in both arms): 37/1802 = 2.1 %
+   first-miss row (drafter wrong), cf >= 0.5: gated in both arms: 69/630 = 11.0 %
+   first-miss row, cf < 0.5: 41/347 = 11.8 %
+   bonus A gated: 3/27 = 11.1 %
+   kept drafted row, cf < 0.5: 10/137 = 7.3 %
+   bonus B ungated: 43/340 = 12.6 %
+   bonus B gated: 9/46 = 19.6 %
+   bonus A ungated: 7/67 = 10.4 %
+   bonus C (exact): 0/1 = 0.0 %
+multi: live-row flips 177/3553 = 4.98 % (read-out: 16/3366, 98/3397, 68/3553)
+   first-miss row (drafter wrong), cf >= 0.5: gated in both arms: 50/749 = 6.7 %
+   kept drafted row, cf >= 0.5 (QOM-gated in both arms): 24/1522 = 1.6 %
+   bonus B ungated: 52/583 = 8.9 %
+   kept drafted row, cf < 0.5: 2/123 = 1.6 %
+   bonus A gated: 1/19 = 5.3 %
+   first-miss row, cf < 0.5: 41/462 = 8.9 %
+   bonus A ungated: 4/56 = 7.1 %
+   bonus B gated: 3/39 = 7.7 %
+
+part 4 (20:2x): the join against baseline.json's own argmax (the read-out's reference), live rows (A0 .. A0 + k0 per check) and all answer rows
+code: live-row flips 16/3366; all answer rows 16/3366 (read-out: 16/3366, 98/3397, 68/3553)
+   bonus A gated: 2/21 = 9.5 %
+   bonus A ungated: 0/16 = 0.0 %
+   bonus B gated: 1/13 = 7.7 %
+   bonus B ungated: 3/55 = 5.5 %
+   bonus C (exact): 0/83 = 0.0 %
+   first-miss row (drafter wrong), cf >= 0.5 (gated in both arms): 3/179 = 1.7 %
+   first-miss row, cf < 0.5 (exact): 2/51 = 3.9 %
+   kept drafted row, cf < 0.5 (exact): 0/30 = 0.0 %
+   kept drafted row, cf >= 0.5 (gated in both arms): 5/2918 = 0.2 %
+ifeval: live-row flips 98/3397; all answer rows 98/3397 (read-out: 16/3366, 98/3397, 68/3553)
+   bonus A gated: 2/27 = 7.4 %
+   bonus A ungated: 2/67 = 3.0 %
+   bonus B gated: 6/46 = 13.0 %
+   bonus B ungated: 20/340 = 5.9 %
+   bonus C (exact): 0/1 = 0.0 %
+   first-miss row (drafter wrong), cf >= 0.5 (gated in both arms): 29/630 = 4.6 %
+   first-miss row, cf < 0.5 (exact): 16/347 = 4.6 %
+   kept drafted row, cf < 0.5 (exact): 8/137 = 5.8 %
+   kept drafted row, cf >= 0.5 (gated in both arms): 15/1802 = 0.8 %
+multi: live-row flips 68/3553; all answer rows 68/3553 (read-out: 16/3366, 98/3397, 68/3553)
+   bonus A gated: 0/19 = 0.0 %
+   bonus A ungated: 1/56 = 1.8 %
+   bonus B gated: 5/39 = 12.8 %
+   bonus B ungated: 19/583 = 3.3 %
+   first-miss row (drafter wrong), cf >= 0.5 (gated in both arms): 19/749 = 2.5 %
+   first-miss row, cf < 0.5 (exact): 13/462 = 2.8 %
+   kept drafted row, cf < 0.5 (exact): 3/123 = 2.4 %
+   kept drafted row, cf >= 0.5 (gated in both arms): 8/1522 = 0.5 %

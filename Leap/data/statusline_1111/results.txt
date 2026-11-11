@@ -1,0 +1,48 @@
+# Outputs, Wed 11 Nov 2026 17:0x-17:1x EET (verbatim, trimmed to the result lines)
+== statusline_test.sh (first serve.py version: (n-1)/dt, side tag "(side)")
+1 before any request: ✓ ready
+2 t+.5s: ✓ ready
+2 t+1.0s: ⏳ thinking 0s ◑ · prompt 19 tok (14 cached)
+2 t+1.5s: ⏳ thinking 1s ◒ · prompt 19 tok (14 cached)
+2 t+3.0s: ⏳ thinking 3s ◐ · prompt 19 tok (14 cached)
+2 t+3.5s: ⚡ writing · 10 tok · thought 3.0s
+2 t+4.0s: ⚡ 54.6 tok/s · 40 tok · thought 3.0s
+2 t+7.0s: ⚡ 56.1 tok/s · 220 tok · thought 3.0s
+3 after: ✓ last: 1,502 tok · 56.3 tok/s · thought 3.0s
+4 statusline.sh 8134 -> '✓ last: 1,502 tok · 56.3 tok/s · thought 3.0s' in 975 ms      <- first run of a fresh copy, see sl_timing
+4 statusline.sh 8199 (nothing there) -> 'ExactStream: no answer on port 8199' rc 0 in 19 ms
+5 /stats: {"state": "idle", "queued": 0, "last": {"n": 1502, "prompt": 19, "tps": 56.34474302195962, "think": 3.0060234158299863, "cached": 14, "lane": "main", "t": 1794409631.717835}}
+== sl_timing.sh
+idle raw curl 1..8: 11.0-11.8 ms (connect 0.18-0.22 ms, first byte 0.42-0.49 ms, total 0.45-0.51 ms)
+idle statusline.sh 1..8: 13.1-14.1 ms '✓ ready'
+busy statusline.sh 1..10: 15.2-24.6 ms (thinking, then '⚡ 52.9 tok/s · 28 tok', '⚡ 53.7 tok/s · 52 tok')
+after statusline.sh 1..3: 15.7-24.9 ms '✓ last: 1,502 tok · 56.6 tok/s · thought 3.0s'
+fresh copy a/b/c: first run 187.8 / 164.9 / 189.0 ms, second 15.7 / 14.1 / 13.9 ms
+== statusline_test2.sh (lanes; side tag still "(side)")
+1 before any request: ✓ ready
+2 after a side call alone: ✓ last: 7 tok · 319.0 tok/s · thought 3.0s (side)
+3 t+3.0s: ⏳ thinking 3s ◑ · prompt 19 tok (14 cached)
+3 t+4.0s: ⚡ 55.0 tok/s · 40 tok · thought 3.0s
+3 t+5.0s: ⚡ 55.9 tok/s · 100 tok · thought 3.0s · 1 queued
+3 t+8.0s: ⚡ 56.3 tok/s · 280 tok · thought 3.0s · 1 queued
+3 main done: ⏳ thinking 0s ◓ · prompt 14 tok (9 cached) (side)
+4 after the queued side call too: ✓ last: 1,502 tok · 56.4 tok/s · thought 3.0s
+5 statusline.sh 8134: 18.3 / 16.0 / 14.3 ms; 8199 (closed): 13.8 ms rc 0 'ExactStream: no answer on port 8199'
+== sltui_test.sh (Claude Code 2.1.322 TUI, no prompt)
+status bar: ✓ ready
+== sltui_test2.sh (a request from outside at t+4 s; the capture loses spaces where Ink moves the cursor)
+✓ ready
+⏳ thinking 1s ◓ · prompt 16 tok (11 cached)
+⚡55.2 tok/s · 43tok · thought1.0s
+✓ last:300 tok· 56.6 tok/s · thought 1.0s
+server: done: 16 prompt tokens -> 300 tokens, whole decode 56.6 tok/s
+== statusline_test3.sh (final script + final serve.py)
+(a) /statusline status on the clone's serve.py: HTTP 404
+(a) clone's current serve.py: 'ExactStream on port 8134: restart serve.py for the live status line' rc 0, 23.3 ms
+(a) again: 'ExactStream on port 8134: restart serve.py for the live status line' rc 0, 24.9 ms
+(b) new serve.py, before any request: '✓ ready' rc 0, 15.2 ms
+(b) after a side call: '✓ last: 7 tok · 302.0 tok/s · thought 1.0s · background' rc 0, 23.1 ms
+(b) after a main answer: '✓ last: 200 tok · 56.6 tok/s · thought 1.0s' rc 0, 23.7 ms
+(b) after another side call: '✓ last: 200 tok · 56.6 tok/s · thought 1.0s' rc 0, 18.9 ms
+(c) closed port: 'ExactStream: no answer on port 8199' rc 0, 22.7 ms
+servers stopped; port 8134: 0 listeners

@@ -1,0 +1,30 @@
+fake layer: Q4 [14705 x 2560] = 20 MB, 48 layers/token
+baseline, no checks             2.60 ms/token (min 2.55)
+wait-kernel, all hits           2.84 ms/token  ->    5.1 us/layer
+mx.eval sync every layer       10.15 ms/token  ->  157.4 us/layer
+ 4 stalled layers, no IO (round trip):  358.33 ms/token -> 88871.4 us per stalled layer
+ 4 stalled layers, pread 2.77MB cold:  310.06 ms/token -> 76806.0 us per stalled layer
+12 stalled layers, pread 2.77MB cold: 2163.67 ms/token -> 180069.0 us per stalled layer
+variant 0 check 0
+checksum mismatches GPU vs CPU over 48 slots: 47
+
+fake layer: Q4 [14705 x 2560] = 20 MB, 48 layers/token
+baseline, no checks             2.69 ms/token (min 2.59)
+wait-kernel, all hits           2.86 ms/token  ->    3.6 us/layer
+mx.eval sync every layer       10.40 ms/token  ->  160.6 us/layer
+ 4 stalled layers, no IO (round trip):  787.03 ms/token -> 196042.0 us per stalled layer
+ 4 stalled layers, pread 2.77MB cold:  786.16 ms/token -> 195823.8 us per stalled layer
+12 stalled layers, pread 2.77MB cold: 2301.03 ms/token -> 191514.0 us per stalled layer
+variant 1 check 0
+checksum mismatches GPU vs CPU over 48 slots: 47
+
+fake layer: Q4 [14705 x 2560] = 20 MB, 48 layers/token
+baseline, no checks             2.70 ms/token (min 2.58)
+wait-kernel, all hits           2.86 ms/token  ->    3.2 us/layer
+mx.eval sync every layer       10.46 ms/token  ->  161.5 us/layer
+ 4 stalled layers, no IO (round trip):  285.01 ms/token -> 70537.2 us per stalled layer
+ 4 stalled layers, pread 2.77MB cold:  287.62 ms/token -> 71190.9 us per stalled layer
+12 stalled layers, pread 2.77MB cold:  852.05 ms/token -> 70765.7 us per stalled layer
+variant 2 check 0
+checksum mismatches GPU vs CPU over 48 slots: 47
+

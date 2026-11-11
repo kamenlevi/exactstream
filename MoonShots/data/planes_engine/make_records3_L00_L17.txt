@@ -1,0 +1,12 @@
+mx.quantize(bits=3) layout == w3 packing: True (scale 1 / bias -7 as expected: True)
+L00: OK convert 2.1s verify 2.1s mlx 0.5s | mismatches {'w4': 0, 's3': 0, 's3_halve': 0, 'b': 0, 'b3': 0, 'pad': 0, 'nonfinite': 0} | reference records (4 experts) equal True
+  experts: [46, 82, 187, 203, 250, 324, 360, 454, 467, 482]
+  gate: {'unpack_eq_m': True, 'b3_eq_mlx': True, 's3_eq_2s': True, 'max_rel': 0.0, 'frac_equal': 1.0, 'allclose': True}
+  up: {'unpack_eq_m': True, 'b3_eq_mlx': True, 's3_eq_2s': True, 'max_rel': 0.0, 'frac_equal': 1.0, 'allclose': True}
+  down: {'unpack_eq_m': True, 'b3_eq_mlx': True, 's3_eq_2s': True, 'max_rel': 0.0, 'frac_equal': 1.0, 'allclose': True}
+L17: OK convert 2.0s verify 2.1s mlx 0.4s | mismatches {'w4': 0, 's3': 0, 's3_halve': 0, 'b': 0, 'b3': 0, 'pad': 0, 'nonfinite': 0} | reference records (4 experts) equal True
+  experts: [183, 186, 269, 291, 312, 333, 356, 384, 409, 432]
+  gate: {'unpack_eq_m': True, 'b3_eq_mlx': True, 's3_eq_2s': True, 'max_rel': 0.0, 'frac_equal': 1.0, 'allclose': True}
+  up: {'unpack_eq_m': True, 'b3_eq_mlx': True, 's3_eq_2s': True, 'max_rel': 0.0, 'frac_equal': 1.0, 'allclose': True}
+  down: {'unpack_eq_m': True, 'b3_eq_mlx': True, 's3_eq_2s': True, 'max_rel': 0.0, 'frac_equal': 1.0, 'allclose': True}
+ALL OK

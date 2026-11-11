@@ -1,0 +1,25 @@
+
+### math: 60 windows (45 train / 15 held out); rows with a drafter cf: train 4115, test 1412; sure share test 86.0 % (the oracle); load 2 s
+baselines on the test rows: drafter cf coverage at <= 0.1 % false 28.7 %, at <= 0.5 % 43.9 %, at <= 2 % 56.4 %
+| probe | coverage at <= 0.1 % false | <= 0.5 % | <= 2 % | test rows scored sure-first (AUC-like: share of (sure, not-sure) pairs ordered right) |
+|---|---|---|---|---|
+| layer 5 state | 3.7 % | 3.7 % | 3.9 % | 69.6 % (7 s) |
+| layer 15 state | 0.4 % | 0.4 % | 3.5 % | 73.1 % (7 s) |
+| layer 25 state | 0.5 % | 0.5 % | 0.5 % | 83.1 % (7 s) |
+| layer 35 state | 1.6 % | 1.6 % | 7.4 % | 84.5 % (7 s) |
+| layer 45 state | 6.1 % | 6.1 % | 68.3 % | 94.1 % (7 s) |
+fusion (layer-35 score + cf + copy state + draft kind): coverage at <= 0.1 % false 3.5 %, <= 0.5 % 3.5 %, <= 2 % 10.7 %
+cf + copy state alone (no layer): <= 0.1 % 4.2 %, <= 0.5 % 4.2 %
+
+### ifeval: 30 windows (22 train / 8 held out); rows with a drafter cf: train 1247, test 397; sure share test 27.0 % (the oracle); load 0 s
+baselines on the test rows: drafter cf coverage at <= 0.1 % false 7.3 %, at <= 0.5 % 7.3 %, at <= 2 % 7.3 %
+| probe | coverage at <= 0.1 % false | <= 0.5 % | <= 2 % | test rows scored sure-first (AUC-like: share of (sure, not-sure) pairs ordered right) |
+|---|---|---|---|---|
+| layer 5 state | 0.5 % | 0.5 % | 0.5 % | 70.4 % (2 s) |
+| layer 15 state | 0.8 % | 0.8 % | 0.8 % | 72.8 % (2 s) |
+| layer 25 state | 3.0 % | 3.0 % | 3.0 % | 84.1 % (2 s) |
+| layer 35 state | 0.8 % | 0.8 % | 0.8 % | 83.8 % (2 s) |
+| layer 45 state | 5.8 % | 5.8 % | 5.8 % | 92.8 % (2 s) |
+fusion (layer-35 score + cf + copy state + draft kind): coverage at <= 0.1 % false 0.8 %, <= 0.5 % 0.8 %, <= 2 % 0.8 %
+cf + copy state alone (no layer): <= 0.1 % 1.5 %, <= 0.5 % 1.5 %
+nice -n 10 python3 -I selfcert_probe.py math ifeval  55.43s user 0.89s system 99% cpu 56.507 total

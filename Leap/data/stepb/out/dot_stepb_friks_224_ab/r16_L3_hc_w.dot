@@ -1,0 +1,27 @@
+digraph {
+{ rank=source; "A"; }
+{ 32046561560 [label ="Reshape", shape=rectangle]; }
+"A" -> 32046561560
+{ "B"; }
+32046561560 -> "B"
+{ rank=source; "C"; }
+{ 32159450792 [label ="ExpandDims", shape=rectangle]; }
+"C" -> 32159450792
+{ "D"; }
+32159450792 -> "D"
+{ rank=source; "E"; }
+{ 32159449272 [label ="ExpandDims", shape=rectangle]; }
+"E" -> 32159449272
+{ "F"; }
+32159449272 -> "F"
+{ 31999419160 [label ="CompiledBroadcastBroadcastMultiplyAdd", shape=rectangle]; }
+"B" -> 31999419160
+"D" -> 31999419160
+"F" -> 31999419160
+{ "G"; }
+31999419160 -> "G"
+{ 32046561304 [label ="Reshape", shape=rectangle]; }
+"G" -> 32046561304
+{ rank=sink; "H"; }
+32046561304 -> "H"
+}

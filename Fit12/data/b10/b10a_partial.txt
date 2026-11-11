@@ -1,0 +1,23 @@
+partial: layers [2, 7, 12, 18, 24, 30, 36, 41, 46] (1576 s)
+judged on B, all tokens | gate | up | down | mean (vs MSB-3 for errors)
+[all] MSB-3 (3.5 b) | 0.0173 | 0.0221 | 0.0261 | 1.000x
+[all] MSB-3 / E4 (sanity ~3) | 2.9791 | 2.9621 | 2.9566 | 2.966
+[all] TRL-2 base (2.06 b) | 0.0424 | 0.0548 | 0.0665 | 2.492x
+[all] TRL-2 base fit on ~8K tokens only | 0.0542 | 0.0700 | 0.0730 | 3.030x
+[all] base + residual k=1: error / E4 (kill > 0.2) | 2.4605 | 2.4742 | 2.3662 | 2.434
+[all] base + residual k=2: error / E4 (kill > 0.2) | 0.6723 | 0.6775 | 0.6352 | 0.662
+[all] TRL-3 down (3.07 b) | nan | nan | 0.0179 | 0.685x
+[all] TRL-2 gate / up + TRL-3 down (2.40 b) | mean vs MSB-3 1.87x
+judged on B, routed tokens | gate | up | down | mean (vs MSB-3 for errors)
+[routed] MSB-3 (3.5 b) | 0.0140 | 0.0195 | 0.0249 | 1.000x
+[routed] MSB-3 / E4 (sanity ~3) | 2.9888 | 2.9723 | 2.9544 | 2.972
+[routed] TRL-2 base (2.06 b) | 0.0350 | 0.0485 | 0.0693 | 2.588x
+[routed] TRL-2 base fit on ~8K tokens only | 0.0445 | 0.0619 | 0.0753 | 3.125x
+[routed] base + residual k=1: error / E4 (kill > 0.2) | 2.4451 | 2.4566 | 2.5176 | 2.473
+[routed] base + residual k=2: error / E4 (kill > 0.2) | 0.6649 | 0.6737 | 0.6768 | 0.672
+[routed] TRL-3 down (3.07 b) | nan | nan | 0.0186 | 0.749x
+[routed] TRL-2 gate / up + TRL-3 down (2.40 b) | mean vs MSB-3 1.91x
+routed judge rows per expert: mean 75, min 0; experts with < 8 (no routed test): 6 of 36
+encode TRL-2 base: 3.33 s per matrix (median 3.33; B3_THREADS=4, quiet mode: heat pauses can land inside one); per expert (3 matrices) 10.0 s
+encode residual k=1: 2.75 s per matrix (median 2.77; B3_THREADS=4, quiet mode: heat pauses can land inside one); per expert (3 matrices) 8.3 s
+encode residual k=2: 3.33 s per matrix (median 3.34; B3_THREADS=4, quiet mode: heat pauses can land inside one); per expert (3 matrices) 10.0 s

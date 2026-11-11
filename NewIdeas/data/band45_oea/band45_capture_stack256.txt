@@ -1,0 +1,30 @@
+DAY9 Q1 / Q2 bytes on Breakthrough's capture (/Users/kamen/FableGod/decision_map/out/moonshots): code 12 windows / 391 checks / 3313 kept, ifeval 12 windows / 1373 checks / 3271 kept, multi 12 windows / 1845 checks / 3455 kept
+  2016 replays, 142 s
+  code verified rows: 3999, drafter cf >= 0.999 49.3 %, 0.99-0.999 17.5 %, 0.9-0.99 13.5 %, < 0.9 17.9 %, no draft 1.9 %; oracle p1 >= 0.99 84.7 %
+  ifeval verified rows: 5112, drafter cf >= 0.999 9.8 %, 0.99-0.999 11.3 %, 0.9-0.99 19.5 %, < 0.9 59.3 %, no draft 0.0 %; oracle p1 >= 0.99 31.8 %
+  multi verified rows: 5485, drafter cf >= 0.999 9.0 %, 0.99-0.999 8.6 %, 0.9-0.99 17.0 %, < 0.9 65.5 %, no draft 0.0 %; oracle p1 >= 0.99 43.1 %
+
+  rule               | domain | SSD reads per check (base + LSB) | MB per kept token | expert union GB per check | implied steady tok/s: C50 code prompts HE68 / HE91 (SSD only), six-prompt median (SSD / +GPU)
+  EXACT              | code   |  260.5 (142.2 + 118.2)   +0.0 % |   47.0   +0.0 % |  6.04   +0.0 % | 84.7 / 62.1, median 63.6 / 63.6
+  EXACT              | ifeval |   51.0 ( 25.1 +  25.9)   +0.0 % |   31.1   +0.0 % |  2.74   +0.0 % | 
+  EXACT              | multi  |   37.4 ( 20.6 +  16.8)   +0.0 % |   30.7   +0.0 % |  2.14   +0.0 % | 
+  Q1 0.9             | code   |  167.8 ( 49.6 + 118.2)  -35.6 % |   23.4  -50.3 % |  2.96  -50.9 % | 125.4 / 78.7, median 73.9 / 85.6
+  Q1 0.9             | ifeval |   44.2 ( 18.3 +  25.9)  -13.3 % |   25.0  -19.7 % |  2.12  -22.5 % | 
+  Q1 0.9             | multi  |   33.1 ( 16.2 +  16.8)  -11.7 % |   25.7  -16.4 % |  1.75  -17.9 % | 
+  Q1 0.9 3b          | code   |   80.8 ( 49.6 +  31.2)  -69.0 % |   15.5  -67.1 % |  2.61  -56.7 % | 149.5 / 86.4, median 77.4 / 92.0
+  Q1 0.9 3b          | ifeval |   36.4 ( 18.3 +  18.1)  -28.5 % |   22.5  -27.8 % |  2.06  -24.9 % | 
+  Q1 0.9 3b          | multi  |   29.1 ( 16.2 +  12.9)  -22.2 % |   24.0  -21.7 % |  1.71  -19.8 % | 
+  Q1 0.5             | code   |  149.1 ( 30.9 + 118.2)  -42.7 % |   18.6  -60.4 % |  2.25  -62.7 % | 138.9 / 83.2, median 66.1 / 66.1
+  Q1 0.5             | ifeval |   38.3 ( 12.4 +  25.9)  -24.8 % |   19.7  -36.9 % |  1.43  -47.6 % | 
+  Q1 0.5             | multi  |   28.5 ( 11.7 +  16.8)  -23.7 % |   20.4  -33.4 % |  1.27  -40.5 % | 
+  Q1 0               | code   |  142.0 ( 23.8 + 118.2)  -45.5 % |   16.8  -64.3 % |  1.95  -67.8 % | 144.9 / 85.0, median 66.1 / 66.1
+  Q1 0               | ifeval |   30.9 (  5.0 +  25.9)  -39.3 % |   12.9  -58.5 % |  0.78  -71.4 % | 
+  Q1 0               | multi  |   20.8 (  4.0 +  16.8)  -44.3 % |   11.5  -62.4 % |  0.59  -72.2 % | 
+  Q1 0.5 3b          | code   |   44.1 ( 30.9 +  13.2)  -83.1 % |    9.1  -80.7 % |  1.82  -69.9 % | 177.0 / 93.9, median 66.1 / 66.1
+  Q1 0.5 3b          | ifeval |   23.2 ( 12.4 +  10.7)  -54.6 % |   14.8  -52.6 % |  1.29  -52.8 % | 
+  Q1 0.5 3b          | multi  |   20.0 ( 11.7 +   8.3)  -46.6 % |   16.9  -44.9 % |  1.18  -44.6 % | 
+  Q1 0 3b            | code   |   28.9 ( 23.8 +   5.1)  -88.9 % |    6.5  -86.1 % |  1.48  -75.4 % | 191.0 / 97.2, median 66.1 / 66.1
+  Q1 0 3b            | ifeval |    5.0 (  5.0 +   0.0)  -90.1 % |    4.6  -85.3 % |  0.58  -78.9 % | 
+  Q1 0 3b            | multi  |    4.0 (  4.0 +   0.0)  -89.3 % |    4.6  -85.0 % |  0.44  -79.5 % | 
+  (code prompts take the capture's code ratios, math prompts cap45's ratios for that rule (1.0 if none); +GPU = the union ratio x 5.30 GB (cap45's EXACT union per check) at 174 GB/s)
+  total 142 s

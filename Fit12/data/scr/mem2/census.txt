@@ -1,0 +1,70 @@
+bt_b12 from /Users/kamen/Fit12/btc/bt_b12.py
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=27.7 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.20 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: engine v3l, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.20 GB, active 9.33 GB
+[census] engine /Users/kamen/Fit12/v3p, PFR 0 (cap 16384), s_moe 4096 when off, C_m 51 C_l 20, pools 6.20 GB | after load: active 9.33 GB, footprint now 9.67, lifetime peak 9.67 GB
+[mem2] after load: MLX active 9.332 GB | trunk pools 6.198 GB | parameters 8.371 GB | rest -5.237 GB | footprint 9.671 GB
+[mem2]     1.755 GB  language_model.model.layers.N.mlp.switch_mlp.gate_proj
+[mem2]     1.755 GB  language_model.model.layers.N.mlp.switch_mlp.up_proj
+[mem2]     1.755 GB  language_model.model.layers.N.mlp.switch_mlp.down_proj
+[mem2]     0.472 GB  language_model.model.layers.N.linear_attn.in_proj_qkv.weight
+[mem2]     0.318 GB  language_model.lm_head.weight
+[mem2]     0.283 GB  language_model.model.layers.N.linear_attn.in_proj_z.weight
+[mem2]     0.283 GB  language_model.model.layers.N.linear_attn.out_proj.weight
+[mem2]     0.189 GB  language_model.model.layers.N.self_attn.q_proj.weight
+[mem2]     0.157 GB  language_model.model.layers.N.attn_hyper_connection.input_mix_weight_down.weight
+[mem2]     0.157 GB  language_model.model.layers.N.attn_hyper_connection.input_mix_weight_up.weight
+[mem2]     0.157 GB  language_model.model.layers.N.mlp_hyper_connection.input_mix_weight_down.weight
+[mem2]     0.157 GB  language_model.model.layers.N.mlp_hyper_connection.input_mix_weight_up.weight
+[mem2]     0.094 GB  language_model.model.layers.N.self_attn.o_proj.weight
+[mem2]     0.066 GB  language_model.mtp.layers.N.mlp.switch_mlp.gate_proj
+[mem2]     0.066 GB  language_model.mtp.layers.N.mlp.switch_mlp.up_proj
+[mem2]     0.066 GB  language_model.mtp.layers.N.mlp.switch_mlp.down_proj
+[mem2]     0.063 GB  language_model.model.layers.N.mlp.gate.weight
+[mem2]     0.044 GB  language_model.model.layers.N.mlp.shared_expert.gate_proj
+[mem2]     0.044 GB  language_model.model.layers.N.mlp.shared_expert.down_proj
+[mem2]     0.044 GB  language_model.model.layers.N.mlp.shared_expert.up_proj
+[mem2]     0.029 GB  language_model.model.layers.N.linear_attn.in_proj_qkv.scales
+[mem2]     0.029 GB  language_model.model.layers.N.linear_attn.in_proj_qkv.biases
+[mem2]     0.026 GB  language_model.model.layers.N.ple.key_proj.weight
+[mem2]     0.021 GB  language_model.model.layers.N.self_attn.indexer.index_qk_proj
+[mem2]     0.020 GB  language_model.lm_head.scales
+[mem2]   module-held arrays outside the parameters: 0.000 GB (rest after them 0.961 GB)
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (64, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (66, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[mem2] after a p2k prefill + 64-token decode: MLX active 9.642 GB | trunk pools 6.198 GB | parameters 8.371 GB | rest -4.927 GB | footprint 10.110 GB
+[mem2]     1.755 GB  language_model.model.layers.N.mlp.switch_mlp.gate_proj
+[mem2]     1.755 GB  language_model.model.layers.N.mlp.switch_mlp.up_proj
+[mem2]     1.755 GB  language_model.model.layers.N.mlp.switch_mlp.down_proj
+[mem2]     0.472 GB  language_model.model.layers.N.linear_attn.in_proj_qkv.weight
+[mem2]     0.318 GB  language_model.lm_head.weight
+[mem2]     0.283 GB  language_model.model.layers.N.linear_attn.in_proj_z.weight
+[mem2]     0.283 GB  language_model.model.layers.N.linear_attn.out_proj.weight
+[mem2]     0.189 GB  language_model.model.layers.N.self_attn.q_proj.weight
+[mem2]     0.157 GB  language_model.model.layers.N.attn_hyper_connection.input_mix_weight_down.weight
+[mem2]     0.157 GB  language_model.model.layers.N.attn_hyper_connection.input_mix_weight_up.weight
+[mem2]     0.157 GB  language_model.model.layers.N.mlp_hyper_connection.input_mix_weight_down.weight
+[mem2]     0.157 GB  language_model.model.layers.N.mlp_hyper_connection.input_mix_weight_up.weight
+[mem2]     0.094 GB  language_model.model.layers.N.self_attn.o_proj.weight
+[mem2]     0.066 GB  language_model.mtp.layers.N.mlp.switch_mlp.gate_proj
+[mem2]     0.066 GB  language_model.mtp.layers.N.mlp.switch_mlp.up_proj
+[mem2]     0.066 GB  language_model.mtp.layers.N.mlp.switch_mlp.down_proj
+[mem2]     0.063 GB  language_model.model.layers.N.mlp.gate.weight
+[mem2]     0.044 GB  language_model.model.layers.N.mlp.shared_expert.gate_proj
+[mem2]     0.044 GB  language_model.model.layers.N.mlp.shared_expert.down_proj
+[mem2]     0.044 GB  language_model.model.layers.N.mlp.shared_expert.up_proj
+[mem2]     0.029 GB  language_model.model.layers.N.linear_attn.in_proj_qkv.scales
+[mem2]     0.029 GB  language_model.model.layers.N.linear_attn.in_proj_qkv.biases
+[mem2]     0.026 GB  language_model.model.layers.N.ple.key_proj.weight
+[mem2]     0.021 GB  language_model.model.layers.N.self_attn.indexer.index_qk_proj
+[mem2]     0.020 GB  language_model.lm_head.scales
+[mem2]   module-held arrays outside the parameters: 0.000 GB (rest after them 1.271 GB)
+[mem2] done

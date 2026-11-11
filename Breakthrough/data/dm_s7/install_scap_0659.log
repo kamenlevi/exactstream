@@ -1,0 +1,17 @@
+scap: patched copies written
+scap: import + clear() OK
+<             if CAPR.get("x"):                             # sketch-on-miss (11-02): the routed experts' inpu
+>             if CAPR.get("x") or CAPR.get("s"):            # sketch-on-miss (11-02): the routed experts' inpu
+<                 CAPR["X"].setdefault(li, []).append(x.reshape(-1, x.shape[-1]).astype(mx.float16))
+>                 if CAPR.get("x"): CAPR["X"].setdefault(li, []).append(x.reshape(-1, x.shape[-1]).astype(mx.f
+<     ACTIVE.clear(); PREV.clear(); PERT.clear(); CUR["k"] = None; CUR["rm"] = None; CUR["skip"] = None; CAPR[
+>     ACTIVE.clear(); PREV.clear(); PERT.clear(); CUR["k"] = None; CUR["rm"] = None; CUR["skip"] = None; CAPR[
+>             if CAPR.get("s"):                               # <OUT>/scores/<window>.npz: every row's top-10 
+>                 S = np.stack([np.array(mx.concatenate(CAPR["W"][L])) for L in range(48)], axis=1)[:len(ids) 
+>                 os.makedirs(os.path.join(OUT, "scores"), exist_ok=True)
+>                 np.savez(os.path.join(OUT, "scores", nm), scores=S.astype(np.float16), ids=np.stack(R, axis=
+>                 extra += f"; scores {S.shape}"
+<     if n not in ("baseline", "gate", "capture", "xcapture") and not n.startswith("ctx"): ablation(n)
+>     if n not in ("baseline", "gate", "capture", "xcapture", "scapture") and not n.startswith("ctx"): ablatio
+>         elif name == "scapture": C.measure(model, windows, "scapture", lambda: C.CAPR.update(on=True, s=True
+scap: installed

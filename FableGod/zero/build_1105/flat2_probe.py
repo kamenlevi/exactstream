@@ -1,0 +1,317 @@
+"""FLAT-2 hooks for the live loop (zero session, Thu 5 Nov 2026). The harness is BigMoE's scripts/r57_screen.py at its
+current HEAD, run unchanged except for two cycle stamps and four one-line calls into this module (flat2_patch.py
+inserts them):
+  after_prefill  once per run(), before the decode clock: restore the pools the pass before ended with
+  stash          before the draft block is cut: keep the whole block and its gate masks (probe checks only)
+  before_commit  the probe (probe checks only), then the commit's start time
+  after_commit   wait for the commit replay and log its ms (stage and probe passes only)
+The three per-check calls sit behind `if F2ON[0]:`, off in the measured passes: those run the engine's loop as it is.
+The probe is Leap's C0 probe (~/Leap/scripts/c0_timeline.py, Mon 2 Nov) ported to today's loop: the check is rolled back
+(mtplx rollback_after_verify) and re-run warm, then synced piece by piece, then at more rows of the same draft block (the
+row sweep: a cold pass, then two warm), and last once more as it was, whose logits must equal the live check's bitwise.
+New against C0: every re-run carries the FAST gate (FG) exactly as the loop sets it, and a sweep's masks are cut the way
+the loop cuts a draft block (the rule is copied from r57_screen.py; flat2_patch.py refuses a HEAD where it changed).
+Everything the engine owns comes through `ns` (the harness's globals), so dryrun_cpu.py can drive this file with a stub."""
+import os
+import time
+
+import numpy as np
+
+SWEEP = tuple(int(x) for x in os.environ.get("FLAT2_SWEEP", "2,4,8,12,16").split(",") if x)
+
+
+def sync_ms(mx, clock=time.perf_counter, n=300):
+    """one eval round trip in ms (C0's calibration): taken off every synced record"""
+    a = mx.array([1.0]); mx.eval(a)
+    ts = []
+    for _ in range(n):
+        t0 = clock(); b = a + 1; mx.eval(b); ts.append(clock() - t0)
+    return 1e3 * float(np.median(ts))
+
+
+class Hooks:
+    def __init__(self, ns, clock=time.perf_counter):
+        self.ns, self.clock = ns, clock
+        self.mode, self.at = "meas", set()
+        self.pool_prev = None                            # per layer (base ids, sidecar ids) resident at the last pass's end
+        self.full = None                                 # the uncut draft block of a probe check
+        self.t_commit0 = None
+        self.SEG = {"on": False, "rec": [], "L": None}
+        self.rec = self._blank()
+
+    @staticmethod
+    def _blank():
+        return dict(commit={}, probes=[], prewarm=None, errors=[])
+
+    def new_pass(self, mode, at=()):
+        assert mode in ("meas", "stage", "probe"), mode
+        self.mode, self.at, self.full, self.t_commit0, self.rec = mode, set(at), None, None, self._blank()
+
+    def take(self):
+        r, self.rec = self.rec, self._blank()
+        return r
+
+    # ------------------------------------------------------------ pools: all-resident passes (FAR 4b's oracle form)
+    def pool_snapshot(self):
+        """the experts resident now, per layer: base pool and LSB sidecar (ext.lookup, as the harness's S10B dump)"""
+        ns = self.ns
+        ext, E = ns["BS"].ext, list(range(int(ns.get("N_EXPERTS", 512))))
+        snap = []
+        for sw in ns["SW_"]:
+            bm = sw._bm
+            if bm["full"]:
+                snap.append((None, None))
+                continue
+            b = np.nonzero(np.asarray(ext.lookup(bm["L"], E)) >= 0)[0]
+            s, side = None, (bm.get("tier") or {}).get("side")
+            if side is not None:
+                try:
+                    s = np.nonzero(np.asarray(ext.lookup(side, E)) >= 0)[0]
+                except Exception as e:                   # the base pools are what the gated rows need
+                    self.rec["errors"].append(f"sidecar lookup: {e!r}")
+            snap.append((b, s))
+        self.pool_prev = snap
+        return (sum(len(b) for b, _ in snap if b is not None), sum(len(s) for _, s in snap if s is not None))
+
+    def after_prefill(self, L):
+        """The prefill adopts the prompt's experts into the pools (stream.py's staged path), so a repeated pass would
+        start as cold as the first. Put back what the pass before ended with: ext.ensure per pool, the harness's own A6
+        warm call, capped at the pool's size. Outside the decode clock; its reads are logged."""
+        if self.pool_prev is None or L.get("mtp"):
+            return
+        ns = self.ns
+        mx, BG, stats = ns["mx"], ns["BG"], ns["stats"]
+        t0, s0, n_ids = self.clock(), stats(), 0
+        spare = int(os.environ.get("BIGMOE_SPARE", "0"))
+        for sw, (base, side) in zip(ns["SW_"], self.pool_prev):
+            bm = sw._bm
+            if bm["full"]:
+                continue
+            t4 = bm.get("tier") or {}
+            for L_, ids_, C_ in ((bm["L"], base, bm["C"]), (t4.get("side"), side, t4.get("C_l", 0))):
+                if L_ is None or ids_ is None or C_ <= 0 or not len(ids_):
+                    continue
+                k_ = C_ - min(spare, C_ // 4)            # the ext's C_main (ensure aborts past it)
+                BG.ext.ensure(L_, mx.array(np.asarray(ids_[-k_:], dtype=np.int32)))
+                n_ids += min(len(ids_), k_)
+        d = stats() - s0
+        self.rec["prewarm"] = dict(ms=1e3 * (self.clock() - t0), ids=int(n_ids), miss=float(d[0]), io_ms=1e3 * float(d[1]))
+
+    # ------------------------------------------------------------ per-check hooks (behind F2ON)
+    def stash(self, L):
+        if self.mode != "probe" or (len(L["kept"]) + 1) not in self.at:
+            self.full = None
+            return
+        fz = L.get("fz")
+        gated = fz is not None and (fz["thr"] is not None or fz["copy"])
+        self.full = dict(dr=list(L["dr"]), fk=L.get("fk_"), sq=L.get("sq_"), cg=list(L["cg_"]) if gated else None,
+                         c16=L.get("c16"), R_=L.get("R_", 16))
+
+    def before_commit(self, L):
+        n = len(L["kept"]) + 1                           # this check, 1-based
+        if self.mode == "probe" and n in self.at and not L.get("mtp"):
+            self.rec["probes"].append(self._probe(L, n))
+        self.t_commit0 = self.clock()
+
+    def after_commit(self, L):
+        self.ns["mx"].eval(self.ns["states"](L["cache"]))
+        if self.t_commit0 is not None:
+            self.rec["commit"][len(L["kept"]) + 1] = 1e3 * (self.clock() - self.t_commit0)
+
+    # ------------------------------------------------------------ the gate of a sweep's rows
+    def masks_for(self, w, fz):
+        """The first w rows of the stashed block as the loop would check them: r57_screen.py's cut of a draft block
+        (the lines after `if maxd:`), verbatim but for the names. Returns (drafts, (keep mask, sure rows, row cf))."""
+        f, ns = self.full, self.ns
+        dr = f["dr"][:w - 1]
+        fk = sq = qcf = None
+        if f["fk"] is not None:
+            fk = f["fk"][:len(dr) + 1].copy(); fk[len(dr)] = True
+        if f["sq"] is not None:
+            sq = f["sq"][:len(dr) + 1].copy()
+            if ns.get("D17") and fz.get("qom"):
+                if len(dr) == f["R_"] - 1:
+                    sq[len(dr)] = f["c16"] is not None and f["c16"] >= fz["thr"]
+            else:
+                sq[len(dr)] = False
+            if ns.get("QSPLIT") is not None:
+                qcf = np.array((list(f["cg"]) + [f["c16"] if f["c16"] is not None else 1.0])[:len(dr) + 1], dtype=np.float32)
+            if not sq.any() and not ns.get("U3FORCE"):
+                sq = None
+        return dr, (fk, sq, qcf)
+
+    # ------------------------------------------------------------ the synced pass's wrappers (C0's seg_install)
+    def _seg_install(self):
+        ns, SEG, clock = self.ns, self.SEG, self.clock
+        mx, Q, lay = ns["mx"], ns["Q"], ns["lay"]
+        LIDX = {id(l): i for i, l in enumerate(lay)}
+        HCK = {}
+        for l in lay:
+            HCK[id(l.attn_hyper_connection)] = "hc_a"
+            HCK[id(l.mlp_hyper_connection)] = "hc_m"
+
+        def arrs(o):
+            if isinstance(o, mx.array):
+                return [o]
+            if isinstance(o, (list, tuple)):
+                return [a for x in o for a in arrs(x)]
+            return []
+
+        def rec(kind, t0, t1, t2):
+            SEG["rec"].append((kind, SEG["L"], 1e3 * (t1 - t0), 1e3 * (t2 - t1)))
+
+        def mseg(kind, fn):                              # a method: build, then eval its outputs
+            def w(self_, *a, **kw):
+                if not SEG["on"]:
+                    return fn(self_, *a, **kw)
+                t0 = clock(); out = fn(self_, *a, **kw); t1 = clock()
+                mx.eval(arrs(out))
+                rec(kind(self_) if callable(kind) else kind, t0, t1, clock())
+                return out
+            return w
+
+        def fseg(kind, fn):                              # a module function
+            def w(*a, **kw):
+                if not SEG["on"]:
+                    return fn(*a, **kw)
+                t0 = clock(); out = fn(*a, **kw); t1 = clock()
+                mx.eval(arrs(out))
+                rec(kind, t0, t1, clock())
+                return out
+            return w
+
+        def lseg(fn):                                    # the whole layer (its pieces nest inside)
+            def w(self_, *a, **kw):
+                if not SEG["on"]:
+                    return fn(self_, *a, **kw)
+                SEG["L"] = LIDX.get(id(self_))
+                t0 = clock(); out = fn(self_, *a, **kw); t1 = clock()
+                mx.eval(arrs(out))
+                rec("layer", t0, t1, clock())
+                SEG["L"] = None
+                return out
+            return w
+
+        def xseg(fn):                                    # the experts call: its inputs (router + shared) first
+            def w(self_, x, indices, *a, **kw):
+                if not SEG["on"]:
+                    return fn(self_, x, indices, *a, **kw)
+                t0 = clock()
+                t_ = (getattr(self_, "_bm", None) or {}).get("tier") or {}
+                mx.eval([x, indices] + [v for k_, v in t_.items() if k_ in ("scores", "shared") and isinstance(v, mx.array)])
+                t1 = clock()
+                rec("moe_pre", t0, t0, t1)
+                out = fn(self_, x, indices, *a, **kw)
+                t2 = clock()
+                mx.eval(arrs(out))
+                rec("experts", t1, t2, clock())
+                return out
+            return w
+
+        saved = []
+
+        def put(obj, name, new):                         # own = the attribute sat on obj itself (else delete on restore)
+            saved.append((obj, name, getattr(obj, name), name in vars(obj)))
+            setattr(obj, name, new)
+
+        put(Q.DecoderLayer, "__call__", lseg(Q.DecoderLayer.__call__))
+        for T_ in {type(l.attn_hyper_connection) for l in lay}:
+            put(T_, "__call__", mseg(lambda s_: HCK.get(id(s_), "hc_f"), T_.__call__))
+        for T_ in {type(l.linear_attn) for l in lay if l.is_linear}:
+            put(T_, "__call__", mseg("gdn", T_.__call__))
+        for T_ in {type(l.self_attn) for l in lay if not l.is_linear}:
+            put(T_, "__call__", mseg("att", T_.__call__))
+        for T_ in {type(l.mlp) for l in lay}:
+            put(T_, "__call__", mseg("moe", T_.__call__))
+        for T_ in {type(l.mlp.switch_mlp) for l in lay}:
+            put(T_, "__call__", xseg(T_.__call__))
+        for T_ in {type(l.ple) for l in lay if "ple" in l}:
+            put(T_, "__call__", mseg("ple", T_.__call__))
+        put(Q, "_hyper_residual_write", fseg("hc_w", Q._hyper_residual_write))
+        return saved
+
+    @staticmethod
+    def _seg_remove(saved):
+        for obj, name, old, own in reversed(saved):
+            if own:
+                setattr(obj, name, old)
+            else:
+                delattr(obj, name)
+
+    # ------------------------------------------------------------ the probe
+    def _probe(self, L, n):
+        ns, clock, SEG = self.ns, self.clock, self.SEG
+        mx, CS, stats, states = ns["mx"], ns["CS"], ns["stats"], ns["states"]
+        model, ref2, FG, TAP = ns["model"], ns["ref2"], ns["FG"], ns["TAP"]
+        cache, snap, lg_ref, fz = L["cache"], L["snap"], L["lg"], L.get("fz")
+        real, rmask = [L["tok"]] + list(L["dr"]), (L.get("fk_"), L.get("sq_"), L.get("qcf_"))
+        tA, sA = clock(), stats()
+        last = [len(real)]
+
+        def eq(a, b):
+            return a.shape == b.shape and a.dtype == b.dtype and bool(mx.array_equal(a, b, equal_nan=True).item())
+
+        def fwd(rows, masks, synced=False):
+            fk, sq, qcf = masks
+            CS.rollback_after_verify(cache, snap, last[0])
+            mx.eval(states(cache))                       # the restored GDN states' copies, out of the timed window
+            s0, saved = stats(), None
+            if synced:
+                saved = self._seg_install(); SEG["rec"] = []; SEG["on"] = True
+            else:                                        # as live: the drafter's taps ride on the check
+                ns["tap_reset"](); TAP["on"] = True
+            FG.update(on=fk is not None or sq is not None, keep=mx.array(fk) if fk is not None else None,
+                      sure=mx.array(sq) if sq is not None else None, sure_np=sq, t3=bool(fz and fz.get("t3")),
+                      cold=bool(fz and fz.get("cold")) and sq is not None, qom=bool(fz and fz.get("qom")) and sq is not None,
+                      qcf=mx.array(qcf) if qcf is not None else None)
+            try:
+                t0 = clock()
+                with ref2.verify_scope(model):
+                    lg_ = model(mx.array([rows]), cache=cache)
+                t1 = clock()
+                TAP["on"] = False
+                am = mx.argmax(lg_[0], axis=-1)
+                if synced:
+                    mx.eval(am)
+                else:
+                    mx.eval(am, ns["taps"]())
+                t2 = clock()
+            finally:
+                FG.update(on=False, keep=None, sure=None, sure_np=None, t3=False, cold=False, qom=False, qcf=None)
+                TAP["on"] = False
+                if synced:
+                    SEG["on"] = False; self._seg_remove(saved)
+            last[0] = len(rows)
+            d = stats() - s0
+            return lg_, dict(rows=len(rows), build=1e3 * (t1 - t0), wall=1e3 * (t2 - t0), miss=int(d[0]), io=1e3 * float(d[1]),
+                             seg=[list(x) for x in SEG["rec"]] if synced else None)
+
+        res = dict(check=n, rows=len(real), live_miss=float((sA - L["s0"])[0]), kept=int(L["k"]) + 1)
+        try:
+            w = []
+            for _ in range(2):
+                lg_, r_ = fwd(real, rmask)
+                r_["equal"] = eq(lg_, lg_ref)
+                w.append(r_)
+            res["warm"] = w
+            res["synced_real"] = fwd(real, rmask, True)[1]
+            sw, f = {}, self.full
+            if f is not None:
+                tok = L["tok"]
+                for r in SWEEP:
+                    if r < 2 or r > len(f["dr"]) + 1:
+                        continue
+                    dr_, m_ = self.masks_for(r, fz)
+                    sw[r] = [fwd([tok] + dr_, m_)[1] for _ in range(3)]   # cold (rows past the live check's), then two warm
+                if len(f["dr"]) + 1 >= 16:
+                    dr_, m_ = self.masks_for(16, fz)
+                    res["synced_16"] = fwd([tok] + dr_, m_, True)[1]
+            res["sweep"] = sw
+        except Exception as e:                           # a failed probe must not cost the pass: put the check back
+            res["error"] = repr(e)
+            self.rec["errors"].append(f"probe at check {n}: {e!r}")
+        lg_, r_ = fwd(real, rmask)                       # the cache as the live forward left it; the commit follows
+        res["final_equal"] = eq(lg_, lg_ref)
+        res["wall_s"] = clock() - tA
+        res["stats"] = [float(x) for x in (stats() - sA)]
+        return res

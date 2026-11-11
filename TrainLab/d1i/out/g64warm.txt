@@ -1,0 +1,15 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=30.6 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.00 GB pools
+b12: hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks none, pools 6.00 GB, active 9.28 GB
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (64, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (46, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (45, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (385, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (322, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (321, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[long] d1i cold chunk 2048 nologits 1 group 64 warm 1: prefill 2617 tokens in 19.41 s (135 tok/s); waited misses/token 0-16 116.1 16-32 77.7 32-64 74.4; decode 20.2 tok/s, reads/token 85.6; peak active 12.5 GB, cache 0.1 GB, max RSS 10.6 GB, PEAK FOOTPRINT 13.1 GB; sha 0767b1cea7 | pf {'grouped': 92, 'single': 4, 'fallback': 4, 'groups': 586, 't_read': 8.0, 'warm_base': 2448, 'warm_side': 960, 't_warm': 0.38} | 'This Python script is a specialized evaluation harness desig'
+[long] d1i repeat chunk 2048 nologits 1 group 64 warm 1: prefill 2617 tokens in 19.20 s (136 tok/s); waited misses/token 0-16 113.2 16-32 76.9 32-64 76.5; decode 20.0 tok/s, reads/token 85.8; peak active 12.5 GB, cache 0.1 GB, max RSS 11.5 GB, PEAK FOOTPRINT 13.2 GB; sha 1efbdd5b57 | pf {'grouped': 92, 'single': 4, 'fallback': 4, 'groups': 586, 't_read': 7.99, 'warm_base': 2142, 'warm_side': 903, 't_warm': 0.32} | 'This Python script is a specialized evaluation harness for t'

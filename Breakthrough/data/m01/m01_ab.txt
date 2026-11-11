@@ -1,0 +1,60 @@
+17:48:07 start
+17:48:12 built v3n ext
+ext /Users/kamen/Breakthrough/v3n/ext/build/bigmoe_ext.cpython-312-darwin.so, m01_on True
+L0: read_rebuilt on records3m == safetensors 4-bit pieces (96 experts): True
+L0: msb part pool == records3 part bytes: True; load 0.161 ms / expert (2048000 B parts, records3m)
+L0: lsb part pool == records3 part bytes: True; load 0.059 ms / expert (720896 B parts, records3m)
+L23: read_rebuilt on records3m == safetensors 4-bit pieces (96 experts): True
+L23: msb part pool == records3 part bytes: True; load 0.159 ms / expert (2048000 B parts, records3m)
+L23: lsb part pool == records3 part bytes: True; load 0.058 ms / expert (720896 B parts, records3m)
+L47: read_rebuilt on records3m == safetensors 4-bit pieces (96 experts): True
+L47: msb part pool == records3 part bytes: True; load 0.161 ms / expert (2048000 B parts, records3m)
+L47: lsb part pool == records3 part bytes: True; load 0.059 ms / expert (720896 B parts, records3m)
+PASS
+ext /Users/kamen/Breakthrough/v3n/ext/build/bigmoe_ext.cpython-312-darwin.so, m01_on False
+L0: read_rebuilt on records3 == safetensors 4-bit pieces (96 experts): True
+L0: msb part pool == records3 part bytes: True; load 0.166 ms / expert (2162688 B parts, records3, M-01 off)
+L0: lsb part pool == records3 part bytes: True; load 0.065 ms / expert (770048 B parts, records3, M-01 off)
+L23: read_rebuilt on records3 == safetensors 4-bit pieces (96 experts): True
+L23: msb part pool == records3 part bytes: True; load 0.166 ms / expert (2162688 B parts, records3, M-01 off)
+L23: lsb part pool == records3 part bytes: True; load 0.062 ms / expert (770048 B parts, records3, M-01 off)
+L47: read_rebuilt on records3 == safetensors 4-bit pieces (96 experts): True
+L47: msb part pool == records3 part bytes: True; load 0.168 ms / expert (2162688 B parts, records3, M-01 off)
+L47: lsb part pool == records3 part bytes: True; load 0.063 ms / expert (770048 B parts, records3, M-01 off)
+PASS
+17:48:17 loader tests PASS
+/Users/kamen/BigMoE/models/bare/records3: 48 files, 72.1 GB, resident 0.000 GB = 0.00 % (line 1.0 %)
+/Users/kamen/BigMoE/models/bare/records3m: 48 files, 68.0 GB, resident 0.000 GB = 0.00 % (line 1.0 %)
+17:50:24 A1 done
+[A1] p2k RESULT logits 98c6bc1c0d sha32 82995cdb4e sha256 a0774ec635 kv 37028a6545 head 8563204e11 | n 2617 C_m 51 C_l 20 | decode 256 tok 17.42 s = 14.70 tok/s, warm 14.68 | disk prefill 67610 MB, decode 134784 MB = 526.50 MB/tok | lifetime peak 10.992 GB | prefill 10.5 s
+[A1] p8k RESULT logits 61b2520e58 sha32 0b0d91cd43 sha256 ed67050746 kv 5a760388d6 head f59755cf27 | n 8474 C_m 51 C_l 20 | decode 256 tok 16.15 s = 15.85 tok/s, warm 16.46 | disk prefill 184906 MB, decode 121745 MB = 475.56 MB/tok | lifetime peak 10.992 GB | prefill 32.4 s
+[A1] write16 RESULT logits 418633931b sha32 a1789d46bf sha256 df432791d6 kv 368d4f4e01 head 5c58dda19b | n 8276 C_m 51 C_l 20 | decode 256 tok 14.25 s = 17.97 tok/s, warm 19.03 | disk prefill 183115 MB, decode 94567 MB = 369.40 MB/tok | lifetime peak 10.992 GB | prefill 31.7 s | vs b12llfoff first d
+[A1] TOTAL decode 351096 MB / 768 tok = 457.156 MB/tok; prefill 435631 MB; process disk 787063 MB; lifetime peak 10.992 GB
+17:52:28 S1 done
+[S1] p2k RESULT logits 98c6bc1c0d sha32 82995cdb4e sha256 a0774ec635 kv 37028a6545 head 8563204e11 | n 2617 C_m 51 C_l 20 | decode 256 tok 17.02 s = 15.04 tok/s, warm 15.05 | disk prefill 62930 MB, decode 127556 MB = 498.27 MB/tok | lifetime peak 10.981 GB | prefill 10.3 s
+[S1] p8k RESULT logits 61b2520e58 sha32 0b0d91cd43 sha256 ed67050746 kv 5a760388d6 head f59755cf27 | n 8474 C_m 51 C_l 20 | decode 256 tok 15.74 s = 16.26 tok/s, warm 16.93 | disk prefill 173089 MB, decode 115284 MB = 450.33 MB/tok | lifetime peak 10.981 GB | prefill 33.3 s
+[S1] write16 RESULT logits 418633931b sha32 a1789d46bf sha256 df432791d6 kv 368d4f4e01 head 5c58dda19b | n 8276 C_m 51 C_l 20 | decode 256 tok 13.87 s = 18.46 tok/s, warm 19.52 | disk prefill 172129 MB, decode 89561 MB = 349.85 MB/tok | lifetime peak 10.981 GB | prefill 31.6 s | vs b12llfoff first d
+[S1] TOTAL decode 332400 MB / 768 tok = 432.813 MB/tok; prefill 408149 MB; process disk 740549 MB; lifetime peak 10.981 GB
+17:54:31 S2 done
+[S2] p2k RESULT logits 98c6bc1c0d sha32 82995cdb4e sha256 a0774ec635 kv 37028a6545 head 8563204e11 | n 2617 C_m 51 C_l 20 | decode 256 tok 16.95 s = 15.11 tok/s, warm 15.09 | disk prefill 62930 MB, decode 127556 MB = 498.27 MB/tok | lifetime peak 10.982 GB | prefill 10.3 s
+[S2] p8k RESULT logits 61b2520e58 sha32 0b0d91cd43 sha256 ed67050746 kv 5a760388d6 head f59755cf27 | n 8474 C_m 51 C_l 20 | decode 256 tok 15.73 s = 16.28 tok/s, warm 16.96 | disk prefill 173089 MB, decode 115284 MB = 450.33 MB/tok | lifetime peak 10.982 GB | prefill 32.1 s
+[S2] write16 RESULT logits 418633931b sha32 a1789d46bf sha256 df432791d6 kv 368d4f4e01 head 5c58dda19b | n 8276 C_m 51 C_l 20 | decode 256 tok 13.87 s = 18.46 tok/s, warm 19.54 | disk prefill 172129 MB, decode 89561 MB = 349.85 MB/tok | lifetime peak 10.982 GB | prefill 31.9 s | vs b12llfoff first d
+[S2] TOTAL decode 332400 MB / 768 tok = 432.813 MB/tok; prefill 408149 MB; process disk 740549 MB; lifetime peak 10.982 GB
+17:56:39 A2 done
+[A2] p2k RESULT logits 98c6bc1c0d sha32 82995cdb4e sha256 a0774ec635 kv 37028a6545 head 8563204e11 | n 2617 C_m 51 C_l 20 | decode 256 tok 17.43 s = 14.69 tok/s, warm 14.67 | disk prefill 66264 MB, decode 134575 MB = 525.68 MB/tok | lifetime peak 10.996 GB | prefill 10.5 s
+[A2] p8k RESULT logits 61b2520e58 sha32 0b0d91cd43 sha256 ed67050746 kv 5a760388d6 head f59755cf27 | n 8474 C_m 51 C_l 20 | decode 256 tok 16.97 s = 15.08 tok/s, warm 15.57 | disk prefill 182212 MB, decode 121618 MB = 475.07 MB/tok | lifetime peak 10.996 GB | prefill 34.2 s
+[A2] write16 RESULT logits 418633931b sha32 a1789d46bf sha256 df432791d6 kv 368d4f4e01 head 5c58dda19b | n 8276 C_m 51 C_l 20 | decode 256 tok 14.17 s = 18.07 tok/s, warm 19.11 | disk prefill 181196 MB, decode 94455 MB = 368.97 MB/tok | lifetime peak 10.996 GB | prefill 32.2 s | vs b12llfoff first d
+[A2] TOTAL decode 350648 MB / 768 tok = 456.573 MB/tok; prefill 429672 MB; process disk 780320 MB; lifetime peak 10.996 GB
+run   decode MB/tok  prefill KB/prompt tok  decode tok/s  lifetime peak GB
+A1          457.156                22493.5         16.06            10.992
+S1          432.813                21074.4         16.47            10.981
+S2          432.813                21074.5         16.50            10.982
+A2          456.573                22185.8         15.81            10.996
+  p2k: decode MB/tok A1 526.50  S1 498.27  S2 498.27  A2 525.68 | tok/s A1 14.70  S1 15.04  S2 15.11  A2 14.69 | warm A1 14.68  S1 15.04  S2 15.09  A2 14.67
+  p8k: decode MB/tok A1 475.56  S1 450.33  S2 450.33  A2 475.07 | tok/s A1 15.85  S1 16.26  S2 16.28  A2 15.08 | warm A1 16.46  S1 16.93  S2 16.96  A2 15.57
+  write16: decode MB/tok A1 369.40  S1 349.85  S2 349.85  A2 368.97 | tok/s A1 17.97  S1 18.46  S2 18.46  A2 18.07 | warm A1 19.03  S1 19.52  S2 19.54  A2 19.11
+p2k: hashes equal in 4 runs (logits 98c6bc1c0d sha32 82995cdb4e sha256 a0774ec635 kv 37028a6545 head 8563204e11); C_m 51 C_l 20 equal
+p8k: hashes equal in 4 runs (logits 61b2520e58 sha32 0b0d91cd43 sha256 ed67050746 kv 5a760388d6 head f59755cf27); C_m 51 C_l 20 equal
+write16: hashes equal in 4 runs (logits 418633931b sha32 a1789d46bf sha256 df432791d6 kv 368d4f4e01 head 5c58dda19b); C_m 51 C_l 20 equal; write16 vs b12llfoff first diff None
+A1 vs A2 decode bytes/token noise 0.13 %; S vs A: decode bytes/token -5.26 %, prefill bytes/token -5.66 %, decode tok/s +3.45 %, lifetime peak max S 10.982 vs max A 10.996 GB
+VERDICT PASS: every hash equal, decode bytes/token -5.26 %, peak not higher

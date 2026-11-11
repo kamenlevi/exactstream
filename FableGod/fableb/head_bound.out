@@ -1,0 +1,25 @@
+== the real head: 248320 rows x 2560, 4-bit g64 affine: codes 317.8 MB + scales 19.9 MB + biases 19.9 MB = 357.6 MB [K] ==
+row norms ||w_v||: median 0.660, p1 0.469, p10 0.555, p90 0.774, p99 0.878, min 0.3174, max 1.419; CV 0.13  (415 s)
+rows with norm < 0.25 / 0.5 / 0.75 x the median: 0.00 % / 0.03 % / 1.94 %
+chunk-norm flatness of the rows: median (max chunk norm / mean chunk norm) 1.21; for a flat h the 40-chunk bound / the global bound = 0.996 (median over rows)
+head energy spectrum (eigenvalues of W^T W): top 1 / 10 / 100 / 256 / 640 / 1280 of 2560 dims hold 17.8 / 19.0 / 24.9 / 32.5 / 48.1 / 69.9 % of the energy [K]
+
+== the target's logit gaps on code (assistant positions of 24 HumanEval windows, n = 6375) [K l118_tgt] ==
+top-1 - top-2 (logits): median 12.00, p10 4.18, p25 9.75, p75 13.50, p90 14.62; top-1 - top-32: median 18.06, p10 14.25; p(top-1): median 1.000, p10 0.980, p25 1.000
+
+== pruning on the real head for a flat h (rms 1, ||h|| = 50.6, L1/L2 ~40) with a planted cosine c to the candidate row [P on K] ==
+candidate = the planted row (the drafted token is the argmax: the bound's best case); margin = 2 bf16 ulps of the candidate logit; medians over 64 rows
+    c |    gap1   gap32    cand |  cosmax |  global  chnk64  chk256     box |  prg25%  prg50%  prg75%
+ 0.10 |   -0.54    0.32    3.32 |   0.100 |  0.0000  0.0000  0.0000  0.0000 |  0.0000  0.0000  0.0000
+ 0.15 |    0.45    1.42    4.98 |   0.150 |  0.0000  0.0000  0.0000  0.0000 |  0.0000  0.0000  0.0008
+ 0.20 |    1.43    2.95    6.64 |   0.200 |  0.0000  0.0000  0.0000  0.0000 |  0.0000  0.0000  0.0258
+ 0.25 |    2.03    4.25    8.30 |   0.250 |  0.0000  0.0000  0.0000  0.0000 |  0.0000  0.0000  0.2797
+ 0.30 |    2.48    5.35    9.96 |   0.300 |  0.0000  0.0000  0.0000  0.0000 |  0.0000  0.0020  0.6968
+ 0.40 |    3.95    7.44   13.28 |   0.400 |  0.0000  0.0000  0.0000  0.0000 |  0.0013  0.0255  0.9866
+ 0.50 |    4.99    9.83   16.60 |   0.500 |  0.0002  0.0003  0.0003  0.0000 |  0.0040  0.2939  0.9998
+ 0.70 |    6.97   13.78   23.23 |   0.700 |  0.0074  0.0080  0.0075  0.0000 |  0.2362  0.9668  1.0000
+ 0.90 |    9.41   18.21   29.87 |   0.900 |  0.1890  0.2036  0.1921  0.0000 |  0.8906  0.9999  1.0000
+columns: gap1 / gap32 = the synthetic top-1 - top-2 / top-32 gaps (compare with the measured medians 12.00 / 18.06); cand = the candidate's logit; cosmax = the largest cosine any row reaches;
+global / chnk64 / chk256 = fraction of the vocabulary pruned by ||h|| ||w_v||, by sum over 40 or 10 chunks of ||h_c|| ||w_{v,c}||; box = the code-box bound from scales / biases alone;
+prg f = exact partial sum over the first f of the dims + Cauchy-Schwarz on the rest. A pruned row's codes (1,280 B) and scales / biases (160 B) are not read; the 40-chunk norm table costs 80 B per row (20 MB), the 10-chunk one 20 B (5 MB), the box bound reads the 40 MB of scales / biases.
+(430 s)

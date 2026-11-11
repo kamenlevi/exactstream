@@ -1,0 +1,13 @@
+SAMELAYER-T 11-04 09:18 (/Users/kamen/BigMoE/data/r57/pr_dump/pr2_160_*): 18 prompts (humaneval 12, ifeval 3, multi 3), 123845 row-layer samples, layers 1..47 (47); loaded in 0 s; lambdas (0.1, 0.3, 1.0, 3.0, 10.0) x mean eigenvalue
+  check (layer 1, fold 0): leave-one-out Gram / cross terms vs direct, max rel err 1.5e-15 / 5.4e-15
+  layer 1: 2635 rows over 18 prompts, 14.4 s; running recall untrained / trained: code 0.441 / 0.670, chat 0.465 / 0.573
+  layer 24: 2635 rows over 18 prompts, 13.7 s; running recall untrained / trained: code 0.709 / 0.812, chat 0.803 / 0.833
+  layer 47: 2635 rows over 18 prompts, 13.7 s; running recall untrained / trained: code 0.706 / 0.823, chat 0.821 / 0.851
+  code     : per-row recall@10 untrained 0.706 -> trained 0.823 (+11.7 points; 78302 row-layers); bands 1-7 0.655/0.777, 8-39 0.719/0.825, 40-47 0.696/0.854
+  chat     : per-row recall@10 untrained 0.821 -> trained 0.851 (+3.1 points; 45543 row-layers); bands 1-7 0.728/0.779, 8-39 0.832/0.857, 40-47 0.856/0.892
+  humaneval: per-row recall@10 untrained 0.706 -> trained 0.823 (+11.7 points; 78302 row-layers)
+  ifeval   : per-row recall@10 untrained 0.809 -> trained 0.843 (+3.4 points; 21150 row-layers)
+  multi    : per-row recall@10 untrained 0.831 -> trained 0.859 (+2.8 points; 24393 row-layers)
+  all      : per-row recall@10 untrained 0.748 -> trained 0.833 (+8.5 points; 123845 row-layers)
+  lambda picks: 0.1 x2, 0.3 x67, 1 x524, 3 x239, 10 x14; 648 s in all; max RSS 3.0 GB
+  LINE (PASS >= 0.85 code AND >= 0.90 chat; KILL < 0.78 code) -> BETWEEN (code 0.823, chat 0.851)

@@ -1,0 +1,17 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=32.0 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+C=96 (13 GB of experts) loaded in 1s
+{"C": 96, "depth": 0, "prompt": "code", "tokens": 192, "decode_tok_s": 14.32, "verify_calls": null, "accepted_by_depth": [], "drafted_by_depth": [], "misses_per_tok": 103.09, "stalled_per_tok": 37.4, "io_ms_per_tok": 35.52, "sha": "a68aec515b"}
+{"C": 96, "depth": 0, "prompt": "math", "tokens": 172, "decode_tok_s": 14.0, "verify_calls": null, "accepted_by_depth": [], "drafted_by_depth": [], "misses_per_tok": 109.73, "stalled_per_tok": 38.34, "io_ms_per_tok": 37.31, "sha": "2c74c11e35"}
+{"C": 96, "depth": 0, "prompt": "prose", "tokens": 192, "decode_tok_s": 16.95, "verify_calls": null, "accepted_by_depth": [], "drafted_by_depth": [], "misses_per_tok": 71.11, "stalled_per_tok": 28.74, "io_ms_per_tok": 25.57, "sha": "247e92beb8"}
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+{"C": 96, "depth": 3, "prompt": "code", "tokens": 192, "decode_tok_s": 18.23, "verify_calls": 52, "accepted_by_depth": [41, 37, 28], "drafted_by_depth": [49, 49, 49], "misses_per_tok": 110.33, "stalled_per_tok": 12.92, "io_ms_per_tok": 28.98, "sha": "b6fdc142f9"}
+{"C": 96, "depth": 3, "prompt": "math", "tokens": 172, "decode_tok_s": 21.35, "verify_calls": 49, "accepted_by_depth": [45, 40, 38], "drafted_by_depth": [49, 49, 49], "misses_per_tok": 113.75, "stalled_per_tok": 13.51, "io_ms_per_tok": 29.92, "sha": "2c74c11e35"}
+{"C": 96, "depth": 3, "prompt": "prose", "tokens": 186, "decode_tok_s": 17.35, "verify_calls": 83, "accepted_by_depth": [57, 28, 18], "drafted_by_depth": [83, 83, 83], "misses_per_tok": 104.36, "stalled_per_tok": 18.2, "io_ms_per_tok": 29.42, "sha": "252ac8e070"}
+
+C=96 (13 GB), committed history, greedy, 192 tokens x 3 prompts, pooled:
+depth  cond. accept by position              MTP tok/round  tok/s   loader-read share  SSD GB/s  stalled layers/tok
+    0  (eager)                                   1.00          15.1     49%               3.96      34.8
+    3  0.79 0.73 0.80                            2.83          19.0     56%               5.75      14.9

@@ -1,0 +1,5 @@
+PF-B INVARIANCE Sun 08:13:46: MLX 0.32.2, SwitchGLU E 512 top-10 2560->640->2560 4-bit g64 bf16
+  T  1565: bitwise vs 1,024-row calls: 4,096 == (0 diffs), one call == (0 diffs); MoE time 1,024 30.2 ms (5.1 TF) / 4,096 19.3 ms (8.0 TF) / one 19.3 ms (8.0 TF); one-call speedup x1.56
+  T  4730: bitwise vs 1,024-row calls: 4,096 == (0 diffs), one call DIFF (37273600 diffs); MoE time 1,024 82.5 ms (5.6 TF) / 4,096 49.9 ms (9.3 TF) / one 31.4 ms (14.8 TF); one-call speedup x2.63
+  T  7932: bitwise vs 1,024-row calls: 4,096 DIFF (14336000 diffs), one call DIFF (83906560 diffs); MoE time 1,024 131.4 ms (5.9 TF) / 4,096 65.4 ms (11.9 TF) / one 46.3 ms (16.8 TF); one-call speedup x2.84
+PF-B INVARIANCE verdict (pre-registered): KILL (not bitwise): bitwise NOT all; one-call speedup at 7.9K x2.84 (line x1.5); per layer at 7.9K: 131 -> 46 ms = 4.1 s per prompt over 48 layers; peak 3.70 GB

@@ -1,0 +1,21 @@
+bitwise vs mx.quantized_matmul (max |diff|, all M = 2..4):
+  gdn.in_proj_qkv  (10240, 320)  hb 0  mlx-wrap 0
+  gdn.in_proj_z    (6144, 320)  hb 0  mlx-wrap 0
+  gdn.out_proj     (2560, 768)  hb 0  mlx-wrap 0
+  qsa.q_proj       (12288, 320)  hb 0  mlx-wrap 0
+  qsa.o_proj       (2560, 768)  hb 0  mlx-wrap 0
+  lm_head          (248320, 320)  hb 0  mlx-wrap 0
+
+ms per call (GB/s), dependent calls in one command buffer:
+  gdn.in_proj_qkv  M=2    14.75 MB  mlx 0.0751 ( 196)  hb 0.1159 ( 127)  -35%
+  gdn.in_proj_qkv  M=4    14.75 MB  mlx 0.0874 ( 169)  hb 0.1248 ( 118)  -30%
+  gdn.in_proj_z    M=2     8.85 MB  mlx 0.0536 ( 165)  hb 0.0865 ( 102)  -38%
+  gdn.in_proj_z    M=4     8.85 MB  mlx 0.0634 ( 140)  hb 0.0904 (  98)  -30%
+  gdn.out_proj     M=2     8.85 MB  mlx 0.0535 ( 165)  hb 0.0983 (  90)  -46%
+  gdn.out_proj     M=4     8.85 MB  mlx 0.0619 ( 143)  hb 0.1057 (  84)  -41%
+  qsa.q_proj       M=2    17.69 MB  mlx 0.0825 ( 215)  hb 0.1251 ( 141)  -34%
+  qsa.q_proj       M=4    17.69 MB  mlx 0.0969 ( 183)  hb 0.1367 ( 129)  -29%
+  qsa.o_proj       M=2     8.85 MB  mlx 0.0509 ( 174)  hb 0.0959 (  92)  -47%
+  qsa.o_proj       M=4     8.85 MB  mlx 0.0593 ( 149)  hb 0.1028 (  86)  -42%
+  lm_head          M=2   357.58 MB  mlx 1.2600 ( 284)  hb 1.4942 ( 239)  -16%
+  lm_head          M=4   357.58 MB  mlx 1.3843 ( 258)  hb 1.8103 ( 198)  -24%

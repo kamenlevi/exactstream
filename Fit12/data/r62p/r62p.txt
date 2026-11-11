@@ -1,0 +1,18 @@
+R-62P replay of /Users/kamen/BigMoE/data/cap45: 6 prompts, 199 passes, kept sum 1483 (tokens 1486); T03 rows per pass by prompt: 68 16.00 (k 15.41), 1640 8.04 (k 5.31), 91 9.72 (k 8.09), 694 9.67 (k 7.73), 1282 8.89 (k 6.89), 708 8.47 (k 6.16)
+  check: B16 at C 160 = 141883 demand misses (r57b_replay's baseline: 141,883)
+  C 192:
+    B16   : 199 passes (0 redo), 1483 tokens, demand misses 108443 = 73.1 per token, async reads 0, cycle model 39.9 ms per token
+    T03   : 199 passes (0 redo), 1483 tokens, demand misses 83051 = 56.0 per token, async reads 0, cycle model 35.2 ms per token
+    ORACLE: 199 passes (0 redo), 1483 tokens, demand misses 71658 = 48.3 per token, async reads 0, cycle model 33.2 ms per token | vs T03: misses per token -13.7 %, passes per token +0.0 %, cycle per token -5.9 %
+    CUT   : 1483 passes (1284 redo), 1483 tokens, demand misses 70162 = 47.3 per token, async reads 6035, cycle model 162.8 ms per token | vs T03: misses per token -15.5 %, passes per token +645.2 %, cycle per token +361.8 %
+      T03    per prompt (passes, tokens, misses per token): 68 17, 262, 50.9; 1640 48, 255, 52.7; 91 32, 259, 58.6; 694 33, 255, 60.2; 1282 37, 255, 53.5; 708 32, 197, 61.5
+      ORACLE per prompt (passes, tokens, misses per token): 68 17, 262, 48.7; 1640 48, 255, 41.5; 91 32, 259, 51.7; 694 33, 255, 52.0; 1282 37, 255, 44.8; 708 32, 197, 52.2
+      CUT    per prompt (passes, tokens, misses per token): 68 262, 262, 49.5; 1640 255, 255, 39.5; 91 259, 259, 50.8; 694 255, 255, 50.5; 1282 255, 255, 43.1; 708 197, 197, 51.3
+  C 224:
+    B16   : 199 passes (0 redo), 1483 tokens, demand misses 84385 = 56.9 per token, async reads 0, cycle model 35.5 ms per token
+    T03   : 199 passes (0 redo), 1483 tokens, demand misses 66703 = 45.0 per token, async reads 0, cycle model 32.3 ms per token
+    ORACLE: 199 passes (0 redo), 1483 tokens, demand misses 58072 = 39.2 per token, async reads 0, cycle model 30.7 ms per token | vs T03: misses per token -12.9 %, passes per token +0.0 %, cycle per token -4.9 %
+    CUT   : 1483 passes (1284 redo), 1483 tokens, demand misses 54980 = 37.1 per token, async reads 5329, cycle model 160.0 ms per token | vs T03: misses per token -17.6 %, passes per token +645.2 %, cycle per token +395.8 %
+      T03    per prompt (passes, tokens, misses per token): 68 17, 262, 40.9; 1640 48, 255, 42.3; 91 32, 259, 47.3; 694 33, 255, 47.8; 1282 37, 255, 43.5; 708 32, 197, 49.1
+      ORACLE per prompt (passes, tokens, misses per token): 68 17, 262, 39.4; 1640 48, 255, 33.9; 91 32, 259, 42.1; 694 33, 255, 41.3; 1282 37, 255, 37.0; 708 32, 197, 41.8
+      CUT    per prompt (passes, tokens, misses per token): 68 262, 262, 37.4; 1640 255, 255, 31.9; 91 259, 259, 40.5; 694 255, 255, 39.0; 1282 255, 255, 34.5; 708 197, 197, 39.7

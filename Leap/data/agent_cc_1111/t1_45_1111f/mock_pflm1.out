@@ -1,0 +1,21 @@
+07:21:43 convcache: installed (budget 4.00 GB, grid 8192, check on, SWIN 2048)
+[mtplx] verify SDPA head-chunked: q_len=14 heads_per_chunk=2 chunks=12
+07:21:44 convcache: miss N 12302 c 0 (none, no stored prefix) prefilled 12302, restore 0.0 ms, prefill 1746.6 ms; entries 1, 0.109 GB; edges [8192, 9216, 12288]
+{"case": "A turn 1", "N": 12302, "mtp": false, "hit": false, "c": 0, "src": "none", "prefilled": 12302, "miss": "no stored prefix", "check": "", "vs_cold": {"last": true, "cap": true, "ctx": true, "dwin": true}, "PASS": true, "entries": 1, "gb": 0.109, "edges": [8192, 9216, 12288], "s": 3.6}
+07:21:48 convcache: census (live at 12288): values an add of zero rewrites (the pre-11-11 clone), source rows below c + the GDN checkpoint: none
+07:21:48 convcache: hit N 12496 c 12288 (live) prefilled 208, restore 13.26 ms, prefill 72.0 ms; entries 1, 0.109 GB; edges [8192, 9216, 12288]; check PASS
+{"case": "A turn 2", "N": 12496, "mtp": false, "hit": true, "c": 12288, "src": "live", "prefilled": 208, "miss": "", "check": "PASS", "vs_cold": {"last": true, "cap": true, "ctx": true, "dwin": true}, "PASS": true, "entries": 1, "gb": 0.109, "edges": [8192, 9216, 12288], "s": 3.8}
+07:21:52 convcache: census (copy at 9216): values an add of zero rewrites (the pre-11-11 clone), source rows below c + the GDN checkpoint: none
+07:21:52 convcache: hit N 12300 c 9216 (copy) prefilled 3084, restore 12.41 ms, prefill 504.8 ms; entries 2, 0.219 GB; edges [8192, 9216, 12288]; check PASS
+{"case": "B turn 1 (new conversation, same system + tools)", "N": 12300, "mtp": false, "hit": true, "c": 9216, "src": "copy", "prefilled": 3084, "miss": "", "check": "PASS", "vs_cold": {"last": true, "cap": true, "ctx": true, "dwin": true}, "PASS": true, "entries": 2, "gb": 0.219, "edges": [8192, 9216, 12288], "s": 4.1}
+07:21:56 convcache: miss N 12404 c 0 (none, no stored prefix) prefilled 12404, restore 0.0 ms, prefill 1746.1 ms; entries 3, 0.328 GB; edges [8192, 9216, 12288]
+{"case": "B turn 2 (chat path: MTP head)", "N": 12404, "mtp": true, "hit": false, "c": 0, "src": "none", "prefilled": 12404, "miss": "no stored prefix", "check": "", "vs_cold": {"last": true, "cap": true, "mtp": true}, "PASS": true, "entries": 3, "gb": 0.328, "edges": [8192, 9216, 12288], "s": 3.6}
+07:22:00 convcache: census (live at 12288): values an add of zero rewrites (the pre-11-11 clone), source rows below c + the GDN checkpoint: none
+07:22:00 convcache: hit N 12627 c 12288 (live) prefilled 339, restore 34.16 ms, prefill 140.8 ms; entries 3, 0.362 GB; edges [8192, 9216, 12288]; check PASS
+{"case": "B turn 3 (chat path: MTP head)", "N": 12627, "mtp": true, "hit": true, "c": 12288, "src": "live", "prefilled": 339, "miss": "", "check": "PASS", "vs_cold": {"last": true, "cap": true, "mtp": true}, "PASS": true, "entries": 3, "gb": 0.362, "edges": [8192, 9216, 12288], "s": 4.0}
+07:22:02 convcache: miss N 18 c 0 (none, one chunk) prefilled 18, restore 0.0 ms, prefill 25.9 ms; entries 3, 0.363 GB; edges []
+{"case": "side request (title)", "N": 18, "mtp": false, "hit": false, "c": 0, "src": "none", "prefilled": 18, "miss": "one chunk", "check": "", "vs_cold": {"last": true, "cap": true, "ctx": true, "dwin": true}, "PASS": true, "entries": 3, "gb": 0.363, "edges": [], "s": 0.1}
+07:22:04 convcache: census (live at 12288): values an add of zero rewrites (the pre-11-11 clone), source rows below c + the GDN checkpoint: none
+07:22:04 convcache: hit N 12801 c 12288 (live) prefilled 513, restore 22.71 ms, prefill 172.2 ms; entries 3, 0.365 GB; edges [8192, 9216, 12288]; check PASS
+{"case": "A turn 3 (back to A)", "N": 12801, "mtp": false, "hit": true, "c": 12288, "src": "live", "prefilled": 513, "miss": "", "check": "PASS", "vs_cold": {"last": true, "cap": true, "ctx": true, "dwin": true}, "PASS": true, "entries": 3, "gb": 0.365, "edges": [8192, 9216, 12288], "s": 4.0}
+PASS hits [(False, 0), (True, 12288), (True, 9216), (False, 0), (True, 12288), (False, 0), (True, 12288)] expected [(False, 0), (True, 12288), (True, 9216), (False, 0), (True, 12288), (False, 0), (True, 12288)] peak 5.086 GB, wall 23.3 s

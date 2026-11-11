@@ -1,0 +1,12 @@
+layer: 20 MB read, 48 layers
+one command buffer, no events         2.58 ms/token
+one command buffer per layer          2.42 ms/token  (+-3.3 us/layer)
+per-layer GPU->CPU->GPU handshake     9.68 ms/token  (+147.9 us/layer vs one buffer)
+handshake + cold 2.77MB pread on  4 layers   11.26 ms/token  (+396 us per stalled layer)
+handshake + cold 2.77MB pread on 12 layers   13.77 ms/token  (+341 us per stalled layer)
+layer: 60 MB read, 48 layers
+one command buffer, no events        11.20 ms/token
+one command buffer per layer         11.22 ms/token  (+0.5 us/layer)
+per-layer GPU->CPU->GPU handshake    19.17 ms/token  (+166.2 us/layer vs one buffer)
+handshake + cold 2.77MB pread on  4 layers   20.67 ms/token  (+373 us per stalled layer)
+handshake + cold 2.77MB pread on 12 layers   23.61 ms/token  (+370 us per stalled layer)

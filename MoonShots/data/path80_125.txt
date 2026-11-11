@@ -1,0 +1,8 @@
+today (exact 4-bit records3, no overlap)                                 SSD  69.5 ms  T  110.0 ms   28.2 tok/s
+3-bit tiers 4433333333 (bytes -22 %)                                     SSD  54.2 ms  T   94.6 ms   32.8 tok/s
++ out-of-order experts (-12.5 ms)                                        SSD  54.2 ms  T   82.1 ms   37.8 tok/s
+3-bit tiers + full loader/compute overlap                                SSD  54.2 ms  T   54.2 ms   57.1 tok/s
++ caching at the online limit (-6 % misses)                              SSD  51.0 ms  T   51.0 ms   60.8 tok/s
+2-bit-heavy tiers 4222222222 on records4 (-45 %) + full overlap          SSD  38.3 ms  T   40.0 ms   77.5 tok/s
++ compute at the chain/byte floor (~29 ms)                               SSD  38.3 ms  T   38.3 ms   81.0 tok/s
+Belady-class caching (x0.6) + 3-bit tiers + full overlap + 29 ms compute SSD  32.5 ms  T   32.5 ms   95.2 tok/s

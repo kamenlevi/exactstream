@@ -1,0 +1,34 @@
+# KNOWLEDGE_WALL — what predicts the 125B's choices where the drafter fails (FableGod, mission 24, Mon 2 Nov 2026, 19:3x-19:4x EET)
+Marks: [K] measured (source named), [P] arithmetic on measured numbers, [G] judgement. Rules kept: CPU only on recorded data (knowledge_probe.py, 0.3 s at low priority while the Mac trains), no downloads, writes only in ~/FableGod; TRIED checked (D-03, D-06, M-05, SUFFIX, LK1, L1-21, SD-sel, D-18, D-19, K-HEAD, MATCH, COPYGATE). Short and decisive, as the data is.
+Data [K]: the 12 code map windows (the 125B's class and top-8 per row) joined with DFlash2 L1-20's HPD-0 walk (the draft and its cf at every tested position): 393 mid rows, 2,793 sure rows outside copies, 47 sure rows inside within-answer copies, 50 ties. Signals measured: S1 the session's longest match on the answer's own tokens (1-3 / 4-7 / 8+; the prompt was not indexed in this probe, so S1's copies are within-answer repeats; the prompt-inclusive match of drafter_memory_probe covers 1 % of mid rows at 8+ and is the same object at 1-7); S2 the token at the same column of the previous line. Not measurable on stored data: the drafter's own top-k at a position (the walks store its top-1), the native MTP chain's draft at the same positions (its walk has other windows), a token probe on raw taps (taps_raw holds two GSM files tonight; a 248K-way probe is not a CPU job).
+
+## 0. Verdict in five lines
+1. **Nothing in the session's history beats the drafter where it fails** [K]. At mid rows the drafter is right 65.9 %; the best history signal (a 1-3-token match, with an opinion on 55 % of mid rows) is right 24.3 % and, where it disagrees with the drafter, right 7.7 %; the same-column signal 4.4 % and 2.3 %; longer matches cover 7 % and 1 % of mid rows. At sure rows outside copies (the drafter 95.5 %) the 4-7-token match is right 71.6 % and 6.1 % where it disagrees. No measured signal has a positive expected value as an override at mid or sure-non-copy rows; the unions (either right) add 6 points at mid rows and 1-3 at sure rows, which is the ceiling of any selector over these pairs.
+2. **The mid rows are the 125B's wording choices**, read by eye [K, ten misses]: ' pal' vs ' suffix' (the 125B at 0.65), ' for' vs ' #' (0.64 vs 0.34), ' start' vs ' check' (0.65), ' the' vs ' single' (0.38 / 0.26 / 0.16), ' if' vs ' suffix' (0.64 / 0.24 / 0.09), ' is' vs ' needs' (0.62 / 0.33), ' that' vs ' before' (0.65 / 0.21). In 7 of 10 the drafter's token is in the 125B's top-3; the 125B itself puts 0.4-0.75 on its choice. A human would need the model's own taste, not more context: these are the positions where the int4 twin diverges and where mission 15 put the wall.
+3. **Two near-misses are the drafter's**: two of the ten "mid" misses sit at p1 0.98-0.99 (' longest' → ' the' at 0.98, ' suffix' → ' string' at 0.99), i.e. just under the sure line, where the drafter drafted a plausible but wrong continuation at cf 0.25-0.39: knowledge misses the drafter flags itself; the cf gate already leaves them exact.
+4. **What this bounds** [P on K]: with the copy override and the two-drafter pick (the only measured mid-row lever: the union of two near-twins 75 % at mid rows, the cf pick 70 %), code's per-token rate moves from 0.909 to ~0.93-0.94 (pick ×1.09 calibrated, override on copies), kept ~12.2-12.5 per 16 rows and ~13.7-14.5 per 32; 0.975 needs mid rows at 92 %+, and no cheap signal on recorded data gets within 40 points of that. The knowledge wall stands as mission 15 stated it, now with the rows in hand.
+5. **The one test** (MTP Head, one short walk): store the drafter's top-16 candidates and the native MTP chain's draft at every tested position on the 24 HumanEval+ windows (block 16). PASS if the 125B's token is inside DFlash2's top-3 at ≥ 85 % of mid rows or the union DFlash2 ∪ MTP chain is ≥ 80 % there: then it is a selector problem worth one learned picker despite L1-21's +1.2 % (its lattice was top-64 with a 12M picker; the prior is KILL); KILL below 75 % / 72 %: then mid rows are the model's and only the trunk reaches them.
+
+## 1. The table [K, knowledge_probe.out]
+| signal | class | coverage | signal right % | drafter right % on those rows | either % | disagrees | right when it disagrees % |
+|---|---|---|---|---|---|---|---|
+| drafter | mid | 393 rows | — | 65.9 | — | — | — |
+| S1 match 1-3 | mid | 55 % | 24.3 | 66.5 | 72.5 | 77 % | 7.7 |
+| S1 match 4-7 | mid | 7 % | 25.0 | 46.4 | 53.6 | 79 % | 9.1 |
+| S2 same column | mid | 58 % | 4.4 | 65.0 | 67.3 | 97 % | 2.3 |
+| drafter | sure, no copy | 2,793 | — | 95.5 | — | — | — |
+| S1 match 1-3 | sure, no copy | 53 % | 35.3 | 95.0 | 96.1 | 65 % | 1.8 |
+| S1 match 4-7 | sure, no copy | 8 % | 71.6 | 96.5 | 98.3 | 29 % | 6.1 |
+| S2 same column | sure, no copy | 61 % | 19.0 | 95.1 | 95.4 | 81 % | 0.4 |
+| S1 match 8+ (within answer) | sure, copy | 100 % of 47 | 53.2 | 95.7 | 97.9 | 47 % | 4.5 |
+| drafter | tie | 50 | — | 30.0 | — | — | — |
+Reading: every history signal is far below the drafter and nearly worthless where they disagree; the prompt-inclusive copies (MATCH) are the one exception and they are sure rows, not mid rows. The target's cheap outputs (its distribution at the anchor and at verified rows) predict the bonus token exactly and nothing beyond it: for depth ≥ 2 they are the drafter's inputs already (the taps).
+
+## 2. The best combination and the rate it reaches [P on K, calibrated]
+Per position: the drafter's draft; the two-drafter pick by cf (×1.09 kept at today's overlap; a learned mixer only if the test above passes); the gated copy override (sure copied rows); no history signal at mid or sure-non-copy rows (negative expected value). Code: 0.909 → ~0.93-0.94 per token; kept 10.5 → ~12.2-12.5 (16 rows), ~13.7-14.5 (32). Math: 0.871 → ~0.89 (the pick; no copies), kept 6.6 → ~7.2. Chat: 0.59 → ~0.62 (the pick's chat gain unmeasured [G]), kept 2.5 → ~2.7 (the tie rule adds ×1.2 at 5 % deviation). Against 0.975: the gap on code is 3.5-4.5 points per token, all at mid rows, which no signal here reaches.
+
+## 3. TRIED
+D-03 (the 125B's n-gram table: 5.6 % vs the context baseline), D-06 (attention copy pointer: +1.5 % beyond prompt lookup), M-05 (datastore: +0.08), SUFFIX, LK1: all history signals, and the table above shows why they die at mid rows (7.7 % right when they disagree). L1-21 / SD-sel (a picker over the drafter's lattice: +1.2 %): the selector question stays open only on the test's PASS. D-18 (the MTP head drafts position 1: KILL) and D-19 (bandits): not revisited. K-HEAD, MATCH, COPYGATE: as used. Nothing killed is re-proposed.
+
+## 4. Reproducibility
+knowledge_probe.py → knowledge_probe.out (0.3 s). Inputs: decision_map/out/baseline.json, ~/TrainLab/data/d02b_walk_hpd0_code.npz, vocab.json. The prompt-inclusive match numbers are in drafter_memory_probe.out (mission 17).

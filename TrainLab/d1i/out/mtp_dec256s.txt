@@ -1,0 +1,15 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=30.6 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.10 GB pools
+b12: hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks none, pools 6.10 GB, active 9.57 GB
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (64, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (387, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (450, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[long] d1i prefilled state: 2617 tokens in 10.89 s (240 tok/s), peak active 10.2 GB, cache 0.0 GB, max RSS 5.6 GB, PEAK FOOTPRINT 12.0 GB
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[long] b12 C_m=51 C_l=20 hc8 late1=0 late3=None w=2 pre=0 pf=0 spec 3:3:0: 23.0 tok/s, 2.13 tok/pass, SSD reads/token 107.0; per pass: waited misses 203.6, reads 224.8, prefetch issued 0.0 used 0.0 (on time 0.0, late 0.0); peak active 10.3 GB, cache 0.1 GB, max RSS 10.4 GB, PEAK FOOTPRINT 12.0 GB, sha 904679c858 | 'This Python script is a specialized evaluation harness designed to inv'

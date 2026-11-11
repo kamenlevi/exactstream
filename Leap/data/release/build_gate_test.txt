@@ -1,0 +1,8 @@
+BUILD GATE TEST (make_release.py, Mon 9 Nov 2026 07:4x; CPU only, scratch output)
+Change under test (0209657): the build refuses to commit when a live research path is left in code (before, it only listed
+them; RELEASE section 4 already said it refused). Also new: ~/MoonShots/patches/planes_engine -> @ROOT@/kernels/ms_gdn.
+Positive: the real builds 0a20f26 and dbe5ea6 (rel0, BigMoE aa1ca3be): live research paths 0 -> COMMITTED.
+Negative: a scratch copy of make_release.py with that rewrite disabled, --out in the scratchpad (the real package untouched,
+still dbe5ea6): "live research paths left in code 2: engine/bigmoe/loader.py:45, engine/bigmoe/tier.py:102" and
+"NOT COMMITTED: fix the leaks / syntax errors / unsafe quote lines / live research paths first"; no git repository created.
+Verdict: PASS (the gate commits with 0 and refuses with 2).

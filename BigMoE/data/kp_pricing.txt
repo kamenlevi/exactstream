@@ -1,0 +1,37 @@
+KP pricing (BigMoE, Tue 2026-10-27 19:20, pricing only, no build): Leap's kernels vs what ships, per line.
+Sources: Leap's KP_POINTERS.md, ~/Leap/data kern23 / gmr24 / qmmg25 / ca_diff_report, Leap HANDOVER (R-09), and
+BigMoE data/b28/anatomy.txt (shipped 24 GB v3 + JOINT, traced verify passes).
+
+Bottom line: the only exact (bitwise) levers are on the 45 GB line: R-09's X5 HC read and gmr24's experts, together
+about -13.4 ms per 16-row check (~10 %). The 24 GB line has no exact lever, and even a free GPU gains at most 4-6 ms per
+pass there, because the SSD is busy 90-98 % of the pass. Everything else is a new exact reference (Kamen's call).
+
+24 GB (3c ext experts + MTPLX dense, S = 2.2 / 3.2 / 7.4 rows per pass for prose / code / edit)
+- b28 pass split (ms): code 72.9 = gate wait 43.5 + GPU 29.3, SSD busy 67.8; prose 60.0 = 33.7 + 26.3, SSD busy 53.7;
+  edit 206.1 = 153.3 + 52.8, SSD busy 202.3.
+- The cap for ANY GPU-side saving at fixed reads is the SSD's idle time in the pass: 5.1 / 6.3 / 3.8 ms for
+  code / prose / edit (<= 7 / 10 / 2 % tok/s). A faster kernel only moves reads earlier into those gaps.
+- Exact: none. Leap's expert kernels are 4-bit MLX layout. They don't cover the 3-bit 3c experts (the ext's own
+  kernels). gmr24 is bitwise but 5 % slower at 4 rows (0.398 vs 0.380 ms per layer) and 2 % faster at 8 rows.
+- Reference change: NAX experts (4-bit only) -8 % at 4 rows, -25 % at 8 rows. Batch-invariant dense (qmm16c) instead of
+  the exact chunked path. Either way capped by the SSD as above.
+- Price: not worth a port. The 24 GB lever stays the SSD (reads per pass, reads in flight), not kernels.
+
+12 GB (Breakthrough's engine, 1-3 rows per decode pass; B12 ~89 ms per pass with MTP)
+- Exact: none. At 1 row MLX's qmv IS the reference. gmr24 gains nothing at <= 4 rows.
+- Reference change: dense at most -3.7 ms per pass even for a perfect kernel (kern23: MLX 1-row 15.6 ms per 48 layers
+  vs a floor of 11.9). NAX experts ~-8 % of 4-bit expert time at 4 rows.
+- The same SSD cap applies. Breakthrough can price it from its own trace (span minus SSD busy). Fit12's R-14 prices
+  HC there.
+
+45 GB (MTPLX, resident 16-row check, CA run 3: 132.9 ms at 1K, 140.6 at 8K; experts 58.7, HC 31, GDN proj 17)
+- Exact (bitwise = what ships):
+  - R-09 X5 HC read: 24.37 -> 14.70 ms per check = -9.7 ms.
+  - gmr24 experts at 16 rows: 1.209 -> 1.132 ms per layer, 58.0 -> 54.3 per check = -3.7 ms.
+  - Sum about -13.4 ms per check (~-10 %), BigMoE's / Breakthrough's call. Both need a port into MTPLX's check: Leap's
+    code exists for both.
+- Reference change (batch-invariant, error <= MLX's; Kamen's call after an Eval-suite equality check):
+  - NAX experts (qmmg25) 59.6 -> 37.2 = -22.4 ms. It replaces gmr24's -3.7.
+  - Batch-invariant dense (qmm16c): kern23 exact chunked 56.8 -> 27.4, HC included. NewIdeas' -21 is without HC.
+  - MTPLX's 2x8 HC read -13.85. It replaces R-09's bitwise -9.7.
+  - About -55..-60 ms of ~156 ms together (NewIdeas' sum).

@@ -1,0 +1,18 @@
+Lines: P vs A PASS bytes/tok <= -12 % with tok/s not worse (>= -1 %, the b44 A1-A2 noise was 0.6 %), KILL a saving under
+6 %; L vs P PASS a further <= -6 % with tok/s not worse, KILL a saving under 3 %; else BETWEEN. Both arms are non-exact
+run   disk MB/tok  gate wait ms/tok  tok/s   2-plane reads  full reads  upgrades  rank>=4 uses at 2 planes  rank-1 uses w/o LSB  shas
+A1          342.3             18.76   22.32              0           0         0                      0.0 %                0.0 %  4633d70e77 5f2c200e62 8f02448059 2ae4ee95ae
+P1          287.4             18.68   21.50          65850       18805     19937                     31.3 %                0.0 %  65a527dc3f 44e4b21369 a58ab13e81 a3956edbc0
+L1          261.0             17.42   21.45          60460       17377     18819                     30.7 %               36.9 %  0b32c32e18 389a0e0e88 8bc42fce10 4193069e1c
+L2          268.5             17.85   21.45          64790       18802     19112                     31.0 %               38.0 %  28729d8ad2 dcb832e354 2180d413c1 daed3a1f1c
+P2          267.1             16.99   21.66          62617       18192     18113                     30.8 %                0.0 %  7e3f537abb d5002c7b39 9f451cb8f6 43a016e97c
+A2          342.0             19.10   21.66              0           0         0                      0.0 %                0.0 %  4633d70e77 5f2c200e62 8f02448059 2ae4ee95ae
+A1 vs A2 noise: mb 0.1 %, tps 3.0 %
+sha equal across an arm's two runs: A yes, P NO, L NO (P / L depend on residency, so their tokens may move between runs)
+P vs A: bytes/tok -19.0 %, gate wait -5.8 %, tok/s -1.9 %; rank >= 4 uses at 2 planes 31.0 % (replay 20 %)  -> BETWEEN
+L vs P: bytes/tok -4.5 %, gate wait -1.1 %, tok/s -0.6 %; rank-1 uses without the LSB 37.5 % (replay 26 %), rank >= 4 at 2 planes 30.8 %  -> BETWEEN
+L vs A: bytes/tok -22.6 %, tok/s -2.5 %; L lifetime peak footprint  GB
+    p00_code4: tok/s A 23.86  P 23.08 (-3.2 %)  L 20.51 (-14.0 %)
+    p01_prose4: tok/s A 20.36  P 18.56 (-8.8 %)  L 19.52 (-4.1 %)
+    p02_edit4: tok/s A 25.96  P 24.57 (-5.3 %)  L 25.69 (-1.0 %)
+    p03_math4: tok/s A 17.79  P 20.08 (+12.9 %)  L 20.09 (+12.9 %)

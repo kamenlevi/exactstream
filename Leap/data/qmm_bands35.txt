@@ -1,0 +1,46 @@
+device: Apple M5 Pro applegpu_g17s, MLX 0.32.4
+
+fused in_proj qkv|z|b|a: N 12352 x K 2048, 14.23 MB per instance, 30-instance floor 1.52 ms at 280 GB/s
+  M =  1:  1.658 ms ( 92% of floor)   rows vs M=1 decode:      0 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M =  2:  1.647 ms ( 93% of floor)   rows vs M=1 decode:      3 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M =  8:  3.433 ms ( 44% of floor)   rows vs M=1 decode:     13 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M = 12:  5.757 ms ( 26% of floor)   rows vs M=1 decode:     19 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M = 13:  2.843 ms ( 54% of floor)   rows vs M=1 decode:  63734 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M = 16:  2.645 ms ( 58% of floor)   rows vs M=1 decode:  78358 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M = 24:  2.839 ms ( 54% of floor)   rows vs M=1 decode:  78358 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M = 32:  2.945 ms ( 52% of floor)   rows vs M=1 decode:  78358 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M = 33:  3.952 ms ( 39% of floor)   rows vs M=1 decode:  78358 differ   row 0 alone padded to M vs with real rows: 0 differ
+  rows 0-7 bitwise equal across M: 8:[8, 12]  12:[8, 12]  13:[13, 16, 24, 32, 33]  16:[13, 16, 24, 32, 33]  24:[13, 16, 24, 32, 33]  32:[13, 16, 24, 32, 33]  33:[13, 16, 24, 32, 33]
+
+in_proj_qkv: N 8192 x K 2048, 9.44 MB per instance, 30-instance floor 1.01 ms at 280 GB/s
+  M =  1:  1.161 ms ( 87% of floor)   rows vs M=1 decode:      0 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M =  8:  2.332 ms ( 43% of floor)   rows vs M=1 decode:      7 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M = 12:  3.520 ms ( 29% of floor)   rows vs M=1 decode:     10 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M = 13:  5.215 ms ( 19% of floor)   rows vs M=1 decode:  42381 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M = 16:  5.178 ms ( 20% of floor)   rows vs M=1 decode:  52195 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M = 32:  5.052 ms ( 20% of floor)   rows vs M=1 decode:  52195 differ   row 0 alone padded to M vs with real rows: 0 differ
+  rows 0-7 bitwise equal across M: 8:[8, 12]  12:[8, 12]  13:[13, 16, 32]  16:[13, 16, 32]  32:[13, 16, 32]
+
+in_proj_z: N 4096 x K 2048, 4.72 MB per instance, 30-instance floor 0.51 ms at 280 GB/s
+  M =  1:  0.787 ms ( 64% of floor)   rows vs M=1 decode:      0 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M =  8:  1.389 ms ( 36% of floor)   rows vs M=1 decode:      4 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M = 16:  2.378 ms ( 21% of floor)   rows vs M=1 decode:      7 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M = 24:  3.309 ms ( 15% of floor)   rows vs M=1 decode:      7 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M = 25:  3.093 ms ( 16% of floor)   rows vs M=1 decode:  26076 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M = 32:  2.994 ms ( 17% of floor)   rows vs M=1 decode:  26076 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M = 33:  5.429 ms (  9% of floor)   rows vs M=1 decode:  26076 differ   row 0 alone padded to M vs with real rows: 0 differ
+  rows 0-7 bitwise equal across M: 8:[8, 16, 24]  16:[8, 16, 24]  24:[8, 16, 24]  25:[25, 32]  32:[25, 32]  33:[33]
+
+out_proj: N 2048 x K 4096, 4.72 MB per instance, 30-instance floor 0.51 ms at 280 GB/s
+  M =  1:  0.754 ms ( 67% of floor)   rows vs M=1 decode:      0 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M =  8:  1.323 ms ( 38% of floor)   rows vs M=1 decode:      2 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M = 16:  2.349 ms ( 22% of floor)   rows vs M=1 decode:      6 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M = 24:  3.301 ms ( 15% of floor)   rows vs M=1 decode:      6 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M = 25:  3.075 ms ( 16% of floor)   rows vs M=1 decode:  13019 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M = 32:  2.910 ms ( 17% of floor)   rows vs M=1 decode:  13019 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M = 33:  5.402 ms (  9% of floor)   rows vs M=1 decode:  13018 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M = 48:  5.481 ms (  9% of floor)   rows vs M=1 decode:  13018 differ   row 0 alone padded to M vs with real rows: 0 differ
+  M = 64:  5.510 ms (  9% of floor)   rows vs M=1 decode:  13018 differ   row 0 alone padded to M vs with real rows: 0 differ
+  rows 0-7 bitwise equal across M: 8:[8, 16, 24]  16:[8, 16, 24]  24:[8, 16, 24]  25:[25, 32, 33, 48, 64]  32:[25, 32, 33, 48, 64]  33:[25, 32, 33, 48, 64]  48:[25, 32, 33, 48, 64]  64:[25, 32, 33, 48, 64]
+
+MPP header in a custom kernel: compiles and runs (2.0)

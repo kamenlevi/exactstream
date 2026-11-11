@@ -1,0 +1,14 @@
+QOM0 reads at C_m 47 vs 51 (C_l 32 at both; code windows 12; live checks; LRU; MSB record 2162688 B, LSB sidecar 770048 B; the 12 GB pool in bytes10_core: C_m [51], C_l [32])
+| rule | C_m | MB per kept | MB per check | misses per check (MSB + LSB) | kept per check | C_m 51 self-check |
+|---|---|---|---|---|---|---|
+| QOM0 | 47 | 168.6 | 1334.0 | 829.4 (499.3 + 330.1) | 7.91 |  |
+| QOM0 | 51 | 162.5 | 1285.8 | 807.1 (477.0 + 330.1) | 7.91 | PASS (162.5) |
+| QOM0+ball | 47 | 105.3 | 832.7 | 597.6 (267.5 + 330.1) | 7.91 |  |
+| QOM0+ball | 51 | 101.8 | 805.1 | 584.8 (254.7 + 330.1) | 7.91 | PASS (101.8) |
+| EXACT | 47 | 647.4 | 5121.9 | 2580.9 (2250.8 + 330.1) | 7.91 |  |
+| EXACT | 51 | 636.8 | 5037.9 | 2542.0 (2211.9 + 330.1) | 7.91 | PASS (636.8) |
+
+QOM0: C_m 47 -> 51 changes MB per kept token by -3.6%
+QOM0+ball: C_m 47 -> 51 changes MB per kept token by -3.3%
+EXACT: C_m 47 -> 51 changes MB per kept token by -1.6%
+SELF-CHECK PASS; done in 2 s

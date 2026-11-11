@@ -1,0 +1,23 @@
+  gsm8k_708: 32 checks, kept 6.16 per check (replay rows == check rows: OK)
+  humaneval_HumanEval_68: 5 checks, kept 14.00 per check (replay rows == check rows: OK)
+  humaneval_HumanEval_91: 25 checks, kept 5.88 per check (replay rows == check rows: OK)
+  math500_test_algebra_1282: 34 checks, kept 6.09 per check (replay rows == check rows: OK)
+  math500_test_algebra_694: 32 checks, kept 7.47 per check (replay rows == check rows: OK)
+  math500_test_prealgebra_1640: 48 checks, kept 5.31 per check (replay rows == check rows: OK)
+M-10 SIBLINGS: 176 live 16-row checks, 170 exact sibling pairs (rejected draft row vs the next check's row 0, same prefix)
+per depth band            layers 0-7  8-23  24-47   all
+  overlap of 10: siblings       3.19   4.04   4.00   3.88
+                 consecutive    2.32   3.30   3.78   3.38
+                 chance         0.48   0.79   0.93   0.81
+  new experts:   sibling c into check k (holds d)    3.38   2.22   2.10   2.35
+                 sibling d into check k+1 (holds c)   3.36   2.42   2.36   2.55
+                 late chain row (row 15 | 0-14)       3.62   2.85   2.47   2.79
+                 rows 8-15, each given the earlier     4.57   3.24   2.90   3.29
+  target branch's first m rows given check k's union (170 pairs) vs a plain extension after a full accept (0 checks), new experts per layer:
+    m  1: branch   2.35   extension    nan
+    m  4: branch   8.29   extension    nan
+    m  8: branch  15.79   extension    nan
+    m 16: branch  30.66   extension    nan
+  hidden (cosine of MoE inputs, by band): siblings 0.611 0.589 0.596; consecutive accepted rows 0.621 0.640 0.702
+Lines: a sibling row adds 0.85x (c into k) / 0.91x (d into k+1) a late chain row's new experts (PASS <= 0.50 both, KILL >= 0.85) -> BETWEEN
+(16 s)

@@ -1,0 +1,49 @@
+1. BIT-CHECK of the copied builder (rebuild vs installed vs NewIdeas' source)
+  ok   qom_0_split0.99_live_ball: 36 windows rebuilt; 36/36 equal to the installed masks, 36/36 equal to NewIdeas' source
+  ok   qom_0_split0.9_live_ball: 36 windows rebuilt; 36/36 equal to the installed masks, 36/36 equal to NewIdeas' source
+  ok   qom_0_live_ball: 36 windows rebuilt; 36/36 equal to the installed masks, 36/36 equal to NewIdeas' source
+  ok   qom_0_split0.99_live_ball: every unrealized row untouched in 36/36 windows (the realized-row test itself, on an installed arm)
+  ok   qom_0_split0.9_live_ball: every unrealized row untouched in 36/36 windows (the realized-row test itself, on an installed arm)
+  ok   qom_0_live_ball: every unrealized row untouched in 36/36 windows (the realized-row test itself, on an installed arm)
+
+2. The new arms (masks/<arm>)
+  ok   K8 qom_0_split0.99_k8_live_ball: 36 windows, 36/36 bool with the routing shape, 36/36 with every unrealized row (prompt, outside the walk) untouched
+  ok   K8: ranks 0-1 kept on every row-layer that keeps anything in 36/36 windows; row-layers with nothing kept 0 (whole rows: all of layers 8-35, realized rows only; expected 0)
+       kept experts on the realized rows 3128515 vs the split's 3637037 (x0.860; 6.30 per row-layer); kept here but not in the split 1848 (0.06 % of this arm's kept: the pool's changed history); realized rows changed 6801 of 10352
+  ok   K6 qom_0_split0.99_k6_live_ball: 36 windows, 36/36 bool with the routing shape, 36/36 with every unrealized row (prompt, outside the walk) untouched
+  ok   K6: ranks 0-1 kept on every row-layer that keeps anything in 36/36 windows; row-layers with nothing kept 0 (whole rows: all of layers 8-35, realized rows only; expected 0)
+       kept experts on the realized rows 2607042 vs the split's 3637037 (x0.717; 5.25 per row-layer); kept here but not in the split 1600 (0.06 % of this arm's kept: the pool's changed history); realized rows changed 6801 of 10352
+  ok   K4 (probe) qom_0_split0.99_k4_live_ball: 36 windows, 36/36 bool with the routing shape, 36/36 with every unrealized row (prompt, outside the walk) untouched
+  ok   K4 (probe): ranks 0-1 kept on every row-layer that keeps anything in 36/36 windows; row-layers with nothing kept 0 (whole rows: all of layers 8-35, realized rows only; expected 0)
+       kept experts on the realized rows 2084846 vs the split's 3637037 (x0.573; 4.20 per row-layer); kept here but not in the split 807 (0.04 % of this arm's kept: the pool's changed history); realized rows changed 6801 of 10352
+  ok   A qom_0_split0.99_r0.7_live_ball: 36 windows, 36/36 bool with the routing shape, 36/36 with every unrealized row (prompt, outside the walk) untouched
+  ok   A: ranks 0-1 kept on every row-layer that keeps anything in 36/36 windows; row-layers with nothing kept 0 (whole rows: all of layers 8-35, realized rows only; expected 0)
+       kept experts on the realized rows 3276962 vs the split's 3637037 (x0.901; 6.59 per row-layer); kept here but not in the split 2173 (0.07 % of this arm's kept: the pool's changed history); realized rows changed 3935 of 10352
+  ok   A' qom_0_split0.99_m0.9_live_ball: 36 windows, 36/36 bool with the routing shape, 36/36 with every unrealized row (prompt, outside the walk) untouched
+  ok   A': ranks 0-1 kept on every row-layer that keeps anything in 36/36 windows; row-layers with nothing kept 0 (whole rows: all of layers 8-35, realized rows only; expected 0)
+       kept experts on the realized rows 3405800 vs the split's 3637037 (x0.936; 6.85 per row-layer); kept here but not in the split 770 (0.02 % of this arm's kept: the pool's changed history); realized rows changed 2914 of 10352
+  ok   B qom_0_split0.99_r0.7_z0.999_live_ball: 36 windows, 36/36 bool with the routing shape, 36/36 with every unrealized row (prompt, outside the walk) untouched
+  ok   B: ranks 0-1 kept on every row-layer that keeps anything in 36/36 windows; row-layers with nothing kept 62020 (whole rows: all of layers 8-35, realized rows only; expected > 0)
+       kept experts on the realized rows 3018845 vs the split's 3637037 (x0.830; 6.08 per row-layer); kept here but not in the split 3026 (0.10 % of this arm's kept: the pool's changed history); realized rows changed 7882 of 10352
+  info K6 within K8: 1066 positions kept by K6 only; K4 within K6: 412 (pool history; 0 would be strict nesting)
+
+3. Tiles per kept token, the builder's own count (code / ifeval / multi), and the ratio to the twin qom_0_live_ball
+  twin        qom_0_live_ball                           291.4 /  490.1 /  477.0   x1.000 / x1.000 / x1.000
+  split 0.99  qom_0_split0.99_live_ball                 182.9 /  451.5 /  449.4   x0.628 / x0.921 / x0.942
+  split 0.9   qom_0_split0.9_live_ball                  147.9 /  404.5 /  412.6   x0.508 / x0.825 / x0.865
+  K8          qom_0_split0.99_k8_live_ball              157.2 /  376.6 /  373.0   x0.539 / x0.768 / x0.782
+  K6          qom_0_split0.99_k6_live_ball              130.7 /  296.6 /  292.4   x0.449 / x0.605 / x0.613
+  K4 (probe)  qom_0_split0.99_k4_live_ball              103.6 /  211.3 /  207.5   x0.356 / x0.431 / x0.435
+  A           qom_0_split0.99_r0.7_live_ball            143.1 /  316.8 /  338.7   x0.491 / x0.646 / x0.710
+  A'          qom_0_split0.99_m0.9_live_ball            166.8 /  429.1 /  430.8   x0.572 / x0.876 / x0.903
+  B           qom_0_split0.99_r0.7_z0.999_live_ball     130.8 /  314.1 /  336.7   x0.449 / x0.641 / x0.706
+
+4. Manifests (masks/MANIFEST.md5, masks/MANIFEST.sha256) and one md5 per arm
+  K8          qom_0_split0.99_k8_live_ball             files 36  arm md5 f444ae39ce3e9c622226fe744da704c4
+  K6          qom_0_split0.99_k6_live_ball             files 36  arm md5 14ae7d637d6b40f751862508cfef579f
+  K4 (probe)  qom_0_split0.99_k4_live_ball             files 36  arm md5 bbe6b2fc45c6920df211b347665289c0
+  A           qom_0_split0.99_r0.7_live_ball           files 36  arm md5 57f04e8c04ed9e00b65d6f5341ec61ed
+  A'          qom_0_split0.99_m0.9_live_ball           files 36  arm md5 c3e3c7e57c6f670ba753e628e6636566
+  B           qom_0_split0.99_r0.7_z0.999_live_ball    files 36  arm md5 003da3d528df01e71089336e525a328d
+
+ALL OK

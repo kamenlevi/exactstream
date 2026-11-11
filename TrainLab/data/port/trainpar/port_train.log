@@ -1,0 +1,30 @@
+/Users/kamen/TrainLab/port/dflash2_torch.py:90: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /Users/runner/work/pytorch/pytorch/torch/csrc/utils/tensor_numpy.cpp:219.)
+  self.register_buffer("packed", torch.from_numpy(np.ascontiguousarray(packed_u32).view(np.int32)), persistent=False)
+[port] loaded in 2s; 1 windows, 13 train groups, layers 1, attn explicit
+/Users/kamen/TrainLab/port/test_parity.py:98: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /Users/runner/work/pytorch/pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:823.)
+  loss += float(l)
+[port] step 1: loss 12.748799 (mlx 12.749070) grad-norm 16.1695 (mlx 16.1590)
+[port] step 2: loss 12.331774 (mlx 12.084859) grad-norm 18.3706 (mlx 17.7444)
+[port] step 3: loss 11.793807 (mlx 11.790307) grad-norm 18.4751 (mlx 18.8714)
+[port] step 4: loss 11.211951 (mlx 11.132387) grad-norm 39.7713 (mlx 40.2605)
+[port] step 5: loss 8.972967 (mlx 9.069556) grad-norm 26.3536 (mlx 40.9725)
+[port] RESULT losses_port=[12.748799324035645, 12.33177375793457, 11.793807029724121, 11.21195125579834, 8.972967147827148] losses_mlx=[12.749070167541504, 12.084858894348145, 11.79030704498291, 11.132387161254883, 9.06955623626709] gnorms_port=[16.169519424438477, 18.370649337768555, 18.47508430480957, 39.77132797241211, 26.35357666015625] gnorms_mlx=[16.159006118774414, 17.744369506835938, 18.871379852294922, 40.26048278808594, 40.97246170043945] max_rel_loss_diff=0.020431753961306334
+       11.61 real        17.90 user         2.16 sys
+          6235291648  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              408903  page reclaims
+                3840  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                2366  voluntary context switches
+               64247  involuntary context switches
+        135422707389  instructions retired
+         73550409797  cycles elapsed
+          5774726520  peak memory footprint

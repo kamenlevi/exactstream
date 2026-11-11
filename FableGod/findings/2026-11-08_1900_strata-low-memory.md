@@ -1,0 +1,21 @@
+# Strata 0.1.58 at low memory, same prompts (64 GB M5 Pro): at 24 GB our exact code decode leads 1.4-1.6x; Strata did not fit the 12 GB line in any run (smallest cache 3.37 GB, peak 14.19 GB); at that size its chat decode beats ours (14.4 vs 12.8) with 3.2 GB more memory, and at 14.82 GB its code decode trails ours (15.5 vs 18.3)
+- Date: 2026-11-08 16:50-18:57 EET. Harness: ~/StrataEval/h2h (results_low24, results_low12). Same setup as the 2026-11-08_1630 note, with the cache set by STRATA_METAL_ARENA_GB. One pass per arm.
+- Numbers are pooled over each set (tokens / time). Whole decode excludes the prefill; whole request is tokens / request wall time; first token is the median. Peak = lifetime peak footprint, 10^9 bytes.
+- Strata, cache 16 GB (24 GB line):
+  - Lossy HC read (B), peak 23.75 GB: code (12 HumanEval + 12 MBPP) decode 26.4 / whole request 21.4 / first token 1.41 s; chat (12 IFEval) 28.4 / 21.0 / 1.65 s; math 28.0 / 23.0 / 2.31 s.
+  - Exact BF16 read (D), peak 24.14 GB (0.14 over the line): code 26.6 / 21.0 / 1.40 s; chat 26.9 / 20.3 / 1.46 s; math 26.7 / 22.1 / 2.13 s. Per set: HumanEval 26.2, MBPP 27.3.
+- Ours at 24 GB (E24, Sat 7 Nov, exact to its own stock-kernel reference, peak 23.86 GB): HumanEval 41.3, MBPP 38.4 with the EOS stop. Older report (BigMoE docs/WED_TESTS.md, E24), per-pass means of a different runner, so the 1.4-1.6x is rough. No chat measurement of ours at 24 GB.
+- Strata, cache 4 GB (lossy B only): peak 14.82 GB, which is OVER the 12 GB line (cache 4.0 + 10.82 GB of everything else):
+  - Code decode 15.47 / whole request 12.89 / first token 1.99 s; chat 15.47 / 11.93 / 2.68 s; math 15.41 / 13.19 / 3.23 s. MTP accepted 3926 of 4523 drafted tokens.
+- Strata, smallest cache (lossy B, 12 IFEval only, one pass, desktop apps open, results_fit12): asked for STRATA_METAL_ARENA_GB=1 and the engine raised it to 3.37 GB (1728 slots). Peak 14.19 GB. Chat decode 14.42 / whole request 11.22 / first token 2.78 s (1.65-3.86).
+- Ours at the 12 GB line (SMALL_RAM table, source F12R, quiet; verified greedy, NOT exact):
+  - Code (12 HumanEval + 12 MBPP): decode 18.34 / whole request 13.12 / first token 4.29 s, peak 11.14 GB.
+  - Chat (12 IFEval): 12.76 / 10.09 / 2.92 s, peak 10.96 GB.
+- Reading it: at these memory sizes code decode favours us even with Strata given 3.7 GB more; chat decode favours Strata, but it is not at equal memory. Whole request is a tie on code (13.12 vs 12.89) and Strata ahead on chat (11.93 vs 10.09).
+  Against ours on chat at Strata's smallest setting: decode 14.42 vs 12.76 (+13 %), whole request 11.22 vs 10.09 (+11 %), first token 2.78 vs 2.92 s, with 14.19 vs 10.96 GB.
+- Strata's speed by cache (lossy, chat decode pooled): 33 GB 41.8; 16 GB 28.4; 4 GB 15.47; 3.37 GB 14.42.
+- Caveats:
+  - The exact arm D at cache 4 GB did not finish: 7 heat stops (SSD >= 70 C at fan cap 5000; a 4 GB cache reads the SSD all the time, and each arm restarts from zero). Arm B finished at cap 6500. B vs D differed by about 3 % at 16 and 33 GB.
+  - The floor holds with its MTP layer on, as tested. Other engine settings were not tried. Its smallest-cache run covers chat only.
+  - Lossy against verified: not the same quality class. Different files: Strata's 3-bit IQ3_XXS.
+- Data: 2026-11-08_1900_strata_report_low24.md, _low12.md and _fit12.md, beside this note.

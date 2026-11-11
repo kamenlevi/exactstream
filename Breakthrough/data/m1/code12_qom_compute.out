@@ -1,0 +1,20 @@
+QOM0's compute per check vs S1u (code windows 12; live checks t 0.3 as the replays; masks = the scored map arms)
+
+all rows (the replays' checks, stand-ins included):
+| arm | checks | rows per check | (row, expert) pairs per check | distinct expert-layers per check | vs S1u | max distinct in a layer |
+|---|---|---|---|---|---|---|
+| EXACT (all 10) | 427 | 9.65 | 4631.4 | 2533.2 | pairs +94%, distinct +149% | 141 |
+| q1u_0_live (S1u) | 427 | 9.65 | 2389.3 | 1017.8 | pairs +0%, distinct +0% | 102 |
+| qom_0_live_c47 | 427 | 9.65 | 3040.3 | 1360.0 | pairs +27%, distinct +34% | 103 |
+| qom_0_live_c51 | 427 | 9.65 | 3102.1 | 1398.4 | pairs +30%, distinct +37% | 103 |
+qom_0_live_c51 adds 380.6 distinct expert-layers per check over S1u = 0.82 GB of 3-bit MSB records applied from RAM per check: 4.1 ms at 200 GB/s, 2.7 ms at 300 GB/s [P: a bandwidth-bound price; the engine's own per-expert cost decides]
+
+real rows only (the first kept rows of each check):
+| arm | checks | rows per check | (row, expert) pairs per check | distinct expert-layers per check | vs S1u | max distinct in a layer |
+|---|---|---|---|---|---|---|
+| EXACT (all 10) | 427 | 7.91 | 3797.3 | 2102.3 | pairs +115%, distinct +204% | 138 |
+| q1u_0_live (S1u) | 427 | 7.91 | 1769.2 | 691.5 | pairs +0%, distinct +0% | 39 |
+| qom_0_live_c47 | 427 | 7.91 | 2354.3 | 1019.5 | pairs +33%, distinct +47% | 47 |
+| qom_0_live_c51 | 427 | 7.91 | 2410.5 | 1055.8 | pairs +36%, distinct +53% | 51 |
+qom_0_live_c51 adds 364.3 distinct expert-layers per check over S1u = 0.79 GB of 3-bit MSB records applied from RAM per check: 3.9 ms at 200 GB/s, 2.6 ms at 300 GB/s [P: a bandwidth-bound price; the engine's own per-expert cost decides]
+done in 0 s

@@ -1,0 +1,34 @@
+gdn in_proj (qkv|z|a|b)                          23.73 MB
+gdn state (fp32 in + out)                         6.29 MB
+gdn out_proj                                      8.85 MB
+att q|k|v proj                                   19.17 MB
+att keys + values (2,048 x 512 bf16 x 2)          4.19 MB
+att o_proj                                        8.85 MB
+hc down + inject (HC8)                            3.56 MB
+hc up (HC8)                                       3.48 MB
+router (8-bit) + shared gate|up + sgate           3.24 MB
+shared down                                       0.92 MB
+
+piece                               calls   MB/call   GB/check   ms today   floor@250   today GB/s
+GDN                                   36     38.87      1.399       13.2        5.60          106
+HC reads                              96      7.05      0.676        8.6        2.71           79
+attention                             12     32.21      0.387        6.4        1.55           60
+router + shared + tail + HC write     48      4.16      0.200        7.6        0.80           26
+sum (PLE, head, embed not in)                           2.662       35.8       10.65           74
+
+what one dependent dispatch costs today (us), by the streaming rate B assumed in flight:
+  B GB/s  GDN                                 HC reads                            attention                           router + shared + tail + HC write   
+    110   1.3 us x 10                         8.5 us x 3                          4.0 us x 60                         8.6 us x 14                         
+    150   10.8 us x 10                        14.2 us x 3                         5.3 us x 60                         9.3 us x 14                         
+    200   17.2 us x 10                        18.1 us x 3                         6.2 us x 60                         9.8 us x 14                         
+    235   20.1 us x 10                        19.9 us x 3                         6.6 us x 60                         10.0 us x 14                        
+    250   21.1 us x 10                        20.5 us x 3                         6.7 us x 60                         10.1 us x 14                        
+
+rebuilt dense part, ms per check (same B, t_sync per dispatch = today's fitted value for the piece, capped at 20 us;
+the 'B up' column also lifts B to min(235, B + 60): the fused kernels stream longer per sync)
+  B GB/s   today   rebuilt (9-10 per layer)   merged (6-7 per layer)   merged, B up
+    110    35.8           27.8                   26.5                 18.0
+    150    35.8           23.4                   21.5                 16.4
+    200    35.8           20.4                   18.1                 16.1
+    235    35.8           19.1                   16.6                 16.6
+    250    35.8           18.4                   15.9                 16.6

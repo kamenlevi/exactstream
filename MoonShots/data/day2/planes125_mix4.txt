@@ -1,0 +1,9 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=15.3 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+planes125: top-4 of 10 ranks exact 4-bit, ranks 4..9 MSB plane (patched SwitchGLU)
+125B C=256 mix4: GSM8K 145/150 of 150 target (5227s for 144 problems, 6.8 tok/s incl. prefill; mixed calls 1694352) per-problem 111111111111011111111111111111111111111111111111111111111111110111111111111111111111111011111011111111111111111111111110111111111111111111111111111111
+  vs BigMoE eager: answers equal 145/150; correct eager 147 vs mix4 145; eager-only 2, mix4-only 0
+  vs BigMoE v2a: answers equal 145/150; correct v2a 147 vs mix4 145; v2a-only 2, mix4-only 0
+  noise arm (BigMoE v2a vs eager, first 150): answers equal 147/150

@@ -1,0 +1,33 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=12.3 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[mtplx] verify SDPA head-chunked: q_len=28 heads_per_chunk=1 chunks=24
+Traceback (most recent call last):
+  File "/Users/kamen/MoonShots/scripts/flag_ab125.py", line 37, in <module>
+    y = model(mx.array([ids[28:32]]), cache=cache)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 7032, in __call__
+    return self.language_model(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6772, in __call__
+    out = self.model(inputs, cache, input_embeddings)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6454, in __call__
+    return self._forward(inputs, cache, input_embeddings)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6489, in _forward
+    h = layer(h, input_ids=inputs, ssm_mask=ssm_mask, cache=c)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6271, in __call__
+    block_out = self.self_attn(mixed, cache)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 4897, in __call__
+    elif vrope is None and self._verify_glue_rope(int(S)):
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 4831, in _verify_glue_rope
+    return _glue.qsa_rope_installed()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/qwen4_verify_glue.py", line 99, in qsa_rope_installed
+    raise VerifyGlueContractError(
+mtplx.qwen4_verify_glue.VerifyGlueContractError: MTPLX_QWEN4_VERIFY_GLUE item 'qsa_rope' is armed but its install probe never ran: this route did not go through install_qwen4_fixed_verify_route, so the item would be inert

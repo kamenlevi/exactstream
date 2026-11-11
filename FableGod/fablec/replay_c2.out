@@ -1,0 +1,16 @@
+cap45: checks [5, 48, 25, 32, 34, 32], counted kept tokens 1045
+D-23 dfl checks: {'code': 74, 'math': 156, 'chat': 623, 'agent': 147}
+  seed 0 done, 2 s
+  seed 1 done, 4 s
+  seed 2 done, 6 s
+
+== Q1 at the target cache sizes (cap45 + D-23 cf transplant, SHORT checks, M-17 sizes, LRU + P30; mean over seeds) ==
+  rule      C   | base + sidecar misses per kept | SSD MB per kept | union GB per check | groups per layer | rows | Q1-UNION: dropped pairs per check, share in the union
+  EXACT    256 | 19.28 + 16.66 = 35.94      |   54.5 (x1.00) |  5.13 (x1.00)       |  56.1 (x1.00)    |  9.0 |      0, 0 %
+  EXACT    320 |  9.83 + 12.55 = 22.38      |   30.9 (x1.00) |  5.13 (x1.00)       |  56.1 (x1.00)    |  9.0 |      0, 0 %
+  Q1 0.99  256 | 14.39 + 16.66 = 31.04      |   43.9 (x0.81) |  3.89 (x0.76)       |  44.2 (x0.79)    |  9.0 |   1595, 52 %
+  Q1 0.99  320 |  8.12 + 12.55 = 20.67      |   27.2 (x0.88) |  3.89 (x0.76)       |  44.2 (x0.79)    |  9.0 |   1595, 52 %
+  Q1 0.9   256 | 11.19 + 16.66 = 27.85      |   37.0 (x0.68) |  3.13 (x0.61)       |  36.9 (x0.66)    |  9.0 |   2355, 45 %
+  Q1 0.9   320 |  6.78 + 12.55 = 19.33      |   24.3 (x0.79) |  3.13 (x0.61)       |  36.9 (x0.66)    |  9.0 |   2355, 45 %
+
+done in 6 s

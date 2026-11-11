@@ -1,0 +1,11 @@
+  bf16 drafter (1.21 GB own parameters): draft 12.15 ms at block 16 (knockout hooks on, nothing knocked out); all classes out 1.65 ms
+    class time (none - without it, ms): dense 5.99, conv 0.73, attn 0.88, norm 0.53, head 2.31, topk 0.10, select 0.76; sum 11.30 vs all 10.40
+    none: Python build 0.45 ms, eval 11.64 ms wall with 2.37 ms of main-thread CPU (MLX's encoding; 20% of the eval: near 100 % = CPU-bound, not GPU-bound)
+    all : Python build 0.62 ms, eval 0.99 ms wall with 0.29 ms of main-thread CPU (MLX's encoding; 30% of the eval: near 100 % = CPU-bound, not GPU-bound)
+    top two: dense 5.99, head 2.31 ms; if both went to zero: ~3.84 ms (PASS <= 6.5)
+  4-bit drafter (0.52 GB own parameters): draft 10.93 ms at block 16 (knockout hooks on, nothing knocked out); all classes out 1.60 ms
+    class time (none - without it, ms): dense 4.66, conv 0.84, attn 0.93, norm 0.20, head 2.27, topk 0.07, select 0.75; sum 9.73 vs all 9.06
+    none: Python build 0.44 ms, eval 10.46 ms wall with 2.20 ms of main-thread CPU (MLX's encoding; 21% of the eval: near 100 % = CPU-bound, not GPU-bound)
+    all : Python build 0.59 ms, eval 0.99 ms wall with 0.29 ms of main-thread CPU (MLX's encoding; 30% of the eval: near 100 % = CPU-bound, not GPU-bound)
+    top two: dense 4.66, head 2.27 ms; if both went to zero: ~4.00 ms (PASS <= 6.5)
+R-15 step 1: breakdown only (no verdict); step 2 swaps the top class or two

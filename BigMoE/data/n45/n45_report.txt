@@ -1,0 +1,13 @@
+N45 (data/n45; S5' snapshot 6db4c24; C 256; quiet): freeze windows [('02:47:37', '02:48:18'), ('03:05:46', '03:06:47'), ('05:11:06', '05:12:07'), ('06:17:59', '06:19:00')]; dropped for a freeze: none; arms missing: none; live outside modules: 0
+1. CHAT + MATH SPEED (CAP 256; EB = exact default + KEEP + wired + bundle; L = S5''s lossy config, chat / math at v1''s exact acceptance):
+  12 IFEval EB: WHOLE DECODE   39.9 tok/s (39.9, 39.8); FULL PERIOD   41.6; END TO END   17.1; tokens/task 142; lifetime peak 41.7 GB; == NAX6-N AR 24 / 24 (EXACT PROOF PASS)
+  12 IFEval L : WHOLE DECODE   45.0 tok/s (45.2, 44.8); FULL PERIOD   44.9; END TO END   17.3; tokens/task 144; lifetime peak 42.4 GB; == NAX6-N AR 6 / 24 (information)
+  12 math   EB: WHOLE DECODE   78.8 tok/s (79.4, 78.3); FULL PERIOD   81.0; END TO END   39.5; tokens/task 256; lifetime peak 42.5 GB; == NAX6-N AR 24 / 24 (EXACT PROOF PASS)
+  12 math   L : WHOLE DECODE   87.9 tok/s (85.3, 90.4); FULL PERIOD   90.5; END TO END   40.3; tokens/task 256; lifetime peak 43.1 GB; == NAX6-N AR 7 / 24 (information)
+2-3. PREFILL (CAP 16; pfs = prefill + cache / drafter setup + the first token): per prompt P tokens -> TTFT s (passes) -> prefill tok/s
+  EXACT EB agent/edit10  : P  1565; TTFT  15.90 s (15.92, 15.88); prefill     98 tok/s; lifetime peak 44.5 GB
+  EXACT EB agent/write13 : P  4730; TTFT  40.11 s (40.70, 39.51); prefill    118 tok/s; lifetime peak 44.5 GB
+  EXACT EB agent/write11 : P  7932; TTFT  64.07 s (63.78, 64.36); prefill    124 tok/s; lifetime peak 44.5 GB
+  LOSSY L  agent/edit10  : P  1565; TTFT  16.28 s (16.31, 16.25); prefill     96 tok/s; lifetime peak 45.1 GB
+  LOSSY L  agent/write13 : P  4730; TTFT  41.23 s (40.28, 42.19); prefill    115 tok/s; lifetime peak 45.1 GB
+  LOSSY L  agent/write11 : P  7932; TTFT  66.57 s (66.15, 66.99); prefill    119 tok/s; lifetime peak 45.1 GB

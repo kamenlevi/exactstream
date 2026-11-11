@@ -1,0 +1,23 @@
+PASS starts and shows a prompt
+PASS the built-in system line reaches the prompt (the stand-in loop answers SYS-OK)
+PASS waiting for a message: non-canonical, no tty echo: 0xc3
+PASS 3-line bracketed paste, then Enter: 33 chars
+PASS 3,000-character one-line bracketed paste, then Enter: 3000 chars
+PASS 3,000-character one-line paste without markers: 3000 chars
+PASS 3 lines arriving together without markers: 16 chars
+PASS Backspace while typing: 11 chars
+PASS Ctrl-U erases the message: 5 chars
+PASS Ctrl-W erases a word: 9 chars
+PASS arrow keys are ignored: 3 chars
+PASS UTF-8, wide characters and their Backspace: 8 chars
+PASS Backspace across a wrapped row (redraw): 90 chars
+PASS /file with a message: the file in an html fence, then the message; a size note: 31316 chars, 417 lines; note '(/file: tetris_fix3.html, 417 lines, 11345 tokens)'
+PASS /file on a missing file: a note, nothing sent
+PASS while answering: canonical mode and echo restored: 0x200005cb
+PASS whole session incl. a 2,000-character single-line answer: no scroll region or cursor save / restore, live numbers in the window title, the answer and its numbers on screen: cursor / region sequences 0, title updates 676, last title '0;last answer: 406 tokens, 93.3 tok/s, first token 0.2 s, pe'
+PASS Ctrl-C at the prompt: the note, then a new prompt
+PASS after Ctrl-C: reading again in non-canonical mode: 0xc3
+PASS Ctrl-D on an empty message quits, rc 0: rc 0
+PASS bracketed paste switched off at the end
+PASS SIGTERM while reading: exits through the finally (paste mode off, terminal restored): rc 143
+PTY TEST: 22 of 22 pass

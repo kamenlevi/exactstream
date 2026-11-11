@@ -1,0 +1,13 @@
+test_dm_s7.py all, Wed 2026-11-04 14:46 (share lock, GPU seconds; patched scratch folder = the files installed at 14:47). GPU part, verbatim:
+ok   B1 routed_kept(src 3) == routed_topk(bits 3, K 10, keep) on 24 rows, layer 12 (max diff 0.0e+00)
+ok   B2 routed_kept(src 2) == routed_topk(bits 2, K 10, keep) on 24 rows, layer 12 (max diff 0.0e+00)
+     layer 18: 84 experts encoded so far
+ok   B0 the metric's floor on the live path: routed_topk bits 3 vs the bf16-rounded dense MSB-3 reference: rms rel 1.76e-02, max rel 1.72e-02 (test_t3's 3-bit tolerance 3e-2)
+ok   B3 routed_kept('trl:mix') vs dense fp32 (dequantize bits 8) on 12 rows: rms rel 4.26e-03, max rel 1.06e-02; counts {'calls': 1, 'pairs': 89, 'experts': 54, 'trl': 54, 'fallback': 0}
+ok   B3n negative control (each expert's weights swapped for another's): rms rel 1.36e+00, so the metric separates a wrong expert from rounding
+ok   B4 fallback: missing experts from records3 MSB-3, the rest TRL: rms rel 9.87e-03, max rel 1.42e-02; counts {'calls': 1, 'pairs': 89, 'experts': 12, 'trl': 6, 'fallback': 6}
+ok   B5 group size 3 vs 128: bit-equal (TRL and MSB-2)
+ALL OK
+Earlier runs of the same test (fixed in the test, not the hook): B3/B4 first failed because the mock router left 500 experts at
+an equal zero logit (bf16 ties broke differently in the reference); then because the reference ranked bf16 score ties with
+np.argsort; the final reference uses the block's own routing ops and bf16 rounding points.

@@ -1,0 +1,241 @@
+{
+ "what": "convcache B1 on a stand-in loop (1 QSA + 1 GDN layer, random weights)",
+ "pflm": 1,
+ "small": 8000,
+ "rows": [
+  {
+   "case": "A turn 1",
+   "N": 4302,
+   "mtp": false,
+   "hit": false,
+   "c": 0,
+   "src": "none",
+   "prefilled": 4302,
+   "miss": "no stored prefix",
+   "check": "",
+   "vs_cold": {
+    "last": true,
+    "cap": true,
+    "ctx": true,
+    "dwin": true
+   },
+   "PASS": true,
+   "entries": 1,
+   "gb": 0.054,
+   "edges": [
+    1024,
+    4096
+   ],
+   "s": 3.8
+  },
+  {
+   "case": "A turn 2",
+   "N": 4496,
+   "mtp": false,
+   "hit": true,
+   "c": 4096,
+   "src": "live",
+   "prefilled": 400,
+   "miss": "",
+   "check": "PASS",
+   "vs_cold": {
+    "last": true,
+    "cap": true,
+    "ctx": true,
+    "dwin": true
+   },
+   "PASS": true,
+   "entries": 1,
+   "gb": 0.054,
+   "edges": [
+    1024,
+    4096
+   ],
+   "s": 3.9
+  },
+  {
+   "case": "B turn 1 (new conversation, same system + tools)",
+   "N": 4300,
+   "mtp": false,
+   "hit": true,
+   "c": 1024,
+   "src": "copy",
+   "prefilled": 3276,
+   "miss": "",
+   "check": "PASS",
+   "vs_cold": {
+    "last": true,
+    "cap": true,
+    "ctx": true,
+    "dwin": true
+   },
+   "PASS": true,
+   "entries": 2,
+   "gb": 0.108,
+   "edges": [
+    1024,
+    4096
+   ],
+   "s": 3.2
+  },
+  {
+   "case": "B turn 2 (chat path: MTP head)",
+   "N": 4404,
+   "mtp": true,
+   "hit": false,
+   "c": 0,
+   "src": "none",
+   "prefilled": 4404,
+   "miss": "no stored prefix",
+   "check": "",
+   "vs_cold": {
+    "last": true,
+    "cap": true,
+    "mtp": true
+   },
+   "PASS": true,
+   "entries": 3,
+   "gb": 0.163,
+   "edges": [
+    1024,
+    4096
+   ],
+   "s": 1.9
+  },
+  {
+   "case": "B turn 3 (chat path: MTP head)",
+   "N": 4627,
+   "mtp": true,
+   "hit": true,
+   "c": 4096,
+   "src": "live",
+   "prefilled": 531,
+   "miss": "",
+   "check": "PASS",
+   "vs_cold": {
+    "last": true,
+    "cap": true,
+    "mtp": true
+   },
+   "PASS": true,
+   "entries": 3,
+   "gb": 0.177,
+   "edges": [
+    1024,
+    4096
+   ],
+   "s": 2.3
+  },
+  {
+   "case": "side request (title)",
+   "N": 18,
+   "mtp": false,
+   "hit": false,
+   "c": 0,
+   "src": "none",
+   "prefilled": 18,
+   "miss": "one chunk",
+   "check": "",
+   "vs_cold": {
+    "last": true,
+    "cap": true,
+    "ctx": true,
+    "dwin": true
+   },
+   "PASS": true,
+   "entries": 3,
+   "gb": 0.179,
+   "edges": [],
+   "s": 0.2
+  },
+  {
+   "case": "A turn 3 (back to A)",
+   "N": 4801,
+   "mtp": false,
+   "hit": true,
+   "c": 4096,
+   "src": "live",
+   "prefilled": 705,
+   "miss": "",
+   "check": "PASS",
+   "vs_cold": {
+    "last": true,
+    "cap": true,
+    "ctx": true,
+    "dwin": true
+   },
+   "PASS": true,
+   "entries": 3,
+   "gb": 0.18,
+   "edges": [
+    1024,
+    4096
+   ],
+   "s": 3.7
+  }
+ ],
+ "hits_as_expected": true,
+ "expected": [
+  [
+   false,
+   0
+  ],
+  [
+   true,
+   4096
+  ],
+  [
+   true,
+   1024
+  ],
+  [
+   false,
+   0
+  ],
+  [
+   true,
+   4096
+  ],
+  [
+   false,
+   0
+  ],
+  [
+   true,
+   4096
+  ]
+ ],
+ "got": [
+  [
+   false,
+   0
+  ],
+  [
+   true,
+   4096
+  ],
+  [
+   true,
+   1024
+  ],
+  [
+   false,
+   0
+  ],
+  [
+   true,
+   4096
+  ],
+  [
+   false,
+   0
+  ],
+  [
+   true,
+   4096
+  ]
+ ],
+ "PASS": true,
+ "peak_GB": 4.585,
+ "wall_s": 18.9
+}

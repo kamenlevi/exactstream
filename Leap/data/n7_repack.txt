@@ -1,0 +1,25 @@
+N7-15 repack-at-load screen Tue 01:51 (quiet lock); layer 20
+rerun 01:52 after the empty-window fix (chat's trace is 559 rows)
+N7-15 repack-at-load screen Tue 01:52 (quiet lock); layer 20
+1. per S 16 call (+ combine): NAX6 0.802 ms, NAX6-N 0.653 ms (+18.6 %, gain 149 us)
+   R(0, 0): 0.669 ms; kept 89 % of the gain
+   R(1, 0): 0.686 ms; kept 78 % of the gain
+   R(2, 1): 0.714 ms; kept 59 % of the gain
+   R(3, 1): 0.732 ms; kept 47 % of the gain
+   R(6, 2): 0.794 ms; kept 5 % of the gain
+   R(12, 4): 0.926 ms; kept -84 % of the gain
+2. the repack alone, per call: RO(0, 0) 35.0 us; RO(1, 0) 43.7 us; RO(4, 0) 106.5 us; RO(8, 0) 184.2 us; RO(16, 0) 341.9 us; RO(0, 4) 54.0 us; RO(0, 16) 111.5 us
+   ~35.0 us per call with nothing dirty, ~19.2 us per base slot, ~4.8 us per sidecar slot; break-even (kept 0 %) at ~8 base slots per call
+N7-15 verdict (kept at 3 base + 1 sidecar slots per call; PASS >= 80 %, KILL < 50 %): KILL (47 %)
+rerun 01:54: claim v2 (flag first, scan in threadgroup memory)
+N7-15 repack-at-load screen Tue 01:54 (quiet lock, post-hoc: claim v2); layer 20
+1. per S 16 call (+ combine): NAX6 0.802 ms, NAX6-N 0.653 ms (+18.6 %, gain 149 us)
+   R(0, 0): 0.660 ms; kept 95 % of the gain
+   R(1, 0): 0.679 ms; kept 82 % of the gain
+   R(2, 1): 0.708 ms; kept 63 % of the gain
+   R(3, 1): 0.727 ms; kept 50 % of the gain
+   R(6, 2): 0.790 ms; kept 8 % of the gain
+   R(12, 4): 0.923 ms; kept -81 % of the gain
+2. the repack alone, per call: RO(0, 0) 35.2 us; RO(1, 0) 39.0 us; RO(4, 0) 101.7 us; RO(8, 0) 178.2 us; RO(16, 0) 331.7 us; RO(0, 4) 45.1 us; RO(0, 16) 91.7 us
+   ~35.2 us per call with nothing dirty, ~18.5 us per base slot, ~3.5 us per sidecar slot; break-even (kept 0 %) at ~8 base slots per call
+N7-15 verdict (kept at 3 base + 1 sidecar slots per call; PASS >= 80 %, KILL < 50 %): BETWEEN (50 %)

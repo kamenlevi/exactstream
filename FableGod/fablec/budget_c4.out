@@ -1,0 +1,75 @@
+== A. code, per check: the union arms x RAM points; expert ms (groups at live rows), SSD transfer / exposed, cycle, tok/s ==
+   kept 10.0 (today's code) and 12.6 (DFlash3); 'expected' terms (h 0.38, dense 17.2, draft 4.5, commit 2.0) and 'targets' (h 0.6, 15 / 2.8 / 0.5)
+-- joint C256+2 44.1GB
+   EXACT                  3c      2-call    kept 10.0 | groups 53.4 experts 41.0 ms | MB/kept 64.4->49.5 | expected 100.6 = chain 74.4 + exposed 26.2 (transfer 42.3) ->   99 tok/s | targets  85.1 = 68.2 + 16.9 ->  117
+   EXACT                  3c      2-call    kept 12.6 | groups 53.4 experts 41.0 ms | MB/kept 64.4->44.1 | expected 103.8 = chain 74.4 + exposed 29.4 (transfer 47.5) ->  121 tok/s | targets  87.2 = 68.2 + 19.0 ->  145
+   EXACT                  NAX6-N  2-call    kept 10.0 | groups 53.4 experts 28.9 ms | MB/kept 64.4->49.5 | expected  88.6 = chain 62.3 + exposed 26.2 (transfer 42.3) ->  113 tok/s | targets  73.1 = 56.1 + 16.9 ->  137
+   EXACT                  NAX6-N  2-call    kept 12.6 | groups 53.4 experts 28.9 ms | MB/kept 64.4->44.1 | expected  91.8 = chain 62.3 + exposed 29.4 (transfer 47.5) ->  137 tok/s | targets  75.1 = 56.1 + 19.0 ->  168
+   EXACT                  3c-N    2-call    kept 10.0 | groups 53.4 experts 42.8 ms | MB/kept 64.4->49.5 | expected 102.4 = chain 76.2 + exposed 26.2 (transfer 42.3) ->   98 tok/s | targets  86.9 = 70.0 + 16.9 ->  115
+   EXACT                  3c-N    2-call    kept 12.6 | groups 53.4 experts 42.8 ms | MB/kept 64.4->44.1 | expected 105.6 = chain 76.2 + exposed 29.4 (transfer 47.5) ->  119 tok/s | targets  88.9 = 70.0 + 19.0 ->  142
+   Q1-UNION 0.99          NAX6-NH 2-call    kept 10.0 | groups 41.6 experts 23.8 ms | MB/kept 49.4->37.9 | expected  71.5 = chain 51.4 + exposed 20.1 (transfer 32.4) ->  140 tok/s | targets  58.9 = 46.0 + 13.0 ->  170
+   Q1-UNION 0.99          NAX6-NH 2-call    kept 12.6 | groups 41.6 experts 23.8 ms | MB/kept 49.4->33.8 | expected  73.9 = chain 51.4 + exposed 22.6 (transfer 36.4) ->  170 tok/s | targets  60.5 = 46.0 + 14.6 ->  208
+   Q1-UNION 0.9           NAX6-NH 2-call tm kept 10.0 | groups 36.0 experts 19.4 ms | MB/kept 43.5->33.4 | expected  64.7 = chain 47.0 + exposed 17.7 (transfer 28.6) ->  155 tok/s | targets  53.0 = 41.6 + 11.4 ->  189
+   Q1-UNION 0.9           NAX6-NH 2-call tm kept 12.6 | groups 36.0 experts 19.4 ms | MB/kept 43.5->29.8 | expected  66.9 = chain 47.0 + exposed 19.9 (transfer 32.1) ->  188 tok/s | targets  54.4 = 41.6 + 12.8 ->  231
+   U3 = Q1U 0.9 + t3 sure NAX6-NH 2-call    kept 10.0 | groups 30.5 experts 19.4 ms | MB/kept 35.8->27.5 | expected  61.5 = chain 47.0 + exposed 14.6 (transfer 23.5) ->  162 tok/s | targets  51.0 = 41.6 +  9.4 ->  196
+   U3 = Q1U 0.9 + t3 sure NAX6-NH 2-call    kept 12.6 | groups 30.5 experts 19.4 ms | MB/kept 35.8->24.5 | expected  63.3 = chain 47.0 + exposed 16.4 (transfer 26.4) ->  199 tok/s | targets  52.1 = 41.6 + 10.6 ->  242
+   OEA k8                 NAX6-NH 2-call    kept 10.0 | groups 45.5 experts 25.3 ms | MB/kept 51.3->39.4 | expected  73.8 = chain 52.9 + exposed 20.9 (transfer 33.7) ->  136 tok/s | targets  61.0 = 47.5 + 13.5 ->  164
+   OEA k8                 NAX6-NH 2-call    kept 12.6 | groups 45.5 experts 25.3 ms | MB/kept 51.3->35.1 | expected  76.3 = chain 52.9 + exposed 23.4 (transfer 37.8) ->  165 tok/s | targets  62.6 = 47.5 + 15.1 ->  201
+   HYB 0.9 u8 + t3        NAX6-NH 2-call    kept 10.0 | groups 26.5 experts 17.8 ms | MB/kept 30.5->23.4 | expected  57.8 = chain 45.4 + exposed 12.4 (transfer 20.0) ->  173 tok/s | targets  48.0 = 40.0 +  8.0 ->  208
+   HYB 0.9 u8 + t3        NAX6-NH 2-call    kept 12.6 | groups 26.5 experts 17.8 ms | MB/kept 30.5->20.9 | expected  59.3 = chain 45.4 + exposed 13.9 (transfer 22.5) ->  212 tok/s | targets  49.0 = 40.0 +  9.0 ->  257
+   REACH + t3 sure        NAX6-NH 2-call    kept 10.0 | groups 25.9 experts 17.6 ms | MB/kept 31.8->24.4 | expected  58.1 = chain 45.2 + exposed 12.9 (transfer 20.9) ->  172 tok/s | targets  48.1 = 39.8 +  8.4 ->  208
+   REACH + t3 sure        NAX6-NH 2-call    kept 12.6 | groups 25.9 experts 17.6 ms | MB/kept 31.8->21.8 | expected  59.7 = chain 45.2 + exposed 14.5 (transfer 23.4) ->  211 tok/s | targets  49.1 = 39.8 +  9.4 ->  256
+   HYB-MASS 0.9 + t3      NAX6-NH 2-call    kept 10.0 | groups 28.3 experts 18.5 ms | MB/kept 32.6->25.0 | expected  59.4 = chain 46.1 + exposed 13.3 (transfer 21.4) ->  168 tok/s | targets  49.3 = 40.7 +  8.6 ->  203
+   HYB-MASS 0.9 + t3      NAX6-NH 2-call    kept 12.6 | groups 28.3 experts 18.5 ms | MB/kept 32.6->22.3 | expected  61.0 = chain 46.1 + exposed 14.9 (transfer 24.0) ->  207 tok/s | targets  50.3 = 40.7 +  9.6 ->  250
+   HYB-MISS 4 + t3        NAX6-NH 2-call    kept 10.0 | groups 28.8 experts 18.7 ms | MB/kept 22.4->17.2 | expected  55.4 = chain 46.3 + exposed  9.1 (transfer 14.7) ->  180 tok/s | targets  46.8 = 40.9 +  5.9 ->  214
+   HYB-MISS 4 + t3        NAX6-NH 2-call    kept 12.6 | groups 28.8 experts 18.7 ms | MB/kept 22.4->15.3 | expected  56.5 = chain 46.3 + exposed 10.2 (transfer 16.5) ->  223 tok/s | targets  47.5 = 40.9 +  6.6 ->  265
+   HYB-COLD 4/0.05 + t3   NAX6-NH 2-call    kept 10.0 | groups 26.8 experts 17.9 ms | MB/kept 23.0->17.7 | expected  54.9 = chain 45.5 + exposed  9.4 (transfer 15.1) ->  182 tok/s | targets  46.1 = 40.1 +  6.0 ->  217
+   HYB-COLD 4/0.05 + t3   NAX6-NH 2-call    kept 12.6 | groups 26.8 experts 17.9 ms | MB/kept 23.0->15.7 | expected  56.0 = chain 45.5 + exposed 10.5 (transfer 16.9) ->  225 tok/s | targets  46.9 = 40.1 +  6.8 ->  269
+   HYB-COLD 4/0.05 + t3   NAX6-NH 1-call    kept 10.0 | groups 26.8 experts 14.2 ms | MB/kept 23.0->17.7 | expected  51.2 = chain 41.8 + exposed  9.4 (transfer 15.1) ->  195 tok/s | targets  42.5 = 36.4 +  6.0 ->  235
+   HYB-COLD 4/0.05 + t3   NAX6-NH 1-call    kept 12.6 | groups 26.8 experts 14.2 ms | MB/kept 23.0->15.7 | expected  52.4 = chain 41.8 + exposed 10.5 (transfer 16.9) ->  241 tok/s | targets  43.2 = 36.4 +  6.8 ->  291
+-- M-17 C320 50.5GB
+   EXACT                  3c      2-call    kept 10.0 | groups 53.4 experts 41.0 ms | MB/kept 39.3->30.2 | expected  90.4 = chain 74.4 + exposed 16.0 (transfer 25.8) ->  111 tok/s | targets  78.5 = 68.2 + 10.3 ->  127
+   EXACT                  3c      2-call    kept 12.6 | groups 53.4 experts 41.0 ms | MB/kept 39.3->26.9 | expected  92.4 = chain 74.4 + exposed 18.0 (transfer 29.0) ->  136 tok/s | targets  79.8 = 68.2 + 11.6 ->  158
+   EXACT                  NAX6-N  2-call    kept 10.0 | groups 53.4 experts 28.9 ms | MB/kept 39.3->30.2 | expected  78.3 = chain 62.3 + exposed 16.0 (transfer 25.8) ->  128 tok/s | targets  66.5 = 56.1 + 10.3 ->  150
+   EXACT                  NAX6-N  2-call    kept 12.6 | groups 53.4 experts 28.9 ms | MB/kept 39.3->26.9 | expected  80.3 = chain 62.3 + exposed 18.0 (transfer 29.0) ->  157 tok/s | targets  67.7 = 56.1 + 11.6 ->  186
+   EXACT                  3c-N    2-call    kept 10.0 | groups 53.4 experts 42.8 ms | MB/kept 39.3->30.2 | expected  92.2 = chain 76.2 + exposed 16.0 (transfer 25.8) ->  109 tok/s | targets  80.3 = 70.0 + 10.3 ->  125
+   EXACT                  3c-N    2-call    kept 12.6 | groups 53.4 experts 42.8 ms | MB/kept 39.3->26.9 | expected  94.1 = chain 76.2 + exposed 18.0 (transfer 29.0) ->  134 tok/s | targets  81.5 = 70.0 + 11.6 ->  155
+   Q1-UNION 0.99          NAX6-NH 2-call    kept 10.0 | groups 41.6 experts 23.8 ms | MB/kept 34.6->26.6 | expected  65.4 = chain 51.4 + exposed 14.1 (transfer 22.7) ->  153 tok/s | targets  55.0 = 46.0 +  9.1 ->  182
+   Q1-UNION 0.99          NAX6-NH 2-call    kept 12.6 | groups 41.6 experts 23.8 ms | MB/kept 34.6->23.7 | expected  67.2 = chain 51.4 + exposed 15.8 (transfer 25.5) ->  188 tok/s | targets  56.2 = 46.0 + 10.2 ->  224
+   Q1-UNION 0.9           NAX6-NH 2-call tm kept 10.0 | groups 36.0 experts 19.4 ms | MB/kept 32.5->25.0 | expected  60.2 = chain 47.0 + exposed 13.2 (transfer 21.3) ->  166 tok/s | targets  50.1 = 41.6 +  8.5 ->  199
+   Q1-UNION 0.9           NAX6-NH 2-call tm kept 12.6 | groups 36.0 experts 19.4 ms | MB/kept 32.5->22.2 | expected  61.9 = chain 47.0 + exposed 14.8 (transfer 24.0) ->  204 tok/s | targets  51.2 = 41.6 +  9.6 ->  246
+   U3 = Q1U 0.9 + t3 sure NAX6-NH 2-call    kept 10.0 | groups 30.5 experts 19.4 ms | MB/kept 27.7->21.3 | expected  58.2 = chain 47.0 + exposed 11.3 (transfer 18.2) ->  172 tok/s | targets  48.8 = 41.6 +  7.3 ->  205
+   U3 = Q1U 0.9 + t3 sure NAX6-NH 2-call    kept 12.6 | groups 30.5 experts 19.4 ms | MB/kept 27.7->19.0 | expected  59.6 = chain 47.0 + exposed 12.7 (transfer 20.4) ->  211 tok/s | targets  49.7 = 41.6 +  8.2 ->  253
+   OEA k8                 NAX6-NH 2-call    kept 10.0 | groups 45.5 experts 25.3 ms | MB/kept 34.7->26.7 | expected  67.0 = chain 52.9 + exposed 14.1 (transfer 22.8) ->  149 tok/s | targets  56.6 = 47.5 +  9.1 ->  177
+   OEA k8                 NAX6-NH 2-call    kept 12.6 | groups 45.5 experts 25.3 ms | MB/kept 34.7->23.7 | expected  68.8 = chain 52.9 + exposed 15.9 (transfer 25.6) ->  183 tok/s | targets  57.7 = 47.5 + 10.2 ->  218
+   HYB 0.9 u8 + t3        NAX6-NH 2-call    kept 10.0 | groups 26.5 experts 17.8 ms | MB/kept 25.6->19.7 | expected  55.8 = chain 45.4 + exposed 10.4 (transfer 16.8) ->  179 tok/s | targets  46.7 = 40.0 +  6.7 ->  214
+   HYB 0.9 u8 + t3        NAX6-NH 2-call    kept 12.6 | groups 26.5 experts 17.8 ms | MB/kept 25.6->17.5 | expected  57.1 = chain 45.4 + exposed 11.7 (transfer 18.9) ->  221 tok/s | targets  47.5 = 40.0 +  7.5 ->  265
+   REACH + t3 sure        NAX6-NH 2-call    kept 10.0 | groups 25.9 experts 17.6 ms | MB/kept 26.7->20.5 | expected  56.0 = chain 45.2 + exposed 10.9 (transfer 17.5) ->  179 tok/s | targets  46.8 = 39.8 +  7.0 ->  214
+   REACH + t3 sure        NAX6-NH 2-call    kept 12.6 | groups 25.9 experts 17.6 ms | MB/kept 26.7->18.3 | expected  57.4 = chain 45.2 + exposed 12.2 (transfer 19.7) ->  220 tok/s | targets  47.6 = 39.8 +  7.9 ->  265
+   HYB-MASS 0.9 + t3      NAX6-NH 2-call    kept 10.0 | groups 28.3 experts 18.5 ms | MB/kept 26.6->20.4 | expected  56.9 = chain 46.1 + exposed 10.8 (transfer 17.5) ->  176 tok/s | targets  47.7 = 40.7 +  7.0 ->  210
+   HYB-MASS 0.9 + t3      NAX6-NH 2-call    kept 12.6 | groups 28.3 experts 18.5 ms | MB/kept 26.6->18.2 | expected  58.3 = chain 46.1 + exposed 12.2 (transfer 19.6) ->  216 tok/s | targets  48.5 = 40.7 +  7.8 ->  260
+   HYB-MISS 4 + t3        NAX6-NH 2-call    kept 10.0 | groups 29.0 experts 18.8 ms | MB/kept 21.1->16.2 | expected  55.0 = chain 46.4 + exposed  8.6 (transfer 13.9) ->  182 tok/s | targets  46.5 = 41.0 +  5.5 ->  215
+   HYB-MISS 4 + t3        NAX6-NH 2-call    kept 12.6 | groups 29.0 experts 18.8 ms | MB/kept 21.1->14.4 | expected  56.0 = chain 46.4 + exposed  9.6 (transfer 15.5) ->  225 tok/s | targets  47.2 = 41.0 +  6.2 ->  267
+   HYB-COLD 4/0.05 + t3   NAX6-NH 2-call    kept 10.0 | groups 26.8 experts 17.9 ms | MB/kept 20.2->15.5 | expected  53.7 = chain 45.5 + exposed  8.2 (transfer 13.3) ->  186 tok/s | targets  45.4 = 40.1 +  5.3 ->  220
+   HYB-COLD 4/0.05 + t3   NAX6-NH 2-call    kept 12.6 | groups 26.8 experts 17.9 ms | MB/kept 20.2->13.8 | expected  54.7 = chain 45.5 + exposed  9.2 (transfer 14.9) ->  230 tok/s | targets  46.1 = 40.1 +  6.0 ->  274
+   HYB-COLD 4/0.05 + t3   NAX6-NH 1-call    kept 10.0 | groups 26.8 experts 14.2 ms | MB/kept 20.2->15.5 | expected  50.1 = chain 41.8 + exposed  8.2 (transfer 13.3) ->  200 tok/s | targets  41.8 = 36.4 +  5.3 ->  240
+   HYB-COLD 4/0.05 + t3   NAX6-NH 1-call    kept 12.6 | groups 26.8 experts 14.2 ms | MB/kept 20.2->13.8 | expected  51.1 = chain 41.8 + exposed  9.2 (transfer 14.9) ->  247 tok/s | targets  42.4 = 36.4 +  6.0 ->  297
+
+== B. what 350 needs on code: cycle <= 28.6 ms at kept 10, 36.0 at 12.6, 38.6 at 13.5; chain floors with the SSD fully hidden ==
+   HYB 0.9 u8 + t3        1-call + tier merge: experts 12.6; chain at targets 34.8 ms -> kept 10:  288, kept 12.6:  362, kept 13.5:  388 tok/s if the SSD hides; needs  +6.2 ms at kept 10 /  -1.2 at 12.6
+   HYB-COLD 4/0.05 + t3   1-call + tier merge: experts 12.7; chain at targets 34.9 ms -> kept 10:  287, kept 12.6:  361, kept 13.5:  387 tok/s if the SSD hides; needs  +6.3 ms at kept 10 /  -1.1 at 12.6
+   HYB-MISS 4 + t3        1-call + tier merge: experts 13.4; chain at targets 35.6 ms -> kept 10:  281, kept 12.6:  354, kept 13.5:  379 tok/s if the SSD hides; needs  +7.0 ms at kept 10 /  -0.4 at 12.6
+
+== C. chat, per check (IFEval 3.7 rows, kept ~3 [K LIVE_read]): groups at ~4 rows [P: EXACT 16-row 77 -> 4-row ~30], chat bytes from NewIdeas' capture (IFEval / multi vs EXACT) ==
+-- joint C256+2 44.1GB (EXACT chat proxy = the replay's math column 44.9 MB per kept token at kept 6.2 per check)
+   EXACT                          experts 27.7 | MB/kept 44.9 | cycle  71.3 = chain 61.1 + exposed 10.3 ->   42 tok/s at kept 3; 350 needs kept >= 25.0 per check
+   OEA k8                         experts 17.4 | MB/kept 36.2 | cycle  53.3 = chain 45.0 + exposed  8.3 ->   56 tok/s at kept 3; 350 needs kept >= 18.6 per check
+   Q1-UNION 0.99                  experts 16.7 | MB/kept 40.6 | cycle  53.6 = chain 44.3 + exposed  9.3 ->   56 tok/s at kept 3; 350 needs kept >= 18.7 per check
+   Q1 0.9 (BETWEEN on chat)       experts 15.1 | MB/kept 36.8 | cycle  51.2 = chain 42.7 + exposed  8.4 ->   59 tok/s at kept 3; 350 needs kept >= 17.9 per check
+   HYB 0.9 u8 (BETWEEN on chat)   experts 15.1 | MB/kept 30.4 | cycle  49.7 = chain 42.7 + exposed  6.9 ->   60 tok/s at kept 3; 350 needs kept >= 17.4 per check
+-- M-17 C320 50.5GB (EXACT chat proxy = the replay's math column 29.4 MB per kept token at kept 6.2 per check)
+   EXACT                          experts 27.7 | MB/kept 29.4 | cycle  67.8 = chain 61.1 + exposed  6.7 ->   44 tok/s at kept 3; 350 needs kept >= 23.7 per check
+   OEA k8                         experts 17.4 | MB/kept 23.7 | cycle  50.4 = chain 45.0 + exposed  5.4 ->   60 tok/s at kept 3; 350 needs kept >= 17.6 per check
+   Q1-UNION 0.99                  experts 16.7 | MB/kept 26.6 | cycle  50.4 = chain 44.3 + exposed  6.1 ->   60 tok/s at kept 3; 350 needs kept >= 17.6 per check
+   Q1 0.9 (BETWEEN on chat)       experts 15.1 | MB/kept 24.1 | cycle  48.3 = chain 42.7 + exposed  5.5 ->   62 tok/s at kept 3; 350 needs kept >= 16.9 per check
+   HYB 0.9 u8 (BETWEEN on chat)   experts 15.1 | MB/kept 19.9 | cycle  47.3 = chain 42.7 + exposed  4.5 ->   63 tok/s at kept 3; 350 needs kept >= 16.5 per check

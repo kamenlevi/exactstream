@@ -1,0 +1,28 @@
+DAY9 Q1 / Q2 bytes (band45): cap45 humaneval_HumanEval_68 5, math500_test_prealgebra_1640 48, humaneval_HumanEval_91 25, math500_test_algebra_694 32, math500_test_algebra_1282 34, gsm8k_708 32 checks, 1115 kept tokens; router agreement 98.16 %; D-23 dfl checks code 74, math 156, chat 623, agent 147; C 256 per-layer sizes C_m 184-480, C_l 40-208; 6 seeds; load 0 s
+  seed 0: 384 replays, 3 s
+  seed 1: 384 replays, 6 s
+  seed 2: 384 replays, 9 s
+  seed 3: 384 replays, 12 s
+  seed 4: 384 replays, 15 s
+  seed 5: 384 replays, 18 s
+  code verified rows by drafter band: >= 0.999 39.9 %, 0.99-0.999 15.2 %, 0.9-0.99 15.1 %, < 0.9 28.1 %, no draft 1.7 %
+  math verified rows by drafter band: >= 0.999 26.2 %, 0.99-0.999 16.5 %, 0.9-0.99 23.6 %, < 0.9 32.6 %, no draft 1.1 %
+  EXACT check: 9.10 rows, expert union 5.30 GB per check; union growth at rows 6-10 460 MB per row -> GPU expert rate 174 GB/s at beta 2.64 ms
+  EXACT replay vs C50 engine, MB per kept token: HumanEval_68 186.3 / 94.2; test_prealgebra_1640 42.2 / 60.4; HumanEval_91 39.6 / 67.8; test_algebra_694 25.9 / 55.2; test_algebra_1282 20.3 / 37.2; 708 27.4 / 57.4
+
+  rule          | type | SSD reads per check (base + LSB)      | MB per kept token          | expert union GB per check | implied steady tok/s (SSD / +GPU)
+  EXACT         | code |  418.0 (220.3 + 197.7)   +0.0 % [+0.0, +0.0] |  86.9   +0.0 % [+0.0, +0.0] |  5.57   +0.0 % | 
+  EXACT         | math |  130.3 ( 58.6 + 71.8)   +0.0 % [+0.0, +0.0] |  29.6   +0.0 % [+0.0, +0.0] |  5.25   +0.0 % | 
+  EXACT         | all  |  179.4 ( 86.1 + 93.2)   +0.0 % [+0.0, +0.0] |  40.7   +0.0 % [+0.0, +0.0] |  5.30   +0.0 % | 63.6 / 63.6
+  Q1 0.9        | code |  311.3 (113.6 + 197.7)  -25.5 % [-26.4, -24.6] |  55.0  -36.7 % [-38.0, -35.3] |  3.22  -42.2 % | 
+  Q1 0.9        | math |  111.8 ( 40.1 + 71.8)  -14.2 % [-15.1, -13.3] |  23.1  -22.0 % [-23.4, -20.5] |  3.17  -39.5 % | 
+  Q1 0.9        | all  |  145.8 ( 52.6 + 93.2)  -18.7 % [-19.1, -17.8] |  29.3  -28.1 % [-28.7, -26.7] |  3.18  -40.0 % | 69.5 / 81.0
+  Q1 0.9 3b     | code |  202.7 (113.6 + 89.1)  -51.5 % [-53.1, -50.0] |  43.5  -50.0 % [-51.6, -48.3] |  2.94  -47.1 % | 
+  Q1 0.9 3b     | math |   82.3 ( 40.1 + 42.2)  -36.8 % [-37.7, -34.9] |  19.4  -34.5 % [-35.8, -32.4] |  2.96  -43.6 % | 
+  Q1 0.9 3b     | all  |  102.8 ( 52.6 + 50.2)  -42.7 % [-43.5, -40.9] |  24.1  -40.9 % [-41.7, -39.1] |  2.95  -44.3 % | 73.1 / 87.4
+  REACH 0.9 0.5 | code |  302.1 (104.4 + 197.7)  -27.7 % [-27.9, -27.4] |  52.3  -39.9 % [-40.1, -39.4] |  2.81  -49.5 % | 
+  REACH 0.9 0.5 | math |  106.6 ( 34.9 + 71.8)  -18.2 % [-18.7, -17.6] |  21.2  -28.2 % [-29.0, -27.3] |  2.71  -48.4 % | 
+  REACH 0.9 0.5 | all  |  139.9 ( 46.7 + 93.2)  -22.0 % [-22.4, -21.6] |  27.3  -33.0 % [-33.6, -32.5] |  2.72  -48.6 % | 70.5 / 85.5
+
+  per prompt (rule, prompt: MB per kept token vs EXACT, implied steady tok/s SSD-only):
+  total 20 s

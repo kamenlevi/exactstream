@@ -1,0 +1,26 @@
+B10(b) bench (Sun 10:30): trellis k=2 L=12 decode in the routed GLU, layer 24, MLX 0.32.2
+  bitstream self-test: window decode == encoder recurrence on 20 random tiles
+  pools: 512 experts, base 1.313 MB / expert, base + residual 2.627 MB (1 s)
+  routing: layer 24 router top-10 on 1024 captured tokens
+  3c pools loaded (records3 layer 24) (1 s)
+  S  4 (distinct  27.8) 3c 3333333333 (3-bit)                     : 0.264 ms / layer, 6.59 us / pair
+  S  4 (distinct  27.8) 3c 3333333333 + MLX combine               : 0.273 ms / layer, 6.83 us / pair
+  S  4 (distinct  27.8) 3c 4444444444 (4-bit)                     : 0.356 ms / layer, 8.89 us / pair
+  S  4 (distinct  27.8) 3c 4433333333 (today)                     : 0.285 ms / layer, 7.12 us / pair
+  S  4 (distinct  27.8) T code 0 base                             : 0.690 ms / layer, 17.25 us / pair
+  S  4 (distinct  27.8) T code 0 base + residual                  : 1.258 ms / layer, 31.45 us / pair
+  S  4 (distinct  27.8) T code 0 spec: residual on ranks 0-1      : 0.828 ms / layer, 20.70 us / pair
+  S  4 (distinct  27.8) T code 2 base                             : 0.346 ms / layer, 8.65 us / pair
+  S  4 (distinct  27.8) T code 2 base + residual                  : 0.598 ms / layer, 14.96 us / pair
+  S  4 (distinct  27.8) T code 2 spec: residual on ranks 0-1      : 0.423 ms / layer, 10.58 us / pair
+  S 16 (distinct  69.7) 3c 3333333333 (3-bit)                     : 0.914 ms / layer, 5.71 us / pair
+  S 16 (distinct  69.7) 3c 3333333333 + MLX combine               : 0.933 ms / layer, 5.83 us / pair
+  S 16 (distinct  69.7) 3c 4444444444 (4-bit)                     : 1.240 ms / layer, 7.75 us / pair
+  S 16 (distinct  69.7) 3c 4433333333 (today)                     : 0.983 ms / layer, 6.14 us / pair
+  S 16 (distinct  69.7) T code 0 base                             : 2.625 ms / layer, 16.41 us / pair
+  S 16 (distinct  69.7) T code 0 base + residual                  : 4.862 ms / layer, 30.39 us / pair
+  S 16 (distinct  69.7) T code 0 spec: residual on ranks 0-1      : 3.088 ms / layer, 19.30 us / pair
+  S 16 (distinct  69.7) T code 2 base                             : 1.257 ms / layer, 7.85 us / pair
+  S 16 (distinct  69.7) T code 2 base + residual                  : 2.229 ms / layer, 13.93 us / pair
+  S 16 (distinct  69.7) T code 2 spec: residual on ranks 0-1      : 1.522 ms / layer, 9.52 us / pair
+  done in 5 s

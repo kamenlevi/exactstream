@@ -1,0 +1,10 @@
+body w.p. 0.9: 300 streams x 400 events, every output, conv state and true recurrent state equal bit for bit
+   events: {'full': 35402, 'partial': 50959, 'rollback': 14526, 'abandon': 9805, 'ar': 14436, 'prefill': 9398, 'stockpath': 9573}
+   today: state reads 185485, writes 185485, replay kernels 50959, recurrence steps 1479856
+   lazy : state reads 165796, writes 165796, flush replays 26180, recurrence steps 1857199
+body w.p. 1.0: 300 streams x 400 events, every output, conv state and true recurrent state equal bit for bit
+   events: {'full': 35490, 'partial': 50963, 'rollback': 14450, 'abandon': 9553, 'ar': 14391, 'prefill': 9603, 'stockpath': 0}
+   today: state reads 185413, writes 185413, replay kernels 50963, recurrence steps 1485108
+   lazy : state reads 143237, writes 143237, flush replays 8787, recurrence steps 1856896
+check loop only (5000 16-row checks, 24 % full accepts): per check, today 1.75 state reads + 1.75 writes + 0.76 replay kernels, 22.1 recurrence steps; lazy 1.00 reads + 1.00 writes + 0.00 replay kernels, 26.0 steps
+PASS

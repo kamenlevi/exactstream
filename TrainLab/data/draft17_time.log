@@ -1,0 +1,36 @@
+DRAFT17 11-04 14:03: DFlash2 block pass, the engine's K83 path (draft_fused forms + chain_fused, head2s K 16); drafter L1-20 (mlx.core.bfloat16), fc in 12800, vocab 248320; loaded in 0 s; mlx 0.32.2; cache limit 256 MB
+  context 600 rows (+10 per call; 40 timed calls per arm after 5 warm):
+    R16   16 positions: median  11.11 ms (p10  10.67, p90  11.71); vs R16  +0.00 ms
+    R17   17 positions: median  19.64 ms (p10  18.95, p90  20.45); vs R16  +8.53 ms
+    R17g  17 positions: median  10.94 ms (p10  10.64, p90  11.55); vs R16  -0.16 ms
+    R32   32 positions: median  20.22 ms (p10  19.54, p90  20.87); vs R16  +9.11 ms
+    R32g  32 positions: median  11.07 ms (p10  10.71, p90  11.52); vs R16  -0.04 ms
+    sanity: R17 and R17g draft the same tokens in 100 % of calls
+    sanity: R32 and R32g draft the same tokens in 100 % of calls
+  context 1900 rows (+10 per call; 40 timed calls per arm after 5 warm):
+    R16   16 positions: median  12.23 ms (p10  11.75, p90  13.04); vs R16  +0.00 ms
+    R17   17 positions: median  20.88 ms (p10  20.43, p90  21.72); vs R16  +8.64 ms
+    R17g  17 positions: median  12.37 ms (p10  11.82, p90  12.96); vs R16  +0.14 ms
+    R32   32 positions: median  21.24 ms (p10  20.44, p90  21.95); vs R16  +9.01 ms
+    R32g  32 positions: median  12.30 ms (p10  11.73, p90  12.79); vs R16  +0.07 ms
+    sanity: R17 and R17g draft the same tokens in 100 % of calls
+    sanity: R32 and R32g draft the same tokens in 100 % of calls
+  mlx peak 2.48 GB; max RSS 2.29 GB; 8 s in all
+        8.96 real         1.69 user         3.15 sys
+          2462285824  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              214537  page reclaims
+                 363  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                3553  voluntary context switches
+               30232  involuntary context switches
+         43792914495  instructions retired
+         20003979778  cycles elapsed
+          3379137056  peak memory footprint

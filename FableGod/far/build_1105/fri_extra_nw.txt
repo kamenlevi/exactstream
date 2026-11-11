@@ -1,0 +1,26 @@
+# NEVER-WAIT (Fable FAR + ZERO, ~/FableGod/far/NEVERWAIT_TEST.md 2.7; ~/FableGod/far/build_1105/INSTALL.md): <arm> <est min> <start by HH:MM> <primary twin> <info twins...>
+# Lines for ~/Breakthrough/data/fri_extra.txt (before fri_c3.sh starts its runner) or s67_extra.txt (while a runner is up).
+# Needs install_nw.sh first: the runner leaves an arm that is not in dm_ablations.py waiting. 12 code windows each.
+# Tier 1 (the order matters: the twin first, then the self-check arm and the control, then the arms).
+qom_0_live_ball_c208+code 4 10:00 qom_0_live_ball+code
+# Self-check (i) on the real model; drop this line if nw_selfcheck.py already passed in its own slot.
+qom_0_live_ball_c208_nwz+code 4 10:00 qom_0_live_ball_c208+code
+# The control (and self-check ii): lateness 0, the split write alone. Keep it: nw1 against it is lateness itself.
+qom_0_live_ball_c208_nw0+code 4 10:00 qom_0_live_ball_c208+code
+qom_0_live_ball_c208_nw1+code 4 10:00 qom_0_live_ball_c208+code
+qom_0_live_ball_c208_nw1r1+code 4 10:00 qom_0_live_ball_c208+code qom_0_live_ball_c208_nw1+code
+qom_0_live_ball_nw1+code 4 10:00 qom_0_live_ball+code
+qom_0_split0.99_live_ball_nw1+code 4 10:00 qom_0_split0.99_live_ball+code qom_0_live_ball+code
+# Tier 1b, recommended if 4 more GPU minutes exist (uncomment): the same pair on 266 uniform slots, the engine's own
+# by-day base-pool exposure by ZERO's estimate (LOSSY350_ZERO.md 5d): it settles a "pass only at the low pool" outcome.
+#qom_0_live_ball_c266+code 4 10:00 qom_0_live_ball+code qom_0_live_ball_c208+code
+#qom_0_live_ball_c266_nw1+code 4 10:00 qom_0_live_ball_c266+code qom_0_live_ball_c208_nw1+code
+# Tier 2, if the night has room (uncomment): two layers late, late on cf >= 0.9 rows only, the stack at 208 slots (its
+# twin first), split 0.9 + nw1, then chat for nw1 and its twin (all 36 windows: no +code; ~6 min each).
+#qom_0_live_ball_c208_nw2+code 4 10:05 qom_0_live_ball_c208+code qom_0_live_ball_c208_nw1+code
+#qom_0_live_ball_c208_nw1s+code 4 10:05 qom_0_live_ball_c208+code qom_0_live_ball_c208_nw1+code
+#qom_0_split0.99_live_ball_c208+code 4 10:05 qom_0_live_ball_c208+code
+#qom_0_split0.99_live_ball_c208_nw1+code 4 10:05 qom_0_split0.99_live_ball_c208+code qom_0_live_ball_c208+code
+#qom_0_split0.9_live_ball_nw1+code 4 10:05 qom_0_split0.9_live_ball+code qom_0_live_ball+code
+#qom_0_live_ball_c208 6 10:05 qom_0_live_ball
+#qom_0_live_ball_c208_nw1 6 10:05 qom_0_live_ball_c208

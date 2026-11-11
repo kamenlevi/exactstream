@@ -1,0 +1,7 @@
+R-32: 628 real drafted checks on 24 samples in 40 s; accepted drafts 8.80 per check (tokens per check 9.80); data/r32_dump.npz
+  oracle stop (perfect predictor): token loss 0.0%, whole-check union cut 23.7%, pairs 29.1% (MoonShots' R-24: ~21 % / ~26 %)
+  layer 12: lens p(draft)           : tau 0 (fit half, <= 2 % loss) -> held-out half: token loss 0.0%, whole-check union cut 0.0%, pairs cut 0.0%
+  layer 12: probe (lens + drafter)  : tau 0.4264 (fit half, <= 2 % loss) -> held-out half: token loss 2.0%, whole-check union cut 11.1%, pairs cut 14.2%
+  layer 0: drafter p                : tau 0.0307 (fit half, <= 2 % loss) -> held-out half: token loss 1.6%, whole-check union cut 9.0%, pairs cut 12.1%
+  layer 0: probe (drafter)          : tau 0.4264 (fit half, <= 2 % loss) -> held-out half: token loss 2.1%, whole-check union cut 11.0%, pairs cut 14.1%
+R-32 verdict (PASS: layer-12 union cut >= 10 % at <= 2 % token loss AND >= 5 points over layer 0; KILL: < 5 % or no better than layer 0): BETWEEN (layer 12 11.1%, layer 0 11.0%; held-out losses within 2.5 %: True)

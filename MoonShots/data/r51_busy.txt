@@ -1,0 +1,31 @@
+(1) engine runs (b44 / b45, 4 prompts x 400 tokens each): per arm, per token
+  records3  busy 27.48 ms, gate wait 18.76 ms, rusage 353.1 MB, expert bytes 278.2 MB; reads: demand  56.0 (2-plane  0.0, full  0.0, upgrade  0.0), prefetch  62.8, sidecar 27.5
+  records3m busy 28.72 ms, gate wait 18.93 ms, rusage 342.1 MB, expert bytes 270.5 MB; reads: demand  53.9 (2-plane  0.0, full  0.0, upgrade  0.0), prefetch  68.5, sidecar 27.5
+  P         busy 26.84 ms, gate wait 17.84 ms, rusage 277.3 MB, expert bytes 205.6 MB; reads: demand  63.6 (2-plane 40.1, full 11.6, upgrade 11.9), prefetch  62.9, sidecar 25.6; prefetch read size inferred 1.56 MB
+  L         busy 27.10 ms, gate wait 17.64 ms, rusage 264.7 MB, expert bytes 193.1 MB; reads: demand  62.3 (2-plane 39.1, full 11.3, upgrade 11.9), prefetch  62.0, sidecar 11.9; prefetch read size inferred 1.57 MB
+  b45 non-expert rusage bytes per token (A arms) by prompt: p00_code4 59.3 MB, p01_prose4 49.9 MB, p02_edit4 87.7 MB, p03_math4 89.8 MB
+(2) models fit per prompt on the A / S arms (b44 A, S; b45 A), then P and L predicted out of sample
+  busy ~ per read + per byte    coef [9.690609e-05 4.902980e-11]  fit R2 0.848; P vs A measured -6.5 %, predicted -10.7 %; L vs A measured -5.6 %, predicted -18.4 %
+  busy ~ demand reads + bytes   coef [1.615802e-05 1.396321e-04 6.309165e-11]  fit R2 0.909; P vs A measured -6.5 %, predicted -17.0 %; L vs A measured -5.6 %, predicted -21.2 %
+  busy ~ bytes only             coef [1.017947e-10]  fit R2 0.837; P vs A measured -6.5 %, predicted -24.0 %; L vs A measured -5.6 %, predicted -28.6 %
+  busy ~ reads only             coef [0.000187]  fit R2 0.838; P vs A measured -6.5 %, predicted +1.5 %; L vs A measured -5.6 %, predicted -9.1 %
+  gw   ~ per read + per byte    coef [3.341814e-05 5.010390e-11]  fit R2 0.932; P vs A measured -5.8 %, predicted -17.1 %; L vs A measured -6.8 %, predicted -23.4 %
+  gw   ~ demand reads + bytes   coef [2.274868e-05 3.906364e-05 5.196193e-11]  fit R2 0.935; P vs A measured -5.8 %, predicted -18.4 %; L vs A measured -6.8 %, predicted -23.9 %
+  gw   ~ bytes only             coef [6.82999e-11]  fit R2 0.927; P vs A measured -5.8 %, predicted -24.0 %; L vs A measured -6.8 %, predicted -28.6 %
+  gw   ~ reads only             coef [0.000125]  fit R2 0.895; P vs A measured -5.8 %, predicted +1.5 %; L vs A measured -6.8 %, predicted -9.1 %
+  no busy model reproduces P and L within 2 points: STOP (no pricing), per the R-51 row; (3) and (4) below give read counts, bytes and KLD only (descriptive, no busy price)
+(3) replay (narrow path 4 / 3, C_m 159 / C_l 44), demand reads per token by size:
+  v3              full 46.69, 2-plane  0.00, upgrade  0.00 ( 0.0 % of 2-plane reads), LSB 19.27; rank >= 4 uses at 2 planes  0.0 %, rank-1 uses without the LSB  0.0 %
+  POM             full 11.02, 2-plane 35.67, upgrade  4.58 (12.8 % of 2-plane reads), LSB 19.27; rank >= 4 uses at 2 planes 22.2 %, rank-1 uses without the LSB  0.0 %
+  POM + LP1       full 11.02, 2-plane 35.67, upgrade  4.58 (12.8 % of 2-plane reads), LSB  8.46; rank >= 4 uses at 2 planes 22.2 %, rank-1 uses without the LSB 28.1 %
+  POM + VD        full  8.23, 2-plane 29.16, upgrade 13.85 (47.5 % of 2-plane reads), LSB 19.27; rank >= 4 uses at 2 planes 31.2 %, rank-1 uses without the LSB  0.0 %
+  POM + VD + LP1  full  8.23, 2-plane 29.16, upgrade 13.85 (47.5 % of 2-plane reads), LSB  8.46; rank >= 4 uses at 2 planes 31.2 %, rank-1 uses without the LSB 28.1 %
+  check: replay POM + LP1 scaled to the engine predicts sidecar reads 11.3 / token vs the L arm's measured 11.9
+  KLD slopes from the 3 harness runs (code / gsm / ifeval / multi): alpha [0.00163, 0.00397, 0.01394, 0.01681], beta [0.00088, 0.00143, 0.00544, 0.00327]
+(4) reads and bytes (no busy price) vs the M-01 default (b45 A: busy 28.72 ms / token measured); engine shares = b45's measured 31.0 % / 37.5 % x the replay's ratio to POM / POM + LP1
+  A (measured): reads  149.9 / token (demand  53.9, prefetch  68.5, sidecar  27.5), expert bytes  270.5 MB
+  POM             reads   +1.5 %, bytes  -23.9 % vs A (reads  152.1 / token: demand  63.6, prefetch  62.9, sidecar  25.6; expert bytes  205.8 MB); engine shares F 31.0 %, F1  0.0 % -> KLD 0.00223 / 0.00398 / 0.01799 / 0.01618 INSIDE (code 88 %)
+  POM + LP1       reads   -8.1 %, bytes  -27.8 % vs A (reads  137.7 / token: demand  63.6, prefetch  62.9, sidecar  11.3; expert bytes  195.4 MB); engine shares F 31.0 %, F1 37.5 % -> KLD 0.00256 / 0.00452 / 0.02003 / 0.01741 OVER on code, gsm
+  POM + VD        reads   +2.4 %, bytes  -30.9 % vs A (reads  153.4 / token: demand  77.4, prefetch  50.3, sidecar  25.6; expert bytes  186.8 MB); engine shares F 43.5 %, F1  0.0 % -> KLD 0.00243 / 0.00448 / 0.01973 / 0.01828 INSIDE (code 96 %)
+  POM + VD + LP1  reads   -7.2 %, bytes  -34.8 % vs A (reads  139.0 / token: demand  77.4, prefetch  50.3, sidecar  11.3; expert bytes  176.4 MB); engine shares F 43.5 %, F1 37.5 % -> KLD 0.00276 / 0.00501 / 0.02177 / 0.01950 OVER on code, gsm, ifeval
+  measured for reference: P -6.5 %, L -5.6 % SSD busy vs A (b45)

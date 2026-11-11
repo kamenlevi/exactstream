@@ -1,0 +1,47 @@
+== attention per 16-row check vs keys [K C0 at 200, R-81 above]; KV bytes read per check and their time at 280 GB/s [P]; FLOPs of the dense QK^T + PV at 16 rows x 24 heads x 256 [P] ==
+   keys |  att ms |     KV MB |   KV ms |   GFLOP |   TFLOPS
+    200 |     5.8 |       5.4 |    0.02 |     0.9 |      0.2
+   1000 |     9.0 |      27.0 |    0.10 |     4.7 |      0.5
+   2000 |    12.6 |      54.0 |    0.19 |     9.4 |      0.7
+   4000 |    16.1 |     108.0 |    0.39 |    18.9 |      1.2
+   8000 |    22.7 |     216.0 |    0.77 |    37.7 |      1.7
+  10000 |    24.3 |     270.0 |    0.96 |    47.2 |      1.9
+  16000 |    36.9 |     432.0 |    1.54 |    75.5 |      2.0
+  20000 |    37.2 |     540.0 |    1.93 |    94.4 |      2.5
+slope 2K -> 20K: 1.37 ms per 1K keys per check [P on K]
+
+== the check and tok/s vs keys (today's engine, warm numbers + the SSD term; code 16 rows kept 10.54, chat 6 rows kept 2.53) [P on K] ==
+   keys | code: check GPU ms, cycle, tok/s, att share | chat: check GPU, cycle, tok/s, att share
+    200 | GPU    85, cycle   172,  61.4 tok/s, att   7 % | GPU    59, cycle   109,  23.3 tok/s, att  10 %
+   1000 | GPU    88, cycle   175,  60.3 tok/s, att  10 % | GPU    62, cycle   112,  22.6 tok/s, att  14 %
+   2000 | GPU    92, cycle   178,  59.1 tok/s, att  14 % | GPU    66, cycle   115,  21.9 tok/s, att  19 %
+   4000 | GPU    95, cycle   182,  58.0 tok/s, att  17 % | GPU    69, cycle   119,  21.3 tok/s, att  23 %
+   8000 | GPU   102, cycle   188,  55.9 tok/s, att  22 % | GPU    76, cycle   126,  20.1 tok/s, att  30 %
+  10000 | GPU   103, cycle   190,  55.5 tok/s, att  24 % | GPU    77, cycle   127,  19.9 tok/s, att  31 %
+  16000 | GPU   116, cycle   203,  52.0 tok/s, att  32 % | GPU    90, cycle   140,  18.1 tok/s, att  41 %
+  20000 | GPU   116, cycle   203,  51.9 tok/s, att  32 % | GPU    90, cycle   140,  18.1 tok/s, att  41 %
+
+== where attention overtakes the experts (per check) [P on K]: att(N) = 5.82 + 1.37 x (N - 0.2K) / 1K ==
+  today 3c, 16 rows                experts   51 ms: attention equals it at ~33.2K keys
+  NAX6, 16 rows                    experts   43 ms: attention equals it at ~27.6K keys
+  floor-engine experts, 16 rows    experts   27 ms: attention equals it at ~15.7K keys
+  chat 6 rows today                experts   25 ms: attention equals it at ~14.2K keys
+  chat 6 rows at the floor         experts   13 ms: attention equals it at ~ 5.5K keys
+
+== the floor engine at long context (dense 23 EXACT / 17 FAST at 200 keys, experts 27, draft 5, SSD hidden; code kept 10.54 -> 12.5 with the override / pick; chat kept 2.53) [P] ==
+     200 keys EXACT: code cycle    65 ms ->   163 tok/s (kept 10.54) /   193 (12.5); chat cycle   48 ->  52.6 tok/s
+     200 keys  FAST: code cycle    59 ms ->   180 tok/s (kept 10.54) /   213 (12.5); chat cycle   42 ->  60.1 tok/s
+    1000 keys EXACT: code cycle    68 ms ->   155 tok/s (kept 10.54) /   184 (12.5); chat cycle   51 ->  49.3 tok/s
+    1000 keys  FAST: code cycle    62 ms ->   170 tok/s (kept 10.54) /   202 (12.5); chat cycle   45 ->  55.9 tok/s
+    2000 keys EXACT: code cycle    71 ms ->   147 tok/s (kept 10.54) /   175 (12.5); chat cycle   55 ->  46.1 tok/s
+    2000 keys  FAST: code cycle    65 ms ->   161 tok/s (kept 10.54) /   191 (12.5); chat cycle   49 ->  51.8 tok/s
+    4000 keys EXACT: code cycle    75 ms ->   141 tok/s (kept 10.54) /   167 (12.5); chat cycle   58 ->  43.3 tok/s
+    4000 keys  FAST: code cycle    69 ms ->   153 tok/s (kept 10.54) /   181 (12.5); chat cycle   52 ->  48.3 tok/s
+    8000 keys EXACT: code cycle    82 ms ->   129 tok/s (kept 10.54) /   153 (12.5); chat cycle   65 ->  38.9 tok/s
+    8000 keys  FAST: code cycle    76 ms ->   139 tok/s (kept 10.54) /   165 (12.5); chat cycle   59 ->  42.9 tok/s
+   10000 keys EXACT: code cycle    83 ms ->   127 tok/s (kept 10.54) /   150 (12.5); chat cycle   67 ->  38.0 tok/s
+   10000 keys  FAST: code cycle    77 ms ->   137 tok/s (kept 10.54) /   162 (12.5); chat cycle   61 ->  41.8 tok/s
+   16000 keys EXACT: code cycle    96 ms ->   110 tok/s (kept 10.54) /   131 (12.5); chat cycle   79 ->  32.0 tok/s
+   16000 keys  FAST: code cycle    90 ms ->   117 tok/s (kept 10.54) /   139 (12.5); chat cycle   73 ->  34.6 tok/s
+   20000 keys EXACT: code cycle    96 ms ->   110 tok/s (kept 10.54) /   130 (12.5); chat cycle   79 ->  31.8 tok/s
+   20000 keys  FAST: code cycle    90 ms ->   117 tok/s (kept 10.54) /   139 (12.5); chat cycle   73 ->  34.4 tok/s

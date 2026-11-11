@@ -1,0 +1,75 @@
+== tok/s on code, 16 vs 32 rows, by engine and kept pair [P on K; see the docstring for the terms] ==
+
+today (3c, C 256 day, SSD exposed 65)
+  cycle 16 rows 172 ms (dense 34, experts 51, SSD 65); 32 rows 272 ms (dense 44, experts 99, SSD 104): the 32-row check costs x1.59, so it pays iff kept32 / kept16 > 1.59
+    today's drafter 10.54 / 10.5                 16 rows   61.4 tok/s | 32 rows   38.5 | ratio 0.63 
+    + copy override 10.97 / 12.72 (HumanEval+)   16 rows   63.9 tok/s | 32 rows   46.6 | ratio 0.73 
+    DFlash3-XL 13 / 16                           16 rows   75.6 tok/s | 32 rows   58.6 | ratio 0.78 
+    MBPP-like 10.54 / 10.51                      16 rows   61.4 tok/s | 32 rows   38.6 | ratio 0.63 
+
+this week EXACT, NAX6, SSD exposed
+  cycle 16 rows 160 ms (dense 30, experts 43, SSD 65); 32 rows 235 ms (dense 40, experts 66, SSD 104): the 32-row check costs x1.47, so it pays iff kept32 / kept16 > 1.47
+    today's drafter 10.54 / 10.5                 16 rows   65.9 tok/s | 32 rows   44.7 | ratio 0.68 
+    + copy override 10.97 / 12.72 (HumanEval+)   16 rows   68.6 tok/s | 32 rows   54.1 | ratio 0.79 
+    DFlash3-XL 13 / 16                           16 rows   81.2 tok/s | 32 rows   68.0 | ratio 0.84 
+    MBPP-like 10.54 / 10.51                      16 rows   65.9 tok/s | 32 rows   44.8 | ratio 0.68 
+
+floor engine EXACT (dense 23 exp.), experts at the floor, night C 320 + runahead (hide 70 %, x0.65)
+  cycle 16 rows 77 ms (dense 23, experts 27, SSD 13); 32 rows 111 ms (dense 33, experts 41, SSD 20): the 32-row check costs x1.43, so it pays iff kept32 / kept16 > 1.43
+    today's drafter 10.54 / 10.5                 16 rows  136.1 tok/s | 32 rows   94.8 | ratio 0.70 
+    + copy override 10.97 / 12.72 (HumanEval+)   16 rows  141.6 tok/s | 32 rows  114.6 | ratio 0.81 
+    DFlash3-XL 13 / 16                           16 rows  167.4 tok/s | 32 rows  143.9 | ratio 0.86 
+    MBPP-like 10.54 / 10.51                      16 rows  136.1 tok/s | 32 rows   94.9 | ratio 0.70 
+
+floor engine EXACT at its floor (dense 19)
+  cycle 16 rows 73 ms (dense 19, experts 27, SSD 13); 32 rows 105 ms (dense 27, experts 41, SSD 20): the 32-row check costs x1.43, so it pays iff kept32 / kept16 > 1.43
+    today's drafter 10.54 / 10.5                 16 rows  143.6 tok/s | 32 rows  100.1 | ratio 0.70 
+    + copy override 10.97 / 12.72 (HumanEval+)   16 rows  149.4 tok/s | 32 rows  121.0 | ratio 0.81 
+    DFlash3-XL 13 / 16                           16 rows  176.5 tok/s | 32 rows  151.8 | ratio 0.86 
+    MBPP-like 10.54 / 10.51                      16 rows  143.6 tok/s | 32 rows  100.2 | ratio 0.70 
+
+floor engine FAST (dense 17 exp. with HC8)
+  cycle 16 rows 71 ms (dense 17, experts 27, SSD 13); 32 rows 103 ms (dense 25, experts 41, SSD 20): the 32-row check costs x1.44, so it pays iff kept32 / kept16 > 1.44
+    today's drafter 10.54 / 10.5                 16 rows  147.6 tok/s | 32 rows  102.0 | ratio 0.69 
+    + copy override 10.97 / 12.72 (HumanEval+)   16 rows  153.5 tok/s | 32 rows  123.3 | ratio 0.80 
+    DFlash3-XL 13 / 16                           16 rows  181.5 tok/s | 32 rows  154.7 | ratio 0.85 
+    MBPP-like 10.54 / 10.51                      16 rows  147.6 tok/s | 32 rows  102.1 | ratio 0.69 
+
+floor engine FAST at its floor (dense 15)
+  cycle 16 rows 69 ms (dense 15, experts 27, SSD 13); 32 rows 101 ms (dense 23, experts 41, SSD 20): the 32-row check costs x1.45, so it pays iff kept32 / kept16 > 1.45
+    today's drafter 10.54 / 10.5                 16 rows  151.8 tok/s | 32 rows  104.0 | ratio 0.69 
+    + copy override 10.97 / 12.72 (HumanEval+)   16 rows  158.0 tok/s | 32 rows  125.7 | ratio 0.80 
+    DFlash3-XL 13 / 16                           16 rows  186.7 tok/s | 32 rows  157.8 | ratio 0.85 
+    MBPP-like 10.54 / 10.51                      16 rows  151.8 tok/s | 32 rows  104.1 | ratio 0.69 
+
+floor engine FAST, SSD fully hidden (dense 15)
+  cycle 16 rows 57 ms (dense 15, experts 27, SSD 0); 32 rows 81 ms (dense 23, experts 41, SSD 0): the 32-row check costs x1.42, so it pays iff kept32 / kept16 > 1.42
+    today's drafter 10.54 / 10.5                 16 rows  185.7 tok/s | 32 rows  130.2 | ratio 0.70 
+    + copy override 10.97 / 12.72 (HumanEval+)   16 rows  193.2 tok/s | 32 rows  157.3 | ratio 0.81 
+    DFlash3-XL 13 / 16                           16 rows  228.2 tok/s | 32 rows  197.2 | ratio 0.86 
+    MBPP-like 10.54 / 10.51                      16 rows  185.7 tok/s | 32 rows  130.3 | ratio 0.70 
+
+floor engine EXACT (dense 23), the 32-row runahead hides 90 % vs 70 % at 16 rows [G]
+  cycle 16 rows 77 ms (dense 23, experts 27, SSD 13); 32 rows 95 ms (dense 31, experts 41, SSD 7): the 32-row check costs x1.23, so it pays iff kept32 / kept16 > 1.23
+    today's drafter 10.54 / 10.5                 16 rows  136.1 tok/s | 32 rows  110.1 | ratio 0.81 
+    + copy override 10.97 / 12.72 (HumanEval+)   16 rows  141.6 tok/s | 32 rows  133.0 | ratio 0.94 
+    DFlash3-XL 13 / 16                           16 rows  167.4 tok/s | 32 rows  166.8 | ratio 1.00 
+    MBPP-like 10.54 / 10.51                      16 rows  136.1 tok/s | 32 rows  110.2 | ratio 0.81 
+
+floor engine FAST (dense 17), the 32-row runahead hides 100 % vs 70 % at 16 rows [G]
+  cycle 16 rows 71 ms (dense 17, experts 27, SSD 13); 32 rows 83 ms (dense 25, experts 41, SSD 0): the 32-row check costs x1.16, so it pays iff kept32 / kept16 > 1.16
+    today's drafter 10.54 / 10.5                 16 rows  147.6 tok/s | 32 rows  127.0 | ratio 0.86 
+    + copy override 10.97 / 12.72 (HumanEval+)   16 rows  153.5 tok/s | 32 rows  153.5 | ratio 1.00 
+    DFlash3-XL 13 / 16                           16 rows  181.5 tok/s | 32 rows  192.4 | ratio 1.06 <- 32 wins
+    MBPP-like 10.54 / 10.51                      16 rows  147.6 tok/s | 32 rows  127.2 | ratio 0.86 
+
+== the crossover surface: the kept ratio kept32 / kept16 that a 32-row check needs, by dense ms and expert slope (floor engine, SSD 70 % hidden, night) [P] ==
+ dense D16 | slope 3.03 (3c) | slope 1.41 (NAX6) | slope 0.90 (floor) | slope 0.60 (below floor)
+        34 |             1.743 |             1.450 |             1.358 |             1.304
+        26 |             1.817 |             1.495 |             1.393 |             1.334
+        23 |             1.849 |             1.514 |             1.409 |             1.347
+        19 |             1.895 |             1.542 |             1.431 |             1.366
+        17 |             1.920 |             1.557 |             1.443 |             1.376
+        15 |             1.947 |             1.573 |             1.456 |             1.387
+        13 |             1.975 |             1.590 |             1.469 |             1.398
+read: the copy override gives 1.163 on HumanEval+ (1.211 / 1.041), 1.00 on MBPP, 1.004 on agent; DFlash3-XL would give 1.23.

@@ -1,0 +1,10 @@
+comment openers in the generated text of the 12 map windows (pre-state: code, no string): 43; the 125B's top-1 is the opener on 43
+with a non-comment token in the top-8: 24 (56 %); its rank: 1:24
+log-prob gap to the comment (nats): median -2.44, quartiles -3.81 / -1.22; within 1 nat 21 %, within 2.3 nats (p >= 0.1 p1) 50 %, below 4.6 nats (p < 0.01 p1) 17 %
+best non-comment token == the token the recorded text resumes with after the comment: 14 / 24 = 58 % (comment-only lines 14 / 23; inline comments 0 / 1)
+  example: opener ' #' | best non-comment ' for' | resume ' for' | gap -4.0 | comment-only line True
+  example: opener ' #' | best non-comment ' for' | resume ' for' | gap -0.62 | comment-only line True
+  example: opener ' #' | best non-comment ' prefix' | resume ' prefix' | gap -2.62 | comment-only line True
+  example: opener ' #' | best non-comment ' return' | resume ' return' | gap -5.88 | comment-only line True
+  example: opener ' #' | best non-comment ' avg' | resume ' avg' | gap -1.88 | comment-only line True
+  example: opener ' #' | best non-comment ' total' | resume ' avg' | gap -3.62 | comment-only line True

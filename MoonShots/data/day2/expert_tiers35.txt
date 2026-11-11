@@ -1,0 +1,17 @@
+4-bit reference: ppl 11.8614 over 2048 tokens
+path4                 : ppl 11.8013 (-0.51 %, dNLL -0.0051), agreement 0.9561  (harness check) (1s)
+msb3 all              : ppl 12.0461 (+1.56 %, dNLL +0.0154), agreement 0.8989  (3.5 bits/weight) (2s)
+mix4-msb3             : ppl 11.7605 (-0.85 %, dNLL -0.0085), agreement 0.9331   (2s)
+mix2-msb3             : ppl 11.8462 (-0.13 %, dNLL -0.0013), agreement 0.9272   (1s)
+mix4-msb2m            : ppl 11.9599 (+0.83 %, dNLL +0.0083), agreement 0.9082  (reference from expert_planes35: +1.02 %) (1s)
+mix4 fallback p=0.1   : ppl 12.0879 (+1.91 %, dNLL +0.0189), agreement 0.9019  (10 % of top-4 uses MSB-2) (1s)
+mix4 fallback p=0.25  : ppl 12.3042 (+3.73 %, dNLL +0.0366), agreement 0.8765  (25 % of top-4 uses MSB-2) (1s)
+msb1 all              : ppl 39.2041 (+230.52 %, dNLL +1.1955), agreement 0.4790  (1.5 bits/weight) (2s)
+T(4,6)                : ppl 12.2771 (+3.50 %, dNLL +0.0344), agreement 0.8691   (9s)
+T(4,4) mix4-msb1      : ppl 13.0041 (+9.63 %, dNLL +0.0920), agreement 0.8232   (2s)
+T(3,6)                : ppl 12.3050 (+3.74 %, dNLL +0.0367), agreement 0.8584   (2s)
+T(2,4)                : ppl 13.1896 (+11.20 %, dNLL +0.1061), agreement 0.8105   (2s)
+T(2,6)                : ppl 12.5453 (+5.77 %, dNLL +0.0561), agreement 0.8516   (2s)
+dense-msb3: 310 linears, 1.41 G weights at 3.5 instead of 4.5 bits
+dense-msb3            : ppl 13.3486 (+12.54 %, dNLL +0.1181), agreement 0.7881  (experts exact) (1s)
+dense-msb3 + mix4-msb2m: ppl 13.6765 (+15.30 %, dNLL +0.1424), agreement 0.7900   (1s)

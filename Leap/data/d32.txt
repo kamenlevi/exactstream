@@ -1,0 +1,57 @@
+D32 (Mon 10:01): dense part of an exact check, 32 rows vs 16, MLX 0.32.2, random weights at the 125B's shapes x per-check counts (cold); ms per check; 8 interleaved rounds x median of 5
+in_proj_qkv         10240x 2560 x 36 | floor  1.90 | 16: mma 16 ks1  2.259 ( 84%) | 32: mma mr2  2.945 ( 64%) | x1.31 (IQR 1.30-1.31) | 2x16 4.518 (4 s)
+    all arms: mma 16 ks1 2.259, mma 16 2.262, mma mr2 2.945, mlx 16 3.326, mma mg2 3.488, mlx 32 3.525, mma 2x16 3.824, mlx 2x16 6.151
+    mlx 32-row call = 2x16, pad-indep; mr2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2), (4, 1), (4, 2), (8, 1)]; best (1, 2) pad-indep; mg2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2), (4, 1), (4, 2), (8, 1)]; best (1, 2) pad-indep; mma 16 sweep best (2, 2) 2.239 ms
+o_proj+out_proj      2560x 6144 x 48 | floor  1.52 | 16: mma 16  1.923 ( 79%) | 32: mma mr2  2.600 ( 58%) | x1.36 (IQR 1.35-1.36) | 2x16 3.086 (5 s)
+    all arms: mma 16 1.923, mma 16 ks4 2.239, mma mr2 2.600, mma mg2 2.856, mma 2x16 3.086, mlx 16 7.395, mlx 32 7.678, mlx 2x16 14.300
+    mlx 32-row call = 2x16, pad-indep; mr2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2), (4, 1), (4, 2), (8, 1)]; best (4, 2) pad-indep; mg2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2), (4, 1), (4, 2), (8, 1)]; best (2, 2) pad-indep; mma 16 sweep best (2, 2) 1.943 ms
+lm_head            248320x 2560 x  1 | floor  1.28 | 16: mma 16  1.502 ( 85%) | 32: mma mr2  1.897 ( 67%) | x1.27 (IQR 1.26-1.28) | 2x16 2.772 (4 s)
+    all arms: mma 16 1.502, mma 16 ks1 1.504, mma mr2 1.897, mma mg2 2.209, mlx 16 2.222, mlx 32 2.279, mma 2x16 2.772, mlx 2x16 4.234
+    mlx 32-row call = 2x16, pad-indep; mr2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2), (4, 1), (4, 2), (8, 1)]; best (2, 2) pad-indep; mg2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2), (4, 1), (4, 2), (8, 1)]; best (1, 2) pad-indep; mma 16 sweep best (2, 1) 1.535 ms
+in_proj_z            6144x 2560 x 36 | floor  1.14 | 16: mma 16  1.480 ( 77%) | 32: mma mr2  2.018 ( 56%) | x1.36 (IQR 1.36-1.37) | 2x16 2.341 (4 s)
+    all arms: mma 16 1.480, mma 16 ks2 1.481, mma mr2 2.018, mma mg2 2.205, mma 2x16 2.341, mlx 16 5.549, mlx 32 5.565, mlx 2x16 11.259
+    mlx 32-row call = 2x16, pad-indep; mr2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2), (4, 1), (4, 2), (8, 1)]; best (2, 2) pad-indep; mg2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2), (4, 1), (4, 2), (8, 1)]; best (2, 2) pad-indep; mma 16 sweep best (1, 2) 1.472 ms
+q_proj              12288x 2560 x 12 | floor  0.76 | 16: mma 16 ks4  1.018 ( 75%) | 32: mma mr2  1.362 ( 56%) | x1.35 (IQR 1.30-1.36) | 2x16 2.036 (3 s)
+    all arms: mma 16 ks4 1.018, mma 16 1.050, mma 16 ks8 1.097, mma mr2 1.362, mlx 16 1.445, mlx 32 1.487, mma 2x16 1.531, mma mg2 1.607, mlx 2x16 2.556
+    mlx 32-row call = 2x16, pad-indep; mr2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2), (4, 1), (4, 2), (8, 1)]; best (4, 1) pad-indep; mg2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2), (4, 1), (4, 2), (8, 1)]; best (8, 1) pad-indep; mma 16 sweep best (1, 1) 1.534 ms
+shared gate/up        640x 2560 x 96 | floor  0.32 | 16: mma 16  0.863 ( 37%) | 32: mma mr2  1.060 ( 30%) | x1.21 (IQR 1.20-1.22) | 2x16 1.242 (3 s)
+    all arms: mma 16 0.863, mma 16 ks2 0.874, mma mr2 1.060, mma mg2 1.086, mma 2x16 1.242, mlx 16 1.784, mlx 2x16 3.125
+    mlx 32-row call != 2x16, pad-indep; mr2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2), (4, 1), (4, 2), (8, 1)]; best (1, 1) pad-indep; mg2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2), (4, 1), (4, 2), (8, 1)]; best (2, 2) pad-indep; mma 16 sweep best (1, 2) 1.884 ms
+shared down          2560x  640 x 48 | floor  0.16 | 16: mma 16 ks1  0.572 ( 28%) | 32: mma mr2  0.616 ( 26%) | x1.08 (IQR 1.06-1.10) | 2x16 1.144 (0 s)
+    all arms: mma 16 ks1 0.572, mma 16 0.573, mma mr2 0.616, mma mg2 0.634, mma 2x16 0.767, mlx 16 1.366, mlx 2x16 2.423
+    mlx 32-row call != 2x16, pad-indep; mr2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2)]; best (1, 2) pad-indep; mg2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2)]; best (1, 1) pad-indep; mma 16 sweep best (2, 2) 0.559 ms
+k/v_proj              512x 2560 x 24 | floor  0.06 | 16: mma 16  0.304 ( 21%) | 32: mma mr2  0.358 ( 18%) | x1.17 (IQR 1.16-1.20) | 2x16 0.463 (2 s)
+    all arms: mma 16 0.304, mma 16 ks1 0.305, mma mr2 0.358, mma mg2 0.367, mma 2x16 0.463, mlx 16 0.490, mlx 2x16 0.836
+    mlx 32-row call != 2x16, pad-indep; mr2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2), (4, 1), (4, 2), (8, 1)]; best (4, 1) pad-indep; mg2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2), (4, 1), (4, 2), (8, 1)]; best (1, 1) pad-indep; mma 16 sweep best (4, 2) 0.644 ms
+in_proj_a/b            48x 2560 x 72 | floor  0.02 | 16: mlx 16  0.376 (  5%) | 32: mlx 2x16  0.479 (  4%) | x1.27 (IQR 1.23-1.30) | 2x16 0.479 (0 s)
+    all arms: mlx 16 0.376, mlx 2x16 0.479
+    mlx 32-row call != 2x16, pad-indep
+shared_expert_gate      1x 2560 x 48 | floor  0.00 | 16: mlx 16  0.240 (  0%) | 32: mlx 2x16  0.267 (  0%) | x1.11 (IQR 1.10-1.12) | 2x16 0.267 (0 s)
+    all arms: mlx 16 0.240, mlx 2x16 0.267
+    mlx 32-row call != 2x16, pad-indep
+router gate           512x 2560 x 48 | floor  0.24 | 16: mlx 16  0.977 ( 24%) | 32: mlx 2x16  1.663 ( 14%) | x1.70 (IQR 1.67-1.73) | 2x16 1.663 (0 s)
+    all arms: mlx 16 0.977, mlx 2x16 1.663
+    mlx 32-row call != 2x16, pad-indep
+indexer qk            640x 2560 x 12 | floor  0.07 | 16: mlx 16  0.375 ( 20%) | 32: mlx 2x16  0.602 ( 12%) | x1.60 (IQR 1.59-1.66) | 2x16 0.602 (0 s)
+    all arms: mlx 16 0.375, mlx 2x16 0.602
+    mlx 32-row call != 2x16, pad-indep
+HC mix up           10240x  320 x 97 | floor  2.27 | 16: mlx c 16  2.623 ( 87%) | 32: mlx c 32  2.760 ( 82%) | x1.06 (IQR 1.05-1.06) | 2x16 3.555 (3 s)
+    all arms: mlx c 16 2.623, mma 16 2.690, mlx c 32 2.760, mma mr2 2.816, mlx b 16 3.048, mma mg2 3.054, mlx a 16 3.055, mlx b 32 3.174, mlx a 32 3.209, mlx c 2x16 3.555, mlx a 2x16 3.891, mma 2x16 3.939, mlx b 2x16 4.032
+    mlx a 32-row call = 2x16, pad-indep; mlx b 32-row call = 2x16, pad-indep; mlx c 32-row call = 2x16, pad-indep; mr2 bitwise = 2x16 at [(1, 1), (1, 2), (5, 1), (5, 2)]; best (5, 2) pad-indep; mg2 bitwise = 2x16 at [(1, 1), (1, 2), (5, 1), (5, 2)]; best (5, 2) pad-indep; mma 16 sweep best (5, 1) 2.676 ms
+HC mix down           320x10240 x 97 | floor  2.27 | 16: mma 16  2.578 ( 88%) | 32: mma mr2  2.641 ( 86%) | x1.02 (IQR 0.99-1.03) | 2x16 3.758 (4 s)
+    all arms: mma 16 2.578, mma 16 ks1 2.612, mma mr2 2.641, mma mg2 2.737, mma 2x16 3.758, mlx c 32 4.656, mlx b 16 5.266, mlx b 32 5.269, mlx c 16 5.341, mlx a 32 5.344, mlx a 16 5.886, mlx b 2x16 9.470, mlx c 2x16 10.243, mlx a 2x16 10.436
+    mlx a 32-row call = 2x16, pad-indep; mlx b 32-row call = 2x16, pad-indep; mlx c 32-row call = 2x16, pad-indep; mr2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2), (4, 1), (4, 2), (5, 1), (5, 2), (8, 1), (8, 2), (10, 1)]; best (10, 1) pad-indep; mg2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2), (4, 1), (4, 2), (5, 1), (5, 2), (8, 1), (8, 2), (10, 1)]; best (1, 2) pad-indep; mma 16 sweep best (10, 1) 2.564 ms
+ple key             10240x 2560 x  1 | floor  0.19 | 16: mma 16 ks1  0.357 ( 52%) | 32: mma mr2  0.356 ( 53%) | x1.01 (IQR 0.98-1.02) | 2x16 0.714 (3 s)
+    all arms: mma mr2 0.356, mma 16 ks1 0.357, mma 16 0.359, mma mg2 0.366, mlx c 32 0.381, mlx c 16 0.405, mlx b 32 0.443, mlx b 16 0.446, mlx a 16 0.455, mlx a 32 0.459, mma 2x16 0.541, mlx c 2x16 0.542, mlx a 2x16 0.677, mlx b 2x16 0.736
+    mlx a 32-row call = 2x16, pad-indep; mlx b 32-row call = 2x16, pad-indep; mlx c 32-row call = 2x16, pad-indep; mr2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2), (4, 1), (4, 2), (5, 1), (5, 2), (8, 1), (8, 2), (10, 1)]; best (1, 2) pad-indep; mg2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2), (4, 1), (4, 2), (5, 1), (5, 2), (8, 1), (8, 2), (10, 1)]; best (1, 1) pad-indep; mma 16 sweep best (5, 2) 0.332 ms
+ple value            2560x 2560 x  1 | floor  0.05 | 16: mma 16 ks2  0.192 ( 24%) | 32: mma mg2  0.192 ( 24%) | x1.01 (IQR 1.01-1.04) | 2x16 0.385 (3 s)
+    all arms: mma mg2 0.192, mma 16 ks2 0.192, mma 16 0.193, mma mr2 0.197, mlx b 16 0.208, mlx b 32 0.212, mlx c 32 0.212, mlx b 2x16 0.212, mlx a 32 0.217, mlx a 16 0.223, mma 2x16 0.225, mlx c 16 0.227, mlx a 2x16 0.228, mlx c 2x16 0.234
+    mlx a 32-row call = 2x16, pad-indep; mlx b 32-row call = 2x16, pad-indep; mlx c 32-row call = 2x16, pad-indep; mr2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2), (4, 1), (4, 2), (5, 1), (5, 2), (8, 1), (8, 2), (10, 1)]; best (2, 2) pad-indep; mg2 bitwise = 2x16 at [(1, 1), (1, 2), (2, 1), (2, 2), (4, 1), (4, 2), (5, 1), (5, 2), (8, 1), (8, 2), (10, 1)]; best (2, 2) pad-indep; mma 16 sweep best (4, 1) 0.314 ms
+block_inject            4x10240 x 96 | floor  0.03 | 16: mlx b 16  0.321 (  9%) | 32: mlx b 32  0.370 (  8%) | x1.15 (IQR 1.14-1.16) | 2x16 0.602 (1 s)
+    all arms: mlx b 16 0.321, mlx b 32 0.370, mlx b 2x16 0.602, mlx a 32 2.947, mlx c 32 3.375, mlx a 16 3.762, mlx c 16 4.223, mlx a 2x16 5.812, mlx c 2x16 7.079
+    mlx a 32-row call = 2x16, pad-indep; mlx b 32-row call = 2x16, pad-indep; mlx c 32-row call = 2x16, pad-indep
+TOTAL dense per check: floor 12.3 ms | best exact 16 rows 17.96 ms | best exact 32 rows 22.19 ms | R = 1.24 (two 16-row calls: 1.65)
+  dense ms per token: block 16 at 9.38 tokens 1.91 | block 32 at oracle 15.0 1.48 (-23%)
+  dense ms per token: block 16 at 9.38 tokens 1.91 | block 32 at L1-20 drafter 10.51 2.11 (+10%)
+  D32 lines (pre-registered): PASS (dense stays near its 16-row cost) R <= 1.25; KILL R >= 1.60; between: alive, priced
+done in 41 s

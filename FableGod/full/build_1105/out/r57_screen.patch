@@ -1,0 +1,49 @@
+--- a/scripts/r57_screen.py
++++ b/scripts/r57_screen.py
+@@ -395,6 +395,10 @@
+ _MATH = re.compile(r"\\boxed|\\frac|\\sqrt|\$[^$]+\$|\b(solve|compute|calculate|how many|how much|what is the (sum|product|value|area|probability))\b"
+                    r"|\d+\s*[-+*/^=]\s*\d+", re.I)   # switch, R57_COPY, R57_D7B=code, R57_CHATROWS and R57_FAST all ask it
+ _TOOLS = re.compile(r"<tools>|\"type\":\s*\"function\"|tool_call|<function|\bfunctions?\b.*\bparameters\b", re.I | re.S)
++NOCOM = os.environ.get("R57_NOCOM") == "1"              # R57_NOCOM (Fable FULL's LOSSY350 T-B1; ~/FableGod/full/build_1105/
++NOCOM_END = _TKZ.token_to_id("<|im_end|>")              # INSTALL.md): the comment-free code mode's PROMPT form. On the humaneval
++NOCOM_IDS = _TKZ.encode("\n\nDo not write comments in the code.", add_special_tokens=False).ids if NOCOM else []   # set one
++assert not NOCOM or (NOCOM_END is not None and NOCOM_IDS), "R57_NOCOM: the tokenizer"   # sentence joins the end of the user turn
+ def rule(item):
+     full = item.get("prompt") or _TKZ.decode(item["prompt_ids"], skip_special_tokens=False)
+     user = item.get("user") or full
+@@ -585,6 +589,13 @@
+             BG.ext.set_prior(sw._bm["L"], z[k][L].astype(np.float32).tolist())
+     return k
+ 
++CPROBE = None                                            # R57_COPYPROBE (Fable FULL's LOSSY350 T-A1; ~/FableGod/full/build_1105/
++if os.environ.get("R57_COPYPROBE"):                      # INSTALL.md): rolled-back timing passes over copied rows (copyprobe.py,
++    import importlib.util as _ilu_cp                     # loaded by path; it wraps the MoE block for calls > 16 rows while a probe
++    _sp_cp = _ilu_cp.spec_from_file_location("copyprobe", os.path.expanduser(   # pass is being built, and only then)
++        os.environ.get("R57_COPYPROBE_PY", "~/FableGod/full/build_1105/copyprobe.py")))
++    CPROBE = _ilu_cp.module_from_spec(_sp_cp); _sp_cp.loader.exec_module(CPROBE)
++    CPROBE.install(globals())
+ def set_arm(arm):                                        # gate+t+pf (R-57 at 45 GB, the orchestrator 11-02 21:4x): the t cut
+     BS.GATE_N[0] = 40 if arm == "slot" else 160          # + the ranked L+1 look-ahead (the tier path posts L+1's preds)
+     BS._PF_RANKED = arm in ("gate+pf", "gate+t+pf")
+@@ -1076,6 +1087,11 @@
+             WSPL.append(smp)
+             s0, b0_ = stats(), disk_read_bytes()         # the real check below (warm now) commits as always
+             c1 = time.perf_counter()
++        if CPROBE is not None and not mtp:               # R57_COPYPROBE: nothing is committed (every pass is rolled back). The
++            _cpd = CPROBE.maybe(globals(), locals())     # probe's time leaves the cycle / decode clocks; the real check's
++            c0 += _cpd; c_prev += _cpd; td += _cpd       # counters start after it
++            s0, b0_ = stats(), disk_read_bytes()
++            c1 = time.perf_counter()
+         wsf_.append(int(bool(wsp)))
+         snap = CS.snapshot_untrimmable_cache_lazy(cache)
+         if not mtp:
+@@ -1256,6 +1272,9 @@
+ for n_p, (s, key) in enumerate(PICK):
+     it = next(x for x in ED.load("dec_" + s) if x["key"] == key)
+     ids, want = list(it["prompt_ids"]), REFROWS.get(key, {}).get("completion_ids", [])
++    if NOCOM and s == "humaneval":                       # R57_NOCOM: before the user turn's <|im_end|> (the prompt's last one)
++        _j = len(ids) - 1 - ids[::-1].index(NOCOM_END)
++        ids, want = ids[:_j] + NOCOM_IDS + ids[_j:], []  # the stored REF2 row belongs to the unchanged prompt
+     typ = rule(it) if (CHATSW or COPY or DRAFT4 is not None or CHATROWS or CHATTRUNC or FAST) else ""
+     drafter = "mtp" if CHATSW and typ == "chat" else "dfl"   # the chat switch; without R57_CHATSW every prompt drafts on DFlash2
+     draft = DRAFT4 if DRAFT4 is not None and typ == "code" else DRAFT16   # D7B=code: code prompts draft on the 4-bit drafter

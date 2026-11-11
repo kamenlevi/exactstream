@@ -1,0 +1,8 @@
+PRE-REGISTERED Sun 25 Oct 07:10 (MoonShots, 3B engine prerequisites; NewIdeas: kill / warn if prefix reads < 85 % of
+full-read GB/s or the 2-bit path > 5 % slower per pair):
+(1) records3 stores MSB-3 as a packed 3-bit stream (value i at bits 3i..3i+2): MSB-2 is NOT a prefix; a planar repack is
+    needed (records4's P2 part = the first 1,540,096 B of a records4 record; or a P2-only side store). Prediction for the
+    microbench (cold F_NOCACHE preads, loader pattern): P2 1.54 MB reads >= 90 % of MSB-3 2.16 MB GB/s at QD >= 4,
+    85-95 % at QD 1-2; fixed cost per call ~0.05-0.15 ms.
+(2) 2-bit kernel (records4 tierglu4 tier 2) vs 3c's 3-bit path, same rows, M = 4 / 8: per pair 0 to -8 % (2-bit not
+    slower); estimate from Wednesday's bench algebra: ~7.2 vs ~7.75 us/pair at M = 4, ~6.7 vs ~6.8 at M = 8.

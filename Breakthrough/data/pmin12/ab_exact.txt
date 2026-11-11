@@ -1,0 +1,36 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=17.6 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 15M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.20 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: engine v3o, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.20 GB, active 9.33 GB
+[pmin12_exact] arms (0.0, 0.3, 0.5, 0.0) | bt_b12 31e4333196 engine /Users/kamen/Breakthrough/v3o mode exact | stock MTP head | load 2.0 s | footprint 9.670 GB, lifetime 9.670
+[mtplx] verify SDPA head-chunked: q_len=27 heads_per_chunk=1 chunks=24
+[pmin12] ifeval/3091 p_min 0.0 RESULT 192 tok, 74 passes, 3.93 rows / pass, 2.595 tok / pass | decode 19.47 s = 9.86 tok/s | first diff vs run 0: None | lifetime 10.465 GB
+[pmin12] ifeval/3091 p_min 0.3 RESULT 178 tok, 72 passes, 3.32 rows / pass, 2.472 tok / pass | decode 16.16 s = 11.01 tok/s | first diff vs run 0: 36 | lifetime 10.488 GB
+[pmin12] ifeval/3091 p_min 0.5 RESULT 192 tok, 84 passes, 2.76 rows / pass, 2.286 tok / pass | decode 20.34 s = 9.44 tok/s | first diff vs run 0: 36 | lifetime 10.488 GB
+[pmin12] ifeval/3091 p_min 0.0 RESULT 192 tok, 74 passes, 3.93 rows / pass, 2.595 tok / pass | decode 62.12 s = 3.09 tok/s | first diff vs run 0: None | lifetime 10.488 GB
+[pmin12] ifeval/1051 p_min 0.0 RESULT 93 tok, 40 passes, 4.00 rows / pass, 2.325 tok / pass | decode 8.92 s = 10.43 tok/s | first diff vs run 0: None | lifetime 10.488 GB
+[pmin12] ifeval/1051 p_min 0.3 RESULT 69 tok, 32 passes, 3.34 rows / pass, 2.156 tok / pass | decode 6.88 s = 10.02 tok/s | first diff vs run 0: 16 | lifetime 10.488 GB
+[pmin12] ifeval/1051 p_min 0.5 RESULT 69 tok, 33 passes, 2.70 rows / pass, 2.091 tok / pass | decode 3.98 s = 17.33 tok/s | first diff vs run 0: 16 | lifetime 10.510 GB
+[pmin12] ifeval/1051 p_min 0.0 RESULT 93 tok, 40 passes, 4.00 rows / pass, 2.325 tok / pass | decode 5.88 s = 15.81 tok/s | first diff vs run 0: None | lifetime 10.510 GB
+[pmin12] multi/zh15 p_min 0.0 RESULT 192 tok, 111 passes, 3.97 rows / pass, 1.730 tok / pass | decode 17.52 s = 10.96 tok/s | first diff vs run 0: None | lifetime 10.510 GB
+[pmin12] multi/zh15 p_min 0.3 RESULT 192 tok, 114 passes, 3.14 rows / pass, 1.684 tok / pass | decode 14.23 s = 13.49 tok/s | first diff vs run 0: 44 | lifetime 10.510 GB
+[pmin12] multi/zh15 p_min 0.5 RESULT 192 tok, 118 passes, 2.47 rows / pass, 1.627 tok / pass | decode 13.32 s = 14.41 tok/s | first diff vs run 0: 22 | lifetime 10.510 GB
+[pmin12] multi/zh15 p_min 0.0 RESULT 192 tok, 111 passes, 3.97 rows / pass, 1.730 tok / pass | decode 16.08 s = 11.94 tok/s | first diff vs run 0: None | lifetime 10.510 GB
+[pmin12] multi/ja18 p_min 0.0 RESULT 127 tok, 75 passes, 4.00 rows / pass, 1.693 tok / pass | decode 11.19 s = 11.35 tok/s | first diff vs run 0: None | lifetime 10.510 GB
+[pmin12] multi/ja18 p_min 0.3 RESULT 128 tok, 78 passes, 2.55 rows / pass, 1.641 tok / pass | decode 9.08 s = 14.10 tok/s | first diff vs run 0: 104 | lifetime 10.510 GB
+[pmin12] multi/ja18 p_min 0.5 RESULT 128 tok, 78 passes, 2.15 rows / pass, 1.641 tok / pass | decode 8.55 s = 14.98 tok/s | first diff vs run 0: 104 | lifetime 10.510 GB
+[pmin12] multi/ja18 p_min 0.0 RESULT 127 tok, 75 passes, 4.00 rows / pass, 1.693 tok / pass | decode 11.53 s = 11.02 tok/s | first diff vs run 0: None | lifetime 10.510 GB
+[pmin12] gsm8k/708 p_min 0.0 RESULT 192 tok, 53 passes, 4.00 rows / pass, 3.623 tok / pass | decode 10.23 s = 18.77 tok/s | first diff vs run 0: None | lifetime 10.735 GB
+[pmin12] gsm8k/708 p_min 0.3 RESULT 192 tok, 53 passes, 4.00 rows / pass, 3.623 tok / pass | decode 11.15 s = 17.22 tok/s | first diff vs run 0: None | lifetime 10.736 GB
+[pmin12] gsm8k/708 p_min 0.5 RESULT 192 tok, 53 passes, 3.92 rows / pass, 3.623 tok / pass | decode 10.96 s = 17.52 tok/s | first diff vs run 0: None | lifetime 10.736 GB
+[pmin12] gsm8k/708 p_min 0.0 RESULT 192 tok, 53 passes, 4.00 rows / pass, 3.623 tok / pass | decode 10.30 s = 18.65 tok/s | first diff vs run 0: None | lifetime 10.736 GB
+[pmin12] SUMMARY chat: p_min 0.0 7.91 tok/s (+0.0 %); p_min 0.3 12.23 tok/s (+54.6 %); p_min 0.5 12.58 tok/s (+59.0 %) | runs equal to run 0: {0.0: 4, 0.3: 0, 0.5: 0}
+[pmin12] SUMMARY math: p_min 0.0 18.71 tok/s (+0.0 %); p_min 0.3 17.22 tok/s (-8.0 %); p_min 0.5 17.52 tok/s (-6.4 %) | runs equal to run 0: {0.0: 1, 0.3: 1, 0.5: 1}
+[pmin12] SUMMARY all: p_min 0.0 9.19 tok/s (+0.0 %); p_min 0.3 13.20 tok/s (+43.6 %); p_min 0.5 13.53 tok/s (+47.2 %) | runs equal to run 0: {0.0: 5, 0.3: 1, 0.5: 1}
+[pmin12] done, lifetime 10.736 GB

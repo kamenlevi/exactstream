@@ -1,0 +1,14 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=28.2 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+CA r11: 12 layers resident (GGGAGGGAGGGA), 18.5 GB active, loaded in 2 s, pid 70273
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (826228 > 262144). Running this sequence through the model will result in indexing errors
+R-11: 12-layer slice (GGGAGGGAGGGA) + DFlash2 drafter (L1-20, block 16); 16-row checks, keep fixed at 10; context features 12800 wide; 20.5 GB active
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  exactness: the draft on the second stream == the default stream: True
+  5 rounds x 8 cycles per arm kept (0 dropped), 6 s; commits landed True; context now 2324 tokens, drafter cache 1410
+  per-cycle wall (median of rounds; 12 layers + the drafter): SB 50.56 ms [min 49.49], G1 51.77 ms [min 49.47], D 51.66 ms [min 49.94]
+  paired: SB - G1 -0.06, G1 - D 0.06, SB - D -1.10 ms per cycle
+D-COMMIT verdict (PASS D >= 0.6 ms per cycle faster than G1 at 12 layers, KILL < 0.2): KILL (0.06 ms; ~0.2 ms at 48 layers for the per-layer commit part)

@@ -1,0 +1,1 @@
+/Users/kamen/FableGod/decision_map/to2bit.py

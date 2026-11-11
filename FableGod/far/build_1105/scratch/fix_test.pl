@@ -1,0 +1,12 @@
+s/D, HC, NL, E, K, I = 32, 4, int\(os\.environ\.get\("NW_TEST_LAYERS", "48"\)\), 64, 10, 24\n/D, HC, NL, E, K, I = 32, 4, int(os.environ.get("NW_TEST_LAYERS", "48")), 64, 10, 24\nDTN = os.environ.get("NW_TEST_DTYPE", "float64")               # float64 (MLX CPU only): 48 random layers amplify float32 rounding\nDT, NPDT = getattr(mx, DTN), getattr(np, DTN)                   # noise ~5,000 x, which would blur "harness == reference"\n/;
+s/for L in layers: mx\.eval\(L\.parameters\(\)\)\n/from mlx.utils import tree_map\nfor L in layers:\n    L.update(tree_map(lambda p_: p_.astype(DT), L.parameters())); mx.eval(L.parameters())\n/;
+s/h = np\.random\.RandomState\(1\)\.randn\(N, D\)\.astype\(np\.float32\)/h = np.random.RandomState(1).randn(N, D).astype(NPDT)/;
+s/TOL = 1e-4\n/TOL = 1e-9 if DTN == "float64" else 1e-4; LPT = max(10 * TOL, 5e-6)   # log-probs are stored as float32\n/;
+s/EMB = np\.random\.RandomState\(5\)\.randn\(100, D\)\.astype\(np\.float32\); HEAD = mx\.array\(np\.random\.RandomState\(6\)\.randn\(HC \* D, 50\)\.astype\(np\.float32\) \* 0\.05\)/EMB = np.random.RandomState(5).randn(100, D).astype(NPDT); HEAD = mx.array(np.random.RandomState(6).randn(HC * D, 50).astype(NPDT) * 0.05)/;
+s/and d0 < 1e-3 and "WARNING" not in out_0/and d0 < LPT and "WARNING" not in out_0/;
+s/ok\(good and dref < 1e-3, /ok(good and dref < LPT, /;
+s/ok\(dt > 20 \* max\(dref, 1e-6\), /ok(dt > 20 * max(dref, LPT), /;
+s/\(relative error \{e0:\.1e\}; float32 here, bf16 rounding on the 125B\)/(relative error {e0:.1e}; {DTN} here, bf16 rounding on the 125B)/;
+s/f"\(answer from \{a\}\) in chunks \{CH\}; late flags:/f"(answer from {a}) in chunks {CH}, {DTN}; late flags:/;
+s/__call__, Q\.GatedResidual, Q\.SparseMoeBlock, Q\._hyper_residual_write\) at 32 dims, float32, on MLX.s CPU device, run/__call__, Q.GatedResidual, Q.SparseMoeBlock, Q._hyper_residual_write) at 32 dims, float64, on MLX\x27s CPU device, run/;
+s/  C\. self-check \(ii\): lateness 0 == the twin up to the order of two adds \(float32: relative error < 1e-4\);/  C. self-check (ii): lateness 0 == the twin up to the order of two adds (float64: relative error < 1e-9);/;

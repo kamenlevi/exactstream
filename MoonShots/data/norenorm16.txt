@@ -1,0 +1,20 @@
+M-09c NORENORM: per-row top-k renormalized vs not; layers [2, 12, 24, 36, 46]; in sample (1024, 2048), out of sample (6144, 8192); shared GPU, rough
+  layer  2 done (2 s)
+  layer 12 done (4 s)
+  layer 24 done (5 s)
+  layer 36 done (7 s)
+  layer 46 done (9 s)
+== in of sample: per-row top-8 renormalized block error 0.0259
+  k 4: union  36.4; renorm 0.3327 (12.87x top-8-renorm's); no-renorm 0.1021 (3.95x)
+  k 5: union  43.5; renorm 0.1819 (7.04x top-8-renorm's); no-renorm 0.0678 (2.62x)
+  k 6: union  50.5; renorm 0.0994 (3.85x top-8-renorm's); no-renorm 0.0448 (1.73x)
+  k 7: union  57.2; renorm 0.0529 (2.05x top-8-renorm's); no-renorm 0.0289 (1.12x)
+  k 8: union  63.6; renorm 0.0259 (1.00x top-8-renorm's); no-renorm 0.0172 (0.67x)
+== out of sample: per-row top-8 renormalized block error 0.0259
+  k 4: union  34.9; renorm 0.3058 (11.82x top-8-renorm's); no-renorm 0.0932 (3.60x)
+  k 5: union  41.7; renorm 0.1715 (6.63x top-8-renorm's); no-renorm 0.0643 (2.48x)
+  k 6: union  48.4; renorm 0.0968 (3.74x top-8-renorm's); no-renorm 0.0441 (1.71x)
+  k 7: union  54.9; renorm 0.0525 (2.03x top-8-renorm's); no-renorm 0.0288 (1.11x)
+  k 8: union  61.0; renorm 0.0259 (1.00x top-8-renorm's); no-renorm 0.0172 (0.66x)
+Lines (out of sample): top-7 no-renorm 1.11x top-8-renorm's (PASS <= 1.00); top-8 no-renorm 0.66x (KILL >= 0.90) -> BETWEEN
+(9 s)

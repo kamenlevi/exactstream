@@ -1,0 +1,192 @@
+{
+ "rows": [
+  {
+   "arm": "B",
+   "set": "ifeval",
+   "n_runs": 12,
+   "n_keys": 12,
+   "passes": [
+    1
+   ],
+   "whole": 14.214857587288149,
+   "whole_pass": [
+    14.214857587288149
+   ],
+   "pooled": 14.421031696839055,
+   "client_decode": 14.198778512389413,
+   "e2e": 9.696235822091422,
+   "prefill_engine": 21.976303576278728,
+   "prefill_pooled": 21.83822816255401,
+   "prefill_p_over_ttft": 21.294866767266008,
+   "ttft_med": 2.784082531929016,
+   "ttft_mean": 2.7368622024854026,
+   "tokens_task": 118.0,
+   "stops": 9,
+   "drafts": [
+    648,
+    959
+   ],
+   "ar": [
+    1,
+    12
+   ],
+   "ar_first_diff_median": 4.0
+  },
+  {
+   "arm": "B",
+   "set": "all",
+   "n_runs": 12,
+   "n_keys": 12,
+   "passes": [
+    1
+   ],
+   "whole": 14.214857587288149,
+   "whole_pass": [
+    14.214857587288149
+   ],
+   "pooled": 14.421031696839055,
+   "client_decode": 14.198778512389413,
+   "e2e": 9.696235822091422,
+   "prefill_engine": 21.976303576278728,
+   "prefill_pooled": 21.83822816255401,
+   "prefill_p_over_ttft": 21.294866767266008,
+   "ttft_med": 2.784082531929016,
+   "ttft_mean": 2.7368622024854026,
+   "tokens_task": 118.0,
+   "stops": 9,
+   "drafts": [
+    648,
+    959
+   ]
+  }
+ ],
+ "processes": {
+  "B1": {
+   "arm": "B",
+   "pas": 1,
+   "rc": 0,
+   "done": true,
+   "peak_gb": 14.19437712,
+   "rss_gb": 12.852609024,
+   "arena_gb": 3.37,
+   "slots": 1728,
+   "wired_gb": 3.4,
+   "after_fill_gb": 14.2,
+   "planned_gb": 12.3,
+   "cap_gb": 41.2,
+   "hc_q8": true,
+   "ready_s": 3.36,
+   "wall_s": 154.1,
+   "abort": null,
+   "env": {
+    "STRATA_METAL_ARENA_GB": "1",
+    "STRATA_METAL_STREAM": "1"
+   }
+  }
+ },
+ "cross": {
+  "B vs A": [
+   0,
+   0
+  ],
+  "D vs C": [
+   0,
+   0
+  ],
+  "C vs A": [
+   0,
+   0
+  ],
+  "D vs B": [
+   0,
+   0
+  ]
+ },
+ "dropped": {
+  "error": 0,
+  "freeze": 0,
+  "incomplete_process": 0
+ },
+ "ours": [
+  {
+   "set": "humaneval",
+   "config": "S5' B (cert config, lossy FAST)",
+   "whole": 174.4,
+   "e2e": 34.8,
+   "tokens": 246,
+   "peak": 42.9,
+   "ar": null,
+   "src": "BigMoE data/s5p/s5p_report.txt"
+  },
+  {
+   "set": "humaneval",
+   "config": "S5' X (lossy FAST)",
+   "whole": 181.4,
+   "e2e": 35.4,
+   "tokens": 243,
+   "peak": 42.9,
+   "ar": null,
+   "src": "BigMoE data/s5p/s5p_report.txt"
+  },
+  {
+   "set": "mbpp",
+   "config": "S5' B (cert config, lossy FAST)",
+   "whole": 120.2,
+   "e2e": 23.6,
+   "tokens": 120,
+   "peak": 42.6,
+   "ar": null,
+   "src": "BigMoE data/s5p/s5p_report.txt"
+  },
+  {
+   "set": "mbpp",
+   "config": "S5' X (lossy FAST)",
+   "whole": 123.6,
+   "e2e": 23.4,
+   "tokens": 116,
+   "peak": 42.6,
+   "ar": null,
+   "src": "BigMoE data/s5p/s5p_report.txt"
+  },
+  {
+   "set": "ifeval",
+   "config": "N45 EB (exact)",
+   "whole": 39.9,
+   "e2e": 17.1,
+   "tokens": 142,
+   "peak": 41.7,
+   "ar": "24 / 24",
+   "src": "BigMoE data/n45/n45_report.txt"
+  },
+  {
+   "set": "ifeval",
+   "config": "N45 L (lossy)",
+   "whole": 45.0,
+   "e2e": 17.3,
+   "tokens": 144,
+   "peak": 42.4,
+   "ar": "6 / 24",
+   "src": "BigMoE data/n45/n45_report.txt"
+  },
+  {
+   "set": "math",
+   "config": "N45 EB (exact)",
+   "whole": 78.8,
+   "e2e": 39.5,
+   "tokens": 256,
+   "peak": 42.5,
+   "ar": "24 / 24",
+   "src": "BigMoE data/n45/n45_report.txt"
+  },
+  {
+   "set": "math",
+   "config": "N45 L (lossy)",
+   "whole": 87.9,
+   "e2e": 40.3,
+   "tokens": 256,
+   "peak": 43.1,
+   "ar": "7 / 24",
+   "src": "BigMoE data/n45/n45_report.txt"
+  }
+ ]
+}

@@ -1,0 +1,48 @@
+[dm] discover_layers: 48 layers, {'gdn': 48, 'hc': 96, 'moe': 48}; missing []
+[dm] MoE block: top_k 10, norm_topk_prob True
+mode: PATCHED /Users/kamen/Breakthrough/data/abl_scratch/nw3/1106_213544/patched
+A. the old arms
+  ok   the t3-gate arm reached dm_t3
+  ok   base: the patched harness == the live one, bit for bit
+  ok   twin: the patched harness == the live one, bit for bit
+  ok   nw1: the patched harness == the live one, bit for bit
+  ok   nw0: the patched harness == the live one, bit for bit
+  ok   t3g: the patched harness == the live one, bit for bit
+B. nw3 at '4 bits' == nw1
+  ok   the nw3 path reached dm_t3 (144 calls) and served 1604 terms
+  ok   nw3 with the 4-bit stand-in vs nw1: relative error 2.6e-16 (< 1e-9)
+  note: the 4-bit control equals nw1 bit for bit: False (expected False: two sums, one order each)
+C. nw3 at '3 bits' == the reference; power
+  ok   nw3 vs the independent reference: relative error 2.6e-16 (< 1e-9)
+  ok   power: the reference with late ranks 0-1 at 3 bits too is 2.0e-03 away (> 1e3 x the match)
+  ok   power: the reference with the sure rows gated instead is 6.2e-03 away (> 1e3 x the match)
+  ok   power: the reference with no 3-bit term (nw1's rule) is 3.9e-03 away (> 1e3 x the match)
+  ok   nw3 at 3 bits moves the output against nw1 by 3.9e-03
+D. counts
+  ok   3-bit terms served 1604 (4-bit control 1604) == the masks' count on the gated answer rows 1604
+  ok   (prompt rows hold rank 0-1 terms, so serving them would show in the count)
+  ok   late terms used 352 == the mask's 352 (and in the control)
+  ok   late writes 115 == the chunk-layer pairs 115; nothing left stashed
+  ok   the stock path's keep: a gated row's ranks 0-1 only where late; everything else as the mask
+E. guards
+  ok   refused: nw1 with t3
+  ok   refused: nw1 with a gate
+  ok   refused: nw3 with topk
+  ok   refused: nw3 with reuse
+  ok   refused: nw3 with the t3 gate instead of t3u
+  ok   refused: nw3 with t3k 3
+F. the real measure() and run_window(), end to end
+  ok   measure(): res['nw'] holds t3 == the masks' count, t3rows == the unsure answer rows, bits, terms == the mask's; no warn
+  ok   measure(): the nw3 note is printed per window, no WARNING
+  ok   measure(): the 4-bit control's top-8 ids == nw1's, max |d log p| 0.0e+00 (< 5e-06)
+  ok   measure(): nw3 at 3 bits moves the log-probs by up to 2.2e-02 against nw1 (not a no-op)
+G. no state leaks
+  ok   the twin after the nw3 runs == before, bit for bit
+  ok   clear() leaves CUR['rm3'] / ['lm'] None; the baseline after them == before, bit for bit
+  ok   measure(): the twin after all of it == before, exactly
+H. dm_ablations arms
+  ok   3/3 nw3 arms resolve, alone and with +code, to the expected PERT
+  ok   every nw3 arm name stands in dm_ablations.py in quotes (the s67 runner's installed() check)
+  ok   their mask folders exist (nw1's snapshots in out/far)
+  ok   measure() runs the nw3 setup; clear() resets rm3
+ALL OK

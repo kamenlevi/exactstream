@@ -1,0 +1,17 @@
+== M-32 FCASTSIZE (Wed 09:02): per-layer sizes re-fit to the corrected pre-route's recall (w = 1 - r); held-out forecast-missed MB per kept token (code / IFEval / multi) and exposed ms per check
+  C 224 (29.68 GB) joint (M-25b)  : forecast-missed  18.41 /   7.08 /   7.21 MB per kept token (all demand  62.77 /  38.22 /  38.17)
+  C 224 (29.68 GB) forecast-aware : forecast-missed  18.23 /   6.76 /   6.77 MB per kept token (all demand  63.98 /  39.00 /  38.36)
+    forecast-aware vs joint: exposed -0.08 / -0.04 / -0.05 ms per check (code / IFEval / multi); all-demand MB +1.9 % on code
+  C 256 (33.93 GB) joint (M-25b)  : forecast-missed  13.27 /   5.40 /   5.50 MB per kept token (all demand  45.67 /  29.51 /  29.57)
+  C 256 (33.93 GB) forecast-aware : forecast-missed  13.24 /   5.23 /   5.29 MB per kept token (all demand  46.55 /  30.07 /  29.88)
+    forecast-aware vs joint: exposed -0.01 / -0.02 / -0.02 ms per check (code / IFEval / multi); all-demand MB +1.9 % on code
+  -> code at C 256: 0.01 ms less exposed per check -> KILL (line 1.0 / 0.3 ms)  (0 s)
+== RESULT M-32 FCASTSIZE (Wed 09:02): KILL. Per-layer sizes re-fit to the corrected pre-route's recall change the
+  forecast-missed demand by -0.2..-0.4 MB per kept token (-0.01..-0.08 ms exposed per check at C 224 / 256) and raise
+  all demand by 1.9 % on code: the recall is nearly flat over layers (0.68-0.86; weights 0.14-0.33), so re-weighting
+  barely moves the allocation. Keep M-25b's joint sizes. By-product for lever 2: at C 256 the forecast leaves 13.3 of
+  code's 45.7 MB demand per kept token (5.4 of 29.5 on IFEval) unnamed. Uses no engine default (pure replay).
+== SAMELAYER-T exploratory pricing (Wed; MoonShots; not pre-registered): forecast-missed demand MB per kept token at C 256 (M-25b joint sizes, held out), untrained -> trained same-layer forecast
+  code  : 13.67 ->  8.14 MB per kept token (-40 %); exposed ~-2.44 ms per check if the forecast's reads hide fully (kept / check 9.6)
+  ifeval:  5.60 ->  4.56 MB per kept token (-19 %); exposed ~-0.11 ms per check if the forecast's reads hide fully (kept / check 2.4)
+  multi :  5.66 ->  4.64 MB per kept token (-18 %); exposed ~-0.11 ms per check if the forecast's reads hide fully (kept / check 2.4)

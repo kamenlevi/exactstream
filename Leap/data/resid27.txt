@@ -1,0 +1,13 @@
+All 512 experts kept; misses per generated token (second halves; LRU warm-started from first halves of all sets)
+  top-10, 16 rows / 9.5 tokens: C 192: 49/33/50/40 | C 224: 37/25/38/30 | C 256: 28/19/29/23 | C 288: 22/14/21/17 | C 320: 16/11/15/13 | C 352: 11/7/11/10 | C 384: 8/5/7/7 | C 448: 3/2/2/3
+  top-10, 11 rows / 9.2 tokens: C 192: 48/33/49/39 | C 224: 37/25/38/30 | C 256: 28/19/28/22 | C 288: 21/14/21/17 | C 320: 16/11/15/13 | C 352: 11/8/10/9 | C 384: 8/5/7/7 | C 448: 3/2/2/3
+  top-10,  4 rows / 3.4 tokens: C 192: 47/33/48/39 | C 224: 37/25/37/29 | C 256: 28/19/28/22 | C 288: 21/15/21/17 | C 320: 15/11/15/13 | C 352: 11/8/10/9 | C 384: 8/5/7/7 | C 448: 3/2/2/3
+  top-8, 16 rows / 9.5 tokens: C 192: 34/24/37/27 | C 224: 26/18/28/20 | C 256: 20/14/21/15 | C 288: 15/10/15/12 | C 320: 11/7/11/9 | C 352: 8/5/8/6 | C 384: 5/3/5/4 | C 448: 2/1/2/2
+  top-8, 11 rows / 9.2 tokens: C 192: 34/24/36/26 | C 224: 26/18/27/20 | C 256: 20/14/20/15 | C 288: 15/10/15/12 | C 320: 11/8/11/9 | C 352: 8/5/8/6 | C 384: 5/4/5/4 | C 448: 2/1/2/2
+  top-8,  4 rows / 3.4 tokens: C 192: 33/24/36/26 | C 224: 25/18/27/20 | C 256: 19/14/20/15 | C 288: 15/10/15/12 | C 320: 11/8/11/9 | C 352: 8/5/8/6 | C 384: 5/4/5/4 | C 448: 2/1/2/2
+  (each cell: code / chat / math / Bulgarian)
+24 GB budget: max resident C per layer = (24 - dense - 1.5 runtime) / (48 x MB per expert)
+  full dense: 2.0 b -> C <= 323, 2.5 b -> C <= 258, 3.0 b -> C <= 215, 3.5 b -> C <= 184
+  dense diet: 2.0 b -> C <= 345, 2.5 b -> C <= 276, 3.0 b -> C <= 230, 3.5 b -> C <= 197
+SSD side for 350 tok/s: misses per token allowed = SSD GB/s / 350 / MB per miss (cold experts stored at b_cold)
+  b_cold 2.0: <= 24.6 (10.6 GB/s) / 32.5 (14 GB/s), b_cold 2.5: <= 19.7 (10.6 GB/s) / 26.0 (14 GB/s), b_cold 3.0: <= 16.4 (10.6 GB/s) / 21.7 (14 GB/s), b_cold 3.5: <= 14.1 (10.6 GB/s) / 18.6 (14 GB/s)

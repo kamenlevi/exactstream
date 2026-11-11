@@ -1,0 +1,14 @@
+L1-18: 24 HumanEval samples, 6375 completion tokens; DFlash2 (incoai) block 16 replay in 9 s
+  DFlash2 tau16 (tokens per pass) = 8.88 over 715 blocks
+  target top-1 p distribution over completion tokens: p >= 0.99 0.889, 0.9-0.99 0.040, 0.5-0.9 0.056, < 0.5 0.015
+  DFlash2 agreement by target confidence (all depths) and first misses by bin:
+    p >= 0.99 : agreement 0.642 over 8554 block positions; first misses here 421 (0.63 of all)
+    0.9-0.99  : agreement 0.364 over 656 block positions; first misses here 45 (0.07 of all)
+    0.5-0.9   : agreement 0.257 over 979 block positions; first misses here 140 (0.21 of all)
+    < 0.5     : agreement 0.131 over 297 block positions; first misses here 61 (0.09 of all)
+    by depth (p >= 0.99 bin): 1.00 0.99 0.95 0.92 0.88 0.85 0.81 0.73 0.67 0.57 0.43 0.30 0.22 0.16 0.12
+    by depth (0.5-0.9 bin):   0.77 0.57 0.48 0.32 0.31 0.20 0.28 0.12 0.08 0.10 0.10 0.10 0.04 0.11 0.04
+  oracle drafter (right where target top-1 p >= t, DFlash2's agreement elsewhere): tokens per pass
+    t = 0.9: block 16 10.86, block 32 15.01, block 64 18.07
+    t = 0.99: block 16  9.86, block 32 12.84, block 64 14.71
+  perfect drafter (always the target's argmax): block 16 15.59, block 32 30.50

@@ -1,0 +1,87 @@
+"""Perturbations for the decision map. Each setup registers ACTIVE[kind] = post(layer_idx, self, args, y) -> y'
+(or ACTIVE[kind+"_pre"] = pre(layer_idx, self, args) -> args') for kinds att, gdn, hc, and PERT (dm_common) for the MoE
+block (routed experts + shared expert; see dm_common's WIRED note A5).
+WIRED (Breakthrough, Mon 2026-11-02; Fable's original in dm_ablations.py.orig):
+- topk{k}: SCORE masking, not index masking (the block's ids are in argpartition order): ranks >= k get weight 0 and the
+  kept experts keep the model's own weights ("mass"); topk{k}r also rescales the kept weights to the row's original routed
+  weight ("renorm"). Q1 = topk2 (and topk2r) on code-sure / code-mid.
+- hc_static: every HC read uses its gates' mean over the chunk's positions (per stream and channel) instead of the
+  per-token learned gates, on the normed streams, as the model's own read; the input scale stays the model's.
+  hc_mean_raw: Fable's literal version (the plain mean of the 4 written residual streams, no norm, no gates).
+- shared_zero, moe reuse / fake-quant: inside the MoE block wrapper (routed part only for reuse and quant).
+- *_q4 on att / gdn / hc: 4-bit fake quantisation of the layer OUTPUT (per row, max-abs scale), as Fable wrote it:
+  an activation test, not the weight test HC4 was at 12 GB."""
+import mlx.core as mx
+import mlx.nn as nn
+from dm_common import ACTIVE, PREV, LAYERS, PERT, _shift, _fq
+
+def topk_experts(k, renorm=False):
+    def setup(): PERT.update(topk=k, renorm=renorm)
+    return setup
+
+def hc_static():
+    def post(li, self, a, y):
+        if not isinstance(y, tuple): return y
+        hyper = y[1]                                     # the written stream the read used
+        hc, D = self.hc_count, self.hidden_size
+        normed = self.hc_norm(hyper)
+        mix = nn.silu(self.input_mix_weight_down(normed) / hc)
+        mix = mx.sigmoid(self.input_mix_weight_up(mix))
+        mix = mix.reshape(*mix.shape[:-1], hc, D)
+        mix = mx.broadcast_to(mix.mean(axis=-3, keepdims=True), mix.shape) if mix.ndim >= 3 else mix
+        grouped = normed.reshape(*normed.shape[:-1], hc, D)
+        return (mx.mean(mix * grouped, axis=-2).astype(y[0].dtype),) + tuple(y[1:])
+    def setup(): ACTIVE["hc"] = post
+    return setup
+
+def hc_mean_raw():
+    def post(li, self, a, y):
+        if not isinstance(y, tuple): return y
+        hyper = y[1]
+        mean = hyper.reshape(*hyper.shape[:-1], self.hc_count, self.hidden_size).mean(axis=-2)
+        return (mean.astype(y[0].dtype),) + tuple(y[1:])
+    def setup(): ACTIVE["hc"] = post
+    return setup
+
+def shared_zero():
+    def setup(): PERT.update(shared_zero=True)
+    return setup
+
+def reuse_prev(kind, layers=None):
+    if kind == "moe":
+        def setup(): PERT.update(reuse="all" if layers is None else set(layers))
+        return setup
+    def post(li, self, a, y):
+        if layers is not None and li not in layers: return y
+        z = y[0] if isinstance(y, tuple) else y
+        shifted = _shift(z, -2)
+        return (shifted,) + tuple(y[1:]) if isinstance(y, tuple) else shifted
+    def setup(): ACTIVE[kind] = post
+    return setup
+
+def fake_quant(kind, bits, layers=None):
+    if kind == "moe":
+        def setup(): PERT.update(q=bits)
+        return setup
+    def post(li, self, a, y):
+        if layers is not None and li not in layers: return y
+        return (_fq(y[0], bits).astype(y[0].dtype),) + tuple(y[1:]) if isinstance(y, tuple) else _fq(y, bits).astype(y.dtype)
+    def setup(): ACTIVE[kind] = post
+    return setup
+
+def gdn_state_bf16():
+    def setup(): raise NotImplementedError("gdn_state_bf16 needs the GDN cache patch (A3); not wired")
+    return setup
+
+ABLATIONS = {
+    "topk2": topk_experts(2), "topk2r": topk_experts(2, renorm=True), "topk5": topk_experts(5), "topk8": topk_experts(8),
+    "topk10": topk_experts(10),                          # identity through the wrapper (a self-check: 0 flips expected)
+    "hc_static": hc_static(), "hc_mean_raw": hc_mean_raw(), "shared_zero": shared_zero(),
+    "moe_reuse_prev_all": reuse_prev("moe"), "att_reuse_prev": reuse_prev("att"), "gdn_reuse_prev": reuse_prev("gdn"),
+    "moe_q4_all": fake_quant("moe", 4), "hc_q4": fake_quant("hc", 4), "att_q4": fake_quant("att", 4), "gdn_q4": fake_quant("gdn", 4),
+    "gdn_state_bf16": gdn_state_bf16(),
+}
+for g in range(4):                                   # per-group MoE reuse (12 layers each), then per layer on night 2
+    ABLATIONS[f"moe_reuse_prev_g{g}"] = reuse_prev("moe", set(range(12 * g, 12 * g + 12)))
+for L in range(48):
+    ABLATIONS[f"moe_reuse_prev_L{L:02d}"] = reuse_prev("moe", {L})

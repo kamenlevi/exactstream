@@ -1,0 +1,30 @@
+flip model (non-tie rows; LAM 0.9); features [1, ifeval, multi, log margin, p1, own end, own mid, ctx end, ctx mid, sqrt own end, sqrt ctx end]; coef [-3.84, 0.46, 0.95, -1.42, -1.68, -8.71, -1.56, 7.88, 6.08, 5.41, -0.74]
+| arm (training, rule-based strict) | measured non-tie flips code / IFEval / multi | model in sample | model leave-this-arm-out |
+|---|---|---|---|
+| topk2 | 3.23 / 22.76 / 27.06 | 3.84 / 24.30 / 24.90 | 4.08 / 23.85 / 20.56 |
+| topk5 | 1.03 / 7.66 / 8.23 | 0.88 / 7.32 / 8.07 | 0.44 / 3.74 / 4.29 |
+| gate_top2_cf0999 | 0.66 / 1.35 / 0.79 | 0.39 / 1.14 / 1.31 | 0.36 / 1.12 / 1.33 |
+| gate_top5_cf099 | 0.24 / 0.97 / 0.82 | 0.20 / 1.05 / 1.20 | 0.21 / 1.09 / 1.25 |
+| gate_bands | 0.72 / 2.00 / 1.30 | 0.77 / 1.86 / 1.95 | 1.04 / 1.93 / 2.04 |
+| gate_top4_cf099 | 0.39 / 1.22 / 0.76 | 0.28 / 1.20 / 1.33 | 0.28 / 1.23 / 1.40 |
+| gate_top0_cf0999_L08_35 | 0.63 / 2.25 / 1.33 | 0.55 / 1.34 / 1.52 | 0.09 / 0.48 / 0.60 |
+
+| form (never seen by the fit) | pool | measured non-tie flips | model | mean own damage (end / mid) on non-tie rows |
+|---|---|---|---|---|
+| QOM0 (qom_0_live_ball+code) | 45 | 0.21 / - / - | 0.17 / - / - | 0.020 / 0.033 |
+| SPLIT99 (qom_0_split0.99_live_ball+code) | 45 | 0.51 / - / - | 0.76 / - / - | 0.221 / 0.214 |
+| SPLIT90 (qom_0_split0.9_live_ball+code) | 45 | 0.78 / - / - | 1.19 / - / - | 0.263 / 0.252 |
+| QOM5BQ (qom_0.5_live_bonus5g) | 45 | 0.12 / 0.55 / 0.39 | 0.14 / 1.05 / 1.20 | 0.012 / 0.019 |
+| QOM5BQ (qom_0.5_live_c147_bonus5g) | 24 | 0.33 / 0.93 / 0.85 | 0.32 / 1.80 / 1.91 | 0.059 / 0.051 |
+| Q1U90 (q1u_0.9_live_bonus9g) | 45 | 0.69 / 2.80 / 1.45 | 0.57 / 2.39 / 2.27 | 0.140 / 0.135 |
+| HYB90U8 (hyb_0.9_u8_live_t3) | 45 | 0.81 / 3.64 / 2.88 | 0.96 / 5.25 / 5.05 | 0.166 / 0.161 |
+| K8 (oea_k8) | 45 | 0.12 / 0.87 / 0.82 | 0.21 / 2.06 / 2.49 | 0.036 / 0.034 |
+
+| unmeasured form | pool | model: non-tie flips code / IFEval / multi | mean own damage (end / mid) |
+|---|---|---|---|
+| SPLIT99+R07 | 45 | 0.97 / 5.06 / 4.96 | 0.171 / 0.169 |
+| SPLIT99+R07+Z999 | 45 | 4.23 / 7.31 / 6.76 | 0.171 / 0.343 |
+| SPLIT99+R07+M90+Z999 | 45 | 4.45 / 8.32 / 7.69 | 0.171 / 0.382 |
+| SPLIT90+R07 | 45 | 1.36 / 7.67 / 7.27 | 0.217 / 0.213 |
+| B2D | 45 | 0.75 / 4.00 / 4.07 | 0.137 / 0.132 |
+| B2C | 45 | 0.58 / 3.38 / 3.63 | 0.115 / 0.111 |

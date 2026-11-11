@@ -1,0 +1,15 @@
+PASS: whole-process SSD bytes per token (rusage) -5 % or more at tok/s no worse than -1 % (S1 + S2 vs A1 + A2).
+KILL: bytes > -2 %. Else BETWEEN. INVALID if any prompt's output sha differs between runs, or the arms' pool GB differ by
+more than 0.5 %. usage: r27_ab.py DIR
+exact: yes, every prompt sha equal across the 4 runs  (p00_code4, p01_prose4, p02_edit4, p03_math4)
+run   disk MB/tok  gate wait ms/tok  SSD busy ms/tok  late+demand/tok  on-time/tok  tok/s   pools GB
+A1          351.9             18.42            26.94            81.40        34.63   24.27     17.07
+S1          349.3             18.80            27.57            79.42        38.22   23.82     17.04
+S2          347.5             18.50            27.08            78.86        37.86   24.19     17.04
+A2          355.2             18.74            27.54            82.27        34.66   24.03     17.07
+A1 vs A2 (run-to-run noise): mb 1.0 %, gw 1.7 %, tps 1.0 %
+S vs A: SSD bytes/tok -1.5 %; gate wait/tok +0.4 %; SSD busy/tok +0.3 %; late + demand/tok -3.3 %; on time/tok +9.8 %; tok/s -0.6 %  -> KILL
+    p00_code4: tok/s A 25.44  S 25.21  (-0.9 %)
+    p01_prose4: tok/s A 21.34  S 21.87  (+2.5 %)
+    p02_edit4: tok/s A 28.71  S 27.64  (-3.7 %)
+    p03_math4: tok/s A 21.11  S 21.31  (+1.0 %)

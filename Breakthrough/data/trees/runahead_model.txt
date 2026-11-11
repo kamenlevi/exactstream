@@ -1,0 +1,36 @@
+RUNAHEAD model on D-23's dfl log (18 prompts, 1000 checks; C 224, t 0.3); median misses per row 25.3; B capped at 16 - |A|. tok/s gain vs the logged decode (today), by type and whole set:
+  beta 2.5          U2 1.00: code -13.4 %  math +17.2 %  chat +13.9 %  agent  +4.9 %  whole  +5.1 %
+  beta 2.5          U2 0.98: code -14.8 %  math +15.3 %  chat +12.8 %  agent  +3.4 %  whole  +3.6 %
+  beta 2.5          U2 0.95: code -16.9 %  math +12.5 %  chat +11.1 %  agent  +1.0 %  whole  +1.5 %
+  beta 3.5          U2 1.00: code -20.9 %  math  +5.0 %  chat  +6.8 %  agent  -0.3 %  whole  -2.2 %
+  beta 3.5          U2 0.98: code -22.2 %  math  +3.3 %  chat  +5.8 %  agent  -1.8 %  whole  -3.5 %
+  beta 3.5          U2 0.95: code -24.2 %  math  +0.7 %  chat  +4.2 %  agent  -4.1 %  whole  -5.5 %
+  beta central 4.0  U2 1.00: code -24.5 %  math  -0.7 %  chat  +3.3 %  agent  -3.0 %  whole  -5.7 %
+  beta central 4.0  U2 0.98: code -25.8 %  math  -2.3 %  chat  +2.3 %  agent  -4.5 %  whole  -7.0 %
+  beta central 4.0  U2 0.95: code -27.6 %  math  -4.7 %  chat  +0.7 %  agent  -6.7 %  whole  -8.9 %
+  beta 5.7          U2 1.00: code -33.7 %  math -14.7 %  chat  -6.1 %  agent -10.3 %  whole -15.1 %
+  beta 5.7          U2 0.98: code -34.8 %  math -16.1 %  chat  -7.1 %  agent -11.7 %  whole -16.3 %
+  beta 5.7          U2 0.95: code -36.4 %  math -18.2 %  chat  -8.5 %  agent -13.7 %  whole -18.0 %
+  beta 7.82 (no SSD saved) U2 1.00: code -42.5 %  math -27.7 %  chat -15.9 %  agent -18.1 %  whole -24.6 %
+  beta 7.82 (no SSD saved) U2 0.98: code -43.5 %  math -28.8 %  chat -16.7 %  agent -19.4 %  whole -25.6 %
+  beta 7.82 (no SSD saved) U2 0.95: code -44.9 %  math -30.6 %  chat -17.9 %  agent -21.2 %  whole -27.2 %
+  optimistic (per-check SSD also off the fixed part), beta 2.5          U2 0.98: code +30.1 %  math +58.7 %  chat +28.5 %  agent +16.6 %  whole +24.6 %
+  optimistic (per-check SSD also off the fixed part), beta 3.5          U2 0.98: code +14.2 %  math +36.7 %  chat +19.4 %  agent +10.0 %  whole +14.5 %
+  optimistic (per-check SSD also off the fixed part), beta central 4.0  U2 0.98: code  +7.0 %  math +27.1 %  chat +15.0 %  agent  +6.7 %  whole  +9.6 %
+  optimistic (per-check SSD also off the fixed part), beta 5.7          U2 0.98: code -10.1 %  math  +4.7 %  chat  +3.3 %  agent  -2.2 %  whole  -3.0 %
+  whole set (U2 0.98): +15 % until beta 1.20, break-even at beta 3.00 (uncapped, 32 rows: 2.60 / 4.40)
+  code   tokens per pass: today 10.54; RUNAHEAD capped 16 6.85, uncapped (32) 10.54; rows per pass capped 14.8
+  math   tokens per pass: today 6.61; RUNAHEAD capped 16 5.72, uncapped (32) 6.61; rows per pass capped 13.1
+  chat   tokens per pass: today 2.03; RUNAHEAD capped 16 2.01, uncapped (32) 2.03; rows per pass capped 6.2
+  agent  tokens per pass: today 4.92; RUNAHEAD capped 16 4.48, uncapped (32) 4.92; rows per pass capped 10.7
+  optimistic, whole set (U2 0.98): +15 % until beta 3.45, break-even 5.30 (uncapped 32 rows: 4.55 / 6.35)
+  optimistic + UNCAPPED (32-row kernels), beta 2.5          U2 0.98: code +66.6 %  math +69.6 %  chat +29.7 %  agent +25.5 %  whole +38.0 %
+  optimistic + UNCAPPED (32-row kernels), beta 3.5          U2 0.98: code +41.7 %  math +44.0 %  chat +20.4 %  agent +17.7 %  whole +25.7 %
+  optimistic + UNCAPPED (32-row kernels), beta central 4.0  U2 0.98: code +30.4 %  math +33.0 %  chat +15.9 %  agent +13.8 %  whole +19.7 %
+  optimistic + UNCAPPED (32-row kernels), beta 5.7          U2 0.98: code  +5.0 %  math  +7.9 %  chat  +4.0 %  agent  +3.4 %  whole  +4.7 %
+  SHADOW as two passes (conservative), beta 2.5          U2 0.98 (an upper bound: no drift cost): whole -29.1 %
+  SHADOW as two passes (conservative), beta 3.5          U2 0.98 (an upper bound: no drift cost): whole -32.6 %
+  SHADOW as two passes (conservative), beta central 4.0  U2 0.98 (an upper bound: no drift cost): whole -34.3 %
+  SHADOW as two passes (optimistic), beta 2.5          U2 0.98 (an upper bound: no drift cost): whole -11.5 %
+  SHADOW as two passes (optimistic), beta 3.5          U2 0.98 (an upper bound: no drift cost): whole -16.8 %
+  SHADOW as two passes (optimistic), beta central 4.0  U2 0.98 (an upper bound: no drift cost): whole -19.4 %

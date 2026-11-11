@@ -1,0 +1,6 @@
+# ExFlow: Exploiting Inter-Layer Expert Affinity for Accelerating MoE Inference (arXiv 2401.08383, Jan 2024; Yao et al., Ohio State)
+- Link: https://arxiv.org/abs/2401.08383 ; code https://github.com/yjhmitweb/exflow. Source: WebSearch extracts [S].
+- What: routing decisions show strong cross-layer dependence (measured on a 12-layer, 32-expert GPT MoE and Mixtral); an integer linear program places experts across GPUs so that a token's consecutive-layer experts sit on one GPU; one All-to-All per layer instead of two; up to 2.2x throughput over DeepSpeed-MoE, no fine-tuning.
+- Maps to us: a placement / communication paper; the transferable fact is cross-layer affinity itself (P(expert at L+1 | expert at L) is far from uniform). Here it serves prediction (LEAD1CORR: lead-1 recall@10 0.612 -> 0.729 with a learned correction; PREROUTE2 / Next-layer predictor: top-2 precision <= 0.69, KILL for frugal routing), not the number of distinct experts: affinity does not make two rows share an expert.
+- TRIED status: the prediction use is measured (information / KILL for frugal); no distinct-experts lever.
+- Open: whether cross-layer affinity could define expert GROUPS that co-load (a record layout question for the SSD, not a union question).

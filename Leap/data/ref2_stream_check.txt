@@ -1,0 +1,7 @@
+REF2 stream check: full 125B via load_streamed (C = 192), loaded in 2 s, 29.4 GB active; switch class SwitchGLUStreamed
+  self-test: {'qmm16c 6144x2560': True, 'MLX 16-row 512x2560': True, 'experts split == fused': True, 'experts rows alone': True, 'bf16 Linear': True}
+  two 1K prefills in 18 s
+  16 AR steps in 1 s; 145 records per forward
+  REF2 calls: 16-row verify {'qmm16c': 181, 'mlx16': 300, 'linear': 0, 'hc_read': 96, 'hc_eager16': 1, 'attention': 0, 'experts': 48}; 16 AR steps {'qmm16c': 2896, 'mlx16': 4800, 'linear': 32, 'hc_read': 1536, 'hc_eager16': 16, 'attention': 192, 'experts': 768} (experts per AR token 48.0)
+  logits rows equal 16 / 16; differing (row, record) pairs 0
+REF2 stream check verdict: PASS: batch-invariant on the streamed full model

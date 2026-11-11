@@ -1,0 +1,11 @@
+--- defer/v3d/bigmoe_v3d/gated.py	2026-10-24 06:10:15
++++ defer/v3d2/bigmoe_v3d/gated.py	2026-10-25 05:19:17
+@@ -28,7 +28,7 @@
+   atomic_store_explicit(&row[1], n, memory_order_relaxed);
+   for (int i = 0; i < n; i++) {
+     int pos = i < 30 ? 2 + i : 33 + (i - 30);
+-    atomic_store_explicit(&row[pos], (int)ids[i], memory_order_relaxed);
++    atomic_store_explicit(&row[pos], (int)((((uint)ids[i]) & 0x3FFFFFu) | ((((uint)meta[1]) & 0x3FFu) << 22)), memory_order_relaxed);   // [v3h] stamp
+   }
+   atomic_thread_fence(mem_flags::mem_device, memory_order_seq_cst, thread_scope_device);
+   atomic_store_explicit(&row[32], meta[1], memory_order_relaxed);

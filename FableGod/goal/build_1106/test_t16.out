@@ -1,0 +1,33 @@
+1  the arms
+  ok   the Thursday arms' tables are unchanged; the new arms are T16, TC16, U16
+  ok   T16's rule is rule C's (top-3 at 0.1 p1); U16's is top-8 at 0.01 p1; both carry a 0.8 confidence floor for the cut
+  ok   an unknown arm is refused (there is no 32-row guarded arm)
+2  which rows are open
+  ok   a comment row: T16 -> its rule, U16 -> its rule, CD16 -> whole
+  ok   a draft that holds a newline is exact (the span's end is never relaxed)
+  ok   when the 125B's own token ends the comment line, the row is exact (it can always end the comment)
+  ok   a comment that is or could become a tool comment is exact
+  ok   the fence's first two lines are exact (the tagger's rule)
+  ok   a fence that is not python is never open
+  ok   a docstring row: T16 -> its rule; TC16 (comments only) -> exact
+  ok   the docstring's quote character in the draft or in the 125B's token: exact (its end is never relaxed)
+  ok   a doctest line is exact
+  ok   a triple-quoted string that is data (assigned, or an f-string) is exact
+  ok   on the walks' 124 answers T16 opens exactly the rows CD16 opens (12555 rows, 0 differ): the Thursday safety check (all of them inside Python's own comments / string statements) carries over
+3  what a guarded row keeps
+  ok   rank 1 at -1.0 kept, rank 2 at 0.1 p1 kept, rank 3 refused (not in the top 3): the block ends there
+  ok   rank 1 but below 0.1 p1: refused
+  ok   drafts equal to the argmax: kept, nothing relaxed (the exact rule)
+  ok   the same far-off row under CD16's 'whole' is kept (what failed on MBPP); under T16 it is refused:
+  ok      T16 refuses it
+  ok   U16 keeps rank 6 at 0.02 p1 (looser than T16)
+4  the cut before the check
+  ok   T16: the three comment rows are floored at 0.8 in the cut, the newline and the code rows keep the drafter's confidence
+  ok      a guarded row the drafter is surer of than the floor keeps its own confidence
+  ok   D16 (rule C as shipped on comments): its rows keep the drafter's confidence, as before
+  ok   CD16: unchanged
+5  the engine's failed CD16 run (BigMoE data/fday), read through T16's rule
+  ok   dmc: in each of the 3 runs that flipped to fail (mbpp/16, mbpp/296, mbpp/319) T16 refuses the drafter's text within its first 4 deviating tokens (at #[0, 1, 2]); of all 276 tokens CD16 kept against the 125B, T16 would keep 114 (41 %)
+  ok   dmcb: in each of the 3 runs that flipped to fail (mbpp/16, mbpp/268, mbpp/319) T16 refuses the drafter's text within its first 4 deviating tokens (at #[0, 0, 1]); of all 166 tokens CD16 kept against the 125B, T16 would keep 69 (42 %)
+
+ALL OK (0 fail)

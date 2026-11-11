@@ -1,0 +1,21 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=30.9 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.20 GB pools
+b12: hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.20 GB, active 9.68 GB
+fit12: exact GDN (MoonShots gdn_exact_patch) installed
+[o3_ref_gdn] after load: footprint now 11.02 GB, lifetime peak 11.31 GB, MLX peak 10.80 GB, active 9.68 GB
+[o3_ref_gdn] code: prefill 326 tokens in 4.81 s
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[o3_ref_gdn] code k=3: 21.5 tok/s, 3.37 tok/pass, 38 passes | per pass: verify 148.4 ms, draft 8.0 ms, head 0.4 ms, waited 579.7, reads 591.6, pf issued 0.0 used 0.0, SSD 7.3 GB/s 1138 MB | peak footprint 11.31 GB | loader per pass: stalled calls 84.8 of 99.0, stall 106.7 ms, io 106.0 ms | sha 259e67193e | '```python\nimport re\nimport argparse\nfrom collections import defaultdict\nfrom typing import List, Dict, Tuple, Optional\n\n# Regex to match log lines\nLINE = re.compile(\n    r'
+[o3_ref_gdn] prose: prefill 53 tokens in 3.01 s
+[o3_ref_gdn] prose k=3: 12.1 tok/s, 2.17 tok/pass, 59 passes | per pass: verify 168.7 ms, draft 10.0 ms, head 0.3 ms, waited 622.7, reads 639.8, pf issued 0.0 used 0.0, SSD 6.8 GB/s 1213 MB | peak footprint 11.31 GB | loader per pass: stalled calls 92.2 of 99.0, stall 127.0 ms, io 126.2 ms | sha b5cc227c26 | 'Imagine you are doing homework at your desk, but all your reference books are stored in a library across town. Every time you need to look up a fact, you have to drive to the library,'
+[o3_ref_gdn] math: prefill 82 tokens in 3.24 s
+[o3_ref_gdn] math k=3: 16.9 tok/s, 3.20 tok/pass, 40 passes | per pass: verify 179.6 ms, draft 9.3 ms, head 0.4 ms, waited 759.0, reads 775.8, pf issued 0.0 used 0.0, SSD 8.0 GB/s 1516 MB | peak footprint 11.43 GB | loader per pass: stalled calls 90.1 of 99.0, stall 137.1 ms, io 136.4 ms | sha 6e3af723f9 | "Here is the step-by-step solution to determine how much Janet makes every day at the farmers' market:\n\n**Step 1: Determine the total number of eggs laid per day.**\nJanet"
+[o3_ref_gdn] write: prefill 47 tokens in 2.68 s
+[o3_ref_gdn] write k=3: 14.6 tok/s, 2.46 tok/pass, 52 passes | per pass: verify 159.7 ms, draft 8.6 ms, head 0.3 ms, waited 647.9, reads 661.8, pf issued 0.0 used 0.0, SSD 7.5 GB/s 1265 MB | peak footprint 11.43 GB | loader per pass: stalled calls 91.0 of 99.0, stall 117.9 ms, io 117.1 ms | sha 67746aae84 | '*   crafted from durable stainless steel to withstand rugged trails and rocky terrain\n*   double-wall vacuum insulation keeps drinks cold for twenty-four hours or hot for twelve\n*   leak-proof lid design prevents'
+[o3_ref_gdn] done

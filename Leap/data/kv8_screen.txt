@@ -1,0 +1,60 @@
+KV8 screen acc Tue 21:35 (share lock, Mac otherwise idle (GPU 100% free))
+  N  2000 synthetic mlx1  : vs fp64 mean 2.27e-03 max 1.54e-02; vs fs4 mean 4.30e-01 max 2.47e+00
+  N  2000 synthetic mlxq8 : vs fp64 mean 6.63e-03 max 3.89e-02; vs fs4 mean 4.30e-01 max 2.47e+00
+  N  2000 synthetic fs4   : vs fp64 mean 4.30e-01 max 2.46e+00; vs fs4 mean 0.00e+00 max 0.00e+00
+  N  2000 synthetic q8s   : vs fp64 mean 4.30e-01 max 2.46e+00; vs fs4 mean 4.77e-03 max 2.61e-02
+  N  2000 synthetic q8m   : vs fp64 mean 4.30e-01 max 2.46e+00; vs fs4 mean 4.77e-03 max 2.61e-02
+  N 10000 synthetic mlx1  : vs fp64 mean 2.28e-03 max 1.55e-02; vs fs4 mean 4.40e-01 max 2.56e+00
+  N 10000 synthetic mlxq8 : vs fp64 mean 7.57e-03 max 4.11e-02; vs fs4 mean 4.40e-01 max 2.55e+00
+  N 10000 synthetic fs4   : vs fp64 mean 4.40e-01 max 2.56e+00; vs fs4 mean 0.00e+00 max 0.00e+00
+  N 10000 synthetic q8s   : vs fp64 mean 4.40e-01 max 2.56e+00; vs fs4 mean 4.74e-03 max 2.75e-02
+  N 10000 synthetic q8m   : vs fp64 mean 4.40e-01 max 2.56e+00; vs fs4 mean 4.75e-03 max 2.75e-02
+  N 20000 synthetic mlx1  : vs fp64 mean 2.30e-03 max 1.70e-02; vs fs4 mean 4.39e-01 max 2.67e+00
+  N 20000 synthetic mlxq8 : vs fp64 mean 7.28e-03 max 4.60e-02; vs fs4 mean 4.39e-01 max 2.65e+00
+  N 20000 synthetic fs4   : vs fp64 mean 4.39e-01 max 2.66e+00; vs fs4 mean 0.00e+00 max 0.00e+00
+  N 20000 synthetic q8s   : vs fp64 mean 4.39e-01 max 2.66e+00; vs fs4 mean 4.84e-03 max 2.74e-02
+  N 20000 synthetic q8m   : vs fp64 mean 4.39e-01 max 2.66e+00; vs fs4 mean 4.84e-03 max 2.74e-02
+  N 10000 outlier-K mlx1  : vs fp64 mean 3.42e-03 max 8.34e-02; vs fs4 mean 5.69e-01 max 1.08e+01
+  N 10000 outlier-K mlxq8 : vs fp64 mean 1.32e-02 max 2.08e-01; vs fs4 mean 5.69e-01 max 1.06e+01
+  N 10000 outlier-K fs4   : vs fp64 mean 5.69e-01 max 1.08e+01; vs fs4 mean 0.00e+00 max 0.00e+00
+  N 10000 outlier-K q8s   : vs fp64 mean 5.69e-01 max 1.08e+01; vs fs4 mean 3.78e-03 max 2.13e-02
+  N 10000 outlier-K q8m   : vs fp64 mean 5.69e-01 max 1.08e+01; vs fs4 mean 3.80e-03 max 2.13e-02
+  real-weight K / V: q (1, 24, 16, 256), k (1, 2, 10016, 256), visible keys per row 2049; K channel |mean| max 0.05, channel RMS max / median 1.1
+  N 10000 real-weight mlx1  : vs fp64 mean 1.58e-03 max 6.03e-02; vs fs4 mean 4.61e-01 max 9.85e+00
+  N 10000 real-weight mlxq8 : vs fp64 mean 4.69e-03 max 8.13e-02; vs fs4 mean 4.61e-01 max 9.85e+00
+  N 10000 real-weight fs4   : vs fp64 mean 4.61e-01 max 9.84e+00; vs fs4 mean 0.00e+00 max 0.00e+00
+  N 10000 real-weight q8s   : vs fp64 mean 4.61e-01 max 9.85e+00; vs fs4 mean 3.35e-04 max 1.90e-03
+  N 10000 real-weight q8m   : vs fp64 mean 4.61e-01 max 9.85e+00; vs fs4 mean 3.38e-04 max 1.77e-03
+--- the 21:35 acc run above is VOID: the mlxq8 arm (MLX-LM's "queries *= scale") rescaled the shared q of fs4 / q8s / q8m; mlx1 and mlxq8 rows stand ---
+KV8 screen acc Tue 21:36 (share lock, Mac otherwise idle; rerun with the q fix)
+  N  2000 synthetic mlx1  : vs fp64 mean 2.27e-03 max 1.54e-02; vs fs4 mean 2.25e-03 max 1.74e-02
+  N  2000 synthetic mlxq8 : vs fp64 mean 6.63e-03 max 3.89e-02; vs fs4 mean 6.61e-03 max 3.92e-02
+  N  2000 synthetic fs4   : vs fp64 mean 1.74e-03 max 1.31e-02; vs fs4 mean 0.00e+00 max 0.00e+00
+  N  2000 synthetic q8s   : vs fp64 mean 6.87e-03 max 3.80e-02; vs fs4 mean 6.85e-03 max 3.92e-02
+  N  2000 synthetic q8m   : vs fp64 mean 7.70e-03 max 4.58e-02; vs fs4 mean 7.70e-03 max 4.36e-02
+  N 10000 synthetic mlx1  : vs fp64 mean 2.28e-03 max 1.55e-02; vs fs4 mean 2.28e-03 max 1.84e-02
+  N 10000 synthetic mlxq8 : vs fp64 mean 7.57e-03 max 4.11e-02; vs fs4 mean 7.56e-03 max 4.13e-02
+  N 10000 synthetic fs4   : vs fp64 mean 1.76e-03 max 1.36e-02; vs fs4 mean 0.00e+00 max 0.00e+00
+  N 10000 synthetic q8s   : vs fp64 mean 6.86e-03 max 3.84e-02; vs fs4 mean 6.86e-03 max 3.79e-02
+  N 10000 synthetic q8m   : vs fp64 mean 7.72e-03 max 4.85e-02; vs fs4 mean 7.72e-03 max 4.82e-02
+  N 20000 synthetic mlx1  : vs fp64 mean 2.30e-03 max 1.70e-02; vs fs4 mean 2.27e-03 max 1.82e-02
+  N 20000 synthetic mlxq8 : vs fp64 mean 7.28e-03 max 4.60e-02; vs fs4 mean 7.26e-03 max 3.88e-02
+  N 20000 synthetic fs4   : vs fp64 mean 1.75e-03 max 1.70e-02; vs fs4 mean 0.00e+00 max 0.00e+00
+  N 20000 synthetic q8s   : vs fp64 mean 6.92e-03 max 4.16e-02; vs fs4 mean 6.90e-03 max 4.11e-02
+  N 20000 synthetic q8m   : vs fp64 mean 7.79e-03 max 4.64e-02; vs fs4 mean 7.78e-03 max 4.79e-02
+  N 10000 outlier-K mlx1  : vs fp64 mean 3.42e-03 max 8.34e-02; vs fs4 mean 3.38e-03 max 5.68e-02
+  N 10000 outlier-K mlxq8 : vs fp64 mean 1.32e-02 max 2.08e-01; vs fs4 mean 1.31e-02 max 2.27e-01
+  N 10000 outlier-K fs4   : vs fp64 mean 1.66e-03 max 2.66e-02; vs fs4 mean 0.00e+00 max 0.00e+00
+  N 10000 outlier-K q8s   : vs fp64 mean 1.51e-02 max 3.14e-01; vs fs4 mean 1.51e-02 max 3.41e-01
+  N 10000 outlier-K q8m   : vs fp64 mean 1.60e-02 max 2.57e-01; vs fs4 mean 1.59e-02 max 2.84e-01
+  real-weight K / V: q (1, 24, 16, 256), k (1, 2, 10016, 256), visible keys per row 2049; K channel |mean| max 0.05, channel RMS max / median 1.1
+  N 10000 real-weight mlx1  : vs fp64 mean 1.58e-03 max 6.03e-02; vs fs4 mean 1.41e-03 max 7.48e-02
+  N 10000 real-weight mlxq8 : vs fp64 mean 4.69e-03 max 8.13e-02; vs fs4 mean 4.62e-03 max 7.48e-02
+  N 10000 real-weight fs4   : vs fp64 mean 5.73e-04 max 2.59e-02; vs fs4 mean 0.00e+00 max 0.00e+00
+  N 10000 real-weight q8s   : vs fp64 mean 4.36e-03 max 5.97e-02; vs fs4 mean 4.31e-03 max 7.48e-02
+  N 10000 real-weight q8m   : vs fp64 mean 4.98e-03 max 6.99e-02; vs fs4 mean 4.92e-03 max 7.48e-02
+KV8 screen speed Tue 21:36 (quiet lock, Kamen's time)
+  N  2000: ms per call mlx1 0.144, mlxq8 0.471, fs4 0.138, q8s 0.138, q8m 0.147; vs fs4: q8s 1.00x, q8m 0.94x; mlxq8 vs mlx1 0.31x; per check (12 layers) q8 best vs fs4 +0.00 ms
+  N 10000: ms per call mlx1 0.485, mlxq8 1.016, fs4 0.515, q8s 0.464, q8m 0.450; vs fs4: q8s 1.11x, q8m 1.15x; mlxq8 vs mlx1 0.48x; per check (12 layers) q8 best vs fs4 +0.78 ms
+  N 20000: ms per call mlx1 1.146, mlxq8 1.834, fs4 0.987, q8s 0.893, q8m 0.846; vs fs4: q8s 1.11x, q8m 1.17x; mlxq8 vs mlx1 0.62x; per check (12 layers) q8 best vs fs4 +1.69 ms
+KV8 speed verdict (the error clause from the acc part): BETWEEN: best 8-bit form 1.15x at 10K, 1.17x at 20K vs fs4

@@ -1,0 +1,24 @@
+00:55:14 armed (pid 33647): exact-32 30K PF-A / PF-B 8192 / PF-B 4096, R57_LOGHASH=1; hard end 01:24:00
+00:55:14 wait: waiting for NewIdeas' yes (no /Users/kamen/Leap/data/prefill_1109/exact30k/GO)
+00:56:10 wait: clear once: one more poll
+00:56:35 share lock (29m) rc 0: shared run reserved until 01:25 (about 300% CPU, 100% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done. Free for it now: about 17 cores (1744% CPU) and about 100% of the GPU. It fits: use about 3 workers or -j 3. 
+00:57:16 GO: NO-SWAP 52 GB, swap 7046 MB, idle 5262 s
+00:57:16 run pfa (R57_PFLM=1, TOK 0; NO-SWAP 52 GB; cap 1604 s)
+00:58:38   pfa: whole decode 18.0 tok/s | whole request 1.0 tok/s | first token 62.64 s (62.64-62.64) | lifetime peak 38.16 GB | 1 prompt(s), 64 tokens, process wall 78 s (load + warm-up included) | wall 82 s | swap max 7046 MB
+00:58:38 run pfb8k (R57_PFLM=3, TOK 8192; NO-SWAP 52 GB; cap 1522 s)
+00:59:48   pfb8k: whole decode 17.7 tok/s | whole request 1.2 tok/s | first token 51.71 s (51.71-51.71) | lifetime peak 40.42 GB | 1 prompt(s), 64 tokens, process wall 67 s (load + warm-up included) | wall 70 s | swap max 7046 MB
+00:59:48 run pfb4k (R57_PFLM=3, TOK 4096; NO-SWAP 53 GB; cap 1452 s)
+01:00:59   pfb4k: whole decode 17.8 tok/s | whole request 1.1 tok/s | first token 52.74 s (52.74-52.74) | lifetime peak 40.42 GB | 1 prompt(s), 64 tokens, process wall 68 s (load + warm-up included) | wall 71 s | swap max 7046 MB
+01:00:59 unlocked
+exact-32 30K pfb8k vs PF-A: tokens DIFFER from token 40 (after 39 equal) (64 / 64); verify-logits hashes equal on 0 of 25 checks (first difference at check 1) (26 / 25); pflm {'reads': 24576, 'hits': 87139, 'calls': 192}; prefill 51.7071 s
+exact-32 30K pfb4k vs PF-A: tokens DIFFER from token 40 (after 39 equal) (64 / 64); verify-logits hashes equal on 0 of 25 checks (first difference at check 1) (26 / 25); pflm {'reads': 24576, 'hits': 164876, 'calls': 384}; prefill 52.7372 s
+01:00:59 exit (NO-SWAP 54 GB, swap 7038 MB)
+01:02:06 armed (pid 37894): exact-32 30K DEFAULT prefill (vs PF-A), R57_LOGHASH=1; hard end 01:24:00
+01:02:17 wait: clear once: one more poll
+01:02:42 share lock (23m) rc 0: shared run reserved until 01:25 (about 300% CPU, 100% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done. Free for it now: about 17 cores (1775% CPU) and about 100% of the GPU. It fits: use about 3 workers or -j 3. 
+01:03:23 GO: NO-SWAP 52 GB, swap 7038 MB, idle 5629 s
+01:03:23 run def (R57_PFLM=0, TOK 0; NO-SWAP 52 GB; cap 1237 s)
+01:07:39   def: whole decode 18.5 tok/s | whole request 0.3 tok/s | first token 238.60 s (238.60-238.60) | lifetime peak 34.93 GB | 1 prompt(s), 64 tokens, process wall 254 s (load + warm-up included) | wall 256 s | swap max 7038 MB
+01:07:39 unlocked
+exact-32 30K def vs PF-A: tokens EQUAL (64 / 64); verify-logits hashes equal on 26 of 26 checks (26 / 26); pflm None; prefill 238.5954 s
+01:07:39 exit (NO-SWAP 52 GB, swap 7030 MB)

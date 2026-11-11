@@ -1,0 +1,37 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=26.4 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 15M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.20 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: engine v3p, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.20 GB, active 9.33 GB
+[g1] bt_b12 8db71cc537, engine /Users/kamen/Breakthrough/v3p, C_m 51 C_l 20, cap 128; prompts humaneval/HumanEval/156 (n 146), ifeval/1220 (n 43), math500/test/number_theory/459.json (n 95)
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[g1] humaneval/HumanEval/156 ref theta spec | tok 128 sha 5e8fe529fd | lsha - | = ref tokens True (first divergence None) | checks 33, with pass 2 0, rows pass 1 0 / pass 2 0, refused 0 | 3.88 tok / check | 6.42 s, 19.92 tok/s
+[g1] humaneval/HumanEval/156 ex theta None | tok 128 sha 5e8fe529fd | lsha ed44f4b311 | = ref tokens True (first divergence None) | checks 33, with pass 2 0, rows pass 1 0 / pass 2 130, refused 0 | 3.88 tok / check | 6.37 s, 20.09 tok/s
+[g1] humaneval/HumanEval/156 g1 theta 1.01 | tok 128 sha 5e8fe529fd | lsha ed44f4b311 | = ref tokens True (first divergence None) | checks 33, with pass 2 33, rows pass 1 130 / pass 2 130, refused 0 | 3.88 tok / check | 8.50 s, 15.07 tok/s
+[g1] humaneval/HumanEval/156 g0 theta 0.0 | tok 128 sha 498d3175bc | lsha 1599f77eff | = ref tokens False (first divergence 116) | checks 35, with pass 2 0, rows pass 1 138 / pass 2 0, refused 0 | 3.66 tok / check | 3.37 s, 38.00 tok/s
+[g1] humaneval/HumanEval/156 t80 theta 0.8 | tok 128 sha b6e3b6b3ad | lsha c352e6d139 | = ref tokens False (first divergence 118) | checks 34, with pass 2 2, rows pass 1 133 / pass 2 6, refused 0 | 3.76 tok / check | 3.39 s, 37.74 tok/s
+[g1] humaneval/HumanEval/156 t95 theta 0.95 | tok 128 sha b6e3b6b3ad | lsha c352e6d139 | = ref tokens False (first divergence 118) | checks 34, with pass 2 2, rows pass 1 133 / pass 2 6, refused 0 | 3.76 tok / check | 3.42 s, 37.44 tok/s
+[g1] humaneval/HumanEval/156 t80b theta 0.8 | tok 128 sha b6e3b6b3ad | lsha c352e6d139 | = ref tokens False (first divergence 118) | checks 34, with pass 2 2, rows pass 1 133 / pass 2 6, refused 0 | 3.76 tok / check | 3.41 s, 37.58 tok/s
+[g1] humaneval/HumanEval/156 GATES | loop = spec125 (tokens): PASS | G1 (theta 1.01 = exact loop, tokens + logits): PASS | determinism (t80 = t80b): PASS | g0 pass 2 checks 0 (must be 0)
+[g1] ifeval/1220 ref theta spec | tok 128 sha 8e025ddb6b | lsha - | = ref tokens True (first divergence None) | checks 68, with pass 2 0, rows pass 1 0 / pass 2 0, refused 0 | 1.88 tok / check | 10.41 s, 12.30 tok/s
+[g1] ifeval/1220 ex theta None | tok 128 sha 8e025ddb6b | lsha 9cfc1c82ae | = ref tokens True (first divergence None) | checks 68, with pass 2 0, rows pass 1 0 / pass 2 270, refused 0 | 1.88 tok / check | 9.66 s, 13.24 tok/s
+[g1] ifeval/1220 g1 theta 1.01 | tok 128 sha 8e025ddb6b | lsha 9cfc1c82ae | = ref tokens True (first divergence None) | checks 68, with pass 2 68, rows pass 1 270 / pass 2 270, refused 0 | 1.88 tok / check | 237.93 s, 0.54 tok/s
+[g1] ifeval/1220 g0 theta 0.0 | tok 128 sha 2f4e132bc2 | lsha 4b6278cb47 | = ref tokens False (first divergence 0) | checks 72, with pass 2 0, rows pass 1 283 / pass 2 0, refused 0 | 1.78 tok / check | 5.92 s, 21.61 tok/s
+[g1] ifeval/1220 t80 theta 0.8 | tok 128 sha f924c93270 | lsha f091c137c5 | = ref tokens False (first divergence 6) | checks 72, with pass 2 67, rows pass 1 282 / pass 2 242, refused 0 | 1.78 tok / check | 12.87 s, 9.95 tok/s
+[g1] ifeval/1220 t95 theta 0.95 | tok 128 sha c2c47cfb04 | lsha ccd0f62063 | = ref tokens False (first divergence 6) | checks 64, with pass 2 64, rows pass 1 255 / pass 2 234, refused 0 | 2.00 tok / check | 12.25 s, 10.45 tok/s
+[g1] ifeval/1220 t80b theta 0.8 | tok 128 sha f924c93270 | lsha f091c137c5 | = ref tokens False (first divergence 6) | checks 72, with pass 2 67, rows pass 1 282 / pass 2 242, refused 0 | 1.78 tok / check | 12.98 s, 9.86 tok/s
+[g1] ifeval/1220 GATES | loop = spec125 (tokens): PASS | G1 (theta 1.01 = exact loop, tokens + logits): PASS | determinism (t80 = t80b): PASS | g0 pass 2 checks 0 (must be 0)
+[g1] math500/test/number_theory/459.json ref theta spec | tok 128 sha 8c6bb18289 | lsha - | = ref tokens True (first divergence None) | checks 36, with pass 2 0, rows pass 1 0 / pass 2 0, refused 0 | 3.56 tok / check | 6.64 s, 19.29 tok/s
+[g1] math500/test/number_theory/459.json ex theta None | tok 128 sha 8c6bb18289 | lsha 5a9148f14e | = ref tokens True (first divergence None) | checks 36, with pass 2 0, rows pass 1 0 / pass 2 144, refused 0 | 3.56 tok / check | 249.74 s, 0.51 tok/s
+[g1] math500/test/number_theory/459.json g1 theta 1.01 | tok 128 sha 8c6bb18289 | lsha 5a9148f14e | = ref tokens True (first divergence None) | checks 36, with pass 2 36, rows pass 1 144 / pass 2 144, refused 0 | 3.56 tok / check | 16.13 s, 7.94 tok/s
+[g1] math500/test/number_theory/459.json g0 theta 0.0 | tok 128 sha aee7dedbef | lsha 4900a5c892 | = ref tokens False (first divergence 6) | checks 37, with pass 2 0, rows pass 1 148 / pass 2 0, refused 0 | 3.46 tok / check | 3.45 s, 37.07 tok/s
+[g1] math500/test/number_theory/459.json t80 theta 0.8 | tok 128 sha 6d7d4553a9 | lsha 9507d1459d | = ref tokens False (first divergence 60) | checks 37, with pass 2 20, rows pass 1 145 / pass 2 47, refused 0 | 3.46 tok / check | 5.52 s, 23.18 tok/s
+[g1] math500/test/number_theory/459.json t95 theta 0.95 | tok 128 sha 6d7d4553a9 | lsha 33effc0ad7 | = ref tokens False (first divergence 60) | checks 38, with pass 2 26, rows pass 1 149 / pass 2 73, refused 0 | 3.37 tok / check | 6.50 s, 19.70 tok/s
+[g1] math500/test/number_theory/459.json t80b theta 0.8 | tok 128 sha 6d7d4553a9 | lsha 9507d1459d | = ref tokens False (first divergence 60) | checks 37, with pass 2 20, rows pass 1 145 / pass 2 47, refused 0 | 3.46 tok / check | 5.64 s, 22.71 tok/s
+[g1] math500/test/number_theory/459.json GATES | loop = spec125 (tokens): PASS | G1 (theta 1.01 = exact loop, tokens + logits): PASS | determinism (t80 = t80b): PASS | g0 pass 2 checks 0 (must be 0)
+[g1] done

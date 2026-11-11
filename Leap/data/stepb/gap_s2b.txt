@@ -1,0 +1,67 @@
+11-07 00:54:37 gap_s2b start (pid 38153; NO-SWAP 52.0 GB)
+11-07 00:54:52 NO-SWAP 51.9 GB -> C 224
+11-07 00:54:52 STEP B start (pid 38384, NO-SWAP 51.9 GB -> C 224, arms: bstackF; md5 probe 70063157 k d27a87fe)
+11-07 00:54:52 run stepb_bstackF_224_s2b2 (swap 6622 MB)
+11-07 00:56:33 done stepb_bstackF_224_s2b2 rc=0:   step B calibration: round trip 135 us (p10-p90 119-169), dependent dispatch 2.21 us; read floor (KB: cold / warm GB/s) 16: 1 / 9, 64: 16 / 5, 256: 19 / 22, 10 FLAT-2 VERDICT: INVALID (FLAT nan ms; lines: PASS <= 30, BETWEEN 30-36, KILL > 36; 350 tok/s itself needs <= 25 at K 12: +nan ms from it); only 0 steady zero-mi 
+11-07 00:56:33 STEP B end (rc 0)
+lock released
+11-07 00:56:33 run done, lock released
+== stepb_bstackF_224_s2b2_flat2.json (C 224; sync 0.131 ms)
+  pass 1 (cold, discarded)                     meas :  50 checks, rows 2-2, kept 2.00; draft 7.26, check+commit 52.31 (build 47.05, wait 4.87), misses 4506; GPU busy 47 % over 9.2 s
+  measured pass 1                              meas :  50 checks, rows 2-2, kept 2.00; draft 7.06, check+commit 38.84 (build 34.59, wait 3.88), misses 540; GPU busy 43 % over 8.3 s
+  stage pass                                   stage:  50 checks, rows 2-2, kept 2.00; draft 7.07, check+commit 37.79 (build 33.58, wait 3.75), misses 139; GPU busy 40 % over 8.2 s
+  probe pass                                   probe:  52 checks, rows 2-2, kept 1.90; draft 7.32, check+commit 40.09 (build 35.67, wait 3.77), misses 724; GPU busy 74 % over 30.6 s
+    ABL (S2b step 1) at check 8: 16 rows dense-only, 4 rounds x 12 forwards per variant; GDN 36 / attention 12 layers, in_proj objects 36, PLE 1
+      base       wall  21.96 ms (build 15.19): vs base  +0.00 ms of wall; GPU busy  95 % -> GPU 20.90 ms, vs base  +0.00 ms of GPU
+      hcra       wall  20.27 ms (build 14.93): vs base  +1.69 ms of wall; GPU busy  87 % -> GPU 17.61 ms, vs base  +3.29 ms of GPU
+      cal:hcra   wall  22.38 ms (build 16.58): vs base  -0.43 ms of wall; GPU busy  89 % -> GPU 19.94 ms, vs base  +0.96 ms of GPU
+      hcrm       wall  20.16 ms (build 15.30): vs base  +1.79 ms of wall; GPU busy  80 % -> GPU 16.14 ms, vs base  +4.76 ms of GPU
+      cal:hcrm   wall  22.36 ms (build 16.93): vs base  -0.41 ms of wall; GPU busy  74 % -> GPU 16.59 ms, vs base  +4.31 ms of GPU
+      hcw        wall  22.30 ms (build 16.48): vs base  -0.35 ms of wall; GPU busy  90 % -> GPU 20.00 ms, vs base  +0.90 ms of GPU
+      cal:hcw    wall  22.45 ms (build 16.78): vs base  -0.49 ms of wall; GPU busy  89 % -> GPU 19.97 ms, vs base  +0.93 ms of GPU
+      att        wall  18.59 ms (build 10.39): vs base  +3.37 ms of wall; GPU busy  90 % -> GPU 16.79 ms, vs base  +4.11 ms of GPU
+      cal:att    wall  21.97 ms (build 15.19): vs base  -0.01 ms of wall; GPU busy  87 % -> GPU 19.21 ms, vs base  +1.69 ms of GPU
+      gdn        wall  14.63 ms (build 11.91): vs base  +7.33 ms of wall; GPU busy  70 % -> GPU 10.24 ms, vs base +10.66 ms of GPU
+      cal:gdn    wall  22.28 ms (build 15.52): vs base  -0.32 ms of wall; GPU busy  93 % -> GPU 20.74 ms, vs base  +0.16 ms of GPU
+      inproj     wall  17.93 ms (build 14.79): vs base  +4.03 ms of wall; GPU busy  82 % -> GPU 14.65 ms, vs base  +6.25 ms of GPU
+      cal:inproj wall  22.56 ms (build 16.11): vs base  -0.60 ms of wall; GPU busy  91 % -> GPU 20.63 ms, vs base  +0.27 ms of GPU
+      moe        wall  21.08 ms (build 13.23): vs base  +0.87 ms of wall; GPU busy  87 % -> GPU 18.30 ms, vs base  +2.60 ms of GPU
+      cal:moe    wall  22.26 ms (build 15.78): vs base  -0.30 ms of wall; GPU busy  91 % -> GPU 20.32 ms, vs base  +0.58 ms of GPU
+      d5         wall  21.91 ms (build 15.23): vs base  +0.04 ms of wall; GPU busy  93 % -> GPU 20.35 ms, vs base  +0.55 ms of GPU
+      dep:hcw    wall  18.51 ms (build 15.48): vs base  +3.44 ms of wall; GPU busy  90 % -> GPU 16.67 ms, vs base  +4.23 ms of GPU
+      PRICE hcra    (barrier kept) = wall(cal) - wall(stub) =  +2.12 ms of wall,  +2.33 ms of GPU; the zero term itself costs +0.43 ms
+      PRICE hcrm    (barrier kept) = wall(cal) - wall(stub) =  +2.20 ms of wall,  +0.45 ms of GPU; the zero term itself costs +0.41 ms
+      PRICE hcw     (barrier kept) = wall(cal) - wall(stub) =  +0.14 ms of wall,  -0.03 ms of GPU; the zero term itself costs +0.49 ms; the old depends stub said +3.44
+      PRICE att     (barrier kept) = wall(cal) - wall(stub) =  +3.38 ms of wall,  +2.42 ms of GPU; the zero term itself costs +0.01 ms
+      PRICE gdn     (barrier kept) = wall(cal) - wall(stub) =  +7.65 ms of wall, +10.50 ms of GPU; the zero term itself costs +0.32 ms
+      PRICE inproj  (barrier kept) = wall(cal) - wall(stub) =  +4.63 ms of wall,  +5.98 ms of GPU; the zero term itself costs +0.60 ms
+      PRICE moe     (barrier kept) = wall(cal) - wall(stub) =  +1.17 ms of wall,  +2.02 ms of GPU; the zero term itself costs +0.30 ms
+      D5 (REF2_HC_PEND fold on) vs base:  +0.04 ms of wall saved
+  real-block pass 1 (discarded)                meas :  12 checks, rows 13-16, kept 14.25; draft 8.87, check+commit 75.75 (build 65.93, wait 6.54), misses 1470; GPU busy 40 % over 7.2 s
+  real-block pass 2                            meas :  12 checks, rows 13-16, kept 14.42; draft 7.88, check+commit 62.71 (build 55.99, wait 5.49), misses 280; GPU busy 38 % over 6.9 s
+  real-block pass 3                            meas :  12 checks, rows 13-16, kept 14.42; draft 7.81, check+commit 59.00 (build 52.72, wait 5.62), misses 79; GPU busy 38 % over 6.9 s
+  real-block commit pass                       stage:  12 checks, rows 13-16, kept 14.42; draft 7.40, check+commit 59.93 (build 52.78, wait 5.42), misses 40; GPU busy 38 % over 7.0 s
+  real-block probe pass (S2c)                  probe:  12 checks, rows 13-16, kept 14.42; draft 7.56, check+commit 62.62 (build 54.66, wait 5.47), misses 338; GPU busy 48 % over 9.5 s
+    S2C at check 6 (13 rows; previous blocks [16, 16, 15] rows):
+      same  (10 forwards; the first per block dropped): block 0: wall 47.95 (build 43.32), misses 0
+      alt2  (10 forwards; the first per block dropped): block 0: wall 44.75 (build 39.89), misses 127; block 1: wall 48.10 (build 43.44), misses 3
+      alt3  (10 forwards; the first per block dropped): block 0: wall 46.97 (build 41.94), misses 111; block 1: wall 45.11 (build 40.13), misses 12; block 2: wall 48.24 (build 43.55), misses 2
+      same2 (10 forwards; the first per block dropped): block 0: wall 48.24 (build 43.60), misses 0
+      STEP 1b per piece, synced (ms; live check / its block replayed right after / again after the alternating forwards; live - replay): total 68.42 / 58.40 / 59.18
+        moe_pre    10.02 /    4.17 /    4.43    +5.85
+        gdn        11.91 /   10.39 /   10.32    +1.52
+        experts    27.42 /   26.05 /   26.39    +1.37
+        att         6.43 /    5.51 /    5.50    +0.93
+        hc_w        1.37 /    1.16 /    1.19    +0.21
+        hc_a        4.05 /    3.88 /    3.96    +0.18
+        hc_f        0.13 /    0.12 /    0.13    +0.01
+        layer       0.00 /    0.00 /    0.00    +0.00
+        moe         1.58 /    1.59 /    1.45    -0.01
+        ple         0.64 /    0.66 /    0.68    -0.02
+        hc_m        4.87 /    4.88 /    5.13    -0.02
+        layers with the largest live - replay: L36 +0.34, L5 +0.33, L9 +0.31, L3 +0.30, L31 +0.30, L10 +0.30
+  probe at check 8 (2 rows, live misses 0): warm repeats 31.35 / 31.05 ms (build 27.97 / 27.54, misses 0 / 0, logits == live [True, True]); last forward == live False; 22.0 s
+  probe at check 6 (13 rows, live misses 11): warm repeats 47.67 / 47.92 ms (build 43.03 / 43.26, misses 0 / 0, logits == live [True, True]); last forward == live False; 2.4 s
+  probe at check 8 (2 rows, live misses 0): warm repeats 31.35 / 31.05 ms (build 27.97 / 27.54, misses 0 / 0, logits == live [True, True]); last forward == live False; 22.0 s
+  probe at check 6 (13 rows, live misses 11): warm repeats 47.67 / 47.92 ms (build 43.03 / 43.26, misses 0 / 0, logits == live [True, True]); last forward == live False; 2.4 s
+11-07 00:56:33 gap_s2b end

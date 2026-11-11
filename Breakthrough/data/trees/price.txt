@@ -1,0 +1,115 @@
+TREES price: 13174 blocks from lattice_code.npz, lattice_chat.npz, lattice_rest.npz; DFlash2 L1-20 along the selector's trajectory; GB per check from BigMoE's curve (4-bit, C 160); rows = the anchor + drafted nodes
+
+== code: 664 blocks from 24 answers; chain at 16 rows 9.56 kept per check (reference run: 9.54); true token in the top-16 at depth 1 / 4 / 8: 1.00 / 0.95 / 0.87
+    rows                    16      12       8       6       4       3       2
+    chain  kept            9.56    8.26    6.28    5.02    3.59    2.80    1.94
+    chain  GB per kept    1.026   0.991   0.992   0.999   1.060   1.087   1.179
+    tree   kept           10.02    8.51    6.39    5.08    3.59    2.80    1.94
+    tree   GB per kept    0.980   0.962   0.975   0.988   1.059   1.088   1.179
+    medusa kept            9.83    8.44    6.37    5.08    3.60    2.80    1.94
+    medusa GB per kept    0.998   0.971   0.978   0.988   1.057   1.088   1.179
+    tree vs chain        +4.8%   +3.0%   +1.7%   +1.2%   +0.2%   -0.1%   +0.0%
+    truncated chains (running pick prob >= t): t 0.5: 9.01 kept at 9.89 rows, 0.765 GB/kept; t 0.3: 9.34 kept at 10.99 rows, 0.804 GB/kept; t 0.1: 9.54 kept at 12.50 rows, 0.873 GB/kept
+    dynamic trees (path prob >= tau, <= 16 rows): tau 0.5: 9.01 at 9.89 rows, 0.765; tau 0.3: 9.46 at 11.32 rows, 0.812; tau 0.2: 9.71 at 12.46 rows, 0.854; tau 0.1: 9.93 at 14.13 rows, 0.921; tau 0.05: 10.02 at 15.42 rows, 0.973; tau 0.02: 10.02 at 15.58 rows, 0.980
+    oracle top-16 at 16 rows 12.27 kept; exact-capped (answer != the capture's top-1 ends the block): chain 16 9.53, tree 16 9.95 (+4.4 %)
+    tree at 16 rows: deepest node at depth 11.8 (the chain's 15), 1.2 branch points, 3.4 of 15 nodes off the chain
+    best GB per kept token: chain 0.765 (chain t 0.5), tree 0.765 (tree tau 0.5, +0.0 %), medusa 0.971 (medusa 12)
+    VERDICT at equal rows 16 (PASS >= +10 % kept at equal bytes per kept token, KILL < +5 %): first-order tree +4.8 % -> KILL; pre-registered medusa ranking +2.8 % -> KILL
+
+== chat (ifeval + multi): 6134 blocks from 54 answers; chain at 16 rows 2.23 kept per check (reference run: 2.23); true token in the top-16 at depth 1 / 4 / 8: 0.85 / 0.51 / 0.38
+    rows                    16      12       8       6       4       3       2
+    chain  kept            2.23    2.23    2.19    2.14    2.00    1.85    1.56
+    chain  GB per kept    4.385   3.675   2.835   2.347   1.900   1.647   1.466
+    tree   kept            2.72    2.62    2.45    2.31    2.07    1.88    1.56
+    tree   GB per kept    3.603   3.126   2.539   2.172   1.838   1.625   1.466
+    medusa kept            2.65    2.56    2.43    2.30    2.07    1.88    1.56
+    medusa GB per kept    3.704   3.189   2.563   2.181   1.839   1.625   1.466
+    tree vs chain       +21.7%  +17.6%  +11.7%   +8.1%   +3.4%   +1.3%   +0.0%
+    truncated chains (running pick prob >= t): t 0.5: 1.98 kept at 2.51 rows, 1.314 GB/kept; t 0.3: 2.14 kept at 3.34 rows, 1.502 GB/kept; t 0.1: 2.23 kept at 5.10 rows, 1.982 GB/kept
+    dynamic trees (path prob >= tau, <= 16 rows): tau 0.5: 1.98 at 2.51 rows, 1.314; tau 0.3: 2.20 at 3.51 rows, 1.519; tau 0.2: 2.34 at 4.72 rows, 1.778; tau 0.1: 2.54 at 8.21 rows, 2.456; tau 0.05: 2.69 at 13.54 rows, 3.310; tau 0.02: 2.72 at 15.54 rows, 3.603
+    oracle top-16 at 16 rows 3.70 kept; exact-capped (answer != the capture's top-1 ends the block): chain 16 2.21, tree 16 2.68 (+21.1 %)
+    tree at 16 rows: deepest node at depth 5.5 (the chain's 15), 2.7 branch points, 9.8 of 15 nodes off the chain
+    best GB per kept token: chain 1.314 (chain t 0.5), tree 1.314 (tree tau 0.5, +0.0 %), medusa 1.466 (medusa 2)
+    VERDICT at equal rows 16 (PASS >= +10 % kept at equal bytes per kept token, KILL < +5 %): first-order tree +21.7 % -> PASS; pre-registered medusa ranking +18.4 % -> BETWEEN
+
+== ifeval: 2837 blocks from 30 answers; chain at 16 rows 2.45 kept per check (reference run: 2.44); true token in the top-16 at depth 1 / 4 / 8: 0.94 / 0.57 / 0.41
+    rows                    16      12       8       6       4       3       2
+    chain  kept            2.45    2.43    2.38    2.31    2.15    1.97    1.63
+    chain  GB per kept    3.997   3.364   2.613   2.172   1.770   1.549   1.404
+    tree   kept            3.03    2.89    2.68    2.51    2.22    1.99    1.63
+    tree   GB per kept    3.236   2.830   2.319   2.002   1.711   1.530   1.404
+    medusa kept            2.92    2.82    2.65    2.49    2.22    1.99    1.63
+    medusa GB per kept    3.350   2.899   2.351   2.013   1.712   1.530   1.404
+    tree vs chain       +23.5%  +18.9%  +12.7%   +8.5%   +3.5%   +1.2%   +0.0%
+    truncated chains (running pick prob >= t): t 0.5: 2.14 kept at 2.67 rows, 1.269 GB/kept; t 0.3: 2.34 kept at 3.56 rows, 1.440 GB/kept; t 0.1: 2.45 kept at 5.44 rows, 1.897 GB/kept
+    dynamic trees (path prob >= tau, <= 16 rows): tau 0.5: 2.14 at 2.67 rows, 1.269; tau 0.3: 2.41 at 3.75 rows, 1.456; tau 0.2: 2.57 at 5.04 rows, 1.699; tau 0.1: 2.81 at 8.77 rows, 2.330; tau 0.05: 3.00 at 14.23 rows, 3.069; tau 0.02: 3.03 at 15.53 rows, 3.236
+    oracle top-16 at 16 rows 4.17 kept; exact-capped (answer != the capture's top-1 ends the block): chain 16 2.42, tree 16 2.97 (+22.5 %)
+    tree at 16 rows: deepest node at depth 5.9 (the chain's 15), 2.7 branch points, 9.5 of 15 nodes off the chain
+    best GB per kept token: chain 1.269 (chain t 0.5), tree 1.269 (tree tau 0.5, +0.0 %), medusa 1.404 (medusa 2)
+    VERDICT at equal rows 16 (PASS >= +10 % kept at equal bytes per kept token, KILL < +5 %): first-order tree +23.5 % -> PASS; pre-registered medusa ranking +19.3 % -> BETWEEN
+
+== multi: 3297 blocks from 24 answers; chain at 16 rows 2.05 kept per check (reference run: 2.05); true token in the top-16 at depth 1 / 4 / 8: 0.78 / 0.46 / 0.36
+    rows                    16      12       8       6       4       3       2
+    chain  kept            2.05    2.05    2.03    1.99    1.88    1.75    1.50
+    chain  GB per kept    4.784   3.992   3.059   2.521   2.028   1.742   1.523
+    tree   kept            2.46    2.38    2.25    2.14    1.94    1.77    1.50
+    tree   GB per kept    3.992   3.435   2.764   2.343   1.962   1.717   1.523
+    medusa kept            2.41    2.34    2.24    2.13    1.94    1.77    1.50
+    medusa GB per kept    4.075   3.489   2.779   2.351   1.964   1.717   1.523
+    tree vs chain       +19.8%  +16.2%  +10.6%   +7.6%   +3.3%   +1.5%   +0.0%
+    truncated chains (running pick prob >= t): t 0.5: 1.84 kept at 2.38 rows, 1.359 GB/kept; t 0.3: 1.97 kept at 3.15 rows, 1.565 GB/kept; t 0.1: 2.05 kept at 4.81 rows, 2.070 GB/kept
+    dynamic trees (path prob >= tau, <= 16 rows): tau 0.5: 1.84 at 2.38 rows, 1.359; tau 0.3: 2.02 at 3.31 rows, 1.583; tau 0.2: 2.13 at 4.44 rows, 1.861; tau 0.1: 2.30 at 7.72 rows, 2.589; tau 0.05: 2.42 at 12.95 rows, 3.567; tau 0.02: 2.46 at 15.55 rows, 3.992
+    oracle top-16 at 16 rows 3.28 kept; exact-capped (answer != the capture's top-1 ends the block): chain 16 2.03, tree 16 2.43 (+19.7 %)
+    tree at 16 rows: deepest node at depth 5.1 (the chain's 15), 2.7 branch points, 10.1 of 15 nodes off the chain
+    best GB per kept token: chain 1.359 (chain t 0.5), tree 1.359 (tree tau 0.5, +0.0 %), medusa 1.523 (medusa 2)
+    VERDICT at equal rows 16 (PASS >= +10 % kept at equal bytes per kept token, KILL < +5 %): first-order tree +19.8 % -> PASS; pre-registered medusa ranking +17.4 % -> BETWEEN
+
+== agent: 636 blocks from 12 answers; chain at 16 rows 3.00 kept per check (reference run: 3.00); true token in the top-16 at depth 1 / 4 / 8: 0.86 / 0.59 / 0.44
+    rows                    16      12       8       6       4       3       2
+    chain  kept            3.00    2.95    2.78    2.61    2.28    2.01    1.62
+    chain  GB per kept    3.228   2.747   2.219   1.911   1.664   1.509   1.409
+    tree   kept            3.43    3.28    2.97    2.73    2.33    2.03    1.62
+    tree   GB per kept    2.820   2.474   2.083   1.830   1.629   1.497   1.409
+    medusa kept            3.32    3.18    2.93    2.71    2.32    2.03    1.62
+    medusa GB per kept    2.918   2.550   2.107   1.844   1.633   1.497   1.409
+    tree vs chain       +14.5%  +11.0%   +6.5%   +4.4%   +2.1%   +0.8%   +0.0%
+    truncated chains (running pick prob >= t): t 0.5: 2.65 kept at 3.64 rows, 1.253 GB/kept; t 0.3: 2.87 kept at 4.84 rows, 1.439 GB/kept; t 0.1: 2.99 kept at 6.82 rows, 1.800 GB/kept
+    dynamic trees (path prob >= tau, <= 16 rows): tau 0.5: 2.65 at 3.64 rows, 1.253; tau 0.3: 2.95 at 5.13 rows, 1.458; tau 0.2: 3.09 at 6.59 rows, 1.681; tau 0.1: 3.30 at 9.96 rows, 2.154; tau 0.05: 3.42 at 14.09 rows, 2.674; tau 0.02: 3.43 at 15.32 rows, 2.820
+    oracle top-16 at 16 rows 4.92 kept; exact-capped (answer != the capture's top-1 ends the block): chain 16 2.93, tree 16 3.33 (+13.6 %)
+    tree at 16 rows: deepest node at depth 6.9 (the chain's 15), 2.4 branch points, 8.4 of 15 nodes off the chain
+    best GB per kept token: chain 1.253 (chain t 0.5), tree 1.253 (tree tau 0.5, +0.0 %), medusa 1.409 (medusa 2)
+    VERDICT at equal rows 16 (PASS >= +10 % kept at equal bytes per kept token, KILL < +5 %): first-order tree +14.5 % -> PASS; pre-registered medusa ranking +10.6 % -> BETWEEN
+
+== mgsm: 3709 blocks from 30 answers; chain at 16 rows 3.52 kept per check (reference run: 3.52); true token in the top-16 at depth 1 / 4 / 8: 0.84 / 0.66 / 0.50
+    rows                    16      12       8       6       4       3       2
+    chain  kept            3.52    3.44    3.16    2.87    2.40    2.06    1.62
+    chain  GB per kept    2.828   2.407   1.983   1.758   1.591   1.480   1.413
+    tree   kept            3.99    3.77    3.34    2.97    2.43    2.07    1.62
+    tree   GB per kept    2.497   2.201   1.878   1.699   1.569   1.473   1.413
+    medusa kept            3.91    3.72    3.32    2.96    2.43    2.07    1.62
+    medusa GB per kept    2.551   2.226   1.887   1.701   1.569   1.473   1.413
+    tree vs chain       +13.3%   +9.4%   +5.6%   +3.5%   +1.4%   +0.4%   +0.0%
+    truncated chains (running pick prob >= t): t 0.5: 3.05 kept at 3.81 rows, 1.119 GB/kept; t 0.3: 3.32 kept at 4.89 rows, 1.247 GB/kept; t 0.1: 3.49 kept at 7.02 rows, 1.564 GB/kept
+    dynamic trees (path prob >= tau, <= 16 rows): tau 0.5: 3.05 at 3.81 rows, 1.119; tau 0.3: 3.38 at 5.13 rows, 1.265; tau 0.2: 3.59 at 6.56 rows, 1.438; tau 0.1: 3.85 at 10.06 rows, 1.856; tau 0.05: 3.97 at 14.21 rows, 2.325; tau 0.02: 3.99 at 15.88 rows, 2.497
+    oracle top-16 at 16 rows 5.87 kept; exact-capped (answer != the capture's top-1 ends the block): chain 16 3.51, tree 16 3.97 (+13.1 %)
+    tree at 16 rows: deepest node at depth 7.0 (the chain's 15), 2.2 branch points, 8.3 of 15 nodes off the chain
+    best GB per kept token: chain 1.119 (chain t 0.5), tree 1.119 (tree tau 0.5, +0.0 %), medusa 1.413 (medusa 2)
+    VERDICT at equal rows 16 (PASS >= +10 % kept at equal bytes per kept token, KILL < +5 %): first-order tree +13.3 % -> PASS; pre-registered medusa ranking +10.8 % -> BETWEEN
+
+== gsm (reference): 2031 blocks from 60 answers; chain at 16 rows 7.02 kept per check (reference run: 6.98); true token in the top-16 at depth 1 / 4 / 8: 1.00 / 0.93 / 0.85
+    rows                    16      12       8       6       4       3       2
+    chain  kept            7.02    6.53    5.43    4.56    3.41    2.71    1.91
+    chain  GB per kept    1.408   1.261   1.149   1.101   1.115   1.125   1.199
+    tree   kept            7.56    6.84    5.56    4.62    3.43    2.71    1.91
+    tree   GB per kept    1.307   1.203   1.123   1.087   1.110   1.124   1.199
+    medusa kept            7.34    6.71    5.52    4.61    3.43    2.71    1.91
+    medusa GB per kept    1.347   1.227   1.132   1.091   1.111   1.124   1.199
+    tree vs chain        +7.7%   +4.8%   +2.3%   +1.3%   +0.4%   +0.1%   +0.0%
+    truncated chains (running pick prob >= t): t 0.5: 6.25 kept at 7.56 rows, 0.918 GB/kept; t 0.3: 6.75 kept at 9.29 rows, 0.997 GB/kept; t 0.1: 7.00 kept at 11.85 rows, 1.152 GB/kept
+    dynamic trees (path prob >= tau, <= 16 rows): tau 0.5: 6.25 at 7.56 rows, 0.918; tau 0.3: 6.92 at 9.79 rows, 1.010; tau 0.2: 7.24 at 11.65 rows, 1.099; tau 0.1: 7.52 at 14.49 rows, 1.241; tau 0.05: 7.56 at 15.65 rows, 1.303; tau 0.02: 7.56 at 15.71 rows, 1.307
+    oracle top-16 at 16 rows 11.21 kept; exact-capped (answer != the capture's top-1 ends the block): chain 16 6.97, tree 16 7.49 (+7.4 %)
+    tree at 16 rows: deepest node at depth 11.0 (the chain's 15), 1.5 branch points, 4.4 of 15 nodes off the chain
+    best GB per kept token: chain 0.918 (chain t 0.5), tree 0.918 (tree tau 0.5, +0.0 %), medusa 1.091 (medusa 6)
+    VERDICT at equal rows 16 (PASS >= +10 % kept at equal bytes per kept token, KILL < +5 %): first-order tree +7.7 % -> BETWEEN; pre-registered medusa ranking +4.5 % -> KILL
+
+SUMMARY code: tree KILL / medusa KILL; chat (ifeval + multi): tree PASS / medusa BETWEEN; ifeval: tree PASS / medusa BETWEEN; multi: tree PASS / medusa BETWEEN; agent: tree PASS / medusa BETWEEN; mgsm: tree PASS / medusa BETWEEN; gsm (reference): tree BETWEEN / medusa KILL

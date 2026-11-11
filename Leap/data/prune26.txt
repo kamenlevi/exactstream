@@ -1,0 +1,20 @@
+Pruned-125B estimate (Breakthrough's routing traces, 4 sets x 800 decode tokens, 48 layers); misses per generated token
+RCO stand-in calibrated on code (first halves); evaluated on second halves
+  code      distinct experts per layer in a 16-row check (all resident, bytes): 512 top-10 71.9, 256 top-10 67.6, 256 top-8 56.7
+  code      kept top-10 mass 0.945 (rows with < 10 kept in the top-20: 1.1%); misses per token at 16-row (9.5) / 4-row (3.4) checks: 512 @ C192:  46.3 /  45.3; 256 @ C192:  19.3 /  18.8; 256 top-8 @ C192:  14.1 /  13.7; 256 @ C224:   8.1 /   7.8; 256 @ C240:   3.9 /   3.8
+  chat      distinct experts per layer in a 16-row check (all resident, bytes): 512 top-10 64.2, 256 top-10 50.3, 256 top-8 46.3
+  chat      kept top-10 mass 0.403 (rows with < 10 kept in the top-20: 69.2%); misses per token at 16-row (9.5) / 4-row (3.4) checks: 512 @ C192:  38.2 /  38.4; 256 @ C192:  10.5 /  10.5; 256 top-8 @ C192:   9.4 /   9.5; 256 @ C224:   4.7 /   4.8; 256 @ C240:   2.3 /   2.4
+  math      distinct experts per layer in a 16-row check (all resident, bytes): 512 top-10 72.4, 256 top-10 62.9, 256 top-8 54.1
+  math      kept top-10 mass 0.692 (rows with < 10 kept in the top-20: 16.6%); misses per token at 16-row (9.5) / 4-row (3.4) checks: 512 @ C192:  51.6 /  50.2; 256 @ C192:  13.2 /  12.7; 256 top-8 @ C192:  10.5 /  10.3; 256 @ C224:   5.3 /   5.1; 256 @ C240:   2.5 /   2.4
+  bulgarian distinct experts per layer in a 16-row check (all resident, bytes): 512 top-10 57.8, 256 top-10 48.2, 256 top-8 44.2
+  bulgarian kept top-10 mass 0.361 (rows with < 10 kept in the top-20: 68.7%); misses per token at 16-row (9.5) / 4-row (3.4) checks: 512 @ C192:  42.7 /  42.3; 256 @ C192:  11.4 /  11.2; 256 top-8 @ C192:  10.0 /   9.9; 256 @ C224:   5.0 /   4.9; 256 @ C240:   2.5 /   2.5
+RCO stand-in calibrated on all four sets (first halves); evaluated on second halves
+  code      distinct experts per layer in a 16-row check (all resident, bytes): 512 top-10 71.9, 256 top-10 63.3, 256 top-8 53.8
+  code      kept top-10 mass 0.864 (rows with < 10 kept in the top-20: 6.5%); misses per token at 16-row (9.5) / 4-row (3.4) checks: 512 @ C192:  48.5 /  47.5; 256 @ C192:  13.3 /  13.1; 256 top-8 @ C192:  10.5 /  10.3; 256 @ C224:   5.7 /   5.6; 256 @ C240:   2.8 /   2.7
+  chat      distinct experts per layer in a 16-row check (all resident, bytes): 512 top-10 64.2, 256 top-10 58.1, 256 top-8 49.8
+  chat      kept top-10 mass 0.891 (rows with < 10 kept in the top-20: 3.7%); misses per token at 16-row (9.5) / 4-row (3.4) checks: 512 @ C192:  33.2 /  33.4; 256 @ C192:  11.0 /  11.0; 256 top-8 @ C192:   9.0 /   9.1; 256 @ C224:   4.9 /   4.8; 256 @ C240:   2.4 /   2.4
+  math      distinct experts per layer in a 16-row check (all resident, bytes): 512 top-10 72.4, 256 top-10 62.4, 256 top-8 53.4
+  math      kept top-10 mass 0.833 (rows with < 10 kept in the top-20: 10.2%); misses per token at 16-row (9.5) / 4-row (3.4) checks: 512 @ C192:  49.9 /  48.4; 256 @ C192:  13.4 /  12.9; 256 top-8 @ C192:  11.1 /  10.7; 256 @ C224:   5.7 /   5.4; 256 @ C240:   2.6 /   2.5
+  bulgarian distinct experts per layer in a 16-row check (all resident, bytes): 512 top-10 57.8, 256 top-10 50.6, 256 top-8 42.3
+  bulgarian kept top-10 mass 0.881 (rows with < 10 kept in the top-20: 4.5%); misses per token at 16-row (9.5) / 4-row (3.4) checks: 512 @ C192:  39.5 /  39.1; 256 @ C192:  11.1 /  10.8; 256 top-8 @ C192:   8.4 /   8.2; 256 @ C224:   4.9 /   4.7; 256 @ C240:   2.5 /   2.4
+Need <= ~16 misses per token at 24 GB for 350 (with full read / compute overlap; ~30 MB per token at 10.6 GB/s).

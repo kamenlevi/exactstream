@@ -1,0 +1,34 @@
+
+GDN lazy commit check Fri 08:01:16
+layer 4 GDN, quantized modules ['in_proj_a', 'in_proj_b', 'in_proj_qkv', 'in_proj_z', 'out_proj']; DENSE-N-RAM converted 3 (32 MB)
+(1) S 16, lazy off: gdn_body NSG 8 / 16 == off (y, conv state, recurrent state) bitwise, 2-leaf state: True
+(1) S  8, lazy off: gdn_body NSG 8 / 16 == off (y, conv state, recurrent state) bitwise, 2-leaf state: True
+(1) S  1, lazy off: gdn_body NSG 8 / 16 == off (y, conv state, recurrent state) bitwise, 2-leaf state: True
+(2) NSG  8 G3 0: nothing pending: y / q / k / v / conv == gdn_body, committed == the input state, pack == q|k|v|a|b: True
+(3) NSG  8 G3 0, keep  1: committed state == MTPLX's commit replay, y / q / k / v / conv == today's next check: True
+(3) NSG  8 G3 0, keep  2: committed state == MTPLX's commit replay, y / q / k / v / conv == today's next check: True
+(3) NSG  8 G3 0, keep  9: committed state == MTPLX's commit replay, y / q / k / v / conv == today's next check: True
+(3) NSG  8 G3 0, keep 15: committed state == MTPLX's commit replay, y / q / k / v / conv == today's next check: True
+(3) NSG  8 G3 0, keep 16: committed state == MTPLX's commit replay, y / q / k / v / conv == today's next check: True
+(2) NSG  8 G3 1: nothing pending: y / q / k / v / conv == gdn_body, committed == the input state, pack == q|k|v|a|b: True
+(3) NSG  8 G3 1, keep  1: committed state == MTPLX's commit replay, y / q / k / v / conv == today's next check: True
+(3) NSG  8 G3 1, keep  2: committed state == MTPLX's commit replay, y / q / k / v / conv == today's next check: True
+(3) NSG  8 G3 1, keep  9: committed state == MTPLX's commit replay, y / q / k / v / conv == today's next check: True
+(3) NSG  8 G3 1, keep 15: committed state == MTPLX's commit replay, y / q / k / v / conv == today's next check: True
+(3) NSG  8 G3 1, keep 16: committed state == MTPLX's commit replay, y / q / k / v / conv == today's next check: True
+(2) NSG 16 G3 0: nothing pending: y / q / k / v / conv == gdn_body, committed == the input state, pack == q|k|v|a|b: True
+(3) NSG 16 G3 0, keep  1: committed state == MTPLX's commit replay, y / q / k / v / conv == today's next check: True
+(3) NSG 16 G3 0, keep  2: committed state == MTPLX's commit replay, y / q / k / v / conv == today's next check: True
+(3) NSG 16 G3 0, keep  9: committed state == MTPLX's commit replay, y / q / k / v / conv == today's next check: True
+(3) NSG 16 G3 0, keep 15: committed state == MTPLX's commit replay, y / q / k / v / conv == today's next check: True
+(3) NSG 16 G3 0, keep 16: committed state == MTPLX's commit replay, y / q / k / v / conv == today's next check: True
+(2) NSG 16 G3 1: nothing pending: y / q / k / v / conv == gdn_body, committed == the input state, pack == q|k|v|a|b: True
+(3) NSG 16 G3 1, keep  1: committed state == MTPLX's commit replay, y / q / k / v / conv == today's next check: True
+(3) NSG 16 G3 1, keep  2: committed state == MTPLX's commit replay, y / q / k / v / conv == today's next check: True
+(3) NSG 16 G3 1, keep  9: committed state == MTPLX's commit replay, y / q / k / v / conv == today's next check: True
+(3) NSG 16 G3 1, keep 15: committed state == MTPLX's commit replay, y / q / k / v / conv == today's next check: True
+(3) NSG 16 G3 1, keep 16: committed state == MTPLX's commit replay, y / q / k / v / conv == today's next check: True
+(4) protocol stream, 40 events: lazy on == off after every event (y, conv state, TRUE recurrent state) bitwise: True; lazy body calls 43, pending rows replayed 339, flushes 1; final form off 2 / on 3
+(5) ms per cycle, 36 layers, S 16 (median of 9, 4 cycles each): keep 9 today 15.22 / lazy 14.66 (saving +0.56); keep 16 today 13.30 / lazy 14.23 (cost +0.93); at 24 % full accepts +0.20 ms per check
+(6) ref2.self_test: PASS
+GDN lazy commit check: BETWEEN

@@ -1,0 +1,162 @@
+{
+ "suite": "agentcc",
+ "n": 12,
+ "tasks": [
+  {
+   "id": "t01_fix_test",
+   "prompt": "The test suite fails. Find the bug in the code and fix it so the tests pass. Do not change the tests. Run the tests to confirm.",
+   "template": "/Users/kamen/EvalSuite/agentcc/tasks/t01_fix_test/template",
+   "check_file": "/Users/kamen/EvalSuite/agentcc/checks/t01_fix_test.py",
+   "check_copy_as": ".agentcc_check.py",
+   "check": "/usr/bin/python3 -I -B .agentcc_check.py",
+   "timeout_s": {
+    "24": 1200,
+    "32": 1200,
+    "45": 3000
+   }
+  },
+  {
+   "id": "t02_add_function",
+   "prompt": "Add a function slugify(text) to textutil.py: lowercase the text, replace every run of characters that are not letters or digits with a single hyphen, and strip hyphens from both ends. Add a unit test for it to tests/test_textutil.py, and make sure all tests pass.",
+   "template": "/Users/kamen/EvalSuite/agentcc/tasks/t02_add_function/template",
+   "check_file": "/Users/kamen/EvalSuite/agentcc/checks/t02_add_function.py",
+   "check_copy_as": ".agentcc_check.py",
+   "check": "/usr/bin/python3 -I -B .agentcc_check.py",
+   "timeout_s": {
+    "24": 1200,
+    "32": 1200,
+    "45": 3000
+   }
+  },
+  {
+   "id": "t03_config",
+   "prompt": "In config.json, raise the timeout to 30 and turn the cache feature on. Leave every other setting unchanged.",
+   "template": "/Users/kamen/EvalSuite/agentcc/tasks/t03_config/template",
+   "check_file": "/Users/kamen/EvalSuite/agentcc/checks/t03_config.py",
+   "check_copy_as": ".agentcc_check.py",
+   "check": "/usr/bin/python3 -I -B .agentcc_check.py",
+   "timeout_s": {
+    "24": 1200,
+    "32": 1200,
+    "45": 3000
+   }
+  },
+  {
+   "id": "t04_traceback",
+   "prompt": "Running `python3 report.py` fails with this error:\n\nTraceback (most recent call last):\n  File \"report.py\", line 4, in <module>\n    print(total_value(load_items()))\n  File \"inventory.py\", line 2, in total_value\n    return sum(i[\"price\"] * i[\"qty\"] for i in items)\nKeyError: 'qty'\n\nItems without a qty should count as quantity 1. Fix it.",
+   "template": "/Users/kamen/EvalSuite/agentcc/tasks/t04_traceback/template",
+   "check_file": "/Users/kamen/EvalSuite/agentcc/checks/t04_traceback.py",
+   "check_copy_as": ".agentcc_check.py",
+   "check": "/usr/bin/python3 -I -B .agentcc_check.py",
+   "timeout_s": {
+    "24": 1200,
+    "32": 1200,
+    "45": 3000
+   }
+  },
+  {
+   "id": "t05_rename",
+   "prompt": "Rename the function get_user to fetch_user everywhere in this project: the definition and every call site, including the tests. The tests must still pass.",
+   "template": "/Users/kamen/EvalSuite/agentcc/tasks/t05_rename/template",
+   "check_file": "/Users/kamen/EvalSuite/agentcc/checks/t05_rename.py",
+   "check_copy_as": ".agentcc_check.py",
+   "check": "/usr/bin/python3 -I -B .agentcc_check.py",
+   "timeout_s": {
+    "24": 1200,
+    "32": 1200,
+    "45": 3000
+   }
+  },
+  {
+   "id": "t06_cli_flag",
+   "prompt": "Add a --shout flag to greet.py that prints the greeting in upper case. Without the flag the output must stay exactly the same.",
+   "template": "/Users/kamen/EvalSuite/agentcc/tasks/t06_cli_flag/template",
+   "check_file": "/Users/kamen/EvalSuite/agentcc/checks/t06_cli_flag.py",
+   "check_copy_as": ".agentcc_check.py",
+   "check": "/usr/bin/python3 -I -B .agentcc_check.py",
+   "timeout_s": {
+    "24": 1200,
+    "32": 1200,
+    "45": 3000
+   }
+  },
+  {
+   "id": "t07_import",
+   "prompt": "Importing shop.cart fails with: ModuleNotFoundError: No module named 'shop.pricing'. The pricing module now lives in shop/core/. Fix the import without moving any file.",
+   "template": "/Users/kamen/EvalSuite/agentcc/tasks/t07_import/template",
+   "check_file": "/Users/kamen/EvalSuite/agentcc/checks/t07_import.py",
+   "check_copy_as": ".agentcc_check.py",
+   "check": "/usr/bin/python3 -I -B .agentcc_check.py",
+   "timeout_s": {
+    "24": 1200,
+    "32": 1200,
+    "45": 3000
+   }
+  },
+  {
+   "id": "t08_readme",
+   "prompt": "Add a 'Usage' section to README.md that shows how to run the tool with `python3 tool.py --input data.csv`, in a fenced code block. Keep the existing text.",
+   "template": "/Users/kamen/EvalSuite/agentcc/tasks/t08_readme/template",
+   "check_file": "/Users/kamen/EvalSuite/agentcc/checks/t08_readme.py",
+   "check_copy_as": ".agentcc_check.py",
+   "check": "/usr/bin/python3 -I -B .agentcc_check.py",
+   "timeout_s": {
+    "24": 1200,
+    "32": 1200,
+    "45": 3000
+   }
+  },
+  {
+   "id": "t09_refactor",
+   "prompt": "report.py repeats the same money-formatting code in three places. Extract it into one helper function named format_money(amount) and use it in all three places. The output must not change.",
+   "template": "/Users/kamen/EvalSuite/agentcc/tasks/t09_refactor/template",
+   "check_file": "/Users/kamen/EvalSuite/agentcc/checks/t09_refactor.py",
+   "check_copy_as": ".agentcc_check.py",
+   "check": "/usr/bin/python3 -I -B .agentcc_check.py",
+   "timeout_s": {
+    "24": 1200,
+    "32": 1200,
+    "45": 3000
+   }
+  },
+  {
+   "id": "t10_type_hints",
+   "prompt": "Add type hints to every function in geometry.py, for all parameters and return values. Use float for numbers. Do not change what the functions do.",
+   "template": "/Users/kamen/EvalSuite/agentcc/tasks/t10_type_hints/template",
+   "check_file": "/Users/kamen/EvalSuite/agentcc/checks/t10_type_hints.py",
+   "check_copy_as": ".agentcc_check.py",
+   "check": "/usr/bin/python3 -I -B .agentcc_check.py",
+   "timeout_s": {
+    "24": 1200,
+    "32": 1200,
+    "45": 3000
+   }
+  },
+  {
+   "id": "t11_shell",
+   "prompt": "count.sh should print the total number of lines in all .txt files under data/, including subfolders, but it prints the wrong number. Fix count.sh.",
+   "template": "/Users/kamen/EvalSuite/agentcc/tasks/t11_shell/template",
+   "check_file": "/Users/kamen/EvalSuite/agentcc/checks/t11_shell.py",
+   "check_copy_as": ".agentcc_check.py",
+   "check": "/usr/bin/python3 -I -B .agentcc_check.py",
+   "timeout_s": {
+    "24": 1200,
+    "32": 1200,
+    "45": 3000
+   }
+  },
+  {
+   "id": "t12_requirements",
+   "prompt": "Add requests==2.32.3 to requirements.txt. Keep the file sorted alphabetically (ignoring case) and do not change the other lines.",
+   "template": "/Users/kamen/EvalSuite/agentcc/tasks/t12_requirements/template",
+   "check_file": "/Users/kamen/EvalSuite/agentcc/checks/t12_requirements.py",
+   "check_copy_as": ".agentcc_check.py",
+   "check": "/usr/bin/python3 -I -B .agentcc_check.py",
+   "timeout_s": {
+    "24": 1200,
+    "32": 1200,
+    "45": 3000
+   }
+  }
+ ]
+}

@@ -1,0 +1,183 @@
+TREES frontier (side analysis, not registered): 13174 blocks; cost per kept token = sum of check costs / sum of kept tokens; GB in GB, the others in ms. 'live' = chain t 0.3 (the 45 GB default's rule).
+
+== code: 664 blocks
+    policy            kept    rows       GB     45GB      RAM      SSD      D23
+    chain 16          9.56   15.58    1.026   30.004    6.259   24.539   24.217
+    chain t 0.9       7.57    7.70    0.747   23.160    4.915   18.124   22.475
+    chain t 0.8       8.13    8.40    0.744   22.783    4.824   17.995   21.598
+    chain t 0.7       8.46    8.88    0.746   22.673    4.794   18.025   21.180
+    chain t 0.6       8.72    9.34    0.754   22.766    4.807   18.192   20.975
+    chain t 0.5       9.01    9.89    0.765   22.879    4.824   18.412   20.761
+    chain t 0.4       9.22   10.43    0.782   23.207    4.886   18.781   20.761
+    chain t 0.3       9.34   10.99    0.804   23.742    4.992   19.287   20.947
+    chain t 0.2       9.46   11.70    0.834   24.500    5.144   19.992   21.266
+    chain t 0.1       9.54   12.50    0.873   25.502    5.346   20.874   21.759
+    tree tau 0.5      9.01    9.89    0.765   22.879    4.824   18.412   20.761
+    tree tau 0.4      9.26   10.53    0.784   23.248    4.894   18.824   20.748
+    tree tau 0.3      9.46   11.32    0.812   23.942    5.031   19.478   20.959
+    tree tau 0.25     9.60   11.86    0.831   24.398    5.121   19.908   21.102
+    tree tau 0.2      9.71   12.46    0.854   24.998    5.241   20.446   21.346
+    tree tau 0.15     9.81   13.14    0.881   25.724    5.387   21.070   21.667
+    tree tau 0.1      9.93   14.13    0.921   26.834    5.610   22.003   22.189
+    plain (1 row)     1.00    1.00    1.400   80.090   17.880   40.300  117.620
+    GB   : best chain chain t 0.8 (+8.1 % tokens per cost vs live t 0.3); best tree tree tau 0.5 -2.8 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 -2.8 %); plain (no drafter) -42.6 % tokens per cost vs live
+    45GB : best chain chain t 0.7 (+4.7 % tokens per cost vs live t 0.3); best tree tree tau 0.5 -0.9 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 -0.9 %); plain (no drafter) -70.4 % tokens per cost vs live
+    RAM  : best chain chain t 0.7 (+4.1 % tokens per cost vs live t 0.3); best tree tree tau 0.5 -0.6 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 -0.6 %); plain (no drafter) -72.1 % tokens per cost vs live
+    SSD  : best chain chain t 0.8 (+7.2 % tokens per cost vs live t 0.3); best tree tree tau 0.5 -2.3 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 -2.3 %); plain (no drafter) -52.1 % tokens per cost vs live
+    D23  : best chain chain t 0.4 (+0.9 % tokens per cost vs live t 0.3); best tree tree tau 0.4 +0.1 % vs the best chain (off-chain rows at 0.75x: tree tau 0.4 +0.2 %); plain (no drafter) -82.2 % tokens per cost vs live
+
+== chat (ifeval + multi): 6134 blocks
+    policy            kept    rows       GB     45GB      RAM      SSD      D23
+    chain 16          2.23   15.54    4.385  128.163   26.739  104.825   83.062
+    chain t 0.9       1.53    1.58    1.229   57.865   12.809   33.496   50.088
+    chain t 0.8       1.67    1.79    1.224   54.687   12.072   32.887   46.769
+    chain t 0.7       1.78    1.99    1.235   52.890   11.648   32.827   44.759
+    chain t 0.6       1.89    2.23    1.263   51.639   11.341   33.165   43.172
+    chain t 0.5       1.98    2.51    1.314   51.248   11.221   34.104   42.259
+    chain t 0.4       2.07    2.87    1.387   51.470   11.231   35.538   41.782
+    chain t 0.3       2.14    3.34    1.502   52.835   11.481   37.986   42.070
+    chain t 0.2       2.20    4.01    1.682   55.844   12.073   41.921   43.408
+    chain t 0.1       2.23    5.10    1.982   61.974   13.306   48.583   46.606
+    tree tau 0.5      1.98    2.51    1.314   51.248   11.221   34.104   42.259
+    tree tau 0.4      2.08    2.90    1.389   51.406   11.214   35.579   41.672
+    tree tau 0.3      2.20    3.51    1.519   52.689   11.433   38.256   41.681
+    tree tau 0.25     2.26    4.00    1.624   54.247   11.729   40.510   42.185
+    tree tau 0.2      2.34    4.72    1.778   56.880   12.240   43.841   43.244
+    tree tau 0.15     2.42    5.91    2.024   61.798   13.213   49.225   45.519
+    tree tau 0.1      2.54    8.21    2.456   71.864   15.226   58.905   50.552
+    plain (1 row)     1.00    1.00    1.400   80.090   17.880   40.300   71.920
+    GB   : best chain chain t 0.8 (+22.7 % tokens per cost vs live t 0.3); best tree tree tau 0.5 -6.9 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 -6.9 %); plain (no drafter) +7.3 % tokens per cost vs live
+    45GB : best chain chain t 0.5 (+3.1 % tokens per cost vs live t 0.3); best tree tree tau 0.5 +0.0 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 +0.0 %); plain (no drafter) -34.0 % tokens per cost vs live
+    RAM  : best chain chain t 0.5 (+2.3 % tokens per cost vs live t 0.3); best tree tree tau 0.4 +0.1 % vs the best chain (off-chain rows at 0.75x: tree tau 0.4 +0.2 %); plain (no drafter) -35.8 % tokens per cost vs live
+    SSD  : best chain chain t 0.7 (+15.7 % tokens per cost vs live t 0.3); best tree tree tau 0.5 -3.7 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 -3.7 %); plain (no drafter) -5.7 % tokens per cost vs live
+    D23  : best chain chain t 0.4 (+0.7 % tokens per cost vs live t 0.3); best tree tree tau 0.4 +0.3 % vs the best chain (off-chain rows at 0.75x: tree tau 0.3 +0.6 %); plain (no drafter) -41.5 % tokens per cost vs live
+
+== ifeval: 2837 blocks
+    policy            kept    rows       GB     45GB      RAM      SSD      D23
+    chain 16          2.45   15.53    3.997  116.813   24.371   95.545   75.711
+    chain t 0.9       1.62    1.67    1.198   55.327   12.233   32.457   47.659
+    chain t 0.8       1.78    1.90    1.190   52.138   11.494   31.809   44.335
+    chain t 0.7       1.90    2.10    1.197   50.271   11.056   31.649   42.292
+    chain t 0.6       2.03    2.36    1.221   48.962   10.738   31.905   40.679
+    chain t 0.5       2.14    2.67    1.269   48.427   10.587   32.759   39.643
+    chain t 0.4       2.26    3.05    1.328   48.298   10.522   33.863   38.909
+    chain t 0.3       2.34    3.56    1.440   49.679   10.776   36.244   39.227
+    chain t 0.2       2.41    4.26    1.606   52.500   11.331   39.867   40.478
+    chain t 0.1       2.45    5.44    1.897   58.496   12.537   46.310   43.593
+    tree tau 0.5      2.14    2.67    1.269   48.427   10.587   32.759   39.643
+    tree tau 0.4      2.27    3.08    1.331   48.253   10.508   33.908   38.819
+    tree tau 0.3      2.41    3.75    1.456   49.517   10.725   36.492   38.834
+    tree tau 0.25     2.47    4.26    1.557   51.075   11.023   38.656   39.374
+    tree tau 0.2      2.57    5.04    1.699   53.476   11.486   41.699   40.285
+    tree tau 0.15     2.68    6.30    1.920   57.912   12.360   46.527   42.279
+    tree tau 0.1      2.81    8.77    2.330   67.684   14.315   55.725   47.176
+    plain (1 row)     1.00    1.00    1.400   80.090   17.880   40.300   71.920
+    GB   : best chain chain t 0.8 (+21.0 % tokens per cost vs live t 0.3); best tree tree tau 0.5 -6.2 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 -6.2 %); plain (no drafter) +2.9 % tokens per cost vs live
+    45GB : best chain chain t 0.4 (+2.9 % tokens per cost vs live t 0.3); best tree tree tau 0.4 +0.1 % vs the best chain (off-chain rows at 0.75x: tree tau 0.4 +0.2 %); plain (no drafter) -38.0 % tokens per cost vs live
+    RAM  : best chain chain t 0.4 (+2.4 % tokens per cost vs live t 0.3); best tree tree tau 0.4 +0.1 % vs the best chain (off-chain rows at 0.75x: tree tau 0.4 +0.2 %); plain (no drafter) -39.7 % tokens per cost vs live
+    SSD  : best chain chain t 0.7 (+14.5 % tokens per cost vs live t 0.3); best tree tree tau 0.5 -3.4 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 -3.4 %); plain (no drafter) -10.1 % tokens per cost vs live
+    D23  : best chain chain t 0.4 (+0.8 % tokens per cost vs live t 0.3); best tree tree tau 0.4 +0.2 % vs the best chain (off-chain rows at 0.75x: tree tau 0.3 +0.6 %); plain (no drafter) -45.5 % tokens per cost vs live
+
+== multi: 3297 blocks
+    policy            kept    rows       GB     45GB      RAM      SSD      D23
+    chain 16          2.05   15.55    4.784  139.847   29.176  114.378   90.629
+    chain t 0.9       1.45    1.51    1.260   60.306   13.362   34.495   52.425
+    chain t 0.8       1.58    1.70    1.257   57.166   12.634   33.935   49.136
+    chain t 0.7       1.67    1.89    1.273   55.457   12.227   33.982   47.177
+    chain t 0.6       1.77    2.12    1.304   54.283   11.937   34.409   45.635
+    chain t 0.5       1.84    2.38    1.359   54.073   11.857   35.451   44.880
+    chain t 0.4       1.91    2.71    1.446   54.704   11.954   37.247   44.710
+    chain t 0.3       1.97    3.15    1.565   56.063   12.202   39.767   44.978
+    chain t 0.2       2.02    3.80    1.760   59.270   12.834   44.025   46.411
+    chain t 0.1       2.05    4.81    2.070   65.552   14.099   50.922   49.708
+    tree tau 0.5      1.84    2.38    1.359   54.073   11.857   35.451   44.880
+    tree tau 0.4      1.92    2.74    1.449   54.620   11.932   37.282   44.578
+    tree tau 0.3      2.02    3.31    1.583   55.944   12.160   40.066   44.603
+    tree tau 0.25     2.08    3.77    1.694   57.499   12.453   42.413   45.070
+    tree tau 0.2      2.13    4.44    1.861   60.406   13.021   46.058   46.308
+    tree tau 0.15     2.20    5.58    2.132   65.868   14.106   52.050   48.911
+    tree tau 0.1      2.30    7.72    2.589   76.262   16.185   62.252   54.104
+    plain (1 row)     1.00    1.00    1.400   80.090   17.880   40.300   71.920
+    GB   : best chain chain t 0.8 (+24.6 % tokens per cost vs live t 0.3); best tree tree tau 0.5 -7.6 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 -7.6 %); plain (no drafter) +11.8 % tokens per cost vs live
+    45GB : best chain chain t 0.5 (+3.7 % tokens per cost vs live t 0.3); best tree tree tau 0.5 +0.0 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 +0.0 %); plain (no drafter) -30.0 % tokens per cost vs live
+    RAM  : best chain chain t 0.5 (+2.9 % tokens per cost vs live t 0.3); best tree tree tau 0.5 +0.0 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 +0.0 %); plain (no drafter) -31.8 % tokens per cost vs live
+    SSD  : best chain chain t 0.8 (+17.2 % tokens per cost vs live t 0.3); best tree tree tau 0.5 -4.3 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 -4.3 %); plain (no drafter) -1.3 % tokens per cost vs live
+    D23  : best chain chain t 0.4 (+0.6 % tokens per cost vs live t 0.3); best tree tree tau 0.4 +0.3 % vs the best chain (off-chain rows at 0.75x: tree tau 0.3 +0.6 %); plain (no drafter) -37.5 % tokens per cost vs live
+
+== agent: 636 blocks
+    policy            kept    rows       GB     45GB      RAM      SSD      D23
+    chain 16          3.00   15.32    3.228   94.434   19.708   77.190   99.669
+    chain t 0.9       2.10    2.28    1.126   46.843   10.282   29.585   93.936
+    chain t 0.8       2.29    2.61    1.136   45.055    9.855   29.480   87.329
+    chain t 0.7       2.41    2.89    1.158   44.352    9.675   29.793   83.682
+    chain t 0.6       2.54    3.23    1.194   44.009    9.572   30.422   80.556
+    chain t 0.5       2.65    3.64    1.253   44.404    9.626   31.603   78.434
+    chain t 0.4       2.79    4.22    1.328   45.052    9.726   33.148   75.995
+    chain t 0.3       2.87    4.84    1.439   46.957   10.097   35.575   75.726
+    chain t 0.2       2.93    5.66    1.589   49.918   10.686   38.909   76.287
+    chain t 0.1       2.99    6.82    1.800   54.478   11.601   43.615   77.876
+    tree tau 0.5      2.65    3.64    1.253   44.404    9.626   31.603   78.434
+    tree tau 0.4      2.82    4.29    1.330   44.957    9.701   33.151   75.458
+    tree tau 0.3      2.95    5.13    1.458   47.040   10.098   35.920   74.389
+    tree tau 0.25     3.02    5.72    1.545   48.684   10.419   37.838   74.135
+    tree tau 0.2      3.09    6.59    1.681   51.561   10.990   40.862   74.637
+    tree tau 0.15     3.17    7.75    1.858   55.532   11.784   44.819   75.702
+    tree tau 0.1      3.30    9.96    2.154   62.871   13.253   51.548   78.003
+    plain (1 row)     1.00    1.00    1.400   80.090   17.880   40.300  187.020
+    GB   : best chain chain t 0.9 (+27.8 % tokens per cost vs live t 0.3); best tree tree tau 0.5 -10.1 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 -10.1 %); plain (no drafter) +2.8 % tokens per cost vs live
+    45GB : best chain chain t 0.6 (+6.7 % tokens per cost vs live t 0.3); best tree tree tau 0.5 -0.9 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 -0.9 %); plain (no drafter) -41.4 % tokens per cost vs live
+    RAM  : best chain chain t 0.6 (+5.5 % tokens per cost vs live t 0.3); best tree tree tau 0.5 -0.6 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 -0.6 %); plain (no drafter) -43.5 % tokens per cost vs live
+    SSD  : best chain chain t 0.8 (+20.7 % tokens per cost vs live t 0.3); best tree tree tau 0.5 -6.7 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 -6.7 %); plain (no drafter) -11.7 % tokens per cost vs live
+    D23  : best chain chain t 0.3 (+0.0 % tokens per cost vs live t 0.3); best tree tree tau 0.25 +2.1 % vs the best chain (off-chain rows at 0.75x: tree tau 0.25 +2.6 %); plain (no drafter) -59.5 % tokens per cost vs live
+
+== mgsm: 3709 blocks
+    policy            kept    rows       GB     45GB      RAM      SSD      D23
+    chain 16          3.52   15.88    2.828   82.618   17.229   67.598   57.923
+    chain t 0.9       2.24    2.34    1.067   44.267    9.710   27.986   43.909
+    chain t 0.8       2.51    2.72    1.058   41.619    9.094   27.366   40.331
+    chain t 0.7       2.72    3.07    1.066   40.223    8.761   27.271   38.221
+    chain t 0.6       2.90    3.42    1.083   39.433    8.563   27.454   36.779
+    chain t 0.5       3.05    3.81    1.119   39.367    8.523   28.133   36.030
+    chain t 0.4       3.18    4.30    1.175   39.855    8.599   29.290   35.686
+    chain t 0.3       3.32    4.89    1.247   40.803    8.771   30.824   35.654
+    chain t 0.2       3.42    5.73    1.368   43.031    9.209   33.478   36.485
+    chain t 0.1       3.49    7.02    1.564   47.377   10.081   37.888   38.616
+    tree tau 0.5      3.05    3.81    1.119   39.367    8.523   28.133   36.030
+    tree tau 0.4      3.20    4.34    1.178   39.872    8.600   29.346   35.630
+    tree tau 0.3      3.38    5.13    1.265   41.031    8.808   31.181   35.534
+    tree tau 0.25     3.48    5.73    1.336   42.306    9.053   32.742   35.867
+    tree tau 0.2      3.59    6.56    1.438   44.322    9.449   34.984   36.604
+    tree tau 0.15     3.70    7.84    1.596   47.830   10.146   38.527   38.155
+    tree tau 0.1      3.85   10.06    1.856   54.242   11.432   44.451   41.250
+    plain (1 row)     1.00    1.00    1.400   80.090   17.880   40.300   87.820
+    GB   : best chain chain t 0.8 (+17.9 % tokens per cost vs live t 0.3); best tree tree tau 0.5 -5.4 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 -5.4 %); plain (no drafter) -10.9 % tokens per cost vs live
+    45GB : best chain chain t 0.5 (+3.6 % tokens per cost vs live t 0.3); best tree tree tau 0.5 +0.0 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 +0.0 %); plain (no drafter) -49.1 % tokens per cost vs live
+    RAM  : best chain chain t 0.5 (+2.9 % tokens per cost vs live t 0.3); best tree tree tau 0.5 +0.0 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 +0.0 %); plain (no drafter) -50.9 % tokens per cost vs live
+    SSD  : best chain chain t 0.7 (+13.0 % tokens per cost vs live t 0.3); best tree tree tau 0.5 -3.1 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 -3.1 %); plain (no drafter) -23.5 % tokens per cost vs live
+    D23  : best chain chain t 0.3 (+0.0 % tokens per cost vs live t 0.3); best tree tree tau 0.3 +0.3 % vs the best chain (off-chain rows at 0.75x: tree tau 0.3 +0.7 %); plain (no drafter) -59.4 % tokens per cost vs live
+
+== gsm (reference): 2031 blocks
+    policy            kept    rows       GB     45GB      RAM      SSD      D23
+    chain 16          7.02   15.71    1.408   41.140    8.581   33.651   28.893
+    chain t 0.9       4.52    4.65    0.875   29.160    6.278   21.687   25.729
+    chain t 0.8       5.12    5.41    0.867   27.891    5.978   21.292   23.910
+    chain t 0.7       5.58    6.13    0.874   27.414    5.855   21.332   22.940
+    chain t 0.6       5.93    6.80    0.890   27.369    5.829   21.615   22.445
+    chain t 0.5       6.25    7.56    0.918   27.712    5.884   22.188   22.263
+    chain t 0.4       6.55    8.41    0.951   28.267    5.985   22.879   22.246
+    chain t 0.3       6.75    9.29    0.997   29.320    6.192   23.904   22.633
+    chain t 0.2       6.89   10.39    1.061   30.956    6.519   25.386   23.399
+    chain t 0.1       7.00   11.85    1.152   33.451    7.021   27.508   24.679
+    tree tau 0.5      6.25    7.56    0.918   27.712    5.884   22.188   22.263
+    tree tau 0.4      6.61    8.54    0.954   28.318    5.993   22.944   22.217
+    tree tau 0.3      6.92    9.79    1.010   29.610    6.245   24.195   22.633
+    tree tau 0.25     7.09   10.63    1.049   30.582    6.436   25.079   23.017
+    tree tau 0.2      7.24   11.65    1.099   31.953    6.710   26.254   23.645
+    tree tau 0.15     7.38   12.95    1.165   33.841    7.089   27.813   24.570
+    tree tau 0.1      7.52   14.49    1.241   36.119    7.547   29.632   25.716
+    plain (1 row)     1.00    1.00    1.400   80.090   17.880   40.300   87.820
+    GB   : best chain chain t 0.8 (+15.0 % tokens per cost vs live t 0.3); best tree tree tau 0.5 -5.6 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 -5.6 %); plain (no drafter) -28.8 % tokens per cost vs live
+    45GB : best chain chain t 0.6 (+7.1 % tokens per cost vs live t 0.3); best tree tree tau 0.5 -1.2 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 -1.2 %); plain (no drafter) -63.4 % tokens per cost vs live
+    RAM  : best chain chain t 0.6 (+6.2 % tokens per cost vs live t 0.3); best tree tree tau 0.5 -0.9 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 -0.9 %); plain (no drafter) -65.4 % tokens per cost vs live
+    SSD  : best chain chain t 0.8 (+12.3 % tokens per cost vs live t 0.3); best tree tree tau 0.5 -4.0 % vs the best chain (off-chain rows at 0.75x: tree tau 0.5 -4.0 %); plain (no drafter) -40.7 % tokens per cost vs live
+    D23  : best chain chain t 0.4 (+1.7 % tokens per cost vs live t 0.3); best tree tree tau 0.4 +0.1 % vs the best chain (off-chain rows at 0.75x: tree tau 0.4 +0.3 %); plain (no drafter) -74.2 % tokens per cost vs live

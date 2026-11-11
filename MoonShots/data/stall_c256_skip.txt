@@ -1,0 +1,18 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=12.7 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+bigmoe C=256 (0.709 GB/layer): loaded in 1s
+Traceback (most recent call last):
+  File "/Users/kamen/MoonShots/patches/planes125/bench_planes125.py", line 63, in <module>
+    run(ids, 32)                                         # warm-up (prefill path, caches, compiled kernels)
+    ^^^^^^^^^^^^
+  File "/Users/kamen/MoonShots/patches/planes125/bench_planes125.py", line 52, in run
+    res = G.generate_ar(rt, ids, max_tokens=n, sampler=greedy, token_callback=cb)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/generation.py", line 9461, in generate_ar
+    token, _ = _sample_from_logits(
+               ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/generation.py", line 7490, in _sample_from_logits
+    raise non_finite_logits_error(row, "greedy argmax")
+mtplx.sampling.NonFiniteLogitsError: non-finite logits in greedy argmax (nan=248320, inf=0, vocab=248320)

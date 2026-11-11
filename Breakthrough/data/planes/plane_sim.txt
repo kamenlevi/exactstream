@@ -1,0 +1,36 @@
+waited SSD MB/token (reads/token) | dropped / substituted ranks 2-9 per token | mean bits of used ranks 2-9; mean of 4 prompts
+
+budget 5% of the 4-bit experts = 71 MB per layer, 3.4 GB of expert cache
+  full 4-bit (today's frugal)                    85.6 MB ( 31.0) | drop 151.9 sub  78.2 | bits 4.00
+  MSB-3 H=32 F=0 plan 4433333333                117.5 MB (123.2) | drop 129.8 sub  85.3 | bits 3.00
+  MSB-3 H=29 F=11 plan 4433333333                88.8 MB ( 72.7) | drop 138.4 sub  82.6 | bits 3.00
+  MSB-3 H=26 F=23 plan 4433333333                85.1 MB ( 62.6) | drop 148.3 sub  79.4 | bits 3.00
+  MSB-3 H=32 F=0 plan 4433332222                117.5 MB (123.2) | drop 129.8 sub  85.3 | bits 2.61
+  MSB-3 H=29 F=11 plan 4433332222                88.8 MB ( 72.7) | drop 138.4 sub  82.6 | bits 2.62
+  MSB-3 H=26 F=23 plan 4433332222                85.1 MB ( 62.6) | drop 148.3 sub  79.4 | bits 2.63
+  MSB-2 H=46 F=0 plan 4422222222                151.3 MB (117.7) | drop  99.7 sub  92.7 | bits 2.00
+  MSB-2 H=42 F=5 plan 4422222222                102.8 MB ( 77.8) | drop 106.9 sub  91.3 | bits 2.00
+  MSB-2 H=37 F=11 plan 4422222222                92.5 MB ( 69.0) | drop 117.3 sub  88.7 | bits 2.00
+  MSB-2 H=30 F=20 plan 4422222222                86.3 MB ( 63.2) | drop 135.3 sub  83.6 | bits 2.00
+  MSB-2 H=46 F=0 plan 4444222222                151.3 MB (117.7) | drop  99.7 sub  92.7 | bits 2.00
+  MSB-2 H=42 F=5 plan 4444222222                101.7 MB ( 77.0) | drop 106.9 sub  91.3 | bits 2.22
+  MSB-2 H=37 F=11 plan 4444222222                91.3 MB ( 68.0) | drop 117.3 sub  88.7 | bits 2.36
+  MSB-2 H=30 F=20 plan 4444222222                85.6 MB ( 62.6) | drop 135.3 sub  83.6 | bits 2.54
+
+budget 10% of the 4-bit experts = 142 MB per layer, 6.8 GB of expert cache
+  full 4-bit (today's frugal)                    55.9 MB ( 20.2) | drop  92.1 sub  93.9 | bits 4.00
+  MSB-3 H=65 F=0 plan 4433333333                 95.1 MB (112.8) | drop  76.2 sub  95.4 | bits 3.00
+  MSB-3 H=59 F=23 plan 4433333333                59.1 MB ( 51.0) | drop  82.2 sub  95.0 | bits 3.00
+  MSB-3 H=52 F=46 plan 4433333333                56.0 MB ( 41.4) | drop  90.7 sub  94.1 | bits 3.00
+  MSB-3 H=65 F=0 plan 4433332222                 95.1 MB (112.8) | drop  76.2 sub  95.4 | bits 2.56
+  MSB-3 H=59 F=23 plan 4433332222                59.1 MB ( 51.0) | drop  82.2 sub  95.0 | bits 2.57
+  MSB-3 H=52 F=46 plan 4433332222                56.0 MB ( 41.4) | drop  90.7 sub  94.1 | bits 2.58
+  MSB-2 H=92 F=0 plan 4422222222                137.5 MB (108.7) | drop  59.7 sub  94.4 | bits 2.00
+  MSB-2 H=83 F=11 plan 4422222222                75.2 MB ( 57.8) | drop  63.8 sub  94.9 | bits 2.00
+  MSB-2 H=73 F=23 plan 4422222222                63.9 MB ( 48.2) | drop  69.8 sub  95.4 | bits 2.00
+  MSB-2 H=60 F=40 plan 4422222222                57.0 MB ( 41.9) | drop  81.1 sub  95.1 | bits 2.00
+  MSB-2 H=92 F=0 plan 4444222222                137.5 MB (108.7) | drop  59.7 sub  94.4 | bits 2.00
+  MSB-2 H=83 F=11 plan 4444222222                74.0 MB ( 56.8) | drop  63.8 sub  94.9 | bits 2.27
+  MSB-2 H=73 F=23 plan 4444222222                63.2 MB ( 47.6) | drop  69.8 sub  95.4 | bits 2.38
+  MSB-2 H=60 F=40 plan 4444222222                56.5 MB ( 41.5) | drop  81.1 sub  95.1 | bits 2.51
+exit 0

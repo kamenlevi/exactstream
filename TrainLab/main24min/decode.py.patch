@@ -1,0 +1,15 @@
+--- /Users/kamen/BigMoE/bigmoe/decode.py	2026-10-20 17:19:32
++++ main24min/bigmoe/decode.py	2026-10-22 06:06:13
+@@ -37,7 +37,12 @@
+         prefill_lmp4pd(model, prompt_ids, cache, prefill_chunk)
+     else:
+         ids = mx.array([list(prompt_ids)[:-1]])
++        nolog = os.environ.get("BIGMOE_PF_NOLOGITS") == "1"        # chunks skip the vocab head (cache bitwise the same)
+         for i in range(0, ids.shape[1], prefill_chunk):           # prefill all but the last prompt token (as MTPLX),
++            if nolog:
++                model(ids[:, i:i + prefill_chunk], cache=cache, emit_logits=False)
++                mx.eval([c.state for c in cache if hasattr(c, "state")])
++                continue
+             lg = model(ids[:, i:i + prefill_chunk], cache=cache)  # which then runs as an ordinary 1-row decode step
+             mx.eval(lg[0] if isinstance(lg, tuple) else lg)
+     from . import repguard

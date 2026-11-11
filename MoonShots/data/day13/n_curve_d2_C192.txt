@@ -1,0 +1,13 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=19.0 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+C=192 (26 GB of experts) loaded in 1s
+[mtplx] verify SDPA head-chunked: q_len=3 heads_per_chunk=10 chunks=4
+{"C": 192, "depth": 2, "prompt": "code", "tokens": 192, "decode_tok_s": 27.73, "verify_calls": 58, "accepted_by_depth": [52, 47], "drafted_by_depth": [55, 55], "misses_per_tok": 42.18, "stalled_per_tok": 11.4, "io_ms_per_tok": 13.45, "sha": "b6fdc142f9"}
+{"C": 192, "depth": 2, "prompt": "math", "tokens": 172, "decode_tok_s": 29.51, "verify_calls": 61, "accepted_by_depth": [59, 52], "drafted_by_depth": [61, 61], "misses_per_tok": 45.18, "stalled_per_tok": 13.74, "io_ms_per_tok": 14.79, "sha": "2c74c11e35"}
+{"C": 192, "depth": 2, "prompt": "prose", "tokens": 182, "decode_tok_s": 28.81, "verify_calls": 81, "accepted_by_depth": [63, 38], "drafted_by_depth": [81, 81], "misses_per_tok": 33.66, "stalled_per_tok": 12.81, "io_ms_per_tok": 11.92, "sha": "504e755ace"}
+
+C=192 (26 GB), committed history, greedy, 192 tokens x 3 prompts, pooled:
+depth  cond. accept by position              MTP tok/round  tok/s   loader-read share  SSD GB/s  stalled layers/tok
+    2  0.88 0.79                                 2.58          28.7     38%               3.21      12.7

@@ -1,0 +1,5 @@
+scripts/r57b_runner.sh: line 66: 78904 Terminated: 15          ( while sleep 5; do
+    S=$(swap_gb); if awk -v s="$S" -v s0="$S0" 'BEGIN { exit !(s - s0 > 2) }'; then
+        say "SWAP GUARD: swap $S GB (start $S0): stopping the screen"; P=$(pgrep -P $$ -f "scripts/r57_screen.py" | head -1); [ -n "$P" ] && kill -TERM -- -"$P"; break;
+    fi; kill -0 $$ 2> /dev/null || break;
+done )

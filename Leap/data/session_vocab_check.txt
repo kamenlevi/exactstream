@@ -1,0 +1,13 @@
+
+SESSION-VOCAB check Wed 17:24:07: D8-NAX (46 NaxQL8) + the real 4-bit head; loaded in 0 s
+(a) base 98304 ids, the same in both; extras equal and as expected after prompt / commit / empty commit / cap 4,096 / past the cap / a new prompt: [True, True, True, True, True, True] -> OK
+
+SESSION-VOCAB check Wed 17:24:51: D8-NAX (46 NaxQL8) + the real 4-bit head; loaded in 0 s
+(a) base 98304 ids, the same in both; extras equal and as expected after prompt / commit / empty commit / cap 4,096 / past the cap / a new prompt: [True, True, True, True, True, True] -> OK
+(b) P = 15 rows: SV.head2s == screened_head2s bitwise True; D17's 16 rows (row 15 == row 3) True; 18 rows == 16 + 2-row calls True; candidates inside the subset and finite True; check counters {'head2s': 5, 'chk_rows': 67, 'chk_out': 0} -> OK
+(c) REF2 on: 16 rows screened (finite on exactly the 98,308 subset ids: True, counted 1), 17 rows the full head; REF2 removed: the plain head, uncounted -> OK
+(d) dfl2d_code: kept per check A (BP-9) 9.290, B0 9.290 (== A in every window: True), B (r57 order) 9.290 = x1.0000 (lower in 0, higher in 0 of 24)
+(d) dfl2d_math: kept per check A (BP-9) 6.671, B0 6.671 (== A in every window: True), B (r57 order) 6.671 = x1.0000 (lower in 0, higher in 0 of 60)
+    B's check mode: 42,480 draft rows, full top-1 outside the subset in 2 (0.00 %); committed(): 0.014 ms per check (mean; 1 of 2832 checks gathered new rows); B extras at the end 3
+(e) ref2.self_test with SVH on: PASS; CFG screened_head restored off
+SESSION-VOCAB check: PASS (a True, b True, c True, d True, e True); mlx peak 2.35 GB; 62 s

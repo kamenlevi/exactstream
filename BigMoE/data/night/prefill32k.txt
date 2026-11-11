@@ -1,0 +1,15 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=auto source=default table=29.8 GiB free=11.7 GiB reserved=0.0 GiB margin=6.0 GiB budget=5.7 GiB order=small_maps_first
+[mtplx] n-gram table pre-read 5.7 GiB in 0.2 s (34.2 GiB/s)
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] fusions: {'duprow': True, 'compiled_hc': 96}
+prompt 32768 tokens, C=256/512
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[bigmoe] PF1 prefill split (s): {'staged_experts': 24576, 'gpu_to_router': 32.423, 'kick': 0.006, 'stage_wait': 0.217, 'full_scratch': 0.712, 'gather+moe': 11.472, 'adopt+clear': 0.045}
+[bigmoe] PF1 dense-before-router per layer (s): 0:0.37 1:0.39 2:0.39 3:1.63 4:0.39 5:0.38 6:0.38 7:1.56 8:0.39 9:0.38 10:0.38 11:1.53 12:0.39 13:0.38 14:0.38 15:1.54 16:0.39 17:0.38 18:0.38 19:1.56 20:0.39 21:0.38 22:0.38 23:1.54 24:0.39 25:0.38 26:0.38 27:1.56 28:0.39 29:0.38 30:0.38 31:1.52 32:0.39 33:0.38 34:0.38 35:1.53 36:0.39 37:0.38 38:0.38 39:1.56 40:0.39 41:0.38 42:0.38 43:1.56 44:0.39 45:0.38 46:0.38 47:1.52
+lmp: prefill+first token   60.5 s (  541 tok/s), 8 tokens sha 41021d5a02, peak 48.1 GB
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] padding a 81,910-row sorted expert gather to 81,920 rows: MLX 0.32.2 leaves rows unwritten past 32,767 unaligned rows on tensor-unit GPUs (fixed in 0.32.3); the real rows are unchanged
+[bigmoe] PF1 prefill split (s): {'staged_experts': 22075, 'gpu_to_router': 3.675, 'kick': 0.003, 'stage_wait': 0.182, 'full_scratch': 1.212, 'gather+moe': 8.904, 'adopt+clear': 0.016}
+[bigmoe] PF1 dense-before-router per layer (s): 0:0.01 1:0.03 2:0.03 3:0.22 4:0.03 5:0.03 6:0.03 7:0.23 8:0.03 9:0.03 10:0.03 11:0.22 12:0.03 13:0.03 14:0.03 15:0.22 16:0.03 17:0.03 18:0.03 19:0.23 20:0.03 21:0.03 22:0.03 23:0.22 24:0.03 25:0.03 26:0.03 27:0.23 28:0.03 29:0.03 30:0.03 31:0.22 32:0.03 33:0.03 34:0.03 35:0.22 36:0.03 37:0.03 38:0.03 39:0.22 40:0.03 41:0.03 42:0.03 43:0.21 44:0.03 45:0.03 46:0.03 47:0.23
+pf3: prefill+first token   57.9 s (  566 tok/s), 8 tokens sha d763840a7a, peak 49.0 GB

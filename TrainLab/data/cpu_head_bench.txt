@@ -1,0 +1,15 @@
+CPUMTP step 1 11-03 20:35
+  alone              MLX CPU 4-bit (8K rows x 30.3)    : median   2595.11 ms (3 steps)
+  alone              MLX CPU bf16                      : median     55.31 ms (9 steps)
+  alone              MLX CPU fp32                      : median     19.92 ms (9 steps)
+  alone              numpy (Accelerate) fp32           : median     20.01 ms (9 steps)
+  alone              MLX CPU fp32, 32K-row subset      : median      2.72 ms (9 steps)
+  alone              numpy fp32, 32K-row subset        : median      2.65 ms (9 steps)
+  beside a GPU load  MLX CPU 4-bit (8K rows x 30.3)    : median   2643.19 ms (3 steps)
+  beside a GPU load  MLX CPU bf16                      : median     71.83 ms (9 steps)
+  beside a GPU load  MLX CPU fp32                      : median     39.22 ms (9 steps)
+  beside a GPU load  numpy (Accelerate) fp32           : median     38.65 ms (9 steps)
+  beside a GPU load  MLX CPU fp32, 32K-row subset      : median      5.26 ms (9 steps)
+  beside a GPU load  numpy fp32, 32K-row subset        : median      5.11 ms (9 steps)
+  LINE (best full-vocab head beside the GPU load <= 3.0 ms PASS; > 5.6 ms and the 32K subset > 3.0 ms KILL): full 38.65 ms, subset 5.11 ms -> KILL  (GPU 4-bit head alone: 1.47 ms, HEADBENCH)
+

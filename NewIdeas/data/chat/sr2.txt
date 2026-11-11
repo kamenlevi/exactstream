@@ -1,0 +1,14 @@
+SR2: output layer V 248320, input 2560, 4-bit group 64; blocks of 128 (1940)
+ifeval out4  : depth hits 0.756 0.638 0.576 0.532 0.507 0.488 | kept/check (cut 0.3, K6) 2.301, rows 2.88 | 9 s
+ifeval s2b4  : depth hits 0.748 0.631 0.566 0.522 0.501 0.479 | kept/check (cut 0.3, K6) 2.340, rows 3.05 | pick == out4 0.93205 (2816 of 41442 differ) | 33 s
+ifeval s2b16 : depth hits 0.755 0.637 0.575 0.531 0.507 0.487 | kept/check (cut 0.3, K6) 2.318, rows 2.94 | pick == out4 0.99025 (404 of 41442 differ) | 57 s
+ifeval s3b4  : depth hits 0.755 0.639 0.575 0.530 0.507 0.487 | kept/check (cut 0.3, K6) 2.322, rows 2.96 | pick == out4 0.98733 (525 of 41442 differ) | 81 s
+multi  out4  : depth hits 0.784 0.657 0.567 0.512 0.468 0.442 | kept/check (cut 0.3, K6) 2.507, rows 3.18 | 89 s
+multi  s2b4  : depth hits 0.775 0.647 0.557 0.501 0.461 0.432 | kept/check (cut 0.3, K6) 2.521, rows 3.26 | pick == out4 0.90951 (3648 of 40314 differ) | 113 s
+multi  s2b16 : depth hits 0.783 0.657 0.568 0.512 0.468 0.440 | kept/check (cut 0.3, K6) 2.513, rows 3.19 | pick == out4 0.98400 (645 of 40314 differ) | 136 s
+multi  s3b4  : depth hits 0.784 0.657 0.567 0.511 0.466 0.442 | kept/check (cut 0.3, K6) 2.521, rows 3.23 | pick == out4 0.98055 (784 of 40314 differ) | 159 s
+cost at 1 row (median / p90 ms, own eval per call): out4 head + argmax + lse 1.469 / 1.572
+cost at 1 row: s2b4 screen + top-4 blocks + 4-bit refine 1.030 / 1.078  (saves +0.439)
+cost at 1 row: s2b16 screen + top-16 blocks + 4-bit refine 1.138 / 1.309  (saves +0.332)
+cost at 1 row: s3b4 screen + top-4 blocks + 4-bit refine 1.301 / 1.347  (saves +0.168)
+peak MLX memory 11.8 GB

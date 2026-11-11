@@ -1,0 +1,94 @@
+## 1. Leap's measurements, fitted [K -> P]
+  NAX4 ms per layer = 0.094 + 10.15 us x groups  (8 points, residual rms 4 us; distinct experts do not enter)
+  3c   ms per layer = 0.042 + 7.08 us x (row, rank) pairs  (residual rms 10 us; groups do not enter)
+  per-group MMA floor at the probe's peak (K-62e: 0.60 ms / 82 groups): 7.32 us  = 9,600 ops of 16 x 32 x 16 at 1.3 G op/s = 7.38 us
+  bytes per group (k62p layer 20 S 16: 143 MB / 72.4 groups): 1.98 MB -> 7.66 us at 258 GB/s, 6.95 us at 284 GB/s, 6.72 us at 294 GB/s; per distinct expert 2.37 MB
+  measured per group (the fit): 10.2 us = MMA floor x 1.39; the fixed 0.094 ms per call = 1.3 us per group at 72 groups
+  85 % of streaming at 284 GB/s allows 8.18 us per group all-in; the MMA floor alone is 7.32 us (0.89 x the budget): structurally over it at the probe's peak
+  K-62e's zero-DRAM run (codes from one row): 0.70 of 0.85-0.90 ms -> exposed DRAM ~2.1 us per group; A-operand marshalling ~25 % of the MMA time (nax_tput mode 2) ~1.8 us
+
+## 2. Real routing: the decision map's 36 REF2-T captures (ids [tokens, 48, 10], rank-sorted) [K -> P]
+  | domain | S | windows | distinct experts per check | groups | pairs per group | 1-pair groups | bytes GB | byte floor 284 GB/s | MMA floor (groups x 7.3 us) | NAX6 by the fit (0.10 + 10.1 us x groups) | 3c by the fit | tier-merge: groups -> | MMA floor merged |
+  |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+  | code | 8 | 288 | 1977 | 2271 | 1.69 | 64 % | 4.61 | 16.2 ms | 16.6 ms | 27.6 ms (59 % of streaming) | 29.2 ms | 1977 (-13 %) | 14.5 ms |
+  | code | 16 | 288 | 3285 | 3860 | 1.99 | 59 % | 7.69 | 27.1 ms | 28.2 ms | 43.7 ms (62 % of streaming) | 56.4 ms | 3285 (-15 %) | 24.0 ms |
+  | code | 32 | 269 | 5178 | 6286 | 2.44 | 51 % | 12.20 | 43.0 ms | 46.0 ms | 68.4 ms (63 % of streaming) | 110.7 ms | 5259 (-16 %) | 38.5 ms |
+  | ifeval | 8 | 274 | 2076 | 2385 | 1.61 | 66 % | 4.85 | 17.1 ms | 17.5 ms | 28.8 ms (59 % of streaming) | 29.2 ms | 2076 (-13 %) | 15.2 ms |
+  | ifeval | 16 | 244 | 3227 | 3837 | 2.00 | 58 % | 7.60 | 26.8 ms | 28.1 ms | 43.5 ms (62 % of streaming) | 56.4 ms | 3227 (-16 %) | 23.6 ms |
+  | ifeval | 32 | 201 | 4804 | 5995 | 2.56 | 49 % | 11.44 | 40.3 ms | 43.9 ms | 65.4 ms (62 % of streaming) | 110.7 ms | 4894 (-18 %) | 35.8 ms |
+  | multi | 8 | 288 | 1844 | 2136 | 1.80 | 61 % | 4.30 | 15.2 ms | 15.6 ms | 26.2 ms (58 % of streaming) | 29.2 ms | 1844 (-14 %) | 13.5 ms |
+  | multi | 16 | 274 | 2826 | 3352 | 2.29 | 55 % | 6.62 | 23.3 ms | 24.5 ms | 38.6 ms (60 % of streaming) | 56.4 ms | 2826 (-16 %) | 20.7 ms |
+  | multi | 32 | 227 | 4251 | 5281 | 2.91 | 48 % | 10.03 | 35.3 ms | 38.6 ms | 58.2 ms (61 % of streaming) | 110.7 ms | 4410 (-16 %) | 32.3 ms |
+  | all | 8 | 850 | 1964 | 2262 | 1.70 | 64 % | 4.58 | 16.1 ms | 16.6 ms | 27.5 ms (59 % of streaming) | 29.2 ms | 1964 (-13 %) | 14.4 ms |
+  | all | 16 | 806 | 3112 | 3680 | 2.09 | 57 % | 7.30 | 25.7 ms | 26.9 ms | 41.9 ms (61 % of streaming) | 56.4 ms | 3112 (-15 %) | 22.8 ms |
+  | all | 32 | 697 | 4768 | 5875 | 2.61 | 50 % | 11.27 | 39.7 ms | 43.0 ms | 64.2 ms (62 % of streaming) | 110.7 ms | 4877 (-17 %) | 35.7 ms |
+  cross-check at S 16, all domains: C2 measured 7.38 GB per check (Breakthrough's expA traces, layers 6 / 20 / 40 x 48) and NAX6 43.2 ms; 3c 50.5
+
+## 2b. The designs per check, from the per-group arithmetic [P/G]: time = max(byte floor, 48 x fixed + groups x per-group) ; share = byte floor / time
+  S 8: bytes 4.58 GB, byte floor 16.1 ms at 284 GB/s, 85 % line 19.0 ms; groups 2262 of which 1-pair 64 %, 2-pair 19 %; merged 1964: 1-pair 58 %, 2-pair 20 %
+    today NAX6 (fit)                                                         compute  27.5 ms ->  27.5 ms,  59 % of streaming
+    today 3c (fit)                                                           compute  29.2 ms ->  29.2 ms,  55 % of streaming
+    A NAX7, probe peak holds: 8.5 us per group + 0.08 ms per call            compute  23.1 ms ->  23.1 ms,  70 % of streaming
+    A NAX7, true peak 2x the probe: 6.0 us + 0.08                            compute  17.4 ms ->  17.4 ms,  93 % of streaming
+    B tier merge on NAX7 (probe peak): 8.5 us x merged groups + 0.08         compute  20.5 ms ->  20.5 ms,  79 % of streaming
+    B on NAX7 at 2x peak: 6.0 us x merged + 0.08                             compute  15.6 ms ->  16.1 ms, 100 % of streaming
+    C int8 activations (if int8 ops run 2x): 5.5 us x merged + 0.08          compute  14.6 ms ->  16.1 ms, 100 % of streaming
+    D ALU kernel at 3.2 us per pair + 0.08                                   compute  16.1 ms ->  16.1 ms, 100 % of streaming
+    H hybrid on NAX7: 1-2-pair groups' gate/up on the ALU at 3.0 us per pair, down on the MMA (2.8), else 8.5 compute  19.2 ms ->  19.2 ms,  84 % of streaming
+    H hybrid on NAX7, ALU at 4.8 us per pair (3c's per-MAC rate on 2/3 of the MACs) compute  21.8 ms ->  21.8 ms,  74 % of streaming
+    H hybrid on NAX7, ALU at 6.5 us per pair (bound)                         compute  23.1 ms ->  23.1 ms,  70 % of streaming
+    H + B: hybrid on merged groups, ALU 4.8                                  compute  19.5 ms ->  19.5 ms,  83 % of streaming
+    H + B at 2x peak: NAX7 6.0 (A 4.0 + B 2.0), ALU 4.8                      compute  15.6 ms ->  16.1 ms, 100 % of streaming
+    D ALU kernel at 4.5 us per pair + 0.08 (bound)                           compute  21.1 ms ->  21.1 ms,  76 % of streaming
+  S 16: bytes 7.30 GB, byte floor 25.7 ms at 284 GB/s, 85 % line 30.2 ms; groups 3680 of which 1-pair 57 %, 2-pair 20 %; merged 3112: 1-pair 51 %, 2-pair 20 %
+    today NAX6 (fit)                                                         compute  41.9 ms ->  41.9 ms,  61 % of streaming
+    today 3c (fit)                                                           compute  56.4 ms ->  56.4 ms,  46 % of streaming
+    A NAX7, probe peak holds: 8.5 us per group + 0.08 ms per call            compute  35.1 ms ->  35.1 ms,  73 % of streaming
+    A NAX7, true peak 2x the probe: 6.0 us + 0.08                            compute  25.9 ms ->  25.9 ms,  99 % of streaming
+    B tier merge on NAX7 (probe peak): 8.5 us x merged groups + 0.08         compute  30.3 ms ->  30.3 ms,  85 % of streaming
+    B on NAX7 at 2x peak: 6.0 us x merged + 0.08                             compute  22.5 ms ->  25.7 ms, 100 % of streaming
+    C int8 activations (if int8 ops run 2x): 5.5 us x merged + 0.08          compute  21.0 ms ->  25.7 ms, 100 % of streaming
+    D ALU kernel at 3.2 us per pair + 0.08                                   compute  28.4 ms ->  28.4 ms,  90 % of streaming
+    H hybrid on NAX7: 1-2-pair groups' gate/up on the ALU at 3.0 us per pair, down on the MMA (2.8), else 8.5 compute  29.4 ms ->  29.4 ms,  87 % of streaming
+    H hybrid on NAX7, ALU at 4.8 us per pair (3c's per-MAC rate on 2/3 of the MACs) compute  33.2 ms ->  33.2 ms,  77 % of streaming
+    H hybrid on NAX7, ALU at 6.5 us per pair (bound)                         compute  35.1 ms ->  35.1 ms,  73 % of streaming
+    H + B: hybrid on merged groups, ALU 4.8                                  compute  28.8 ms ->  28.8 ms,  89 % of streaming
+    H + B at 2x peak: NAX7 6.0 (A 4.0 + B 2.0), ALU 4.8                      compute  22.5 ms ->  25.7 ms, 100 % of streaming
+    D ALU kernel at 4.5 us per pair + 0.08 (bound)                           compute  38.4 ms ->  38.4 ms,  67 % of streaming
+  S 32: bytes 11.27 GB, byte floor 39.7 ms at 284 GB/s, 85 % line 46.7 ms; groups 5875 of which 1-pair 49 %, 2-pair 20 %; merged 4877: 1-pair 42 %, 2-pair 20 %
+    today NAX6 (fit)                                                         compute  64.2 ms ->  64.2 ms,  62 % of streaming
+    today 3c (fit)                                                           compute 110.7 ms -> 110.7 ms,  36 % of streaming
+    A NAX7, probe peak holds: 8.5 us per group + 0.08 ms per call            compute  53.8 ms ->  53.8 ms,  74 % of streaming
+    A NAX7, true peak 2x the probe: 6.0 us + 0.08                            compute  39.1 ms ->  39.7 ms, 100 % of streaming
+    B tier merge on NAX7 (probe peak): 8.5 us x merged groups + 0.08         compute  45.3 ms ->  45.3 ms,  88 % of streaming
+    B on NAX7 at 2x peak: 6.0 us x merged + 0.08                             compute  33.1 ms ->  39.7 ms, 100 % of streaming
+    C int8 activations (if int8 ops run 2x): 5.5 us x merged + 0.08          compute  30.7 ms ->  39.7 ms, 100 % of streaming
+    D ALU kernel at 3.2 us per pair + 0.08                                   compute  53.0 ms ->  53.0 ms,  75 % of streaming
+    H hybrid on NAX7: 1-2-pair groups' gate/up on the ALU at 3.0 us per pair, down on the MMA (2.8), else 8.5 compute  46.0 ms ->  46.0 ms,  86 % of streaming
+    H hybrid on NAX7, ALU at 4.8 us per pair (3c's per-MAC rate on 2/3 of the MACs) compute  51.2 ms ->  51.2 ms,  78 % of streaming
+    H hybrid on NAX7, ALU at 6.5 us per pair (bound)                         compute  53.8 ms ->  53.8 ms,  74 % of streaming
+    H + B: hybrid on merged groups, ALU 4.8                                  compute  43.4 ms ->  43.4 ms,  91 % of streaming
+    H + B at 2x peak: NAX7 6.0 (A 4.0 + B 2.0), ALU 4.8                      compute  33.1 ms ->  39.7 ms, 100 % of streaming
+    D ALU kernel at 4.5 us per pair + 0.08 (bound)                           compute  73.0 ms ->  73.0 ms,  54 % of streaming
+
+## 3. Design B's arithmetic: the 4-bit pairs as two products vs one nibble product (fp32, same group order) [K numeric]
+  gate output of one expert, 16 real rows: bf16 bits differ 0.02 %, rel rms 1.2e-07 (fp32 reorder level; all within 1 bf16 ulp: True)
+
+## 4. Design C: int8 activations (per row, per 64-group scale) vs the bf16-activation reference, both against fp64 [K numeric]
+  mean |err| / output RMS: bf16-x fp32 reference 1.01e-07; int8-x 5.81e-03 (57480 x); K-62g measured on the GPU with random x: 3c 1.23e-2, NAX4 3.6e-3 (against fp64 of the same weights)
+  max |err| / RMS: reference 1.21e-06, int8-x 4.42e-02; activation range per row max/rms 6.4
+
+## 5. Order sensitivity of one tensor op's 32-term sum (bf16 x times uint4 code, fp32) on real activations [K numeric]
+  chunks where the fp32 result depends on the order: 0.00 % of 81920; chunks whose exact sum is not an fp32 number: 0.00 %
+  -> an ALU path can match the tensor op bit for bit only where the exact sum is fp32-representable AND the op rounds once; the op's internal order is not public, so the hybrid is not certifiable as bitwise
+
+## 6. The hybrid's exactness guard on real activations: per (row, 64-group) the non-zero values' exponent spread must be <= 6 for the fp32 sum of bf16 x uint4 products to be exact in any order [K numeric]
+  tap layer 5, 2215 rows x 40 groups: cells failing 89.367 %; rows with any failing cell 100.00 %
+  tap layer 15, 2215 rows x 40 groups: cells failing 83.507 %; rows with any failing cell 100.00 %
+  tap layer 25, 2215 rows x 40 groups: cells failing 85.656 %; rows with any failing cell 100.00 %
+  tap layer 35, 2215 rows x 40 groups: cells failing 81.200 %; rows with any failing cell 100.00 %
+  tap layer 45, 2215 rows x 40 groups: cells failing 87.141 %; rows with any failing cell 100.00 %
+  h = swiglu(gate, up) for the down projection (256 rows x 10 groups, random weights): cells failing 99.8 %, rows with any failing cell 100.0 % -> the down projection stays on the MMA in the hybrid
+  with limit 8 (fp32 headroom if the 64-term sum stays below 2^(e_max + 9)): x cells failing 40.243 %, h cells 88.6 %
+
+(347.3 s, numpy 2.5.4, CPU only; captures 36)

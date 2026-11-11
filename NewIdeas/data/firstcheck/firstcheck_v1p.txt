@@ -1,0 +1,33 @@
+piece    check 0   check 1   later (median per prompt, then median)
+ck        306.38     69.57        58.32
+drf        13.23      6.30         5.19
+miss       21.00     42.00        31.00
+io         13.32     13.63         8.94
+svc        13.93     15.45        11.16
+bld       286.67     63.29        52.79
+wt         20.43      5.72         4.96
+mb         50.07     71.45        50.41
+
+whole decode now (geo)  141.0; if check 0 cost a later check:  170.7 (+21.1%); if checks 0 and 1 did:  172.4 (+22.3%)
+share of decode wall: check 0 excess median 15.8 %, checks 0+1 16.9 %
+
+cmb1c_160  code  n= 4: check0 ck  424.3 vs later  220.1 (excess med  183.1); build excess med  158.0; misses  1955 vs  1007
+cmb1c_160  other n= 7: check0 ck  288.4 vs later  112.9 (excess med  196.4); build excess med  150.1; misses   918 vs   291
+cmb2_160   code  n= 4: check0 ck  428.6 vs later  219.4 (excess med  182.5); build excess med  155.7; misses  1955 vs  1007
+cmb2_160   other n= 7: check0 ck  286.7 vs later  112.2 (excess med  196.1); build excess med  172.6; misses   918 vs   291
+s1bb1_256  code  n=12: check0 ck  308.6 vs later   59.0 (excess med  258.5); build excess med  245.5; misses    22 vs    31
+s1bb2_256  code  n=12: check0 ck  305.8 vs later   58.3 (excess med  246.4); build excess med  231.8; misses    21 vs    33
+
+prompts in all arms: 11 (code 4)
+cmb0   all: whole   31.2 steady   34.4 | code: whole   45.4 steady   47.3
+cmb1   all: whole   32.0 steady   34.9 | code: whole   43.1 steady   45.6
+cmb1c  all: whole   32.5 steady   35.6 | code: whole   46.2 steady   48.5
+cmb1t  all: whole   33.2 steady   35.1 | code: whole   46.1 steady   48.2
+cmb2   all: whole   32.5 steady   34.6 | code: whole   46.1 steady   48.3
+cmb3   all: whole   31.0 steady   33.8 | code: whole   45.4 steady   47.4
+cmb2 (keep) vs cmb1c [all]: whole decode +0.2%, steady -2.9%
+cmb2 (keep) vs cmb1c [code]: whole decode -0.3%, steady -0.4%
+cmb2 (keep) vs cmb1t [all]: whole decode -1.9%, steady -1.5%
+cmb2 (keep) vs cmb1t [code]: whole decode -0.0%, steady +0.2%
+cmb2 (keep) vs cmb1 [all]: whole decode +1.8%, steady -1.1%
+cmb2 (keep) vs cmb1 [code]: whole decode +6.9%, steady +6.0%

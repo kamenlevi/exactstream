@@ -1,0 +1,17 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=31.9 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=59 C_l=20 per layer, 7.02 GB pools
+b12: hc (196, 1336.9344, 710.2464)
+b12: C_m=59 C_l=20 (12 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 7.02 GB, active 10.50 GB
+fit12: budget b16: 48 routers
+[lw59b16] after load: footprint now 11.57 GB, lifetime peak 12.08 GB, MLX peak 11.74 GB, active 10.50 GB
+[lw59b16] code: prefill 326 tokens in 4.80 s
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[lw59b16] code k=3: 28.5 tok/s, 3.20 tok/pass, 40 passes | per pass: verify 103.9 ms, draft 8.1 ms, head 0.3 ms, waited 324.2, reads 336.2, pf issued 0.0 used 0.0, SSD 5.2 GB/s 586 MB | peak footprint 12.08 GB | loader per pass: stalled calls 82.0 of 99.0, stall 63.2 ms, io 62.7 ms | sha 0ade4281bc | '```python\nimport re\nimport argparse\nfrom collections import defaultdict\nfrom typing import List, Dict, Tuple, Optional\n\n\n# Regex to match log lines\nLINE = re.compile(\n    r'
+[lw59b16] prose: prefill 53 tokens in 2.84 s
+[lw59b16] prose k=3: 20.1 tok/s, 2.25 tok/pass, 57 passes | per pass: verify 102.7 ms, draft 9.0 ms, head 0.3 ms, waited 319.7, reads 337.8, pf issued 0.0 used 0.0, SSD 5.1 GB/s 567 MB | peak footprint 12.08 GB | loader per pass: stalled calls 87.8 of 99.0, stall 62.6 ms, io 62.0 ms | sha 2f36a9779f | 'Imagine you are trying to write an essay, and all your reference books are stored in a massive library across town. Every time you need to look up a fact, you have to drive all the way'
+[lw59b16] done

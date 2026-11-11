@@ -1,0 +1,28 @@
+R-40 STEP 4a: full 125B via load_streamed (C = 144), loaded in 2 s; REF2 defaults {'dense_min_n': 1024, 'experts': True, 'experts_cfg_a': (4, 1), 'experts_cfg_b': (1, 1), 'slot_call': True, 'commit_phase': True, 'sdpa_classes': True, 'sdpa_bounds': (128,)}
+  self-test: {'qmm16c 6144x2560': True, 'MLX 16-row 512x2560': True, 'experts split == fused': True, 'experts rows alone': True, 'bf16 Linear': True}
+  A math500/test/geometry/702.json (P 520): check at absolute 520 (keys 536), rows' AR steps at keys 536..551: logits rows bitwise 2 / 16: ==xxxxxxxxxxxxxx
+    first differing layer 7 (QSA attention): rows [12]
+    first differing layer 8 (GDN): rows [13, 14, 15]
+    first differing layer 11 (QSA attention): rows [6]
+    first differing layer 12 (GDN): rows [7, 8, 9, 10, 11]
+    first differing layer 23 (QSA attention): rows [4]
+    first differing layer 24 (GDN): rows [5]
+    first differing layer 35 (QSA attention): rows [2]
+    first differing layer 36 (GDN): rows [3]
+    max |logit delta| per row: [0.0, 0.0, 0.125, 0.125, 0.125, 0.5938, 0.4375, 0.1875, 0.375, 0.3828, 0.375, 0.2806, 0.3281, 0.375, 0.3125, 0.1475]
+  B humaneval/HumanEval/68 (P 367, control): check at absolute 367 (keys 383), rows' AR steps at keys 383..398: logits rows bitwise 16 / 16: ================
+    every layer output of every row equal
+    max |logit delta| per row: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  C1 humaneval/HumanEval/68: check at absolute 500 (keys 516), rows' AR steps at keys 516..531: logits rows bitwise 2 / 16: ==xxxxxxxxxxxxxx
+    first differing layer 7 (QSA attention): rows [6]
+    first differing layer 8 (GDN): rows [7, 8, 9, 10, 11, 12, 13, 14, 15]
+    first differing layer 11 (QSA attention): rows [2]
+    first differing layer 12 (GDN): rows [3, 4, 5]
+    max |logit delta| per row: [0.0, 0.0, 0.2109, 0.7344, 0.4844, 1.8057, 0.9688, 0.9375, 1.25, 3.1094, 1.8281, 0.875, 1.7812, 0.8125, 0.6719, 0.8652]
+  C2 humaneval/HumanEval/68: check at absolute 520 (keys 536), rows' AR steps at keys 536..551: logits rows bitwise 2 / 16: ==xxxxxxxxxxxxxx
+    first differing layer 3 (QSA attention): rows [5, 6, 8, 13]
+    first differing layer 4 (GDN): rows [7, 9, 10, 11, 12, 14, 15]
+    first differing layer 11 (QSA attention): rows [2]
+    first differing layer 12 (GDN): rows [3, 4]
+    max |logit delta| per row: [0.0, 0.0, 1.0, 0.5254, 0.5312, 1.0625, 4.5605, 1.5, 0.8906, 0.5625, 1.0625, 1.3125, 1.1875, 1.125, 0.627, 0.3711]
+R-40 STEP 4a done in 76 s

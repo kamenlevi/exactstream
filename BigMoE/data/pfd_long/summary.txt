@@ -1,0 +1,17 @@
+00:28:19 PF-D long-prompt check start: swap 5610 MB, NO-SWAP 51 GB
+00:28:19 run 10k nopfd (NO-SWAP 51 GB, need 48; swap 5610 MB; cap 600 s)
+00:29:59   10k nopfd: whole decode 35.5 tok/s | whole request 0.8 tok/s | first token 78.89 s (78.89-78.89) | lifetime peak 45.17 GB | 1 prompt(s), 64 tokens, process wall 99 s (load + warm-up included) | wall 100 s | swap max 5610 MB
+00:29:59 run 10k pfd (NO-SWAP 51 GB, need 48; swap 5610 MB; cap 600 s)
+00:31:37   10k pfd: whole decode 35.5 tok/s | whole request 0.8 tok/s | first token 76.56 s (76.56-76.56) | lifetime peak 47.46 GB | 1 prompt(s), 64 tokens, process wall 96 s (load + warm-up included) | wall 98 s | swap max 5610 MB
+00:31:37 run 10k check (NO-SWAP 52 GB, need 48; swap 5610 MB; cap 600 s)
+00:35:14   10k check: whole decode 35.9 tok/s | whole request 0.3 tok/s | first token 181.24 s (181.24-181.24) | lifetime peak 52.66 GB | 1 prompt(s), 64 tokens, process wall 213 s (load + warm-up included) | wall 217 s | swap max 7135 MB
+00:35:14 run 30k nopfd (NO-SWAP 54 GB, need 50; swap 7135 MB; cap 600 s)
+00:39:45   30k nopfd: whole decode 24.5 tok/s | whole request 0.3 tok/s | first token 249.41 s (249.41-249.41) | lifetime peak 46.65 GB | 1 prompt(s), 64 tokens, process wall 269 s (load + warm-up included) | wall 271 s | swap max 7135 MB
+00:39:45 run 30k pfd (NO-SWAP 54 GB, need 50; swap 7111 MB; cap 600 s)
+00:44:07   30k pfd: whole decode 24.6 tok/s | whole request 0.3 tok/s | first token 238.39 s (238.39-238.39) | lifetime peak 48.56 GB | 1 prompt(s), 64 tokens, process wall 258 s (load + warm-up included) | wall 262 s | swap max 7111 MB
+00:44:07 run 30k check (NO-SWAP 54 GB, need 50; swap 7111 MB; cap 600 s)
+00:53:50   30k check: whole decode 25.4 tok/s | whole request 0.1 tok/s | first token 546.71 s (546.71-546.71) | lifetime peak 52.84 GB | 1 prompt(s), 64 tokens, process wall 579 s (load + warm-up included) | wall 583 s | swap max 7111 MB
+10k pfd: tokens == nopfd, logits hashes == nopfd; PF-D rows A 24634 / B 50274 / C 100271, calls 480, fallback 0, checked 0, bad A/B/C 0/0/0
+10k check: tokens == nopfd, logits hashes == nopfd; PF-D rows A 24634 / B 50274 / C 100271, calls 480, fallback 0, checked 175179, bad A/B/C 0/0/0
+30k pfd: tokens == nopfd, logits hashes == nopfd; PF-D rows A 73997 / B 153466 / C 302778, calls 1440, fallback 0, checked 0, bad A/B/C 0/0/0
+30k check: tokens == nopfd, logits hashes == nopfd; PF-D rows A 73997 / B 153466 / C 302778, calls 1440, fallback 0, checked 530241, bad A/B/C 0/0/0

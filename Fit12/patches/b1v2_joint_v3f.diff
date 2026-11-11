@@ -1,0 +1,221 @@
+--- a/ext/bigmoe_ext.cpp
++++ b/ext/bigmoe_ext.cpp
+@@ -816,8 +816,98 @@
+ static std::atomic<bool> g_run{false};
+ static int g_delay_us = getenv("BIGMOE_DELAY_US") ? atoi(getenv("BIGMOE_DELAY_US")) : 0;
+ 
++// [Fit12 B1] (2026-10-24) BIGMOE_JOINT=1: one read burst per layer. bt_b12's frugal block posts two gate rows per layer,
++// base (MSB-3, row L) and LSB sidecar (row BIGMOE_JOINT_SIDE0 + L), and this thread served them one after the other: the
++// sidecar's reads began only after the base row was released, so a layer paid the per-call cost twice (Fit12 C1: ~85 of
++// 99 calls per pass stall, ~1.26 ms for ~13.4 MB each). With BIGMOE_JOINT=1 (bigmoe_v3f.gated then posts both rows before
++// the first wait), on seeing base row L the loader waits up to BIGMOE_JOINT_WAIT_US for the sidecar row of the same pass
++// and starts its missing waited ids reading in the background, into the slots make_room frees for them (LRU tail, never an
++// id the row protects), before the base row's own reads. The sidecar row is then served as before: ensure() waits for
++// those reads and promotes them. Same evictions, same ids per slot, same bytes: the GPU's results do not change.
++// BIGMOE_CALLLOG=path: one line per served row (layer, pass, misses, paired, seen / released times, partner wait), at stop.
++static bool g_joint = false;
++static int g_side0 = 0;
++static double g_joint_wait = 30e-6;
++static std::atomic<int64_t> g_jt_tried{0}, g_jt_paired{0}, g_jt_reads{0}, g_jt_late{0}, g_jt_wait_ns{0};
++struct CallRec { int32_t L, seq, misses, paired; double t_seen, t_rel, t_wait; };
++static std::vector<CallRec> g_clog;
++static const char* g_clog_path = nullptr;
++
++static void clog_dump() {
++  if (!g_clog_path || g_clog.empty()) return;
++  FILE* f = fopen(g_clog_path, "w");
++  if (!f) return;
++  fprintf(f, "L,seq,misses,paired,t_seen,t_rel,t_wait\n");
++  for (auto& r : g_clog) fprintf(f, "%d,%d,%d,%d,%.7f,%.7f,%.7f\n", r.L, r.seq, r.misses, r.paired, r.t_seen, r.t_rel, r.t_wait);
++  fclose(f);
++  g_clog.clear();
++}
++
++// caller holds g_mu, serving base row L of pass seq: start the sidecar row's missing waited ids reading in the background.
++// Returns 1 if the sidecar row was there (and had no late ids); *wait = time spent looking for it.
++static int joint_side(int L, int32_t seq, double* wait) {
++  int P = g_side0 + L;
++  *wait = 0;
++  if (P >= g_nl) return 0;
++  g_jt_tried++;
++  volatile int32_t* row = g_route + (int64_t)P * g_row;
++  double t0 = now_s();
++  bool ok = false;
++  for (;;) {
++    if (row[0] == seq) {
++      ok = row[32] == seq && row[64] == seq;
++      for (int j = 0; j < g_plines + g_xlines && ok; j++) ok = row[96 + 32 * j] == seq;
++      if (ok) break;
++    }
++    if (now_s() - t0 > g_joint_wait) break;
++  }
++  *wait = now_s() - t0;
++  g_jt_wait_ns += (int64_t)(*wait * 1e9);
++  if (!ok) return 0;
++  __atomic_thread_fence(__ATOMIC_ACQUIRE);
++  int raw = row[1];
++  int n = raw & 255, nw = (raw >> 8) & 255;
++  if (nw != 255 || n <= 0 || n > g_maxk) return 0;  // flag-mode rows only
++  Layer& ly = g_layers.at(P);
++  std::vector<int32_t> wl, keep;                     // as the flag-mode service: waited ids, then the resident ids it
++  for (int i = 0; i < n; i++) {                      // lists while slots remain (make_room never evicts those)
++    int32_t v = row[ipos(i)];
++    if ((v >> 21) & 1) { g_jt_late++; return 0; }    // late ids: phase A/B service, left to the row itself
++    int e = v & 0xFFFFF;
++    if (e < 0 || e >= ly.E) return 0;
++    if (((v >> 20) & 1) && !in(wl, e)) wl.push_back(e);
++  }
++  keep = wl;
++  int room = ly.C_main - (int)keep.size();
++  for (int i = 0; i < n && room > 0; i++) {
++    int e = row[ipos(i)] & 0xFFFFF;
++    if (ly.table[e] >= 0 && !in(keep, e)) { keep.push_back(e); room--; }
++  }
++  g_jt_paired++;
++  Layer* lp = &ly;
++  for (int e : wl) {
++    if (ly.table[e] >= 0 || ly.pf.count(e)) continue;
++    make_room(ly, keep);
++    if (ly.free_slots.empty()) break;                // everything resident is protected: ensure() takes it from here
++    int s = ly.free_slots.back(); ly.free_slots.pop_back();
++    ly.pf[e] = s; ly.pf_order.push_back(e); (*ly.ready)[s].store(0);
++    g_jt_reads++;
++    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0), ^{
++      load_jobs(*lp, {{e, s}});
++      (*lp->ready)[s].store(1, std::memory_order_release);
++    });
++  }
++  return 1;
++}
++
+ static void loader_main() {
+   pthread_set_qos_class_self_np(QOS_CLASS_USER_INTERACTIVE, 0);   // keep the spinner on a P-core
++  g_joint = getenv("BIGMOE_JOINT") && atoi(getenv("BIGMOE_JOINT")) > 0;   // [Fit12 B1] read here: set after import
++  g_side0 = getenv("BIGMOE_JOINT_SIDE0") ? atoi(getenv("BIGMOE_JOINT_SIDE0")) : 0;
++  if (getenv("BIGMOE_JOINT_WAIT_US")) g_joint_wait = atof(getenv("BIGMOE_JOINT_WAIT_US")) * 1e-6;
++  if (g_joint && g_side0 <= 0) { fprintf(stderr, "bigmoe: BIGMOE_JOINT needs BIGMOE_JOINT_SIDE0\n"); g_joint = false; }
++  g_clog_path = getenv("BIGMOE_CALLLOG");
++  if (g_clog_path) g_clog.reserve(1 << 20);
+   std::vector<int32_t> last(g_nl, 0);
+   double t_idle = now_s();
+   while (g_run.load(std::memory_order_relaxed)) {
+@@ -826,6 +916,11 @@
+       volatile int32_t* row = g_route + (int64_t)L * g_row;   // 3 (+ BIGMOE_PRED_LINES) cache lines, each with its own seq
+       int32_t seq = row[0];
+       if (seq == last[L] || seq == 0) continue;
++      if (g_joint && L >= g_side0 && L - g_side0 < g_side0 - 1) {   // [Fit12 B1 v2] a sidecar row waits for its base row
++        int Bl = L - g_side0;                                        // of the same pass when that one is posted and not
++        volatile int32_t* br = g_route + (int64_t)Bl * g_row;        // served yet: the base row's service starts the
++        if (br[0] == seq && last[Bl] != seq) continue;               // sidecar's reads beside its own (v1 served the
++      }                                                              // sidecar first whenever the scan met it first)
+       for (bool done = false; !done;) {            // all lines complete
+         done = row[32] == seq && row[64] == seq;
+         for (int j = 0; j < g_plines + g_xlines && done; j++) done = row[96 + 32 * j] == seq;
+@@ -839,6 +934,7 @@
+       bool flagmode = nw == 255;
+       bool split_early = false; int32_t split_lb[160]; int split_lb_n = 0;
+       bool slow_call = false, victim_done = false;
++      int clog_miss = 0, clog_pair = 0; double clog_wait = 0;   // [Fit12 B1]
+       if (n < 0 || n > g_maxk) { fprintf(stderr, "bigmoe: bad n=%d at layer %d\n", n, L); abort(); }
+       {
+         std::lock_guard<std::mutex> lk(g_mu);
+@@ -879,6 +975,7 @@
+             if (ly.table[ids_copy[i]] >= 0 && !in(all, ids_copy[i])) { all.push_back(ids_copy[i]); room--; }
+           for (int e : wnow) g_def_waited += ly.table[e] < 0;
+           int32_t tmp[256];
++          if (g_joint && L < g_side0) clog_pair = joint_side(L, seq, &clog_wait);   // [Fit12 B1] sidecar reads first
+           if (!wnow.empty()) ensure(L, wnow.data(), (int)wnow.size(), tmp, &all);
+           for (int i = 0; i < kk; i++) {          // LRU-touch the resident ids the GPU may use (as fork125's ensure_wait)
+             int e = ids_copy[i];
+@@ -908,6 +1005,7 @@
+           nx.pred_seq = seq;
+         }
+         slow_call = g_st.misses.load() != m0;
++        clog_miss = (int)(g_st.misses.load() - m0);
+         if (g_orec) {
+           static bool reg = (std::atexit(oracle_save), true); (void)reg;
+           std::vector<int32_t> u;
+@@ -954,6 +1052,7 @@
+         g_events[L]->setSignaledValue((uint64_t)seq);
+       }
+       double t_rel = now_s();                      // GPU released: bookkeeping below is off the critical path
++      if (g_clog_path && g_clog.size() < (1u << 20)) g_clog.push_back({L, seq, clog_miss, clog_pair, t_seen, t_rel, clog_wait});
+       if (slow_call) { g_st.slow_calls++; g_st.slow_ns += (int64_t)((t_rel - t_seen) * 1e9); }
+       if (g_tab && !g_jit) {   // publish layer L's residency for the next pass (valid until that pass serves L)
+         Layer& ly = g_layers.at(L);
+@@ -1267,7 +1366,7 @@
+     while ((int)g_events.size() < g_nl) { auto* e = metal::device(Device::gpu).mtl_device()->newSharedEvent(); e->setSignaledValue(0); g_events.push_back(e); }
+     g_run = true; g_thread = std::thread(loader_main);
+   });
+-  m.def("stop", []() { g_run = false; if (g_thread.joinable()) g_thread.join(); });
++  m.def("stop", []() { g_run = false; if (g_thread.joinable()) g_thread.join(); clog_dump(); });
+   m.def("gate", &gate);
+   m.def("flush", &flush_enc);
+   m.def("post_ids", &post_ids, nb::arg("ids"), nb::arg("preds"), nb::arg("L"), nb::arg("seq"), nb::arg("np"), nb::arg("wk") = 0);
+@@ -1289,6 +1388,8 @@
+     nb::dict d; d["uses"] = g_st.uses.load(); d["misses"] = g_st.misses.load(); d["stalled"] = g_st.stalled.load();
+     d["gated"] = g_st.gated.load(); d["io_s"] = g_st.io_ns.load() * 1e-9; d["cpu_wait_s"] = g_st.wait_ns.load() * 1e-9; d["proc_s"] = g_st.proc_ns.load() * 1e-9;
+     d["pf_issued"] = g_st.pf_issued.load(); d["pf_used"] = g_st.pf_used.load(); d["pf_waited_s"] = g_st.pf_waited_ns.load() * 1e-9;
++    d["joint_tried"] = g_jt_tried.load(); d["joint_paired"] = g_jt_paired.load(); d["joint_reads"] = g_jt_reads.load();
++    d["joint_late"] = g_jt_late.load(); d["joint_wait_s"] = g_jt_wait_ns.load() * 1e-9;   // [Fit12 B1]
+     d["slow_calls"] = g_st.slow_calls.load(); d["slow_s"] = g_st.slow_ns.load() * 1e-9; d["pf_victims"] = g_st.pf_victims.load();
+     d["pf_ontime"] = g_st.pf_ontime.load(); d["pf_late"] = g_st.pf_late.load(); d["miss_pred_unissued"] = g_st.miss_pred_unissued.load(); d["miss_unpred"] = g_st.miss_unpred.load();
+     d["pf_reserved"] = g_st.pf_reserved.load(); d["pf_cancel"] = g_st.pf_cancel.load(); d["pf_qdemand"] = g_st.pf_qdemand.load();
+--- a/bigmoe_v3f/gated.py
++++ b/bigmoe_v3f/gated.py
+@@ -17,6 +17,7 @@
+                                                  # layout holds up to 61 (S=6 x top-10 = 60)
+ PRED_LINES = max(0, min(4, int(os.environ.get("BIGMOE_PRED_LINES", "1"))))   # prediction lines after line 3 (MoonShots)
+ assert MAXK <= 92, "BIGMOE_MAXK: the routing row carries at most 92 ids"
++JOINT = os.environ.get("BIGMOE_JOINT", "0") not in ("", "0")   # [Fit12 B1] post a layer's rows before its first wait
+ XLINES = 1 if MAXK > 61 else 0   # one more id line (ids 61..91) at the end of the row when MAXK > 61
+ ROW = 96 + 32 * PRED_LINES + 32 * XLINES   # 4 x 128-byte lines: [seq, n, ids0..29] [seq, ids30..60] [seq, np, preds0..29] [seq, preds30..60] (+ more);
+                    # each line carries its own seq, written last, so a line seen with the new seq is complete
+@@ -110,9 +111,10 @@
+                 ext.set_tables(self.tables, TLINES)
+         atexit.register(ext.stop)
+         self.seq = 0
++        self._pend = []                                  # [Fit12 B1] rows posted since the last phase-0 wait
+ 
+     def new_pass(self):
+-        while os.path.exists(_PAUSE):                    # a SIGSTOP follows PAUSE by 1 s: never mid-pass
++        while os.path.exists(_PAUSE):
+             time.sleep(0.2)
+         self.seq += 1
+         return self.seq
+@@ -147,14 +149,24 @@
+         flat = ids.reshape(-1).astype(mx.int32)
+         n = flat.size
+         assert n <= MAXK, n
++        if JOINT and self._pend:                         # [Fit12 B1 v2] posted after the layer's earlier row (base first)
++            flat = mx.depends([flat], [self._pend[-1]])[0]
+         pr = preds.reshape(-1).astype(mx.int32) if preds is not None else self.nopred
+         c = tuple(counts) if counts else ((pr.size if preds is not None else 0),)
+         n1, n2, n3, rk = (c + (0, 0, 0, 0))[:4]
+         npr = n1 | (n2 << 8) | (n3 << 16) | (rk << 24)
+-        return ext.post_ids(flat, pr, L, seq, npr, wk), n   # [v3f] wk = nw | nk << 8 (nw 255: GPU flags on the ids)
++        dep = ext.post_ids(flat, pr, L, seq, npr, wk)   # [v3f] wk = nw | nk << 8 (nw 255: GPU flags on the ids)
++        if JOINT:
++            self._pend.append(dep)
++        return dep, n
+ 
+     def spin(self, dep, L, n, seq=None, phase=0):
+         """OoO second half: the slot ids once the loader released (L, seq). Lazy. phase 1: the late (phase-B) pairs."""
++        if JOINT and phase == 0 and self._pend:         # [Fit12 B1] the rows posted with this one go out before its wait
++            others = [d for d in self._pend if d is not dep]
++            self._pend = []
++            if others:
++                dep = mx.depends([dep], others)[0]
+         return ext.spin_wait(dep, L, self.seq if seq is None else seq, n, phase)
+ 
+     def fast_hits(self):
+--- a/bigmoe_v3f/stream.py
++++ b/bigmoe_v3f/stream.py
+@@ -427,6 +427,7 @@
+         from . import tier as _tier
+         nmtp = 1 if os.environ.get("BIGMOE_MTP_STREAM") == "1" else 0
+         # BIGMOE_TIER: one LSB sidecar gate layer per real layer after the MTP layer (install_sidecars)
++        os.environ.setdefault("BIGMOE_JOINT_SIDE0", str(nl + nmtp))   # [Fit12 B1] sidecar gate row of layer L = this + L
+         self.gate = Gate(nl + nmtp + (nl if _tier.ON else 0))
+         self._side0 = nl + nmtp
+         if _tier.ON:

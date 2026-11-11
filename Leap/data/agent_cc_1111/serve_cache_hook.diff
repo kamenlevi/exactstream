@@ -1,0 +1,57 @@
+--- release/cleanclone/agent/clone/serve.py	2026-11-10 23:10:20
++++ release/cleanclone/cache/clone/serve.py	2026-11-10 23:30:16
+@@ -107,6 +107,9 @@
+     if a.mem in ("32", "24"):                              # PF-A, as chat.py: layer-major prefill of long prompts (agents send
+         env["R57_PFLM"] = os.environ.get("R57_PFLM", "1")   # 10K+ tokens); the 45 GB path has its own prefill (PF-D)
+     os.environ.update(env)
++    cache_on = os.environ.get("CONV_CACHE", "1") != "0"   # BigMoE's conversation cache (engine/loop/convcache.py): a new
++    os.environ.setdefault("CONV_CACHE_GB", {"24": "0.6", "32": "2.5", "45": "6"}[a.mem])   # turn prefills only its new tokens
++    CCm = [None]                                           # the module once installed; False = off (not there / failed)
+ 
+     term = os.fdopen(os.dup(1), "w", buffering=1)          # serve.py's own lines; the engine's prints go to the log
+ 
+@@ -140,19 +143,31 @@
+             j.q.put(("text", text[len(j.shown):]))
+         n = r.get("n", len(j.out))
+         eos = bool(j.out) and tok.convert_ids_to_tokens(int(j.out[-1])) in ("<|im_end|>", "<|endoftext|>")
+-        stats = dict(n=n, prompt=len(j.ids), tps=r.get("tps"), pfs=r.get("pfs"),
++        cc = CCm[0].last() if CCm[0] else {}
++        stats = dict(n=n, prompt=len(j.ids), tps=r.get("tps"), pfs=r.get("pfs"), cache=cc,
+                      peak=(r["mem"][6] if r.get("mem") and len(r["mem"]) > 6 else None),
+                      reason="stop" if eos else "length", cut=j.stop)
+         j.q.put(("end", stats))
+         say(f"done: {len(j.ids)} prompt tokens -> {n} tokens, whole decode {stats['tps'] or 0:.1f} tok/s, first token "
+             f"{stats['pfs'] if stats['pfs'] is None else round(stats['pfs'], 2)} s, peak {stats['peak']} GB"
+-            + (f" ({j.why})" if j.stop else ""))
++            + (f" ({j.why})" if j.stop else "")
++            + (f"; cache {'hit' if cc.get('hit') else 'miss'} c {cc.get('c')} ({cc.get('src')}), prefilled {cc.get('prefilled')}, "
++               f"restore {cc.get('restore_ms')} ms" + (f", check {cc.get('check')}" if cc.get('check') is not None else "")
++               if cc else ""))
+ 
+-    drafter = a.drafter or ("dfl" if a.kind == "code" else "auto")
++    drafter = a.drafter or ("dfl" if a.kind == "code" or cache_on else "auto")   # with the cache: DFlash2 throughout (an
++                                                           # MTP-head turn can restore only from an MTP-head turn's entry)
+     forced = {"dfl": "code", "mtp": "chat"}.get(drafter)
+ 
+     def next_item():
+         finish()
++        if cache_on and CCm[0] is None:                    # once, before the first request's prefill
++            try:
++                import convcache
++                CCm[0] = convcache if convcache.install(G()) else False
++            except Exception as e:
++                CCm[0] = False
++                say(f"conversation cache off: {type(e).__name__}: {e}")
+         g = G()
+         g["HARD"] = 1e12                                   # no job budget in a server
+         if forced and not getattr(next_item, "ruled", False):   # the loop's type rule: forced for serve.py's requests
+@@ -173,6 +188,9 @@
+             raise SystemExit(0)
+         cur[0] = j
+         j.t0 = time.perf_counter()
++        if CCm[0]:
++            CCm[0].hint(sys_end=j.meta.get("sys_end", 0), lane=j.meta.get("lane", "main"), side=j.meta.get("side", False),
++                        conv=j.meta.get("conv"))
+         return [dict(key=keys[state["i"] - 1], set=s, prompt=j.user, user=j.user, prompt_ids=j.ids,
+                      sys_end=j.meta.get("sys_end", 0), side=j.meta.get("side", False), agent=j.meta)]
+ 

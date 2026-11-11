@@ -1,0 +1,24 @@
+M-18b LAYSZ-Q1: Q1 0.99 needs, C 256 pools (33.93 GB), grid C_m 160-464 (21), C_l 32-256 (15); cap45 6 prompts (seed 0), capture 36 windows; setup 99 s
+  curves done 129 s
+  fit on cap45: pools 33.92 GB; C_m 160-432 (median 304), C_l 32-176 (median 96); MSB share 89.1 % (M-17 90.3 %)
+    C_m by layer: 432 432 400 352 336 400 400 416 336 287 384 304 368 384 320 160 176 256 336 304 256 352 368 288 304 208 320 192 304 320 208 160 160 240 304 208 192 256 336 192 208 288 304 224 224 240 272 272
+    C_l by layer: 176 160 128 96 96 112 176 160 96 64 144 64 128 128 80 32 48 64 160 80 64 128 176 64 96 64 128 64 128 112 80 32 48 80 160 64 64 112 160 48 48 96 144 64 96 80 96 96
+  fit on capture: pools 33.93 GB; C_m 160-432 (median 288), C_l 48-192 (median 112); MSB share 87.0 % (M-17 90.3 %)
+    C_m by layer: 432 400 400 288 304 352 368 352 336 288 368 320 368 384 304 160 160 304 368 288 272 320 352 224 304 240 336 272 320 320 256 160 160 288 304 256 224 272 304 176 176 224 256 192 224 208 224 240
+    C_l by layer: 192 176 176 112 128 160 176 192 144 96 144 96 192 144 128 48 64 112 176 96 128 160 192 80 128 80 112 80 160 128 96 48 48 96 160 96 112 128 160 64 64 96 112 80 80 96 96 96
+
+  Q1 0.99 needs, SSD MB per kept token (code / all): uniform 287 + 112 | M-17 sizes | fitted (in-sample or held-out)
+    on cap45   fit on cap45   (in-sample): uniform  84.0 /  56.4 | M-17  77.2 /  49.0 | fitted  76.5 /  48.3 (-0.9 % / -1.3 % vs M-17)
+    on cap45   fit on capture (HELD-OUT ): uniform  84.0 /  56.4 | M-17  77.2 /  49.0 | fitted  77.7 /  49.8 (+0.6 % / +1.6 % vs M-17)
+    on capture fit on cap45   (HELD-OUT ): uniform  30.9 /  31.4 | M-17  28.1 /  28.0 | fitted  27.5 /  27.6 (-2.1 % / -1.5 % vs M-17)
+    on capture fit on capture (in-sample): uniform  30.9 /  31.4 | M-17  28.1 /  28.0 | fitted  26.6 /  26.5 (-5.3 % / -5.3 % vs M-17)
+  Lines: code held-out vs M-17 +0.6 %, -2.1 % -> KILL (PASS <= -8 % both ways, KILL > -3 % both)
+    EXACT needs on cap45 (code) with sizes fitted on cap45: 112.0 MB per kept token vs M-17 111.2 (+0.7 %)
+    EXACT needs on cap45 (all) with sizes fitted on cap45: 63.4 MB per kept token vs M-17 62.8 (+0.8 %)
+    EXACT needs on cap45 (code) with sizes fitted on capture: 113.5 MB per kept token vs M-17 111.2 (+2.1 %)
+    EXACT needs on cap45 (all) with sizes fitted on capture: 66.0 MB per kept token vs M-17 62.8 (+5.1 %)
+    EXACT needs on capture (code) with sizes fitted on cap45: 47.5 MB per kept token vs M-17 47.0 (+1.0 %)
+    EXACT needs on capture (all) with sizes fitted on cap45: 36.3 MB per kept token vs M-17 36.2 (+0.2 %)
+    EXACT needs on capture (code) with sizes fitted on capture: 48.5 MB per kept token vs M-17 47.0 (+3.1 %)
+    EXACT needs on capture (all) with sizes fitted on capture: 36.1 MB per kept token vs M-17 36.2 (-0.4 %)
+  wrote data/laysz_q1_256.json (fit on the capture; the cap45 fit inside); total 134 s

@@ -1,0 +1,12 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=26.7 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=26 C_l=10 per layer, 3.05 GB pools
+b12: hc (196, 1336.9344, 710.2464)
+b12: C_m=26 C_l=10 (5 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 4), pools 3.05 GB, active 6.33 GB
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (64, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (61, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (62, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[long] d1i cold chunk 2048 attn/moe 256/4096 split 0 stream 0 gpu 0 nologits 1 group 64 warm 0: prefill 2617 tokens in 9.29 s (282 tok/s); waited misses/token 0-16 105.7 16-32 94.6 32-64 102.1; decode 15.1 tok/s, reads/token 149.2; peak active 6.9 GB, cache 0.1 GB, max RSS 7.4 GB, PEAK FOOTPRINT 8.0 GB; sha bb31e1cef0 | pf {'grouped': 48, 'single': 0, 'fallback': 0, 'groups': 341, 'warm_base': 0, 'warm_side': 0, 'act_in_gb': 6.68, 'peak_pre_gb': 7.46, 'peak_moe_gb': 7.44, 't_read': 4.71, 't_warm': 0.0, 't_attn_build': 3.01, 't_sync': 0.06, 't_moe': 5.9, 't_post': 0.3, 't_mlp_call': 5.97} | 'This Python script is a specialized evaluation harness desig'
+[long] d1i repeat chunk 2048 attn/moe 256/4096 split 0 stream 0 gpu 0 nologits 1 group 64 warm 0: prefill 2617 tokens in 8.59 s (305 tok/s); waited misses/token 0-16 98.4 16-32 97.3 32-64 99.1; decode 15.4 tok/s, reads/token 143.9; peak active 6.9 GB, cache 0.1 GB, max RSS 7.8 GB, PEAK FOOTPRINT 8.0 GB; sha 1bd5796f62 | pf {'grouped': 48, 'single': 0, 'fallback': 0, 'groups': 341, 'warm_base': 0, 'warm_side': 0, 'act_in_gb': 6.68, 'peak_pre_gb': 7.46, 'peak_moe_gb': 7.44, 't_read': 4.71, 't_warm': 0.0, 't_attn_build': 2.34, 't_sync': 0.06, 't_moe': 5.85, 't_post': 0.31, 't_mlp_call': 5.92} | 'This Python script is a specialized evaluation harness desig'

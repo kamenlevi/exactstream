@@ -1,0 +1,200 @@
+loaded perturbations: topk2, topk2r, topk5, shared_zero, moe_reuse_prev_g0, moe_reuse_prev_g1, moe_reuse_prev_g2, moe_reuse_prev_g3, moe_reuse_prev_L08_11, moe_reuse_prev_L12_35, moe_reuse_prev_L36_39, moe_reuse_lag2_L12_35, moe_reuse_lag4_L12_35, moe_reuse_chain_L12_35, att_reuse_prev, gdn_reuse_prev, hc_static, hc_q4, gdn_q4, att_q4
+rows: 10316 Counter({'multi': 3553, 'ifeval': 3397, 'code': 3366})
+
+### 1. sanity: flip % sure / tie / mid (must equal report.md)
+| cut | code | ifeval | multi |
+|---|---|---|---|
+| topk2 | 0.21 / 62.00 / 25.63 | 0.65 / 64.83 / 34.47 | 5.07 / 77.51 / 44.02 |
+| topk5 | 0.00 / 40.00 / 8.63 | 0.00 / 52.41 / 11.72 | 0.07 / 54.62 / 14.53 |
+| moe_reuse_prev_L12_35 | 1.03 / 66.00 / 32.99 | 1.77 / 66.90 / 39.83 | 0.69 / 70.68 / 29.65 |
+| moe_reuse_chain_L12_35 | 8.11 / 48.00 / 21.83 | 1.67 / 44.48 / 10.00 | 0.69 / 44.98 / 8.63 |
+| hc_static | 2.87 / 64.00 / 25.89 | 3.25 / 61.72 / 31.76 | 5.77 / 68.67 / 29.87 |
+| moe_reuse_prev_L08_11 | 0.00 / 46.00 / 4.31 | 0.00 / 45.52 / 5.81 | 0.00 / 43.37 / 4.24 |
+
+### 2. code: flip % (flips) by DRAFTER band
+| cut | >=0.999 | 0.99-0.999 | 0.9-0.99 | <0.9 | none | cf>=0.99 | all |
+|---|---|---|---|---|---|---|---|
+| rows (share %) | 1607 (47.7) | 604 (17.9) | 467 (13.9) | 605 (18.0) | 83 (2.5) | 2211 (65.7) | 3366 |
+| oracle-sure share % | 99.7 | 96.7 | 82.0 | 44.8 | 98.8 | 98.9 | 86.8 |
+| topk2 | 0.00 (0) | 1.16 (7) | 4.28 (20) | 18.35 (111) | 0.00 (0) | 0.32 (7) | 4.10 (138) |
+| topk5 | 0.00 (0) | 0.00 (0) | 1.28 (6) | 7.93 (48) | 0.00 (0) | 0.00 (0) | 1.60 (54) |
+| moe_reuse_prev_L08_11 | 0.00 (0) | 0.00 (0) | 0.86 (4) | 5.95 (36) | 0.00 (0) | 0.00 (0) | 1.19 (40) |
+| moe_reuse_prev_L12_35 | 0.25 (4) | 1.16 (7) | 7.49 (35) | 24.30 (147) | 0.00 (0) | 0.50 (11) | 5.73 (193) |
+| moe_reuse_prev_g1 | 0.00 (0) | 0.66 (4) | 2.57 (12) | 13.39 (81) | 0.00 (0) | 0.18 (4) | 2.88 (97) |
+| moe_reuse_prev_g2 | 0.00 (0) | 0.00 (0) | 3.43 (16) | 16.03 (97) | 0.00 (0) | 0.00 (0) | 3.36 (113) |
+| moe_reuse_chain_L12_35 | 6.16 (99) | 9.60 (58) | 13.28 (62) | 20.66 (125) | 3.61 (3) | 7.10 (157) | 10.31 (347) |
+| moe_reuse_prev_L36_39 | 0.50 (8) | 1.16 (7) | 4.50 (21) | 13.55 (82) | 0.00 (0) | 0.68 (15) | 3.51 (118) |
+| shared_zero | 0.62 (10) | 0.33 (2) | 5.14 (24) | 22.64 (137) | 0.00 (0) | 0.54 (12) | 5.14 (173) |
+| hc_static | 2.30 (37) | 4.14 (25) | 6.42 (30) | 20.50 (124) | 2.41 (2) | 2.80 (62) | 6.48 (218) |
+| hc_q4 | 0.00 (0) | 0.00 (0) | 1.93 (9) | 8.10 (49) | 0.00 (0) | 0.00 (0) | 1.72 (58) |
+| gdn_q4 | 0.00 (0) | 0.00 (0) | 0.64 (3) | 5.29 (32) | 0.00 (0) | 0.00 (0) | 1.04 (35) |
+| att_q4 | 0.00 (0) | 0.00 (0) | 0.86 (4) | 4.46 (27) | 0.00 (0) | 0.00 (0) | 0.92 (31) |
+
+### 2. ifeval: flip % (flips) by DRAFTER band
+| cut | >=0.999 | 0.99-0.999 | 0.9-0.99 | <0.9 | none | cf>=0.99 | all |
+|---|---|---|---|---|---|---|---|
+| rows (share %) | 314 (9.2) | 368 (10.8) | 625 (18.4) | 2089 (61.5) | 1 (0.0) | 682 (20.1) | 3397 |
+| oracle-sure share % | 95.5 | 81.0 | 38.6 | 11.3 | 100.0 | 87.7 | 31.7 |
+| topk2 | 0.00 (0) | 2.17 (8) | 13.28 (83) | 38.49 (804) | 0.00 (0) | 1.17 (8) | 26.35 (895) |
+| topk5 | 0.00 (0) | 0.27 (1) | 4.00 (25) | 17.42 (364) | 0.00 (0) | 0.15 (1) | 11.48 (390) |
+| moe_reuse_prev_L08_11 | 0.00 (0) | 0.54 (2) | 3.36 (21) | 10.87 (227) | 0.00 (0) | 0.29 (2) | 7.36 (250) |
+| moe_reuse_prev_L12_35 | 0.00 (0) | 2.17 (8) | 15.20 (95) | 43.99 (919) | 0.00 (0) | 1.17 (8) | 30.09 (1022) |
+| moe_reuse_prev_g1 | 0.00 (0) | 1.63 (6) | 6.24 (39) | 24.84 (519) | 0.00 (0) | 0.88 (6) | 16.60 (564) |
+| moe_reuse_prev_g2 | 0.00 (0) | 0.82 (3) | 7.36 (46) | 27.67 (578) | 0.00 (0) | 0.44 (3) | 18.46 (627) |
+| moe_reuse_chain_L12_35 | 0.00 (0) | 1.09 (4) | 5.28 (33) | 14.98 (313) | 0.00 (0) | 0.59 (4) | 10.30 (350) |
+| moe_reuse_prev_L36_39 | 0.96 (3) | 2.45 (9) | 6.72 (42) | 25.42 (531) | 0.00 (0) | 1.76 (12) | 17.22 (585) |
+| shared_zero | 3.82 (12) | 5.16 (19) | 19.20 (120) | 47.87 (1000) | 0.00 (0) | 4.55 (31) | 33.88 (1151) |
+| hc_static | 5.10 (16) | 4.35 (16) | 14.24 (89) | 35.33 (738) | 0.00 (0) | 4.69 (32) | 25.29 (859) |
+| hc_q4 | 0.00 (0) | 0.82 (3) | 5.76 (36) | 17.76 (371) | 0.00 (0) | 0.44 (3) | 12.07 (410) |
+| gdn_q4 | 0.00 (0) | 0.82 (3) | 2.24 (14) | 11.20 (234) | 0.00 (0) | 0.44 (3) | 7.39 (251) |
+| att_q4 | 0.00 (0) | 0.54 (2) | 1.28 (8) | 6.89 (144) | 0.00 (0) | 0.29 (2) | 4.53 (154) |
+
+### 2. multi: flip % (flips) by DRAFTER band
+| cut | >=0.999 | 0.99-0.999 | 0.9-0.99 | <0.9 | none | cf>=0.99 | all |
+|---|---|---|---|---|---|---|---|
+| rows (share %) | 278 (7.8) | 276 (7.8) | 580 (16.3) | 2419 (68.1) | 0 (0.0) | 554 (15.6) | 3553 |
+| oracle-sure share % | 98.2 | 77.5 | 48.6 | 27.7 | nan | 87.9 | 40.5 |
+| topk2 | 0.36 (1) | 5.07 (14) | 15.86 (92) | 40.51 (980) | nan (0) | 2.71 (15) | 30.59 (1087) |
+| topk5 | 0.00 (0) | 0.36 (1) | 4.31 (25) | 15.79 (382) | nan (0) | 0.18 (1) | 11.48 (408) |
+| moe_reuse_prev_L08_11 | 0.00 (0) | 0.72 (2) | 3.28 (19) | 6.86 (166) | nan (0) | 0.36 (2) | 5.26 (187) |
+| moe_reuse_prev_L12_35 | 0.00 (0) | 3.62 (10) | 8.79 (51) | 28.03 (678) | nan (0) | 1.81 (10) | 20.80 (739) |
+| moe_reuse_prev_g1 | 0.00 (0) | 1.45 (4) | 3.45 (20) | 15.30 (370) | nan (0) | 0.72 (4) | 11.09 (394) |
+| moe_reuse_prev_g2 | 0.00 (0) | 1.45 (4) | 4.66 (27) | 16.74 (405) | nan (0) | 0.72 (4) | 12.27 (436) |
+| moe_reuse_chain_L12_35 | 0.72 (2) | 1.81 (5) | 4.48 (26) | 10.33 (250) | nan (0) | 1.26 (7) | 7.97 (283) |
+| moe_reuse_prev_L36_39 | 0.72 (2) | 6.16 (17) | 9.83 (57) | 20.92 (506) | nan (0) | 3.43 (19) | 16.38 (582) |
+| shared_zero | 2.16 (6) | 5.43 (15) | 20.17 (117) | 38.61 (934) | nan (0) | 3.79 (21) | 30.17 (1072) |
+| hc_static | 6.12 (17) | 10.87 (30) | 13.97 (81) | 28.23 (683) | nan (0) | 8.48 (47) | 22.83 (811) |
+| hc_q4 | 0.00 (0) | 0.72 (2) | 2.59 (15) | 14.22 (344) | nan (0) | 0.36 (2) | 10.16 (361) |
+| gdn_q4 | 0.00 (0) | 1.09 (3) | 3.62 (21) | 11.53 (279) | nan (0) | 0.54 (3) | 8.53 (303) |
+| att_q4 | 0.00 (0) | 0.00 (0) | 1.90 (11) | 4.59 (111) | nan (0) | 0.00 (0) | 3.43 (122) |
+
+### 3. additive-margin model vs the measured 12-35 run (lag 1)
+| dom | class | n | measured 12-35 | union of g1 / g2 flips | additive prediction | hits |
+|---|---|---|---|---|---|---|
+| code | sure | 2922 | 1.03 (30) | 0.24 (7) | 1.64 (48) | 13/30 measured flips predicted |
+| code | tie | 50 | 66.00 (33) | 76.00 (38) | 62.00 (31) | 25/33 measured flips predicted |
+| code | mid | 394 | 32.99 (130) | 27.16 (107) | 34.26 (135) | 98/130 measured flips predicted |
+| ifeval | sure | 1076 | 1.77 (19) | 0.09 (1) | 3.35 (36) | 11/19 measured flips predicted |
+| ifeval | tie | 290 | 66.90 (194) | 75.86 (220) | 63.10 (183) | 154/194 measured flips predicted |
+| ifeval | mid | 2031 | 39.83 (809) | 30.03 (610) | 35.11 (713) | 563/809 measured flips predicted |
+| multi | sure | 1439 | 0.69 (10) | 0.00 (0) | 0.63 (9) | 4/10 measured flips predicted |
+| multi | tie | 249 | 70.68 (176) | 77.51 (193) | 66.27 (165) | 148/176 measured flips predicted |
+| multi | mid | 1865 | 29.65 (553) | 21.07 (393) | 24.50 (457) | 344/553 measured flips predicted |
+margin loss on code-sure rows: g1 + g2 summed 2.873 nats, 12-35 measured 2.839 nats, ratio 0.99
+margin loss on ifeval-sure rows: g1 + g2 summed 1.816 nats, 12-35 measured 3.313 nats, ratio 1.82
+margin loss on multi-sure rows: g1 + g2 summed 0.013 nats, 12-35 measured 1.458 nats, ratio 114.58
+
+### 4. code: predicted flip % of combinations (additive / union-of-measured) by class, then additive by drafter band
+| combination | sure | tie | mid | >=0.999 | 0.99-0.999 | 0.9-0.99 | <0.9 |
+|---|---|---|---|---|---|---|---|
+| top2 + reuse 8-35 (lag 1) | 14.37 / 1.16 | 60.00 / 84.00 | 55.33 / 43.91 | 9.21 | 19.87 | 29.76 | 41.32 |
+| top2 + reuse 12-35 | 13.52 / 1.16 | 60.00 / 78.00 | 56.60 / 43.15 | 8.15 | 19.37 | 29.12 | 41.98 |
+| top5 + reuse 8-35 | 4.65 / 1.03 | 60.00 / 76.00 | 44.16 / 37.82 | 2.36 | 6.79 | 14.56 | 31.07 |
+| reuse 8-35 (lag 1) | 1.06 / 1.03 | 60.00 / 74.00 | 34.26 / 34.52 | 0.25 | 1.49 | 8.35 | 23.80 |
+| top2 + 4-bit att/gdn/hc outputs | 4.93 / 0.21 | 58.00 / 90.00 | 40.86 / 32.49 | 3.11 | 7.45 | 13.70 | 28.10 |
+| top2 + reuse 8-35 + 4-bit outputs | 29.98 / 1.16 | 64.00 / 94.00 | 58.88 / 46.45 | 23.21 | 35.76 | 47.32 | 50.58 |
+| top2 + hc_static | 15.09 / 3.05 | 68.00 / 82.00 | 47.97 / 39.34 | 12.63 | 19.70 | 24.41 | 36.03 |
+
+### 4. ifeval: predicted flip % of combinations (additive / union-of-measured) by class, then additive by drafter band
+| combination | sure | tie | mid | >=0.999 | 0.99-0.999 | 0.9-0.99 | <0.9 |
+|---|---|---|---|---|---|---|---|
+| top2 + reuse 8-35 (lag 1) | 32.34 / 2.14 | 72.41 / 90.34 | 64.65 / 53.82 | 15.61 | 28.53 | 47.84 | 67.88 |
+| top2 + reuse 12-35 | 30.48 / 2.14 | 69.31 / 82.76 | 63.81 / 52.93 | 14.97 | 27.17 | 44.96 | 66.87 |
+| top5 + reuse 8-35 | 11.71 / 1.77 | 68.28 / 88.28 | 52.24 / 44.41 | 1.27 | 11.41 | 29.12 | 55.39 |
+| reuse 8-35 (lag 1) | 2.70 / 1.77 | 66.55 / 80.69 | 42.25 / 41.36 | 0.00 | 3.53 | 17.60 | 45.81 |
+| top2 + 4-bit att/gdn/hc outputs | 6.88 / 0.65 | 66.21 / 92.41 | 44.21 / 40.97 | 4.14 | 6.52 | 21.92 | 47.39 |
+| top2 + reuse 8-35 + 4-bit outputs | 45.07 / 2.14 | 73.79 / 97.59 | 65.34 / 56.57 | 29.30 | 37.77 | 53.60 | 69.89 |
+| top2 + hc_static | 26.02 / 3.81 | 70.34 / 81.38 | 54.95 / 48.70 | 27.07 | 19.29 | 36.48 | 58.16 |
+
+### 4. multi: predicted flip % of combinations (additive / union-of-measured) by class, then additive by drafter band
+| combination | sure | tie | mid | >=0.999 | 0.99-0.999 | 0.9-0.99 | <0.9 |
+|---|---|---|---|---|---|---|---|
+| top2 + reuse 8-35 (lag 1) | 21.13 / 5.63 | 79.12 / 93.57 | 59.57 / 54.80 | 16.91 | 26.09 | 35.00 | 53.33 |
+| top2 + reuse 12-35 | 20.29 / 5.63 | 80.32 / 89.96 | 60.16 / 54.16 | 16.55 | 27.54 | 33.28 | 53.70 |
+| top5 + reuse 8-35 | 4.52 / 0.76 | 73.09 / 86.35 | 40.70 / 36.84 | 3.24 | 11.23 | 16.38 | 36.01 |
+| reuse 8-35 (lag 1) | 0.76 / 0.69 | 69.88 / 79.12 | 30.24 / 31.21 | 0.36 | 3.62 | 10.52 | 27.99 |
+| top2 + 4-bit att/gdn/hc outputs | 16.47 / 5.14 | 78.31 / 97.19 | 53.94 / 50.35 | 9.35 | 13.77 | 27.07 | 50.31 |
+| top2 + reuse 8-35 + 4-bit outputs | 35.72 / 5.70 | 80.72 / 99.60 | 63.16 / 57.91 | 27.70 | 38.04 | 43.10 | 60.40 |
+| top2 + hc_static | 34.95 / 10.49 | 80.32 / 89.56 | 59.84 / 55.34 | 34.17 | 35.14 | 41.38 | 57.34 |
+
+### 5a. ORACLE floor per row (cheapest level keeping the argmax; R = reuse 8-35 from the previous row, S=1): level shares, expert records per token (exact = 480), MB per token at 4-bit / at the 45 GB tiers (exact = 1344 / 1056)
+| dom | rows | n | levels | records | MB 4-bit | MB tiers |
+|---|---|---|---|---|---|---|
+| code | all | 3366 | 2R:42% 2:53% 5R:0% 5:2% 10R:0% 10:1% | 80 | 224 | 218 |
+| code | sure | 2922 | 2R:46% 2:54% 5R:0% 5:0% 10R:0% 10:0% | 71 | 198 | 198 |
+| code | tie | 50 | 2R:12% 2:26% 5R:8% 5:22% 10R:0% 10:32% | 244 | 684 | 572 |
+| code | mid | 394 | 2R:23% 2:51% 5R:3% 5:17% 10R:2% 10:5% | 127 | 355 | 322 |
+| code | band >=0.999 | 1607 | 2R:47% 2:53% 5R:0% 5:0% 10R:0% 10:0% | 69 | 194 | 194 |
+| code | band 0.99-0.999 | 604 | 2R:44% 2:55% 5R:0% 5:1% 10R:0% 10:0% | 73 | 204 | 203 |
+| code | band 0.9-0.99 | 467 | 2R:39% 2:57% 5R:1% 5:3% 10R:0% 10:1% | 82 | 229 | 223 |
+| code | band <0.9 | 605 | 2R:29% 2:52% 5R:2% 5:10% 10R:1% 10:5% | 115 | 321 | 295 |
+| code | band none | 83 | 2R:51% 2:49% 5R:0% 5:0% 10R:0% 10:0% | 68 | 189 | 189 |
+| ifeval | all | 3397 | 2R:27% 2:46% 5R:2% 5:15% 10R:1% 10:8% | 135 | 377 | 338 |
+| ifeval | sure | 1076 | 2R:44% 2:56% 5R:0% 5:1% 10R:0% 10:0% | 72 | 203 | 202 |
+| ifeval | tie | 290 | 2R:7% 2:28% 5R:3% 5:20% 10R:4% 10:39% | 273 | 763 | 634 |
+| ifeval | mid | 2031 | 2R:21% 2:44% 5R:4% 5:21% 10R:1% 10:8% | 148 | 415 | 368 |
+| ifeval | band >=0.999 | 314 | 2R:57% 2:43% 5R:0% 5:0% 10R:0% 10:0% | 64 | 179 | 179 |
+| ifeval | band 0.99-0.999 | 368 | 2R:46% 2:52% 5R:1% 5:1% 10R:0% 10:0% | 73 | 205 | 203 |
+| ifeval | band 0.9-0.99 | 625 | 2R:33% 2:53% 5R:2% 5:8% 10R:0% 10:3% | 100 | 281 | 264 |
+| ifeval | band <0.9 | 2089 | 2R:18% 2:44% 5R:3% 5:21% 10R:2% 10:13% | 167 | 466 | 408 |
+| ifeval | band none | 1 | 2R:100% 2:0% 5R:0% 5:0% 10R:0% 10:0% | 40 | 112 | 112 |
+| multi | all | 3553 | 2R:31% 2:39% 5R:6% 5:15% 10R:1% 10:8% | 133 | 373 | 332 |
+| multi | sure | 1439 | 2R:48% 2:47% 5R:3% 5:2% 10R:0% 10:0% | 72 | 202 | 199 |
+| multi | tie | 249 | 2R:4% 2:18% 5R:4% 5:26% 10R:4% 10:43% | 302 | 845 | 696 |
+| multi | mid | 1865 | 2R:21% 2:35% 5R:9% 5:24% 10R:2% 10:10% | 158 | 442 | 387 |
+| multi | band >=0.999 | 278 | 2R:51% 2:49% 5R:0% 5:0% 10R:0% 10:0% | 68 | 190 | 190 |
+| multi | band 0.99-0.999 | 276 | 2R:45% 2:50% 5R:0% 5:4% 10R:0% 10:0% | 79 | 220 | 215 |
+| multi | band 0.9-0.99 | 580 | 2R:36% 2:48% 5R:4% 5:9% 10R:0% 10:3% | 99 | 278 | 260 |
+| multi | band <0.9 | 2419 | 2R:26% 2:34% 5R:8% 5:20% 10R:2% 10:11% | 155 | 435 | 379 |
+
+### 5b. REALIZABLE floor by drafter band (level per band = cheapest with band flip % <= 1.0; MB per token at the tiers, exact = 1056)
+| dom | bar | band: level (flip %, rows, MB/row) | MB per token |
+|---|---|---|---|
+| code | bar 1.0% | >=0.999: 2 (0.00%, 1607 rows, 269 MB); 0.99-0.999: 5 (0.00%, 604 rows, 571 MB); 0.9-0.99: 10 (0.00%, 467 rows, 1075 MB); <0.9: 10 (0.00%, 605 rows, 1075 MB); none: 2 (0.00%, 83 rows, 269 MB) | 580 |
+| ifeval | bar 1.0% | >=0.999: 2 (0.00%, 314 rows, 269 MB); 0.99-0.999: 5 (0.27%, 368 rows, 571 MB); 0.9-0.99: 10 (0.00%, 625 rows, 1075 MB); <0.9: 10 (0.00%, 2089 rows, 1075 MB); none: 2R (0.00%, 1 rows, 190 MB) | 946 |
+| multi | bar 1.0% | >=0.999: 2 (0.36%, 278 rows, 269 MB); 0.99-0.999: 5 (0.36%, 276 rows, 571 MB); 0.9-0.99: 10 (0.00%, 580 rows, 1075 MB); <0.9: 10 (0.00%, 2419 rows, 1075 MB) | 973 |
+
+### 5b. REALIZABLE floor by drafter band (level per band = cheapest with band flip % <= 0.3; MB per token at the tiers, exact = 1056)
+| dom | bar | band: level (flip %, rows, MB/row) | MB per token |
+|---|---|---|---|
+| code | bar 0.3% | >=0.999: 2 (0.00%, 1607 rows, 269 MB); 0.99-0.999: 5 (0.00%, 604 rows, 571 MB); 0.9-0.99: 10 (0.00%, 467 rows, 1075 MB); <0.9: 10 (0.00%, 605 rows, 1075 MB); none: 2 (0.00%, 83 rows, 269 MB) | 580 |
+| ifeval | bar 0.3% | >=0.999: 2 (0.00%, 314 rows, 269 MB); 0.99-0.999: 5 (0.27%, 368 rows, 571 MB); 0.9-0.99: 10 (0.00%, 625 rows, 1075 MB); <0.9: 10 (0.00%, 2089 rows, 1075 MB); none: 2R (0.00%, 1 rows, 190 MB) | 946 |
+| multi | bar 0.3% | >=0.999: 5 (0.00%, 278 rows, 571 MB); 0.99-0.999: 10 (0.00%, 276 rows, 1075 MB); 0.9-0.99: 10 (0.00%, 580 rows, 1075 MB); <0.9: 10 (0.00%, 2419 rows, 1075 MB) | 1036 |
+
+### 6. answers touched (teacher-forced windows with >= 1 flip)
+| scheme | code | ifeval | multi |
+|---|---|---|---|
+| oracle-sure rows at top-2 (Q1 as measured) | 4/12 windows, 6 flips (0.18 % of all rows) | 5/12 windows, 7 flips (0.21 % of all rows) | 12/12 windows, 73 flips (2.05 % of all rows) |
+| drafter cf>=0.99 rows at top-2 (Q1 realizable) | 7/12 windows, 7 flips (0.21 % of all rows) | 4/12 windows, 8 flips (0.24 % of all rows) | 6/12 windows, 15 flips (0.42 % of all rows) |
+| drafter cf>=0.999 rows at top-2 | 0/12 windows, 0 flips (0.00 % of all rows) | 0/12 windows, 0 flips (0.00 % of all rows) | 1/12 windows, 1 flips (0.03 % of all rows) |
+| NEW-1 bands (>=0.999 top-2, 0.99-0.999 top-5 proxy, rest exact) | 0/12 windows, 0 flips (0.00 % of all rows) | 1/12 windows, 1 flips (0.03 % of all rows) | 2/12 windows, 2 flips (0.06 % of all rows) |
+| cf>=0.99 rows: top-2 + reuse 8-35 (additive, every row) | 12/12 windows, 268 flips (7.96 % of all rows) | 11/12 windows, 155 flips (4.56 % of all rows) | 12/12 windows, 120 flips (3.38 % of all rows) |
+
+### 7. code-sure rows that flip under top-2 (window, answer index, p1, baseline token id -> new token id, margin before / after)
+- tf_code_HumanEval_109.npz j=334 p1=0.9932 835 -> 361 margin 5.00 -> -1.38; also flips under top-5: False, reuse 12-35: False
+- tf_code_HumanEval_121.npz j=32 p1=0.9977 14379 -> 1031 margin 6.25 -> -0.50; also flips under top-5: False, reuse 12-35: False
+- tf_code_HumanEval_136.npz j=0 p1=0.9968 198 -> 271 margin 5.75 -> -0.25; also flips under top-5: False, reuse 12-35: False
+- tf_code_HumanEval_136.npz j=174 p1=0.9996 1031 -> 262 margin 7.88 -> -0.50; also flips under top-5: False, reuse 12-35: False
+- tf_code_HumanEval_146.npz j=200 p1=0.9978 4060 -> 29527 margin 6.25 -> -0.12; also flips under top-5: False, reuse 12-35: True
+- tf_code_HumanEval_146.npz j=206 p1=0.9941 198 -> 413 margin 5.38 -> -0.62; also flips under top-5: False, reuse 12-35: True
+
+### 7b. per-window share of sure rows and the flips under top-2 / reuse 12-35 (code)
+- tf_code_HumanEval_10.npz: rows 272, sure 82 %, cf>=0.99 62 %, top-2 flips sure/all 0/16, reuse12-35 sure/all 4/24
+- tf_code_HumanEval_103.npz: rows 241, sure 90 %, cf>=0.99 66 %, top-2 flips sure/all 0/5, reuse12-35 sure/all 4/13
+- tf_code_HumanEval_109.npz: rows 398, sure 93 %, cf>=0.99 68 %, top-2 flips sure/all 1/9, reuse12-35 sure/all 2/11
+- tf_code_HumanEval_118.npz: rows 297, sure 80 %, cf>=0.99 58 %, top-2 flips sure/all 0/16, reuse12-35 sure/all 4/27
+- tf_code_HumanEval_121.npz: rows 148, sure 96 %, cf>=0.99 75 %, top-2 flips sure/all 1/2, reuse12-35 sure/all 2/4
+- tf_code_HumanEval_124.npz: rows 398, sure 91 %, cf>=0.99 74 %, top-2 flips sure/all 0/11, reuse12-35 sure/all 2/17
+- tf_code_HumanEval_129.npz: rows 398, sure 100 %, cf>=0.99 72 %, top-2 flips sure/all 0/0, reuse12-35 sure/all 0/0
+- tf_code_HumanEval_132.npz: rows 398, sure 57 %, cf>=0.99 41 %, top-2 flips sure/all 0/58, reuse12-35 sure/all 3/67
+- tf_code_HumanEval_135.npz: rows 144, sure 95 %, cf>=0.99 76 %, top-2 flips sure/all 0/3, reuse12-35 sure/all 2/4
+- tf_code_HumanEval_136.npz: rows 211, sure 99 %, cf>=0.99 78 %, top-2 flips sure/all 2/3, reuse12-35 sure/all 1/3
+- tf_code_HumanEval_146.npz: rows 252, sure 89 %, cf>=0.99 66 %, top-2 flips sure/all 2/9, reuse12-35 sure/all 5/15
+- tf_code_HumanEval_151.npz: rows 209, sure 86 %, cf>=0.99 70 %, top-2 flips sure/all 0/6, reuse12-35 sure/all 1/8
+
+### 8. run structure
+code: P(sure_t | sure_t-1) = 93.1 %, P(sure_t | not sure_t-1) = 46.0 %; P(125B-sure_t | drafter cf_t-1 >= 0.99) = 93.9 %
+ifeval: P(sure_t | sure_t-1) = 47.1 %, P(sure_t | not sure_t-1) = 24.5 %; P(125B-sure_t | drafter cf_t-1 >= 0.99) = 46.8 %
+multi: P(sure_t | sure_t-1) = 45.0 %, P(sure_t | not sure_t-1) = 37.3 %; P(125B-sure_t | drafter cf_t-1 >= 0.99) = 50.5 %
+
+wrote ~/FableGod/floor_rows.json (per-row classes, bands, flips, oracle level)

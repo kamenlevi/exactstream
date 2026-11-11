@@ -1,0 +1,26 @@
+
+code (edit): per verify pass, by width (A = shipped settings on the same prompt)
+  run   S     tok/pass  tok/s   wall ms  gate ms  GPU ms  commit ms  draft ms  other ms  reads  SSD busy ms
+  W4    3.76    3.76    36.1    104.4     61.4    29.2        7.6       3.0       3.2    533         89.0
+  W8    6.74    6.74    41.2    163.4     96.8    44.4       13.9       3.4       4.9    856        136.2
+  W9    7.31    7.11    34.9    203.7    114.7    63.0       14.5       3.5       8.0   1072        166.0
+  A     7.40    7.31    42.5    172.0    105.2    43.4       14.5       3.9       5.1    922        145.4
+  straight-line fit vs S -> at 16 rows: gate 231.9 ms, gpu 126.8 ms, commit 32.4 ms, other 16.5 ms, reads 2205.4
+  DFlash2 16-row check, drafting 12.5 ms: 420.1 ms per check, 9.57 kept -> 22.8 tok/s vs A 25.1 (-9 %); break-even K 10.54
+  DFlash2 16-row check, drafting 7.9 ms: 415.5 ms per check, 9.57 kept -> 23.0 tok/s vs A 25.1 (-8 %); break-even K 10.43
+
+math (copy_math): per verify pass, by width (A = shipped settings on the same prompt)
+  run   S     tok/pass  tok/s   wall ms  gate ms  GPU ms  commit ms  draft ms  other ms  reads  SSD busy ms
+  W4    3.82    3.82    44.2     86.5     50.8    28.9        0.1       2.6       4.1    453         76.3
+  W8    7.11    7.11    45.4    156.7     86.7    44.7       15.0       3.4       6.9    728        123.6
+  W9    8.00    8.00    38.7    206.5    104.7    74.2       16.9       2.8       7.9    961        150.9
+  A     7.79    7.76    53.9    143.8     88.5    44.1        0.2       4.2       6.8    789        125.1
+  straight-line fit vs S -> at 16 rows: gate 200.4 ms, gpu 138.4 ms, commit 51.0 ms, other 15.2 ms, reads 1792.2
+  DFlash2 16-row check, drafting 12.5 ms: 417.4 ms per check, 7.0 kept -> 16.8 tok/s vs A 19.9 (-16 %); break-even K 8.31
+  DFlash2 16-row check, drafting 7.9 ms: 412.8 ms per check, 7.0 kept -> 17.0 tok/s vs A 19.9 (-15 %); break-even K 8.21
+
+Two-point fit on W4 + W8 only (same MAXK 80; W9's MAXK 92 adds ~19 ms GPU per pass by itself):
+  code: at 16 rows gate 207 + GPU 92 + commit 34 + other 10 + draft 12.5 = 355 ms per check -> 26.9 tok/s vs A 25.1 (+7 %); break-even K 8.92
+  code: at 16 rows gate 207 + GPU 92 + commit 34 + other 10 + draft 7.9 = 351 ms per check -> 27.3 tok/s vs A 25.1 (+9 %); break-even K 8.81
+  math: at 16 rows gate 184 + GPU 87 + commit 55 + other 15 + draft 12.5 = 354 ms per check -> 19.8 tok/s vs A 19.9 (-1 %); break-even K 7.04
+  math: at 16 rows gate 184 + GPU 87 + commit 55 + other 15 + draft 7.9 = 349 ms per check -> 20.1 tok/s vs A 19.9 (+1 %); break-even K 6.95

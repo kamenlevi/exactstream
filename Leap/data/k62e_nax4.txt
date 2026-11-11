@@ -1,0 +1,9 @@
+K-62 NAX3: MLX 0.32.2
+1. 3c: |err| vs fp64 max 3.259e-02 mean 4.234e-03 (of output RMS 1.069e+00)
+1. NAX: |err| vs fp64 max 2.325e-02 mean 3.162e-03 (of output RMS 1.069e+00)
+   NAX vs 3c: bf16 ulps max 33959, outputs differing 70.8 %
+2. INV (probe row alone / row 0 of 16 / row 9 of 16 / 16 rows routed alike): PASS bitwise
+3. M 16, U 100: 80 distinct experts, 101 groups; tier_glu 1.097 ms; NAX4 1.024 (1.07x); v2 1.236 (0.89x); tier_glu again 1.095
+3. M 16, U 70: 65 distinct experts, 87 groups; tier_glu 1.089 ms; NAX4 0.900 (1.21x); v2 1.083 (1.01x); tier_glu again 1.086
+3. M 16, U 24: 24 distinct experts, 40 groups; tier_glu 1.046 ms; NAX4 0.451 (2.32x); v2 0.532 (1.97x); tier_glu again 1.048
+K-62 done

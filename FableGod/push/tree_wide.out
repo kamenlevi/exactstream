@@ -1,0 +1,61 @@
+==== code: 664 blocks; chain 16 kept 9.56; all 15 drafts accepted 0.297 of blocks; per-depth accept rate q_d (depths 1-8): 0.94 0.92 0.91 0.94 0.95 0.94 0.92 0.94 ====
+  exact-node trees (every node at full price), kept per 16-row-anchored block and off-chain nodes:
+    tree 16 nodes: kept 10.02 (+4.8 % vs the chain), off-chain nodes 3.4
+    tree 32 nodes: kept 10.72 (+12.1 % vs the chain), off-chain nodes 18.4
+    tree 48 nodes: kept 11.01 (+15.1 % vs the chain), off-chain nodes 33.9
+    tree 64 nodes: kept 11.16 (+16.7 % vs the chain), off-chain nodes 49.7
+  at the first miss (blocks with one: 0.703): the true token is in the drafter's top-2 0.527, top-3 0.692, top-16 0.878; the miss row is one of the 2 first-miss-probability anchors 0.696; both (anchor and top-3) 0.499
+  first-miss row: mean 6.32; continuation after the right sibling along the lattice (when in top-16): mean 1.68 rows, P(>= 1) 0.62, P(>= 4) 0.14
+  ANCHOR TREE (2 anchors x 2 extra siblings + continuations): extra kept per cycle = P(anchor & top-3) x E[gain(c, a)], gain = sum_{k<=c} a^k - (1 - a^c) x kept_fresh (a wrong cheap verdict on the carried prefix costs the fresh check's kept):
+    cmax 4, a 0.98: extra kept per cycle +0.42 (+4.4 %); cheap rows per cycle 20 (siblings 4 + continuations 16)
+    cmax 4, a 0.95: extra kept per cycle +0.24 (+2.5 %); cheap rows per cycle 20 (siblings 4 + continuations 16)
+    cmax 4, a 0.90: extra kept per cycle -0.03 (-0.3 %); cheap rows per cycle 20 (siblings 4 + continuations 16)
+    cmax 8, a 0.98: extra kept per cycle +0.51 (+5.3 %); cheap rows per cycle 36 (siblings 4 + continuations 32)
+    cmax 8, a 0.95: extra kept per cycle +0.29 (+3.0 %); cheap rows per cycle 36 (siblings 4 + continuations 32)
+    cmax 8, a 0.90: extra kept per cycle -0.03 (-0.3 %); cheap rows per cycle 36 (siblings 4 + continuations 32)
+  DEEP FORM (16 cheap rows at depths 17-32, useful after a full accept, P 0.297): at a = 0.98 the pre-verified next chain keeps 14.5, and the share of cycles with one, x = p_ff / (1 - p_fp + p_ff) = 0.52 -> kept per cycle 12.14
+
+==== chat: 6134 blocks; chain 16 kept 2.23; all 15 drafts accepted 0.008 of blocks; per-depth accept rate q_d (depths 1-8): 0.56 0.52 0.53 0.56 0.63 0.68 0.59 0.60 ====
+  exact-node trees (every node at full price), kept per 16-row-anchored block and off-chain nodes:
+    tree 16 nodes: kept 2.72 (+21.7 % vs the chain), off-chain nodes 9.8
+    tree 32 nodes: kept 2.91 (+30.4 % vs the chain), off-chain nodes 24.7
+    tree 48 nodes: kept 3.01 (+34.8 % vs the chain), off-chain nodes 40.1
+    tree 64 nodes: kept 3.08 (+37.8 % vs the chain), off-chain nodes 55.7
+  at the first miss (blocks with one: 0.992): the true token is in the drafter's top-2 0.221, top-3 0.332, top-16 0.624; the miss row is one of the 2 first-miss-probability anchors 0.796; both (anchor and top-3) 0.262
+  first-miss row: mean 1.21; continuation after the right sibling along the lattice (when in top-16): mean 0.57 rows, P(>= 1) 0.32, P(>= 4) 0.03
+  ANCHOR TREE (2 anchors x 2 extra siblings + continuations): extra kept per cycle = P(anchor & top-3) x E[gain(c, a)], gain = sum_{k<=c} a^k - (1 - a^c) x kept_fresh (a wrong cheap verdict on the carried prefix costs the fresh check's kept):
+    cmax 4, a 0.98: extra kept per cycle +0.15 (+6.7 %); cheap rows per cycle 20 (siblings 4 + continuations 16)
+    cmax 4, a 0.95: extra kept per cycle +0.13 (+5.9 %); cheap rows per cycle 20 (siblings 4 + continuations 16)
+    cmax 4, a 0.90: extra kept per cycle +0.10 (+4.6 %); cheap rows per cycle 20 (siblings 4 + continuations 16)
+    cmax 8, a 0.98: extra kept per cycle +0.16 (+7.1 %); cheap rows per cycle 36 (siblings 4 + continuations 32)
+    cmax 8, a 0.95: extra kept per cycle +0.14 (+6.2 %); cheap rows per cycle 36 (siblings 4 + continuations 32)
+    cmax 8, a 0.90: extra kept per cycle +0.11 (+4.8 %); cheap rows per cycle 36 (siblings 4 + continuations 32)
+  DEEP FORM (16 cheap rows at depths 17-32, useful after a full accept, P 0.008): at a = 0.98 the pre-verified next chain keeps 14.5, and the share of cycles with one, x = p_ff / (1 - p_fp + p_ff) = 0.03 -> kept per cycle 2.57
+
+==== cycle model: ms per cycle and tok/s; today = C 256 day (push brief: check 84.2 = dense 34 + 3.0 x rows + 0.157 x misses at the mix's 7.6 rows / 171 misses), floor = B2 / B6's floor engine (dense 23 EXACT, experts 3.9 + 1.54 x rows [C2 bytes], SSD 70 % hidden, draft 5, commit 4.7, rest 5) ====
+
+-- code: rows 9.84, kept 10.54, misses 245 --
+  today: cycle 119 ms -> 88.6 tok/s; floor: cycle 70 ms -> 151.1 tok/s
+  D1 same-pass 12 cheap rows, kept +20 %    [ANE draft hidden]: today 130 ms, 97.5 tok/s (+10 %); floor 77 ms, 164.5 tok/s (+9 %)
+  D1 same-pass 12 cheap rows, kept +20 %    [GPU draft +12   ]: today 142 ms, 89.2 tok/s (+1 %); floor 82 ms, 154.9 tok/s (+2 %)
+  D1 same-pass 20 cheap rows, kept +30 %    [ANE draft hidden]: today 139 ms, 98.2 tok/s (+11 %); floor 84 ms, 163.8 tok/s (+8 %)
+  D1 same-pass 20 cheap rows, kept +30 %    [GPU draft +12   ]: today 151 ms, 90.5 tok/s (+2 %); floor 88 ms, 154.9 tok/s (+2 %)
+  D1 same-pass 36 cheap rows, kept +40 %    [ANE draft hidden]: today 159 ms, 92.9 tok/s (+5 %); floor 97 ms, 151.7 tok/s (+0 %)
+  D1 same-pass 36 cheap rows, kept +40 %    [GPU draft +12   ]: today 171 ms, 86.4 tok/s (-3 %); floor 102 ms, 144.6 tok/s (-4 %)
+  D1 two-pass 20 cheap rows, kept +30 %: today 165 ms, 83.0 tok/s (-6 %); floor 100 ms, 137.4 tok/s (-9 %)
+  D1 two-pass 36 cheap rows, kept +40 %: today 175 ms, 84.5 tok/s (-5 %); floor 105 ms, 140.1 tok/s (-7 %)
+  D2 runahead chain, all-resident rows (2.64 ms), recall 0.75, kept +15 %: today 142 ms, 85.3 tok/s (-4 %)
+  D2 runahead chain, top-2 rows (0.6 ms), recall 0.50, kept +15 %: today 119 ms, 101.7 tok/s (+15 %)
+
+-- chat: rows 4.0, kept 2.53, misses 90 --
+  today: cycle 77 ms -> 32.8 tok/s; floor: cycle 51 ms -> 49.8 tok/s
+  D1 same-pass 12 cheap rows, kept +20 %    [ANE draft hidden]: today 84 ms, 36.0 tok/s (+10 %); floor 55 ms, 55.2 tok/s (+11 %)
+  D1 same-pass 12 cheap rows, kept +20 %    [GPU draft +12   ]: today 96 ms, 31.5 tok/s (-4 %); floor 60 ms, 50.8 tok/s (+2 %)
+  D1 same-pass 20 cheap rows, kept +30 %    [ANE draft hidden]: today 94 ms, 35.0 tok/s (+7 %); floor 62 ms, 53.3 tok/s (+7 %)
+  D1 same-pass 20 cheap rows, kept +30 %    [GPU draft +12   ]: today 106 ms, 31.0 tok/s (-5 %); floor 67 ms, 49.4 tok/s (-1 %)
+  D1 same-pass 36 cheap rows, kept +40 %    [ANE draft hidden]: today 113 ms, 31.2 tok/s (-5 %); floor 75 ms, 47.0 tok/s (-6 %)
+  D1 same-pass 36 cheap rows, kept +40 %    [GPU draft +12   ]: today 125 ms, 28.2 tok/s (-14 %); floor 80 ms, 44.2 tok/s (-11 %)
+  D1 two-pass 20 cheap rows, kept +30 %: today 123 ms, 26.7 tok/s (-19 %); floor 81 ms, 40.7 tok/s (-18 %)
+  D1 two-pass 36 cheap rows, kept +40 %: today 133 ms, 26.7 tok/s (-19 %); floor 86 ms, 41.0 tok/s (-18 %)
+  D2 runahead chain, all-resident rows (2.64 ms), recall 0.75, kept +15 %: today 119 ms, 24.5 tok/s (-25 %)
+  D2 runahead chain, top-2 rows (0.6 ms), recall 0.50, kept +15 %: today 89 ms, 32.5 tok/s (-1 %)

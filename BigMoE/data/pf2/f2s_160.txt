@@ -1,0 +1,25 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=22.6 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=191 C_l=64 per layer, 21.14 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+R-57 harness (REF2-T tiers 4433333333, C_l 64): full 125B via load_streamed (C = 160), loaded in 2 s, 26.8 GB active; REF2 + SB; gate rows MAXK 160 (ext build_qom), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 32
+[r57] DENSE-N-RAM: 180 weights native (1531 MB, in place)
+[r57] HC8: 194 mixers 8-bit (1271 -> 675 MB), hc8_fast v4
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 25.2 tok/s; MLX peak prefill 29.4 / decode 29.3 GB, lifetime peak 30.7 -> 30.7 GB
+  warm-up (discarded): gsm8k/708 [gate+t, mtp] 64 tokens, 40.8 tok/s; MLX peak prefill 29.6 / decode 29.3 GB, lifetime peak 30.7 -> 30.7 GB
+  warm-up (discarded): gsm8k/708 [gate+t, d7b] 64 tokens, 42.6 tok/s; MLX peak prefill 29.6 / decode 29.3 GB, lifetime peak 30.7 -> 30.7 GB
+  humaneval/HumanEval/68 [gate+t] [code: dfl]: 32 tokens in 3 checks (kept 13.67), 58.9 tok/s (steady state, checks >= 2: 92.6), median cycle 194.9 ms, check + commit 143.8 ms; per check (medians) 289 misses, demand SSD 57.8 ms, gate service 59.7 ms (83 calls with misses), draft 11.3 ms; per kept token SSD 44.4 MB, 23.0 misses; tokens == REF2 row 32 / 32; drafter D7b (4-bit); FAST QOM: 47 of 47 rows gated, kept 41 vs exact 41; JOINT reads 38; demand bursts 204: after >= 0.25 ms idle 142, >= 1 ms 141; keepalive reads 2415; QOM: 13507 optional uses, 3835 optional-only misses not read (dropped)
+    mem: MLX peak prefill 30.4 / decode 29.5 GB; at the end active 29.4, cache 0.7, footprint 30.8 GB; lifetime peak after prefill 31.8 -> after decode 31.8 GB
+  ifeval/1220 [gate+t] [chat: mtp, history 0.02 s]: 32 tokens in 16 checks (kept 2.00), 19.5 tok/s (steady state, checks >= 2: 22.9), median cycle 88.9 ms, check + commit 83.0 ms; per check (medians) 181 misses, demand SSD 32.3 ms, gate service 33.9 ms (77 calls with misses), draft 6.0 ms; per kept token SSD 200.6 MB, 118.2 misses; tokens == REF2 row 20 / 32; FAST QOM: 0 of 38 rows gated, kept 32 vs exact 32; JOINT reads 1058; demand bursts 653: after >= 0.25 ms idle 653, >= 1 ms 174; keepalive reads 7380
+    mem: MLX peak prefill 29.5 / decode 29.3 GB; at the end active 29.2, cache 0.2, footprint 30.0 GB; lifetime peak after prefill 31.8 -> after decode 31.8 GB
+  gate+t: tok/s 39.2 (steady state 57.8), cycle 141.9 ms, check + commit 113.4 ms, misses 235, demand SSD 45.0 ms per check (medians over valid runs, then prompts)
+  gate+t where the time goes (medians per check): check + commit 113.4 ms, demand SSD busy 45.0 ms (40% of the check), gate service on misses 46.8 ms (the GPU's spin bound; OOO overlaps part of it), draft 8.6 ms (SSD idle)
+  gate+t per kept token (pooled over valid runs): SSD 112.9 MB, misses 64.7 (73 kept tokens; median per prompt 122.5 MB, 70.6 misses)
+  tier flags: TIER_COMBINE True, OOO True (2719 OOO calls); EVICT_PRIOR None; REFTOK : every token equal True
+  K-73 engagement: exact MoE block calls 2719; ref2 att_rope 672, idx_prep 1464, hc_write 2719 (counted at graph build); K-83: hc_gate / hc_read 0, gdn_inproj_x 2047, drafter forms + chain_fused
+  build-day engagement (ref2 counts at graph build): dense_native 8157, dense_native_repack 0, dense_native_unpack 540, hc8_fast 5438, hc_b 0, ooo_1c 2719, ooo_1c_qom 144
+  chat switch: MTP head d22_b5 (md5 pinned) resident, K15, cut t 0.3 with early exit; type rule runs: {'chat': 1, 'code': 1, 'math': 0, 'agent': 0} (chat -> MTP, the rest -> DFlash2)
+  footprint now 30.0 GB, lifetime peak 31.8 GB; 27 s

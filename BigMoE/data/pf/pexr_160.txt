@@ -1,0 +1,19 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=22.1 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=191 C_l=64 per layer, 21.14 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+R-57 harness (REF2-T tiers 4433333333, C_l 64): full 125B via load_streamed (C = 160), loaded in 2 s, 26.8 GB active; REF2 + SB; gate rows MAXK 160 (ext build), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 32
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 25.7 tok/s; MLX peak prefill 28.8 / decode 29.1 GB, lifetime peak 29.7 -> 29.9 GB
+  warm-up (discarded): gsm8k/708 [gate+t, mtp] 64 tokens, 44.9 tok/s; MLX peak prefill 29.5 / decode 29.1 GB, lifetime peak 30.3 -> 30.3 GB
+  humaneval/HumanEval/68 [gate+t] [code: dfl]: 32 tokens in 2 checks (kept 16.00), 43.4 tok/s (steady state, checks >= 2: 0.0), median cycle 416.0 ms, check + commit 354.9 ms; per check (medians) 2106 misses, demand SSD 281.0 ms, gate service 282.5 ms (96 calls with misses), draft 13.9 ms; per kept token SSD 221.1 MB, 131.6 misses; tokens == REF2 row 32 / 32; tokens == REFTOK 32 / 32; JOINT reads 1208; demand bursts 96: after >= 0.25 ms idle 96, >= 1 ms 78; keepalive reads 1474
+    mem: MLX peak prefill 30.3 / decode 29.3 GB; at the end active 29.2, cache 0.7, footprint 30.5 GB; lifetime peak after prefill 31.0 -> after decode 31.0 GB
+  gate+t: tok/s 43.4 (steady state 0.0), cycle 416.0 ms, check + commit 354.9 ms, misses 2106, demand SSD 281.0 ms per check (medians over valid runs, then prompts)
+  gate+t where the time goes (medians per check): check + commit 354.9 ms, demand SSD busy 281.0 ms (79% of the check), gate service on misses 282.5 ms (the GPU's spin bound; OOO overlaps part of it), draft 13.9 ms (SSD idle)
+  gate+t per kept token (pooled over valid runs): SSD 221.1 MB, misses 131.6 (32 kept tokens; median per prompt 221.1 MB, 131.6 misses)
+  tier flags: TIER_COMBINE True, OOO True (1309 OOO calls); EVICT_PRIOR None; REFTOK /Users/kamen/BigMoE/data/r57/s45t_B_tokens.json:gate+t: every token equal True
+  K-73 engagement: exact MoE block calls 1309; ref2 att_rope 324, idx_prep 720, hc_write 1309 (counted at graph build); K-83: hc_gate / hc_read 2618, gdn_inproj_x 985, drafter forms + chain_fused
+  chat switch: MTP head d22_b5 (md5 pinned) resident, K15, cut t 0.3 with early exit; type rule runs: {'chat': 0, 'code': 1, 'math': 0, 'agent': 0} (chat -> MTP, the rest -> DFlash2)
+  footprint now 30.5 GB, lifetime peak 31.0 GB; 17 s

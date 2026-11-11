@@ -1,0 +1,27 @@
+16:04 refit35 started (System-wide memory free percentage: 88%)
+16:11 done refit35: refit done (247 s): tier 3 20659 fitted / 10061 kept truncated, tier 2 20659 / 10061 --- refit / trunc KL ratio per plan and part: 42222222: gsm 0.926  code 1.175  general 0.966 43222222: gsm 0.929  code 1.192  general 0.911 44222222: gsm 0.847  code 1.124  general 0.945 44333333: gsm 1.023  code 0.752  general 0.837 
+22:01 m1a started
+22:01 done m1a_attn: M=4: H1 9.45e-03, mixed_m 1.22e-02, inject_m 3.69e-03, conv_state 2.38e-03, ssm_state 5.83e-03 M=1: H1 1.51e-02, mixed_m 1.84e-02, inject_m 6.34e-03, conv_state 3.20e-03, ssm_state 7.06e-03 PASS (within bf16-level tolerance 3e-2) 
+22:01 done m1a_model: 
+22:01 m1a finished
+01:13 m1a faith1 started
+01:13 done m1a_layers faith1: logits: KL 6.16e-03; worst single layers: L31 qsa 1.8e-02, L4 gdn 1.2e-02, L43 qsa 9.9e-03, L0 gdn 8.4e-03, L5 gdn 7.4e-03, L36 gdn 6.2e-03 mean single-layer error by type: gdn 4.05e-03 (n=35), gdn+ple 3.85e-03 (n=1), qsa 5.37e-03 (n=12) 
+01:13 done m1a_model faith1: M=4, 32 tokens: mean KL 2.69e-02 (p99 1.18e-01), top-1 agreement 0.938, max |dlogprob| 3.810 (4 s) CHECK 
+01:13 m1a faith1 finished
+01:23 m1a faith2 started
+01:23 done m1a_layers faith2: logits: KL 4.04e-03; worst single layers: L31 qsa 1.8e-02, L4 gdn 1.2e-02, L43 qsa 9.9e-03, L0 gdn 8.7e-03, L5 gdn 7.3e-03, L36 gdn 6.4e-03 mean single-layer error by type: gdn 4.02e-03 (n=35), gdn+ple 3.98e-03 (n=1), qsa 5.37e-03 (n=12) 
+01:23 done m1a_model faith2: M=4, 32 tokens: mean KL 4.52e-02 (p99 5.96e-01), top-1 agreement 0.969, max |dlogprob| 5.348 (4 s) CHECK 
+01:23 m1a faith2 finished
+03:50 done m1b ref: ref frac 0.25: 4-row verify pass median 101.1 ms, mean 101.5 ms (p10 87.6, p90 114.7) over 16 passes; ext stats {"uses": 38826, "misses": 12736, "stalled": 2076, "gated": 2304, "io_s": 1.6339457510000002, "cpu_wait_s": 1 
+03:50 done m1b eng: eng frac 0.25: 4-row verify pass median 104.6 ms, mean 106.0 ms (p10 93.3, p90 121.4) over 16 passes; ext stats {"uses": 38711, "misses": 12597, "stalled": 2068, "gated": 2304, "io_s": 1.746135538, "cpu_wait_s": 1.591184 
+04:01 done m1b ref rep1: ref frac 0.25 REPEAT (all hits): 4-row verify pass median 62.3 ms, mean 66.8 ms (p10 54.8, p90 81.4) over 16 passes; ext stats {"uses": 38278, "misses": 9084, "stalled": 1655, "gated": 2304, "io_s": 1 
+04:02 done m1b eng rep1: eng frac 0.25 REPEAT (all hits): 4-row verify pass median 60.5 ms, mean 67.0 ms (p10 55.2, p90 84.6) over 16 passes; ext stats {"uses": 38197, "misses": 8992, "stalled": 1652, "gated": 2304, "io_s": 1 
+04:03 done m1b ref/bigmoe rep1: ref frac 0.25 REPEAT (all hits): 4-row verify pass median 60.7 ms, mean 66.2 ms (p10 53.7, p90 82.7) over 16 passes; graph build (until the last eval) median 57.1 ms; ext stats {"uses": 38278, "misses": 9084, "stalled": 1654, "gat 
+04:03 done m1b eng/bigmoe rep1: eng/bigmoe frac 0.25 REPEAT (all hits): 4-row verify pass median 59.5 ms, mean 66.3 ms (p10 55.4, p90 84.0) over 16 passes; graph build (until the last eval) median 55.8 ms; ext stats {"uses": 38197, "misses": 8992, "stalled": 165 
+04:03 done m1b eng/shared rep1: eng/shared frac 0.25 REPEAT (all hits): 4-row verify pass median 22.8 ms, mean 22.9 ms (p10 22.7, p90 23.1) over 16 passes; graph build (until the last eval) median 2.5 ms; ext stats {"uses": 0, "misses": 0, "stalled": 0, "gated": 
+04:20 done m1b ref_ae0: ref frac 0.25 REPEAT (all hits): 4-row verify pass median 69.8 ms, mean 73.6 ms (p10 61.1, p90 88.2) over 16 passes; graph build (until the last eval) median 6.0 ms; ext stats {"uses": 38278, "misses" 
+04:20 done m1b eng_bigmoe_ae0: eng/bigmoe frac 0.25 REPEAT (all hits): 4-row verify pass median 66.5 ms, mean 71.9 ms (p10 58.6, p90 90.2) over 16 passes; graph build (until the last eval) median 4.9 ms; ext stats {"uses": 38197, " 
+04:20 done m1b eng_oracle: oracle path: misses in the timed passes 22184 of 36864 slot lookups eng/oracle frac 0.25 REPEAT (all hits): 4-row verify pass median 37.9 ms, mean 43.1 ms (p10 37.8, p90 38.1) over 16 passes; graph build (until the last eval) median 3.6 ms; ext stats {"uses": 12374, " 
+04:34 done m1b fixed_ref: ref frac 0.25 REPEAT FIXED-STATE (true all hits): 4-row verify pass median 38.2 ms, mean 38.3 ms (p10 38.0, p90 38.4) over 16 passes; graph build (until the last eval) median 34.9 ms; ext stats {"uses 
+04:34 done m1b fixed_eng_bigmoe: eng/bigmoe frac 0.25 REPEAT FIXED-STATE (true all hits): 4-row verify pass median 38.5 ms, mean 38.5 ms (p10 38.2, p90 38.8) over 16 passes; graph build (until the last eval) median 35.2 ms; ext stats 
+04:34 done m1b fixed_eng_oracle: oracle path: misses in the timed passes 0 of 36864 slot lookups eng/oracle frac 0.25 REPEAT FIXED-STATE (true all hits): 4-row verify pass median 39.1 ms, mean 39.3 ms (p10 39.0, p90 39.3) over 16 passes; graph build (until the last eval) median 3.6 ms; ext stats  

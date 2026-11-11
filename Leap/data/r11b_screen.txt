@@ -1,0 +1,17 @@
+R-11: 12-layer slice (GGGAGGGAGGGA) + DFlash2 drafter (L1-20, block 16); 16-row checks, keep fixed at 10; context features 12800 wide; 20.5 GB active
+  5 rounds x 8 cycles per arm kept (0 dropped), 4 s; commits landed True; context now 1894 tokens, drafter cache 920
+  per-cycle wall (median of rounds; 12 layers + the drafter): S 52.35 ms [min 51.75], O 51.05 ms [min 49.85]
+  paired: S - O 1.29 ms per cycle
+  S components (ms, medians): draft build 0.44, draft eval + read 12.65, PLE + check build 5.08 (PLE 3.85), check eval + read 33.52, accept + commit build 0.61; cycle 52.10
+  PLE staging per check (ms, medians): S 3.85, O 4.01  (O >> S: a hidden sync in PLE staging)
+  S idle, direct (CPU spans with nothing queued): 6.18 ms per cycle at 12 layers (S - O measured 1.29)
+  48 layers: idle ~11.63 ms per cycle = after the acceptance read 2.88 (draft build + 4 x commit build: a GPU-side accept removes it) + after the draft read 8.76 (PLE + 4 x check build: needs the draft tokens on the CPU while PLE stages on the CPU)
+  draft eval: 12.65 ms wall, 2.56 ms of main-thread CPU (20%); check eval: 33.52 ms wall, 5.21 ms CPU (16%)
+R-11b: GPU-side busy per cycle at most ~46.18 ms; the CPU path (builds + encoding) ~13.90 ms of the 52.10 ms cycle
+  draft eval: not encoding-bound (CPU 20% of its wall; line 80 %)
+  check eval: not encoding-bound (CPU 16% of its wall; line 80 %)
+  draft graph: ~595 kernel-launching primitives (1590 nodes; top: Squeeze 259, Broadcast 182, Slice 143, Reshape 140, Multiply 112, Add 110, Gather 93, Transpose 87)
+  check graph: ~1384 kernel-launching primitives (2912 nodes; top: Broadcast 438, Multiply 236, Reshape 202, ExpandDims 190, Unflatten 160, Matmul 148, Flatten 136, Squeeze 130)
+  draft: 4.3 us of eval CPU per primitive; an indirect command buffer replayed per cycle (~1.5 us per dispatch, Leap's Sun 05:50 floor) ~0.89 ms; encoding on 4 threads ~0.64 ms (from 2.56); x4 at 48 layers for the check
+  check: 3.8 us of eval CPU per primitive; an indirect command buffer replayed per cycle (~1.5 us per dispatch, Leap's Sun 05:50 floor) ~2.08 ms; encoding on 4 threads ~1.30 ms (from 5.21); x4 at 48 layers for the check
+  R-24 dump (MoonShots): 20 real drafted checks (tf_code_HumanEval_10.npz, 184 context tokens, 12-layer slice = 12 MoE layers); accepted drafts 9.40 per check (keep 10.40); expert union per layer: all 16 rows 89.3, kept rows only 63.8 (29% of the union comes only from rejected rows); data/r24_routes.npz

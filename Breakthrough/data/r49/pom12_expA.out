@@ -1,0 +1,21 @@
+R-49 POM12 price screen: traces expA, pools C_m 51 / C_l 20; bytes full 2,048,000 / 2-plane 1,425,408 / upgrade 704,512 / LSB 720,896
+  mean w^2 by rank [0.0495, 0.0222, 0.0141, 0.0101, 0.0078, 0.0063, 0.0053, 0.0046, 0.004, 0.0036]; gap R2 5 [0.00161, 0.00269, 0.01257, 0.01275], R2 4 [0.00243, 0.00406, 0.01838, 0.01906]
+policy lru (v3m / v3n, the 12 GB engine):
+  R2 10      :  333.4 MB / token ( +0.0 %) [MSB 308.4 + LSB 25.0] | f_e  0.0 % f_1  0.0 % | predicted KLD 0.00172 / 0.00275 / 0.01367 / 0.01097 INSIDE | per prompt MB/tok: bulgarian 270, chat 313, code 370, math 371
+  R2 10 + LP1:  319.7 MB / token ( -4.1 %) [MSB 308.4 + LSB 11.3] | f_e  0.0 % f_1 42.3 % | predicted KLD 0.00203 / 0.00327 / 0.01550 / 0.01290 INSIDE | per prompt MB/tok: bulgarian 258, chat 299, code 356, math 356
+  R2  6      :  300.5 MB / token ( -9.9 %) [MSB 275.4 + LSB 25.0] | f_e 45.0 % f_1  0.0 % | predicted KLD 0.00215 / 0.00346 / 0.01721 / 0.01441 INSIDE | per prompt MB/tok: bulgarian 241, chat 285, code 334, math 336
+  R2  5      :  291.8 MB / token (-12.5 %) [MSB 266.8 + LSB 25.0] | f_e 47.2 % f_1  0.0 % | predicted KLD 0.00248 / 0.00402 / 0.01961 / 0.01699 INSIDE | per prompt MB/tok: bulgarian 234, chat 277, code 324, math 326
+  R2  4      :  282.9 MB / token (-15.1 %) [MSB 257.9 + LSB 25.0] | f_e 49.9 % f_1  0.0 % | predicted KLD 0.00293 / 0.00477 / 0.02283 / 0.02047 OVER on code, gsm, ifeval | per prompt MB/tok: bulgarian 227, chat 269, code 314, math 316
+  R2  6 + LP1:  286.7 MB / token (-14.0 %) [MSB 275.4 + LSB 11.3] | f_e 45.0 % f_1 42.3 % | predicted KLD 0.00246 / 0.00398 / 0.01903 / 0.01634 INSIDE | per prompt MB/tok: bulgarian 230, chat 270, code 319, math 320
+  R2  5 + LP1:  278.1 MB / token (-16.6 %) [MSB 266.8 + LSB 11.3] | f_e 47.2 % f_1 42.3 % | predicted KLD 0.00279 / 0.00455 / 0.02143 / 0.01892 OVER on code, gsm, ifeval | per prompt MB/tok: bulgarian 223, chat 263, code 309, math 310
+  R2  4 + LP1:  269.2 MB / token (-19.3 %) [MSB 257.9 + LSB 11.3] | f_e 49.9 % f_1 42.3 % | predicted KLD 0.00324 / 0.00530 / 0.02466 / 0.02240 OVER on code, gsm, ifeval, multi | per prompt MB/tok: bulgarian 216, chat 254, code 299, math 300
+policy lfu (BigMoE engine rule):
+  R2 10      :  303.2 MB / token ( +0.0 %) [MSB 280.8 + LSB 22.4] | f_e  0.0 % f_1  0.0 % | predicted KLD 0.00172 / 0.00275 / 0.01367 / 0.01097 INSIDE | per prompt MB/tok: bulgarian 237, chat 272, code 339, math 350
+  R2 10 + LP1:  291.0 MB / token ( -4.0 %) [MSB 280.8 + LSB 10.2] | f_e  0.0 % f_1 38.4 % | predicted KLD 0.00200 / 0.00323 / 0.01533 / 0.01272 INSIDE | per prompt MB/tok: bulgarian 228, chat 260, code 325, math 336
+  R2  6      :  267.6 MB / token (-11.7 %) [MSB 245.2 + LSB 22.4] | f_e 39.7 % f_1  0.0 % | predicted KLD 0.00210 / 0.00338 / 0.01679 / 0.01401 INSIDE | per prompt MB/tok: bulgarian 208, chat 243, code 298, math 310
+  R2  5      :  259.3 MB / token (-14.5 %) [MSB 236.9 + LSB 22.4] | f_e 40.6 % f_1  0.0 % | predicted KLD 0.00237 / 0.00384 / 0.01877 / 0.01614 INSIDE | per prompt MB/tok: bulgarian 202, chat 236, code 289, math 300
+  R2  4      :  251.1 MB / token (-17.2 %) [MSB 228.7 + LSB 22.4] | f_e 41.6 % f_1  0.0 % | predicted KLD 0.00273 / 0.00444 / 0.02132 / 0.01890 OVER on code, ifeval | per prompt MB/tok: bulgarian 196, chat 228, code 280, math 290
+  R2  6 + LP1:  255.4 MB / token (-15.8 %) [MSB 245.2 + LSB 10.2] | f_e 39.7 % f_1 38.4 % | predicted KLD 0.00238 / 0.00385 / 0.01845 / 0.01576 INSIDE | per prompt MB/tok: bulgarian 199, chat 231, code 285, math 296
+  R2  5 + LP1:  247.1 MB / token (-18.5 %) [MSB 236.9 + LSB 10.2] | f_e 40.6 % f_1 38.4 % | predicted KLD 0.00266 / 0.00432 / 0.02043 / 0.01790 OVER on code, ifeval | per prompt MB/tok: bulgarian 192, chat 224, code 276, math 286
+  R2  4 + LP1:  238.9 MB / token (-21.2 %) [MSB 228.7 + LSB 10.2] | f_e 41.6 % f_1 38.4 % | predicted KLD 0.00301 / 0.00492 / 0.02298 / 0.02065 OVER on code, gsm, ifeval, multi | per prompt MB/tok: bulgarian 186, chat 217, code 266, math 276
+(45 s)

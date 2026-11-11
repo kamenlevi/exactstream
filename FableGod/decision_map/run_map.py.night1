@@ -1,0 +1,37 @@
+"""Usage (BigMoE venv): python run_map.py <name> [<name> ...] [--max 12] [--skip-done] | report
+Names: baseline, gate, any dm_ablations name, ctx512 / ctx2048. Several names run in ONE process (one model load).
+WIRED (Breakthrough, Mon 2026-11-02): 'gate' checks baseline.json against D-02a's stored top-1 (>= 99.9 %) and stops
+the process (exit 3) if it fails, so nothing after it runs on a wrong wiring. --skip-done skips names whose
+out/<name>.json exists (a restarted runner resumes). ctxN re-runs the baseline with the prompt cut to its last N tokens
+(context-length sensitivity: answer positions keep their text, the model sees less prefix)."""
+import sys, os, time
+import dm_common as C
+from dm_ablations import ABLATIONS
+args = [a for a in sys.argv[1:]]
+maxw = 12
+if "--max" in args:
+    i = args.index("--max"); maxw = int(args[i + 1]); del args[i:i + 2]
+skip = "--skip-done" in args
+names = [a for a in args if not a.startswith("--")]
+if names == ["report"]: C.report(); sys.exit(0)
+if skip:
+    names = [n for n in names if n == "gate" or not os.path.exists(os.path.join(C.OUT, n + ".json"))]
+print(f"[dm] runs: {names}", flush=True)
+model, tok = C.load_model(); C.discover_layers(model); C.install()
+windows = C.load_windows(maxw)
+for name in names:
+    t0 = time.time()
+    if name == "gate":
+        ag, ok = C.gate()
+        if not ok: sys.exit(3)
+        continue
+    if name.startswith("ctx"):
+        n = int(name[3:]); cut = []
+        for dom, nm, ids, off, gen in windows:
+            a = gen + 1 - off; start = max(0, a - n)
+            cut.append((dom, nm, ids[start:], off + start, gen))
+        C.measure(model, cut, name, lambda: None)
+    elif name == "baseline": C.measure(model, windows, "baseline", lambda: None)
+    else: C.measure(model, windows, name, ABLATIONS[name])
+    print(f"[dm] {name} done in {time.time() - t0:.0f}s", flush=True)
+C.report()

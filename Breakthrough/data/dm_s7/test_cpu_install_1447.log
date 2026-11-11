@@ -1,0 +1,41 @@
+ok   A1 s7_trl L6: tbits_mask form: routed_topk bits 3, K 2, keep None on the 126 gated rows
+ok   A1 s7_trl L6: the stock path posts the mask's ranks 2-9 for the gated rows (ranks 0-1 off)
+ok   A1 s7_trl L6: the row counter advanced by the call (160)
+ok   A1 s7_trl L7: routed_kept on the 126 gated rows, src 'trl:mix', keep = ranks 0-1 + the mask's 2-9 (kept pairs 1038, 8.24 per row)
+ok   A1 s7_trl L7: the stock path posts nothing for the gated rows; ungated rows keep their mask
+ok   A1 s7_trl L7: the row counter advanced by the call (160)
+ok   A1 s7_trl L18: routed_kept on the 126 gated rows, src 'trl:mix', keep = ranks 0-1 + the mask's 2-9 (kept pairs 1051, 8.34 per row)
+ok   A1 s7_trl L18: the stock path posts nothing for the gated rows; ungated rows keep their mask
+ok   A1 s7_trl L18: the row counter advanced by the call (160)
+ok   A1 s7_trl L19: tbits_mask form: routed_topk bits 3, K 2, keep None on the 126 gated rows
+ok   A1 s7_trl L19: the stock path posts the mask's ranks 2-9 for the gated rows (ranks 0-1 off)
+ok   A1 s7_trl L19: the row counter advanced by the call (160)
+ok   A1 s7_cal L6: tbits_mask form: routed_topk bits 3, K 2, keep None on the 126 gated rows
+ok   A1 s7_cal L6: the stock path posts the mask's ranks 2-9 for the gated rows (ranks 0-1 off)
+ok   A1 s7_cal L6: the row counter advanced by the call (160)
+ok   A1 s7_cal L7: routed_kept on the 126 gated rows, src 2, keep = ranks 0-1 + the mask's 2-9 (kept pairs 1038, 8.24 per row)
+ok   A1 s7_cal L7: the stock path posts nothing for the gated rows; ungated rows keep their mask
+ok   A1 s7_cal L7: the row counter advanced by the call (160)
+ok   A1 s7_cal L18: routed_kept on the 126 gated rows, src 2, keep = ranks 0-1 + the mask's 2-9 (kept pairs 1051, 8.34 per row)
+ok   A1 s7_cal L18: the stock path posts nothing for the gated rows; ungated rows keep their mask
+ok   A1 s7_cal L18: the row counter advanced by the call (160)
+ok   A1 s7_cal L19: tbits_mask form: routed_topk bits 3, K 2, keep None on the 126 gated rows
+ok   A1 s7_cal L19: the stock path posts the mask's ranks 2-9 for the gated rows (ranks 0-1 off)
+ok   A1 s7_cal L19: the row counter advanced by the call (160)
+ok   A2 qom_0_live_ball_c147_t3 resolves
+ok   A2 s7_ref resolves
+ok   A2 s7_trl resolves
+ok   A2 s7_cal resolves
+ok   A2 s7_cal_all resolves
+ok   A2 qom_0_live_ball_c147_t3: rmask qom_0_live_ball_c147_t3 (READY), t3mask, t3 3, t3k 2, t3L none
+ok   A2 s7_ref: rmask qom_0_live_ball_c239_t3 (READY), t3mask, t3 3, t3k 2, t3L none
+[dm] trl:mix: FALLBACK to records3 MSB-3 for missing experts {7: 512, 18: 418, 30: 512, 41: 512}
+ok   A2 s7_trl: rmask qom_0_live_ball_c239_t3 (READY), t3mask, t3 3, t3k 2, t3L 4 layers ['trl:mix']
+ok   A2 s7_cal: rmask qom_0_live_ball_c239_t3 (READY), t3mask, t3 3, t3k 2, t3L 4 layers [2]
+ok   A2 s7_cal_all: rmask qom_0_live_ball_c239_t3 (READY), t3mask, t3 3, t3k 2, t3L 48 layers [2]
+     TRL store coverage now (mix): {7: 0, 18: 94, 30: 0, 41: 0}
+     -> TRL store /Users/kamen/Fit12/data/trl (mix): experts missing or partial {7: 512, 18: 418, 30: 512, 41: 512} (layer: count; partial {}); not run
+ok   A3 s7_trl refuses a partial store (no DM_TRL_FALLBACK)
+[dm] trl:mix: FALLBACK to records3 MSB-3 for missing experts {7: 512, 18: 418, 30: 512, 41: 512}
+ok   A3 with DM_TRL_FALLBACK=1 it runs, counting the fallback
+ALL OK

@@ -1,0 +1,18 @@
+B1 step 1: neuron concentration of 125B expert outputs; layers [2, 12, 24, 36, 46], 2048 tokens each, top-10 routing
+  layer  2 done (3 s)
+  layer 12 done (6 s)
+  layer 24 done (9 s)
+  layer 36 done (11 s)
+  layer 46 done (14 s)
+retained output energy per (token, expert) pair, median [p10], by fraction of the 640 neurons kept:
+  f:               0.05        0.10        0.15        0.20        0.25        0.30        0.40        0.50        0.60        0.70        0.80        0.90        1.00
+  oracle    0.564[0.42] 0.710[0.58] 0.797[0.69] 0.855[0.77] 0.896[0.83] 0.926[0.87] 0.963[0.93] 0.983[0.97] 0.993[0.99] 0.998[0.99] 0.999[1.00] 1.000[1.00] 1.000[1.00]
+  gate-w    0.401[0.22] 0.519[0.33] 0.599[0.41] 0.664[0.48] 0.720[0.55] 0.769[0.60] 0.851[0.69] 0.911[0.78] 0.954[0.86] 0.980[0.93] 0.994[0.98] 0.999[1.00] 1.000[1.00]
+  gate      0.399[0.22] 0.516[0.32] 0.595[0.40] 0.661[0.47] 0.718[0.54] 0.768[0.59] 0.851[0.70] 0.912[0.79] 0.954[0.87] 0.980[0.94] 0.994[0.98] 0.999[1.00] 1.000[1.00]
+  oracle   fraction of neurons for 90 / 95 / 99 % energy (median): 0.26 / 0.37 / 0.57   (102400 pairs)
+  gate-w   fraction of neurons for 90 / 95 / 99 % energy (median): 0.48 / 0.59 / 0.77   (102400 pairs)
+  gate     fraction of neurons for 90 / 95 / 99 % energy (median): 0.48 / 0.59 / 0.77   (102400 pairs)
+MoE-block output error (rel. energy, renormalized top-10 + shared), every routed expert at f under gate-w; MSB-3 all 10 = 0.0337:
+  f 0.2: 0.1876 = 5.56x MSB-3's; gate-first read bytes 0.47 of the expert
+  f 0.3: 0.1453 = 4.31x MSB-3's; gate-first read bytes 0.53 of the expert
+  f 0.5: 0.0771 = 2.29x MSB-3's; gate-first read bytes 0.67 of the expert

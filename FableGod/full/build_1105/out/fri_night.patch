@@ -1,0 +1,44 @@
+--- a/scripts/fri_night.sh
++++ b/scripts/fri_night.sh
+@@ -37,6 +37,14 @@
+   && cp scripts/relax_delta.py scripts/relax_span.py data/r57/snap/ && cp scripts/c45_runner.sh data/r57/snap/c45_runner_fri.sh || exit 2
+ RUN="/bin/bash data/r57/snap/c45_runner_fri.sh"
+ FS=data/r57/snap/r57_screen_fri.py; RS=data/r57/snap/r57_screen_frir.py
++# Fable FULL's build_1105 (LOSSY350 T-B1 / T-A1, $HOME/FableGod/full/build_1105/INSTALL.md): XS = the frozen screen + two flags that are off
++# by default (R57_NOCOM, R57_COPYPROBE). If the applier's anchors do not match, XS stays empty and its arms are skipped by
++# arm()'s "no switch" rule; FRI_FULL=0 skips them too.
++XS=; B1105="${FRI_B1105:-$HOME/FableGod/full/build_1105}"
++if [ "${FRI_FULL:-1}" = 1 ]; then
++  XS=data/r57/snap/r57_screen_frix.py
++  "${FRI_PY:-$HOME/BigMoE/.venv/bin/python}" -I "$B1105/apply_screen.py" "$FS" "$XS" >> "$LOG" 2>&1 || XS=
++fi
+ export C45_OUT="$PWD/data/fri" C45_SWAP0=$(swap_gb) C45_ALARM=900 MG=${FRI_MG:-4}
+ export C45_DEADLINE=${FRI_DEADLINE:-$(date -v+45M +%H%M)}
+ K="humaneval/HumanEval/68,humaneval/HumanEval/16,humaneval/HumanEval/91,humaneval/HumanEval/6,humaneval/HumanEval/79"
+@@ -73,11 +81,14 @@
+ }
+ RA="$QA,R57_RELAX_DELTA=0.5,R57_RELAX_LOG=$PWD/data/fri/relax_accepts.jsonl"
+ SA="$QA,R57_RELAX_SPAN=1,R57_RELAX_LOG=$PWD/data/fri/span_accepts.jsonl"
+-arm fu3c $FS "$U";   arm fqall $FS "$QA";   arm fs99 $FS "${S99:+$QA,$S99}";   arm fs90 $FS "${S90:+$QA,$S90}"
++arm fu3c $FS "$U";   arm fqall $FS "$QA";   arm fqallp "$XS" "${XS:+$QA,R57_NOCOM=1}";   arm fs99 $FS "${S99:+$QA,$S99}";   arm fs90 $FS "${S90:+$QA,$S90}"
+ arm fqallr $RS "$RA"; arm fspan $RS "$SA"
+ arm fspanb $RS "$SA"; arm fqallrb $RS "$RA"
+-arm fs90b $FS "${S90:+$QA,$S90}";   arm fs99b $FS "${S99:+$QA,$S99}";   arm fqallb $FS "$QA";   arm fu3cb $FS "$U"
++arm fs90b $FS "${S90:+$QA,$S90}";   arm fs99b $FS "${S99:+$QA,$S99}";   arm fqallpb "$XS" "${XS:+$QA,R57_NOCOM=1}";   arm fqallb $FS "$QA";   arm fu3cb $FS "$U"
+ C45_DEADLINE=${FRI_DEADLINE2:-$(date -v+8M +%H%M)} arm fexr $FS "R57_VTIER="
++# T-A1 (Fable FULL): the copy probe, after every timed arm (it warms the pools; its own tok/s is not a result)
++C45_DEADLINE=${FRI_DEADLINE3:-$(date -v+8M +%H%M)} arm fcprobe "$XS" "${XS:+$QA${S90:+,$S90},R57_COPYPROBE=g+x+s}"
++[ -n "$FRI_CPROBE_T" ] && C45_DEADLINE=${FRI_DEADLINE4:-$(date -v+6M +%H%M)} arm fcprobet "$XS" "${XS:+$QA${S90:+,$S90},R57_COPYPROBE=g+t}"
+ "${FRI_PY:-$HOME/BigMoE/.venv/bin/python}" -I - "$CC" "$RX" >> "$LOG" 2>&1 <<'EOF'
+ import json, math, statistics as S, sys
+ C, RX = sys.argv[1], sys.argv[2]
+@@ -152,4 +163,9 @@
+ open("data/fri/fri_report.txt", "w").write("\n".join(L) + "\n"); print("\n".join(L))
+ EOF
+ say "report rc=$? (data/fri/fri_report.txt)"
++if [ -n "$XS" ]; then   # Fable FULL's two CPU reads: data/fri/nocom_report.txt, data/fri/copyprobe_report.txt
++  "${FRI_PY:-$HOME/BigMoE/.venv/bin/python}" -I "$B1105/nocom_report.py" "$CC" data/fri/nocom_report.txt >> "$LOG" 2>&1; say "nocom report rc=$?"
++  "${FRI_PY:-$HOME/BigMoE/.venv/bin/python}" -I "$B1105/copyprobe_report.py" "data/r57/fcprobe_${CC}_copyprobe.jsonl" data/fri/copyprobe_report.txt >> "$LOG" 2>&1
++  say "copy probe report rc=$?"
++fi
+ say "Fri run end"

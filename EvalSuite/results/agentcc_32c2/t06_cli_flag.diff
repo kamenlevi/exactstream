@@ -1,0 +1,13 @@
+diff --git a/greet.py b/greet.py
+index 5e761dd..21956dc 100644
+--- a/greet.py
++++ b/greet.py
+@@ -2,5 +2,7 @@ import argparse
+ 
+ p = argparse.ArgumentParser()
+ p.add_argument('name')
++p.add_argument('--shout', action='store_true', help='print the greeting in upper case')
+ a = p.parse_args()
+-print(f'Hello, {a.name}')
++greeting = f'Hello, {a.name}'
++print(greeting.upper() if a.shout else greeting)

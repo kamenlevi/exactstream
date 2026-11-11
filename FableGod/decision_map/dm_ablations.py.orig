@@ -1,0 +1,76 @@
+"""Perturbations for the decision map. Each setup registers ACTIVE[kind] = post(layer_idx, self, args, y) -> y'
+(or ACTIVE[kind+"_pre"] = pre(layer_idx, self, args) -> args'). Kinds: moe, hc, att, gdn (see dm_common.install)."""
+import mlx.core as mx
+import numpy as np
+from dm_common import ACTIVE, PREV, LAYERS
+
+# 1. routed experts: keep only the top-k ranks per row (A5: indices are the per-row sorted top-10 expert ids; gate scores
+#    are recomputed inside the call from the router, so masking ids to a smaller k approximates "top-k, renormalised";
+#    for the no-renorm variant zero the dropped ranks' scores instead: see M-09c for the engine's own switch).
+def topk_experts(k):
+    def pre(li, self, a):
+        x, idx = a[0], a[1]
+        idx = idx[..., :k] if idx.shape[-1] >= k else idx
+        return (x, idx) + tuple(a[2:])
+    def setup(): ACTIVE["moe_pre"] = pre
+    return setup
+
+# 2. HC mixing: replace the learned (dynamic) read by the plain mean of the residual streams, which is what DFlash2 sees.
+#    The GatedResidual call returns (mixed, written, inject) in ref2's _gr; the perturbation replaces `mixed` by the
+#    stream mean of its input (A3: check the tuple layout of the stock __call__ return).
+def hc_static():
+    def post(li, self, a, y):
+        x = a[0]
+        mean = x.reshape(*x.shape[:-1], -1, y[0].shape[-1]).mean(axis=-2) if isinstance(y, tuple) else None
+        if isinstance(y, tuple) and mean is not None and mean.shape == y[0].shape: return (mean,) + tuple(y[1:])
+        return y
+    def setup(): ACTIVE["hc"] = post
+    return setup
+
+# 3. shared expert: zero it (ACTIVE["shared"] needs the shared module wrapped; discover_layers tags it; add
+#    dm_common.install's wrap for its class once A3 names it).
+def shared_zero():
+    def post(li, self, a, y): return y * 0
+    def setup(): ACTIVE["shared"] = post
+    return setup
+
+# 4. "reuse the previous position's output" (the P-frame test): for the chosen kind and layer set, replace each
+#    position's output by the previous position's output within the chunk (position 0 keeps its own).
+def reuse_prev(kind, layers=None):
+    def post(li, self, a, y):
+        if layers is not None and li not in layers: return y
+        z = y[0] if isinstance(y, tuple) else y
+        shifted = mx.concatenate([z[..., :1, :], z[..., :-1, :]], axis=-2)
+        return (shifted,) + tuple(y[1:]) if isinstance(y, tuple) else shifted
+    def setup(): ACTIVE[kind] = post
+    return setup
+
+# 5. output precision of a kind (bf16 -> 8-bit / 4-bit fake quantisation of the layer output): how precision-sensitive
+#    each part is, without converting weights.
+def fake_quant(kind, bits, layers=None):
+    def q(z):
+        s = mx.max(mx.abs(z), axis=-1, keepdims=True) / (2 ** (bits - 1) - 1)
+        return mx.round(z / s) * s
+    def post(li, self, a, y):
+        if layers is not None and li not in layers: return y
+        return (q(y[0]),) + tuple(y[1:]) if isinstance(y, tuple) else q(y)
+    def setup(): ACTIVE[kind] = post
+    return setup
+
+# 6. GDN state precision: cast the recurrent state to bf16 at the layer boundary (A3: the state lives in the cache the
+#    GDN call receives; the runner should patch the cache update in ms_gdn / MTPLX to .astype(bf16).astype(fp32)).
+def gdn_state_bf16():
+    def setup(): ACTIVE["gdn_state_bf16"] = True     # consumed by the runner's cache patch, see run_night1.sh notes
+    return setup
+
+ABLATIONS = {
+    "topk2": topk_experts(2), "topk5": topk_experts(5), "topk8": topk_experts(8),
+    "hc_static": hc_static(), "shared_zero": shared_zero(),
+    "moe_reuse_prev_all": reuse_prev("moe"), "att_reuse_prev": reuse_prev("att"), "gdn_reuse_prev": reuse_prev("gdn"),
+    "moe_q4_all": fake_quant("moe", 4), "hc_q4": fake_quant("hc", 4), "att_q4": fake_quant("att", 4), "gdn_q4": fake_quant("gdn", 4),
+    "gdn_state_bf16": gdn_state_bf16(),
+}
+for g in range(4):                                   # per-group MoE reuse (12 layers each), then per layer on night 2
+    ABLATIONS[f"moe_reuse_prev_g{g}"] = reuse_prev("moe", set(range(12 * g, 12 * g + 12)))
+for L in range(48):
+    ABLATIONS[f"moe_reuse_prev_L{L:02d}"] = reuse_prev("moe", {L})

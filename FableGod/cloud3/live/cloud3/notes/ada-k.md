@@ -1,0 +1,7 @@
+# Ada-K Routing: Boosting the Efficiency of MoE-based LLMs (arXiv 2410.10456, ICLR 2025; Yue et al.; arXiv v2 marked withdrawn, ICLR version is the record)
+- Link: https://arxiv.org/abs/2410.10456 ; ICLR https://iclr.cc/virtual/2025/poster/30715. Source: WebSearch extracts [S].
+- What: a learnable allocator sets the number of experts per token (trained with PPO, the model frozen or lightly tuned).
+- Numbers [S]: > 25 % fewer FLOPs, > 20 % faster inference vs top-k, "performance still improving" (their models).
+- Maps to us: a trained per-token k allocator on the 125B's own features. TRIED K-HEAD (a trained certificate head on DFlash2's features: covers 56 % of code at <= 0.1 % flips, below the drafter's raw cf 63.5 %) and UGB / U1 (a realizable uncertainty gate keeps the budget on only 65 % of code) say learned gates lose to the drafter's own cf here. Ada-K's allocator sees the token's hidden state at each layer (like a per-layer router), which our K-HEAD did not; but any such head must beat cf >= 0.99 at 0.32 % topk2 flips on 67 % of code rows (P0 section 5) to matter.
+- TRIED status: learned per-row k: KILL family (K-HEAD, UGB), untried in Ada-K's per-layer form.
+- Open: a per-LAYER allocator (k per row per layer from the layer's own router entropy) is cheap to test on the decision map; the entropy signal failed as "gate-share threshold" but was never keyed on the drafter's cf.

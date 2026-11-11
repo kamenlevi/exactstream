@@ -1,0 +1,35 @@
+TTS1 11-04 09:29: DFlash2 L1-20 + LoRA r 16 alpha 32 on 35 Linears (4.10 M trainable); lrs [0.0, 0.0001, 0.001]; cut t 0.3
+  code: 24 windows (hard CE)
+    lr 0: 689 checks; kept per check (cut) 9.248; raw accepted + 1 9.480; rows 10.89; by position <150 / 150-300 / >=300: 13.05 / 6.80 / 6.04; validation max |d hid| 0.00e+00; 10 s
+    lr 0.0001: 690 checks; kept per check (cut) 9.238; raw accepted + 1 9.443; rows 10.89; by position <150 / 150-300 / >=300: 13.11 / 6.75 / 6.04; vs frozen -0.1 %; update 33.6 ms median; validation max |d hid| 0.00e+00; 27 s
+    lr 0.001: 3627 checks; kept per check (cut) 1.752; raw accepted + 1 1.767; rows 3.66; by position <150 / 150-300 / >=300: 2.72 / 1.19 / 1.25; vs frozen -81.1 %; update 25.5 ms median; validation max |d hid| 0.00e+00; 144 s
+  ifeval: 30 windows (top-32 soft CE; target top-1 vs answer, min / mean 0.936 / 0.973)
+    lr 0: 2977 checks; kept per check (cut) 2.342; raw accepted + 1 2.447; rows 3.56; by position <150 / 150-300 / >=300: 2.24 / 2.26 / 2.72; validation max |d hid| 0.00e+00; 42 s
+    lr 0.0001: 3038 checks; kept per check (cut) 2.297; raw accepted + 1 2.416; rows 3.43; by position <150 / 150-300 / >=300: 2.20 / 2.21 / 2.68; vs frozen -1.9 %; update 26.1 ms median; validation max |d hid| 0.00e+00; 124 s
+    lr 0.001: 6029 checks; kept per check (cut) 1.153; raw accepted + 1 1.169; rows 2.74; by position <150 / 150-300 / >=300: 1.14 / 1.14 / 1.20; vs frozen -50.8 %; update 25.3 ms median; validation max |d hid| 0.00e+00; 238 s
+  multi: 24 windows (top-32 soft CE; target top-1 vs answer, min / mean 0.966 / 0.986)
+    lr 0: 3407 checks; kept per check (cut) 1.988; raw accepted + 1 2.063; rows 3.17; by position <150 / 150-300 / >=300: 1.96 / 2.02 / 2.02; validation max |d hid| 0.00e+00; 48 s
+    lr 0.0001: 3465 checks; kept per check (cut) 1.954; raw accepted + 1 2.053; rows 3.01; by position <150 / 150-300 / >=300: 1.92 / 1.99 / 2.01; vs frozen -1.7 %; update 25.8 ms median; validation max |d hid| 0.00e+00; 141 s
+    lr 0.001: 6377 checks; kept per check (cut) 1.059; raw accepted + 1 1.068; rows 2.42; by position <150 / 150-300 / >=300: 1.07 / 1.05 / 1.05; vs frozen -46.7 %; update 25.2 ms median; validation max |d hid| 0.00e+00; 250 s
+  agent: 12 windows (top-32 soft CE; target top-1 vs answer, min / mean 0.899 / 0.947)
+    lr 0: 667 checks; kept per check (cut) 2.876; raw accepted + 1 3.016; rows 4.82; by position <150 / 150-300 / >=300: 2.89 / 2.57 / nan; validation max |d hid| 0.00e+00; 11 s
+    lr 0.0001: 687 checks; kept per check (cut) 2.790; raw accepted + 1 2.913; rows 4.46; by position <150 / 150-300 / >=300: 2.80 / 2.69 / nan; vs frozen -3.0 %; update 28.7 ms median; validation max |d hid| 0.00e+00; 32 s
+    lr 0.001: 1628 checks; kept per check (cut) 1.173; raw accepted + 1 1.184; rows 2.75; by position <150 / 150-300 / >=300: 1.17 / 1.14 / nan; vs frozen -59.2 %; update 27.9 ms median; validation max |d hid| 0.00e+00; 71 s
+     1139.34 real       305.97 user       125.11 sys
+          4038541312  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              250173  page reclaims
+                  85  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                2737  voluntary context switches
+            10169219  involuntary context switches
+       5239964736021  instructions retired
+       1664353683846  cycles elapsed
+         17492956296  peak memory footprint

@@ -1,0 +1,33 @@
+== M-20 SSDWAKE (Mon 22:07): records3, 4 x 9 pieces of 245760 B per burst, 40 rounds per gap and arm (arms alternate within each round); us median (p90)
+  plain     gap  0.00 ms: burst     847 (    916)   +0.0 % | single    296 (   314)   +0.0 %
+  plain     gap  0.25 ms: burst     896 (    963)   +5.8 % | single    344 (   368)  +16.0 %
+  plain     gap  0.50 ms: burst     900 (    955)   +6.3 % | single    354 (   377)  +19.5 %
+  plain     gap  1.00 ms: burst     910 (    981)   +7.5 % | single    350 (   377)  +18.2 %
+  plain     gap  2.00 ms: burst     907 (    981)   +7.2 % | single    362 (   376)  +22.0 %
+  plain     gap  5.00 ms: burst     924 (    973)   +9.1 % | single    366 (   396)  +23.5 %
+  plain     gap 10.00 ms: burst     932 (   1312)  +10.1 % | single    381 (   413)  +28.4 %
+  plain     gap 20.00 ms: burst     965 (   1344)  +14.0 % | single    395 (   438)  +33.1 %
+  keepalive gap  0.00 ms: burst     845 (    915)   +0.0 % | single    296 (   319)   +0.0 %
+  keepalive gap  0.25 ms: burst     871 (    940)   +3.1 % | single    320 (   355)   +8.0 %
+  keepalive gap  0.50 ms: burst     871 (    947)   +3.1 % | single    314 (   351)   +6.0 %
+  keepalive gap  1.00 ms: burst     881 (    967)   +4.2 % | single    320 (   348)   +8.0 %
+  keepalive gap  2.00 ms: burst     866 (    988)   +2.4 % | single    319 (   349)   +7.6 %
+  keepalive gap  5.00 ms: burst     875 (    957)   +3.5 % | single    321 (   358)   +8.4 %
+  keepalive gap 10.00 ms: burst     867 (    947)   +2.6 % | single    322 (   346)   +8.7 %
+  keepalive gap 20.00 ms: burst     890 (    961)   +5.3 % | single    322 (   349)   +8.8 %
+  1 ms-gap penalty: burst +64 us (+7.5 %), single +54 us; keepalive removes 44 % of the burst penalty -> BETWEEN  (7 s, 3215 reads of fresh experts)
+== M-20 follow-up (Mon 22:08, exploratory): blocks of 40 rounds; 1 ms and 10 ms gaps vs back to back
+  plain       : burst   827 us, +  67 us at 1 ms, +  74 at 10 ms | single  297 us, +  53 at 1 ms, +  64 at 10 ms
+  cpuspin     : burst   847 us, +  73 us at 1 ms, +  59 at 10 ms | single  297 us, +  56 at 1 ms, +  65 at 10 ms
+  plain       : burst   843 us, +  62 us at 1 ms, +  71 at 10 ms | single  300 us, +  54 at 1 ms, +  69 at 10 ms
+  ka4k/50us   : burst   845 us, +  -3 us at 1 ms, + -11 at 10 ms | single  298 us, +  -6 at 1 ms, +   3 at 10 ms
+  plain       : burst   849 us, +  59 us at 1 ms, +  63 at 10 ms | single  295 us, +  59 at 1 ms, +  70 at 10 ms
+  ka64k/200us : burst   836 us, +  40 us at 1 ms, +  44 at 10 ms | single  291 us, +  36 at 1 ms, +  32 at 10 ms
+  plain       : burst   847 us, +  57 us at 1 ms, +  57 at 10 ms | single  295 us, +  57 at 1 ms, +  74 at 10 ms
+  ka4k/200us  : burst   829 us, +  28 us at 1 ms, +  33 at 10 ms | single  294 us, +  15 at 1 ms, +  20 at 10 ms
+== RESULT M-20 SSDWAKE (Mon 22:09, quiet lock): BETWEEN by the pre-registered line (1 ms-gap burst penalty +7.5 % < 15 %;
+  the pre-registered 4 KB / 200 us keepalive removes 44 % < 70 %). The effect is real: after idle gaps of only 0.25-1 ms the
+  SSD path charges +50-65 us on the next burst / single read (+100-120 us after 20 ms). Exploratory follow-up: a busy CPU
+  core with no I/O changes nothing (it is the SSD path, not host wake-ups); a 4 KB read every 50 us (~80 MB/s) removes all of
+  it (burst -3 us, single -6 us at 1 ms) without slowing back-to-back bursts. Prize at 45 GB: ~48 bursts per check x ~60 us
+  = ~3 ms per check (~+3 % at C50's 96.8 ms cycle, ~9 % at a 34 ms cycle), exact; real gaps in the engine unverified.

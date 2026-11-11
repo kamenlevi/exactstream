@@ -1,0 +1,162 @@
+strata generate: memory guard: limit 64.0 GiB (source: meminfo), current 19.4 GiB, reclaimable cache credited 0.0 GiB; available 44.6 GiB (MemAvailable 44.6 GiB), floor 2560 MiB
+strata generate: PCIe probe failed -> pcie_frac default 0.55
+strata generate: CPU expert kernels: ggml-cpu (older-CPU build)
+strata generate: native pack: /Users/kamen/StrataEval/Strata-data/packs/iq3_xxs experts (largest blob 2.33 MB), token embedding IQ3_S in mapped host memory (260 MiB, 0.1 s)
+strata generate: 1466 MiB of weights loaded from /Users/kamen/StrataEval/Strata-data/packs/iq3_xxs in 0.2 s (302 canonical tensors skipped: served natively)
+strata generate: 300 native projection matrices, 1781.11 MiB of weights, in 0.2 s
+strata generate: PLE direct read probe: 129959 rows/s (fine)
+strata generate: the SSD is kept awake while rows are read: one page of the table after 100 ms without a read, until 60 s after the last request (STRATA_SSD_KEEPALIVE=0 turns it off)
+strata generate: profile /Users/kamen/StrataEval/src/data/expert-profile.bin: 24576 ranked pairs, built for 24576 slots
+strata generate: PLE on, table 320001536 rows of /Users/kamen/StrataEval/models/IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-IQ3_XXS-00002-of-00002.gguf
+strata generate: experimental native Q5_K head, 437043200 bytes, in 0.1 s
+strata generate: GPU 0: Apple M5 Pro, compute capability 0.0
+strata generate: experts via mmap (--mmap-experts; the GGUF shards in place, no experts.bin)
+strata generate: CPU pool tasks/phase: 51 (automatic), participating threads: 17
+strata generate: CPU pool: 16 workers by default (18 physical cores, 18 logical processors; bounded by physical cores, one kept free)
+strata generate: 16 pool workers on logical processors 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, the host thread on 0 (draining too) (--host-core first)
+strata generate: CPU workers on logical processors 1-16 (16 workers, the OS did not say which logical processors share a core; host on 0)
+strata aux cpus: not available on this system
+strata generate: expert cache 84 slots, 0.14 GiB of VRAM; policy is
+strata generate: the GPU computes the experts in the cache; it rounds differently from the CPU,
+                 so a reply can differ slightly from a run without the cache (same quality:
+                 bench/results/2026-09-27-cache-parity).
+                 PROFILE, ranked by routing frequency, no eviction.
+strata generate: the profile fill asks for 256 pairs ahead (STRATA_FILL_AHEAD)
+strata generate: pre-filled 84 of 84 slots from the profile in 0.0 s (7175 MB/s); slot 0 verified
+strata generate: routing-aware prefetch on (the next layer's router, file tier)
+strata generate: R4 hit path ON - resident experts are computed on the GPU
+strata generate: 16 expert-pool workers + the host thread
+strata generate: session is up (engine 0.1.58-metal)
+strata generate: token graph hit path: 84 resident experts, decided on the device
+prefill: the CPU share is ON by default for prompt chunks up to 3072 tokens (the idle CPU takes some of the experts the GPU would stream; answers can differ slightly from 0.1.40.3, mean KL ~0.004 below 1024 tokens, ~0.011 at 1-3K). STRATA_PREFILL_CPU_SHARE=0 turns it off, STRATA_PREFILL_CPU_SHARE_MAX=1024 keeps the old limit.
+strata serve: the prompt path allocates its own buffers (too few cache slots to borrow)
+strata metal: HC read in Q8_0 (STRATA_HC_Q8=0: BF16): 0 matrices, 0 MB, made in 0 ms
+strata metal stream: 1079 dense tensors read into memory (4.12 GB, 0.3 s; 0 left out)
+strata metal: decode window on Apple M5 Pro: /Users/kamen/StrataEval/models/IQ3_XXS/Qwen3.8-Flash-Next-GSQ-RCO-IQ3_XXS-00001-of-00002.gguf streamed from the SSD (experts) (47.0 GB), 32896 cells, PLE on, ready in 321 ms
+strata serve: STRATA_ROUTE_TAIL_SKIP=7 is ON (default): a missed expert that every token of a verify window routes at rank 7 or lower is skipped (+10..20% decode on 12-16 GB cards that miss experts, answers differ slightly from 0.1.41); STRATA_ROUTE_TAIL_SKIP=0 turns it off
+strata serve: adaptive overlap: off (STRATA_ADAPT_OVERLAP=1 turns it on)
+strata serve: 43522 MiB of VRAM free with everything loaded
+strata metal stream: 3.12 GB of the host code's device weight copies given back (unused by the Metal window)
+strata metal stream: 4.76 GB allocated before the arena (the process holds 10.52 GB, 8.25 GB resident); RAM 68.7 GB (37.4 GB available, 10.3 GB kept for macOS), GPU working set 55.7 GB
+strata metal stream: planned resident footprint 37.6 GB = arena 26.6 + 10.5 held before it + 0.5 reserved for the n-gram table; cap 41.2 GB = the lesser of the GPU working set 55.7 GB and the RAM 68.7 GB less 27.5 GB left to macOS and its file cache
+strata metal stream: expert arena 26.56 GB, 14288 slots in 3 size classes, 14288 experts read from the profile's top (24576 ranked) in 2.2 s (11.27 GB/s); 6 I/O threads, read-ahead top 6; 4 buffers
+strata metal stream: 26.6 GB of the arena wired (mlock) in 526 ms; macOS cannot compress it while the engine idles (STRATA_METAL_WIRE_ARENA=0 turns it off)
+strata metal stream: 1.39 GB of the arena (911 slots) hold a prompt's buffers while it runs
+strata metal: prompts on the matrix units in chunks of 1024 (experts v3, QSA flash, matmul2d layout K4; 1.39 GB of buffers, in the expert arena while a prompt runs)
+strata metal stream: resident footprint after the fill: the process holds 34.0 GB (34.9 GB resident), planned 37.6 GB, cap 41.2 GB
+strata serve: prompt 53 tokens = 0 reused + 53 read in 4505 ms (11.8 tok/s), 32 generated in 1362 ms (23.5 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 43 tokens = 0 reused + 43 read in 905 ms (47.5 tok/s), 164 generated in 6278 ms (26.1 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 46 tokens = 0 reused + 46 read in 1048 ms (43.9 tok/s), 139 generated in 6028 ms (23.1 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 66 tokens = 0 reused + 66 read in 519 ms (127.3 tok/s), 55 generated in 2582 ms (21.3 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 52 tokens = 0 reused + 52 read in 1175 ms (44.3 tok/s), 127 generated in 5076 ms (25.0 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 101 tokens = 0 reused + 101 read in 618 ms (163.4 tok/s), 113 generated in 4885 ms (23.1 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 54 tokens = 0 reused + 54 read in 1264 ms (42.7 tok/s), 125 generated in 4604 ms (27.2 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 37 tokens = 0 reused + 37 read in 740 ms (50.0 tok/s), 10 generated in 347 ms (28.8 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 48 tokens = 0 reused + 48 read in 1073 ms (44.8 tok/s), 250 generated in 9619 ms (26.0 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 42 tokens = 0 reused + 42 read in 947 ms (44.4 tok/s), 256 generated in 9567 ms (26.8 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 78 tokens = 0 reused + 78 read in 618 ms (126.2 tok/s), 49 generated in 2088 ms (23.5 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 74 tokens = 0 reused + 74 read in 611 ms (121.2 tok/s), 256 generated in 9842 ms (26.0 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 57 tokens = 0 reused + 57 read in 1333 ms (42.8 tok/s), 69 generated in 2802 ms (24.6 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 62 tokens = 0 reused + 62 read in 1739 ms (35.7 tok/s), 256 generated in 10041 ms (25.5 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 80 tokens = 0 reused + 80 read in 594 ms (134.6 tok/s), 256 generated in 10246 ms (25.0 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 98 tokens = 0 reused + 98 read in 740 ms (132.4 tok/s), 256 generated in 10398 ms (24.6 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 62 tokens = 0 reused + 62 read in 1551 ms (40.0 tok/s), 256 generated in 10316 ms (24.8 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 148 tokens = 0 reused + 148 read in 811 ms (182.4 tok/s), 256 generated in 10193 ms (25.1 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 59 tokens = 0 reused + 59 read in 1484 ms (39.8 tok/s), 256 generated in 10277 ms (24.9 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 55 tokens = 0 reused + 55 read in 1165 ms (47.2 tok/s), 256 generated in 10252 ms (25.0 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 50 tokens = 0 reused + 50 read in 1252 ms (39.9 tok/s), 256 generated in 10620 ms (24.1 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 520 tokens = 0 reused + 520 read in 1466 ms (354.7 tok/s), 256 generated in 9992 ms (25.6 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 95 tokens = 0 reused + 95 read in 695 ms (136.6 tok/s), 256 generated in 10611 ms (24.1 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 53 tokens = 0 reused + 53 read in 1521 ms (34.8 tok/s), 256 generated in 10501 ms (24.4 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 55 tokens = 0 reused + 55 read in 1563 ms (35.2 tok/s), 256 generated in 10518 ms (24.3 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 367 tokens = 0 reused + 367 read in 1329 ms (276.1 tok/s), 256 generated in 11235 ms (22.8 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 103 tokens = 0 reused + 103 read in 877 ms (117.4 tok/s), 81 generated in 3501 ms (23.1 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 144 tokens = 0 reused + 144 read in 913 ms (157.8 tok/s), 238 generated in 9776 ms (24.3 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 148 tokens = 0 reused + 148 read in 846 ms (175.0 tok/s), 221 generated in 9318 ms (23.7 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 184 tokens = 0 reused + 184 read in 1038 ms (177.3 tok/s), 225 generated in 9547 ms (23.6 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 140 tokens = 0 reused + 140 read in 830 ms (168.6 tok/s), 256 generated in 10024 ms (25.5 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 148 tokens = 0 reused + 148 read in 907 ms (163.3 tok/s), 220 generated in 9087 ms (24.2 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 208 tokens = 0 reused + 208 read in 1017 ms (204.4 tok/s), 248 generated in 10220 ms (24.3 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 129 tokens = 0 reused + 129 read in 835 ms (154.5 tok/s), 157 generated in 6367 ms (24.7 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 253 tokens = 0 reused + 253 read in 1062 ms (238.3 tok/s), 256 generated in 10561 ms (24.2 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 152 tokens = 0 reused + 152 read in 824 ms (184.5 tok/s), 154 generated in 6302 ms (24.4 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 187 tokens = 0 reused + 187 read in 974 ms (192.0 tok/s), 247 generated in 10096 ms (24.5 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 105 tokens = 0 reused + 105 read in 825 ms (127.2 tok/s), 59 generated in 2784 ms (21.2 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 99 tokens = 0 reused + 99 read in 747 ms (132.6 tok/s), 65 generated in 2624 ms (24.8 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 85 tokens = 0 reused + 85 read in 701 ms (121.2 tok/s), 20 generated in 786 ms (25.4 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 237 tokens = 0 reused + 237 read in 918 ms (258.0 tok/s), 57 generated in 2172 ms (26.2 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 147 tokens = 0 reused + 147 read in 759 ms (193.7 tok/s), 256 generated in 10039 ms (25.5 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 99 tokens = 0 reused + 99 read in 682 ms (145.2 tok/s), 63 generated in 2578 ms (24.4 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 88 tokens = 0 reused + 88 read in 653 ms (134.8 tok/s), 42 generated in 1869 ms (22.5 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 127 tokens = 0 reused + 127 read in 752 ms (168.9 tok/s), 125 generated in 5032 ms (24.8 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 88 tokens = 0 reused + 88 read in 638 ms (138.0 tok/s), 196 generated in 8155 ms (24.0 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 114 tokens = 0 reused + 114 read in 741 ms (153.8 tok/s), 256 generated in 10783 ms (23.7 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 122 tokens = 0 reused + 122 read in 812 ms (150.2 tok/s), 84 generated in 3564 ms (23.6 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+strata serve: prompt 106 tokens = 0 reused + 106 read in 808 ms (131.2 tok/s), 33 generated in 1337 ms (24.7 tok/s), drafts accepted 0 of 0, 0 checkpoints
+strata serve: expert tiers: GPU 0 hits this request; since the start RAM 0 blobs, files 0 blobs 149.1 MB read (the GGUF in place)
+      401.24 real       318.36 user       124.05 sys
+         34891579392  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             3844904  page reclaims
+                   4  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+             1403416  voluntary context switches
+             2569327  involuntary context switches
+       9214516868306  instructions retired
+       1859413826912  cycles elapsed
+         34046869256  peak memory footprint

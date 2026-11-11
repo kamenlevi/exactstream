@@ -1,0 +1,25 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=15.7 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+R-59: full 125B via EM.load('ref', C = 224), loaded in 2 s, 33.6 GB active; REF2 + SB, slot call True, commit phase True, key buckets True; humaneval/HumanEval/68; 48 trunk layers at model.language_model.model.layers (36 GDN, 12 QSA, 1 PLE)
+  floors (params read once per check; GFLOP at 16 rows, linear layers only): hc_read_attn 0.634 GB = 2.26 ms, 10.1 GFLOP; hc_read_mlp 0.634 GB = 2.26 ms, 10.1 GFLOP; gdn 1.176 GB = 4.20 ms, 66.7 GFLOP; attn 0.357 GB = 1.28 ms, 19.8 GFLOP; router 0.067 GB = 0.24 ms, 2.0 GFLOP; shared 0.133 GB = 0.47 ms, 7.6 GFLOP; ple 0.066 GB = 0.23 ms, 1.0 GFLOP; head 0.371 GB = 1.32 ms, 20.6 GFLOP
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  bare sync latency 0.257 ms (median of 200); 10 profiled warm checks (C 224), PAUSE seen 0
+  (1) in place, ms per check (median over checks; each stage's syncs x latency subtracted):
+    ple              0.75 (min   0.64 max   1.00) | floor  0.23 ms ->  3.2x
+    hc_read_attn     7.22 (min   3.89 max  10.60) | floor  2.26 ms ->  3.2x
+    gdn             24.07 (min  15.00 max  32.72) | floor  4.20 ms ->  5.7x
+    attn            11.62 (min   7.67 max  14.95) | floor  1.28 ms ->  9.1x
+    hc_read_mlp      7.95 (min   4.91 max  11.73) | floor  2.26 ms ->  3.5x
+    moe_block      143.30 (min 106.60 max 170.47)
+    hc_write        -0.66 (min  -1.73 max   0.06)
+    head             2.29 (min   1.81 max   2.38) | floor  1.32 ms ->  1.7x
+    non-expert sum (all but moe_block) 53.14 ms; check 260.6 ms with 241 forced syncs (R-50c's unforced warm check: 181.5 ms at C 192); wall 264.1; other DecoderLayer calls 0
+  (2) op groups, all 48 layers in one eval under ref2.verify_scope, median of 15 minus one latency:
+    hc_read_attn     4.63 (min   4.41) | floor  2.26 ms ->  2.0x
+    hc_read_mlp      4.53 (min   4.45) | floor  2.26 ms ->  2.0x
+    hc_write         0.36 (min   0.35)
+    router           1.09 (min   1.06) | floor  0.24 ms ->  4.6x
+    shared           2.48 (min   2.46) | floor  0.47 ms ->  5.2x
+  footprint now 35.2 GB, lifetime peak 39.0 GB, MLX peak 38.5 GB; PAUSE seen 0

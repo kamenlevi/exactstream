@@ -1,0 +1,15 @@
+sigmoid probe, exp = maybe: 1 of 65536 bf16 inputs differ from mx.sigmoid
+sigmoid probe, exp = precise: 0 of 65536 bf16 inputs differ from mx.sigmoid
+sigmoid probe, exp = fast: 1 of 65536 bf16 inputs differ from mx.sigmoid
+tail kernel uses exp = precise
+layer 3: HC weights ['hc_norm', 'input_mix_weight_down', 'input_mix_weight_up', 'block_inject_weight']; MoE top_k 10, norm_topk_prob True
+[base] kernels: HC reads (to the MoE input) 12; + MoE glue 18; whole glue (+ write) 32
+   [base] whole glue: CustomKernel 10, QuantizedMatmul 4, GatherAxis 3, Concatenate 2, Multiply 2, Add 2, Matmul 1, Sigmoid 1, CompiledSigmoidBroadcastBroadcastMultiplyBroadcastBroadcastMultiply 1, Softmax 1, ArgPartition 1, Sum 1, Divide 1, Negative 1, ArgSort 1
+[router] kernels: HC reads (to the MoE input) 10; + MoE glue 10; whole glue (+ write) 22
+[tail] kernels: HC reads (to the MoE input) 10; + MoE glue 16; whole glue (+ write) 28
+[write] kernels: HC reads (to the MoE input) 10; + MoE glue 18; whole glue (+ write) 29
+[cat] kernels: HC reads (to the MoE input) 10; + MoE glue 16; whole glue (+ write) 28
+[all] kernels: HC reads (to the MoE input) 10; + MoE glue 6; whole glue (+ write) 17
+   [all] whole glue: CustomKernel 12, QuantizedMatmul 2, Matmul 1, CompiledSigmoidBroadcastBroadcastMultiplyBroadcastBroadcastMultiply 1, CompiledBroadcastBroadcastMultiplyAdd 1
+bits over 6 trials (scales 0.5-8): PASS (router, tail, write, cat, all == base)
+ms per layer of glue (8 dependent layers per eval; shared GPU, rough): base 0.321 (+0.00 ms per 48-layer check), router 0.317 (-0.17 ms per 48-layer check), tail 0.317 (-0.17 ms per 48-layer check), write 0.312 (-0.43 ms per 48-layer check), cat 0.308 (-0.62 ms per 48-layer check), all 0.301 (-0.95 ms per 48-layer check)

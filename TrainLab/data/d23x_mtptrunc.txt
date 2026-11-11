@@ -1,0 +1,21 @@
+D-23c MTPTRUNC: the 45 GB default (REF2-T tiers 4433333333 / 3c, C_l 112; gate MAXK 160, ext build_next; TIER_COMBINE True, OOO True; truncation t 0.3) at C 192 with the MTP head b5; loaded in 2 s, 31.2 GB active; arms ('dfl', 'mtp15e'); CAP 256
+  warm-up (discarded): gsm8k/708 [dfl] 64 tokens, 18.5 tok/s
+  warm-up (discarded): gsm8k/708 [mtp15e] 64 tokens, 42.1 tok/s
+  preset 45+ooo: TIER_COMBINE True, OOO True, OOO calls after the warm-ups 1213
+  agent/bash17 [agent] dfl: 92 tokens, 15.4 tok/s (steady 20.8), kept 2.97 of 5.0 rows, median cycle 138.8 ms (draft 12.9 + check 123.7); misses 330, SSD 67.3 ms per check; prefill 74.1 s; == REF2-T AR: None
+  multi/bg0 [chat] dfl: 256 tokens, 22.8 tok/s (steady 23.3), kept 1.95 of 3.6 rows, median cycle 78.4 ms (draft 11.1 + check 67.0); misses 74, SSD 21.6 ms per check; prefill 2.3 s; == REF2-T AR: None
+  agent/edit00 [agent] mtp15e: 114 tokens, 19.6 tok/s (steady 38.1), kept 13.11 of 15.6 rows, median cycle 359.6 ms (draft 42.4 + check 300.7); misses 1430, SSD 217.9 ms per check; prefill 79.2 s + MTP history 0.31 s; == REF2-T AR: None
+  agent/text23 [agent] dfl: 107 tokens, 15.0 tok/s (steady 29.4), kept 5.35 of 8.3 rows, median cycle 200.8 ms (draft 13.4 + check 184.2); misses 572, SSD 111.1 ms per check; prefill 75.9 s; == REF2-T AR: None
+  ifeval/1220 [chat] dfl: 158 tokens, 22.4 tok/s (steady 23.9), kept 2.14 of 3.4 rows, median cycle 83.6 ms (draft 11.3 + check 72.2); misses 85, SSD 25.1 ms per check; prefill 2.6 s; == REF2-T AR: None
+  agent/write11 [agent] mtp15e: 256 tokens, 22.4 tok/s (steady 31.2), kept 3.86 of 5.8 rows, median cycle 119.3 ms (draft 14.7 + check 106.8); misses 188, SSD 46.9 ms per check; prefill 231.5 s + MTP history 0.28 s; == REF2-T AR: None PAUSED (159.3 s waited, 0 gaps)
+  agent/bash17 [agent] mtp15e: 92 tokens, 15.0 tok/s (steady 29.0), kept 5.22 of 7.3 rows, median cycle 144.0 ms (draft 17.6 + check 135.9); misses 318, SSD 68.4 ms per check; prefill 77.9 s + MTP history 0.30 s; == REF2-T AR: None
+  multi/bg0 [chat] mtp15e: 256 tokens, 34.7 tok/s (steady 36.4), kept 3.25 of 4.3 rows, median cycle 81.2 ms (draft 10.8 + check 70.3); misses 96, SSD 27.2 ms per check; prefill 2.4 s + MTP history 0.04 s; == REF2-T AR: None
+  agent/edit00 [agent] dfl: 114 tokens, 18.8 tok/s (steady 31.6), kept 8.14 of 13.4 rows, median cycle 266.8 ms (draft 13.1 + check 240.0); misses 986, SSD 166.4 ms per check; prefill 78.8 s; == REF2-T AR: None
+  agent/text23 [agent] mtp15e: 107 tokens, 18.9 tok/s (steady 42.1), kept 10.60 of 11.7 rows, median cycle 305.4 ms (draft 37.6 + check 257.6); misses 912, SSD 173.0 ms per check; prefill 75.5 s + MTP history 0.30 s; == REF2-T AR: None
+  ifeval/1220 [chat] mtp15e: 158 tokens, 23.2 tok/s (steady 25.1), kept 2.06 of 2.5 rows, median cycle 72.8 ms (draft 5.8 + check 66.6); misses 70, SSD 22.2 ms per check; prefill 2.7 s + MTP history 0.04 s; == REF2-T AR: None
+  agent/write11 [agent] dfl: 256 tokens, 18.9 tok/s (steady 25.5), kept 2.75 of 4.4 rows, median cycle 103.3 ms (draft 13.0 + check 90.6); misses 126, SSD 35.4 ms per check; prefill 70.4 s; == REF2-T AR: None
+D-23c read-out (C 192, head b5, cut t 0.3): 5 prompts with all arms, 5 clean; every token equal across arms: True
+  chat   (2): mean tok/s dfl 22.6 -> mtp15e 29.0 (+28.2 %), geo-mean ratio 1.256, mtp15e faster on 2; kept 2.04 of 3.5 rows -> 2.66 of 3.4; draft 11.2 -> 8.3 ms, check 69.6 -> 68.5 ms (medians per prompt)
+  agent  (3): mean tok/s dfl 16.4 -> mtp15e 17.8 (+8.5 %), geo-mean ratio 1.083, mtp15e faster on 2; kept 5.49 of 8.9 rows -> 9.64 of 11.5; draft 13.1 -> 32.5 ms, check 182.6 -> 231.4 ms (medians per prompt)
+  whole set (5 prompts, 727 tokens): dfl (the default) 19.4 tok/s; S1 (dfl on code + math, mtp15e on chat + agent) 22.8 = +17.7 %; S2 (dfl on code only) 22.8 = +17.7 %; mtp15e everywhere 22.8 = +17.7 % -> D-23c verdict on S1 (PASS >= +10 %, KILL < +4 %): PASS (PARTIAL: fewer than 16 clean prompts)
+  preset 45+ooo: OOO calls 31536; footprint now 34.9 GB, lifetime peak 37.9 GB; 883 s

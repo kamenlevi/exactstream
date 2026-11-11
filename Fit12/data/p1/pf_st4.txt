@@ -1,0 +1,15 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=38.4 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.20 GB pools
+b12: hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.20 GB, active 9.68 GB
+[pf_st4] mode: s_moe 4096, stream 3 ring 4, loaded active 9.68 GB, footprint so far 11.35 GB
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (64, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[pf_st4] p2k: prefill 2617 tokens in 7.55 s = 347 tok/s | MLX peak 11.07 GB, process peak footprint 11.83 GB | decode 32: 14.9 tok/s, sha 82995cdb4e
+[pf_st4] p8k: prefill 8474 tokens in 25.27 s = 335 tok/s | MLX peak 10.41 GB, process peak footprint 12.41 GB | decode 32: 12.5 tok/s, sha 0b0d91cd43
+[pf_st4] done

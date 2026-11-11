@@ -1,0 +1,46 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=26.2 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 15M, prefetch on)
+[bigmoe] tier 4433333333: C_m=47 C_l=32 per layer, 6.03 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: engine v3p, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+b12: C_m=47 C_l=32 (9 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.03 GB, active 8.96 GB
+[ifb12c08] PR1 installed: keep-1 commits replay the PLE layer on 2 rows
+[ifb12c08] bt_b12 8db71cc537, engine /Users/kamen/Breakthrough/v3p, C_m 47 C_l 32, cap item; drafter 0.928 GB (own params), SW 2048; after load: lifetime 10.584 GB, MLX active 9.529; prompts ifbench/79 (n 81), ifbench/80 (n 51), ifbench/82 (n 103), ifbench/83 (n 43), ifbench/84 (n 57), ifbench/88 (n 83), ifbench/9 (n 124), ifbench/90 (n 57), ifbench/92 (n 68), ifbench/99 (n 150)
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[ifb12c08] ifbench/79 ex theta None  | tok 540 sha 357c9592fb | lsha 07724e2ecb | = ex tokens True (first divergence None) | checks 219, kept 2.47 | pass2 0 exact 219 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 810 in 284 calls, refused 0 | prefill 3.30 s, decode 35.29 s, 15.30 tok/s | lifetime 10.824 GB | per check ms: draft 10.4 pass 1 0.0 pass 2 / exact 150.4 commit 0.0; misses per check pass 1 0 pass 2 562
+[ifb12c08] ifbench/79 ex PREFILL n 81 smoe 4096 | 3.297 s, 24.3 tok/s, SSD 24425 MB | lifetime 10.824 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[ifb12c08] PAIR ifbench/79: SSD per arm (C) ex 58->58 | PAUSE 0.0 s inside -> ok
+[ifb12c08] ifbench/80 ex theta None  | tok 51 sha 1e3e302b7d | lsha dc42650eef | = ex tokens True (first divergence None) | checks 31, kept 1.65 | pass2 0 exact 31 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 92 in 35 calls, refused 0 | prefill 2.79 s, decode 4.64 s, 10.99 tok/s | lifetime 10.824 GB | per check ms: draft 10.6 pass 1 0.0 pass 2 / exact 138.7 commit 0.0; misses per check pass 1 0 pass 2 554
+[ifb12c08] ifbench/80 ex PREFILL n 51 smoe 4096 | 2.789 s, 17.9 tok/s, SSD 19231 MB | lifetime 10.824 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[ifb12c08] PAIR ifbench/80: SSD per arm (C) ex 58->57 | PAUSE 0.0 s inside -> ok
+[ifb12c08] ifbench/82 ex theta None  | tok 57 sha e9b641440d | lsha 38d8bfab6d | = ex tokens True (first divergence None) | checks 11, kept 5.18 | pass2 0 exact 11 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 72 in 20 calls, refused 0 | prefill 3.36 s, decode 3.79 s, 15.05 tok/s | lifetime 10.994 GB | per check ms: draft 11.4 pass 1 0.0 pass 2 / exact 332.6 commit 0.0; misses per check pass 1 0 pass 2 1523
+[ifb12c08] ifbench/82 ex PREFILL n 103 smoe 4096 | 3.363 s, 30.3 tok/s, SSD 25667 MB | lifetime 10.994 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[ifb12c08] PAIR ifbench/82: SSD per arm (C) ex 57->57 | PAUSE 0.0 s inside -> ok
+[ifb12c08] ifbench/83 ex theta None  | tok 150 sha 290c7856b8 | lsha af999b4185 | = ex tokens True (first divergence None) | checks 59, kept 2.54 | pass2 0 exact 59 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 212 in 71 calls, refused 0 | prefill 2.37 s, decode 9.32 s, 16.10 tok/s | lifetime 10.994 GB | per check ms: draft 10.4 pass 1 0.0 pass 2 / exact 147.2 commit 0.0; misses per check pass 1 0 pass 2 571
+[ifb12c08] ifbench/83 ex PREFILL n 43 smoe 4096 | 2.374 s, 17.7 tok/s, SSD 16507 MB | lifetime 10.994 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[ifb12c08] PAIR ifbench/83: SSD per arm (C) ex 57->57 | PAUSE 0.0 s inside -> ok
+[ifb12c08] ifbench/84 ex theta None  | tok 452 sha 11adbe3a04 | lsha 6d284c24ea | = ex tokens True (first divergence None) | checks 200, kept 2.26 | pass2 0 exact 200 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 694 in 233 calls, refused 0 | prefill 2.73 s, decode 30.81 s, 14.67 tok/s | lifetime 10.994 GB | per check ms: draft 10.4 pass 1 0.0 pass 2 / exact 143.3 commit 0.0; misses per check pass 1 0 pass 2 564
+[ifb12c08] ifbench/84 ex PREFILL n 57 smoe 4096 | 2.726 s, 20.5 tok/s, SSD 19404 MB | lifetime 10.994 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[ifb12c08] PAIR ifbench/84: SSD per arm (C) ex 57->57 | PAUSE 0.0 s inside -> ok
+[ifb12c08] ifbench/88 ex theta None  | tok 11 sha 5d5ea00c21 | lsha 47d7b6f176 | = ex tokens True (first divergence None) | checks 4, kept 2.75 | pass2 0 exact 4 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 16 in 6 calls, refused 0 | prefill 3.23 s, decode 0.84 s, 13.14 tok/s | lifetime 10.994 GB | per check ms: draft 13.0 pass 1 0.0 pass 2 / exact 195.9 commit 0.0; misses per check pass 1 0 pass 2 819
+[ifb12c08] ifbench/88 ex PREFILL n 83 smoe 4096 | 3.233 s, 25.4 tok/s, SSD 23871 MB | lifetime 10.994 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[ifb12c08] PAIR ifbench/88: SSD per arm (C) ex 57->59 | PAUSE 0.0 s inside -> ok
+[ifb12c08] ifbench/9 ex theta None  | tok 96 sha 8f6a0ac1a4 | lsha 84020a32f7 | = ex tokens True (first divergence None) | checks 26, kept 3.69 | pass2 0 exact 26 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 132 in 42 calls, refused 0 | prefill 4.07 s, decode 7.96 s, 12.06 tok/s | lifetime 11.126 GB | per check ms: draft 10.8 pass 1 0.0 pass 2 / exact 295.1 commit 0.0; misses per check pass 1 0 pass 2 1096
+[ifb12c08] ifbench/9 ex PREFILL n 124 smoe 4096 | 4.072 s, 30.2 tok/s, SSD 29159 MB | lifetime 11.126 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[ifb12c08] PAIR ifbench/9: SSD per arm (C) ex 59->59 | PAUSE 0.0 s inside -> ok
+[ifb12c08] ifbench/90 ex theta None  | tok 1536 sha 87d90a137f | lsha 95a55cb469 | = ex tokens True (first divergence None) | checks 644, kept 2.39 | pass2 0 exact 644 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 2290 in 762 calls, refused 0 | prefill 2.95 s, decode 103.62 s, 14.82 tok/s | lifetime 11.126 GB | per check ms: draft 10.7 pass 1 0.0 pass 2 / exact 149.8 commit 0.0; misses per check pass 1 0 pass 2 583
+[ifb12c08] ifbench/90 ex PREFILL n 57 smoe 4096 | 2.954 s, 19.0 tok/s, SSD 21051 MB | lifetime 11.126 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[ifb12c08] PAIR ifbench/90: SSD per arm (C) ex 59->58 | PAUSE 0.0 s inside -> ok
+[ifb12c08] ifbench/92 ex theta None  | tok 75 sha ee79e977d2 | lsha 97ae4b5b1c | = ex tokens True (first divergence None) | checks 30, kept 2.50 | pass2 0 exact 30 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 114 in 38 calls, refused 0 | prefill 3.09 s, decode 5.38 s, 13.94 tok/s | lifetime 11.126 GB | per check ms: draft 10.6 pass 1 0.0 pass 2 / exact 168.3 commit 0.0; misses per check pass 1 0 pass 2 688
+[ifb12c08] ifbench/92 ex PREFILL n 68 smoe 4096 | 3.092 s, 21.7 tok/s, SSD 21432 MB | lifetime 11.126 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[ifb12c08] PAIR ifbench/92: SSD per arm (C) ex 58->57 | PAUSE 0.0 s inside -> ok
+[ifb12c08] ifbench/99 ex theta None  | tok 137 sha 3caffced49 | lsha 42d1fd7791 | = ex tokens True (first divergence None) | checks 39, kept 3.51 | pass2 0 exact 39 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 178 in 55 calls, refused 0 | prefill 3.59 s, decode 8.37 s, 16.38 tok/s | lifetime 11.126 GB | per check ms: draft 10.6 pass 1 0.0 pass 2 / exact 203.5 commit 0.0; misses per check pass 1 0 pass 2 863
+[ifb12c08] ifbench/99 ex PREFILL n 150 smoe 4096 | 3.593 s, 41.5 tok/s, SSD 28028 MB | lifetime 11.126 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[ifb12c08] PAIR ifbench/99: SSD per arm (C) ex 57->57 | PAUSE 0.0 s inside -> ok
+[ifb12c08] PAUSE summary: intervals [] s from the start; re-run []; excluded []
+[ifb12c08] TOTAL ex: 10 prompts, 3105 tokens in 210.01 s = 14.79 tok/s | 1263 checks, kept 2.46 | pass2 0 exact 1263 | per check ms: draft 10.6 pass 1 0.0 pass 2 / exact 155.3 commit 0.0; misses per check pass 1 0 pass 2 606
+[ifb12c08] IDS: 10 keys -> /Users/kamen/Fit12/data/scr/ifb12/ifb12c08_ids.json
+[ifb12c08] PR1: 544 keep-1 commits replayed on 2 rows
+[ifb12c08] done; lifetime 11.126 GB

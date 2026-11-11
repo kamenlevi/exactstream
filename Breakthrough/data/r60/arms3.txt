@@ -1,0 +1,25 @@
+20:12:12 start d22 (available 39 GB, swap 8897 MB)
+20:21:23 done d22 (rc 0)
+[r60 d22] p2k RESULT 256 tok, sha c47299766b, 93 passes = 2.753 per pass | prefill 9.7 s, decode 16.1 s (15.93 tok/s) | ref equal None | lifetime 11.224 GB
+[r60 d22] p8k RESULT 256 tok, sha b075f0fcd2, 90 passes = 2.844 per pass | prefill 20.6 s, decode 14.5 s (17.61 tok/s) | ref equal None | lifetime 11.447 GB
+[r60 d22] write16 RESULT 256 tok, sha 0a3f0e4718, 103 passes = 2.485 per pass | prefill 20.4 s, decode 15.2 s (16.81 tok/s) | ref equal None | lifetime 11.459 GB
+[r60 d22] math500/test/prealgebra/1640.json RESULT 904 tok, sha ca35b3618d, 252 passes = 3.587 per pass | prefill 2.7 s, decode 43.8 s (20.63 tok/s) | ref equal True | lifetime 12.081 GB
+[r60 d22] math500/test/intermediate_algebra/1422.json RESULT 1536 tok, sha 0317556022, 419 passes = 3.666 per pass | prefill 2.8 s, decode 110.9 s (13.85 tok/s) | ref equal False | lifetime 12.347 GB
+[r60 d22] math500/test/algebra/694.json RESULT 614 tok, sha ebee9e94c5, 174 passes = 3.529 per pass | prefill 3.0 s, decode 32.6 s (18.86 tok/s) | ref equal True | lifetime 12.498 GB
+[r60 d22] math500/test/intermediate_algebra/101.json RESULT 1536 tok, sha ef36252254, 418 passes = 3.675 per pass | prefill 2.3 s, decode 112.5 s (13.65 tok/s) | ref equal False | lifetime 12.498 GB
+[r60 d22] math500/test/precalculus/323.json RESULT 1192 tok, sha e326634c83, 313 passes = 3.808 per pass | prefill 3.1 s, decode 93.6 s (12.74 tok/s) | ref equal False | lifetime 12.498 GB
+[r60 d22] math500/test/number_theory/427.json RESULT 858 tok, sha 535b2604b4, 230 passes = 3.730 per pass | prefill 2.4 s, decode 39.4 s (21.78 tok/s) | ref equal False | lifetime 12.498 GB
+R-60 MTPDROP (shared GPU, rough timings): tokens per pass by prompt
+prompt                                     stock                   d22
+p2k                              2.723 (256 tok)       2.753 (256 tok)
+p8k                              2.876 (256 tok)       2.844 (256 tok)
+write16                          2.612 (256 tok)       2.485 (256 tok)
+math500/test/prealgebra/1640.json       3.531 (904 tok)       3.587 (904 tok)
+math500/test/intermediate_algebra/1422.json      3.657 (1536 tok)      3.666 (1536 tok)
+math500/test/algebra/694.json       3.529 (614 tok)       3.529 (614 tok)
+math500/test/intermediate_algebra/101.json      3.631 (1536 tok)      3.675 (1536 tok)
+math500/test/precalculus/323.json      3.753 (1186 tok)      3.808 (1192 tok)
+math500/test/number_theory/427.json       3.706 (856 tok)       3.730 (858 tok)
+stock : tokens per pass 3.522 (+0.0 % vs stock) | decode 13.92 tok/s | tokens = stock's on every prompt True | math rows = b12llff2 True | lifetime max 12.429 GB
+d22   : tokens per pass 3.541 (+0.5 % vs stock) | decode 15.48 tok/s | tokens = stock's on every prompt False | math rows = b12llff2 False | lifetime max 12.498 GB
+VERDICT d22: FAIL (tokens differ) (tokens per pass +0.5 %; PASS >= +3 %, KILL < +1 %)

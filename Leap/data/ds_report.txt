@@ -1,0 +1,14 @@
+DS: drafter data slope (block-32 DFlash2, L1-20 recipe), 24 held-out HumanEval samples, tokens per pass
+  L1-20 100 % 201 steps : 32:1step 10.23, 32:tail_0.9 10.51, 16:1step 9.54 (primary 32:tail_0.9)
+  B 50 % 201 steps      : 32:1step 10.13, 32:tail_0.9 10.38, 16:1step 9.67 (primary 32:tail_0.9)
+  A 50 % 101 steps      : 32:1step 9.86, 32:tail_0.9 9.85, 16:1step 9.30 (primary 32:1step)
+  val selector agreement L1-20: step 100: d8 0.82 d16 0.57 d20 0.45 d24 0.38 d31 0.33 | step 200: d8 0.86 d16 0.63 d20 0.52 d24 0.43 d31 0.38 | after: d8 0.86 d16 0.63 d20 0.52 d24 0.43 d31 0.38
+  val selector agreement B: step 100: d8 0.83 d16 0.56 d20 0.44 d24 0.37 d31 0.35 | step 200: d8 0.84 d16 0.61 d20 0.50 d24 0.42 d31 0.38 | after: d8 0.85 d16 0.61 d20 0.50 d24 0.42 d31 0.38
+  val selector agreement A: step 100: d8 0.85 d16 0.61 d20 0.48 d24 0.40 d31 0.35 | after: d8 0.85 d16 0.62 d20 0.48 d24 0.41 d31 0.35
+  s_fix = T(100 %) / T(B) = 1.013 (90 % CI 0.990-1.035); per mode: 32:1step 1.010, 32:tail_0.9 1.013, 16:1step 0.986
+  s_prop = T(100 %) / T(A) = 1.066 (90 % CI 1.036-1.096); c50 = T(B) / T(A) = 1.052 (90 % CI 1.025-1.080)
+  DS verdict (pre-registered lines on s_fix: KILL < 1.05 with c50 < 1.05, GO >= 1.12): compute-limited, not data-limited: next 100 % at 402 steps (~56 min, no new 125B data)
+  DS2: C 100 % 401 steps   : 32:1step 10.53, 32:tail_0.9 10.57, 16:1step 9.62 (primary 32:tail_0.9)
+  val selector agreement C: step 100: d8 0.82 d16 0.56 d20 0.44 d24 0.36 d31 0.32 | step 200: d8 0.84 d16 0.62 d20 0.53 d24 0.44 d31 0.38 | step 300: d8 0.85 d16 0.65 d20 0.54 d24 0.44 d31 0.39 | step 400: d8 0.85 d16 0.64 d20 0.53 d24 0.45 d31 0.38 | after: d8 0.85 d16 0.64 d20 0.53 d24 0.45 d31 0.39
+  c100 = T(C) / T(100 %, 201 steps) = 1.005 (90 % CI 0.980-1.035); per mode: 32:1step 1.030, 32:tail_0.9 1.005, 16:1step 1.009
+  DS2 verdict (pre-registered: ALIVE >= 1.12, KILL < 1.07): KILL: training this drafter harder cannot reach ~17-19

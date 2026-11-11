@@ -1,0 +1,17 @@
+diff --git a/count.sh b/count.sh
+index 3b19f0c..0d05608 100644
+--- a/count.sh
++++ b/count.sh
+@@ -1,2 +1,11 @@
+ #!/bin/sh
+-cat data/*.txt | wc -l | tr -d ' '
++# Print the total number of lines in all .txt files under data/,
++# including subfolders.
++#
++# find's output feeds wc/awk directly (no intermediate shell loop, so
++# there is no subshell to lose the running total in), and the file
++# list itself is never counted. Counting per file rather than
++# `cat`-ing everything together means a file whose last line lacks a
++# trailing newline is not merged with the next file's first line.
++find data -type f -name '*.txt' -exec wc -l {} + |
++    awk '{ total += $1 } END { print total + 0 }'

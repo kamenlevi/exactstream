@@ -1,0 +1,22 @@
+== M-31 HEADPING (Tue 22:45): 14 points x 150 rounds; M-31 HEADPING raw: record stride 2932736, 14 points, 150 rounds asked; done: 150 rounds in 4.5 s; record pool recycles 0; 48 resident records skipped
+  full base-part read (2,162,688 B, QD 1) after 0.8 ms idle: keepalive on 296.4 us, off 348.1
+    G1 ping both heads (2-record GCD call)  Delta   300 us, keepalive on :   473.4 us (  +3.2 vs no ping); ping  150.6 us
+    H1 ping 4 KB of its head                Delta   100 us, keepalive on :   298.3 us (  +1.9 vs no ping); ping   82.3 us
+    H1 ping 4 KB of its head                Delta   300 us, keepalive on :   297.8 us (  +1.4 vs no ping); ping   81.7 us
+    H1 ping 4 KB of its head                Delta  1000 us, keepalive on :   296.9 us (  +0.6 vs no ping); ping   82.8 us
+    H1 ping 4 KB of its head                Delta  5000 us, keepalive on :   299.6 us (  +3.2 vs no ping); ping   81.5 us
+    H2 ping the part's last 4 KB            Delta   300 us, keepalive on :   295.9 us (  -0.5 vs no ping); ping   82.0 us
+    H3 ping the next record's head          Delta   300 us, keepalive on :   296.2 us (  -0.2 vs no ping); ping   79.8 us
+    H4 ping a far record's head             Delta   300 us, keepalive on :   294.3 us (  -2.1 vs no ping); ping   80.9 us
+    H5 ping 64 KB of its head               Delta   300 us, keepalive on :   299.1 us (  +2.7 vs no ping); ping  114.7 us
+    H1 ping 4 KB of its head                Delta   100 us, keepalive off:   306.1 us ( -42.0 vs no ping); ping  140.8 us
+    H1 ping 4 KB of its head                Delta   300 us, keepalive off:   343.1 us (  -5.0 vs no ping); ping  140.8 us
+  HEAD line: head ping cuts the full read by -1.9 / -1.4 / -0.6 us at Delta 100 / 300 / 1,000 -> KILL (line 30 / 10 us)
+== RESULT M-31 HEADPING (Tue 22:45; quiet lock after a 2 min wait, ~5 s held; 150 rounds x 14 points in 4.5 s; 48 resident
+  records skipped): KILL. With the keepalive on (the drive awake), a 4 KB ping of a record's head changes its later full
+  read (296.4 us at QD 1) by +0.6..+3.2 us at Delta 100 us - 5 ms; pinging the part's last 4 KB, the next record's head, a
+  far record's head or 64 KB of the head does no better (-2.1..+2.7 us); the 2-record GCD call with both heads pinged is
+  +3.2 us. The first byte (~119 us at QD 1) is sensing and controller time with no map or page cache a small read can
+  warm: no lever left inside the drive for it. With the keepalive off, a head ping 100 us before the read saves 42 us,
+  which is the idle wake that M-29's wake-ahead ping already removes; at 300 us the drive dozes again (-5 us). What remains
+  for the first byte: fewer bursts (JOINT) and bursts that never wait on it (forecast hits, lever 2).

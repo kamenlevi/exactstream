@@ -1,0 +1,20 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=25.7 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[dm] loaded in 1s (C 51)
+[dm] discover_layers: 48 layers, {'gdn': 36, 'hc': 96, 'moe': 48, 'att': 12}; missing []
+[dm] MoE block: top_k 10, norm_topk_prob True
+[smoke] window tf_code_HumanEval_135.npz: 282 ids, 144 measured rows
+qom_0_live_bq_c147_t3 code tf_code_HumanEval_135.npz 144 positions 9s; k 10:5
+[smoke] qom_0_live_bq_c147_t3: 9.4s for the window, MLX peak 12.5 GB, lsrc None
+[smoke] C REGRESSION tf_code_HumanEval_135.npz: tk equal True, lp bit-equal True (144 rows)
+[dm] trl:mix: FALLBACK to records3 MSB-3 for missing experts {7: 512, 18: 415, 30: 512, 41: 512}
+s7_trl code tf_code_HumanEval_135.npz 144 positions 10s; per-layer src: 4 calls, 4957 pairs, 970 experts read (TRL 49, fallback 921); k 
+[smoke] s7_trl: 9.6s for the window, MLX peak 12.5 GB, lsrc {'calls': 4, 'pairs': 4957, 'experts': 970, 'trl': 49, 'fallback': 921}
+s7_ref code tf_code_HumanEval_135.npz 144 positions 9s; k 
+[smoke] s7_ref: 9.2s for the window, MLX peak 12.5 GB, lsrc None
+s7_cal_all code tf_code_HumanEval_135.npz 144 positions 55s; per-layer src: 48 calls, 60603 pairs, 10633 experts read (TRL 0, fallback 0); k 
+[smoke] s7_cal_all: 55.4s for the window, MLX peak 15.4 GB, lsrc {'calls': 48, 'pairs': 60603, 'experts': 10633, 'trl': 0, 'fallback': 0}
+[smoke] s7_trl vs s7_ref: top-1 flips 0/144, mean |dlp1| 0.0035 (differ, as they should)
+[smoke] total 85s; max RSS 12.2 GB

@@ -1,0 +1,9 @@
+(1) code planes: H(m) 2.7233 b = H(top-2) 1.7607 + H(plane 3 | top-2) 0.9626; at W24-ec's 2.7231 b: 2-plane read 1,294,336 B (incl. 11-bit scales), plane-3 read 606,208 B, full MSB miss 1,900,544 B
+(2) traces: bulgarian, chat, code, math; LSB bytes / token (v3 rule, C_l 44): bulgarian 10.5, chat 14.3, code 15.3, math 15.9
+    mean w^2 by rank [0.0495, 0.0222, 0.0141, 0.0101, 0.0078, 0.0063, 0.0053, 0.0046, 0.004, 0.0036]; plan gaps code / gsm / ifeval / multi: R2 6 [0.00095, 0.00158, 0.00786, 0.00765], R2 4 (interp.) [0.00243, 0.00406, 0.01838, 0.01906], R2 2 [0.00497, 0.0083, 0.03635, 0.03853]
+    R2 10 (= v3, nothing at 2 planes): 99.1 MB / token (wall24 strict at 159 / 44)
+    R2 8: 91.9 MB / token (-7.3 %); rank >= 8 gate mass at 2 planes 17.1 % (energy 16.8 %)
+    R2 6: 86.0 MB / token (-13.3 %); rank >= 6 gate mass at 2 planes 18.0 % (energy 17.4 %) -> predicted KLD 0.00189 / 0.00303 / 0.01504 / 0.01230 INSIDE the gate
+    R2 4: 81.1 MB / token (-18.1 %); rank >= 4 gate mass at 2 planes 20.8 % (energy 19.5 %) -> predicted KLD 0.00219 / 0.00354 / 0.01726 / 0.01469 INSIDE the gate
+    R2 2: 77.2 MB / token (-22.2 %); rank >= 2 gate mass at 2 planes 28.4 % (energy 25.5 %) -> predicted KLD 0.00299 / 0.00487 / 0.02295 / 0.02081 OVER the gate on code, gsm, ifeval, multi
+(26 s)

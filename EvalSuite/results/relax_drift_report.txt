@@ -1,0 +1,236 @@
+RELAX report (B; tag -)
+
+== speed and bytes (G's logs; tok/s on unpaused prompts; paired = tok/s ratio vs the control on shared keys)
+arm     set          n  checks   kept  exact   gain      cf    copy   union   exact    SSD   tok/s   GB/s  paired
+B       agent       14     338   4.79   4.79  1.000   32.2%    5.0%    5.59    7.54   0.86    20.8     60       -
+B       agentlong   17    2485   3.57   3.57  1.000   25.1%    0.9%    6.00    7.05   0.38    20.6     73       -
+B       humaneval   60    1362  10.31  10.13  1.018   62.4%    2.4%    4.79    8.15   0.87    62.8     59       -
+B       humanevalx 104    2311  11.16  10.96  1.018   66.4%    2.6%    4.33    7.81   0.54    72.6     62       -
+B       math        50    4978   6.79   6.79  1.000   48.1%    0.2%    5.80    8.08   0.94    40.7     64       -
+
+== AT14, the agent-turn read-out (no line; answers cap at the items' 128 tokens, real agent answers run longer)
+arm     turn             prompt prefill s 1st chk ms decode s answer turn tok/s prefill %
+B       edit00             9118      79.7       2547      4.7    114       1.35       94%
+B       bash19             9131      72.7        366      5.6     91       1.16       93%
+B       edit05             9299      79.0        508      3.7    128       1.55       95%
+B       edit06             9349      80.9       1550      3.3    128       1.52       96%
+B       bash18             9687      85.4       2697      7.0     72       0.78       92%
+B       edit03             9941      79.3       1107      6.8    128       1.49       92%
+B       bash22            10098      79.8       1151      8.6    104       1.18       90%
+B       edit01            10324      91.3       1650      4.2    128       1.34       96%
+B       text26            10349      88.7       1596      4.8     77       0.82       95%
+B       edit07            10521      88.8       1428      5.9    128       1.35       94%
+B       edit08            10536      86.1       1284      5.1    128       1.40       94%
+B       text27            10610      90.1       1430      6.2    128       1.33       94%
+B       bash20            10986      87.8        537      5.3    128       1.38       94%
+B       edit02            11952     101.0       2331      6.3    128       1.19       94%
+B       pooled                     1190.6                77.4   1610       1.27       94%  (14 unpaused turns; TTFT = prefill s)
+
+== per task (the orchestrator Wed 21:5x; PREREG amendment): tokens / s per task vs the control on shared unpaused keys; KILL for FAST = faster per token and > 5 % slower per task (pooled); tokens per task vs REF2-T's rows
+arm     set          n  tok/task   s/task  s/token  vs ref2t
+B       humaneval    0         -        -        -    1.027x
+B       math         0         -        -        -    0.985x
+B       per-task line: no shared keys
+
+== quality (REF2-T replay along G's prefix)
+arm     set          n  tokens      dev  rule  cmnt    cf  copy other blund   /10K long   KLD q1       q4  drift  dev q1      q4
+B       agent       14    1596   2.69 %     0     0     9     4    30     1   6.27    0  0.00000  0.00000      -  0.00 %  0.00 %
+B       agentlong   17    8842   6.67 %     0     0   111     5   474    20  22.62    6  0.12650  0.09350   0.74 10.57 %  7.07 %
+B       humaneval   60   13975   1.30 %     0    84    19     1    77     1   0.72    4  0.00157  0.00948   6.04  0.00 %  3.08 %
+B       humanevalx 104   25656   1.20 %     0   127    41     1   140     0   0.00    6  0.00298  0.01215   4.07  0.99 %  4.64 %
+B       math        50   33742   1.43 %     0     0   117     3   363     0   0.00   23  0.00743  0.00662   0.89  1.53 %  1.56 %
+
+== long-code drift (PREREG_relax_drift): arm B, 16 rows >= 512 tokens over humaneval, humanevalx, agentlong: KLD q1 0.06067, q4 0.04976, ratio 0.82 (line <= 1.5): PASS
+  humaneval: 4 long rows, drift 6.04
+  humanevalx: 6 long rows, drift 4.07
+  agentlong: 6 long rows, drift 0.74
+  agentlong/write11: 1024 tokens, KLD q1 0.10167, q4 0.04444
+  agentlong/write12: 1024 tokens, KLD q1 0.17930, q4 0.09431
+  agentlong/write13: 959 tokens, KLD q1 0.06434, q4 0.05007
+  agentlong/write14: 1024 tokens, KLD q1 0.18876, q4 0.14630
+  agentlong/write15: 829 tokens, KLD q1 0.09042, q4 0.16192
+  agentlong/write16: 1024 tokens, KLD q1 0.12385, q4 0.07419
+  humaneval/HumanEval/127: 560 tokens, KLD q1 0.00032, q4 0.00495
+  humaneval/HumanEval/130: 754 tokens, KLD q1 0.00059, q4 0.00519
+  humaneval/HumanEval/147: 768 tokens, KLD q1 0.00249, q4 0.01647
+  humaneval/HumanEval/93: 523 tokens, KLD q1 0.00297, q4 0.01022
+  humanevalx/HumanEval/113: 625 tokens, KLD q1 0.00077, q4 0.02761
+  humanevalx/HumanEval/124: 596 tokens, KLD q1 0.00026, q4 0.00134
+  humanevalx/HumanEval/129: 768 tokens, KLD q1 0.00037, q4 0.01866
+  humanevalx/HumanEval/132: 768 tokens, KLD q1 0.01380, q4 0.00954
+  humanevalx/HumanEval/32: 768 tokens, KLD q1 0.00041, q4 0.01199
+  humanevalx/HumanEval/81: 530 tokens, KLD q1 0.00052, q4 0.00062
+
+== blunders (E's p of the committed token < 0.01)
+B agent agent/bash22 @86: token 494 ' from', p 0.00725 (after the first parameter)
+B agentlong agentlong/edit07 @169: token 26 ';', p 0.0042 (after the first parameter)
+B agentlong agentlong/edit07 @229: token 3429 ' info', p 0.00058 (after the first parameter)
+B agentlong agentlong/edit08 @301: token 1160 ' Con', p 0.00718 (after the first parameter)
+B agentlong agentlong/edit09 @97: token 26870 '(/\\', p 0.00071 (after the first parameter)
+B agentlong agentlong/write11 @344: token 709 ' function', p 0.0043 (in the first parameter: the command / code)
+B agentlong agentlong/write12 @3: token 3746 ' Post', p 0.00591 (in the first parameter: the command / code)
+B agentlong agentlong/write12 @661: token 285 '       ', p 0.00116 (in the first parameter: the command / code)
+B agentlong agentlong/write12 @664: token 257 '    ', p 0.00564 (in the first parameter: the command / code)
+B agentlong agentlong/write12 @930: token 2307 '.y', p 0.00591 (in the first parameter: the command / code)
+B agentlong agentlong/write13 @209: token 2946 ' NS', p 0.00102 (in the first parameter: the command / code)
+B agentlong agentlong/write13 @261: token 3399 'Menu', p 0.0025 (in the first parameter: the command / code)
+B agentlong agentlong/write13 @833: token 6538 'Render', p 0.00591 (in the first parameter: the command / code)
+B agentlong agentlong/write14 @502: token 15243 ' sessions', p 0.00324 (in the first parameter: the command / code)
+B agentlong agentlong/write15 @339: token 1 '"', p 1e-05 (in the first parameter: the command / code)
+B agentlong agentlong/write15 @343: token 267 'st', p 0.00518 (in the first parameter: the command / code)
+B agentlong agentlong/write15 @549: token 18357 'warning', p 0.00328 (in the first parameter: the command / code)
+B agentlong agentlong/write16 @227: token 272 ' c', p 0.00217 (in the first parameter: the command / code)
+B agentlong agentlong/write16 @472: token 3670 'Options', p 0.00669 (in the first parameter: the command / code)
+B agentlong agentlong/write16 @658: token 1042 ' let', p 0.00591 (in the first parameter: the command / code)
+B agentlong agentlong/write16 @667: token 220 ' ', p 0.00018 (in the first parameter: the command / code)
+B humaneval humaneval/HumanEval/92 @133: token 1031 '    \n', p 0.0014
+
+== must-fix deviations (numbers; any token in code / agent answers), information
+B agent: 43 of 43 deviations
+  agent/bash19 @19 (context): '/Core' for E's '/'
+  agent/bash19 @30 (gate_cf): 'n' for E's 'rn'
+  agent/bash19 @34 (context): 'Un' for E's 'Placeholder'
+  agent/bash19 @39 (context): 'unread' for E's 'var'
+  agent/bash19 @43 (context): '\\' for E's '"'
+  agent/bash19 @60 (gate_copy): '1' for E's '8'
+  agent/bash19 @77 (context): ' items' for E's ' cells'
+  agent/edit05 @5 (gate_cf): ' Open' for E's ' O'
+  agent/bash18 @1 (gate_cf): ' /' for E's ' ~/'
+  agent/bash18 @9 (context): '/' for E's '/raw'
+  agent/bash18 @12 (context): ' use' for E's ' policy'
+  agent/bash18 @16 (context): ' jpeg' for E's ' only'
+  agent/bash18 @54 (gate_cf): 'uses' for E's 'embedded'
+  agent/bash18 @60 (context): ' dir' for E's ' files'
+  agent/edit03 @75 (context): ' sampler' for E's ' ring'
+  agent/edit03 @78 (gate_cf): '.S' for E's 'Sampler'
+  agent/edit03 @103 (context): '(set' for E's ' var'
+  agent/bash22 @12 (context): '7' for E's '4'
+  agent/bash22 @84 (context): ' transcript' for E's ' latest'
+  agent/bash22 @85 (context): ' tail' for E's ' chunk'
+  agent/bash22 @86 (context): ' from' for E's '\n'
+  agent/edit01 @103 (gate_cf): '                        ' for E's '</'
+  agent/text26 @21 (gate_cf): 'etime' for E's 'command'
+  agent/text26 @45 (gate_copy): '\n' for E's ';'
+  agent/text26 @59 (context): ' and' for E's ' line'
+  agent/text26 @60 (context): ' uptime' for E's ' runtime'
+  agent/text26 @62 (context): ' the' for E's ' ML'
+  agent/edit07 @1 (context): ' var' for E's ' ///'
+  agent/edit07 @106 (context): ' Whether' for E's ' How'
+  agent/edit07 @113 (context): ' have' for E's ' are'
+  agent/edit07 @118 (context): ' selection' for E's ' shown'
+  agent/edit07 @126 (context): ' must' for E's ' moves'
+  agent/edit08 @115 (context): '2' for E's 'B'
+  agent/edit08 @120 (gate_cf): '1' for E's '0'
+  agent/text27 @14 (gate_copy): 'curl' for E's 'cd'
+  agent/text27 @18 (context): 'm' for E's 'X'
+  agent/text27 @20 (context): '2' for E's '1'
+  agent/text27 @24 (gate_cf): '1' for E's 'localhost'
+  agent/bash20 @76 (context): 'AGES' for E's 'ICON'
+  agent/bash20 @88 (context): ' CODE' for E's ' SUP'
+B agentlong: 36 of 590 deviations
+  agentlong/edit02 @194 (gate_cf): ' *' for E's '5'
+  agentlong/edit02 @220 (context): '9' for E's '6'
+  agentlong/edit08 @115 (context): '2' for E's 'B'
+  agentlong/edit08 @120 (gate_cf): '1' for E's '0'
+  agentlong/edit08 @176 (context): '3' for E's '2'
+  agentlong/edit08 @177 (context): '0' for E's '-round'
+  agentlong/edit08 @193 (context): '-round' for E's '0'
+  agentlong/edit09 @89 (context): '1' for E's '0'
+  agentlong/edit09 @112 (context): '6' for E's '2'
+  agentlong/edit09 @119 (context): '8' for E's '6'
+  agentlong/write11 @56 (context): '0' for E's '1'
+  agentlong/write11 @179 (context): '6' for E's '3'
+  agentlong/write11 @202 (gate_cf): '1' for E's '3'
+  agentlong/write11 @248 (gate_cf): '2' for E's '1'
+  agentlong/write11 @367 (context): ' =' for E's '0'
+  agentlong/write11 @871 (context): '1' for E's '2'
+  agentlong/write12 @42 (context): '1' for E's '3'
+  agentlong/write12 @43 (context): '0' for E's '2'
+  agentlong/write12 @69 (context): '2' for E's '4'
+  agentlong/write12 @70 (context): '8' for E's '5'
+  agentlong/write12 @109 (context): '8' for E's '.'
+  agentlong/write12 @114 (context): '8' for E's '.'
+  agentlong/write12 @128 (context): '1' for E's 'HDR'
+  agentlong/write12 @163 (gate_cf): '2' for E's '6'
+  agentlong/write12 @164 (context): '.' for E's '0'
+  agentlong/write12 @505 (context): '0' for E's '2'
+  agentlong/write12 @507 (context): '7' for E's '8'
+  agentlong/write12 @569 (context): '1' for E's '0'
+  agentlong/write12 @690 (context): '4' for E's '2'
+  agentlong/write12 @940 (context): '4' for E's '1'
+  agentlong/write12 @990 (context): '4' for E's 'L'
+  agentlong/write13 @349 (context): '5' for E's '2'
+  agentlong/write14 @151 (gate_cf): '3' for E's ' '
+  agentlong/write15 @718 (gate_cf): '2' for E's '0'
+  agentlong/write16 @248 (context): '1' for E's '2'
+  agentlong/write16 @668 (context): '2' for E's '6'
+B humaneval: 174 of 181 deviations
+  humaneval/HumanEval/68 @351 (rule_comment): ' numbers' for E's ' values'
+  humaneval/HumanEval/68 @358 (context): '_candidates' for E's '_pairs'
+  humaneval/HumanEval/68 @410 (context): ')' for E's ' with'
+  humaneval/HumanEval/68 @423 (rule_comment): ' smallest' for E's ','
+  humaneval/HumanEval/68 @425 (context): '\n' for E's ','
+  humaneval/HumanEval/68 @459 (context): ' Return' for E's ' The'
+  humaneval/HumanEval/68 @462 (rule_comment): ' candidate' for E's ' one'
+  humaneval/HumanEval/68 @463 (context): ' (' for E's '\n'
+  humaneval/HumanEval/68 @475 (gate_cf): ' list' for E's ' ['
+  humaneval/HumanEval/91 @124 (rule_comment): ' .' for E's " '.',"
+  humaneval/HumanEval/91 @162 (rule_comment): ' leading' for E's ' whitespace'
+  humaneval/HumanEval/91 @184 (rule_comment): ' first' for E's ' sentence'
+  humaneval/HumanEval/6 @117 (gate_cf): ' result' for E's ' def'
+  humaneval/HumanEval/6 @131 (context): ' max' for E's ' depth'
+  humaneval/HumanEval/79 @170 (context): ' binary' for E's ' #'
+  humaneval/HumanEval/19 @240 (context): ' words' for E's ' to'
+  humaneval/HumanEval/19 @242 (rule_comment): ' their' for E's ' numbers'
+  humaneval/HumanEval/19 @247 (context): ' by' for E's ','
+  humaneval/HumanEval/161 @117 (context): ' has' for E's ' #'
+  humaneval/HumanEval/161 @118 (gate_cf): '_letters' for E's '_letter'
+  humaneval/HumanEval/161 @146 (context): ' result' for E's ' else'
+  humaneval/HumanEval/17 @178 (context): ' Replace' for E's ' Split'
+  humaneval/HumanEval/17 @205 (context): ' and' for E's ' since'
+  humaneval/HumanEval/17 @216 (rule_comment): ' space' for E's ' spaces'
+  humaneval/HumanEval/17 @218 (rule_comment): ' we' for E's ' each'
+  humaneval/HumanEval/17 @226 (context): ' #' for E's ' tokens'
+  humaneval/HumanEval/17 @230 (rule_comment): ' into' for E's ' by'
+  humaneval/HumanEval/17 @308 (rule_comment): ' other' for E's ' unexpected'
+  humaneval/HumanEval/141 @291 (rule_comment): ' one' for E's ' valid'
+  humaneval/HumanEval/101 @127 (rule_comment): ' on' for E's ' by'
+  humaneval/HumanEval/101 @156 (rule_comment): ' empty' for E's ' any'
+  humaneval/HumanEval/101 @168 (context): 'word' for E's 'w'
+  humaneval/HumanEval/63 @203 (context): ' and' for E's '\n'
+  humaneval/HumanEval/77 @130 (context): ' Handle' for E's ' For'
+  humaneval/HumanEval/77 @158 (context): ' cube' for E's ' integer'
+  humaneval/HumanEval/77 @167 (context): ' to' for E's '(a'
+  humaneval/HumanEval/77 @168 (rule_comment): ' find' for E's ' get'
+  humaneval/HumanEval/77 @196 (rule_comment): ' ==' for E's ' equals'
+  humaneval/HumanEval/77 @207 (context): ' we' for E's ' check'
+  humaneval/HumanEval/77 @208 (rule_comment): ' need' for E's ' check'
+B humanevalx: 6 of 309 deviations
+  humanevalx/HumanEval/132 @677 (context): '4' for E's '3'
+  humanevalx/HumanEval/132 @767 (rule_comment): '0' for E's '4'
+  humanevalx/HumanEval/138 @181 (rule_comment): '8' for E's '2'
+  humanevalx/HumanEval/32 @706 (context): '0' for E's '):'
+  humanevalx/HumanEval/67 @290 (rule_comment): '2' for E's '3'
+  humanevalx/HumanEval/89 @168 (rule_comment): '2' for E's '4'
+B math: 21 of 483 deviations
+  math500/test/prealgebra/1640.json @273 (context): 'Therefore' for E's '1'
+  math500/test/intermediate_algebra/607.json @753 (gate_cf): '7' for E's '4'
+  math500/test/intermediate_algebra/607.json @1280 (context): '1' for E's '2'
+  math500/test/number_theory/45.json @688 (gate_cf): '1' for E's '6'
+  math500/test/algebra/2232.json @71 (context): '1' for E's 'First'
+  math500/test/algebra/2232.json @215 (gate_cf): '2' for E's '3'
+  math500/test/number_theory/634.json @702 (context): '3' for E's '1'
+  math500/test/number_theory/634.json @807 (context): '9' for E's '3'
+  math500/test/algebra/1282.json @214 (context): '2' for E's '4'
+  math500/test/algebra/1282.json @361 (gate_cf): '0' for E's 'k'
+  math500/test/algebra/1282.json @406 (context): '0' for E's '1'
+  math500/test/algebra/1282.json @540 (context): 'The' for E's '1'
+  math500/test/prealgebra/1139.json @722 (context): '0' for E's '1'
+  math500/test/algebra/2102.json @86 (gate_cf): '  ' for E's '3'
+  gsm8k/700 @87 (context): '1' for E's ' \\'
+  gsm8k/706 @21 (context): '1' for E's '**'
+  gsm8k/712 @21 (context): '1' for E's '**'
+  gsm8k/712 @38 (context): '2' for E's ' '
+  gsm8k/712 @91 (gate_cf): '1' for E's '4'
+  gsm8k/713 @25 (context): '**' for E's '1'
+  gsm8k/719 @60 (context): ' \\' for E's '3'

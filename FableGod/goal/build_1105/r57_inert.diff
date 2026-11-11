@@ -1,0 +1,140 @@
+--- /Users/kamen/BigMoE/scripts/r57_screen_rlx.py	2026-11-05 10:30:59
++++ /Users/kamen/FableGod/goal/build_1105/r57_screen_rlx.patched.py	2026-11-05 18:36:48
+@@ -103,7 +103,7 @@
+ # 32-row block (31 drafts) on the prompts the copy runs on, with MATCH 2.5's rule (32 rows only when >= 24 drafted positions carry a used copy,
+ # else the first 15). Over 16 rows the check leaves the sync-free gate (MAXK 160) for the slot path and EvalSuite's block
+ # (prefill's): outside REF2-T's certified 1-16-row verify, so the token check decides whether it is exact; slow either way
+-assert R in (16, 32), R
++assert R in (16, 32) or (R == 64 and os.environ.get("R57_COPYRUN") == "64"), R   # 64: R57_COPYRUN only (inert_span.py)
+ EOS = {248044, 248046}
+ TAPS = (5, 15, 25, 35, 45)
+ PICK = (("humaneval", "humaneval/HumanEval/68"), ("math", "math500/test/prealgebra/1640.json"),
+@@ -177,6 +177,19 @@
+         import importlib.util as _ilu4
+         _sp4 = _ilu4.spec_from_file_location("relax_core", os.path.expanduser("~/BigMoE/scripts/relax_core.py"))
+         RXC = _ilu4.module_from_spec(_sp4); _sp4.loader.exec_module(RXC)
++INERT, CRUN = None, int(os.environ.get("R57_COPYRUN", "0") or 0)   # R57_INERT=<arm> / R57_COPYRUN=64 (GOAL's inert_span.py,
++if os.environ.get("R57_INERT", "0") not in ("", "0") or CRUN:     # ~/FableGod/goal/LOSSY350_GOAL.md). INERT: a drafted row
++    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # inside a '#' comment or a docstring of a python fence
++    import inert_span as INM                             # is kept whatever the 125B's argmax (span ends exact, code tokens
++    INERT = INM.parse_arm(os.environ.get("R57_INERT", ""), os.environ.get("R57_INERT_DOCTEST", "1"))   # exact). Unset / 0 =
++    if INERT is not None:                                # exact: no INERT block below runs
++        assert not SPAN and not RLX_D > 0, "R57_INERT, R57_RELAX_SPAN and R57_RELAX_DELTA are separate arms"
++        assert R >= INERT["rows"], f"R57_INERT={INERT['name']} needs R57_ROWS={INERT['rows']}"
++        if not FAST:                                     # the tagger's relax_core (R57_FAST loads it below otherwise)
++            import importlib.util as _ilu5
++            _sp5 = _ilu5.spec_from_file_location("relax_core", os.path.expanduser("~/BigMoE/scripts/relax_core.py"))
++            RXC = _ilu5.module_from_spec(_sp5); _sp5.loader.exec_module(RXC)
++    assert CRUN in (0, 64) and (not CRUN or (COPY and R == 64)), "R57_COPYRUN=64 needs R57_COPY and R57_ROWS=64"
+ if os.environ.get("R57_GDNB") == "1":                    # GDNB (Leap 70cd998): its NSG must be set before gdnbody is imported
+     os.environ.setdefault("GDNB_NSG", "16")
+ D17 = os.environ.get("R57_D17") == "1"                  # DRAFT17 (MTP Head ~/TrainLab/sticky/draft17.py 7cc44f8, read-only): the
+@@ -871,7 +884,7 @@
+     tok = int(mx.argmax(last).item())
+     set_arm(arm)
+     a6 = {}                                              # A6's pre-loop steps (outside the decode clock), in this order
+-    R_ = R if cg is not None else 16                     # R57_ROWS=32 only where the copy runs (MATCH 2.5), 16 elsewhere
++    R_ = R if (cg is not None or (INERT is not None and INERT["rows"] > 16)) else 16                     # R57_ROWS=32 only where the copy runs (MATCH 2.5), 16 elsewhere
+     fz = FASTARMS[FAST].get(fset) if FAST else None      # R57_FAST: this prompt set's setting (None = exact acceptance)
+     grams = RXC.prompt_grams(ids) if fz and fz["copy"] else None
+     scan = RXC.CodeScan() if fz and fz["loop"] else None
+@@ -884,6 +897,12 @@
+     slog = RSP.Log(os.environ.get("R57_RELAX_LOG", "")) if SPAN else None
+     if sscan is not None:
+         sscan.feed(_TKZ.decode([tok]))
++    assert not (INERT is not None and fz and fz["loop"]), "R57_INERT replaces the FAST arm's comment loop: use an arm without it"
++    iscan = INM.InertScan(RXC) if INERT is not None and not mtp else None   # R57_INERT: the engine's tagger + the docstring
++    ist = dict(rows=0, kx=0, k=0, whole=0, ruled=0, com=0, doc=0, open=0)   # state; per run: rows checked, kept exact / in all,
++    ilog = INM.Log(os.environ.get("R57_INERT_LOG", "")) if INERT is not None else None   # kept whole / by a rule, per region,
++    if iscan is not None:                                # rows open to INERT
++        iscan.feed(_TKZ.decode([tok]))
+     if scan is not None:
+         scan.feed(_TKZ.decode([tok]))
+     fst = dict(rows=0, gated=0, kx=0, k=0)               # R57_FAST per run: rows checked / gated, kept exact / relaxed
+@@ -928,7 +947,7 @@
+             for c in dcache:                             # s0 = start - 1 (if > 0), not start: the rotating buffer (SWIN - 1) must be
+                 c.offset = s0                            # full, else the 1-position update grows it by SWIN - 1 - offset < 0
+             ref2.remove()                                # (a6w_160 crash 11-02 15:34); that update rotates s0 out -> start..P-1
+-            pth_, _ = propose(mx.array([[tok] + [MASK] * (R - 1)]), T[s0:P - 1][None].astype(mx.bfloat16), dcache)
++            pth_, _ = propose(mx.array([[tok] + [MASK] * (min(R, 32) - 1)]), T[s0:P - 1][None].astype(mx.bfloat16), dcache)
+             mx.eval(pth_)
+             if (trim := dcache[0].offset - (P - 1)) > 0:
+                 DF._trim_recent_cache(dcache, trim)
+@@ -991,7 +1010,7 @@
+             dr, _ = head.draft_cut(min(MTP_K, maxd) if maxd else MTP_K, tcut)   # R57_CHATROWS: maxd = rows - 1
+         else:
+             _d17 = D17 and R_ == 16                      # R57_D17: 17 positions, the 16th draft only gates the last row
+-            pth, cf = propose(mx.array([[tok] + [MASK] * (R_ if _d17 else R_ - 1)]), ctx[None].astype(mx.bfloat16), dcache)
++            pth, cf = propose(mx.array([[tok] + [MASK] * (R_ if _d17 else min(R_, 32) - 1)]), ctx[None].astype(mx.bfloat16), dcache)
+             dr = np.array(pth[0]).tolist()
+             cfl = np.array(cf[0]).tolist()
+             x16 = c16 = None
+@@ -1005,8 +1024,14 @@
+                 if COPY != "g2t":                        # a used copy counts as sure in the running confidence
+                     cfl = [1.0 if u_ else c_ for u_, c_ in zip(cu_, cfl)]
+                 cst["ms"] += time.perf_counter() - t_
+-                if R_ == 32 and sum(cu_) < 24:           # MATCH 2.5: a 16-row check outside long copies
++                if R_ >= 32 and sum(cu_[:31]) < 24 and not (INERT is not None and INERT["rows"] > 16):           # MATCH 2.5: a 16-row check outside long copies
+                     dr, cfl = dr[:15], cfl[:15]
++                elif CRUN == 64 and R_ == 64:            # R57_COPYRUN=64 (exact): a long verbatim run goes on past the
++                    d0_, dr, cu_, ci_, cfl = INM.copyrun_extend(cg, d0_, dr, cu_, ci_, cfl, R_)   # drafter's 31 picks
++            if iscan is not None:                        # R57_INERT: rows in a span are sure in the cut; a longer block
++                idx_ = [_TKZ.decode([int(x)]) for x in dr]   # keeps its drafts past the 15th only inside a span (or a copy)
++                in_, cfl, _ = INM.pre_block(RXC, iscan, dr, cfl, idx_, INERT, cu_ if cg is not None else None)
++                dr, cfl = dr[:in_], cfl[:in_]
+             if fz is not None and (fz["thr"] is not None or fz["copy"]):   # R57_FAST: EvalSuite's row gate on the block
+                 tl_ = out[-RXC.COPY_N:] if len(out) >= RXC.COPY_N else ids[len(out) - RXC.COPY_N:] + out
+                 cg_ = (cf_raw if cg is None else            # a row whose draft the copy replaced: the drafter's cf is
+@@ -1175,6 +1200,25 @@
+                 slog.write(prompt=name, check=FG["chk"], row=j, region="comment", ctext=spre[j][1][-80:], draft=int(dr[j]),
+                            argmax=int(am[j]), dtext=dtx[j], atext=atx[j], rank=int(sdrk[j]), dlm=round(sdlm[j], 4),
+                            cf=None if mtp else round(float(cf_raw[j]), 4))
++        if iscan is not None and dr:                     # R57_INERT: the rows in comments / docstrings (inert_span.py)
++            l0i = lg[0, :len(dr)].astype(mx.float32)
++            ldi = mx.take_along_axis(l0i, mx.array(dr, dtype=mx.int32)[:, None], axis=-1)
++            id_, ir_ = ldi[:, 0] - l0i.max(axis=-1), (l0i > ldi).sum(axis=-1)   # logit(d) - max logit; the draft's rank
++            mx.eval(id_, ir_)
++            idlm, idrk = id_.tolist(), ir_.tolist()
++            dtx = [_TKZ.decode([int(x)]) for x in dr]
++            atx = [_TKZ.decode([int(x)]) for x in am[:len(dr)]]
++            icls = INM.classify(RXC, iscan, dtx, atx, INERT)   # the scan before each draft (a copy is fed the drafts)
++            fok_i = None if fz is None or not fz["rules"] else (
++                lambda j: any(RXC.rule_ok(r_, idlm[j], idrk[j]) for r_ in fz["rules"]))
++            k, il_ = INM.inert_k(dr, am, idlm, idrk, icls, fok_i)   # exact, the arm's rules, or INERT
++            ist["rows"] += len(dr) + 1; ist["kx"] += kx0 + 1; ist["k"] += k + 1
++            ist["open"] += sum(1 for c_ in icls if c_[1] is not None)
++            for j, kind_, how_ in il_:
++                ist["whole" if how_ == "whole" else "ruled"] += 1; ist["com" if kind_ == "comment" else "doc"] += 1
++                ilog.write(prompt=name, check=FG["chk"], row=j, region=kind_, mode=how_, ctext=icls[j][2][-80:],
++                           draft=int(dr[j]), argmax=int(am[j]), dtext=dtx[j], atext=atx[j], rank=int(idrk[j]),
++                           dlm=round(idlm[j], 4), cf=round(float(cf_raw[j]), 4) if j < len(cf_raw) else None)
+         if fz is not None:
+             fst["k"] += k + 1
+         model.commit_verified_window(cache, snap.states, keep_tokens=k + 1, verified_tokens=len(dr) + 1)
+@@ -1195,6 +1239,8 @@
+             scan.feed("".join(_TKZ.decode([int(x)]) for x in new))
+         if sscan is not None:                            # R57_RELAX_SPAN: the committed tokens join the tagger's text
+             sscan.feed("".join(_TKZ.decode([int(x)]) for x in new))
++        if iscan is not None:                            # R57_INERT: the committed tokens join the tagger's text
++            iscan.feed("".join(_TKZ.decode([int(x)]) for x in new))
+         if cg is not None:                               # R57_COPY: the check labels the duel; the kept tokens join the window
+             t_ = time.perf_counter()
+             cg.learn(d0_, ci_, dr[:k] + [am[k]], k)         # the committed truth (== am[:k + 1] unless R57_FAST relaxed it)
+@@ -1255,6 +1301,8 @@
+     return dict(lh=lh_, out=out[:CAP], n=min(len(out), CAP), tps=min(len(out), CAP) / dec, drafter=drafter, hist=hist, a6=a6,
+                 rlx=rst if RLX_D > 0 else None,      # R57_RELAX_DELTA: rows checked, kept exact / in all, relaxed accepts
+                 spn=sst if SPAN else None,           # R57_RELAX_SPAN: rows checked, kept exact / in all, relaxed, span rows
++                inert=dict(ist, arm=INERT["name"]) if INERT is not None else None,   # R57_INERT: rows checked, kept exact / in
++                                                     # all, kept whole / by a rule, per region, rows open
+                 cyc=1e3 * med(cyc), ck=1e3 * med(ck_t),
+                 kept=float(np.mean(kept)), checks=len(kept), miss=float(np.median(sm[:, 0])), io=1e3 * float(np.median(sm[:, 1])),
+                 svc=1e3 * float(np.median(sm[:, 2])), slow=float(np.median(sm[:, 3])), drf=1e3 * med(drf), mem=mem,
+@@ -1339,7 +1387,7 @@
+             WSALL.append(dict(key=key, arm=arm, samples=r["wspl"]))
+         RUNS.append(dict(key=key, arm=arm, type=typ, bad=r["bad"], cut=r["cut"], P=len(ids),
+                          **{k_: r[k_] for k_ in ("drafter", "hist", "a6", "n", "tps", "tpsw", "kept", "checks", "cyc", "ck",
+-                                                 "drf", "miss", "io", "mb", "mpk", "mem", "copy", "fast", "pf", "lh")},
++                                                 "drf", "miss", "io", "mb", "mpk", "mem", "copy", "fast", "pf", "lh", "inert")},
+                          d7b=draft is DRAFT4))
+         m = min(len(want), r["n"])
+         agree = same(r["out"], want)

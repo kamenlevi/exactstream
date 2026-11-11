@@ -1,0 +1,20 @@
+FRI palindrome, C 192, 12 HumanEval (data/fri): u3c / qall / s99 / s90 / qallr / span, then mirrored; pair means. frx0 (relaxed copy, flags off) vs REF2-T: OK: runs 2, 128 tokens, differ []
+u3c    geo steady   82.5 tok/s over 12 (passes 12 / 12, first / second 89.8 / 75.1); kept per check 10.61; tokens per task 222; s per task 2.98; groups computed per check 1919; stalled layer calls per check 54.4
+qall   geo steady   86.8 tok/s over 12 (passes 12 / 12, first / second 88.3 / 85.3); kept per check 10.05; tokens per task 256; s per task 2.81; uses posted (pre-drop; the relaxed copy has no QOM counters) per check 2812; stalled layer calls per check 29.0
+s99    geo steady   81.3 tok/s over 12 (passes 12 / 12, first / second 71.9 / 90.7); kept per check 10.10; tokens per task 251; s per task 3.13; uses posted (pre-drop; the relaxed copy has no QOM counters) per check 2841 (strict rows per check 7.1); stalled layer calls per check 29.5
+s90    geo steady   89.1 tok/s over 12 (passes 12 / 12, first / second 85.8 / 92.2); kept per check 10.14; tokens per task 251; s per task 2.76; uses posted (pre-drop; the relaxed copy has no QOM counters) per check 2832 (strict rows per check 8.9); stalled layer calls per check 29.4
+qallr  geo steady   87.9 tok/s over 12 (passes 12 / 12, first / second 98.5 / 75.0); kept per check 11.04; tokens per task 251; s per task 2.90; uses posted (pre-drop; the relaxed copy has no QOM counters) per check 3024; stalled layer calls per check 32.4; relaxed accepts 21
+span   geo steady   78.5 tok/s over 12 (passes 12 / 12, first / second 88.9 / 67.8); kept per check 11.10; tokens per task 238; s per task 3.30; uses posted (pre-drop; the relaxed copy has no QOM counters) per check 3069; stalled layer calls per check 31.6; span: rows 5989, span rows 266, relaxed 24
+u3c vs qall: tok/s -5.0 % over 12, kept +5.6 %
+s99 vs qall: tok/s -6.3 % over 12, kept +0.5 %
+s90 vs qall: tok/s +2.7 % over 12, kept +0.9 %
+qallr vs qall: tok/s +1.3 % over 12, kept +9.9 %
+span vs qall: tok/s -9.5 % over 12, kept +10.4 %
+Verdict split s99 (pre-registered Thu 10:40): NOT PASS (PASS = tok/s >= +8 % vs qall AND kept within 1 %)
+Verdict split s90 (pre-registered Thu 10:40): NOT PASS (PASS = tok/s >= +8 % vs qall AND kept within 1 %)
+Verdict rule C (pre-registered): KILL; s per task 1.167x, tokens per task 1.000x vs qall (medians of per-prompt ratios over 12)
+split s99 engaged: strict rows per check 7.1; groups computed 2841 vs qall 2812 = 1.010x (Breakthrough's replay: x0.72 / x0.63 at C 160 on full blocks, x0.67 / x0.56 live-cut)
+split s90 engaged: strict rows per check 8.9; groups computed 2832 vs qall 2812 = 1.007x (Breakthrough's replay: x0.72 / x0.63 at C 160 on full blocks, x0.67 / x0.56 live-cut)
+C3-R8 groups per check: qall 2812 vs exact 3708 = 0.759x (audit: >= 0.85x)
+C3-R8 groups per check: s99 2841 vs exact 3708 = 0.766x (audit: >= 0.85x)
+C3-R8 groups per check: s90 2832 vs exact 3708 = 0.764x (audit: >= 0.85x)

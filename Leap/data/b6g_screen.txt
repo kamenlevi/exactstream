@@ -1,0 +1,22 @@
+B6-G FATT16-G screen Tue 15:08 (share lock, Mac otherwise idle)
+1a. fatt16g (12, 8): |err| vs fp64 max 1.28e-02 mean 1.73e-03
+1a. fatt16s KS 4: |err| vs fp64 max 1.25e-02 mean 1.75e-03
+1b. INV fg (12, 8) N 2000 R 16: (a) PASS, (b) PASS, (c) PASS, (d) PASS
+1b. INV fg (12, 8) N 2000 R 8: (a) PASS, (b) PASS, (c) PASS, (d) PASS, (e) PASS
+1b. INV fg (12, 8) N 10000 R 16: (a) PASS, (b) PASS, (c) PASS, (d) PASS
+1b. INV fg (12, 8) N 10000 R 8: (a) PASS, (b) PASS, (c) PASS, (d) PASS, (e) PASS
+1b. INV fg (12, 8) N 20000 R 16: (a) PASS, (b) PASS, (c) PASS, (d) PASS
+1b. INV fg (12, 8) N 20000 R 8: (a) PASS, (b) PASS, (c) PASS, (d) PASS, (e) PASS
+1b. INV fg (12, 4) N 10000 R 16: (a) PASS, (c) PASS
+1b. INV fg (12, 16) N 10000 R 16: (a) PASS, (c) PASS
+1b. INV fg (6, 8) N 10000 R 16: (a) PASS, (c) PASS
+1b. INV fg (4, 6) N 10000 R 16: (a) PASS, (c) PASS
+1c. N 2000: 12 chunks 0.349, one call 0.108, fs4 0.137, fg (12, 8) 0.171, fg (12, 4) 0.170, fg (12, 16) 0.200, fg (6, 8) 0.194, fg (4, 6) 0.183 ms per call; fg (12, 8) 0.80x vs fs4, 2.04x vs the 12 chunks
+1c. N 10000: 12 chunks 1.060, one call 0.487, fs4 0.514, fg (12, 8) 0.609, fg (12, 4) 0.670, fg (12, 16) 0.629, fg (6, 8) 0.660, fg (4, 6) 0.695 ms per call; fg (12, 8) 0.84x vs fs4, 1.74x vs the 12 chunks
+1c. N 10000 R 8: fg (12, 8) 0.431 ms per call = 1.41x faster than its R 16
+1c. N 20000: 12 chunks 1.531, one call 1.166, fs4 0.983, fg (12, 8) 1.158, fg (12, 4) 1.294, fg (12, 16) 1.174, fg (6, 8) 1.253, fg (4, 6) 1.345 ms per call; fg (12, 8) 0.85x vs fs4, 1.32x vs the 12 chunks
+1c. best config at 10K: (12, 8) (0.609 ms)
+2. T0 2000: ms per 16-row layer call ref2t 0.736, single 0.483, fs4 0.493, fg (12, 8) 0.532; fg (12, 8) 1.38x vs ref2t, 0.93x vs fs4; y vs ref2t mean |diff| / RMS single 3.5e-07, fs4 2.4e-03, fg (12, 8) 2.4e-03; SDPA taken {'ref2t': 'ref2', 'single': 'ref2', 'fs4': 'fatt', 'fg (12, 8)': 'fatt'}
+2. T0 10000: ms per 16-row layer call ref2t 1.909, single 1.312, fs4 1.104, fg (12, 8) 1.240; fg (12, 8) 1.54x vs ref2t, 0.89x vs fs4; y vs ref2t mean |diff| / RMS single 1.8e-06, fs4 2.2e-03, fg (12, 8) 2.2e-03; SDPA taken {'ref2t': 'ref2', 'single': 'ref2', 'fs4': 'fatt', 'fg (12, 8)': 'fatt'}
+2. T0 20000: ms per 16-row layer call ref2t 2.792, single 2.345, fs4 1.839, fg (12, 8) 2.120; fg (12, 8) 1.32x vs ref2t, 0.87x vs fs4; y vs ref2t mean |diff| / RMS single 2.1e-06, fs4 2.3e-03, fg (12, 8) 2.3e-03; SDPA taken {'ref2t': 'ref2', 'single': 'ref2', 'fs4': 'fatt', 'fg (12, 8)': 'fatt'}
+B6-G verdict (INV PASS; fg (12, 8) vs fs4 at 10K, SDPA level 0.84x; PASS >= 2.0x, KILL < 1.3x): KILL

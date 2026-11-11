@@ -1,0 +1,6 @@
+  ctx 1024: per 12-layer check base 36.09, S4 32.92, D2 34.42, both 31.51 ms; saved (paired) S4 3.56, D2 1.62, both 4.60; bitwise vs base (logits of 43 checks / all states): S4 True/True, D2 True/True, both True/True
+    in-check factors (x4 for 48 layers / standalone): S4 0.97 (the x1.3 question), D2 1.43; both 18.42 ms per 48-layer check vs 19.20 standalone
+  ctx 8192: per 12-layer check base 38.30, S4 35.02, D2 37.00, both 33.79 ms; saved (paired) S4 3.33, D2 1.47, both 4.55; bitwise vs base (logits of 43 checks / all states): S4 True/True, D2 True/True, both True/True
+    in-check factors (x4 for 48 layers / standalone): S4 0.91 (the x1.3 question), D2 1.30; both 18.19 ms per 48-layer check vs 19.20 standalone
+  swaps engaged: S4 4128 reads, D2 3612 matmuls
+R-36 verdict (PASS: every bit equal AND both >= 15.4 ms per 48 layers at 1K and 8K; KILL: any bit differs): PASS (worst context: both 18.19 ms per 48-layer check)

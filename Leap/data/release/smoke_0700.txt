@@ -1,0 +1,104 @@
+ENGINE PACKAGE: clean-clone SMOKE, Mon 9 Nov 2026 07:00 (RELEASE.md section 4; runner release/smoke_runner.sh, unchanged)
+
+PACKAGE TESTED: 63f41fa (snapshot rel0, BigMoE aa1ca3be, EvalSuite 738f52f5), clone prepped 00:32 (install rc 0, 6/6 dry runs).
+RUN: quiet ticket 07:00:12, granted 07:01:12 (NO-SWAP 54 GB, swap 6.72 GB), lock released 07:02:13 (66 s). HOME = an empty
+directory; HF_HUB_OFFLINE=1; 2 IFEval prompts (ifeval/1220, ifeval/3280), cap 64 tokens, then one free-text prompt (chat-45).
+Raw output: smoke_0700_runner.log (the runner's log, md5 d047e5d123ea8c9967c8058c5303aecd; the work dir's out/ and report.txt
+were removed by the 07:10 re-prep, see FIX).
+
+RESULTS [K]
+  exact-45  tokens vs verify/exact-45_ar.json: 2/2 keys prefix-equal (rc 0)
+            smoke line (cap 64, 2 prompts; NOT a paper number): whole decode 29.6 tok/s | whole request 14.0 tok/s |
+            first token 2.40 s (2.30-2.50) | lifetime peak 41.49 GB | process wall 22 s (load + warm-up included)
+            closure: modules 834, outside the clone + stdlib 0; files opened 3269, outside the allowed roots 1
+            (clone/weights/d22_b5.safetensors)
+  exact-32  tokens vs verify/exact-32_ar.json: 2/2 keys prefix-equal (rc 0)
+            smoke line: 27.6 tok/s | 13.6 tok/s | 2.39 s (2.27-2.50) | 30.38 GB | process wall 21 s
+            closure: modules 834 / 0 outside; files opened 3268 / 1 outside (the same d22_b5 link)
+  lossy-45, lossy-32, chat-45, chat-32: rc 1 after 2-3 s each:
+            r57_screen_rel0.py line 625 `_BT3._tier_glu()` -> bigmoe/tier.py line 105 `from tierglu import tier_glu`
+            -> ModuleNotFoundError: No module named 'tierglu'
+  text prompt (chat-45): rc 1 (the same crash)
+  VERDICT: CLEAN-CLONE FAIL (7) = 4 crashed configs + 2 closure flags + the text prompt.
+
+DIAGNOSIS
+1. tierglu (all four lossy / chat configs). Their FAST arm (R57_FAST=QOM) has 3-bit sure rows (t3), so the decode loop calls
+   bigmoe.tier._tier_glu() at module level; it puts ~/MoonShots/patches/planes_engine on sys.path and imports tierglu. With
+   HOME empty that directory does not exist. In the measured runs it loaded MoonShots' live file. The engine's module
+   manifest (R57_MODMAN, data/r57/<tag>_modules.json) records only modules under ~/Leap/, the drafters, ~/Breakthrough/ and
+   the snapshot, so tierglu never appears in a lossy / chat manifest (pdz4a_256_modules.json, the chat-45 reference run:
+   34 modules, no tierglu), and make_release.py built the package's closure from those manifests.
+   The package already held a byte-identical copy: kernels/ms_gdn/tierglu.py (from the snapshot's Leap_third_party/ms_gdn).
+     md5 tierglu.py         dc81729b3447cc930ab5d7685db191e6 in MoonShots (committed 2aeb5ad, 21 Oct; clean tree), Leap
+                            third_party/ms_gdn, BigMoE frozen_rel0 and the package
+     md5 gdn_exact.py       3b835480052f4a3ebe61b5624d232d13 (all four; committed 83109c8, 21 Oct)
+     md5 gdn_exact_patch.py 936c263552b9d12e1356a4be23af4d72 (all four)
+   The exact configs passed because they never call _tier_glu early; their tierglu came from kernels/ms_gdn through the
+   Leap kernels' own sys.path insert (the 07:01 exact-45 module record listed tierglu, gdn_exact, gdn_exact_patch there).
+2. Closure flag (both exact configs): the check resolves every opened path (realpath). clone/weights/* link to the work
+   dir's weights_src, whose links point into the research trees (TrainLab ckpt for d22_b5, Leap data for l120_ft). The
+   allowed roots lacked the weights although the test's header lists them. A check bug, not a closure gap.
+
+FIX (no engine logic changed; path strings only, as make_release.py already does for every other root)
+1. make_release.py: rewrite ~/MoonShots/patches/planes_engine -> @ROOT@/kernels/ms_gdn (two lines: engine/bigmoe/tier.py
+   102 and engine/bigmoe/loader.py 45, the BIGMOE_GDN_EXACT import); the live-path check now includes that root; the
+   manifest lists every other ~/ path the code still names (home_paths_left: 43).
+2. tools/clean_clone_test.sh: the closure check also allows the files clone/weights/* resolve to.
+
+CHECKS (CPU only)
+  - Rebuilt package 0a20f26 (rel0, BigMoE aa1ca3be): 222 files, leaks 0, live paths 0, syntax errors 0. Against 63f41fa
+    exactly 4 files differ: MANIFEST.json, engine/bigmoe/loader.py, engine/bigmoe/tier.py, tools/clean_clone_test.sh.
+    EvalSuite HEAD moved to 6f465d87; `git diff 738f52f5 HEAD -- evalsuite/` is empty.
+  - Re-prep 07:10 (share lock): install rc 0 in 14 s, drafter base found at the pinned revision, 6/6 dry runs.
+  - In the clone with HOME empty and the decode loop's sys.path: bigmoe.tier._tier_glu() + _lp1_patch() load tierglu from
+    <clone>/kernels/ms_gdn/tierglu.py (md5 dc81729b), the LP1 patch applies, 0 modules outside the clone + stdlib.
+  - The fixed closure check on the 07:01 exact-45 / exact-32 records (clone venv python): modules 0 / 0 outside, files
+    opened 0 / 0 outside (rc 0 both). Control with no weights links: d22_b5 flagged (rc 1).
+  - The other ~/ paths: Scout, PKD1, HC pack / pin switches are on EvalSuite's refused list; BIGMOE_PREFILL (lmp4pd) is
+    set nowhere; MoonShots planes125 is an optional self-test (runs only if the folder exists); the rest are bench
+    outputs, provenance records and the small-RAM variants' paths. Module-name collisions between the folders the measured
+    runs put on sys.path (SpecDecode, planes_engine, Scout, fusedproj, Breakthrough scripts, Fit12 scripts) and modules
+    the runs loaded: only planes_engine's gdn_exact, gdn_exact_patch, tierglu, all byte-identical (above).
+
+RE-RUN: smoke_runner.sh unchanged, armed 07:11 on 0a20f26 (tag smoke2, last start 11:00); result appended below.
+
+RE-RUN 1 (smoke2), Mon 07:13 on 0a20f26 (the same prompts, cap 64): quiet lock granted 07:13:15 (NO-SWAP 53 GB, swap 6.72 GB),
+released 07:16:14 (181 s). Raw: smoke2_0713/ (out/ + report.txt + runner_smoke2.log, archived before the next re-prep).
+  config    tokens vs verify/ (cap 64)                 smoke line (NOT paper numbers)                 closure (modules / opened outside)
+  exact-45  2/2 prefix-equal                            29.5 tok/s | 13.9 | 2.44 s | 41.49 GB          0 / 0 (834 modules, 3269 files)
+  exact-32  2/2 prefix-equal                            24.9 | 12.9 | 2.40 s | 30.38 GB                0 / 0 (834, 3268)
+  lossy-45  no reference shipped (information only)     32.0 | 13.6 | 2.70 s | 42.18 GB                0 / 0 (848, 3303)
+  lossy-32  no reference shipped (information only)     29.5 | 13.3 | 2.63 s | 31.07 GB                0 / 0 (848, 3302)
+  chat-45   1/2: ifeval/1220 == (64 of ref 192); ifeval/3280 differs at token 4    44.3 | 16.3 | 2.49 s | 43.75 GB    0 / 0 (849, 3353)
+  chat-32   1/2: ifeval/1220 == (64 of ref 184); ifeval/3280 differs at token 60   38.8 | 15.0 | 2.63 s | 31.07 GB    0 / 0 (848, 3302)
+  text prompt (chat-45): ran, 64 tokens of a coherent answer; 44.2 | 19.7 | 1.81 s | 43.71 GB
+  VERDICT: CLEAN-CLONE FAIL (2) = the two chat token checks. The tierglu crash and the closure flags are gone.
+HYPOTHESIS (tested by re-run 2): the chat references (pdz0_256, zs32_160; pdz4a_256 for rel1) are 12-IFEval-prompt runs at
+cap 256 in data/n45/keys.txt line 1's order; prompt 1 ran to 192 / 184 tokens before prompt 2. The smoke's cap 64 cut prompt 1
+at 64, so prompt 2 followed a different history. The chat configs take relaxed acceptance over the drafter's proposals with
+session state (R57_FAST=QOM, R57_RELAX_SPAN=1, R57_SVH=1, R57_SB1=1; the exact configs set none of these), so their tokens can
+depend on what the process decoded before; the exact configs cannot. Prompt 1 (same history: warm-up only) matched in both.
+TEST FIX (package dbe5ea6; no engine change): clean_clone_test.sh's default cap is 256 (the references' cap), and
+check_tokens.py --history (lossy, chat) checks a prompt only when the run's earlier prompts are the reference's, in order, and
+matched in full (same tokens and length); otherwise "information only". CPU tests of the check on real files: the cap-64
+chat runs -> prompt 1 checked ==, prompt 2 information only (rc 0); pdz4a vs pdz0 12/12 (rc 0); one token changed in prompt 1
+-> DIFFERS (rc 1); keys reversed -> nothing checked (rc 2); exact mode unchanged (exact-45 2/2, rc 0). README "Check your
+install" says so. make_release.py now also refuses to commit with a live research path left (the RELEASE text said so; the
+code only reported it). dbe5ea6 differs from 0a20f26 in README.md, tools/check_tokens.py, tools/clean_clone_test.sh and
+MANIFEST.json; re-prep 07:20 (install rc 0 in 11 s, 6/6 dry runs). BigMoE's lossy references (rel_rows.sh: rli_256 / rli_160)
+run the same 12 IFEval prompts in the same order at cap 256, one process each, so the same check applies to them.
+RE-RUN 2 (smoke3, cap 256): armed 07:21; result appended below.
+
+RE-RUN 2 (smoke3), Mon 07:28 on dbe5ea6 (the same two prompts, cap 256, check_tokens --history for lossy / chat): quiet lock
+granted 07:28:34 (NO-SWAP 55 GB, swap 6.71 GB), released 07:32:10 (221 s). Raw: smoke3_0728/ (out/ + report.txt + runner log).
+  config    tokens vs verify/                                              smoke line (2 prompts; NOT paper numbers)    closure
+  exact-45  2/2 prefix-equal (153 of 153; 256 of 265)                      32.1 tok/s | 23.0 | 2.54 s | 41.53 GB     0 / 0 (834, 3269)
+  exact-32  2/2 prefix-equal (153; 256)                                    30.3 | 22.3 | 2.41 s | 30.37 GB           0 / 0 (834, 3268)
+  lossy-45  information only (no reference yet); 154 + 139 tokens          33.5 | 20.5 | 2.78 s | 42.18 GB           0 / 0 (848, 3303)
+  lossy-32  information only; 154 + 139 tokens                             32.5 | 20.5 | 2.66 s | 31.07 GB           0 / 0 (848, 3302)
+  chat-45   2/2 with the reference's history (192 of 192; 235 of 235)      46.3 | 30.6 | 2.37 s | 43.68 GB           0 / 0 (849, 3353)
+  chat-32   2/2 with the reference's history (184 of 184; 256 of 256)      46.0 | 29.9 | 2.58 s | 31.06 GB           0 / 0 (848, 3302)
+  text prompt (chat-45): 87 tokens, a complete three-sentence answer; 42.7 | 22.8 | 1.78 s | 43.71 GB
+  chat-45 runs.json: pfd = {calls 48, fallback 0, bad_A / bad_B / bad_C 0, ...} (PF-D on); chat-32: pfd None (off), as configured.
+  VERDICT: CLEAN-CLONE PASS. The history hypothesis holds: with prompt 1 run to its end as in the reference, prompt 2 equals
+  the reference in full on both chat configs (235 and 256 tokens), where the cap-64 run diverged at token 4 / 60.

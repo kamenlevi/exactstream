@@ -1,0 +1,21 @@
+Random data (bitwise mismatches q / k / v / state and gated norm; 0 = equal):
+  scale x 1.0 w 0.3: S1 [0, 0, 0, 0, 0]  S2 [0, 0, 0, 0, 0]  S3 [0, 0, 0, 0, 0]  S5 [0, 0, 0, 0, 0]  S8 [0, 0, 0, 0, 0]  S12 [0, 0, 0, 0, 0]  S16 [0, 0, 0, 0, 0]
+  scale x 3.0 w 0.5: S1 [0, 0, 0, 0, 0]  S2 [0, 0, 0, 0, 0]  S3 [0, 0, 0, 0, 0]  S5 [0, 0, 0, 0, 0]  S8 [0, 0, 0, 0, 0]  S12 [0, 0, 0, 0, 0]  S16 [0, 0, 0, 0, 0]
+  scale x 0.2 w 1.0: S1 [0, 0, 0, 0, 0]  S2 [0, 0, 0, 0, 0]  S3 [0, 0, 0, 0, 0]  S5 [0, 0, 0, 0, 0]  S8 [0, 0, 0, 0, 0]  S12 [0, 0, 0, 0, 0]  S16 [0, 0, 0, 0, 0]
+  random data: ALL EQUAL
+
+Real data: tf_code/HumanEval/103, context 235, 30 GDN layers; norm weight mlx.core.bfloat16, conv mlx.core.bfloat16, A_log mlx.core.bfloat16, dt_bias mlx.core.bfloat16
+Fused mixer vs eager mixer, same S (bitwise mismatches out / state / conv state over the 30 layers; 0 = equal), and time:
+  S =  1: mismatches 0 / 0 / 0  EQUAL;  eager   3.45 ms, fused   3.20 ms, fused + tg recurrence   3.21 ms (out mismatches 0) (30 layers)
+           recurrence alone: mlx_lm  0.84 ms, tg  0.85 ms; tg vs mlx_lm mismatches y 0, state 0
+  S =  2: mismatches 0 / 0 / 0  EQUAL;  eager   3.71 ms, fused   3.35 ms, fused + tg recurrence   3.29 ms (out mismatches 0) (30 layers)
+           recurrence alone: mlx_lm  0.84 ms, tg  0.90 ms; tg vs mlx_lm mismatches y 0, state 0
+  S =  4: mismatches 0 / 0 / 0  EQUAL;  eager   4.18 ms, fused   3.61 ms, fused + tg recurrence   3.65 ms (out mismatches 0) (30 layers)
+           recurrence alone: mlx_lm  0.94 ms, tg  0.94 ms; tg vs mlx_lm mismatches y 0, state 0
+  S =  8: mismatches 0 / 0 / 0  EQUAL;  eager   6.10 ms, fused   5.69 ms, fused + tg recurrence   5.74 ms (out mismatches 0) (30 layers)
+           recurrence alone: mlx_lm  1.01 ms, tg  1.06 ms; tg vs mlx_lm mismatches y 0, state 0
+  S = 12: mismatches 0 / 0 / 0  EQUAL;  eager   8.40 ms, fused   7.95 ms, fused + tg recurrence   7.97 ms (out mismatches 0) (30 layers)
+           recurrence alone: mlx_lm  1.17 ms, tg  1.24 ms; tg vs mlx_lm mismatches y 0, state 0
+  S = 16: mismatches 508035 / 11389518 / 125;  eager  11.66 ms, fused   6.91 ms, fused + tg recurrence   7.06 ms (out mismatches 508035) (30 layers)
+           recurrence alone: mlx_lm  1.38 ms, tg  1.43 ms; tg vs mlx_lm mismatches y 0, state 0
+peak 20.2 GB

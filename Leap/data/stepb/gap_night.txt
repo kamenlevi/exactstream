@@ -1,0 +1,28 @@
+11-06 21:17:56 gap_night waiter start (pid 80425)
+11-06 23:40:11 gap_night2 waiter start (pid 37637; NO-SWAP 40.6 GB; BigMoE's turn45.log at line      231)
+11-06 23:42:42 BigMoE holds its quiet lock: queueing Leap's ticket
+queued #1; this returns when it's your turn and the Mac is quiet.
+your turn after 10s: quiet lock held until 00:02. Measure now, and `peer unlock` as soon as you're done.
+11-06 23:42:52 lock granted
+11-06 23:43:12 NO-SWAP 40.5 GB -> C 208
+11-06 23:43:12 STEP B start (pid 42687, NO-SWAP 40.5 GB -> C 208, arms: bstackF; md5 probe 63221d8d k d27a87fe)
+11-06 23:43:12 run stepb_bstackF_208_night (swap 6750 MB)
+11-06 23:44:03 done stepb_bstackF_208_night rc=0:   step B calibration: round trip 141 us (p10-p90 124-178), dependent dispatch 2.14 us; read floor (KB: cold / warm GB/s) 16: 2 / 7, 64: 70 / 65536, 256: 262144  FLAT-2 VERDICT: INVALID (FLAT nan ms; lines: PASS <= 30, BETWEEN 30-36, KILL > 36; 350 tok/s itself needs <= 25 at K 12: +nan ms from it); only 0 steady zero-mi 
+11-06 23:44:03 STEP B end (rc 0)
+11-06 23:44:03 STEP B start (pid 46524, NO-SWAP 47.4 GB -> C 208, arms: togs; md5 probe 63221d8d k d27a87fe)
+11-06 23:44:03 run stepb_togs_208_sbn (swap 6750 MB)
+11-06 23:46:03 done stepb_togs_208_sbn rc=0:   step B calibration: round trip 136 us (p10-p90 122-171), dependent dispatch 2.29 us; read floor (KB: cold / warm GB/s) 16: 2 / 1, 64: 6 / 6, 256: 29 / 18, 102 FLAT-2 VERDICT: INCOMPLETE (FLAT <= 46.37 ms; lines: PASS <= 30, BETWEEN 30-36, KILL > 36; 350 tok/s itself needs <= 25 at K 12: +21.37 ms from it) 
+11-06 23:46:03 STEP B end (rc 0)
+lock released
+11-06 23:46:03 runs done, lock released
+== stepb_bstackF_208_night_flat2.json (C 208; sync 0.134 ms)
+  pass 1 (cold, discarded)                     meas :  50 checks, rows 2-2, kept 2.00; draft 7.38, check+commit 55.90 (build 49.31, wait 6.17), misses 4506; GPU busy 42 % over 11.6 s
+  measured pass 1                              meas :  50 checks, rows 2-2, kept 2.00; draft 7.15, check+commit 44.17 (build 38.74, wait 5.15), misses 540; GPU busy 42 % over 9.1 s
+  stage pass                                   stage:  50 checks, rows 2-2, kept 2.00; draft 7.15, check+commit 43.39 (build 37.79, wait 5.09), misses 139; GPU busy 41 % over 9.1 s
+  probe pass                                   probe:  50 checks, rows 2-2, kept 2.00; draft 7.26, check+commit 43.91 (build 38.30, wait 5.09), misses 92; GPU busy 55 % over 14.5 s
+    FULL 16 rows (real experts, warm), 60 unsynced forwards: wall 46.06 ms (build 40.33, so 5.73 after the build); GPU busy 90 % over 2.9 s (65 samples) -> GPU ~41.3 ms per forward; synced split sum 57.70 ms (experts 24.98, gdn 11.05, att 6.03, hc_m 4.36, hc_a 4.08, moe_pre 3.48, moe 1.73, hc_w 1.14, ple 0.71, hc_f 0.13, layer 0.00)
+    DENSE-ONLY 16 rows (experts stubbed), 60 unsynced forwards: wall 22.84 ms (build 16.21, so 6.63 after the build); GPU busy 91 % over 1.5 s (33 samples) -> GPU ~20.7 ms per forward; synced split sum 26.31 ms (gdn 9.41, att 5.11, moe_pre 4.06, hc_m 2.78, hc_a 2.62, moe 0.71, ple 0.69, experts 0.45, hc_w 0.38, hc_f 0.10, layer 0.00)
+  TOGGLE ns:STEPB_SBN=4: passes 5, check + commit (zero-miss) per pass [nan, 42.41, 44.74, 42.98, 43.02], cycles [nan, 49.61, 51.9, 50.19, 50.12], n [0, 19, 44, 48, 49]
+  TOGGLE ns:STEPB_SBN=2: passes 5, check + commit (zero-miss) per pass [36.85, 36.77, 37.17, 37.2, 37.42], cycles [43.98, 44.03, 44.29, 44.37, 44.63], n [8, 23, 47, 49, 49]
+  TOGGLE paired (B - A per pass pair, check + commit): [-5.64, -7.57, -5.79, -5.6] -> median -5.71 ms (ns:STEPB_SBN: 4 -> 2)
+11-06 23:46:03 gap_night2 end

@@ -1,0 +1,22 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=35.4 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.20 GB pools
+b12: hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.20 GB, active 9.68 GB
+fit12: budget b16: 48 routers
+[ref_b16] code: prefill 326 tokens in 4.80 s
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[ref_b16] code k=3: 27.1 tok/s, 3.28 tok/pass, 78 passes | per pass: verify 112.5 ms, draft 8.2 ms, head 0.3 ms, waited 374.7, reads 386.9, pf issued 0.0 used 0.0, SSD 5.6 GB/s 677 MB | peak footprint 11.35 GB | loader per pass: stalled calls 88.2 of 99.0, stall 71.4 ms, io 70.8 ms | sha e8cdd4f289 | '```python\nimport re\nimport argparse\nfrom collections import defaultdict\nfrom typing import List, Dict, Tuple, Optional\n\n\n# Regex to match log lines\nLINE = re.compile(\n    r'
+[ref_b16] lru: prefill 44 tokens in 2.43 s
+[ref_b16] lru k=3: 27.9 tok/s, 3.51 tok/pass, 73 passes | per pass: verify 116.0 ms, draft 9.5 ms, head 0.3 ms, waited 403.0, reads 420.1, pf issued 0.0 used 0.0, SSD 6.0 GB/s 749 MB | peak footprint 11.35 GB | loader per pass: stalled calls 87.7 of 99.0, stall 76.7 ms, io 76.1 ms | sha 93051badd5 | '```python\nimport threading\nfrom collections import OrderedDict\n\n\nclass LRUCache:\n    """\n    A thread-safe LRU (Least Recently Used) cache with a fixed capacity.\n    \n   '
+[ref_b16] csv: prefill 51 tokens in 2.67 s
+[ref_b16] csv k=3: 27.6 tok/s, 3.24 tok/pass, 79 passes | per pass: verify 108.3 ms, draft 8.7 ms, head 0.3 ms, waited 349.5, reads 364.0, pf issued 0.0 used 0.0, SSD 5.5 GB/s 648 MB | peak footprint 11.35 GB | loader per pass: stalled calls 84.9 of 99.0, stall 68.3 ms, io 67.7 ms | sha af9a73ec1a | '```python\nimport csv\nimport sys\nfrom collections import defaultdict\nfrom datetime import datetime\n\n\ndef read_transactions(filename: str) -> list:\n    """Read transactions from a CSV file.\n'
+[ref_b16] tfg1: prefill 138 tokens in 3.69 s
+[ref_b16] tfg1 k=3: 28.2 tok/s, 3.56 tok/pass, 72 passes | per pass: verify 117.4 ms, draft 8.5 ms, head 0.3 ms, waited 419.7, reads 433.2, pf issued 0.0 used 0.0, SSD 5.9 GB/s 746 MB | peak footprint 11.84 GB | loader per pass: stalled calls 92.2 of 99.0, stall 77.4 ms, io 76.8 ms | sha ce8f209312 | 'To find the total number of games Steve has after 3 years, we need to sum the games from the initial gift, the monthly purchases over the three years, and the Christmas gifts.\n\n**'
+[ref_b16] tfg2: prefill 72 tokens in 3.04 s
+[ref_b16] tfg2 k=3: 27.4 tok/s, 3.56 tok/pass, 72 passes | per pass: verify 120.6 ms, draft 8.7 ms, head 0.3 ms, waited 434.4, reads 449.0, pf issued 0.0 used 0.0, SSD 6.1 GB/s 794 MB | peak footprint 12.02 GB | loader per pass: stalled calls 91.4 of 99.0, stall 80.9 ms, io 80.3 ms | sha 33e79883ed | 'To find the number of additional hours required, we first determine the speed of the plane.\n\n1.  **Calculate the speed:**\n    The plane travels 1200 miles in '
+[ref_b16] done

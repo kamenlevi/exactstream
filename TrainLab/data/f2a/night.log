@@ -1,0 +1,19 @@
+[Sun 19:51:52] F2a night v3 armed: not before Sun 23:01; stage 1 only, queued behind the 23:00 ticket (capture to 02:15, train to 03:15, eval to 03:30, then unlock, the DONE file data/f2a/STAGE1_DONE and the closing log line); stage 2 only if data/f2a/FULL_NIGHT exists; disk 56 GB free
+[Sun 23:01:58] lock: your turn after 0s: quiet lock held until 06:49. Measure now, and `peer unlock` as soon as you're done.
+[Sun 23:01:58] NO-SWAP 45 GB -> capture frac 0.25
+[Sun 23:01:58] phase capture start (swap 5295.00 MB, NO-SWAP 45 GB, disk 57 GB, ring 0 windows): env F2A_RING_GB=50 F2A_DISK_MIN=28 /Users/kamen/BigMoE/.venv/bin/python3 -I sticky/f2a_capture.py --frac 0.25 --eval 24
+[Sun 23:29:15] capture: swap +2 GB -> SIGTERM
+[Sun 23:29:30] capture: swap +2 GB -> SIGTERM
+./turns/f2a_night.sh: line 73: kill: (63973) - No such process
+[Sun 23:29:30] phase capture rc=0: [f2a-cap] STOP (SIGTERM): 241 windows, 101,070 tokens in the ring (1.9 GB); 1638 s
+[Sun 23:29:30] phase train start (swap 7408.00 MB, NO-SWAP 52 GB, disk 53 GB, ring 241 windows): env F2A_EPOCHS=2 /Users/kamen/BigMoE/.venv/bin/python3 -I sticky/f2a_train.py
+[Sun 23:47:32] phase train rc=0: [f2a-train] DONE: 482 steps in 1076 s
+[Sun 23:47:32] phase eval start (swap 7175.81 MB, NO-SWAP 48 GB, disk 53 GB, ring 241 windows): /Users/kamen/BigMoE/.venv/bin/python3 -I sticky/f2a_eval.py f2a
+[Sun 23:48:17] phase eval rc=0: Verdict F2a (f2a vs b5; pre-registered): KILL: held-out kept x1.014 (geo of IFEval x1.014, multi x1.013), on-policy IFEval kept x1.002 (PASS >= x1.08 AND on-policy >= x1.05; KILL < x1.03)
+Verdict F2a (f2a vs b5; pre-registered): KILL: held-out kept x1.014 (geo of IFEval x1.014, multi x1.013), on-policy IFEval kept x1.002 (PASS >= x1.08 AND on-policy >= x1.05; KILL < x1.03)
+[Sun 23:48:18] committed: F2a night stage 1: ring 1 = 241 windows, f2a vs b5 (verdict in data/f2a/f2a_eval.txt)
+[Sun 23:48:18] stage 2 not run (amendment 3: stage 1 only unless data/f2a/FULL_NIGHT exists; flag absent, time 23:48)
+[Sun 23:48:18] committed: F2a night: logs (data/f2a)
+lock released
+[Sun 23:48:18] DONE file: data/f2a/STAGE1_DONE (stage 1: Verdict F2a (f2a vs b5; pre-registered): KILL: held-out kept x1.014 (geo of IFEval x1.014, multi x1.013), on-policy IFEval kept x1.002 (PASS >= x1.08 AND on-policy >= x1.)
+[Sun 23:48:18] F2a night DONE

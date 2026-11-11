@@ -1,0 +1,48 @@
+--- a/scripts/r57_screen.py
++++ b/scripts/r57_screen.py
+@@ -741,6 +741,34 @@
+     _h8 = hc8r.hc8_install(model)
+     ref2.CFG["hc8_fast"] = True
+     print(f"[r57] HC8: {_h8[0]} mixers 8-bit ({_h8[1]:.0f} -> {_h8[2]:.0f} MB), hc8_fast v{ref2.CFG.get('hc8_v')}", flush=True)
++# FAST-TAX (Fable B Thu 11-05; ~/FableGod/fableb/LOSSY350_B.md section 4, build_1105/INSTALL.md; FAST ONLY, off unless set):
++# the exact track's dense machinery that a FAST arm does not owe. R57_FASTTAX=1 (or a list: att, inproj, att+inproj) turns
++# on ref2's two REF2c pieces, which no FAST arm carried:
++#   att     ref2 att_single (R-62): each 16-row attention call as ONE fused SDPA instead of MTPLX's 12 head chunks. Bitwise
++#           == REF2-T below 512 keys, other bits past it; the key buckets and the class re-runs stay. Leap GDNB-2: -0.2 ms
++#           per call, 12 calls per check. With REF2_FATT_VERIFY=1 fs4 keeps the bool-mask calls and att covers the rest.
++#   inproj  ref2 gdn_inproj (R-68): a GDN layer's qkv | z | b | a as one padded 4-bit matmul (b's bits change). NOT with
++#           R57_DNR=1: ref2's _InProjPad concatenates the four modules' packs as stored, and DENSE-N-RAM has replaced
++#           qkv / z by 4-D native copies. "1" then skips it (K-83's exact gdn_inproj_x keeps the layer); "inproj" asserts.
++# Unset or empty: nothing below runs (build_1105/check_fasttax.py: the AST without these two blocks == the file before).
++if os.environ.get("R57_FASTTAX"):
++    _ft = os.environ["R57_FASTTAX"].replace("+", ",").split(",")
++    _ft = ["att", "inproj"] if _ft == ["1"] else _ft
++    assert set(_ft) <= {"att", "inproj"}, f"R57_FASTTAX={os.environ['R57_FASTTAX']}: the pieces are att, inproj (or 1)"
++    assert FAST and not os.environ.get("R57_REFTOK"), \
++        "R57_FASTTAX is FAST-only (tokens differ from REF2-T past 512 keys): set R57_FAST=<arm> and R57_REFTOK= (empty)"
++    assert "att_single" in ref2.CFG and "gdn_inproj" in ref2.CFG, "Leap's ref2 has no att_single / gdn_inproj"
++    if "inproj" in _ft and os.environ.get("R57_DNR") == "1":
++        assert os.environ["R57_FASTTAX"] == "1", \
++            "R57_FASTTAX=inproj cannot run with R57_DNR=1 (ref2's _InProjPad is not DENSE-N-RAM-aware)"
++        _ft = [_p_ for _p_ in _ft if _p_ != "inproj"]
++        print("[r57] FAST-TAX: gdn_inproj skipped under R57_DNR=1 (K-83's gdn_inproj_x stays)", flush=True)
++    if "att" in _ft:
++        ref2.CFG["att_single"] = True
++    if "inproj" in _ft:
++        ref2.CFG["gdn_inproj"] = True
++    print(f"[r57] FAST-TAX: {' + '.join(_ft)} on (ref2 att_single {ref2.CFG['att_single']}, gdn_inproj "
++          f"{ref2.CFG['gdn_inproj']}, fatt_verify {ref2.CFG.get('fatt_verify')})", flush=True)
+ 
+ HEADC = os.environ.get("R57_HEADC") == "1"              # Leap 1e0676d (BP-7, exact-safe): the drafter's head logits on qmm16c
+ if HEADC:                                                # (-0.56 ms per propose; falls back for a non-4-bit / native head or
+@@ -1406,6 +1434,10 @@
+     _c = ref2.counts()
+     say("  build-day engagement (ref2 counts at graph build): " + ", ".join(
+         f"{k_} {v_}" for k_, v_ in sorted(_c.items()) if any(s_ in k_ for s_ in ("ooo_1c", "hc8", "dense_native", "hc_b"))))
++if os.environ.get("R57_FASTTAX"):                       # FAST-TAX engagement (ref2 counts at graph build)
++    _c = ref2.counts()
++    say("  FAST-TAX engagement: " + ", ".join(f"{k_} {_c.get(k_)}" for k_ in (
++        "att_single", "gdn_inproj", "gdn_inproj_x", "fatt_verify", "verify_old", "verify_old_eligible", "sdpa_split", "kb_pad")))
+ if WSALL:                                               # per sample: warm ms vs rows (1 / 4 / 8 / 16) -> slope + intercept;
+     sl_, ic_, ex_, cm_, wm_ = [], [], [], [], []         # cold 16 - warm 16 = the SSD's exposed share (+ cold-only effects)
+     for d in WSALL:

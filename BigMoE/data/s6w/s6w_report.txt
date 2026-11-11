@@ -1,0 +1,7 @@
+S6W A/B (wired limit), C 256 (data/s6w): B / W / W / B; freeze windows [('02:47:37', '02:48:18'), ('03:05:46', '03:06:47'), ('05:11:06', '05:12:07'), ('06:17:59', '06:19:00')]; passes dropped for a freeze: none; W passes that logged the wired limit: 2 / 2
+B: WHOLE DECODE  142.2 tok/s (s6b1 138.9, s6b2 145.5); full period  169.3 (s6b1 166.7, s6b2 171.7); tpsw  169.8
+    check 0 320 ms (median); median cycle 64.9 ms; kept per check 10.75; tokens per task 242; lifetime peak 42.9 GB
+W: WHOLE DECODE  181.2 tok/s (s6w1 183.9, s6w2 178.4); full period  176.5 (s6w1 179.9, s6w2 173.0); tpsw  177.0
+    check 0 65 ms (median); median cycle 63.5 ms; kept per check 11.03; tokens per task 241; lifetime peak 42.9 GB
+Verdict S6W wired limit (pre-registered, BigMoE + NewIdeas' call): PASS: WHOLE DECODE +27.4 % vs B over 12; full period +4.3 %; W lifetime peak 42.9 GB (PASS >= +8 % AND full period >= -2 % AND peak <= 45.0 GB; KILL < +3 % or peak > 45.0 GB). tpsw +4.3 %. -> W joins v1' for S5 (R57_WIRED=1)
+tokens identical per prompt: W vs B [7, 9] of 12; floor B1 vs B2 7; W1 vs W2 7 (QOM varies run to run; carry-over proof = Leap's exact bitwise check)

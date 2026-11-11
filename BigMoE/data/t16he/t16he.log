@@ -1,0 +1,13 @@
+11-07 14:31:15 T16-HE A/B start (pid 97760, NO-SWAP 52.6 GB, C 256, snapshot d8eb2e4)
+11-07 14:32:45 t6b1 rc=0
+11-07 14:34:15 t6t1 rc=0
+11-07 14:35:46 t6t2 rc=0
+11-07 14:37:21 t6b2 rc=0
+T16-HE A/B (T16 on HumanEval, v1' + wired), C 256 (data/t16he): B / T / T / B; freeze windows [('02:47:37', '02:48:18'), ('03:05:46', '03:06:47'), ('05:11:06', '05:12:07'), ('06:17:59', '06:19:00')]; passes dropped for a freeze: none; live outside modules: 0
+B: WHOLE DECODE  173.2 tok/s (t6b1 172.3, t6b2 173.8); full period  168.0 (t6b1 167.7, t6b2 168.0)
+    check 0 68 ms; median cycle 63.6 ms; kept per check 10.56; tokens per task 246; lifetime peak 42.9 GB
+T: WHOLE DECODE  173.2 tok/s (t6t1 169.2, t6t2 176.6); full period  167.8 (t6t1 163.6, t6t2 171.3)
+    check 0 67 ms; median cycle 65.5 ms; kept per check 10.89; tokens per task 246; lifetime peak 42.9 GB
+Verdict T16-HE (pre-registered, MTP Head ~/TrainLab/REPORT.md T16-HE bccd23c): KILL: WHOLE DECODE -0.0 % vs B over 12; T lifetime peak 42.9 GB; median tokens per task T / B 1.000; runaways (T at the cap 256 where both B ended) none (PASS >= +3 % AND peak <= 45.0 AND tokens <= 1.05 AND no runaway; KILL < +1 % or peak > 45.0 or a runaway)
+Beside: full period -0.2 %; T16 rule-kept rows 47 (rows in spans 2912; INERT log lines 47); tokens identical T vs B [3, 4] of 12; floor B1 vs B2 8
+11-07 14:37:21 report rc=0 (data/t16he/t16he_report.txt)

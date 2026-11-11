@@ -1,0 +1,18 @@
+L1-20 verdict aid + L1-21 lattice screen: weights data/l120_ft.safetensors, 24 public HumanEval samples, teacher-forced official loop; tok/s at the ~280 stack (pass = (2.1 + 5.06 x (rows/16)^0.72) GB / 224 GB/s + drafting)
+  block 16 selector, truncate t 0.0   :  9.54 tokens per pass at 16.0 rows,  269 tok/s at the stack (top-8:  254) (666 blocks, 14 s)
+  block 16 selector, truncate t 0.1   :  9.48 tokens per pass at 12.8 rows,  298 tok/s at the stack (top-8:  282) (670 blocks, 14 s)
+  block 16 selector, truncate t 0.3   :  9.22 tokens per pass at 11.0 rows,  311 tok/s at the stack (top-8:  296) (689 blocks, 14 s)
+  block 16 selector, truncate t 0.5   :  8.58 tokens per pass at  9.6 rows,  308 tok/s at the stack (top-8:  294) (740 blocks, 15 s)
+  block 16 ORACLE over top-16 lattice : 12.83 tokens per pass at 16.0 rows,  362 tok/s at the stack (top-8:  342) (495 blocks, 10 s)
+      top-16 recall by depth: 1.00 0.99 0.97 0.96 0.94 0.93 0.91 0.90 0.90 0.87 0.84 0.82 0.82 0.78 0.80
+  block 16 ORACLE over top-64 lattice : 14.11 tokens per pass at 16.0 rows,  398 tok/s at the stack (top-8:  376) (450 blocks, 9 s)
+      top-64 recall by depth: 1.00 0.99 0.99 0.98 0.98 0.97 0.97 0.95 0.95 0.94 0.95 0.93 0.92 0.94 0.91
+  block 32 selector, truncate t 0.0   : 10.23 tokens per pass at 32.0 rows,  202 tok/s at the stack (top-8:  190) (621 blocks, 16 s)
+  block 32 selector, truncate t 0.1   : 10.15 tokens per pass at 15.0 rows,  295 tok/s at the stack (top-8:  279) (626 blocks, 16 s)
+  block 32 selector, truncate t 0.3   :  9.73 tokens per pass at 12.0 rows,  313 tok/s at the stack (top-8:  298) (653 blocks, 16 s)
+  block 32 selector, truncate t 0.5   :  8.91 tokens per pass at 10.0 rows,  311 tok/s at the stack (top-8:  296) (713 blocks, 18 s)
+  block 32 ORACLE over top-16 lattice : 16.00 tokens per pass at 32.0 rows,  316 tok/s at the stack (top-8:  296) (397 blocks, 9 s)
+      top-16 recall by depth: 1.00 0.97 0.94 0.90 0.86 0.83 0.80 0.75 0.72 0.70 0.64 0.61 0.59 0.59 0.57 0.54
+  block 32 ORACLE over top-64 lattice : 20.29 tokens per pass at 32.0 rows,  401 tok/s at the stack (top-8:  376) (313 blocks, 7 s)
+      top-64 recall by depth: 1.00 0.99 0.97 0.95 0.94 0.94 0.91 0.90 0.90 0.86 0.87 0.82 0.79 0.86 0.81 0.80
+350 at the stack needs: 12.4 tokens per 16-row pass; at 32 rows ~17.7 (pass ~50.5 ms); top-8 stack: 13.1 / 18.9

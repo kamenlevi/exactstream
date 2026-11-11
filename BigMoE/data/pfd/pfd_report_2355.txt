@@ -1,0 +1,57 @@
+PFD (data/pfd; snapshot 366c452; C 256; quiet): per prompt TTFT (pfs), prefill SSD GB (PFSTAT), PF-D rows A (base + side pooled) / B (base pooled, side read) / C (read as today); tokens and logits hash vs the arm's control; lifetime peak (line 45.0)
+Part A (the 12 N45 IFEval prompts)
+  pdz0 zs = M1-B + COH + SB1 (chat; control), CAP 256: TTFT mean 3.02 s (median 2.91, 2.34-3.74); SSD 20.4 GB per prompt; rows A 0 / B 0 / C 0; == AR 2/12; whole decode 50.3 tok/s, whole request 24.6 tok/s; check 39.2 ms (CPU build 33.8; after a prompt's 16th check 37.9); lifetime peak 42.40 GB
+      ifeval/1219: P 74, TTFT 3.47 s, SSD 24.1 GB, A/B/C -/-/-
+      ifeval/1220: P 43, TTFT 2.62 s, SSD 17.0 GB, A/B/C -/-/-
+      ifeval/1262: P 57, TTFT 3.22 s, SSD 22.1 GB, A/B/C -/-/-
+      ifeval/1561: P 66, TTFT 3.13 s, SSD 21.8 GB, A/B/C -/-/-
+      ifeval/2239: P 37, TTFT 2.34 s, SSD 15.6 GB, A/B/C -/-/-
+      ifeval/2439: P 78, TTFT 3.51 s, SSD 24.3 GB, A/B/C -/-/-
+      ifeval/2590: P 48, TTFT 2.89 s, SSD 19.3 GB, A/B/C -/-/-
+      ifeval/2853: P 52, TTFT 2.93 s, SSD 19.8 GB, A/B/C -/-/-
+      ifeval/2870: P 42, TTFT 2.66 s, SSD 16.9 GB, A/B/C -/-/-
+      ifeval/3280: P 46, TTFT 2.85 s, SSD 18.9 GB, A/B/C -/-/-
+      ifeval/3407: P 54, TTFT 2.84 s, SSD 19.2 GB, A/B/C -/-/-
+      ifeval/374: P 101, TTFT 3.74 s, SSD 25.9 GB, A/B/C -/-/-
+  pdz1 zs + PF-D, CAP 256: TTFT mean 2.39 s (median 2.32, 1.97-2.79); SSD 7.5 GB per prompt; rows A 25965 / B 39880 / C 22002; tokens == pdz0 12/12; logits hash 721/721; == AR 2/12; whole decode 50.1 tok/s, whole request 27.4 tok/s; check 39.4 ms (CPU build 34.1; after a prompt's 16th check 38.1); lifetime peak 43.40 GB
+      ifeval/1219: P 74, TTFT 2.70 s, SSD 8.2 GB, A/B/C 2690/4091/1857, tokens ==, hash 95/95
+      ifeval/1220: P 43, TTFT 2.27 s, SSD 9.5 GB, A/B/C 1167/2076/2851, tokens ==, hash 90/90
+      ifeval/1262: P 57, TTFT 2.72 s, SSD 8.4 GB, A/B/C 2177/3682/2057, tokens ==, hash 28/28
+      ifeval/1561: P 66, TTFT 2.41 s, SSD 7.7 GB, A/B/C 2560/3393/1865, tokens ==, hash 4/4
+      ifeval/2239: P 37, TTFT 1.97 s, SSD 4.7 GB, A/B/C 1921/2697/981, tokens ==, hash 3/3
+      ifeval/2439: P 78, TTFT 2.72 s, SSD 8.5 GB, A/B/C 2580/4211/1950, tokens ==, hash 26/26
+      ifeval/2590: P 48, TTFT 2.28 s, SSD 6.5 GB, A/B/C 2123/3343/1473, tokens ==, hash 121/121
+      ifeval/2853: P 52, TTFT 2.25 s, SSD 7.1 GB, A/B/C 2107/3275/1700, tokens ==, hash 102/102
+      ifeval/2870: P 42, TTFT 2.11 s, SSD 5.7 GB, A/B/C 1870/2911/1282, tokens ==, hash 70/70
+      ifeval/3280: P 46, TTFT 2.37 s, SSD 8.9 GB, A/B/C 1670/2615/2508, tokens ==, hash 101/101
+      ifeval/3407: P 54, TTFT 2.15 s, SSD 6.2 GB, A/B/C 2246/3279/1353, tokens ==, hash 63/63
+      ifeval/374: P 101, TTFT 2.79 s, SSD 9.1 GB, A/B/C 2854/4307/2125, tokens ==, hash 18/18
+  pdz1i zs + PF-D installed but idle (R57_PFD_IDLE=1: every call takes today's path), CAP 256: TTFT mean 2.99 s (median 2.90, 2.31-3.74); SSD 20.4 GB per prompt; rows A 0 / B 0 / C 0; tokens == pdz0 12/12; logits hash 721/721; == AR 2/12; whole decode 50.6 tok/s, whole request 24.8 tok/s; check 39.0 ms (CPU build 33.6; after a prompt's 16th check 37.7); lifetime peak 42.40 GB
+      ifeval/1219: P 74, TTFT 3.52 s, SSD 24.1 GB, A/B/C 0/0/0, tokens ==, hash 95/95
+      ifeval/1220: P 43, TTFT 2.50 s, SSD 17.0 GB, A/B/C 0/0/0, tokens ==, hash 90/90
+      ifeval/1262: P 57, TTFT 3.21 s, SSD 22.0 GB, A/B/C 0/0/0, tokens ==, hash 28/28
+      ifeval/1561: P 66, TTFT 3.12 s, SSD 21.8 GB, A/B/C 0/0/0, tokens ==, hash 4/4
+      ifeval/2239: P 37, TTFT 2.31 s, SSD 15.6 GB, A/B/C 0/0/0, tokens ==, hash 3/3
+      ifeval/2439: P 78, TTFT 3.56 s, SSD 24.3 GB, A/B/C 0/0/0, tokens ==, hash 26/26
+      ifeval/2590: P 48, TTFT 2.90 s, SSD 19.3 GB, A/B/C 0/0/0, tokens ==, hash 121/121
+      ifeval/2853: P 52, TTFT 2.90 s, SSD 19.7 GB, A/B/C 0/0/0, tokens ==, hash 102/102
+      ifeval/2870: P 42, TTFT 2.63 s, SSD 16.9 GB, A/B/C 0/0/0, tokens ==, hash 70/70
+      ifeval/3280: P 46, TTFT 2.73 s, SSD 18.9 GB, A/B/C 0/0/0, tokens ==, hash 101/101
+      ifeval/3407: P 54, TTFT 2.76 s, SSD 19.2 GB, A/B/C 0/0/0, tokens ==, hash 63/63
+      ifeval/374: P 101, TTFT 3.74 s, SSD 25.9 GB, A/B/C 0/0/0, tokens ==, hash 18/18
+  pdz1p zs + PF-D, reader threads shut down after each call (R57_PFD_POOL=call), CAP 256: TTFT mean 2.33 s (median 2.25, 1.84-2.74); SSD 7.5 GB per prompt; rows A 25965 / B 39880 / C 22002; tokens == pdz0 12/12; logits hash 721/721; == AR 2/12; whole decode 50.8 tok/s, whole request 28.0 tok/s; check 38.8 ms (CPU build 33.4; after a prompt's 16th check 37.6); lifetime peak 43.40 GB
+      ifeval/1219: P 74, TTFT 2.70 s, SSD 8.1 GB, A/B/C 2690/4091/1857, tokens ==, hash 95/95
+      ifeval/1220: P 43, TTFT 2.22 s, SSD 9.4 GB, A/B/C 1167/2076/2851, tokens ==, hash 90/90
+      ifeval/1262: P 57, TTFT 2.61 s, SSD 8.4 GB, A/B/C 2177/3682/2057, tokens ==, hash 28/28
+      ifeval/1561: P 66, TTFT 2.33 s, SSD 7.6 GB, A/B/C 2560/3393/1865, tokens ==, hash 4/4
+      ifeval/2239: P 37, TTFT 1.84 s, SSD 4.7 GB, A/B/C 1921/2697/981, tokens ==, hash 3/3
+      ifeval/2439: P 78, TTFT 2.65 s, SSD 8.5 GB, A/B/C 2580/4211/1950, tokens ==, hash 26/26
+      ifeval/2590: P 48, TTFT 2.20 s, SSD 6.5 GB, A/B/C 2123/3343/1473, tokens ==, hash 121/121
+      ifeval/2853: P 52, TTFT 2.20 s, SSD 7.1 GB, A/B/C 2107/3275/1700, tokens ==, hash 102/102
+      ifeval/2870: P 42, TTFT 1.99 s, SSD 5.7 GB, A/B/C 1870/2911/1282, tokens ==, hash 70/70
+      ifeval/3280: P 46, TTFT 2.29 s, SSD 8.9 GB, A/B/C 1670/2615/2508, tokens ==, hash 101/101
+      ifeval/3407: P 54, TTFT 2.14 s, SSD 6.1 GB, A/B/C 2246/3279/1353, tokens ==, hash 63/63
+      ifeval/374: P 101, TTFT 2.74 s, SSD 9.0 GB, A/B/C 2854/4307/2125, tokens ==, hash 18/18
+  pdz4a zs + PF-D v4 exact + read-ahead (R57_PFD_V=4, R57_PFD_AHEAD=1), CAP 256: MISSING
+  pdzfa zs + PF-D FAST (3-bit side-absent experts; LOSSY) + read-ahead, CAP 256: MISSING
+  pde4k E + PF-D v4 + read-ahead + CHECK (timing void), CAP 16: MISSING

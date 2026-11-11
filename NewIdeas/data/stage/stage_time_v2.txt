@@ -1,0 +1,20 @@
+SSD model v2 (0.06 ms floor, min(8.1 GB/s per read, 14.0 shared))
+fast engine, MTP 4-row passes (0.30+0.33 ms/layer + 3 ms), C=51:
+  k=0 now   q=0 same=0:  61.2 tok/s (+0 %)   49.1 ms/pass  waited  61.1  reads   61.1
+  k=2 now   q=0.3 same=0:  63.8 tok/s (+4 %)   47.1 ms/pass  waited  24.0  reads  102.8
+  k=2 after q=0.0 same=0:  67.0 tok/s (+10 %)   44.7 ms/pass  waited  32.8  reads  118.8
+  k=2 after q=0.3 same=0:  71.0 tok/s (+16 %)   42.3 ms/pass  waited  24.0  reads  102.8
+  k=2 after q=0.3 same=0.8:  75.6 tok/s (+24 %)   39.7 ms/pass  waited   5.1  reads  102.8
+  oracle top-2 after:  85.2 tok/s (+39 %)
+Breakthrough's v3 MTP engine (0.60+0.63 ms/layer + 3 ms):
+  C=51 k=0 now   q=0:  38.5 tok/s (+0 %)   77.9 ms/pass  waited  61.1  reads   61.1
+  C=47 k=2 now   q=0.3:  39.5 tok/s (+2 %)   76.0 ms/pass  waited  25.3  reads  107.0
+  C=47 k=2 after q=0.0:  41.6 tok/s (+8 %)   72.1 ms/pass  waited  34.5  reads  123.4
+  C=47 k=2 after q=0.3:  42.9 tok/s (+11 %)   69.9 ms/pass  waited  25.3  reads  107.0
+  C=51 k=2 after q=0.3:  43.2 tok/s (+12 %)   69.5 ms/pass  waited  24.0  reads  102.8
+EXACT track C=128 (0.45+0.50 + 5 ms):
+  d=1 k=0 now   same=0:  30.7 tok/s (+0 %)   97.8 ms/pass  demand 221.2  reads  221.2
+  d=1 k=4 now   same=0:  28.8 tok/s (-6 %)  104.0 ms/pass  demand 172.8  reads  260.6
+  d=1 k=4 after same=0:  33.3 tok/s (+8 %)   90.1 ms/pass  demand 172.8  reads  260.6
+  d=1 k=0 after same=0.8:  36.6 tok/s (+19 %)   82.0 ms/pass  demand  44.0  reads  221.2
+  d=1 k=4 after same=0.8:  38.2 tok/s (+25 %)   78.5 ms/pass  demand  36.6  reads  260.6

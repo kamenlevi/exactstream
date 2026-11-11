@@ -1,0 +1,35 @@
+
+TIER-MERGE check Wed 15:48:42: MLX 0.32.2, layer 20, S [8, 16, 32], 8 passes per trace
+code      S  8: distinct  44.2, groups NAX6  50.1 merged  44.2 (-12 %); ms NAX6 0.695, X 0.820 (+18.0 %), B 0.850 (+22.3 %)
+code      S 16: distinct  70.2, groups NAX6  82.4 merged  70.2 (-15 %); ms NAX6 1.085, X 1.221 (+12.6 %), B 1.407 (+29.7 %)
+code      S 32: distinct 102.6, groups NAX6 125.5 merged 104.8 (-17 %); ms NAX6 1.694, X 2.056 (+21.4 %), B 2.309 (+36.3 %)
+chat      S  8: distinct  39.9, groups NAX6  45.6 merged  39.9 (-13 %); ms NAX6 0.670, X 0.809 (+20.7 %), B 0.879 (+31.3 %)
+chat      S 16: distinct  63.0, groups NAX6  75.5 merged  63.0 (-17 %); ms NAX6 1.012, X 1.224 (+21.0 %), B 1.352 (+33.7 %)
+chat      S 32: distinct  88.4, groups NAX6 113.0 merged  91.0 (-19 %); ms NAX6 1.578, X 1.868 (+18.4 %), B 2.092 (+32.6 %)
+math      S  8: distinct  40.4, groups NAX6  46.6 merged  40.4 (-13 %); ms NAX6 0.697, X 0.834 (+19.6 %), B 0.919 (+31.9 %)
+math      S 16: distinct  58.0, groups NAX6  69.5 merged  58.0 (-17 %); ms NAX6 0.842, X 1.021 (+21.3 %), B 1.175 (+39.6 %)
+math      S 32: distinct  85.6, groups NAX6 106.5 merged  88.6 (-17 %); ms NAX6 1.221, X 1.524 (+24.8 %), B 1.826 (+49.6 %)
+bulgarian S  8: distinct  31.2, groups NAX6  37.2 merged  31.2 (-16 %); ms NAX6 0.481, X 0.588 (+22.2 %), B 0.673 (+39.8 %)
+bulgarian S 16: distinct  48.9, groups NAX6  58.9 merged  48.9 (-17 %); ms NAX6 0.704, X 0.850 (+20.7 %), B 1.025 (+45.5 %)
+bulgarian S 32: distinct  80.9, groups NAX6 101.0 merged  86.0 (-15 %); ms NAX6 1.147, X 1.443 (+25.8 %), B 1.769 (+54.2 %)
+(1) MERGE-X == NAX6 bitwise on every pass: True
+(2) MERGE-B vs NAX6: bf16 outputs differing on 4-bit pairs 0.0130 % (2391 of 18350080), on 3-bit pairs 0.0000 %; max ulp 262
+(3) INV row 0 (X and B): True; phase form == one call (X and B): True
+TIER-MERGE check: PASS (MERGE-X exactness, INV, phases)
+
+TIER-MERGE check Wed 15:52:05: MLX 0.32.2, layer 20, S [8, 16, 32], 8 passes per trace
+code      S  8: distinct  44.2, groups NAX6  50.1 merged  44.2 (-12 %); ms NAX6 0.663, X 0.827 (+24.7 %), X2 0.721 (+8.7 %)
+code      S 16: distinct  70.2, groups NAX6  82.4 merged  70.2 (-15 %); ms NAX6 1.321, X 1.676 (+26.9 %), X2 1.471 (+11.3 %)
+code      S 32: distinct 102.6, groups NAX6 125.5 merged 104.8 (-17 %); ms NAX6 1.800, X 2.290 (+27.3 %), X2 2.049 (+13.8 %)
+chat      S  8: distinct  39.9, groups NAX6  45.6 merged  39.9 (-13 %); ms NAX6 0.710, X 0.887 (+25.0 %), X2 0.784 (+10.5 %)
+chat      S 16: distinct  63.0, groups NAX6  75.5 merged  63.0 (-17 %); ms NAX6 1.055, X 1.317 (+24.9 %), X2 1.184 (+12.3 %)
+chat      S 32: distinct  88.4, groups NAX6 113.0 merged  91.0 (-19 %); ms NAX6 1.490, X 1.884 (+26.5 %), X2 1.728 (+16.0 %)
+math      S  8: distinct  40.4, groups NAX6  46.6 merged  40.4 (-13 %); ms NAX6 0.671, X 0.834 (+24.3 %), X2 0.744 (+10.8 %)
+math      S 16: distinct  58.0, groups NAX6  69.5 merged  58.0 (-17 %); ms NAX6 0.925, X 1.152 (+24.5 %), X2 1.039 (+12.3 %)
+math      S 32: distinct  85.6, groups NAX6 106.5 merged  88.6 (-17 %); ms NAX6 1.368, X 1.747 (+27.7 %), X2 1.596 (+16.7 %)
+bulgarian S  8: distinct  31.2, groups NAX6  37.2 merged  31.2 (-16 %); ms NAX6 0.526, X 0.656 (+24.6 %), X2 0.597 (+13.5 %)
+bulgarian S 16: distinct  48.9, groups NAX6  58.9 merged  48.9 (-17 %); ms NAX6 0.768, X 0.947 (+23.3 %), X2 0.867 (+12.9 %)
+bulgarian S 32: distinct  80.9, groups NAX6 101.0 merged  86.0 (-15 %); ms NAX6 1.280, X 1.648 (+28.7 %), X2 1.490 (+16.4 %)
+(1) X and X2 == NAX6 bitwise on every pass: True
+(3) INV row 0 (X and X2): True; phase form == one call: True
+TIER-MERGE check: PASS (MERGE-X exactness, INV, phases)

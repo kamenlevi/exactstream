@@ -1,0 +1,31 @@
+/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:3862: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+tokens per set: {'code': 800, 'chat': 559, 'bulgarian': 800, 'math': 767}
+
+(1) LRU per layer, top-10, hit rate / misses per token (of 480 uses), by C slots per layer (%% of 512)
+C                4           8          13          16          26          32          51          64          96         128         192         256
+% res         0.8%        1.6%        2.5%        3.1%        5.1%        6.2%       10.0%       12.5%       18.8%       25.0%       37.5%       50.0%
+code   0.017/471.6 0.108/428.1 0.334/319.8 0.385/295.0 0.506/237.0 0.552/215.0 0.652/167.0 0.701/143.4 0.785/103.1 0.838/ 77.7 0.902/ 47.1 0.934/ 31.6
+chat   0.017/471.7 0.123/421.1 0.403/286.3 0.458/260.2 0.562/210.0 0.603/190.7 0.688/149.6 0.732/128.6 0.814/ 89.1 0.871/ 62.0 0.927/ 35.0 0.946/ 26.1
+bulgarian0.018/471.3 0.145/410.4 0.510/235.4 0.566/208.4 0.659/163.6 0.688/149.6 0.746/122.1 0.774/108.6 0.829/ 82.3 0.869/ 62.7 0.922/ 37.4 0.949/ 24.5
+math   0.016/472.2 0.106/428.9 0.333/320.1 0.377/299.0 0.478/250.6 0.520/230.3 0.618/183.3 0.671/157.7 0.757/116.6 0.815/ 88.7 0.891/ 52.2 0.930/ 33.7
+
+(2) distinct experts per layer touched within W consecutive tokens (mean over layers and windows), top-10
+code       W=1:10  W=4:27  W=16:70  W=64:151  W=256:261  W=800:356
+chat       W=1:10  W=4:26  W=16:65  W=64:133  W=256:215  W=800:nan
+bulgarian  W=1:10  W=4:23  W=16:57  W=64:127  W=256:222  W=800:306
+math       W=1:10  W=4:28  W=16:73  W=64:158  W=256:270  W=800:nan
+
+(3) LRU with reduced k (only top-k routed): misses per token, C=26 / 51 / 128
+k=10   215.3   155.5    72.8
+k= 8   161.8   115.7    52.2
+k= 6   113.6    79.5    34.3
+k= 4    69.8    47.3    20.0
+
+(4) cache-aware swap proxy (missing rank>=r0 -> best cached among ranks 10-19): misses/token, swaps/token
+r0=None C=26:  215.3 miss,   0.0 swap  C=51:  155.5 miss,   0.0 swap  C=128:   72.8 miss,   0.0 swap
+r0=8    C=26:  175.3 miss,  45.0 swap  C=51:  120.0 miss,  38.8 swap  C=128:   52.6 miss,  23.0 swap
+r0=6    C=26:  151.4 miss,  73.6 swap  C=51:   95.5 miss,  68.8 swap  C=128:   36.9 miss,  44.7 swap
+r0=4    C=26:  138.5 miss,  92.1 swap  C=51:   79.9 miss,  92.8 swap  C=128:   26.2 miss,  66.5 swap

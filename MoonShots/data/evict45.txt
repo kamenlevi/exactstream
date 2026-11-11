@@ -1,0 +1,31 @@
+M-14 EVICT45: cap45, 176 live checks over 6 prompts, chained (BigMoE's seed45 replay); res0 160 experts per layer
+  K 246: lru 51.3, lfu 53.6, srrip1 50.5, srrip2 49.5, srrip3 50.3, lip 55.9, mid20 52.8, mid60 54.4, min 23.5 (5 s)
+  K 266: lru 42.9, lfu 44.7, srrip1 42.1, srrip2 41.4, srrip3 42.3, lip 47.4, mid20 43.8, mid60 45.7, min 19.2 (9 s)
+  K 287: lru 35.4, lfu 36.7, srrip1 34.7, srrip2 34.0, srrip3 34.9, lip 39.4, mid20 35.8, mid60 37.8, min 15.8 (13 s)
+  K 246: learn 47.6 (18 s)
+  K 266: learn 39.5 (23 s)
+  K 287: learn 32.5 (28 s)
+misses per kept token, prompts 2-6 pooled; share of the LRU -> MIN gap taken:
+  K         lru      lfu   srrip1   srrip2   srrip3      lip    mid20    mid60    learn      min
+  246      51.3     53.6     50.5     49.5     50.3     55.9     52.8     54.4     47.6     23.5
+             0%      -8%       3%       7%       4%     -16%      -5%     -11%      14%     100%
+  266      42.9     44.7     42.1     41.4     42.3     47.4     43.8     45.7     39.5     19.2
+             0%      -8%       3%       6%       3%     -19%      -4%     -12%      14%     100%
+  287      35.4     36.7     34.7     34.0     34.9     39.4     35.8     37.8     32.5     15.8
+             0%      -7%       3%       7%       3%     -21%      -2%     -12%      15%     100%
+  learned key at K 266 (all prompts; larger = farther predicted next use): log1p recency +0.380, log1p decayed count +0.004, popularity -2.671, rows/16 -0.052, kept-row use +0.094, last use = prefill +0.535, in prefill set -0.460, layer/48 +0.186, bias +2.331
+per prompt at K 266, misses per kept token: LRU / best online / MIN
+  math500_test_prealgebra_1640     40.2   37.1   19.3
+  humaneval_HumanEval_91           51.0   49.5   22.9
+  math500_test_algebra_694         41.8   36.3   17.8
+  math500_test_algebra_1282        41.3   36.6   18.2
+  gsm8k_708                        43.3   42.2   19.0
+Lines: best online policy learn takes 14.2 % of the LRU -> MIN gap at K 266 (worst prompt -2.5 % vs LRU; PASS >= 30 % with <= +2 %, KILL < 10 %) -> BETWEEN
+descriptive (after the lines): horizon-limited oracles at K 266 = LRU, but experts needed again within H calls are protected (H calls = H checks, plus a prefill call at prompt starts); share of the LRU -> MIN gap:
+  H  1:  39.4 misses per kept token ( 15 % of the gap)
+  H  2:  36.7 misses per kept token ( 26 % of the gap)
+  H  3:  34.6 misses per kept token ( 35 % of the gap)
+  H  5:  31.3 misses per kept token ( 49 % of the gap)
+  H 10:  26.7 misses per kept token ( 68 % of the gap)
+  H 20:  25.3 misses per kept token ( 74 % of the gap)
+(35 s)

@@ -1,0 +1,103 @@
+== M-29 SSDMICRO2 (Tue 22:33): 50 points x 150 rounds; M-29 SSDMICRO2 raw: record stride 2932736, 50 points, 150 rounds asked, 48 slots per pool; done: 150 rounds in 12.3 s; record pool recycles 0; 0 resident records skipped
+  sanity: 0 reads faster than 16 GB/s (page-cache hits, not the drive)
+  Z zero-copy (gap 0.8 ms, GCD, F_NOCACHE): call us (read + copy on the critical job) | vs Z0n (same reads, no copy)
+    1 rec Z0   :   480.5 ( 354.5 + 122.2) | +127.6
+    1 rec Z0m  :   476.6 ( 353.4 + 119.1) | +123.8
+    1 rec Z0p  :   439.0 ( 355.4 +  81.1) |  +86.1
+    1 rec Z0n  :   352.9 ( 352.6 +   0.0) |   +0.0
+    1 rec Z1   :   376.1 ( 375.9 +   0.0) |  +23.3
+    1 rec Z1m  :   375.8 ( 375.6 +   0.0) |  +22.9
+    1 rec Z2   :  1195.6 (1195.3 +   0.0) | +842.7
+    1 rec Z3   :   363.9 ( 363.6 +   0.0) |  +11.0
+    1 rec Z3m  :   363.3 ( 363.1 +   0.0) |  +10.4
+    1 rec Z3b  :   361.0 ( 360.7 +   0.0) |   +8.1
+    1 rec Z3bm :   363.4 ( 363.1 +   0.0) |  +10.5
+    1 rec Z4   :   398.4 ( 398.0 +   0.0) |  +45.5
+    2 rec Z0   :   703.1 ( 523.8 + 170.1) | +165.8
+    2 rec Z0m  :   715.9 ( 527.1 + 176.3) | +178.6
+    2 rec Z0n  :   537.2 ( 527.2 +   0.0) |   +0.0
+    2 rec Z1   :   549.1 ( 539.5 +   0.0) |  +11.9
+    2 rec Z1m  :   551.3 ( 544.3 +   0.0) |  +14.0
+    2 rec Z3   :   545.2 ( 539.2 +   0.0) |   +8.0
+    2 rec Z3m  :   547.3 ( 541.3 +   0.0) |  +10.0
+    2 rec Z3b  :   540.0 ( 532.9 +   0.0) |   +2.8
+    2 rec Z3bm :   542.5 ( 536.2 +   0.0) |   +5.2
+  copy tail per record on the critical job: base 122.2 us (malloc slots), 119.1 (Metal slots), split over 3 projections 81.1; sidecar 44.5; against M-28's ~96 us per call outside the I/O path
+  S sidecar part, 1 record: S0 290.9; S0n 255.2; S1 268.4; S3 258.1; S3b 256.0
+  Z line: best zero-copy Z3bm saves 173.4 us per 2-record call vs today's Z0m; +5.2 us vs the same reads without any copy -> PASS (line 50 / 20; DMA penalty <= 15). 4 KB- vs 16 KB-aligned slots: -5.2 us (malloc), -4.8 (Metal) -> 4 KB alignment suffices
+  K keepalive (BigMoE's pread + usleep(n)): R0 back to back / after 0.8 ms (penalty) | real spacing
+    off      :   489.4 /   537.2 ( +47.9)
+    n  50  4 KB:   469.2 /   469.2 (  -0.1) |   184 us
+    n 100  4 KB:   474.4 /   472.8 (  -1.6) |   269 us
+    n 125  4 KB:   476.1 /   472.9 (  -3.2) |   298 us
+    n 150  4 KB:   475.6 /   478.6 (  +3.0) |   340 us
+    n 175  4 KB:   473.6 /   491.5 ( +17.8) |   361 us
+    n 200  4 KB:   481.1 /   492.6 ( +11.5) |   401 us
+    n 200 16 KB:   477.9 /   486.5 (  +8.6) |   412 us
+    n 200 64 KB:   480.6 /   485.2 (  +4.6) |   450 us
+  P wake-ahead ping (one 4 KB read T us before the R0 call, no trickle): call us, removal, ping read us, done before the call by
+    T  25:   533.2 us, removes   8.4 %, ping 166.1 us, lead -141.1 us
+    T  50:   527.2 us, removes  21.0 %, ping 148.7 us, lead  -98.7 us
+    T 100:   526.8 us, removes  21.7 %, ping 145.2 us, lead  -45.2 us
+    T 200:   490.6 us, removes  97.5 %, ping 141.7 us, lead  +58.3 us
+    T 400:   499.9 us, removes  78.0 %, ping 141.9 us, lead +258.1 us
+  P line: PASS (best T 200: 97 %; line 70 % at T <= 200 / 30 %)
+  C keepalive 50: today's copy 628.0 us, zero-copy Z3b 486.8 us (2 records; no keepalive: Z0 703.1)
+== RESULT M-29 SSDMICRO2 (Tue 22:33; quiet lock after a 40 s wait, ~13 s held; 150 rounds x 50 points in 12.3 s, 0 page-cache
+  hits; Breakthrough's job had just ended, Kamen's PowerPoint in front):
+  Z PASS: zero-copy into 4 KB-aligned slots (Z3bm: records3's s / b pieces padded 51,200 -> 53,248 B inside the same
+  2,162,688 B part, Metal pool memory) saves 173 us per 2-record call against today's bounce + copy (716 -> 543 us) and
+  sits +5 us from the same reads with no copy at all (no DMA penalty). 4 KB- vs 16 KB-aligned slots: -5 us (malloc / Metal
+  alike): 4 KB alignment suffices, so the pool padding costs ~0.18 GB at 45 GB C 256 instead of ~1 GB. Metal shared
+  buffers behave like malloc'd memory (copy 119 vs 122 us; zero-copy 543 vs 540). REC1 (today's unaligned pieces) is
+  +843 us (confirms its kill); one contiguous slot +12-23 us; 16 KB-padded pieces +45 us (more bytes).
+  Copy tail: 119-122 us per base record alone (2.16 MB at ~18 GB/s), 170-176 us when a call's two copies run side by
+  side; split over the 3 projections 81 us (an interim fix without a layout change); sidecar 44.5 us (zero-copy S3b -35 us).
+  It is MORE than M-28's ~96 us 'outside the I/O path' and twice Fable A's ~53 us estimate.
+  K: the widest keepalive spacing with penalty <= 10 us is ~340 us real (usleep 150; 3,000 reads/s = 12 MB/s, half of
+  usleep 50's cost); 361-401 us leaves +12-18 us; a 64 KB read at 450 us is as good as 4 KB at 340 (bigger reads keep it
+  awake longer). Penalty without keepalive +48 us (M-28: +44).
+  P PASS: one 4 KB 'wake-ahead ping' 200 us before the burst removes 97.5 % of the wake (the ping itself takes 142 us
+  after idle, so it must finish before the burst: at T 100 it is still in flight, 22 %; at T 400 the drive dozes again,
+  78 %). The engine could ping when a layer's router launches instead of running a trickle: ~46 reads per check instead of
+  ~300.
+  C: keepalive 50 + zero-copy: 487 us per 2-record call vs today's 703 (-216 us, -31 %).
+  Per check at C 256 after JOINT (~46 bursts of ~3.7 records; the tail = the concurrent copies of the burst's last
+  records): zero-copy -120..-175 us per burst = -5.5..-8 ms of SSD busy bound (Fable A budgeted -2.5); halved ~-3.5 ms,
+  ~+3.5 % tok/s by day. Next: BigMoE's S3 build on 4 KB-padded pieces (kernels address padded pool strides); until then
+  the 3-way split copy (-41 us per lone record) is a no-layout interim; the keepalive can drop to usleep(125-150).
+== M-29b SSDMICRO2 big bursts (Tue 22:46): 12 points x 150 rounds; M-29 SSDMICRO2 raw: record stride 2932736, 12 points, 150 rounds asked, 48 slots per pool; done: 150 rounds in 5.5 s; record pool recycles 0; 353 resident records skipped
+  records per call: call us (critical job: read + copy) for Z0m today / Z0pm copy split in 3 / Z0n no copy / Z3bm zero-copy
+     4: Z0m   903.4 ( 841.5 +  48.0) / Z0pm   909.1 ( 842.2 +  49.4) / Z0n   851.7 ( 840.0 +   0.0) / Z3bm   881.9 ( 874.0 +   0.0)
+     8: Z0m  1544.1 (1442.9 +  45.0) / Z0pm  1534.0 (1441.3 +  40.1) / Z0n  1482.1 (1442.8 +   0.0) / Z3bm  1536.0 (1501.8 +   0.0)
+    15: Z0m  2694.1 (2481.8 +  78.4) / Z0pm  2687.9 (2487.6 +  93.2) / Z0n  2582.2 (2492.9 +   0.0) / Z3bm  2633.9 (2544.0 +   0.0)
+  M-29b line: zero-copy saves 21.5 / 8.1 / 60.2 us per call at 4 / 8 / 15 records -> BETWEEN (line 50 / 20 at 8 and 15)
+== RESULT M-29b ZEROCOPY-24 (Tue 22:46; quiet lock at once, ~6 s; 150 rounds x 12 points; 353 resident records skipped):
+  BETWEEN. At the 24 GB line's burst sizes zero-copy (Z3bm) saves 21.5 / 8.1 / 60.2 us per call at 4 / 8 / 15 records
+  (line 50 at both 8 and 15). Two reasons: the exposed copy tail shrinks to 45-78 us (earlier records' copies overlap later
+  reads; only the last one shows, and it copies faster than a lone record's 120 us), and reading 9 pieces straight into the
+  slots costs 34-59 us of bandwidth at queue depth 4-15 (Z3bm's reads 874 / 1,502 / 2,544 us vs the bounce's 840 / 1,443 /
+  2,493). The 3-way split copy changes nothing here. So zero-copy is a 45 GB-line lever (1-2 records per call: -173 us)
+  and roughly neutral at 24 GB; an exploratory contiguous arm (one read per record, BigMoE's record-order pools) is queued.
+== M-29b repeat + exploratory contiguous arm (Tue 22:47; quiet lock after 35 s; the registered verdict stays the 22:46 run's):
+  records per call: call us (critical job: read + copy) for Z0m today / Z0pm copy split in 3 / Z0n no copy / Z3bm zero-copy
+     4: Z0m   931.1 ( 846.5 +  61.2) / Z0pm   923.2 ( 850.4 +  53.0) / Z0n   858.8 ( 848.8 +   0.0) / Z3bm   885.8 ( 877.5 +   0.0) / Z1m   903.8 ( 895.4 +   0.0)
+        exploratory: contiguous zero-copy (one read per record) saves 27.4 us
+     8: Z0m  1592.8 (1435.0 + 107.5) / Z0pm  1584.4 (1438.6 + 113.2) / Z0n  1482.5 (1446.5 +   0.0) / Z3bm  1531.5 (1498.2 +   0.0) / Z1m  1587.0 (1565.6 +   0.0)
+        exploratory: contiguous zero-copy (one read per record) saves 5.8 us
+    15: Z0m  2791.6 (2487.2 + 208.0) / Z0pm  2803.8 (2497.4 + 208.2) / Z0n  2584.1 (2489.2 +   0.0) / Z3bm  2634.1 (2531.5 +   0.0) / Z1m  2814.5 (2757.9 +   0.0)
+        exploratory: contiguous zero-copy (one read per record) saves -22.9 us
+  M-29b line: zero-copy saves 45.4 / 61.4 / 157.5 us per call at 4 / 8 / 15 records -> PASS (line 50 / 20 at 8 and 15)
+  Reading: the two runs agree that zero-copy never loses at 4-15 records per call, but its size swings with the copy tail
+  (Z0m's critical copy 45-78 us at 22:46, 61-208 us at 22:47 for the same queue depths): -8..-60 us vs -45..-158 us per
+  call. The 24 GB verdict is BETWEEN-to-PASS, not settled; the 45 GB one (-173 us at 1-2 records) is. The contiguous slot
+  (one read per record) is the worse zero-copy form at high queue depth (its reads 895 / 1,566 / 2,758 us vs 878 / 1,498 /
+  2,532 for the 9 aligned pieces and 849 / 1,447 / 2,489 for the bounce): prefer 4 KB-aligned pieces over one block.
+== Wed SSD ticket (Wed 09:01): 16 points x 250 rounds; M-29 SSDMICRO2 raw: record stride 2932736, 16 points, 250 rounds asked, 48 slots per pool; done: 250 rounds in 10.4 s; record pool recycles 0; 0 resident records skipped
+  M-29b repeat: records per call -> call us (critical read + copy): Z0m today / Z0n no copy / Z3bm zero-copy
+     4: Z0m   911.9 ( 836.0 +  48.3) / Z0n   849.5 ( 837.1 +   0.0) / Z3bm   866.3 ( 855.4 +   0.0) | zero-copy saves 45.6 us
+     8: Z0m  1544.4 (1448.8 +  43.2) / Z0n  1487.7 (1452.9 +   0.0) / Z3bm  1515.2 (1481.8 +   0.0) | zero-copy saves 29.2 us
+    15: Z0m  2684.9 (2513.4 +  61.9) / Z0n  2600.2 (2512.3 +   0.0) / Z3bm  2641.9 (2546.8 +   0.0) | zero-copy saves 43.0 us
+  wake-ahead ping at the engine's gaps (R0 = 2 records, bounce): back to back 475.6 us
+    gap 1.2 ms: no ping 525.7 (+50.1); ping 150 us ahead 482.0 (removes 87 %); ping 250 us ahead 480.4 (removes 91 %)
+    gap 2.0 ms: no ping 524.6 (+49.0); ping 150 us ahead 478.5 (removes 94 %); ping 250 us ahead 481.9 (removes 87 %)

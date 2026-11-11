@@ -1,0 +1,19 @@
+11-07 05:39:10 S1b A/B start (pid 26880, NO-SWAP 54.3 GB, C 256); ref2 md5 ddbc0621e325497f8c2ade03f7207022, screen md5 5c173ed6e81d66013f0471df4e377ef0
+11-07 05:39:40 NW check CLEAN (2 / 2, engaged 2 / 2): the A/B runs
+11-07 05:41:11 s1bb1 rc=0
+11-07 05:42:41 s1bn1 rc=0
+11-07 05:44:12 s1bn2 rc=0
+11-07 05:45:42 s1bb2 rc=0
+11-07 05:47:12 s1bnd rc=0
+11-07 05:47:14 nwcnt_check counters 1 rc=0
+11-07 05:47:15 nwcnt_check counters 0 rc=0
+S1b A/B (NW v3, counters off), C 256 (data/s1b): B / NW / NW / B; freeze windows [('02:47:37', '02:48:18'), ('03:05:46', '03:06:47'), ('05:11:06', '05:12:07')]; passes dropped for a freeze: none
+B   FULL PERIOD  164.2 tok/s (passes s1bb1 163.7, s1bb2 164.3); whole decode  141.2 (s1bb1 141.2, s1bb2 140.9); tpsw  164.7 (s1bb1 164.2, s1bb2 164.8)
+    outside c0..c2 0.17 ms/check; median cycle 65.2 ms; kept per check 10.38; tokens per task 246; lifetime peak 43.8 GB; nwk (calls, late calls) [0, 0]
+NW  FULL PERIOD  175.6 tok/s (passes s1bn1 175.5, s1bn2 175.5); whole decode  149.4 (s1bn1 149.3, s1bn2 149.3); tpsw  176.1 (s1bn1 176.0, s1bn2 176.0)
+    outside c0..c2 0.16 ms/check; median cycle 61.6 ms; kept per check 10.32; tokens per task 248; lifetime peak 43.0 GB; nwk (calls, late calls) [23856, 23359]
+Verdict S1b NW v3 counters off (pre-registered, NewIdeas Sat 04:5x): BETWEEN: FULL PERIOD +6.9 % vs B over 12, NW lifetime peak 43.0 GB (PASS >= +8 % AND peak <= 45.0 GB; KILL < +3 % or peak > 45.0 GB). Beside: whole decode +5.8 %, tpsw +6.9 %. -> v1 = stackb + S2 + KEEP
+tokens identical per prompt (information): NW vs B [5, 4] of 12; floor B1 vs B2 5
+NW, counters read after the decode clock (s1bnd, information, for EvalSuite's carry-over question): full period 182.6, whole decode 154.7 tok/s over 12; per check (medians, checks >= 2) late groups 20.0 vs S1 (read per check) 18.0, late uses 40.0 vs 37.5, optional dropped now 507.0 vs 496.5; lifetime peak 42.9 GB
+11-07 05:47:15 report rc=0 (data/s1b/s1b_report.txt)
+11-07 05:47:15 S1b A/B end

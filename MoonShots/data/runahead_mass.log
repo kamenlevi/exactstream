@@ -1,0 +1,21 @@
+M-16 RUNAHEAD step 1: cap45, 171 live 16-row checks over prompts 2-6 (chained from prompt 1); live rule LRU + 30 x popularity; recomputed router top-10 holds 98.16 % of the captured ids (33 s)
+C 224 (K 246): misses per 16-row check 288; 9.6 % of them are needed at rank 0-1 by some row (hybrid waits for these, skips 90.4 %)
+  skipped routing mass per row-layer: mean 4.08 %, P50 0.00, P90 13.22, P99 44.86; row-layers with a skip 29.8 %, with rank 0 skipped 2.08 %
+  hybrid: mean 3.01 %, P90 9.67, P99 29.06; summed over 48 layers per row: plain 1.96, hybrid 1.45 (of 48)
+  skipped uses by rank 0..9 (% of that rank's uses): 2.1 2.4 3.0 3.5 4.1 4.9 5.8 6.9 7.9 9.1
+C 256 (K 287): misses per 16-row check 198; 8.6 % of them are needed at rank 0-1 by some row (hybrid waits for these, skips 91.4 %)
+  skipped routing mass per row-layer: mean 2.72 %, P50 0.00, P90 8.61, P99 34.96; row-layers with a skip 22.4 %, with rank 0 skipped 1.25 %
+  hybrid: mean 2.07 %, P90 7.68, P99 24.44; summed over 48 layers per row: plain 1.31, hybrid 0.99 (of 48)
+  skipped uses by rank 0..9 (% of that rank's uses): 1.2 1.5 1.9 2.3 2.7 3.3 4.0 4.7 5.5 6.4
+(36 s)
+  layer 2: 2736 rows; REF2-T tier error so far 0.00218; skip at C 224 so far 0.01950 (376 s)
+  layer 12: 2736 rows; REF2-T tier error so far 0.00414; skip at C 224 so far 0.01921 (748 s)
+  layer 24: 2736 rows; REF2-T tier error so far 0.00533; skip at C 224 so far 0.01842 (1187 s)
+  layer 36: 2736 rows; REF2-T tier error so far 0.00985; skip at C 224 so far 0.00716 (1476 s)
+  layer 46: 2736 rows; REF2-T tier error so far 0.01000; skip at C 224 so far 0.00615 (1777 s)
+block error vs the REF2-T block, 5 layers pooled (unit: REF2-T's own tier error vs 4-bit on these rows = 0.01000):
+  C             skip        renorm          mean        hybrid   hybrid+mean
+  224  0.00615  0.6x  0.00848  0.8x  0.00643  0.6x  0.00291  0.3x  0.00322  0.3x
+  256  0.00370  0.4x  0.00495  0.5x  0.00389  0.4x  0.00188  0.2x  0.00208  0.2x
+Lines (QUEUE M-16 step 1, C 224): best variant hybrid at 0.29x REF2-T's tier error (PASS <= 2x with >= 70 % of the misses skipped; KILL every variant > 5x)
+(1777 s)

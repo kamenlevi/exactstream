@@ -1,0 +1,41 @@
+11-07 00:42:19 gap_s2 start (pid 98480; NO-SWAP 51.2 GB)
+11-07 00:42:34 NO-SWAP 51.1 GB -> C 224
+11-07 00:42:34 STEP B start (pid 8951, NO-SWAP 51.0 GB -> C 224, arms: bstackF; md5 probe 2f94a480 k d27a87fe)
+11-07 00:42:34 run stepb_bstackF_224_s2b (swap 6742 MB)
+11-07 00:44:09 done stepb_bstackF_224_s2b rc=0:   step B calibration: round trip 137 us (p10-p90 122-173), dependent dispatch 2.19 us; read floor (KB: cold / warm GB/s) 16: 1 / 2, 64: 8 / 9, 256: 35 / 40, 102 FLAT-2 VERDICT: INVALID (FLAT nan ms; lines: PASS <= 30, BETWEEN 30-36, KILL > 36; 350 tok/s itself needs <= 25 at K 12: +nan ms from it); only 0 steady zero-mi 
+11-07 00:44:09 STEP B end (rc 0)
+lock released
+11-07 00:44:09 run done, lock released
+== stepb_bstackF_224_s2b_flat2.json (C 224; sync 0.132 ms)
+  pass 1 (cold, discarded)                     meas :  50 checks, rows 2-2, kept 2.00; draft 7.53, check+commit 53.53 (build 48.40, wait 4.72), misses 4506; GPU busy 51 % over 9.6 s
+  measured pass 1                              meas :  50 checks, rows 2-2, kept 2.00; draft 7.34, check+commit 42.92 (build 38.77, wait 3.78), misses 540; GPU busy 44 % over 8.8 s
+  stage pass                                   stage:  50 checks, rows 2-2, kept 2.00; draft 7.34, check+commit 42.18 (build 37.85, wait 3.72), misses 139; GPU busy 42 % over 8.6 s
+  probe pass                                   probe:  52 checks, rows 2-2, kept 1.90; draft 7.38, check+commit 40.27 (build 35.79, wait 3.80), misses 756; GPU busy 67 % over 23.3 s
+    ABL (S2b step 1) at check 8: 16 rows dense-only, 4 rounds x 12 forwards per variant; GDN 36 / attention 12 layers, in_proj objects 36, PLE 1
+      base    wall  21.85 ms (build 15.32): piece =  +0.00 ms of wall; GPU busy  94 % -> GPU 20.46 ms, piece =  +0.00 ms of GPU
+      hcr     wall  15.03 ms (build 12.31): piece =  +6.82 ms of wall; GPU busy  61 % -> GPU  9.17 ms, piece = +11.29 ms of GPU
+      hcra    wall  16.80 ms (build 13.93): piece =  +5.05 ms of wall; GPU busy  84 % -> GPU 14.17 ms, piece =  +6.29 ms of GPU
+      hcrm    wall  19.48 ms (build 14.02): piece =  +2.37 ms of wall; GPU busy  90 % -> GPU 17.56 ms, piece =  +2.90 ms of GPU
+      hcw     wall  18.27 ms (build 15.25): piece =  +3.58 ms of wall; GPU busy  94 % -> GPU 17.14 ms, piece =  +3.31 ms of GPU
+      inproj  wall  17.63 ms (build 14.50): piece =  +4.22 ms of wall; GPU busy  83 % -> GPU 14.55 ms, piece =  +5.91 ms of GPU
+      att     wall  18.32 ms (build 10.44): piece =  +3.53 ms of wall; GPU busy  88 % -> GPU 16.14 ms, piece =  +4.32 ms of GPU
+      gdn     wall  14.40 ms (build 11.67): piece =  +7.45 ms of wall; GPU busy  72 % -> GPU 10.33 ms, piece = +10.13 ms of GPU
+      moe     wall  20.49 ms (build 12.70): piece =  +1.36 ms of wall; GPU busy  92 % -> GPU 18.88 ms, piece =  +1.58 ms of GPU
+      ple     wall  21.23 ms (build 15.22): piece =  +0.62 ms of wall; GPU busy  93 % -> GPU 19.71 ms, piece =  +0.75 ms of GPU
+    FULL 16 rows (real experts, warm), 30 unsynced forwards: wall 44.53 ms (build 39.83, so 4.70 after the build); GPU busy 80 % over 1.4 s (32 samples) -> GPU ~35.8 ms per forward; synced split sum 49.51 ms (experts 22.89, gdn 9.34, att 5.02, hc_m 3.79, hc_a 3.06, moe_pre 2.60, moe 1.12, hc_w 0.92, ple 0.65, hc_f 0.11, layer 0.00)
+    DENSE-ONLY 16 rows (experts stubbed), 30 unsynced forwards: wall 21.87 ms (build 14.88, so 6.99 after the build); GPU busy 86 % over 0.7 s (17 samples) -> GPU ~18.8 ms per forward; synced split sum 30.15 ms (gdn 9.94, att 5.15, hc_m 4.49, hc_a 3.53, moe_pre 3.24, hc_w 1.16, moe 1.08, experts 0.80, ple 0.64, hc_f 0.12, layer 0.00)
+  real-block pass 1 (discarded)                meas :  12 checks, rows 13-16, kept 14.25; draft 8.92, check+commit 78.19 (build 68.79, wait 6.39), misses 1477; GPU busy 39 % over 7.4 s
+  real-block pass 2                            meas :  12 checks, rows 13-16, kept 14.42; draft 7.90, check+commit 62.95 (build 55.34, wait 5.64), misses 275; GPU busy 38 % over 7.1 s
+  real-block pass 3                            meas :  12 checks, rows 13-16, kept 14.42; draft 7.83, check+commit 62.44 (build 55.72, wait 5.88), misses 92; GPU busy 35 % over 7.4 s
+  real-block commit pass                       stage:  12 checks, rows 13-16, kept 14.42; draft 7.48, check+commit 59.12 (build 52.66, wait 5.57), misses 48; GPU busy 38 % over 7.2 s
+  real-block probe pass (S2c)                  probe:  12 checks, rows 13-16, kept 14.42; draft 7.44, check+commit 60.55 (build 51.87, wait 5.59), misses 280; GPU busy 45 % over 9.9 s
+    S2C at check 6 (16 rows; previous blocks [16, 16, 13] rows):
+      same  (10 forwards; the first per block dropped): block 0: wall 48.57 (build 43.76), misses 0
+      alt2  (10 forwards; the first per block dropped): block 0: wall 43.88 (build 38.94), misses 103; block 1: wall 48.84 (build 44.01), misses 7
+      alt3  (10 forwards; the first per block dropped): block 0: wall 45.50 (build 40.33), misses 121; block 1: wall 44.31 (build 39.42), misses 9; block 2: wall 49.22 (build 44.38), misses 2
+      same2 (10 forwards; the first per block dropped): block 0: wall 49.14 (build 44.32), misses 0
+  probe at check 8 (2 rows, live misses 0): warm repeats 31.02 / 30.96 ms (build 27.51 / 27.57, misses 0 / 0, logits == live [True, True]); last forward == live False; 14.6 s
+  probe at check 6 (16 rows, live misses 2): warm repeats 48.74 / 48.72 ms (build 43.87 / 43.75, misses 0 / 0, logits == live [True, True]); last forward == live False; 2.2 s
+  probe at check 8 (2 rows, live misses 0): warm repeats 31.02 / 30.96 ms (build 27.51 / 27.57, misses 0 / 0, logits == live [True, True]); last forward == live False; 14.6 s
+  probe at check 6 (16 rows, live misses 2): warm repeats 48.74 / 48.72 ms (build 43.87 / 43.75, misses 0 / 0, logits == live [True, True]); last forward == live False; 2.2 s
+11-07 00:44:09 gap_s2 end

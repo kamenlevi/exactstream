@@ -1,0 +1,89 @@
+--- a/bigmoe/stream.py
++++ b/bigmoe/stream.py
+@@ -62,15 +62,24 @@
+             if nx is not None:                               # mid-token look-ahead: layer L+d's router on
+                 rows = x.reshape(-1, x.shape[-1])            # layer L's pre-MoE state (norm_{L+d}(h) =
+                 parts, cnt = [], []                          # norm_L(h) * w_{L+d}/w_L), top-B -> prefetch
+-                left = 61                                    # prediction slots per routing row (lines 3+4)
+-                for router, ratio, B in nx:                  # d = 1, then d = 2 if enabled
+-                    b = min(B, left // rows.shape[0])
+-                    if b <= 0: break
+-                    lg = router(rows * ratio if ratio is not None else rows)
+-                    parts.append(mx.argpartition(-lg, kth=b - 1, axis=-1)[:, :b].reshape(-1))
+-                    cnt.append(b * rows.shape[0]); left -= cnt[-1]
++                left = 30 + 31 * _PRED_LINES                 # prediction slots per routing row (lines 3+4, + more)
++                for router, ratio, B in nx:                  # d = 1, 2, 3 as enabled
++                    xin = rows * ratio if ratio is not None else rows
++                    if _PF_RANKED:                           # MoonShots: one unique list per distance, ranked by
++                        b = min(B, left)                     # the expert's best row log-prob (most likely first)
++                        if b <= 0: break
++                        lg = router(xin).astype(mx.float32)
++                        s = (lg - mx.logsumexp(lg, axis=-1, keepdims=True)).max(axis=0)
++                        parts.append(mx.argsort(-s)[:b]); cnt.append(b)
++                    else:
++                        b = min(B, left // rows.shape[0])
++                        if b <= 0: break
++                        lg = router(xin)
++                        parts.append(mx.argpartition(-lg, kth=b - 1, axis=-1)[:, :b].reshape(-1))
++                        cnt.append(b * rows.shape[0])
++                    left -= cnt[-1]
+                 preds = mx.concatenate(parts) if len(parts) > 1 else parts[0]
+-                counts = (cnt[0], cnt[1] if len(cnt) > 1 else 0)
++                counts = tuple(cnt + [0] * (3 - len(cnt))) + (int(_PF_RANKED),)
+             slots = bm["gate"].route_and_gate(bm["L"], indices, preds=preds, counts=counts)
+             return cls.__call__(self, x, slots.astype(indices.dtype), *a, **kw)
+         return _sync_call(cls, self, x, indices, bm, *a, **kw)
+@@ -84,6 +93,8 @@
+ # PF1 (BIGMOE_PF_PREFILL=1, MoonShots): while layer L's prefill call computes, all of layer L+1's non-resident experts
+ # stream into one of two staging buffers; L's scratch pool is gathered from [pool; staging] in the same sorted order.
+ _PF_PREFILL = os.environ.get("BIGMOE_PF_PREFILL") == "1"
++_PF_RANKED = os.environ.get("BIGMOE_PF_RANKED") == "1"   # MoonShots scheduler: ranked unique look-ahead lists
++_PRED_LINES = max(0, min(4, int(os.environ.get("BIGMOE_PRED_LINES", "1"))))   # = gated.PRED_LINES
+ _STAGE = {"bufs": None, "pending": {}, "nl": 0, "t": {}}
+ import time as _time
+ 
+@@ -251,9 +262,10 @@
+                 if sw._bm["full"] or layers[L + 1].mlp.switch_mlp._bm["full"]:
+                     continue
+                 nxt = []
+-                for d, Bd in ((1, B), (2, int(os.environ.get("BIGMOE_PREFETCH2", "0")))):
++                for d, Bd in ((1, B), (2, int(os.environ.get("BIGMOE_PREFETCH2", "0"))),
++                              (3, int(os.environ.get("BIGMOE_PREFETCH3", "0")))):
+                     if Bd <= 0 or L + d >= nl or layers[L + d].mlp.switch_mlp._bm["full"]:
+-                        continue
++                        break                                       # lists are positional: d=3 needs d=2
+                     if hasattr(layers[L], "post_attention_layernorm"):      # Qwen3.5/3.6: exact norm swap
+                         w0 = layers[L].post_attention_layernorm.weight.astype(mx.float32)
+                         w1 = layers[L + d].post_attention_layernorm.weight.astype(mx.float32)
+--- a/bigmoe/gated.py
++++ b/bigmoe/gated.py
+@@ -13,7 +13,8 @@
+ 
+ MAXK = int(os.environ.get("BIGMOE_MAXK", "40"))   # ids per sync-free gate row: 4 verify tokens x top-10; the row
+                                                  # layout holds up to 61 (S=6 x top-10 = 60)
+-ROW = 128          # 4 x 128-byte lines: [seq, n, ids0..29] [seq, ids30..60] [seq, np, preds0..29] [seq, preds30..60];
++PRED_LINES = max(0, min(4, int(os.environ.get("BIGMOE_PRED_LINES", "1"))))   # prediction lines after line 3 (MoonShots)
++ROW = 96 + 32 * PRED_LINES   # 4 x 128-byte lines: [seq, n, ids0..29] [seq, ids30..60] [seq, np, preds0..29] [seq, preds30..60] (+ more);
+                    # each line carries its own seq, written last, so a line seen with the new seq is complete
+ _src = r"""
+ uint t = thread_position_in_grid.x;
+@@ -76,6 +77,7 @@
+                              header=f"#define PAIRS_ {PAIRS}\n#define DBGORDER {_DBG}\n#define TLINES {TLINES}\n")
+ FASTPATH = os.environ.get("BIGMOE_FASTPATH", "1") == "1"
+ MODE = os.environ.get("BIGMOE_GATE", "spin")
++assert PRED_LINES == 0 or MODE == "spin", "BIGMOE_PRED_LINES needs the spin gate (post_ids writes the extra lines)"
+ 
+ 
+ class Gate:
+@@ -114,8 +116,9 @@
+         assert n <= MAXK, n
+         if MODE == "spin":
+             pr = preds.reshape(-1).astype(mx.int32) if preds is not None else self.nopred
+-            n1, n2 = counts if counts else ((pr.size if preds is not None else 0), 0)
+-            npr = n1 | (n2 << 8)                       # layer L+1 predictions, then layer L+2's
++            c = tuple(counts) if counts else ((pr.size if preds is not None else 0),)
++            n1, n2, n3, rk = (c + (0, 0, 0, 0))[:4]
++            npr = n1 | (n2 << 8) | (n3 << 16) | (rk << 24)   # layers L+1, L+2, L+3; rk: ranked unique lists
+             dep = ext.post_ids(flat, pr, L, seq, npr)  # GPU writes the routing row (+ next-layer predictions)
+             if os.environ.get("BIGMOE_SKIPSPIN"):       # timing only: wrong slots, no wait
+                 return (flat + dep[0:1] * 0).reshape(ids.shape)

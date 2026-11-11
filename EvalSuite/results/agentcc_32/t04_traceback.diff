@@ -1,0 +1,11 @@
+diff --git a/inventory.py b/inventory.py
+index 8c32830..33890b4 100644
+--- a/inventory.py
++++ b/inventory.py
+@@ -1,5 +1,5 @@
+ def total_value(items):
+-    return sum(i["price"] * i["qty"] for i in items)
++    return sum(i["price"] * i.get("qty", 1) for i in items)
+ 
+ 
+ def load_items():

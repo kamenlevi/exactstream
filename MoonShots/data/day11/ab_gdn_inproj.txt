@@ -1,0 +1,7 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[qwen4_exp] sanitize fused GDN in_proj: 36 layers
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=12.3 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[mtplx] verify SDPA head-chunked: q_len=28 heads_per_chunk=1 chunks=24
+{"label": "gdn_inproj", "env": {"MTPLX_FUSED_GDN_INPROJ": "1"}, "kernels_total": 4551, "kernels_per_layer": 94.8, "top": {"Multiply": 776, "AsType": 516, "QuantizedMatmul": 373, "Matmul": 292, "Sum": 278, "Add": 278, "Arange": 192, "RMSNorm": 172, "Sigmoid": 169, "Divide": 146, "Concatenate": 145, "GatherQMM": 144}, "logits_sha": "b83f43479445", "shas": {"code": "cfe76544f7", "math": "b4b4c15ef4", "prose": "c9027b393f"}, "tok_s": {"code": 30.08, "math": 29.26, "prose": 27.01}, "tok_s_mean": 28.78}

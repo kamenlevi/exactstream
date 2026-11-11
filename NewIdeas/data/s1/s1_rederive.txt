@@ -1,0 +1,31 @@
+B  s1b1_256: valid 12/12  geo tpsw  159.3  geo tps  133.4  pooled  132.8  ck+drf mean  60.0 median  61.7 ms  kept/check  9.54  kept/(ck+drf)  159.1 tok/s
+B  s1b2_256: valid 12/12  geo tpsw  170.6  geo tps  141.7  pooled  143.8  ck+drf mean  62.6 median  64.2 ms  kept/check 10.93  kept/(ck+drf)  174.7 tok/s
+NW s1n1_256: valid 12/12  geo tpsw  180.4  geo tps  143.7  pooled  143.8  ck+drf mean  57.5 median  60.3 ms  kept/check 10.49  kept/(ck+drf)  182.3 tok/s
+NW s1n2_256: valid 12/12  geo tpsw  180.1  geo tps  140.5  pooled  141.7  ck+drf mean  58.1 median  60.9 ms  kept/check 10.59  kept/(ck+drf)  182.3 tok/s
+
+prompts valid in all 4 passes: 12
+tpsw: B  165.3  NW  180.3  NW/B 1.0903
+tps: B  137.8  NW  142.1  NW/B 1.0313
+pairs (tpsw geo): n1/b1 1.1325  n2/b2 1.0558  n1/b2 1.0576  n2/b1 1.1306
+B pass spread b2/b1 1.0708; NW pass spread n1/n2 1.0017
+
+per prompt NW/B (tpsw, mean of passes): wins 10/12; median 1.0588
+  humaneval/HumanEval/161      B  164.1 NW  150.3  x0.916
+  humaneval/HumanEval/19       B  159.3 NW  157.5  x0.989
+  humaneval/HumanEval/6        B  171.0 NW  173.4  x1.014
+  humaneval/HumanEval/17       B  207.1 NW  215.2  x1.039
+  humaneval/HumanEval/141      B  202.5 NW  211.5  x1.044
+  humaneval/HumanEval/101      B  148.8 NW  155.8  x1.047
+  humaneval/HumanEval/56       B  192.3 NW  205.9  x1.070
+  humaneval/HumanEval/63       B  181.3 NW  194.3  x1.072
+  humaneval/HumanEval/79       B  164.5 NW  178.7  x1.086
+  humaneval/HumanEval/91       B  114.0 NW  141.9  x1.244
+  humaneval/HumanEval/16       B  131.1 NW  166.7  x1.271
+  humaneval/HumanEval/68       B  174.4 NW  239.0  x1.371
+leave-one-prompt-out geo NW/B: min 1.0678 max 1.1077
+
+first check of each prompt vs the rest (means over the 12 prompts):
+  B  s1b1_256: first ck  300.5 ms drf  13.4 kept 16.00 | first-check share of ck+drf 19.7 % | ck+drf covers  96.8 % of n/tps wall
+  B  s1b2_256: first ck  293.9 ms drf  13.5 kept 16.00 | first-check share of ck+drf 21.0 % | ck+drf covers  97.0 % of n/tps wall
+  NW s1n1_256: first ck  291.1 ms drf  14.3 kept 16.00 | first-check share of ck+drf 21.3 % | ck+drf covers  93.7 % of n/tps wall
+  NW s1n2_256: first ck  312.0 ms drf  14.5 kept 16.00 | first-check share of ck+drf 22.5 % | ck+drf covers  93.7 % of n/tps wall

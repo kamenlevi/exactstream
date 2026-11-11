@@ -1,0 +1,54 @@
+cap45: [('humaneval_HumanEval_68', 5), ('math500_test_prealgebra_1640', 48), ('humaneval_HumanEval_91', 25), ('math500_test_algebra_694', 32), ('math500_test_algebra_1282', 34), ('gsm8k_708', 32)] checks; router agreement 0.9816; kept per prompt [70, 255, 147, 239, 207, 197]
+rows per check (as captured): [16.0, 16.0, 16.0, 16.0, 16.0, 16.0]; counted kept tokens 1045
+
+== 2. SIDECAR coupling (cap45, 16-row checks as captured, LRU + 30 x popularity, strict, M-17 per-layer sizes) ==
+-- C 256: per-layer C_m sum 14168 (mean 295), C_l sum 4272 (mean 89)
+  base     : base 23.41 + sidecar 21.52 misses per kept token = 67.20 MB per kept token (reads 44.93); dead-LSB share of the sidecar 0.005; purged 0
+    sidecar misses: 22485 counted; base resident before the call ('upgrade') 0.925; expert at ranks 2-4 in the previous check 0.223; anywhere in the previous check 0.379
+  couple   : base 23.41 + sidecar 21.50 misses per kept token = 67.19 MB per kept token (reads 44.91); dead-LSB share of the sidecar 0.000; purged 975
+    vs base: sidecar misses -0.1 %, SSD MB per kept token -0.0 %
+  deadfirst: base 23.41 + sidecar 21.50 misses per kept token = 67.19 MB per kept token (reads 44.91); dead-LSB share of the sidecar 0.000; purged 975
+    vs base: sidecar misses -0.1 %, SSD MB per kept token -0.0 %
+-- C 320: per-layer C_m sum 17481 (mean 364), C_l sum 6024 (mean 126)
+  base     : base 11.51 + sidecar 15.55 misses per kept token = 36.86 MB per kept token (reads 27.06); dead-LSB share of the sidecar 0.001; purged 0
+    sidecar misses: 16248 counted; base resident before the call ('upgrade') 0.951; expert at ranks 2-4 in the previous check 0.223; anywhere in the previous check 0.384
+  couple   : base 11.51 + sidecar 15.55 misses per kept token = 36.86 MB per kept token (reads 27.05); dead-LSB share of the sidecar 0.000; purged 187
+    vs base: sidecar misses -0.0 %, SSD MB per kept token -0.0 %
+  deadfirst: base 11.51 + sidecar 15.55 misses per kept token = 36.86 MB per kept token (reads 27.05); dead-LSB share of the sidecar 0.000; purged 187
+    vs base: sidecar misses -0.0 %, SSD MB per kept token -0.0 %
+
+== 3. HALF-check side model (cap45 C 256 baseline state; checks as captured = 16 rows, so the tail is overstated vs t 0.3) ==
+  counted checks 171, kept 1045 (6.11 per check); accepted rows (kept - 1) >= s:
+  s  6: accept 61 / reject 110 checks (P(accept >= s) 0.36); exclusive tail misses per check: reject  225.0 MB, accept  304.5 MB
+      model (SSD 11.7 GB/s, dense 34 ms, row term 3.0 ms): +19.5 ms per check
+      model (SSD 11.7 GB/s, dense 17 ms, row term 2.0 ms): +19.2 ms per check
+  s  8: accept 47 / reject 124 checks (P(accept >= s) 0.27); exclusive tail misses per check: reject  187.4 MB, accept  243.6 MB
+      model (SSD 11.7 GB/s, dense 34 ms, row term 3.0 ms): +19.7 ms per check
+      model (SSD 11.7 GB/s, dense 17 ms, row term 2.0 ms): +18.5 ms per check
+  s 10: accept 30 / reject 141 checks (P(accept >= s) 0.18); exclusive tail misses per check: reject  139.9 MB, accept  210.9 MB
+      model (SSD 11.7 GB/s, dense 34 ms, row term 3.0 ms): +18.7 ms per check
+      model (SSD 11.7 GB/s, dense 17 ms, row term 2.0 ms): +16.8 ms per check
+
+== 1. LOOKAHEAD: layer L+1's router on layer L's MoE input (R-57's ranked list), vs L+1's true top-10 union ==
+  checks 199 (all six prompts, 16-row), one ranked unique list per check (votes over rows, then rank score)
+  L0-11  : true union  82.3 experts; recall@96 0.629, precision@96 0.662; recall@|union| 0.622; per-row top-10 recall 0.563
+  L12-35 : true union  67.1 experts; recall@96 0.666, precision@96 0.679; recall@|union| 0.645; per-row top-10 recall 0.609
+  L36-46 : true union  66.9 experts; recall@96 0.695, precision@96 0.707; recall@|union| 0.674; per-row top-10 recall 0.636
+  ALL    : recall@96 0.665, precision@96 0.682, recall@|union| 0.647, per-row 0.605   [KILL line for C1-1: recall@96 >= 0.88 means nothing left to refine]
+
+== 4. TOKEN-keyed early-layer predictability (DAY9 capture, accepted path, leave-one-window-out within domain) ==
+  windows 36: Counter({'code': 12, 'ifeval': 12, 'multi': 12})
+  code   L0-3  : recall@10 0.418, @16 0.506, @24 0.561 | previous position's own top-10 0.171 (n 13464)
+  code   L12-35: recall@10 0.235, @16 0.307, @24 0.372 | previous position's own top-10 0.276 (n 80784)
+  code   L36-47: recall@10 0.251, @16 0.327, @24 0.397 | previous position's own top-10 0.311 (n 40392)
+  code   L4-11 : recall@10 0.270, @16 0.350, @24 0.417 | previous position's own top-10 0.245 (n 26928)
+  ifeval L0-3  : recall@10 0.285, @16 0.328, @24 0.359 | previous position's own top-10 0.188 (n 13588)
+  ifeval L12-35: recall@10 0.140, @16 0.174, @24 0.202 | previous position's own top-10 0.404 (n 81528)
+  ifeval L36-47: recall@10 0.177, @16 0.218, @24 0.251 | previous position's own top-10 0.420 (n 40764)
+  ifeval L4-11 : recall@10 0.191, @16 0.227, @24 0.255 | previous position's own top-10 0.330 (n 27176)
+  multi  L0-3  : recall@10 0.230, @16 0.265, @24 0.288 | previous position's own top-10 0.269 (n 14212)
+  multi  L12-35: recall@10 0.089, @16 0.112, @24 0.132 | previous position's own top-10 0.468 (n 85272)
+  multi  L36-47: recall@10 0.171, @16 0.199, @24 0.227 | previous position's own top-10 0.605 (n 42636)
+  multi  L4-11 : recall@10 0.130, @16 0.156, @24 0.178 | previous position's own top-10 0.405 (n 28424)
+
+done in 18 s

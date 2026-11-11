@@ -1,0 +1,14 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=36.5 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.20 GB pools
+b12: hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.20 GB, active 9.68 GB
+fit12: budget b24: 48 routers
+[kc10b24] code: prefill 326 tokens in 4.81 s
+[mtplx] verify SDPA head-chunked: q_len=8 heads_per_chunk=4 chunks=6
+[kc10b24] code k=7: 25.1 tok/s, 4.27 tok/pass, 30 passes | per pass: verify 152.1 ms, draft 17.3 ms, head 0.4 ms, waited 514.6, reads 537.3, pf issued 0.0 used 0.0, SSD 5.5 GB/s 930 MB | peak footprint 11.35 GB | sha 08913b3e41 | '```python\nimport re\nimport argparse\nfrom collections import defaultdict\nfrom typing import List, Dict, Tuple, Optional\n\n\n# Regex to match log lines\nLINE = re.compile(\n    r'
+[kc10b24] done

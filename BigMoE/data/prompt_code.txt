@@ -1,0 +1,26 @@
+Here is a small Python module that parses a log file and reports the slowest HTTP endpoints.
+
+```python
+import re
+from collections import defaultdict
+
+LINE = re.compile(r'(?P<ts>\S+) (?P<method>GET|POST|PUT|DELETE) (?P<path>\S+) (?P<status>\d{3}) (?P<ms>\d+)ms')
+
+def parse(path):
+    rows = []
+    with open(path) as f:
+        for line in f:
+            m = LINE.match(line)
+            if m:
+                rows.append(m.groupdict())
+    return rows
+
+def slowest(rows, n=10):
+    by_path = defaultdict(list)
+    for r in rows:
+        by_path[r['path']].append(int(r['ms']))
+    avg = {p: sum(v) / len(v) for p, v in by_path.items()}
+    return sorted(avg.items(), key=lambda kv: -kv[1])[:n]
+```
+
+Please refactor it: add type hints, compute p50 and p95 latency per endpoint instead of only the mean, group paths that differ only by numeric ids (e.g. /users/123 and /users/456 become /users/{id}), skip 5xx responses from the latency stats but count them separately, and add a small command-line interface with argparse. Then write three pytest tests for the new behaviour. Explain the changes briefly at the end.

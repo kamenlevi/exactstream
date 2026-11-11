@@ -1,0 +1,26 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=15.1 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=440 C_l=136 per layer, 32.32 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.45 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R57_WIRED: mx.set_wired_limit(55.66 GB), was 0.00 GB
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 256), loaded in 2 s, 38.0 GB active; REF2 + SB; gate rows MAXK 160 (ext build), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 64
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 26.6 tok/s; MLX peak prefill 39.9 / decode 40.3 GB, lifetime peak 40.9 -> 41.4 GB
+  warm-up (discarded): gsm8k/708 [gate+t, mtp] 64 tokens, 61.3 tok/s; MLX peak prefill 40.7 / decode 40.2 GB, lifetime peak 41.5 -> 41.5 GB
+  agent/edit10 [gate+t] [agent: dfl]: 64 tokens in 7 checks (kept 9.29), 35.5 tok/s (steady state, checks >= 2: 42.0), median cycle 243.7 ms, check + commit 204.6 ms; per check (medians) 990 misses, demand SSD 147.3 ms, gate service 148.5 ms (96 calls with misses), draft 11.8 ms; per kept token SSD 222.9 MB, 138.3 misses; tokens == REF2 row 0 / 0; tokens == REFTOK 0 / 1; JOINT reads 2804; demand bursts 336: after >= 0.25 ms idle 336, >= 1 ms 147; keepalive reads 4897; tier: 160 hits (copied back, no SSD read), 1475 copied in, 155 dropped, 48 slabs found purged; filled 2.39 of 7.45 GB (volatile, beside the footprint)
+    mem: MLX peak prefill 42.2 / decode 40.6 GB; at the end active 40.4, cache 1.1, footprint 42.2 GB; lifetime peak after prefill 43.5 -> after decode 43.5 GB
+  agent/write13 [gate+t] [agent: dfl]: 64 tokens in 24 checks (kept 2.62), 28.5 tok/s (steady state, checks >= 2: 29.8), median cycle 84.7 ms, check + commit 73.3 ms; per check (medians) 93 misses, demand SSD 20.5 ms, gate service 23.0 ms (58 calls with misses), draft 11.5 ms; per kept token SSD 74.3 MB, 50.4 misses; tokens == REF2 row 0 / 0; tokens == REFTOK 0 / 1; JOINT reads 1233; demand bursts 722: after >= 0.25 ms idle 722, >= 1 ms 370; keepalive reads 11681; tier: 133 hits (copied back, no SSD read), 1498 copied in, 0 dropped, 51 slabs found purged; filled 2.73 of 7.45 GB (volatile, beside the footprint)
+    mem: MLX peak prefill 43.4 / decode 41.2 GB; at the end active 40.6, cache 0.9, footprint 42.3 GB; lifetime peak after prefill 45.1 -> after decode 45.1 GB
+  agent/write11 [gate+t] [agent: dfl]: 64 tokens in 28 checks (kept 2.36), 23.1 tok/s (steady state, checks >= 2: 24.2), median cycle 88.2 ms, check + commit 76.7 ms; per check (medians) 88 misses, demand SSD 18.2 ms, gate service 20.5 ms (55 calls with misses), draft 11.4 ms; per kept token SSD 86.3 MB, 65.5 misses; tokens == REF2 row 0 / 0; tokens == REFTOK 0 / 1 PAUSED (0.0 s waited, 1 gaps); JOINT reads 1926; demand bursts 822: after >= 0.25 ms idle 822, >= 1 ms 384; keepalive reads 14554; tier: 360 hits (copied back, no SSD read), 2195 copied in, 28 dropped, 59 slabs found purged; filled 3.17 of 7.45 GB (volatile, beside the footprint)
+    mem: MLX peak prefill 44.1 / decode 41.6 GB; at the end active 40.8, cache 0.9, footprint 42.5 GB; lifetime peak after prefill 46.0 -> after decode 46.0 GB
+  gate+t: tok/s 32.0 (steady state 35.9), cycle 164.2 ms, check + commit 139.0 ms, misses 542, demand SSD 83.9 ms per check (medians over valid runs, then prompts)
+  gate+t where the time goes (medians per check): check + commit 139.0 ms, demand SSD busy 83.9 ms (50% of the check), gate service on misses 85.7 ms (the GPU's spin bound; OOO overlaps part of it), draft 11.6 ms (SSD idle)
+  gate+t per kept token (pooled over valid runs): SSD 149.7 MB, misses 95.0 (128 kept tokens; median per prompt 148.6 MB, 94.3 misses)
+  tier flags: TIER_COMBINE True, OOO True (4038 OOO calls); EVICT_PRIOR None; REFTOK /Users/kamen/BigMoE/data/r57/s45t_B_tokens.json:gate+t: every token equal False
+  K-73 engagement: exact MoE block calls 4038; ref2 att_rope 996, idx_prep 2400, hc_write 4038 (counted at graph build); K-83: hc_gate / hc_read 8076, gdn_inproj_x 3042, drafter forms + chain_fused
+  C1 NAX6 (ref2 tier_nax_ooo): engagement nax6_ooo 4038 OOO calls, nax6 0 other tier calls (counted at graph build); tokens are NAX6's own reference: compare across NAX processes only
+  chat switch: MTP head d22_b5 (md5 pinned) resident, K15, cut t 0.3 with early exit; type rule runs: {'chat': 0, 'code': 0, 'math': 0, 'agent': 3} (chat -> MTP, the rest -> DFlash2)
+  footprint now 42.2 GB, lifetime peak 46.0 GB; 53 s

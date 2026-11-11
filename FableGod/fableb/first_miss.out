@@ -1,0 +1,101 @@
+
+==== code: 666 checks, 7007 tested rows, 398 first misses (base miss rate per tested row 0.0568); kept/check 8.57; lattice-aligned checks 437 / 666 ====
+  first-miss depth (1-based) histogram: 1:0 2:27 3:41 4:47 5:39 6:24 7:35 8:32 9:21 10:25 11:23 12:23 13:26 14:27 15:30  none:246
+  lattice vs walk first miss on aligned checks: equal 0.368, lattice later 0.000, earlier 0.632 (n 437); lattice fm >= walk fm 0.368
+  rates per tested row, by the TRUE token's class (what the model had to produce):
+  true class: newline 0.032 (x0.57, n 467, 4% of misses); indent 0.039 (x0.68, n 774, 8% of misses); ident_start 0.038 (x0.67, n 1885, 18% of misses); word_cont 0.024 (x0.42, n 253, 2% of misses); punct 0.034 (x0.60, n 1083, 9% of misses); number 0.024 (x0.42, n 503, 3% of misses); string 0.035 (x0.62, n 830, 7% of misses); comment 0.163 (x2.86, n 1212, 49% of misses)
+  by the DRAFTED token's class (known before the check):
+  drafted class: newline 0.026 (x0.46, n 464, 3% of misses); indent 0.056 (x0.98, n 788, 11% of misses); ident_start 0.040 (x0.71, n 1889, 19% of misses); word_cont 0.028 (x0.49, n 254, 2% of misses); punct 0.026 (x0.46, n 1074, 7% of misses); number 0.020 (x0.35, n 501, 3% of misses); string 0.036 (x0.64, n 831, 8% of misses); comment 0.158 (x2.79, n 1206, 48% of misses)
+  position in line: 0 0.057 (x1.01, n 627, 9% of misses); 1-2 0.043 (x0.76, n 1200, 13% of misses); 3-8 0.059 (x1.03, n 2492, 37% of misses); 9+ 0.061 (x1.07, n 2688, 41% of misses)
+  depth in block: 1-2 0.019 (x0.33, n 1330, 6% of misses); 3-5 0.067 (x1.19, n 1781, 30% of misses); 6-10 0.056 (x0.98, n 2263, 32% of misses); 11-15 0.078 (x1.37, n 1633, 32% of misses)
+  inside a copy span (8-gram seen earlier): 1 0.001 (x0.01, n 1773, 0% of misses); 0 0.076 (x1.34, n 5234, 100% of misses)
+  drafted 3-gram novel in the window: 1 0.104 (x1.82, n 3409, 89% of misses); 0 0.013 (x0.22, n 3598, 11% of misses)
+  drafted token never seen in the window: 1 0.133 (x2.34, n 865, 29% of misses); 0 0.046 (x0.81, n 6142, 71% of misses)
+  after the previous check: prev<8 0.115 (x2.03, n 2044, 59% of misses); prev 8-14 0.043 (x0.76, n 2325, 25% of misses); prev full 0.023 (x0.41, n 2638, 15% of misses)
+  the drafter's cf: <0.5 0.249 (x4.39, n 365, 23% of misses); 0.5-0.9 0.150 (x2.64, n 1013, 38% of misses); 0.9-0.99 0.074 (x1.30, n 1055, 20% of misses); >=0.99 0.017 (x0.30, n 4574, 19% of misses)
+
+  == code: per-row miss AUC (2 folds by window, held-out) and check-level AUCs ==
+    cf                                         row AUC 0.802 | check: first miss <= 8 AUC 0.964 | all right AUC 0.929
+    cf + depth                                 row AUC 0.802 | check: first miss <= 8 AUC 0.959 | all right AUC 0.927
+    cf + depth + history                       row AUC 0.824 | check: first miss <= 8 AUC 0.951 | all right AUC 0.907
+    cf + depth + class                         row AUC 0.824 | check: first miss <= 8 AUC 0.954 | all right AUC 0.918
+    cf + depth + copy / novelty / line pos     row AUC 0.876 | check: first miss <= 8 AUC 0.957 | all right AUC 0.934
+    cf + depth + class + copy + history        row AUC 0.889 | check: first miss <= 8 AUC 0.956 | all right AUC 0.931
+  -- on the lattice-aligned rows (n 4809, misses 230): the margin's increment --
+    cf + depth                                 row AUC 0.811
+    margin + rank + depth                      row AUC 0.814
+    cf + margin + rank + depth                 row AUC 0.813
+    everything                                 row AUC 0.878
+
+  == code: the per-row cut at the real anchors (634 full checks; flat cost; tok/s vs t 0.3) ==
+    t 0.3 (today)                      kept/check 10.73 rows/check 10.83 tok/s 110.3
+    oracle (rows = first miss)         kept/check 11.12 rows/check 10.74 tok/s 114.6 (+3.9 %)
+    cf + depth survival                kept/check 10.94 rows/check 11.87 tok/s 110.1 (-0.2 %; mu [0.4, 0.5])
+    cf + depth + history               kept/check 10.93 rows/check 12.08 tok/s 109.5 (-0.7 %; mu [0.4, 0.4])
+    + class + copy + novelty + line    kept/check 10.98 rows/check 12.21 tok/s 109.8 (-0.5 %; mu [0.3, 0.3])
+
+==== chat: 6144 checks, 24359 tested rows, 6044 first misses (base miss rate per tested row 0.2481); kept/check 1.24; lattice-aligned checks 804 / 6144 ====
+  first-miss depth (1-based) histogram: 1:0 2:1581 3:1620 4:1182 5:690 6:403 7:228 8:175 9:103 10:58 11:38 12:21 13:11 14:8 15:3  none:23
+  lattice vs walk first miss on aligned checks: equal 0.009, lattice later 0.000, earlier 0.991 (n 804); lattice fm >= walk fm 0.009
+  rates per tested row, by the TRUE token's class (what the model had to produce):
+  true class: newline 0.112 (x0.45, n 678, 1% of misses); indent 0.124 (x0.50, n 378, 1% of misses); ident_start 0.244 (x0.98, n 12039, 49% of misses); word_cont 0.320 (x1.29, n 4053, 21% of misses); punct 0.241 (x0.97, n 4652, 19% of misses); number 0.157 (x0.63, n 306, 1% of misses); string 0.240 (x0.97, n 1737, 7% of misses); comment 0.200 (x0.80, n 516, 2% of misses)
+  by the DRAFTED token's class (known before the check):
+  drafted class: newline 0.260 (x1.05, n 814, 4% of misses); indent 0.175 (x0.70, n 401, 1% of misses); ident_start 0.260 (x1.05, n 12300, 53% of misses); word_cont 0.298 (x1.20, n 3929, 19% of misses); punct 0.182 (x0.73, n 4317, 13% of misses); number 0.265 (x1.07, n 351, 2% of misses); string 0.238 (x0.96, n 1732, 7% of misses); comment 0.198 (x0.80, n 515, 2% of misses)
+  position in line: 0 0.112 (x0.45, n 831, 2% of misses); 1-2 0.211 (x0.85, n 1681, 6% of misses); 3-8 0.246 (x0.99, n 4648, 19% of misses); 9+ 0.259 (x1.04, n 17199, 74% of misses)
+  depth in block: 1-2 0.128 (x0.51, n 12273, 26% of misses); 3-5 0.373 (x1.50, n 9216, 57% of misses); 6-10 0.369 (x1.49, n 2597, 16% of misses); 11-15 0.289 (x1.17, n 273, 1% of misses)
+  inside a copy span (8-gram seen earlier): 1 0.000 (x0.00, n 208, 0% of misses); 0 0.250 (x1.01, n 24151, 100% of misses)
+  drafted 3-gram novel in the window: 1 0.259 (x1.05, n 22923, 98% of misses); 0 0.070 (x0.28, n 1436, 2% of misses)
+  drafted token never seen in the window: 1 0.268 (x1.08, n 10580, 47% of misses); 0 0.233 (x0.94, n 13779, 53% of misses)
+  after the previous check: prev<8 0.252 (x1.02, n 23504, 98% of misses); prev 8-14 0.118 (x0.48, n 491, 1% of misses); prev full 0.154 (x0.62, n 364, 1% of misses)
+  the drafter's cf: <0.5 0.361 (x1.45, n 8664, 52% of misses); 0.5-0.9 0.245 (x0.99, n 8767, 36% of misses); 0.9-0.99 0.136 (x0.55, n 3671, 8% of misses); >=0.99 0.081 (x0.33, n 3257, 4% of misses)
+
+  == chat: per-row miss AUC (2 folds by window, held-out) and check-level AUCs ==
+    cf                                         row AUC 0.660 | check: first miss <= 8 AUC 0.923 | all right AUC 0.988
+    cf + depth                                 row AUC 0.738 | check: first miss <= 8 AUC 0.912 | all right AUC 0.989
+    cf + depth + history                       row AUC 0.741 | check: first miss <= 8 AUC 0.899 | all right AUC 0.986
+    cf + depth + class                         row AUC 0.739 | check: first miss <= 8 AUC 0.905 | all right AUC 0.981
+    cf + depth + copy / novelty / line pos     row AUC 0.761 | check: first miss <= 8 AUC 0.899 | all right AUC 0.997
+    cf + depth + class + copy + history        row AUC 0.762 | check: first miss <= 8 AUC 0.898 | all right AUC 0.992
+  -- on the lattice-aligned rows (n 3471, misses 788): the margin's increment --
+    cf + depth                                 row AUC 0.697
+    margin + rank + depth                      row AUC 0.691
+    cf + margin + rank + depth                 row AUC 0.695
+    everything                                 row AUC 0.727
+
+  == chat: the per-row cut at the real anchors (5804 full checks; flat cost; tok/s vs t 0.3) ==
+    t 0.3 (today)                      kept/check 3.54 rows/check 3.36 tok/s 43.0
+    oracle (rows = first miss)         kept/check 4.00 rows/check 4.00 tok/s 47.9 (+11.3 %)
+    cf + depth survival                kept/check 3.85 rows/check 5.30 tok/s 44.7 (+3.9 %; mu [0.3, 0.2])
+    cf + depth + history               kept/check 3.90 rows/check 5.72 tok/s 44.8 (+4.1 %; mu [0.2, 0.2])
+    + class + copy + novelty + line    kept/check 3.91 rows/check 5.65 tok/s 45.0 (+4.5 %; mu [0.2, 0.2])
+
+==== math: 2046 checks, 17746 tested rows, 1664 first misses (base miss rate per tested row 0.0938); kept/check 6.00; lattice-aligned checks 0 / 2046 ====
+  first-miss depth (1-based) histogram: 1:0 2:117 3:174 4:166 5:162 6:180 7:139 8:136 9:105 10:105 11:106 12:105 13:81 14:88 15:61  none:321
+  rates per tested row, by the TRUE token's class (what the model had to produce):
+  true class: newline 0.075 (x0.80, n 838, 4% of misses); indent 0.049 (x0.53, n 1357, 4% of misses); ident_start 0.120 (x1.28, n 6671, 48% of misses); word_cont 0.231 (x2.46, n 260, 4% of misses); punct 0.080 (x0.85, n 4603, 22% of misses); number 0.058 (x0.61, n 2936, 10% of misses); string 0.127 (x1.35, n 1081, 8% of misses)
+  by the DRAFTED token's class (known before the check):
+  drafted class: newline 0.123 (x1.31, n 884, 7% of misses); indent 0.087 (x0.93, n 1413, 7% of misses); ident_start 0.119 (x1.27, n 6665, 48% of misses); word_cont 0.134 (x1.43, n 231, 2% of misses); punct 0.061 (x0.65, n 4507, 16% of misses); number 0.068 (x0.72, n 2968, 12% of misses); string 0.124 (x1.33, n 1078, 8% of misses)
+  position in line: 0 0.046 (x0.49, n 945, 3% of misses); 1-2 0.092 (x0.98, n 1999, 11% of misses); 3-8 0.098 (x1.05, n 5718, 34% of misses); 9+ 0.096 (x1.03, n 9084, 53% of misses)
+  depth in block: 1-2 0.027 (x0.29, n 4087, 7% of misses); 3-5 0.093 (x0.99, n 5258, 29% of misses); 6-10 0.115 (x1.23, n 5601, 39% of misses); 11-15 0.150 (x1.60, n 2800, 25% of misses)
+  inside a copy span (8-gram seen earlier): 1 0.017 (x0.19, n 344, 0% of misses); 0 0.095 (x1.02, n 17402, 100% of misses)
+  drafted 3-gram novel in the window: 1 0.111 (x1.19, n 13048, 87% of misses); 0 0.045 (x0.48, n 4698, 13% of misses)
+  drafted token never seen in the window: 1 0.126 (x1.35, n 3314, 25% of misses); 0 0.086 (x0.92, n 14432, 75% of misses)
+  after the previous check: prev<8 0.105 (x1.12, n 10729, 68% of misses); prev 8-14 0.080 (x0.85, n 4870, 23% of misses); prev full 0.069 (x0.74, n 2147, 9% of misses)
+  the drafter's cf: <0.5 0.243 (x2.60, n 1220, 18% of misses); 0.5-0.9 0.162 (x1.73, n 4216, 41% of misses); 0.9-0.99 0.097 (x1.03, n 3841, 22% of misses); >=0.99 0.037 (x0.39, n 8469, 19% of misses)
+
+  == math: per-row miss AUC (2 folds by window, held-out) and check-level AUCs ==
+    cf                                         row AUC 0.723 | check: first miss <= 8 AUC 0.881 | all right AUC 0.902
+    cf + depth                                 row AUC 0.735 | check: first miss <= 8 AUC 0.877 | all right AUC 0.901
+    cf + depth + history                       row AUC 0.734 | check: first miss <= 8 AUC 0.861 | all right AUC 0.870
+    cf + depth + class                         row AUC 0.745 | check: first miss <= 8 AUC 0.865 | all right AUC 0.886
+    cf + depth + copy / novelty / line pos     row AUC 0.753 | check: first miss <= 8 AUC 0.862 | all right AUC 0.894
+    cf + depth + class + copy + history        row AUC 0.760 | check: first miss <= 8 AUC 0.848 | all right AUC 0.873
+
+  == math: the per-row cut at the real anchors (1978 full checks; flat cost; tok/s vs t 0.3) ==
+    t 0.3 (today)                      kept/check 8.30 rows/check 9.25 tok/s 88.2
+    oracle (rows = first miss)         kept/check 8.88 rows/check 8.72 tok/s 95.5 (+8.2 %)
+    cf + depth survival                kept/check 8.65 rows/check 11.39 tok/s 87.9 (-0.4 %; mu [0.3, 0.3])
+    cf + depth + history               kept/check 8.61 rows/check 11.41 tok/s 87.5 (-0.8 %; mu [0.3, 0.3])
+    + class + copy + novelty + line    kept/check 8.63 rows/check 11.34 tok/s 87.8 (-0.4 %; mu [0.3, 0.3])
+
+(85 s)

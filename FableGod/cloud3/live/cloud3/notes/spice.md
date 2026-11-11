@@ -1,0 +1,7 @@
+# SPICE: Speculative Prefetching with Low-Rank Expert Surrogates and Heterogeneous Orchestration for MoE Inference Acceleration (arXiv 2608.21240, 21 Aug 2026, cs.AR)
+- Link: https://arxiv.org/abs/2608.21240 (PDF https://arxiv.org/pdf/2608.21240). Source: WebSearch extracts [S].
+- What: three mechanisms for MoE offloading: (1) adaptive speculative prefetch depth set by a hardware overlap bound and predictor confidence (expand while confidence stays above a threshold after a minimum horizon, up to a maximum); (2) low-confidence miss substitution by LoRE low-rank expert surrogates (a cheap stand-in computed instead of waiting); (3) CPU-GPU orchestration.
+- Numbers [S]: not in the extracts (speedups unverified).
+- Maps to us: (1) is FAR's SPICE-style per-origin horizon (queued in FAR-G1); (2) a low-rank surrogate on a miss is the "substitute a missing expert" family: TRIED SERE / SPICE / mean-expert fallback KILL (routed experts orthogonal, a scaled other expert leaves ~100 % of the missing energy); a LOW-RANK copy of the SAME expert is different from another expert: it is the bytes/precision-on-miss family (M-03 POM, HOBBIT 2-bit stand-ins), BETWEEN here on quality at the real shares. For the distinct-experts wall: a surrogate does not cut distinct experts, it cuts bytes per miss.
+- TRIED status: horizon rule = FAR arm (untested live); surrogate = KILL/BETWEEN family.
+- Open: LoRE rank and quality per layer, if it ever matters for the 24 / 12 GB bytes lines.

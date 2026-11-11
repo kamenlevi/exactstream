@@ -1,0 +1,20 @@
+
+SMALL-N wiring check Wed 15:29:40
+(a) N 512: 3 calls on qmm16n False; 1 / 8-row == the 16-row rows True; error vs fp32 4.36e-04 (MLX's call 4.36e-04) -> FAIL
+(b) R-74 concat via glue_fused: on qmm16n False; shared output vs MLX path rel 0.00e+00, gate 0.00e+00 -> FAIL
+
+SMALL-N wiring check Wed 15:29:50
+(a) N 512: 3 calls on qmm16n True; 1 / 8-row == the 16-row rows True; error vs fp32 2.12e-03 (MLX's call 2.13e-03) -> OK
+(b) R-74 concat via glue_fused: on qmm16n True; shared output vs MLX path rel 1.56e-04, gate 0.00e+00 -> OK
+(c) R-83 b | a marked and on qmm16n True; qkv untouched True; b rel 2.04e-07 -> OK
+(d) switch off: == today's path, nothing counted: True
+(e) ref2.self_test: PASS
+SMALL-N wiring: PASS
+
+SMALL-N wiring check Wed 15:29:59
+(a) N 512: 3 calls on qmm16n True; 1 / 8-row == the 16-row rows True; error vs fp32 2.12e-03 (MLX's call 2.13e-03) -> OK
+(b) R-74 concat via glue_fused: on qmm16n True; shared output vs MLX path rel 1.56e-04, gate 0.00e+00 -> OK
+(c) R-83 b | a marked and on qmm16n True; qkv untouched True; b rel 2.04e-07 -> OK
+(d) switch off: == today's path, nothing counted: True
+(e) ref2.self_test: PASS
+SMALL-N wiring: PASS

@@ -1,0 +1,11 @@
+scripts/actrefit35.py (CPU), 35B proxy (Qwen3.6-35B-A3B, experts 4-bit g64 as capture35.py), NewIdeas' capture data/cap35/L*.npz,
+fit on even segments (12,288 tokens), scored on odd segments (12,288 held-out tokens). 2-bit tier = m2 = q >> 2 (frozen).
+Per projection, 8-16 most-routed experts, mean relative output error (a trunc | b weight-LS | c diag-weighted LS | d act LS):
+L3  gate 0.2778 | 0.2745 | 0.2696 | 0.2361 (MSE x0.722)  up 0.3250 | 0.3157 | 0.3091 | 0.2754 (x0.718)  down 0.3367 | 0.3261 | - | 0.3179 (x0.891)
+L24 gate 0.2527 | 0.2550 | 0.2479 | 0.2211 (x0.765)      up 0.3273 | 0.3174 | 0.3121 | 0.2863 (x0.766)  down 0.3534 | 0.3404 | - | 0.3331 (x0.888)
+L38 gate 0.2110 | 0.2246 | 0.2157 | 0.1685 (x0.637)      up 0.2186 | 0.2290 | 0.2202 | 0.1742 (x0.635)  down 0.3653 | 0.3505 | - | 0.3145 (x0.741)
+Whole MoE block, all 256 experts, plan 42222222 (rank 1 4-bit, ranks 2-8 2-bit), rel error vs the 4-bit block:
+L3  trunc 0.2608 -> act refit 0.2337 (error energy x0.803)
+L24 trunc 0.3642 -> act refit 0.3342 (x0.842)
+L38 trunc 0.3268 -> act refit 0.2791 (x0.730)
+(4-bit block in fp32 vs the captured bf16 Y: rel 0.047-0.054, the arithmetic floor of this comparison)

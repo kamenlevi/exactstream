@@ -1,0 +1,13 @@
+M = 1 input rows; dependent chain of 16 distinct matrices per shape
+HC down 320x10240 bf16           MLX   28.5 µs (  230 GB/s) | split-K   35.1 µs (  187 GB/s, SPLITS=16, RSG=1) | rel.err 2.3e-03 det True | x97/token: -0.63 ms
+HC up 10240x320 bf16             MLX   30.2 µs (  217 GB/s) | split-K   35.1 µs (  187 GB/s, SPLITS=1, RSG=1) | rel.err 2.7e-03 det True | x97/token: -0.47 ms
+HC inject 4x10240 bf16           MLX    7.1 µs (   12 GB/s) | split-K   12.3 µs (    7 GB/s, SPLITS=16, RSG=2) | rel.err 9.6e-04 det True | x96/token: -0.50 ms
+router 512x2560 q8               MLX   11.6 µs (  120 GB/s) | split-K   15.1 µs (   92 GB/s, SPLITS=1, RSG=1) | rel.err 2.3e-03 det True | x48/token: -0.17 ms
+GDN in_proj_qkv 10240x2560 q4    MLX   54.7 µs (  270 GB/s) | split-K   76.3 µs (  193 GB/s, SPLITS=1, RSG=4) | rel.err 2.1e-03 det True | x36/token: -0.78 ms
+GDN in_proj_z 6144x2560 q4       MLX   35.7 µs (  248 GB/s) | split-K   51.7 µs (  171 GB/s, SPLITS=1, RSG=4) | rel.err 1.9e-03 det True | x36/token: -0.58 ms
+out/o_proj 2560x6144 q4          MLX   40.6 µs (  218 GB/s) | split-K   47.4 µs (  187 GB/s, SPLITS=1, RSG=4) | rel.err 2.5e-03 det True | x48/token: -0.33 ms
+attn q_proj 12288x2560 q4        MLX   62.8 µs (  282 GB/s) | split-K   88.4 µs (  200 GB/s, SPLITS=1, RSG=4) | rel.err 2.8e-03 det True | x12/token: -0.31 ms
+shared gate+up 1280x2560 q4      MLX   10.9 µs (  169 GB/s) | split-K   16.5 µs (  112 GB/s, SPLITS=1, RSG=4) | rel.err 3.3e-03 det True | x48/token: -0.27 ms
+shared down 2560x640 q4          MLX    4.1 µs (  227 GB/s) | split-K   23.8 µs (   39 GB/s, SPLITS=1, RSG=1) | rel.err 2.7e-03 det True | x48/token: -0.95 ms
+PLE key_proj 10240x2560 bf16     MLX  198.9 µs (  264 GB/s) | split-K  192.5 µs (  272 GB/s, SPLITS=1, RSG=2) | rel.err 2.1e-03 det True | x1/token: +0.01 ms
+projected saving per token (all shapes, M=1): -4.97 ms

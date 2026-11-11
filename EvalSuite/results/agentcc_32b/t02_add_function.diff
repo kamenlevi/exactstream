@@ -1,0 +1,65 @@
+diff --git a/tests/test_textutil.py b/tests/test_textutil.py
+index 44ea3f6..afe536c 100644
+--- a/tests/test_textutil.py
++++ b/tests/test_textutil.py
+@@ -1,7 +1,31 @@
+ import unittest
+-from textutil import title_case
++from textutil import slugify, title_case
+ 
+ 
+ class T(unittest.TestCase):
+     def test_title(self):
+         self.assertEqual(title_case('a b'), 'A B')
++
++    def test_slugify(self):
++        self.assertEqual(
++            slugify('Hello,   World!-- 123__go'), 'hello-world-123-go'
++        )
++
++    def test_slugify_strips_hyphens(self):
++        self.assertEqual(
++            slugify('!!!Hello, World!!!'), 'hello-world'
++        )
++
++    def test_slugify_all_separator(self):
++        self.assertEqual(
++            slugify('!!!'), ''
++        )
++
++    def test_slugify_empty(self):
++        self.assertEqual(
++            slugify(''), ''
++        )
++
++
++if __name__ == '__main__':
++    unittest.main()
+diff --git a/textutil.py b/textutil.py
+index 62d0d8b..4cfecc3 100644
+--- a/textutil.py
++++ b/textutil.py
+@@ -1,2 +1,11 @@
++import re
++
++
+ def title_case(s):
+     return ' '.join(w.capitalize() for w in s.split())
++
++
++def slugify(text):
++    """Lowercase `text`, collapse runs of non-alphanumeric characters into
++    single hyphens, and strip hyphens from both ends."""
++    return re.sub(r'[^a-z0-9]+', '-', text.lower()).strip('-')
+diff --git a/__pycache__/textutil.cpython-314.pyc b/__pycache__/textutil.cpython-314.pyc
+new file mode 100644
+index 0000000..bb457b6
+Binary files /dev/null and b/__pycache__/textutil.cpython-314.pyc differ
+diff --git a/tests/__pycache__/__init__.cpython-314.pyc b/tests/__pycache__/__init__.cpython-314.pyc
+new file mode 100644
+index 0000000..b91aac9
+Binary files /dev/null and b/tests/__pycache__/__init__.cpython-314.pyc differ
+diff --git a/tests/__pycache__/test_textutil.cpython-314.pyc b/tests/__pycache__/test_textutil.cpython-314.pyc
+new file mode 100644
+index 0000000..faa45b4
+Binary files /dev/null and b/tests/__pycache__/test_textutil.cpython-314.pyc differ

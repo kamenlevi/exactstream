@@ -1,0 +1,16 @@
+
+D5 check Wed 16:40:33
+(a) HC reads, layers 3 / 20 / 44 x attn / mlp x 4 scales x hc_write off / on (48): D5 == off, bitwise, fold counted: True
+(b) HC8 path (8-bit mixers, hc8_fast; layers 3 / 44): D5 == off, bitwise, fold counted: True
+
+D5 check Wed 16:40:37
+(a) HC reads, layers 3 / 20 / 44 x attn / mlp x 4 scales x hc_write off / on (48): D5 == off, bitwise, fold counted: True
+(b) HC8 path (8-bit mixers, hc8_fast; layers 3 / 44): D5 == off, bitwise, fold counted: True
+
+D5 check Wed 16:40:55
+(a) HC reads, layers 3 / 20 / 44 x attn / mlp x 4 scales x hc_write off / on (48): D5 == off, bitwise, fold counted: True
+(b) HC8 path (8-bit mixers, hc8_fast; layers 3 / 44): D5 == off, bitwise, fold counted: True
+(c) 4-layer stack (layers 4-7: ['GDN', 'GDN', 'GDN', 'attention']; stub MoE): D5 == off bitwise True, folds 3 (3 expected) -> OK; ms per stack call off 2.583, on 2.586 (+0.001 ms per boundary; rough)
+(d) ref2.self_test: PASS
+D5 check: PASS
+D5 micro (write + next HC read, layer 20, 16 rows, us per boundary): hc_write off: off 85.4, D5 83.0 (-2.4); hc_write on: off 84.0, D5 84.3 (+0.3)

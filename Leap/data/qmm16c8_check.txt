@@ -1,0 +1,28 @@
+
+BP-5 qmm16c8 check Wed 16:18:57: MLX 0.32.2
+(a) N 4096 K 2560: error vs fp32 2.33e-03 (MLX 8-bit 2.33e-03; ks 2/4 ['2.33e-03', '2.33e-03']); 1 / 8 rows == the 16-row call's rows True -> OK
+(a) N 1024 K 2560: error vs fp32 2.32e-03 (MLX 8-bit 2.32e-03; ks 2/4 ['2.32e-03', '2.32e-03']); 1 / 8 rows == the 16-row call's rows True -> OK
+(a) N 2560 K 7680: error vs fp32 2.35e-03 (MLX 8-bit 3.62e-03; ks 2/4 ['2.35e-03', '2.35e-03']); 1 / 8 rows == the 16-row call's rows True -> OK
+(b) q         N  4096 K  2560: bf16 49.5 us (424 GB/s); mlx q8 113.5 us (98 GB/s); qmm16c 4b 31.0 us (190 GB/s); c8 ks1 32.0 us (348 GB/s); c8 ks2 34.4 us (324 GB/s); c8 ks4 34.2 us (325 GB/s); c8 ks8 34.5 us (323 GB/s)
+(b) k / v     N  1024 K  2560: bf16 76.7 us (68 GB/s); mlx q8 46.1 us (60 GB/s); qmm16c 4b 18.9 us (78 GB/s); c8 ks1 20.2 us (138 GB/s); c8 ks2 19.8 us (141 GB/s); c8 ks4 18.6 us (150 GB/s); c8 ks8 18.8 us (148 GB/s)
+(b) o         N  2560 K  4096: bf16 48.9 us (429 GB/s); mlx q8 118.2 us (94 GB/s); qmm16c 4b 33.8 us (175 GB/s); c8 ks1 35.9 us (311 GB/s); c8 ks2 35.4 us (315 GB/s); c8 ks4 35.8 us (311 GB/s); c8 ks8 36.8 us (303 GB/s)
+(b) gate / up N  7680 K  2560: bf16 140.7 us (279 GB/s); mlx q8 223.9 us (93 GB/s); qmm16c 4b 47.5 us (233 GB/s); c8 ks1 57.2 us (365 GB/s); c8 ks2 55.6 us (376 GB/s); c8 ks4 55.6 us (376 GB/s); c8 ks8 57.4 us (364 GB/s)
+(b) down      N  2560 K  7680: bf16 231.3 us (170 GB/s); mlx q8 224.3 us (93 GB/s); qmm16c 4b 48.3 us (229 GB/s); c8 ks1 53.7 us (389 GB/s); c8 ks2 52.0 us (402 GB/s); c8 ks4 56.4 us (370 GB/s); c8 ks8 55.1 us (379 GB/s)
+(b) fc        N  2560 K 12800: bf16 423.6 us (155 GB/s); mlx q8 375.4 us (93 GB/s); qmm16c 4b 72.0 us (256 GB/s); c8 ks1 89.1 us (391 GB/s); c8 ks2 97.5 us (357 GB/s); c8 ks4 136.3 us (255 GB/s); c8 ks8 132.0 us (264 GB/s)
+(b) best c8 per shape: q c8 ks1 32.0 us (bf16 49.5), k / v c8 ks4 18.6 us (bf16 76.7), o c8 ks2 35.4 us (bf16 48.9), gate / up c8 ks4 55.6 us (bf16 140.7), down c8 ks2 52.0 us (bf16 231.3), fc c8 ks1 89.1 us (bf16 423.6)
+qmm16c8 accuracy + invariance: PASS
+BP-11b Wed 17:11: qmm16c8 row bound M_C (no padding pass) == the padded call's rows, bitwise, 6 shapes x M 8 / 1 / 16 x ks 1 / 2: True
+BP-11b Wed 17:13: qmm16c8 default (padded, M_C 16) and row_bound=True == the explicitly padded call's rows, bitwise, 6 shapes x M 8 / 1 / 16 x ks 1 / 2: True
+
+BP-5 qmm16c8 check Wed 17:13:12: MLX 0.32.2
+(a) N 4096 K 2560: error vs fp32 2.33e-03 (MLX 8-bit 2.33e-03; ks 2/4 ['2.33e-03', '2.33e-03']); 1 / 8 rows == the 16-row call's rows True -> OK
+(a) N 1024 K 2560: error vs fp32 2.32e-03 (MLX 8-bit 2.32e-03; ks 2/4 ['2.32e-03', '2.32e-03']); 1 / 8 rows == the 16-row call's rows True -> OK
+(a) N 2560 K 7680: error vs fp32 2.35e-03 (MLX 8-bit 3.62e-03; ks 2/4 ['2.35e-03', '2.35e-03']); 1 / 8 rows == the 16-row call's rows True -> OK
+(b) q         N  4096 K  2560: bf16 50.9 us (412 GB/s); mlx q8 116.2 us (96 GB/s); qmm16c 4b 30.4 us (194 GB/s); c8 ks1 31.9 us (350 GB/s); c8 ks2 34.1 us (327 GB/s); c8 ks4 38.6 us (289 GB/s); c8 ks8 38.5 us (289 GB/s)
+(b) k / v     N  1024 K  2560: bf16 57.4 us (91 GB/s); mlx q8 40.4 us (69 GB/s); qmm16c 4b 17.1 us (86 GB/s); c8 ks1 17.5 us (159 GB/s); c8 ks2 17.1 us (163 GB/s); c8 ks4 16.9 us (165 GB/s); c8 ks8 17.0 us (164 GB/s)
+(b) o         N  2560 K  4096: bf16 47.3 us (443 GB/s); mlx q8 115.3 us (97 GB/s); qmm16c 4b 30.3 us (194 GB/s); c8 ks1 32.4 us (344 GB/s); c8 ks2 34.4 us (324 GB/s); c8 ks4 37.2 us (299 GB/s); c8 ks8 37.0 us (301 GB/s)
+(b) gate / up N  7680 K  2560: bf16 138.0 us (285 GB/s); mlx q8 223.4 us (94 GB/s); qmm16c 4b 50.4 us (219 GB/s); c8 ks1 56.4 us (371 GB/s); c8 ks2 56.1 us (372 GB/s); c8 ks4 55.7 us (375 GB/s); c8 ks8 57.5 us (363 GB/s)
+(b) down      N  2560 K  7680: bf16 218.6 us (180 GB/s); mlx q8 224.9 us (93 GB/s); qmm16c 4b 49.3 us (224 GB/s); c8 ks1 52.7 us (397 GB/s); c8 ks2 55.8 us (374 GB/s); c8 ks4 56.7 us (368 GB/s); c8 ks8 55.1 us (379 GB/s)
+(b) fc        N  2560 K 12800: bf16 425.1 us (154 GB/s); mlx q8 376.1 us (93 GB/s); qmm16c 4b 73.6 us (250 GB/s); c8 ks1 89.2 us (390 GB/s); c8 ks2 96.1 us (362 GB/s); c8 ks4 145.0 us (240 GB/s); c8 ks8 124.1 us (280 GB/s)
+(b) best c8 per shape: q c8 ks1 31.9 us (bf16 50.9), k / v c8 ks4 16.9 us (bf16 57.4), o c8 ks1 32.4 us (bf16 47.3), gate / up c8 ks4 55.7 us (bf16 138.0), down c8 ks1 52.7 us (bf16 218.6), fc c8 ks1 89.2 us (bf16 425.1)
+qmm16c8 accuracy + invariance: PASS

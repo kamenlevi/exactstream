@@ -1,0 +1,9 @@
+R-69L flags: TIER_COMBINE True, OOO True, GLU 3c
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 160), loaded in 1 s, 25.0 GB active; REF2 + SB; gate rows MAXK 160 (ext build_next), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 96
+  humaneval/HumanEval/68 [gate+t]: 96 tokens in 6 checks (kept 15.83), 36.4 tok/s (steady state, checks >= 2: 48.2), median cycle 421.1 ms, check + commit 361.5 ms; per check (medians) 1774 misses, demand SSD 264.5 ms; tokens == REF2 row 96 / 96; NAX4 calls 0
+  math500/test/prealgebra/1640.json [gate+t]: 96 tokens in 18 checks (kept 5.28), 30.6 tok/s (steady state, checks >= 2: 32.4), median cycle 140.8 ms, check + commit 129.6 ms; per check (medians) 360 misses, demand SSD 71.7 ms; tokens == REF2 row 55 / 96; NAX4 calls 0
+  gate+t: tok/s 33.5 (steady state 40.3), cycle 281.0 ms, check + commit 245.5 ms, misses 1067, demand SSD 168.1 ms per check (medians over valid runs, then prompts)
+R-69L: OOO calls 0 (flags TIER_COMBINE True, OOO True)
+R-69D: MoE block calls by (rows, active __call__ name): {(367, 'block'): 48, (16, 'block'): 336, (15, 'block'): 50, (62, 'block'): 48, (7, 'block'): 145, (6, 'block'): 49, (8, 'block'): 49, (4, 'block'): 146, (1, 'block'): 2, (2, 'block'): 50, (5, 'block'): 144, (12, 'block'): 48, (3, 'block'): 1, (9, 'block'): 144}
+R-69D: tier_call by (rows, post given, scores given): {(16, True, False): 336, (15, True, False): 50, (7, True, False): 145, (6, True, False): 49, (8, True, False): 49, (4, True, False): 146, (1, True, False): 2, (2, True, False): 50, (5, True, False): 144, (12, True, False): 48, (3, True, False): 1, (9, True, False): 144}
+  footprint now 27.6 GB, lifetime peak 28.4 GB; 15 s

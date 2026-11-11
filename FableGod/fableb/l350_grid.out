@@ -1,0 +1,28 @@
+code, 664 checks, live cut: kept 9.38, rows 11.04 per check; rows per kept token 1.177
+
+tok/s on the real check distribution (kept as measured, 9.38 per check)
+fixed per check F (ms)                     | c 3.46 | c 2.24 | c 1.05 | c 0.69 | c 0.00
+39.0  tonight: dense 28 + draft 6 + commit 5 |    122 |    147 |    185 |    201 |    240
+29.5  realistic ~Nov 14: 22 + 4.5 + 3      |    139 |    173 |    228 |    253 |    318
+23.0  exact floors: 17 + 3.5 + 2.5         |    153 |    197 |    271 |    306 |    408
+20.3  FAST floors: 14.3 + 3.5 + 2.5        |    160 |    208 |    294 |    336 |    462
+10.0  half the FAST floor (no mechanism)   |    195 |    270 |    434 |    532 |    938
+   c 3.46 = tonight: experts 22 + SSD 12 over 9.84 rows
+   c 2.24 = experts only (SSD hidden)
+   c 1.05 = split form x0.47, SSD hidden
+   c 0.69 = split form at the group floor (14.5 x 0.47 / 9.84)
+   c 0.00 = rows free
+
+with a relaxed-acceptance stand-in (each miss forgiven with probability r; expected kept per check, same rows)
+  r 0.00: kept 9.38 | F 39.0 c 3.46 ->  122 | F 29.5 c 2.24 ->  173 | F 20.3 c 1.05 ->  294 | F 20.3 c 0.69 ->  336
+  r 0.25: kept 9.61 | F 39.0 c 3.46 ->  125 | F 29.5 c 2.24 ->  177 | F 20.3 c 1.05 ->  301 | F 20.3 c 0.69 ->  344
+  r 0.50: kept 9.91 | F 39.0 c 3.46 ->  128 | F 29.5 c 2.24 ->  183 | F 20.3 c 1.05 ->  311 | F 20.3 c 0.69 ->  355
+
+pass skipping on all-sure blocks (all 15 cf >= tau), decay priced: the NEXT check's chain runs at 0.80 per row instead of 0.92
+  tonight              tau 0.90: 16.9 % of passes skipped;   122 ->   131 tok/s (x1.075); flips 0.18-0.39 %
+  tonight              tau 0.95: 11.4 % of passes skipped;   122 ->   127 tok/s (x1.045); flips 0.02-0.05 %
+  tonight              oracle (every fully accepted block): 26.4 % skipped; x1.124
+  FAST floors + split  tau 0.90: 16.9 % of passes skipped;   294 ->   312 tok/s (x1.059); flips 0.18-0.39 %
+  FAST floors + split  tau 0.95: 11.4 % of passes skipped;   294 ->   305 tok/s (x1.036); flips 0.02-0.05 %
+  FAST floors + split  oracle (every fully accepted block): 26.4 % skipped; x1.097
+  (chain of 15 at 0.92 keeps 8.21 drafts, at 0.80 keeps 3.86: 4.35 lost per skipped pass)

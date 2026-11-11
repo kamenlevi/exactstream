@@ -1,0 +1,5 @@
+L1-28 fair A/B: native vs two tiles per simdgroup, interleaved, 12 rounds x median of 7
+  in_proj_qkv 10240x2560 x36 at (2, 2) / (2, 1) (bitwise native2 == native at ks 2: True): native 2.226 ms (85% of floor; x1.00 vs native, IQR 1.00-1.00); native2 2.272 ms (83% of floor; x0.99 vs native, IQR 0.98-0.99)
+  o_proj+out_proj 2560x6144 x48 at (2, 2) / (2, 1) (bitwise native2 == native at ks 2: True): native 1.918 ms (79% of floor; x1.00 vs native, IQR 1.00-1.00); native2 1.994 ms (76% of floor; x0.96 vs native, IQR 0.96-0.97)
+  in_proj_z 6144x2560 x36 at (1, 1) / (1, 1) (bitwise native2 == native at ks 1: True): native 1.513 ms (75% of floor; x1.00 vs native, IQR 1.00-1.00); native2 1.531 ms (74% of floor; x0.99 vs native, IQR 0.98-1.00)
+  experts 16 rows (60 distinct, 4 layers; bitwise native2 == native: True): native 2.897 ms (82% of floor; x1.00 vs native, IQR 1.00-1.00); native2 3.092 ms (77% of floor; x0.94 vs native, IQR 0.94-0.95)

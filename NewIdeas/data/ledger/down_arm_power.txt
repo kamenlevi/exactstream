@@ -1,0 +1,8 @@
+DOWN-ONLY ARM POWER CHECK (NewIdeas 22:4x): s7_trl_down = TRL-3 on down, MSB-3 on gate / up, at screen 7's 4 layers.
+Model per matrix (equal params): w = (s7_cal - s7_ref) / 15 (MSB-2 = r 5 on 3 matrices); D_down = w (2 + r3); r3 = D_down / w - 2.
+Noise: the down arm's paired SE taken as s7_trl's (s7_cal's is the same size at twice the effect, so SE does not shrink with it).
+  code: w 0.000084; expected D_down 0.00021..0.00025 (r3 0.52..1.0) vs its SE 0.00024 (z 0.9..1.0); SE of r3: 2.9 per row / 3.8 per window
+  ifeval: w 0.000448; expected D_down 0.00113..0.00135 (r3 0.52..1.0) vs its SE 0.00064 (z 1.8..2.1); SE of r3: 1.4 per row / 1.5 per window
+  multi: w 0.000481; expected D_down 0.00121..0.00144 (r3 0.52..1.0) vs its SE 0.00076 (z 1.6..1.9); SE of r3: 1.6 per row / 1.3 per window
+  all three domains combined (per-row SEs): SE of r3 = 0.99. Separating r3 0.52 (MSE) from ~1.0 (the mix's miss
+  factor applied to TRL-3) at 2 SE needs SE <= ~0.24: ~4x smaller, i.e. ~17x the rows or layers. The 4-layer KL arm cannot decide TRL-3.

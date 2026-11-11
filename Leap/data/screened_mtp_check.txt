@@ -1,0 +1,22 @@
+
+R57_CHATSH drop-in check Wed 15:52:16
+(a) subset = every id: drafts and p == the base's, bitwise: True
+(b) subset = half the ids: chains == the base's up to the first depth outside the subset: True (14 of 96 depths before it)
+(c) draft head unset after every call: True
+(d) add(): 10 new ids once, repeats ignored: True
+R57_CHATSH drop-in: PASS
+
+R57_CHATSH drop-in check Wed 16:04:02
+(a) subset = every id (generic + qwen4 stubs): drafts and p == the base's, bitwise: True
+(b) subset = half the ids: chains == the base's up to the first depth outside the subset: True (27 of 192 depths before it)
+(c) the hook restored after every call (generic: unset; qwen4: the bound _head_logits): True
+(d) add(): 10 new ids once, repeats ignored: True
+R57_CHATSH drop-in: PASS
+
+R57_CHATSH drop-in check Wed 16:04:13
+(a) subset = every id (generic + qwen4 stubs): drafts and p == the base's, bitwise: True
+(b) subset = half the ids: chains == the base's up to the first depth outside the subset: True (27 of 192 depths before it)
+(e) the subset is really in use: every screened draft inside it 192 of 192; base drafts outside it 99 -> True
+(c) the hook restored after every call (generic: unset; qwen4: the bound _head_logits): True
+(d) add(): 10 new ids once, repeats ignored: True
+R57_CHATSH drop-in: PASS

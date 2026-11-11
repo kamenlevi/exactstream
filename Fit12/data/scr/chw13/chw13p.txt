@@ -1,0 +1,65 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=30.2 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 15M, prefetch on)
+[bigmoe] tier 4433333333: C_m=47 C_l=32 per layer, 6.03 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: engine v3p, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+b12: C_m=47 C_l=32 (9 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.03 GB, active 8.96 GB
+[chw13p] PR1 installed: keep-1 commits replay the PLE layer on 2 rows
+[chw13p] bt_b12 8db71cc537, engine /Users/kamen/Breakthrough/v3p, C_m 47 C_l 32, cap 128; drafter 0.928 GB (own params), SW 2048; after load: lifetime 10.615 GB, MLX active 9.529; prompts ifeval/1220 (n 43), ifeval/3280 (n 46), ifeval/1561 (n 66), ifeval/2853 (n 52), ifeval/374 (n 101), ifeval/3407 (n 54), ifeval/2239 (n 37), ifeval/2590 (n 48), ifeval/2870 (n 42), ifeval/2439 (n 78), ifeval/1219 (n 74), ifeval/1262 (n 57)
+[chw13p] start (SSD <= 55 C, no PAUSE): SSD 45 C, no PAUSE (waited 25 s)
+[mtplx] verify SDPA head-chunked: q_len=3 heads_per_chunk=10 chunks=4
+[chw13p] ifeval/1220 ex PHASES draft: 70 runs, 10.5 ms, 0 MB, 0 misses, 0.00 passes per run, 0.00 GB/s | exact: 70 runs, 117.9 ms, 751 MB, 399 misses, 1.14 passes per run, 6.37 GB/s
+[chw13p] ifeval/1220 ex theta None  | tok 128 sha 11289bff08 | lsha 39152dc1f6 | = ex tokens True (first divergence None) | checks 70, kept 1.83 | pass2 0 exact 70 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 203 in 80 calls, refused 0 | prefill 2.35 s, decode 9.02 s, 14.18 tok/s | lifetime 10.615 GB | per check ms: draft 10.5 pass 1 0.0 pass 2 / exact 117.9 commit 0.0; misses per check pass 1 0 pass 2 399
+[chw13p] ifeval/1220 ex PREFILL n 43 smoe 4096 | 2.345 s, 17.9 tok/s, SSD 16741 MB | lifetime 10.615 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[chw13p] PAIR ifeval/1220: SSD per arm (C) ex 45->45 | PAUSE 0.0 s inside -> ok
+[chw13p] ifeval/3280 ex PHASES draft: 52 runs, 10.6 ms, 0 MB, 0 misses, 0.00 passes per run, 0.00 GB/s | exact: 52 runs, 169.3 ms, 1280 MB, 701 misses, 1.27 passes per run, 7.56 GB/s
+[chw13p] ifeval/3280 ex theta None  | tok 128 sha d372ce0bf1 | lsha 89ff4072ba | = ex tokens True (first divergence None) | checks 52, kept 2.46 | pass2 0 exact 52 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 175 in 66 calls, refused 0 | prefill 2.50 s, decode 9.38 s, 13.64 tok/s | lifetime 10.745 GB | per check ms: draft 10.6 pass 1 0.0 pass 2 / exact 169.3 commit 0.0; misses per check pass 1 0 pass 2 701
+[chw13p] ifeval/3280 ex PREFILL n 46 smoe 4096 | 2.500 s, 18.0 tok/s, SSD 18718 MB | lifetime 10.745 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[chw13p] PAIR ifeval/3280: SSD per arm (C) ex 45->45 | PAUSE 0.0 s inside -> ok
+[chw13p] ifeval/1561 ex PHASES draft: 6 runs, 12.2 ms, 0 MB, 0 misses, 0.00 passes per run, 0.00 GB/s | exact: 6 runs, 524.3 ms, 4455 MB, 2433 misses, 2.83 passes per run, 8.50 GB/s
+[chw13p] ifeval/1561 ex theta None  | tok 55 sha 085fd66a84 | lsha ce25ecfedb | = ex tokens True (first divergence None) | checks 6, kept 9.17 | pass2 0 exact 6 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 61 in 17 calls, refused 0 | prefill 2.95 s, decode 3.22 s, 17.07 tok/s | lifetime 10.818 GB | per check ms: draft 12.2 pass 1 0.0 pass 2 / exact 524.3 commit 0.0; misses per check pass 1 0 pass 2 2433
+[chw13p] ifeval/1561 ex PREFILL n 66 smoe 4096 | 2.953 s, 22.0 tok/s, SSD 21653 MB | lifetime 10.818 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[chw13p] PAIR ifeval/1561: SSD per arm (C) ex 45->45 | PAUSE 0.0 s inside -> ok
+[chw13p] ifeval/2853 ex PHASES draft: 69 runs, 10.4 ms, 0 MB, 0 misses, 0.00 passes per run, 0.00 GB/s | exact: 69 runs, 118.4 ms, 766 MB, 408 misses, 1.14 passes per run, 6.47 GB/s
+[chw13p] ifeval/2853 ex theta None  | tok 128 sha 996a0abc85 | lsha 8839371ce3 | = ex tokens True (first divergence None) | checks 69, kept 1.86 | pass2 0 exact 69 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 193 in 79 calls, refused 0 | prefill 2.72 s, decode 8.93 s, 14.34 tok/s | lifetime 10.847 GB | per check ms: draft 10.4 pass 1 0.0 pass 2 / exact 118.4 commit 0.0; misses per check pass 1 0 pass 2 408
+[chw13p] ifeval/2853 ex PREFILL n 52 smoe 4096 | 2.716 s, 18.8 tok/s, SSD 19523 MB | lifetime 10.847 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[chw13p] PAIR ifeval/2853: SSD per arm (C) ex 45->45 | PAUSE 0.0 s inside -> ok
+[chw13p] ifeval/374 ex PHASES draft: 19 runs, 11.6 ms, 0 MB, 0 misses, 0.00 passes per run, 0.00 GB/s | exact: 19 runs, 376.3 ms, 3073 MB, 1669 misses, 2.21 passes per run, 8.17 GB/s
+[chw13p] ifeval/374 ex theta None  | tok 116 sha 43861a9b47 | lsha e1e946a682 | = ex tokens True (first divergence None) | checks 19, kept 6.11 | pass2 0 exact 19 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 138 in 42 calls, refused 0 | prefill 3.14 s, decode 7.38 s, 15.72 tok/s | lifetime 11.010 GB | per check ms: draft 11.6 pass 1 0.0 pass 2 / exact 376.3 commit 0.0; misses per check pass 1 0 pass 2 1669
+[chw13p] ifeval/374 ex PREFILL n 101 smoe 4096 | 3.140 s, 31.8 tok/s, SSD 25754 MB | lifetime 11.010 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[chw13p] PAIR ifeval/374: SSD per arm (C) ex 45->45 | PAUSE 0.0 s inside -> ok
+[chw13p] ifeval/3407 ex PHASES draft: 55 runs, 10.6 ms, 0 MB, 0 misses, 0.00 passes per run, 0.00 GB/s | exact: 55 runs, 139.8 ms, 923 MB, 502 misses, 1.25 passes per run, 6.60 GB/s
+[chw13p] ifeval/3407 ex theta None  | tok 128 sha f94a3b9164 | lsha abb215c0ad | = ex tokens True (first divergence None) | checks 55, kept 2.33 | pass2 0 exact 55 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 187 in 69 calls, refused 0 | prefill 2.65 s, decode 8.30 s, 15.43 tok/s | lifetime 11.010 GB | per check ms: draft 10.6 pass 1 0.0 pass 2 / exact 139.8 commit 0.0; misses per check pass 1 0 pass 2 502
+[chw13p] ifeval/3407 ex PREFILL n 54 smoe 4096 | 2.652 s, 20.0 tok/s, SSD 19031 MB | lifetime 11.010 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[chw13p] PAIR ifeval/3407: SSD per arm (C) ex 45->59 | PAUSE 0.0 s inside -> ok
+[chw13p] ifeval/2239 ex PHASES draft: 4 runs, 12.6 ms, 0 MB, 0 misses, 0.00 passes per run, 0.00 GB/s | exact: 4 runs, 185.5 ms, 1491 MB, 816 misses, 1.25 passes per run, 8.04 GB/s
+[chw13p] ifeval/2239 ex theta None  | tok 11 sha 1ad3b41100 | lsha 9bbdd93dcb | = ex tokens True (first divergence None) | checks 4, kept 2.75 | pass2 0 exact 4 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 14 in 5 calls, refused 0 | prefill 2.16 s, decode 0.80 s, 13.84 tok/s | lifetime 11.010 GB | per check ms: draft 12.6 pass 1 0.0 pass 2 / exact 185.5 commit 0.0; misses per check pass 1 0 pass 2 816
+[chw13p] ifeval/2239 ex PREFILL n 37 smoe 4096 | 2.164 s, 16.6 tok/s, SSD 15431 MB | lifetime 11.010 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[chw13p] PAIR ifeval/2239: SSD per arm (C) ex 59->59 | PAUSE 0.0 s inside -> ok
+[chw13p] ifeval/2590 ex PHASES draft: 60 runs, 10.4 ms, 0 MB, 0 misses, 0.00 passes per run, 0.00 GB/s | exact: 60 runs, 153.1 ms, 1095 MB, 602 misses, 1.27 passes per run, 7.15 GB/s
+[chw13p] ifeval/2590 ex theta None  | tok 128 sha 3b6ddb2d85 | lsha 8ebadcc588 | = ex tokens True (first divergence None) | checks 60, kept 2.13 | pass2 0 exact 60 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 198 in 76 calls, refused 0 | prefill 2.65 s, decode 9.84 s, 13.01 tok/s | lifetime 11.010 GB | per check ms: draft 10.4 pass 1 0.0 pass 2 / exact 153.1 commit 0.0; misses per check pass 1 0 pass 2 602
+[chw13p] ifeval/2590 ex PREFILL n 48 smoe 4096 | 2.648 s, 17.7 tok/s, SSD 19202 MB | lifetime 11.010 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[chw13p] PAIR ifeval/2590: SSD per arm (C) ex 59->59 | PAUSE 0.0 s inside -> ok
+[chw13p] ifeval/2870 ex PHASES draft: 50 runs, 10.5 ms, 0 MB, 0 misses, 0.00 passes per run, 0.00 GB/s | exact: 50 runs, 166.1 ms, 1207 MB, 659 misses, 1.32 passes per run, 7.27 GB/s
+[chw13p] ifeval/2870 ex theta None  | tok 128 sha c5a6ec93a9 | lsha 18b3669628 | = ex tokens True (first divergence None) | checks 50, kept 2.56 | pass2 0 exact 50 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 180 in 66 calls, refused 0 | prefill 2.31 s, decode 8.86 s, 14.45 tok/s | lifetime 11.010 GB | per check ms: draft 10.5 pass 1 0.0 pass 2 / exact 166.1 commit 0.0; misses per check pass 1 0 pass 2 659
+[chw13p] ifeval/2870 ex PREFILL n 42 smoe 4096 | 2.305 s, 17.8 tok/s, SSD 16636 MB | lifetime 11.010 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[chw13p] PAIR ifeval/2870: SSD per arm (C) ex 59->59 | PAUSE 0.0 s inside -> ok
+[chw13p] ifeval/2439 ex PHASES draft: 34 runs, 10.4 ms, 0 MB, 0 misses, 0.00 passes per run, 0.00 GB/s | exact: 34 runs, 126.1 ms, 924 MB, 509 misses, 1.09 passes per run, 7.33 GB/s
+[chw13p] ifeval/2439 ex theta None  | tok 52 sha dac0f5ddbb | lsha 5727a1fb51 | = ex tokens True (first divergence None) | checks 34, kept 1.53 | pass2 0 exact 34 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 83 in 37 calls, refused 0 | prefill 3.19 s, decode 4.66 s, 11.16 tok/s | lifetime 11.010 GB | per check ms: draft 10.4 pass 1 0.0 pass 2 / exact 126.1 commit 0.0; misses per check pass 1 0 pass 2 509
+[chw13p] ifeval/2439 ex PREFILL n 78 smoe 4096 | 3.189 s, 24.1 tok/s, SSD 24103 MB | lifetime 11.010 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[chw13p] PAIR ifeval/2439: SSD per arm (C) ex 59->59 | PAUSE 0.0 s inside -> ok
+[chw13p] ifeval/1219 ex PHASES draft: 67 runs, 10.5 ms, 0 MB, 0 misses, 0.00 passes per run, 0.00 GB/s | exact: 67 runs, 134.9 ms, 954 MB, 520 misses, 1.12 passes per run, 7.07 GB/s
+[chw13p] ifeval/1219 ex theta None  | tok 128 sha e1c31e277c | lsha b83526e4e5 | = ex tokens True (first divergence None) | checks 67, kept 1.91 | pass2 0 exact 67 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 192 in 75 calls, refused 0 | prefill 3.15 s, decode 9.78 s, 13.09 tok/s | lifetime 11.010 GB | per check ms: draft 10.5 pass 1 0.0 pass 2 / exact 134.9 commit 0.0; misses per check pass 1 0 pass 2 520
+[chw13p] ifeval/1219 ex PREFILL n 74 smoe 4096 | 3.145 s, 23.2 tok/s, SSD 23818 MB | lifetime 11.010 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[chw13p] PAIR ifeval/1219: SSD per arm (C) ex 59->59 | PAUSE 0.0 s inside -> ok
+[chw13p] ifeval/1262 ex PHASES draft: 27 runs, 10.6 ms, 0 MB, 0 misses, 0.00 passes per run, 0.00 GB/s | exact: 27 runs, 159.6 ms, 1179 MB, 647 misses, 1.26 passes per run, 7.39 GB/s
+[chw13p] ifeval/1262 ex theta None  | tok 63 sha c7d20bc129 | lsha c4505fcf95 | = ex tokens True (first divergence None) | checks 27, kept 2.33 | pass2 0 exact 27 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 92 in 34 calls, refused 0 | prefill 2.90 s, decode 4.61 s, 13.67 tok/s | lifetime 11.010 GB | per check ms: draft 10.6 pass 1 0.0 pass 2 / exact 159.6 commit 0.0; misses per check pass 1 0 pass 2 647
+[chw13p] ifeval/1262 ex PREFILL n 57 smoe 4096 | 2.902 s, 19.3 tok/s, SSD 21919 MB | lifetime 11.010 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[chw13p] PAIR ifeval/1262: SSD per arm (C) ex 59->61 | PAUSE 0.0 s inside -> ok
+[chw13p] PAUSE summary: intervals [] s from the start; re-run []; excluded []
+[chw13p] TOTAL ex: 12 prompts, 1193 tokens in 84.76 s = 14.07 tok/s | 513 checks, kept 2.33 | pass2 0 exact 513 | per check ms: draft 10.6 pass 1 0.0 pass 2 / exact 154.2 commit 0.0; misses per check pass 1 0 pass 2 601
+[chw13p] IDS: 12 keys -> /Users/kamen/Fit12/data/scr/chw13/chw13p_ids.json
+[chw13p] PR1: 264 keep-1 commits replayed on 2 rows
+[chw13p] done; lifetime 11.010 GB

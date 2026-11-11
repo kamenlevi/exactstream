@@ -1,0 +1,14 @@
+W24-sp step (2) full (Tue 27 Oct 19:58:31), MLX 0.32.2, layers (24, 38, 47); scratch /private/tmp/claude-501/-Users-kamen-MoonShots/4311ccb7-fdc5-4dac-ace8-b31665971f5f/scratchpad/w24sp
+PASS = 0 mismatching output bits at S = 1 / 4 / 16 on all layers AND 11-bit expert-kernel time <= +2 % at 16 rows; KILL = any mismatch or > +5 %; between = NewIdeas
+L24: converted 512 experts in 0.9 s (asserts + bitwise round trip on all 4608 pieces passed); span max s3 5 b3 5 b 5, span-7 pieces 0 | file 1,426,063,360 B = 2,785,280 B per expert (records3 2,932,736): MSB part 2,064,384 (today 2,162,688), LSB part 720,896 (today 770,048)
+L24: bitwise S 1: 0 mismatching elements in 328 calls, S 4: 0 mismatching elements in 94 calls, S 16: 0 mismatching elements in 40 calls (0.4 s)
+L38: converted 512 experts in 0.8 s (asserts + bitwise round trip on all 4608 pieces passed); span max s3 6 b3 7 b 7, span-7 pieces 3 | file 1,426,063,360 B = 2,785,280 B per expert (records3 2,932,736): MSB part 2,064,384 (today 2,162,688), LSB part 720,896 (today 770,048)
+L38: bitwise S 1: 0 mismatching elements in 328 calls, S 4: 0 mismatching elements in 94 calls, S 16: 0 mismatching elements in 40 calls (0.4 s)
+L47: converted 512 experts in 0.8 s (asserts + bitwise round trip on all 4608 pieces passed); span max s3 6 b3 7 b 7, span-7 pieces 2 | file 1,426,063,360 B = 2,785,280 B per expert (records3 2,932,736): MSB part 2,064,384 (today 2,162,688), LSB part 720,896 (today 770,048)
+L47: bitwise S 1: 0 mismatching elements in 328 calls, S 4: 0 mismatching elements in 94 calls, S 16: 0 mismatching elements in 40 calls (0.4 s)
+timing, layer 24, plan 4433333333 + fused combine (A + BC), N_CH 30:
+  S  1 (distinct experts  10.0): today 0.097 ms, 11-bit 0.118 ms, today again 0.096 ms per call | paired 11-bit / today median 1.2171 (+21.71 %), A/A 0.9218..1.0359 (median 0.9925), 15 rounds
+  S  4 (distinct experts  25.3): today 0.274 ms, 11-bit 0.390 ms, today again 0.273 ms per call | paired 11-bit / today median 1.4258 (+42.58 %), A/A 0.9827..1.0192 (median 0.9998), 15 rounds
+  S 16 (distinct experts  68.2): today 0.975 ms, 11-bit 1.490 ms, today again 0.974 ms per call | paired 11-bit / today median 1.5293 (+52.93 %), A/A 0.9944..1.0121 (median 0.9985), 15 rounds
+VERDICT: KILL: mismatches 0, 16-row expert kernel +52.93 %
+scratch cleaned; total 7 s; end 19:58:38

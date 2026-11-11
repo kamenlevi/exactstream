@@ -1,0 +1,19 @@
+tok/s (ms/pass) at 3.1 tokens/pass, M5 Pro SSD 14.6 GB/s; cache budget = experts only (+~2.5 GB dense +KV)
+stack                                  4.2 GB           8.5 GB          12.7 GB          17.0 GB          25.5 GB          34.0 GB
+today                            11.4 (  272)     14.9 (  208)     18.4 (  168)     21.9 (  141)     28.0 (  111)     32.6 (   95)
++3c+t3                           13.1 (  236)     17.1 (  181)     21.0 (  148)     24.9 (  125)     31.5 (   98)     36.3 (   85)
++3c+t3+ooo+lip                   14.5 (  214)     19.1 (  162)     23.9 (  130)     28.8 (  108)     37.6 (   82)     43.0 (   72)
++...+eff+thin                    16.4 (  190)     22.6 (  137)     29.6 (  105)     37.5 (   83)     53.9 (   58)     65.6 (   47)
++...+eff+thin+hide               31.3 (   99)     45.2 (   69)     62.2 (   50)     83.7 (   37)     93.7 (   33)     93.7 (   33)
++...+eff+thin+hide+opt           34.3 (   90)     67.9 (   46)     93.7 (   33)     93.7 (   33)     93.7 (   33)     93.7 (   33)
+
+16 GB Mac mini (SSD 3 GB/s), full stack incl. hide (+opt in the 2nd row):
+     4.2 GB:   6.4 tok/s     8.5 GB:   9.3 tok/s   
+     4.2 GB:   7.0 tok/s     8.5 GB:  13.9 tok/s   
+
+Tokens/pass needed for 100 tok/s with the full stack + opt at 12.7 GB and 34 GB (union grows ~k^0.67, so bytes/pass x(k/4)^0.67):
+    3.1 tok/pass (~ 4.0 rows):   93.7 tok/s | 34 GB   93.7
+    4.0 tok/pass (~ 5.2 rows):  112.8 tok/s | 34 GB  114.9
+    6.0 tok/pass (~ 7.7 rows):  128.9 tok/s | 34 GB  156.8
+    8.0 tok/pass (~10.3 rows):  141.8 tok/s | 34 GB  193.6
+   12.0 tok/pass (~15.5 rows):  162.1 tok/s | 34 GB  256.5

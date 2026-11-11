@@ -1,0 +1,39 @@
+R-52 SCRATCH24 audit (BigMoE, Thu 29 Oct 21:3x; code reading, no runs). Expert at 4 bits (the scratch layout,
+tier shapes4 / plain pools): per projection w 819,200 + s 51,200 + b 51,200 B -> 2,764,800 B per expert. Prefill chunk:
+spec125 prefill_chunk = 2048 tokens x top-10 = 20,480 (row, expert) pairs per layer -> ~all 512 experts per layer.
+
+== 24 GB shipped (v3 tier stack: BIGMOE_TIER + MAXK 80 + TIER_PF_GROUP 64 + MTP_PF_GROUP 48, MTP streamed)
+decode / verify: verify rows <= 8 (max_draft 7) x top-10 <= 80 = MAXK -> stream __call__ -> tier.tier_call on the pool
+  slots (fused GLU phase kernels): NO scratch, no clear_cache. The streamed MTP layer (1 row x 10 ids) takes the gate
+  path on its pool slots: no scratch. => 0 B of fresh scratch per decoded token.
+prefill (every call over MAXK ids -> _sync_call -> tier.prefill_call):
+  - grouped (>= 16 pairs and >= 4 per expert; every 2048-token chunk): _prefill_grouped allocates 2 double buffers of G
+    experts (G = the call's largest group, 64 .. 128) with mx.zeros + eval PER LAYER CALL, read_rebuilt fills them
+    (CPU rebuild from records3, 2,932,736 B read per expert), del + mx.clear_cache at the end of the call:
+    2 x G x 2.76 MB = 0.35 .. 0.71 GB fresh per layer call -> 48 layers = 17 .. 34 GB fresh per 2048-token chunk.
+  - single call (short prompts / last chunks failing the group rule): one mx.zeros scratch of len(uniq) experts per layer
+    call (up to 512 x 2.76 MB = 1.41 GB), clear_cache after.
+  - the MTP layer's prompt pass (non-tier _sync_grouped, MTP_PF_GROUP 48): mx.take scratch of 48 experts per group =
+    0.13 GB per group, ~11 groups for 512 experts -> ~1.46 GB fresh per chunk, clear_cache per call.
+  => ~18 .. 35 GB of fresh scratch per 2048-token prefill chunk (way over the 0.2 GB screen line).
+  For scale: the same chunk reads ~72 GB from SSD (48 x 512 x 2.93 MB) and the CPU writes ~68 GB of rebuilt 4-bit
+  scratch, i.e. ~10 s per chunk at ~7 GB/s. At Leap's ~24 ms per fresh GB (8 ms per 330 MB) the allocations cost
+  ~0.4 .. 0.85 s per chunk = ~4 .. 8 % of TTFT. Decode tok/s cannot move.
+
+== 45 GB (the 16-row check stack as Leap's R-50 measured it: stock MLX, BIGMOE_MAXK default 40, no tier)
+checks: 16 rows x top-10 = 160 ids > MAXK 40 -> _sync_call's plain path (no PF_SEG / PF_GROUP for checks): ensure +
+  mx.take of every unique expert of the check (~100 .. 130) per layer call (+ concatenate when over 0.9 C), then
+  clear_cache: ~0.28 .. 0.36 GB per layer call (Leap: ~330 MB) -> ~16 GB per 16-row check -> per decoded token
+  16 GB / kept per check: code 9.57 -> ~1.7 GB, math 7.00 -> ~2.3, agent 3.01 -> ~5.3, chat 2.06 -> ~7.8 GB.
+  Leap's R-50 SLOTCALL removes this on the REF2 path (bit-equal, -384 ms per check); on stock MLX the sorted gather needs
+  the expert order, so the stock fix is a reused scratch (same gather, same order).
+prefill (PF1 off): the same plain path per layer per chunk: one scratch of all ~512 experts = ~1.41 GB per layer call ->
+  ~68 GB fresh per 2048-token chunk (PF1 on: [pool; staging] gather, the same size).
+
+== Screen proposal (24 GB, prefill / TTFT only)
+Keep the two prefill double buffers ALIVE across layer calls (one pair per process, sized to the largest G so far, groups
+use [:len(grp)] slices as the code already does for short groups), free them and clear_cache once at prefill_done (the
+first decode call), so the decode-phase footprint (where the lifetime peak sits: probe 23.09 decode vs 22.98 prefill)
+is unchanged. Same reuse for the single-call scratch (sized to len(uniq), at most 1.41 GB, already inside each call's
+peak) and the MTP prompt-pass groups. Measure: every sha equal, TTFT on an 8K prompt (4 chunks) and a short one, decode
+tok/s, ram24_probe lifetime peak. Expected: TTFT -4 .. -8 % (allocation only; SSD reads and the CPU rebuild dominate).

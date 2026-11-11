@@ -1,0 +1,23 @@
+[Fri 09:46:01] 1. waiting for EvalSuite's runner 48 (pid 63934) to end and its lock to go; start by 14:50
+[Fri 11:24:03] runner 48 ended and EvalSuite holds no lock
+[Fri 11:24:03] 2. gate: no other quiet lock / ticket, no other MEM > 5 GB lock, NO-SWAP >= 40 GB, 3 clear minutes
+[Fri 11:28:36] clear: NO-SWAP 47 GB, swap 14504.50 MB
+[Fri 11:28:37] lock: shared run reserved until 11:43 (about 300% CPU, 100% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done.
+[Fri 11:28:37] 3. MLX trainer, 5 steps, MLX_ENABLE_TF32=0 (swap 14504.50 MB, NO-SWAP 47 GB)
+[Fri 11:29:37] rc=0, footprint 32.4 GB: 5.342842 4.858737 4.971444 4.796075 3.773581 
+step 1: port 5.343394  steps_mlx_fp32.json 5.342842  rel 1.03e-04
+step 2: port 4.851293  steps_mlx_fp32.json 4.858737  rel 1.53e-03
+step 3: port 4.978863  steps_mlx_fp32.json 4.971444  rel 1.49e-03
+step 4: port 4.796092  steps_mlx_fp32.json 4.796075  rel 3.60e-06
+step 5: port 3.777776  steps_mlx_fp32.json 3.773581  rel 1.11e-03
+STEPS CHECK vs steps_mlx_fp32.json (5 steps): max rel 1.53e-03 -> PASS (line 2e-3)
+[Fri 11:29:37] 3. MLX trainer, 5 steps, MLX_ENABLE_TF32=1 (swap 14480.50 MB, NO-SWAP 47 GB)
+[Fri 11:30:27] rc=0, footprint 32.5 GB: 5.343977 4.695799 4.796175 4.645471 3.723465 
+step 1: port 5.343977  L1-20 5.343977  rel 0.00e+00
+step 2: port 4.695799  L1-20 4.695799  rel 0.00e+00
+step 3: port 4.796175  L1-20 4.796175  rel 0.00e+00
+step 4: port 4.645471  L1-20 4.645471  rel 0.00e+00
+step 5: port 3.723465  L1-20 3.723465  rel 0.00e+00
+STEPS CHECK vs L1-20 (5 steps): max rel 0.00e+00 -> PASS (line 2e-3)
+lock released
+[Fri 11:30:27] DONE

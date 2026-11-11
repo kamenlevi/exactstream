@@ -1,0 +1,32 @@
+{
+  "_note": "Pre-registered before any variant result existed (2026-10-19 ~23:30). Changing a margin after seeing results needs a dated note in docs/DESIGN.md.",
+  "ci_level": 0.90,
+  "bootstrap": {"resamples": 2000, "quantile_resamples": 400, "seed": 7, "doc_block_tokens": 1024},
+  "equivalence_points": 2.0,
+  "noninferiority": {
+    "kld_mean_ratio_max": 1.10,
+    "kld_p999_ratio_max": 1.10,
+    "top1_agree_drop_max_points": 0.5,
+    "router_overlap_drop_max_points": 0.5,
+    "mc_flip_rise_max_points": 0.5,
+    "long_position_ratio_max": 1.10
+  },
+  "decode": {
+    "capability_drop_min_points": -5.0,
+    "mcnemar_alpha": 0.05,
+    "ruler_net_items_lost_max": 1,
+    "thinking_length_ratio": [0.90, 1.10],
+    "hesitation_rate_ratio": [0.85, 1.15],
+    "answer_agreement_drop_max_points": 0.0
+  },
+  "rules": {
+    "kld_mean": "90% CI upper bound of mean KLD(variant) / mean KLD(accepted build) <= 1.10, per corpus part",
+    "kld_p999": "90% CI upper bound of P99.9 KLD ratio vs the accepted build <= 1.10",
+    "top1_agree": "90% CI lower bound of (agreement(variant) - agreement(accepted)) >= -0.5 points",
+    "router_overlap": "90% CI lower bound of (top-10 overlap(variant) - overlap(accepted)) >= -0.5 points",
+    "kld_long": "documents, positions >= 16K: 90% CI upper bound of the KLD ratio vs the accepted build <= 1.10",
+    "mc_accuracy": "TOST: 90% CI of the paired accuracy delta vs the reference inside +-2 points (pooled MMLU-Pro + GPQA)",
+    "mc_flips": "90% CI upper bound of (flip rate(variant) - flip rate(accepted)) <= +0.5 points; flip = argmax letter differs from the reference",
+    "decode": "IFEval strict prompt-level and HumanEval+ pass@1: delta > -5 points and exact McNemar p >= 0.05; RULER: <= 1 net item lost; answer agreement with the reference >= the accepted build's; thinking length ratio 0.90-1.10, 'Wait' rate ratio 0.85-1.15, no rise in truncations or loops"
+  }
+}

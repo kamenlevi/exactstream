@@ -1,0 +1,31 @@
+Exception in thread Thread-1 (_sampler):
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/threading.py", line 1075, in _bootstrap_inner
+    self.run()
+  File "/opt/homebrew/Cellar/python@3.12/3.12.13_4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/threading.py", line 1012, in run
+    self._target(*self._args, **self._kwargs)
+  File "/Users/kamen/Fit12/scripts/fit_creep.py", line 72, in _sampler
+    PK[:] = [time.perf_counter()] + ([m.get_active_memory() / 1e9, m.get_cache_memory() / 1e9] if m else [float("nan")] * 2)
+                                      ^^^^^^^^^^^^^^^^^^^
+AttributeError: partially initialized module 'mlx.core' has no attribute 'get_active_memory' (most likely due to a circular import)
+[I] bt_b12 cf8bd7840a from /Users/kamen/Fit12/pinned/cf8b/bt_b12.py, MallocStackLogging off
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=23.6 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 15M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.20 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: engine v3p, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.20 GB, active 9.33 GB
+[I] bt_b12 cf8bd7840a, engine /Users/kamen/Breakthrough/v3p, PFR grid default, C_m 51 C_l 20; suite rows [8, 3, 13]: 1424 tokens in 91 s; 1 n-gram tables, 1 sidecars, row bytes [100], cap rows [167772]; after load: footprint 9.675 GB, MLX active 9.332 GB, hot rows 0
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[I] math500/test/prealgebra/1973.json RESULT row 1 | n 50 | tok 428 eos | sha 1bbb8ca515 | suite tokens equal True | footprint start 9.675 max 9.675 end 10.971 GB | MLX active 10.259 cache 0.068 | hot rows 4792 counted 0.000 data 0.001 full 0.003 GB in 294 batches, hits 4760 misses 4792 | settled 10.779 GB (S +0.192), MLX active 10.259 | gc 15 objects (15 more), garbage numpy 0.000 mx 0.000 file 0.000 GB [cell:5,function:4,tuple:4,type:1; mtplx.frspec_draft._full_vocab_head.<locals>._FullVocabDraftHead.__call__:1,mtplx.frspec_draft._full_vocab_head.<locals>._FullVocabDraftHead:1,mtplx.frspec_draft._full_vocab_head.<locals>._FullVocabDraftHead.__init__:1,mtplx.frspec_draft._full_vocab_head.<locals>._FullVocabDraftHead.arm_prescatter_capture:1] | after gc: footprint 10.779 GB (D +0.000), MLX active 10.259, 102892 tracked objects | lifetime peak 11.050 | swap 14.45 GB, compressor 12.85 GB | 25.26 s decode = 16.94 tok/s, 1.1 s measure
+[I] math500/test/prealgebra/1973.json PEAKAT row 1 | start 9.675 GB, MLX active 9.332 | prefill 2.84 s, max 9.675 GB, MLX peak 10.450 | row max 9.675 GB in the prefill at 0.00 s of 25.26 s (decode 0 % through); at that max: MLX active nan cache nan GB | row MLX peak 10.590 GB
+[I] math500/test/algebra/694.json RESULT row 2 | n 98 | tok 614 eos | sha ebee9e94c5 | suite tokens equal True | footprint start 10.707 max 10.707 end 11.007 GB | MLX active 10.259 cache 0.069 | hot rows 11352 counted 0.001 data 0.001 full 0.007 GB in 756 batches, hits 12232 misses 11352 | settled 10.812 GB (S +0.195), MLX active 10.259 | gc 15 objects (15 more), garbage numpy 0.000 mx 0.000 file 0.000 GB [cell:5,function:4,tuple:4,type:1; mtplx.frspec_draft._full_vocab_head.<locals>._FullVocabDraftHead.__call__:1,mtplx.frspec_draft._full_vocab_head.<locals>._FullVocabDraftHead:1,mtplx.frspec_draft._full_vocab_head.<locals>._FullVocabDraftHead.__init__:1,mtplx.frspec_draft._full_vocab_head.<locals>._FullVocabDraftHead.arm_prescatter_capture:1] | after gc: footprint 10.812 GB (D +0.000), MLX active 10.259, 102892 tracked objects | lifetime peak 12.341 | swap 14.45 GB, compressor 12.72 GB | 36.30 s decode = 16.91 tok/s, 1.1 s measure
+[I] math500/test/algebra/694.json PEAKAT row 2 | start 10.707 GB, MLX active 10.259 | prefill 3.03 s, max 10.707 GB, MLX peak 10.647 | row max 10.707 GB in the prefill at 0.00 s of 36.30 s (decode 0 % through); at that max: MLX active nan cache nan GB | row MLX peak 10.647 GB
+[I] math500/test/prealgebra/1761.json RESULT row 3 | n 69 | tok 382 eos | sha 23344918bd | suite tokens equal True | footprint start 10.812 max 10.812 end 11.032 GB | MLX active 10.259 cache 0.068 | hot rows 14992 counted 0.001 data 0.002 full 0.009 GB in 999 batches, hits 17800 misses 14992 | settled 10.818 GB (S +0.215), MLX active 10.259 | gc 30 objects (30 more), garbage numpy 0.000 mx 0.000 file 0.000 GB [cell:10,function:8,tuple:8,type:2; mtplx.frspec_draft._full_vocab_head.<locals>._FullVocabDraftHead.__call__:2,mtplx.frspec_draft._full_vocab_head.<locals>._FullVocabDraftHead:2,mtplx.frspec_draft._full_vocab_head.<locals>._FullVocabDraftHead.__init__:2,mtplx.frspec_draft._full_vocab_head.<locals>._FullVocabDraftHead.arm_prescatter_capture:2] | after gc: footprint 10.818 GB (D +0.000), MLX active 10.259, 102892 tracked objects | lifetime peak 12.341 | swap 14.45 GB, compressor 12.66 GB | 24.17 s decode = 15.80 tok/s, 1.1 s measure
+[I] math500/test/prealgebra/1761.json PEAKAT row 3 | start 10.812 GB, MLX active 10.259 | prefill 2.96 s, max 10.812 GB, MLX peak 10.642 | row max 10.812 GB in the prefill at 0.00 s of 24.17 s (decode 0 % through); at that max: MLX active nan cache nan GB | row MLX peak 10.642 GB
+[I] SUMMARY rows 1-3: creep C 0.039 GB (F_post 10.779 -> 10.818, + B) vs the suite's nan over the same row starts; A (hot cache, full) +0.006 GB = 17 %; B (gc drops, rows 2-3) +0.000 GB = 0 %; tokens equal on all rows True; verdict by the line: NO VERDICT (C 0.039 < 0.40 GB)
+[I] done

@@ -1,0 +1,35 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=31.0 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.00 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: engine v3i, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.00 GB, active 8.93 GB
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (64, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (52, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (55, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (59, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (47, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (56, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (49, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (48, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (53, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (54, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (30, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (43, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (61, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+lane_ref A0_ar_onespan: 11.9 s, tiers {'decode_dense_mask': 192, 'prefill_chunks': 1}, sha fda93da236 | "'s probabilities\n        w10 = w10 / w10.sum"
+lane_ref A_ar: 41.6 s, tiers {'metal_selector': 48, 'flash_kernel': 48, 'decode_dense_mask': 192, 'prefill_chunks': 9}, sha b58644ee9b | "'s probabilities\n        w10 = w1\n\n<think>\nThe user wants"
+lane_ref B_b12_lane: 43.6 s, tiers {'metal_selector': 48, 'flash_kernel': 48, 'decode_dense_mask': 192}, sha 39eb231eb6 | "'s probabilities\n        w10 = w\n\n<think>\n\n</think>\n\nHere is"
+lane_ref C_b12_dense: 44.2 s, tiers {'decode_dense_mask': 192}, sha 39eb231eb6 | "'s probabilities\n        w10 = w\n\n<think>\n\n</think>\n\nHere is"
+lane_ref D_ar_laneoff: 42.6 s, tiers {'decode_dense_mask': 192, 'prefill_chunks': 9}, sha fda1e24fbf | "'s probabilities\n        w10 = w\n\n<think>\nThe user wants me"
+lane_ref E_b12_lane_flashdec: 44.7 s, tiers {'metal_selector': 48, 'flash_kernel': 48, 'decode_flash_skip': 192}, sha fda1e24fbf | "'s probabilities\n        w10 = w\n\n<think>\nThe user wants me"
+lane_ref A_ar vs B_b12_lane: tokens equal for 9/16, top-20 ids same, max |dlogprob| 5.57e-01
+lane_ref C_b12_dense vs D_ar_laneoff: tokens equal for 11/16, top-20 ids same, max |dlogprob| 6.86e-01
+lane_ref A_ar vs D_ar_laneoff: tokens equal for 9/16, top-20 ids DIFFER, max |dlogprob| 5.63e-01
+lane_ref B_b12_lane vs C_b12_dense: tokens equal for 16/16, top-20 ids DIFFER, max |dlogprob| 1.00e+00
+lane_ref B_b12_lane vs E_b12_lane_flashdec: tokens equal for 11/16, top-20 ids DIFFER, max |dlogprob| 6.26e-01
+lane_ref A0_ar_onespan vs C_b12_dense: tokens equal for 9/16, top-20 ids DIFFER, max |dlogprob| 1.48e+00
+lane_ref A0_ar_onespan vs D_ar_laneoff: tokens equal for 9/16, top-20 ids DIFFER, max |dlogprob| 1.48e+00
+10-25 14:35 N 4200, crossovers 2049, B12LL, env TIER_PF_GROUP 64: A_ar vs B_b12_lane: tokens equal for 9/16, top-20 ids same, max |dlogprob| 5.57e-01 | C_b12_dense vs D_ar_laneoff: tokens equal for 11/16, top-20 ids same, max |dlogprob| 6.86e-01 | A_ar vs D_ar_laneoff: tokens equal for 9/16, top-20 ids DIFFER, max |dlogprob| 5.63e-01 | B_b12_lane vs C_b12_dense: tokens equal for 16/16, top-20 ids DIFFER, max |dlogprob| 1.00e+00 | B_b12_lane vs E_b12_lane_flashdec: tokens equal for 11/16, top-20 ids DIFFER, max |dlogprob| 6.26e-01 | A0_ar_onespan vs C_b12_dense: tokens equal for 9/16, top-20 ids DIFFER, max |dlogprob| 1.48e+00 | A0_ar_onespan vs D_ar_laneoff: tokens equal for 9/16, top-20 ids DIFFER, max |dlogprob| 1.48e+00

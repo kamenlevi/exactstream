@@ -1,0 +1,19 @@
+
+FAST-NAX check Thu 23:22:56 (share lock; MLX 0.32.2)
+pools built: layers 20 / 44, 512 experts each, native+p11+pad (p11 pieces), C 512
+  L20 rep 4 late: == ref True, rs_m True, rs_l True, dropped rows 0 True (4 pairs), timeouts 0, call 21.2 ms (release at 20.0)
+  L20 rep 5 late: == ref True, rs_m True, rs_l True, dropped rows 0 True (3 pairs), timeouts 0, call 21.2 ms (release at 20.0)
+  L44 rep 4 late: == ref True, rs_m True, rs_l True, dropped rows 0 True (4 pairs), timeouts 0, call 21.4 ms (release at 20.0)
+  L44 rep 5 late: == ref True, rs_m True, rs_l True, dropped rows 0 True (4 pairs), timeouts 0, call 21.3 ms (release at 20.0)
+(a) released before the call (8 calls; 40 dropped pairs and 48 U3 sure rows over all calls): one-call-Q + combine == NAX6-N on the final slots + combine (drops at weight 0), slots resolved, no timeout: PASS
+(b) late release (20 ms): PASS
+  (d) ooo1c NAX6-N one-call, U3 rows, L20 rep 0: == ref True, rs_l == own sidecars True
+  (d) ooo1c NAX6-N one-call, U3 rows, L20 rep 1: == ref True, rs_l == own sidecars True
+  (d) ooo1c NAX6-N one-call, U3 rows, L20 rep 2: == ref True, rs_l == own sidecars False
+  (d) ooo1c NAX6-N one-call, U3 rows, L20 rep 3: == ref False, rs_l == own sidecars False
+  (d) ooo1c NAX6-N one-call, U3 rows, L44 rep 0: == ref False, rs_l == own sidecars False
+  (d) ooo1c NAX6-N one-call, U3 rows, L44 rep 1: == ref False, rs_l == own sidecars False
+  (d) ooo1c NAX6-N one-call, U3 rows, L44 rep 2: == ref True, rs_l == own sidecars False
+  (d) ooo1c NAX6-N one-call, U3 rows, L44 rep 3: == ref True, rs_l == own sidecars True
+(d) diagnostic, ooo1c's existing NAX6-N one-call with U3 sure rows: 8 mismatches over 8 calls (its head writes rs_l with the group's first tier)
+(e) ms per MoE layer call (48-call chains, median of 15; ~96 % resident, drops 4 / 3 pairs): NAX6-N 1C-Q + combine 1.242, 3c-N 1C QOM 1.487 -> 0.835x; timeouts 0; speed line (pre-registered: <= 0.85x PASS, > 0.95x KILL): PASS (share lock)

@@ -1,0 +1,42 @@
+11-05 19:15:49 FAST-NAX GPU checks armed (pid 35673, from 202611060016, give up at 202611061100)
+11-05 19:18:09 FAST-NAX GPU checks armed (pid 37950, from 202611060016, give up at 202611061100)
+11-05 23:22:50 FAST-NAX GPU checks armed (pid 76291, from 202611052322, give up at 202611061100)
+shared run reserved until 23:42 (about 200% CPU, 60% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done.
+Free for it now: about 16 cores (1655% CPU) and about 100% of the GPU. It fits: use about 2 workers or -j 2.
+11-05 23:22:51 share lock taken (NO-SWAP 32 GB, swap 8232 MB)
+Traceback (most recent call last):
+  File "<string>", line 6, in <module>
+  File "/Users/kamen/Leap/scripts/ref2.py", line 1473, in self_test
+    full = _qmm(X, *W, transpose=True, group_size=64, bits=4)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/Leap/scripts/ref2.py", line 469, in _qmm
+    orig = _ORIG["qmm"]
+           ~~~~~^^^^^^^
+KeyError: 'qmm'
+11-05 23:22:56 ref2.self_test rc=1
+
+FAST-NAX check Thu 23:22:56 (share lock; MLX 0.32.2)
+pools built: layers 20 / 44, 512 experts each, native+p11+pad (p11 pieces), C 512
+  L20 rep 4 late: == ref True, rs_m True, rs_l True, dropped rows 0 True (4 pairs), timeouts 0, call 21.2 ms (release at 20.0)
+  L20 rep 5 late: == ref True, rs_m True, rs_l True, dropped rows 0 True (3 pairs), timeouts 0, call 21.2 ms (release at 20.0)
+  L44 rep 4 late: == ref True, rs_m True, rs_l True, dropped rows 0 True (4 pairs), timeouts 0, call 21.4 ms (release at 20.0)
+  L44 rep 5 late: == ref True, rs_m True, rs_l True, dropped rows 0 True (4 pairs), timeouts 0, call 21.3 ms (release at 20.0)
+(a) released before the call (8 calls; 40 dropped pairs and 48 U3 sure rows over all calls): one-call-Q + combine == NAX6-N on the final slots + combine (drops at weight 0), slots resolved, no timeout: PASS
+(b) late release (20 ms): PASS
+  (d) ooo1c NAX6-N one-call, U3 rows, L20 rep 0: == ref True, rs_l == own sidecars True
+  (d) ooo1c NAX6-N one-call, U3 rows, L20 rep 1: == ref True, rs_l == own sidecars True
+  (d) ooo1c NAX6-N one-call, U3 rows, L20 rep 2: == ref True, rs_l == own sidecars False
+  (d) ooo1c NAX6-N one-call, U3 rows, L20 rep 3: == ref False, rs_l == own sidecars False
+  (d) ooo1c NAX6-N one-call, U3 rows, L44 rep 0: == ref False, rs_l == own sidecars False
+  (d) ooo1c NAX6-N one-call, U3 rows, L44 rep 1: == ref False, rs_l == own sidecars False
+  (d) ooo1c NAX6-N one-call, U3 rows, L44 rep 2: == ref True, rs_l == own sidecars False
+  (d) ooo1c NAX6-N one-call, U3 rows, L44 rep 3: == ref True, rs_l == own sidecars True
+(d) diagnostic, ooo1c's existing NAX6-N one-call with U3 sure rows: 8 mismatches over 8 calls (its head writes rs_l with the group's first tier)
+(e) ms per MoE layer call (48-call chains, median of 15; ~96 % resident, drops 4 / 3 pairs): NAX6-N 1C-Q + combine 1.242, 3c-N 1C QOM 1.487 -> 0.835x; timeouts 0; speed line (pre-registered: <= 0.85x PASS, > 0.95x KILL): PASS (share lock)
+11-05 23:23:01 ooo1cq_check rc=0
+lock released
+11-05 23:23:01 unlocked; results: data/ooo1cq_check.txt
+11-05 23:23:01 RESTORED ref2.py to the pre-19:1x version (md5 04f18c02) because: ref2.self_test rc 1
+11-05 23:47:25 ref2.py swapped back to the pre-19:1x version (md5 04f18c02) for BigMoE's Fri run (their request 23:4x); FAST-NAX copy: data/ref2_fastnax_eda11b8b.py
+11-06 01:24:40 ref2 re-apply armed (pid 19846): the FAST-NAX version after BigMoE's 'Fri run end'
+11-06 01:24:40 RE-APPLIED the FAST-NAX ref2 (md5 eda11b8b, switch off by default) after BigMoE's Fri run end

@@ -1,0 +1,90 @@
+== 1 the mask (MLX on Device(cpu, 0)) ==
+PASS  mask == numpy reference, dtype and shape kept, c 64 is the same object: random, bfloat16
+PASS  mask == numpy reference, dtype and shape kept, c 64 is the same object: random, float16
+PASS  mask == numpy reference, dtype and shape kept, c 64 is the same object: random, float32
+      random: c 48: kept per group 48.00 (max 48), energy kept 0.9903; c 40: kept per group 40.00 (max 40), energy kept 0.9686; c 32: kept per group 32.00 (max 32), energy kept 0.9247
+PASS  mask == numpy reference, dtype and shape kept, c 64 is the same object: ties and zero groups, bfloat16
+PASS  mask == numpy reference, dtype and shape kept, c 64 is the same object: ties and zero groups, float16
+PASS  mask == numpy reference, dtype and shape kept, c 64 is the same object: ties and zero groups, float32
+PASS  mask == numpy reference, dtype and shape kept, c 64 is the same object: real map x, tf_code_HumanEval_10.npz (16 rows x 48 layers), bfloat16
+PASS  mask == numpy reference, dtype and shape kept, c 64 is the same object: real map x, tf_code_HumanEval_10.npz (16 rows x 48 layers), float16
+PASS  mask == numpy reference, dtype and shape kept, c 64 is the same object: real map x, tf_code_HumanEval_10.npz (16 rows x 48 layers), float32
+      real map x, tf_code_HumanEval_10.npz (16 rows x 48 layers): c 48: kept per group 48.04 (max 50), energy kept 0.9919; c 40: kept per group 40.06 (max 42), energy kept 0.9732; c 32: kept per group 32.08 (max 35), energy kept 0.9348
+PASS  mask == numpy reference, dtype and shape kept, c 64 is the same object: real map x, tf_ifeval_1005.npz (16 rows x 48 layers), bfloat16
+PASS  mask == numpy reference, dtype and shape kept, c 64 is the same object: real map x, tf_ifeval_1005.npz (16 rows x 48 layers), float16
+PASS  mask == numpy reference, dtype and shape kept, c 64 is the same object: real map x, tf_ifeval_1005.npz (16 rows x 48 layers), float32
+      real map x, tf_ifeval_1005.npz (16 rows x 48 layers): c 48: kept per group 48.05 (max 51), energy kept 0.9918; c 40: kept per group 40.06 (max 43), energy kept 0.9728; c 32: kept per group 32.08 (max 36), energy kept 0.9339
+PASS  mask == numpy reference, dtype and shape kept, c 64 is the same object: real map x, tf_multi_ar21.npz (16 rows x 48 layers), bfloat16
+PASS  mask == numpy reference, dtype and shape kept, c 64 is the same object: real map x, tf_multi_ar21.npz (16 rows x 48 layers), float16
+PASS  mask == numpy reference, dtype and shape kept, c 64 is the same object: real map x, tf_multi_ar21.npz (16 rows x 48 layers), float32
+      real map x, tf_multi_ar21.npz (16 rows x 48 layers): c 48: kept per group 48.05 (max 51), energy kept 0.9920; c 40: kept per group 40.06 (max 43), energy kept 0.9733; c 32: kept per group 32.08 (max 35), energy kept 0.9351
+      tf_code_HumanEval_10.npz: energy kept at c 32 by layer: min 0.9281 (L33), median 0.9314, max 0.9781 (L0)
+      tf_ifeval_1005.npz: energy kept at c 32 by layer: min 0.9270 (L13), median 0.9315, max 0.9770 (L0)
+      tf_multi_ar21.npz: energy kept at c 32 by layer: min 0.9280 (L11), median 0.9328, max 0.9734 (L0)
+PASS  three real map windows read from decision_map/out/xcap
+
+== 2 the wiring: the harness's own code on a fake model, both MoE paths ==
+PASS  scenarios ran: today's harness and the patched one, DM_XS unset
+PASS  DM_XS unset: patched harness == today's harness, bit for bit (baseline, topk, both paths, 10 outputs)
+PASS  DM_XS unset: dm_xs is not imported and no xs arm is registered
+PASS  the fake model's own reference masking works (the comparison is not vacuous)
+PASS  masking the switch input changes the outputs (wide and narrow)
+PASS  streamed: DM_XS=1, no xs arm: baseline and topk == today's, bit for bit
+PASS  streamed: xs64 == today's baseline, bit for bit; nothing masked
+PASS  streamed: xs32: the switch reads exactly mask(x, 32); router, shared expert and its gate read x
+PASS  streamed: xs32 outputs == the reference whose switch masks its own input, bit for bit (wide and narrow)
+PASS  streamed: xs32: every row masked and counted once (144 = 48 rows x 3 layers, 6 calls)
+PASS  streamed: xs48: the switch reads exactly mask(x, 48); router, shared expert and its gate read x
+PASS  streamed: xs48 outputs == the reference whose switch masks its own input, bit for bit (wide and narrow)
+PASS  streamed: xs48: every row masked and counted once (144 = 48 rows x 3 layers, 6 calls)
+PASS  streamed: the stacked arm topk+xs32 == topk on the masked switch input, bit for bit (the harness's own narrow path and its combine)
+PASS  streamed: clear() switches the arm off; the baseline after the xs arms == today's, bit for bit
+PASS  streamed: arms registered: ['xs32', 'xs40', 'xs48', 'xs64']; wrapped classes ['SwStreamed']
+PASS  fused: DM_XS=1, no xs arm: baseline and topk == today's, bit for bit
+PASS  fused: xs64 == today's baseline, bit for bit; nothing masked
+PASS  fused: xs32: the switch reads exactly mask(x, 32); router, shared expert and its gate read x
+PASS  fused: xs32 outputs == the reference whose switch masks its own input, bit for bit (wide and narrow)
+PASS  fused: xs32: every row masked and counted once (144 = 48 rows x 3 layers, 6 calls)
+PASS  fused: xs48: the switch reads exactly mask(x, 48); router, shared expert and its gate read x
+PASS  fused: xs48 outputs == the reference whose switch masks its own input, bit for bit (wide and narrow)
+PASS  fused: xs48: every row masked and counted once (144 = 48 rows x 3 layers, 6 calls)
+PASS  fused: the stacked arm topk+xs32 == topk on the masked switch input, bit for bit (the harness's own narrow path and its combine)
+PASS  fused: clear() switches the arm off; the baseline after the xs arms == today's, bit for bit
+PASS  fused: arms registered: ['xs32', 'xs40', 'xs48', 'xs64']; wrapped classes ['Sw']
+PASS  mixed: DM_XS=1, no xs arm: baseline and topk == today's, bit for bit
+PASS  mixed: xs64 == today's baseline, bit for bit; nothing masked
+PASS  mixed: xs32: the switch reads exactly mask(x, 32); router, shared expert and its gate read x
+PASS  mixed: xs32 outputs == the reference whose switch masks its own input, bit for bit (wide and narrow)
+PASS  mixed: xs32: every row masked and counted once (144 = 48 rows x 3 layers, 6 calls)
+PASS  mixed: xs48: the switch reads exactly mask(x, 48); router, shared expert and its gate read x
+PASS  mixed: xs48 outputs == the reference whose switch masks its own input, bit for bit (wide and narrow)
+PASS  mixed: xs48: every row masked and counted once (144 = 48 rows x 3 layers, 6 calls)
+PASS  mixed: the stacked arm topk+xs32 == topk on the masked switch input, bit for bit (the harness's own narrow path and its combine)
+PASS  mixed: clear() switches the arm off; the baseline after the xs arms == today's, bit for bit
+PASS  mixed: arms registered: ['xs32', 'xs40', 'xs48', 'xs64']; wrapped classes ['Sw', 'SwStreamed']
+
+== 3 measure(): the masked-row record and its WARNING ==
+PASS  xs48 and topk3+xs32: each window records 48 x (ids - 1) masked switch rows, no warning
+PASS  xs64: no xs record, no warning (nothing is masked)
+PASS  a layer whose experts escape the mask raises the WARNING and marks the window
+PASS  the arm files are written under their own names (xs48.json, topk3+xs32.json)
+
+== 4 the patch ==
+PASS  base/ holds the files the patch was cut against
+PASS  the live decision_map files are still those files (the patch applies to today's HEAD)
+PASS  decision_map has no other dm_xs.py
+PASS  patch --dry-run on today's files: clean, no fuzz, no offset
+PASS  apply.sh on a sandbox copy gives exactly applied/ (three files)
+PASS  apply.sh refuses to apply twice (the md5 guard)
+PASS  revert.sh restores today's files and removes dm_xs.py
+PASS  the three patched files compile
+
+== 5 the reader ==
+PASS  read_xs.py == fablec/wall_class_flips on arms on disk (all-row, non-tie, tie): qom_0_live_ball+code 0.51 / - / - | 0.21 / - / -; top_k8 0.65 / 5.24 / 4.31 | 0.21 / 1.90 / 1.54; topk10 0.00 / 0.00 / 0.00 | 0.00 / 0.00 / 0.00
+      neighbour t4_all: all-row 0.33 / 2.15 / 1.58; non-tie 0.06 / 0.19 / 0.24
+      neighbour t3_all: all-row 0.92 / 7.24 / 5.83; non-tie 0.36 / 3.44 / 3.09
+      neighbour top_k8: all-row 0.65 / 5.24 / 4.31; non-tie 0.21 / 1.90 / 1.54
+      neighbour topk5: all-row 1.60 / 11.48 / 11.48; non-tie 1.03 / 7.66 / 8.23
+PASS  read_xs.py's verdict paths on stand-in files (identity, standalone fit and kill check, stacked arm vs its parent)
+
+ALL PASS (68 checks passed, 0 failed)

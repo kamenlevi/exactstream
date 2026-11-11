@@ -1,0 +1,36 @@
+12:27:41 start: C 224, PEAK 39 GB + 8, NOTBEFORE 23:00
+--- restart 12:34:26
+12:34:28 start: C 224, PEAK 39 GB + 8, NOTBEFORE 23:00
+--- restart 12:40:01 (C list 224 160 256)
+12:40:01 start: C 224, PEAK 39 GB + 8, NOTBEFORE 23:00
+--- restart 12:42:25 (NewIdeas 12:4x: FIFO at 23:01, no pre-queue waits; C list 224 160 256)
+12:42:25 start: C 224, PEAK 39 GB + 8, NOTBEFORE 23:01
+23:01:03 queue the quiet ticket (NO-SWAP 22 GB)
+queued #2 behind ojox-99; this returns when it's your turn and the Mac is quiet.
+your turn after 10 min: quiet lock held until 23:41. Measure now, and `peer unlock` as soon as you're done.
+lock released
+23:12:06 granted but only 35 GB NO-SWAP (< 47): released, wait 2 min
+23:14:06 queue the quiet ticket (NO-SWAP 35 GB)
+queued #1; this returns when it's your turn and the Mac is quiet.
+left the queue (peer unlock, or the entry was removed)
+23:19:26 queue failed: retry in 2 min
+--- restart 23:27:54 (orchestrator 23:1x: MARGIN=4, C 224 192; lock taken by the session first)
+23:27:54 start: C 224, PEAK 34 GB + 4, NOTBEFORE none
+23:27:54 quiet lock already held by this session (NO-SWAP 41 GB)
+23:28:24 granted, NO-SWAP 41 GB: run C list 224 192
+23:28:24 C 224 skipped: NO-SWAP 41 GB < 43
+23:28:24 run C 192 (NO-SWAP 41 GB, swap 8845 MB)
+23:28:34 done C 192 rc=1: Traceback (most recent call last): ValueError: Converting -1 to uint32 would result in overflow. 
+lock released
+23:28:54 turn over, ticket released
+--- restart 01:26:43 (MARGIN=4, C 224 192, hybrid fix; lock taken by the session first)
+01:26:43 start: C 224, PEAK 34 GB + 4, NOTBEFORE none
+01:26:43 quiet lock already held by this session (NO-SWAP 47 GB)
+01:27:13 granted, NO-SWAP 46 GB: run C list 224 192
+01:27:13 run C 224 (NO-SWAP 46 GB, swap 8821 MB)
+01:31:09 done C 224 rc=0: Lines (QUEUE M-16 step 2, C 224): best variant skip modelled +0.4% tok/s vs today -> KILL (PASS >= +40 %, KILL < +15 %); exact path unchanged (every token == REF2-T reference): True; all-resident re-r   footprint now 36.2 GB, lifetime peak 37.5 GB; 231 s 
+01:31:29 run C 192 (NO-SWAP 45 GB, swap 8821 MB)
+01:34:28 run C 192 stopped: PAUSE
+01:34:28 done C 192 rc=143: 
+lock released
+01:34:28 turn over, ticket released

@@ -1,0 +1,37 @@
+R-06 / R-07: FR-Spec set = 28214 tokens seen in L1-20's data + 4554 filled in id order (largest id 248069)
+  held-out answer tokens inside the FR-Spec set: 0.9918 of 6351
+  drafter bf16: 1.21 GB of its own parameters
+    block 16 head pieces: lm_head 2.57 ms, argp alone 2.23 ms, lm_head + 2s 2.58 ms, lm_head + argp 4.54 ms, v32k head + top-16 0.85 ms
+    block 16 argp: draft  12.91 ms (min 12.63); 9.536 tokens per check (666 checks, 9 s)
+    block 16 2s  : draft  10.92 ms (min 10.59); 9.536 tokens per check (666 checks, 7 s)
+    block 16 v32k: draft   9.13 ms (min 8.81); 9.151 tokens per check (694 checks, 7 s)
+    block 32 head pieces: lm_head 2.67 ms, argp alone 4.49 ms, lm_head + 2s 2.74 ms, lm_head + argp 6.93 ms, v32k head + top-16 1.03 ms
+    block 32 argp: draft  16.27 ms (min 16.04); 10.227 tokens per check (621 checks, 10 s)
+    block 32 2s  : draft  12.06 ms (min 11.71); 10.227 tokens per check (621 checks, 8 s)
+    block 32 v32k: draft  10.32 ms (min 9.96); 9.726 tokens per check (653 checks, 7 s)
+  drafter 8-bit: 0.76 GB of its own parameters
+    block 16 argp: draft  12.02 ms (min 11.70); 9.623 tokens per check (660 checks, 8 s)
+    block 16 v32k: draft   8.10 ms (min 7.82); 9.204 tokens per check (690 checks, 6 s)
+    block 16 2s  : draft   9.98 ms (tokens = argp's)
+    block 32 argp: draft  15.70 ms (min 15.39); 10.277 tokens per check (618 checks, 10 s)
+    block 32 v32k: draft   9.66 ms (min 9.30); 9.786 tokens per check (649 checks, 6 s)
+    block 32 2s  : draft  11.52 ms (tokens = argp's)
+  drafter 4-bit: 0.52 GB of its own parameters
+    block 16 argp: draft  11.68 ms (min 11.36); 9.493 tokens per check (669 checks, 8 s)
+    block 16 v32k: draft   7.79 ms (min 7.48); 9.086 tokens per check (699 checks, 6 s)
+    block 16 2s  : draft   9.64 ms (tokens = argp's)
+    block 32 argp: draft  15.94 ms (min 15.46); 10.162 tokens per check (625 checks, 10 s)
+    block 32 v32k: draft   9.61 ms (min 9.35); 9.637 tokens per check (659 checks, 6 s)
+    block 32 2s  : draft  11.49 ms (tokens = argp's)
+  2s exact: bf16 tokens 2s / argp = 1.0000 (b16), 1.0000 (b32)
+  bf16 argp: b16  12.91 ms, tokens x1.0000; b32  16.27 ms, tokens x1.0000
+  bf16 2s  : b16  10.92 ms, tokens x1.0000; b32  12.06 ms, tokens x1.0000
+  bf16 v32k: b16   9.13 ms, tokens x0.9597; b32  10.32 ms, tokens x0.9510
+     8 argp: b16  12.02 ms, tokens x1.0091; b32  15.70 ms, tokens x1.0049
+     8 2s  : b16   9.98 ms, tokens x1.0091; b32  11.52 ms, tokens x1.0049
+     8 v32k: b16   8.10 ms, tokens x0.9652; b32   9.66 ms, tokens x0.9569
+     4 argp: b16  11.68 ms, tokens x0.9955; b32  15.94 ms, tokens x0.9936
+     4 2s  : b16   9.64 ms, tokens x0.9955; b32  11.49 ms, tokens x0.9936
+     4 v32k: b16   7.79 ms, tokens x0.9528; b32   9.61 ms, tokens x0.9423
+R-06 verdict (PASS <= 5 ms at b16 with tokens within 1 % at b16 and b32; KILL best within 1 % > 8 ms, or every arm <= 5 ms loses > 3 %): KILL (best within 1 %: 4-bit 2s 9.64 ms)
+R-07 verdict (PASS v32k head <= 1.5 ms at b16 and tokens >= 99 % of the full head; KILL < 98 %): head 0.85 ms, tokens x0.9510 (worse of b16 / b32): KILL

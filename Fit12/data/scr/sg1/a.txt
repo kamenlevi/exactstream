@@ -1,0 +1,36 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=25.7 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 15M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.20 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: engine v3p, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.20 GB, active 9.33 GB
+[a] bt_b12 8db71cc537, engine /Users/kamen/Breakthrough/v3p (R-53 patch on: a 0 b 1), BIGMOE_M01 1, loaded in 2 s: footprint 9.67 GB, lifetime peak 9.67 GB, MLX active 9.33 GB
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[a] m10: prefill 94 tokens in 3.53 s = 27 tok/s | MLX peak 10.45 GB | hash 0.0 s | decode 32 in 1.68 s | after decode: footprint 10.93 GB, MLX active 10.26 GB, cache 0.068 GB | R-53 counts {'alloc': 0, 'reuse': 0, 'drop': 0, 'scat': 114, 'mtp': 1} | PF grouped 39 single 9 fallback 6 | SG12 absent
+[a] m10 RESULT kv 9376798271 h 84ca67acf4 logits c4ef0ad4ee sha32 6f8d4c33f7 prefill 3.53 s after 10.93 GB paused 0
+[a] m13: prefill 68 tokens in 3.10 s = 22 tok/s | MLX peak 10.64 GB | hash 0.0 s | decode 32 in 1.68 s | after decode: footprint 11.02 GB, MLX active 10.26 GB, cache 0.068 GB | R-53 counts {'alloc': 0, 'reuse': 0, 'drop': 0, 'scat': 62, 'mtp': 1} | PF grouped 63 single 33 fallback 9 | SG12 absent
+[a] m13 RESULT kv 8ee0dc956b h e7e7d65fad logits 01186d44e2 sha32 048e179972 prefill 3.10 s after 11.02 GB paused 0
+[a] m3: prefill 97 tokens in 3.47 s = 28 tok/s | MLX peak 10.65 GB | hash 0.0 s | decode 32 in 1.76 s | after decode: footprint 11.01 GB, MLX active 10.26 GB, cache 0.068 GB | R-53 counts {'alloc': 0, 'reuse': 0, 'drop': 0, 'scat': 130, 'mtp': 1} | PF grouped 104 single 40 fallback 12 | SG12 absent
+[a] m3 RESULT kv 7b5c958ab9 h cc888992e3 logits 9e492370ae sha32 dcd0ce692f prefill 3.47 s after 11.01 GB paused 0
+[a] m15: prefill 77 tokens in 2.91 s = 26 tok/s | MLX peak 10.64 GB | hash 0.1 s | decode 32 in 1.51 s | after decode: footprint 11.03 GB, MLX active 10.26 GB, cache 0.067 GB | R-53 counts {'alloc': 0, 'reuse': 0, 'drop': 0, 'scat': 99, 'mtp': 1} | PF grouped 145 single 47 fallback 16 | SG12 absent
+[a] m15 RESULT kv 6d207248b9 h b754f699ba logits 7471f73c9e sha32 0af27c72c5 prefill 2.91 s after 11.03 GB paused 0
+[a] phase load: peak footprint 9.57 GB, peak MLX active 9.28 GB (73 samples)
+[a] phase m10 prefill: peak footprint 10.67 GB, peak MLX active 10.31 GB (119 samples)
+[a] phase m10 hash: peak footprint 10.87 GB, peak MLX active 10.45 GB (2 samples)
+[a] phase m10 decode: peak footprint 11.05 GB, peak MLX active 10.59 GB (71 samples)
+[a] phase idle: peak footprint 10.79 GB, peak MLX active 10.26 GB (23 samples)
+[a] phase m13 prefill: peak footprint 11.57 GB, peak MLX active 11.06 GB (94 samples)
+[a] phase m13 hash: peak footprint 10.94 GB, peak MLX active 10.45 GB (2 samples)
+[a] phase m13 decode: peak footprint 11.08 GB, peak MLX active 10.58 GB (72 samples)
+[a] phase m3 prefill: peak footprint 11.65 GB, peak MLX active 11.13 GB (114 samples)
+[a] phase m3 hash: peak footprint 10.95 GB, peak MLX active 10.45 GB (2 samples)
+[a] phase m3 decode: peak footprint 11.08 GB, peak MLX active 10.59 GB (75 samples)
+[a] phase m15 prefill: peak footprint 11.58 GB, peak MLX active 11.06 GB (96 samples)
+[a] phase m15 hash: peak footprint 10.95 GB, peak MLX active 10.45 GB (2 samples)
+[a] phase m15 decode: peak footprint 11.08 GB, peak MLX active 10.59 GB (63 samples)
+[a] RESULT serving peak 11.65 GB lifetime peak 11.66 GB
+[a] done

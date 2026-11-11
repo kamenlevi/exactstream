@@ -1,0 +1,72 @@
+cap45 loaded in 4 s; router self-check agreement 0.982; checks per prompt: humaneva68 5, math5001640 48, humaneva91 25, math500694 32, math5001282 34, gsm8k708 32
+replay 0 s
+
+counted checks 171 (prompts 2-6); prompt 1 (humaneval_HumanEval_68) uncounted
+
+==== code: 25 checks, rows 16.00, kept 5.88 per check; misses per check MSB 175.8 + LSB 181.9 = 357.8; 520.4 MB per check, 88.5 MB per kept token; SSD per check 53.3 / 88.0 ms at 0.149 / 0.246 ms per miss [replay C 256 LAYSZ P30] ====
+  by rank: MSB misses at ranks 0-1 12.8 (7 %), ranks 2-9 163.1; LSB (ranks 0-1 only) 181.9; rejected rows (j >= kept) own 186.6 of 357.8 misses (52 %)
+  row |  new/lay | MSB miss | LSB miss |       MB | ms@.149 |   ms@.246 |    cum ms |      n
+    0 |    10.00 |     10.8 |     11.0 |     31.7 |    3.24 |      5.35 |       3.2 |     25
+    1 |     6.50 |     15.3 |     15.9 |     45.3 |    4.65 |      7.68 |       7.9 |     25
+    2 |     5.26 |      9.9 |     12.0 |     30.7 |    3.27 |      5.39 |      11.2 |     25
+    3 |     4.42 |     12.0 |     12.6 |     35.7 |    3.67 |      6.06 |      14.8 |     25
+    4 |     4.50 |      9.7 |     11.0 |     29.5 |    3.09 |      5.11 |      17.9 |     25
+    5 |     4.39 |     15.7 |     14.4 |     45.1 |    4.49 |      7.41 |      22.4 |     25
+    6 |     4.39 |     14.5 |     12.2 |     40.8 |    3.98 |      6.57 |      26.4 |     25
+    7 |     3.94 |     10.7 |     11.1 |     31.7 |    3.25 |      5.37 |      29.6 |     25
+    8 |     3.70 |     11.7 |     10.8 |     33.6 |    3.36 |      5.54 |      33.0 |     25
+    9 |     3.50 |     10.4 |     10.6 |     30.7 |    3.13 |      5.17 |      36.1 |     25
+   10 |     3.42 |      8.8 |      9.8 |     26.7 |    2.78 |      4.60 |      38.9 |     25
+   11 |     3.32 |      8.4 |     10.3 |     26.2 |    2.79 |      4.61 |      41.7 |     25
+   12 |     3.21 |     10.4 |     11.7 |     31.5 |    3.30 |      5.44 |      45.0 |     25
+   13 |     2.69 |      7.0 |      8.2 |     21.4 |    2.26 |      3.73 |      47.3 |     25
+   14 |     2.60 |      9.4 |      9.5 |     27.7 |    2.82 |      4.65 |      50.1 |     25
+   15 |     2.62 |     11.0 |     10.7 |     32.0 |    3.23 |      5.33 |      53.3 |     25
+  rows 1-15 mean: new experts per layer 3.90, misses 22.4 per row (3.34 ms at 0.149, 5.51 at 0.246); row 0: new 10.0 per layer, misses 21.8
+  a top-2 cheap pass requests ranks 0-1 only: it names 54 % of this domain's misses (MSB ranks 0-1 + all LSB); an all-resident cheap pass names them all (route drift aside)
+
+==== math: 146 checks, rows 16.00, kept 6.15 per check; misses per check MSB 134.6 + LSB 122.8 = 257.4; 385.6 MB per check, 62.7 MB per kept token; SSD per check 38.3 / 63.3 ms at 0.149 / 0.246 ms per miss [replay C 256 LAYSZ P30] ====
+  by rank: MSB misses at ranks 0-1 5.9 (4 %), ranks 2-9 128.7; LSB (ranks 0-1 only) 122.8; rejected rows (j >= kept) own 153.0 of 257.4 misses (59 %)
+  row |  new/lay | MSB miss | LSB miss |       MB | ms@.149 |   ms@.246 |    cum ms |      n
+    0 |    10.00 |      8.7 |     10.3 |     26.6 |    2.82 |      4.65 |       2.8 |    146
+    1 |     6.18 |      8.9 |      8.2 |     25.6 |    2.55 |      4.21 |       5.4 |    146
+    2 |     5.69 |      7.9 |      7.5 |     22.9 |    2.30 |      3.79 |       7.7 |    146
+    3 |     4.94 |      7.3 |      6.0 |     20.3 |    1.97 |      3.25 |       9.6 |    146
+    4 |     4.57 |      8.3 |      7.7 |     24.0 |    2.39 |      3.95 |      12.0 |    146
+    5 |     4.21 |      8.8 |      7.4 |     24.7 |    2.41 |      3.97 |      14.4 |    146
+    6 |     4.36 |      7.7 |      7.1 |     22.1 |    2.21 |      3.65 |      16.6 |    146
+    7 |     4.13 |      8.4 |      7.2 |     23.7 |    2.33 |      3.84 |      19.0 |    146
+    8 |     3.81 |      7.9 |      7.0 |     22.5 |    2.23 |      3.68 |      21.2 |    146
+    9 |     3.80 |      8.6 |      8.0 |     24.7 |    2.47 |      4.07 |      23.7 |    146
+   10 |     3.45 |      8.8 |      7.5 |     24.8 |    2.43 |      4.01 |      26.1 |    146
+   11 |     3.38 |      9.0 |      7.8 |     25.4 |    2.50 |      4.12 |      28.6 |    146
+   12 |     3.15 |      8.2 |      7.6 |     23.6 |    2.35 |      3.89 |      30.9 |    146
+   13 |     3.06 |      8.4 |      7.8 |     24.2 |    2.41 |      3.99 |      33.4 |    146
+   14 |     2.93 |      9.4 |      8.0 |     26.4 |    2.59 |      4.27 |      35.9 |    146
+   15 |     2.77 |      8.2 |      7.9 |     23.9 |    2.41 |      3.97 |      38.3 |    146
+  rows 1-15 mean: new experts per layer 4.03, misses 15.9 per row (2.37 ms at 0.149, 3.91 at 0.246); row 0: new 10.0 per layer, misses 18.9
+  a top-2 cheap pass requests ranks 0-1 only: it names 50 % of this domain's misses (MSB ranks 0-1 + all LSB); an all-resident cheap pass names them all (route drift aside)
+
+==== all: 171 checks, rows 16.00, kept 6.11 per check; misses per check MSB 140.6 + LSB 131.4 = 272.1; 405.3 MB per check, 66.3 MB per kept token; SSD per check 40.5 / 66.9 ms at 0.149 / 0.246 ms per miss [replay C 256 LAYSZ P30] ====
+  by rank: MSB misses at ranks 0-1 6.9 (5 %), ranks 2-9 133.7; LSB (ranks 0-1 only) 131.4; rejected rows (j >= kept) own 157.9 of 272.1 misses (58 %)
+  row |  new/lay | MSB miss | LSB miss |       MB | ms@.149 |   ms@.246 |    cum ms |      n
+    0 |    10.00 |      9.0 |     10.4 |     27.4 |    2.88 |      4.75 |       2.9 |    171
+    1 |     6.22 |      9.9 |      9.3 |     28.5 |    2.86 |      4.72 |       5.7 |    171
+    2 |     5.63 |      8.2 |      8.1 |     24.1 |    2.44 |      4.03 |       8.2 |    171
+    3 |     4.86 |      7.9 |      6.9 |     22.5 |    2.22 |      3.66 |      10.4 |    171
+    4 |     4.56 |      8.5 |      8.2 |     24.8 |    2.49 |      4.12 |      12.9 |    171
+    5 |     4.24 |      9.8 |      8.4 |     27.7 |    2.71 |      4.48 |      15.6 |    171
+    6 |     4.36 |      8.7 |      7.9 |     24.9 |    2.47 |      4.08 |      18.1 |    171
+    7 |     4.11 |      8.7 |      7.8 |     24.9 |    2.46 |      4.06 |      20.5 |    171
+    8 |     3.79 |      8.5 |      7.6 |     24.2 |    2.39 |      3.95 |      22.9 |    171
+    9 |     3.76 |      8.8 |      8.4 |     25.6 |    2.56 |      4.23 |      25.5 |    171
+   10 |     3.44 |      8.8 |      7.8 |     25.1 |    2.48 |      4.09 |      28.0 |    171
+   11 |     3.37 |      8.9 |      8.1 |     25.6 |    2.54 |      4.19 |      30.5 |    171
+   12 |     3.16 |      8.5 |      8.2 |     24.8 |    2.49 |      4.11 |      33.0 |    171
+   13 |     3.01 |      8.2 |      7.8 |     23.8 |    2.39 |      3.95 |      35.4 |    171
+   14 |     2.88 |      9.4 |      8.2 |     26.6 |    2.62 |      4.33 |      38.0 |    171
+   15 |     2.75 |      8.6 |      8.3 |     25.1 |    2.53 |      4.17 |      40.5 |    171
+  rows 1-15 mean: new experts per layer 4.01, misses 16.8 per row (2.51 ms at 0.149, 4.14 at 0.246); row 0: new 10.0 per layer, misses 19.3
+  a top-2 cheap pass requests ranks 0-1 only: it names 51 % of this domain's misses (MSB ranks 0-1 + all LSB); an all-resident cheap pass names them all (route drift aside)
+
+done 5 s

@@ -1,0 +1,21 @@
+18:36:31 start
+[rf_hash] p2k RESULT hashes 98c6bc1c0d 82995cdb4e a0774ec635 37028a6545 8563204e11 | = R-48's True | 2618-token prefill 10.66 s, PFR yes, refill [3408, 0.483] | 256 tok in 16.3 s | lifetime peak 10.217 GB
+[rf_hash] p8k RESULT hashes 61b2520e58 0b0d91cd43 ed67050746 5a760388d6 f59755cf27 | = R-48's True | 8475-token prefill 31.31 s, PFR yes, refill [3408, 0.485] | 256 tok in 15.1 s | lifetime peak 10.462 GB
+[rf_hash] write16 RESULT hashes 418633931b a1789d46bf df432791d6 368d4f4e01 5c58dda19b | = R-48's True | vs b12llfx first diff None | 8277-token prefill 31.09 s, PFR yes, refill [3408, 0.486] | 256 tok in 13.2 s | lifetime peak 10.511 GB
+[rf_hash] HASH VERDICT PASS: every hash = R-48 / b12llfx
+18:38:32 hashes PASS
+18:40:20 A done
+18:42:41 B done
+18:44:39 A2 done
+R-41F REFILL: hashes PASS; arms A A2 (B12_PFR_MIN 4096, no refill) vs B (PFR_MIN 512 + refill)
+  A  write14  tok 128 equal True | prefill   9.64 s PFR no  refill no             rise +1.214 | decode   8.57 s = 14.94 tok/s | row  18.21 s, row max rise +1.214 GB
+  A  edit10   tok 103 equal True | prefill   8.90 s PFR no  refill no             rise +0.967 | decode   6.20 s = 16.60 tok/s | row  15.11 s, row max rise +0.967 GB
+  A  text23   tok 114 equal True | prefill  33.33 s PFR yes refill no             rise +0.028 | decode   6.10 s = 18.69 tok/s | row  39.43 s, row max rise +0.614 GB
+  B  write14  tok 128 equal True | prefill  11.45 s PFR yes refill [3408, 0.509]  rise +0.368 | decode  10.14 s = 12.62 tok/s | row  21.59 s, row max rise +0.522 GB
+  B  edit10   tok 103 equal True | prefill  14.26 s PFR yes refill [3408, 0.532]  rise +0.239 | decode   7.88 s = 13.07 tok/s | row  22.14 s, row max rise +0.412 GB
+  B  text23   tok 114 equal True | prefill  56.34 s PFR yes refill [3408, 0.516]  rise +0.495 | decode   7.00 s = 16.29 tok/s | row  63.34 s, row max rise +0.639 GB
+  A2 write14  tok 128 equal True | prefill  11.90 s PFR no  refill no             rise +1.236 | decode   9.94 s = 12.88 tok/s | row  21.84 s, row max rise +1.236 GB
+  A2 edit10   tok 103 equal True | prefill   9.55 s PFR no  refill no             rise +0.946 | decode   6.41 s = 16.06 tok/s | row  15.96 s, row max rise +0.946 GB
+  A2 text23   tok 114 equal True | prefill  39.61 s PFR yes refill no             rise +0.142 | decode   6.13 s = 18.60 tok/s | row  45.74 s, row max rise +0.598 GB
+  noise A vs A2: write14 row +19.9 %, decode -13.8 %, edit10 row +5.6 %, decode -3.3 %, text23 row +16.0 %, decode -0.5 %
+VERDICT KILL: short rows B vs A write14 +7.8 %, edit10 +42.5 % (line <= +3 %); text23 decode -12.6 % (line >= +5 %); tokens equal everywhere True

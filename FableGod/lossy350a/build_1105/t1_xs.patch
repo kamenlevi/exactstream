@@ -1,0 +1,51 @@
+--- a/dm_common.py	2026-11-05 18:30:53
++++ b/dm_common.py	2026-11-05 18:30:53
+@@ -44,6 +44,9 @@
+ from mtplx.models import qwen4_exp as Q
+ from mtplx import generation as G
+ import mtplx.kernels.qwen4_moe_prefill_combine as PC
++_XS = None
++if os.environ.get("DM_XS") == "1":                       # T1 (Fable A, Thu 11-05): input sparsity for the routed experts; off
++    import dm_xs as _XS                                  # unless DM_XS=1 (dm_xs.py; ~/FableGod/lossy350a/build_1105/INSTALL.md)
+ 
+ TD = os.path.expanduser("~/TrainLab/data")
+ MD = os.path.expanduser("~/BigMoE/models/bare")
+@@ -285,6 +288,7 @@
+     def moe_call(self, x):
+         li = LAYERS.get(id(self), (None, None))[0]
+         CUR["L"] = li
++        if _XS is not None: _XS.wrap(self.switch_mlp)    # T1: the switch's runtime class reads mask(x) while an xs arm is on
+         add = _t3_add(self, li, x) if (PERT.get("t3") and CUR["k"] is not None and li is not None) else None
+         y = moe_inner(self, x, li)
+         return y if add is None else y + add.reshape(y.shape).astype(y.dtype)
+@@ -434,9 +438,16 @@
+             kk = np.full(len(ids), 10, np.int32); r = CUR["rm"]; m = min(len(kk), r.shape[0])   # live cut's exact bonus
+             kk[:m][~r[:m, :, 0].any(axis=1)] = 0; CUR["k"] = kk                                 # rows are not served twice
+         l0 = _lsrc() if PERT.get("t3L") else None         # screen 7: this window's per-layer source counts
++        x0 = _XS.XS["rows"] if _XS is not None else 0
+         tk, lp = run_window(model, ids)
+         res[nm] = dict(dom=dom, a=int(a), off=int(off), tk=tk[a:].tolist(), lp=lp[a:].tolist())
+         extra = ""
++        if _XS is not None and _XS.on():                    # T1: every MoE layer's switch saw each row exactly once, masked
++            xr = _XS.XS["rows"] - x0; res[nm]["xs"] = dict(c=int(_XS.XS["c"]), rows=int(xr))
++            extra += f"; xs{_XS.XS['c']}: {xr} masked switch rows"
++            if xr not in (48 * (len(ids) - 1), 48 * len(ids)):
++                extra += f"; WARNING xs masked {xr} switch rows for {len(ids)} ids x 48 layers (the mask missed a path)"
++                res[nm]["warn"] = extra
+         if l0 is not None:
+             d = {k_: v - l0[k_] for k_, v in _lsrc().items()}; res[nm]["lsrc"] = d
+             extra += (f"; per-layer src: {d['calls']} calls, {d['pairs']} pairs, {d['experts']} experts read"
+--- a/dm_ablations.py	2026-11-05 18:30:53
++++ b/dm_ablations.py	2026-11-05 18:30:53
+@@ -309,3 +309,11 @@
+ ABLATIONS["qom_0_split0.9_live_ball"] = q1_union("/Users/kamen/FableGod/decision_map/out/ni/qom_0_split0.9_live_ball")   # snapshot of /Users/kamen/NewIdeas/data/dm_masks/qom_0_split0.9_live_ball (sha256 beside it), installed by install_c3.sh
+ ABLATIONS["qom_0_split0.99_live_ball"] = q1_union("/Users/kamen/FableGod/decision_map/out/ni/qom_0_split0.99_live_ball")   # snapshot of /Users/kamen/NewIdeas/data/dm_masks/qom_0_split0.99_live_ball (sha256 beside it), installed by install_c3.sh
+ ABLATIONS["qom_0_live_ball"] = q1_union("/Users/kamen/FableGod/decision_map/out/ni/qom_0_live_ball")   # snapshot of /Users/kamen/NewIdeas/data/dm_masks/qom_0_live_ball (sha256 beside it), installed by install_c3.sh
++if os.environ.get("DM_XS") == "1":   # T1 (Fable A, Thu 11-05; ~/FableGod/LOSSY350_A.md): xs<c> = the routed experts read only the c largest-|x| of each 64 inputs
++    import dm_xs                      # (dm_xs.py); the router and the shared expert keep x. Stacks with "+": qom_0_live_ball+xs48, xs40+code
++    def xs(c):
++        def setup():
++            from dm_common import TEARDOWN
++            dm_xs.XS.update(c=c); TEARDOWN.append(lambda: dm_xs.XS.update(c=None))   # clear() switches the arm off again
++        return setup
++    for _c in (64, 48, 40, 32): ABLATIONS[f"xs{_c}"] = xs(_c)   # xs64: identity through the wrapper (a self-check: 0 flips expected, as topk10)

@@ -1,0 +1,104 @@
+R-40 STEP 3k: full 125B via load_streamed (C = 160), loaded in 2 s, 25.1 GB active; EvalSuite's PF1 True (full scratch True): on for prefills, off for checks / commits
+  self-test: {'qmm16c 6144x2560': True, 'MLX 16-row 512x2560': True, 'experts split == fused': True, 'experts rows alone': True, 'bf16 Linear': True}
+  REF2b key-bucket cost per 16-row attention call (median ms, buckets off -> on): N 536: 0.956 -> 1.144; N 800: 1.136 -> 1.139; N 1000: 1.295 -> 1.138; x 12 QSA layers = +2.3 ms per check at most
+  warm-up (discarded):
+  humaneval/HumanEval/68 [SDPA classes on] P 367: 192 tokens in 13 checks (kept 15.62), 25.8 tok/s, median cycle 503.3 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 48.2, SDPA splits per check 0.92
+    S45: per cycle (medians) drafter 16.7 ms + check and commit 469.9 ms; per check 1103.6 misses, SSD reads 265.4 ms; rows 16.00 per check; prefill 8.5 s
+  run 0 (block 16):
+  humaneval/HumanEval/68 [SDPA classes on] P 367: 192 tokens in 13 checks (kept 15.62), 28.0 tok/s, median cycle 525.3 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 48.2, SDPA splits per check 0.92
+    S45: per cycle (medians) drafter 14.0 ms + check and commit 506.3 ms; per check 1087.7 misses, SSD reads 264.9 ms; rows 16.00 per check; prefill 4.5 s
+  run 1 (gate block 16):
+  humaneval/HumanEval/68 [SDPA classes on] P 367: 192 tokens in 13 checks (kept 15.62), 38.1 tok/s, median cycle 403.4 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 0.0, SDPA splits per check 0.92
+    S45: per cycle (medians) drafter 12.2 ms + check and commit 378.5 ms; per check 1086.7 misses, SSD reads 261.9 ms; rows 16.00 per check; prefill 4.6 s
+  run 2 (truncation t 0.3):
+  humaneval/HumanEval/68 [SDPA classes on] P 367: 192 tokens in 13 checks (kept 15.62), 28.2 tok/s, median cycle 529.5 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 48.2, SDPA splits per check 0.92
+    S45: per cycle (medians) drafter 14.5 ms + check and commit 506.5 ms; per check 1088.5 misses, SSD reads 265.7 ms; rows 16.00 per check; prefill 4.5 s
+  run 3 (gate truncation t 0.3):
+  humaneval/HumanEval/68 [SDPA classes on] P 367: 192 tokens in 13 checks (kept 15.62), 36.5 tok/s, median cycle 398.9 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 0.0, SDPA splits per check 0.92
+    S45: per cycle (medians) drafter 12.8 ms + check and commit 377.5 ms; per check 1086.7 misses, SSD reads 261.0 ms; rows 16.00 per check; prefill 5.1 s
+  run 4 (block 16):
+  humaneval/HumanEval/68 [SDPA classes on] P 367: 192 tokens in 13 checks (kept 15.62), 27.9 tok/s, median cycle 507.3 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 48.2, SDPA splits per check 0.92
+    S45: per cycle (medians) drafter 17.9 ms + check and commit 490.1 ms; per check 1088.5 misses, SSD reads 263.6 ms; rows 16.00 per check; prefill 4.5 s
+  run 0 (block 16):
+  math500/test/prealgebra/1640.json [SDPA classes on] P 62: 192 tokens in 40 checks (kept 4.97), 13.4 tok/s, median cycle 329.7 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 48.4, SDPA splits per check 0.90
+    S45: per cycle (medians) drafter 14.6 ms + check and commit 313.6 ms; per check 543.0 misses, SSD reads 142.1 ms; rows 16.00 per check; prefill 4.5 s
+  run 1 (gate block 16):
+  math500/test/prealgebra/1640.json [SDPA classes on] P 62: 192 tokens in 40 checks (kept 4.97), 19.1 tok/s, median cycle 247.8 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 0.0, SDPA splits per check 0.90
+    S45: per cycle (medians) drafter 11.6 ms + check and commit 236.4 ms; per check 542.2 misses, SSD reads 138.6 ms; rows 16.00 per check; prefill 4.5 s
+  run 2 (truncation t 0.3):
+  math500/test/prealgebra/1640.json [SDPA classes on] P 62: 192 tokens in 42 checks (kept 4.74), 19.3 tok/s, median cycle 221.4 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 38.0, SDPA splits per check 1.14
+    S45: per cycle (medians) drafter 12.2 ms + check and commit 209.6 ms; per check 318.8 misses, SSD reads 89.6 ms; rows 7.55 per check; prefill 4.5 s
+  run 3 (gate truncation t 0.3):
+  math500/test/prealgebra/1640.json [SDPA classes on] P 62: 192 tokens in 42 checks (kept 4.74), 25.5 tok/s, median cycle 159.6 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 0.0, SDPA splits per check 1.14
+    S45: per cycle (medians) drafter 12.3 ms + check and commit 147.8 ms; per check 317.3 misses, SSD reads 86.3 ms; rows 7.55 per check; prefill 5.1 s
+  run 4 (block 16):
+  math500/test/prealgebra/1640.json [SDPA classes on] P 62: 192 tokens in 40 checks (kept 4.97), 14.1 tok/s, median cycle 321.1 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 48.4, SDPA splits per check 0.90
+    S45: per cycle (medians) drafter 13.7 ms + check and commit 305.0 ms; per check 542.8 misses, SSD reads 142.4 ms; rows 16.00 per check; prefill 4.5 s
+  run 0 (block 16):
+  humaneval/HumanEval/91 [SDPA classes on] P 144: 192 tokens in 19 checks (kept 10.05), 23.2 tok/s, median cycle 417.6 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 48.4, SDPA splits per check 0.00
+    S45: per cycle (medians) drafter 13.6 ms + check and commit 408.0 ms; per check 825.3 misses, SSD reads 204.0 ms; rows 16.00 per check; prefill 4.7 s
+  run 1 (gate block 16):
+  humaneval/HumanEval/91 [SDPA classes on] P 144: 192 tokens in 19 checks (kept 10.05), 31.4 tok/s, median cycle 305.9 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 0.0, SDPA splits per check 0.00
+    S45: per cycle (medians) drafter 12.0 ms + check and commit 317.3 ms; per check 824.1 misses, SSD reads 201.2 ms; rows 16.00 per check; prefill 4.5 s
+  run 2 (truncation t 0.3):
+  humaneval/HumanEval/91 [SDPA classes on] P 144: 192 tokens in 22 checks (kept 8.68), 24.5 tok/s, median cycle 280.7 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 37.3, SDPA splits per check 0.00
+    S45: per cycle (medians) drafter 13.1 ms + check and commit 288.9 ms; per check 670.8 misses, SSD reads 169.2 ms; rows 10.86 per check; prefill 4.4 s
+  run 3 (gate truncation t 0.3):
+  humaneval/HumanEval/91 [SDPA classes on] P 144: 192 tokens in 22 checks (kept 8.68), 30.2 tok/s, median cycle 222.9 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 0.0, SDPA splits per check 0.00
+    S45: per cycle (medians) drafter 12.1 ms + check and commit 231.6 ms; per check 672.8 misses, SSD reads 187.8 ms; rows 10.86 per check; prefill 5.3 s
+  run 4 (block 16):
+  humaneval/HumanEval/91 [SDPA classes on] P 144: 192 tokens in 19 checks (kept 10.05), 23.6 tok/s, median cycle 397.3 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 48.4, SDPA splits per check 0.00
+    S45: per cycle (medians) drafter 14.6 ms + check and commit 392.3 ms; per check 817.5 misses, SSD reads 202.4 ms; rows 16.00 per check; prefill 4.6 s
+  run 0 (block 16):
+  math500/test/algebra/694.json [SDPA classes on] P 98: 192 tokens in 28 checks (kept 7.18), 16.0 tok/s, median cycle 418.5 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 48.8, SDPA splits per check 0.86
+    S45: per cycle (medians) drafter 13.9 ms + check and commit 408.6 ms; per check 818.4 misses, SSD reads 202.5 ms; rows 16.00 per check; prefill 4.5 s
+  run 1 (gate block 16):
+  math500/test/algebra/694.json [SDPA classes on] P 98: 192 tokens in 28 checks (kept 7.18), 20.8 tok/s, median cycle 318.7 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 0.0, SDPA splits per check 0.86
+    S45: per cycle (medians) drafter 11.7 ms + check and commit 307.9 ms; per check 820.0 misses, SSD reads 212.8 ms; rows 16.00 per check; prefill 5.3 s
+  run 2 (truncation t 0.3):
+  math500/test/algebra/694.json [SDPA classes on] P 98: 192 tokens in 29 checks (kept 6.93), 20.5 tok/s, median cycle 293.5 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 45.1, SDPA splits per check 0.83
+    S45: per cycle (medians) drafter 12.8 ms + check and commit 278.5 ms; per check 551.6 misses, SSD reads 141.8 ms; rows 9.07 per check; prefill 4.4 s
+  run 3 (gate truncation t 0.3):
+  math500/test/algebra/694.json [SDPA classes on] P 98: 192 tokens in 29 checks (kept 6.93), 27.1 tok/s, median cycle 212.9 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 0.0, SDPA splits per check 0.83
+    S45: per cycle (medians) drafter 11.9 ms + check and commit 205.1 ms; per check 553.3 misses, SSD reads 140.7 ms; rows 9.07 per check; prefill 4.4 s
+  run 4 (block 16):
+  math500/test/algebra/694.json [SDPA classes on] P 98: 192 tokens in 28 checks (kept 7.18), 15.8 tok/s, median cycle 409.9 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 48.8, SDPA splits per check 0.86
+    S45: per cycle (medians) drafter 13.7 ms + check and commit 398.5 ms; per check 814.9 misses, SSD reads 202.5 ms; rows 16.00 per check; prefill 6.0 s
+  run 0 (block 16):
+  math500/test/algebra/1282.json [SDPA classes on] P 50: 192 tokens in 32 checks (kept 6.22), 17.2 tok/s, median cycle 336.8 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 48.4, SDPA splits per check 0.75
+    S45: per cycle (medians) drafter 13.6 ms + check and commit 317.8 ms; per check 579.1 misses, SSD reads 148.7 ms; rows 16.00 per check; prefill 4.5 s
+  run 1 (gate block 16):
+  math500/test/algebra/1282.json [SDPA classes on] P 50: 192 tokens in 32 checks (kept 6.22), 23.0 tok/s, median cycle 250.6 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 0.0, SDPA splits per check 0.75
+    S45: per cycle (medians) drafter 11.5 ms + check and commit 237.5 ms; per check 577.5 misses, SSD reads 145.7 ms; rows 16.00 per check; prefill 4.5 s
+  run 2 (truncation t 0.3):
+  math500/test/algebra/1282.json [SDPA classes on] P 50: 192 tokens in 34 checks (kept 5.85), 22.4 tok/s, median cycle 217.3 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 38.4, SDPA splits per check 0.71
+    S45: per cycle (medians) drafter 12.1 ms + check and commit 209.7 ms; per check 390.6 misses, SSD reads 104.5 ms; rows 8.24 per check; prefill 4.4 s
+  run 3 (gate truncation t 0.3):
+  math500/test/algebra/1282.json [SDPA classes on] P 50: 192 tokens in 34 checks (kept 5.85), 28.4 tok/s, median cycle 165.0 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 0.0, SDPA splits per check 0.71
+    S45: per cycle (medians) drafter 11.7 ms + check and commit 154.6 ms; per check 390.4 misses, SSD reads 103.5 ms; rows 8.24 per check; prefill 4.3 s
+  run 4 (block 16):
+  math500/test/algebra/1282.json [SDPA classes on] P 50: 192 tokens in 32 checks (kept 6.22), 17.3 tok/s, median cycle 325.2 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 48.4, SDPA splits per check 0.75
+    S45: per cycle (medians) drafter 13.3 ms + check and commit 312.8 ms; per check 575.7 misses, SSD reads 147.4 ms; rows 16.00 per check; prefill 4.4 s
+  run 0 (block 16):
+  gsm8k/708 [SDPA classes on] P 53: 192 tokens in 32 checks (kept 6.16), 3.6 tok/s, median cycle 392.9 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 48.6, SDPA splits per check 0.75; paused
+    S45: per cycle (medians) drafter 14.7 ms + check and commit 378.9 ms; per check 696.7 misses, SSD reads 191.8 ms; rows 16.00 per check; prefill 6.0 s
+  run 1 (gate block 16):
+  gsm8k/708 [SDPA classes on] P 53: 192 tokens in 32 checks (kept 6.16), 20.6 tok/s, median cycle 281.9 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 0.0, SDPA splits per check 0.75
+    S45: per cycle (medians) drafter 11.8 ms + check and commit 266.6 ms; per check 698.6 misses, SSD reads 174.0 ms; rows 16.00 per check; prefill 4.5 s
+  run 2 (truncation t 0.3):
+  gsm8k/708 [SDPA classes on] P 53: 192 tokens in 33 checks (kept 5.97), 20.2 tok/s, median cycle 273.5 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 38.2, SDPA splits per check 0.73
+    S45: per cycle (medians) drafter 12.9 ms + check and commit 267.5 ms; per check 469.4 misses, SSD reads 124.2 ms; rows 8.36 per check; prefill 4.4 s
+  run 3 (gate truncation t 0.3):
+  gsm8k/708 [SDPA classes on] P 53: 192 tokens in 33 checks (kept 5.97), 25.4 tok/s, median cycle 205.9 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 0.0, SDPA splits per check 0.73
+    S45: per cycle (medians) drafter 12.1 ms + check and commit 195.7 ms; per check 469.5 misses, SSD reads 126.7 ms; rows 8.36 per check; prefill 4.7 s
+  run 4 (block 16):
+  gsm8k/708 [SDPA classes on] P 53: 192 tokens in 32 checks (kept 6.16), 14.9 tok/s, median cycle 374.1 ms; tokens == EvalSuite's REF2 row 192 / 192; logits rows bitwise vs AR 0 / 0; slot calls per check 48.6, SDPA splits per check 0.75
+    S45: per cycle (medians) drafter 14.9 ms + check and commit 352.6 ms; per check 698.0 misses, SSD reads 179.7 ms; rows 16.00 per check; prefill 7.3 s
+S45c-2 run 0 (block 16): wall-clock tok/s mean 19.56 over 5 unpaused prompt(s) (paused: ['gsm8k/708']); steady state 20.03; rows 16.00, kept 8.37, median cycle 405.3 ms, misses 758
+S45c-2 run 1 (gate block 16): wall-clock tok/s mean 25.51 over 6 unpaused prompt(s) (paused: []); steady state 26.80; rows 16.00, kept 8.37, median cycle 293.9 ms, misses 758
+S45c-2 run 2 (truncation t 0.3): wall-clock tok/s mean 22.53 over 6 unpaused prompt(s) (paused: []); steady state 25.70; rows 10.01, kept 7.96, median cycle 277.1 ms, misses 582
+S45c-2 run 3 (gate truncation t 0.3): wall-clock tok/s mean 28.83 over 6 unpaused prompt(s) (paused: []); steady state 34.13; rows 10.01, kept 7.96, median cycle 209.4 ms, misses 582
+S45c-2 run 4 (block 16): wall-clock tok/s mean 18.94 over 6 unpaused prompt(s) (paused: []); steady state 20.78; rows 16.00, kept 8.37, median cycle 385.7 ms, misses 756
+S45c-2 verdict for gate block 16 (PASS: wall-clock mean >= +5 % over the slot block-16 runs' mean, tokens equal; KILL < +2 %): 26.50 vs 19.65 tok/s = +34.8 % over 5 prompt(s); tokens equal across runs: True; PASS
+S45c-2 verdict for truncation t 0.3 (PASS: wall-clock mean >= +5 % over the slot block-16 runs' mean, tokens equal; KILL < +2 %): 22.99 vs 19.65 tok/s = +17.0 % over 5 prompt(s); tokens equal across runs: True; PASS
+S45c-2 verdict for gate truncation t 0.3 (PASS: wall-clock mean >= +5 % over the slot block-16 runs' mean, tokens equal; KILL < +2 %): 29.52 vs 19.65 tok/s = +50.2 % over 5 prompt(s); tokens equal across runs: True; PASS

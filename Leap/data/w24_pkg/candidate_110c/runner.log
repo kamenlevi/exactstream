@@ -1,0 +1,33 @@
+11-10 20:25:55 armed (pid 81010): waits for a free Mac, last start 11-11 08:30
+11-10 20:25:55 wait: NO-SWAP 31 GB < 34
+11-10 20:27:56 wait: NO-SWAP 32 GB < 34
+11-10 20:30:56 wait: NO-SWAP 31 GB < 34
+11-10 20:31:57 wait: NO-SWAP 32 GB < 34
+11-10 20:56:02 wait: clear once: one more poll
+11-10 20:57:22 GO: NO-SWAP 40 GB, swap 6862 MB, idle 77269 s
+11-10 20:57:22 run lossy-24: keys humaneval/HumanEval/68,humaneval/HumanEval/16, cap 256
+    === humaneval/HumanEval/68 [gate+t, code, drafter dfl] 256 tokens
+    === humaneval/HumanEval/16 [gate+t, code, drafter dfl] 81 tokens
+    whole decode 131.6 tok/s | whole request 30.8 tok/s | first token 4.19 s (3.58-4.80) | lifetime peak 23.71 GB | 2 prompt(s), 337 tokens, process wall 29 s (load + warm-up included)
+11-10 20:57:52   tokens vs lossy-24_w13eh.json: 2/2 keys prefix-equal with the reference's history (rc 0)
+11-10 20:57:52   closure: modules 848, outside the clone + stdlib: 0; files opened 3302, outside the allowed roots: 0 (rc 0)
+11-10 20:57:52 run chat-24: keys humaneval/HumanEval/68,humaneval/HumanEval/16, cap 256
+    === humaneval/HumanEval/68 [gate+t, code, drafter dfl] 256 tokens
+    === humaneval/HumanEval/16 [gate+t, code, drafter dfl] 81 tokens
+    whole decode 133.1 tok/s | whole request 31.1 tok/s | first token 4.15 s (3.54-4.75) | lifetime peak 23.68 GB | 2 prompt(s), 337 tokens, process wall 24 s (load + warm-up included)
+11-10 20:58:18   tokens vs chat-24_w13eh.json: 2/2 keys prefix-equal with the reference's history (rc 0)
+11-10 20:58:18   closure: modules 848, outside the clone + stdlib: 0; files opened 3302, outside the allowed roots: 0 (rc 0)
+11-10 20:58:18 run chat-24 with a text prompt
+    === multi/cli_1110_205818 [gate+t, chat, drafter mtp] 77 tokens
+    A refrigerator uses a circulating refrigerant that absorbs heat from the interior air as it evaporates into a gas. This warm gas is then compressed and pumped to coils on the back or bottom of the unit, where it releases the absorbed heat into the surrounding room. Finally, the cooled liquid refrigerant returns to the interior to repeat the cycle, continuously lowering the temperature inside the appliance.
+    
+    whole decode 27.2 tok/s | whole request 15.5 tok/s | first token 2.12 s (2.12-2.12) | lifetime peak 23.49 GB | 1 prompt(s), 77 tokens, process wall 19 s (load + warm-up included)
+    tokens: /Users/kamen/Leap/release/cleanclone/v110/out/text/cli_1110_205818_tokens.json; log: /Users/kamen/Leap/release/cleanclone/v110/out/text/cli_1110_205818.log; module manifest: /Users/kamen/Leap/release/cleanclone/v110/out/text/cli_1110_205818_modules.json
+11-10 20:58:38 chat.py --mem 24: one message
+11-10 20:58:56   chat.py rc 0: [72 tokens | whole decode 25.3 tok/s | first token 2.14 s | lifetime peak 23.63 GB | drafter mtp, 2.35 tokens per check]
+11-10 20:58:56 serve.py --mem 24: one streamed OpenAI and one streamed Anthropic request, then SIGTERM
+11-10 20:59:15   OpenAI stream: [DONE] 1, finish_reason 1; Anthropic stream: message_stop 1, text deltas 4
+11-10 20:59:16   serve.py stopped on SIGTERM: 1 'stopped' line(s)
+11-10 20:59:16 CLEAN-CLONE PASS
+11-10 20:59:18 check ended (116 s): 11-10 20:59:16 CLEAN-CLONE PASS
+11-10 20:59:18 exit

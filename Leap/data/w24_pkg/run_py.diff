@@ -1,0 +1,77 @@
+diff --git a/run.py b/run.py
+index 1140c1f..74bf35a 100644
+--- a/run.py
++++ b/run.py
+@@ -21,7 +21,7 @@ import argparse, hashlib, json, os, runpy, statistics, subprocess, sys, time
+ 
+ ROOT = os.path.dirname(os.path.abspath(__file__))
+ KIND_SET = {"chat": "multi", "code": "humaneval", "math": "math"}     # the loop's SETOF names for a user prompt's key
+-DEFAULT_C = {"45": 256, "32": 160}
++DEFAULT_C = {"45": 256, "32": 160, "24": 100}
+ # The block drafter's base checkpoint (Inco AI, Apache-2.0) at the revision every measured run loaded. The drafter's loader
+ # asks the Hugging Face cache for the default branch, which may move on; the engine process pins this revision instead.
+ DRAFTER = ("incoai/Qwen3.8-Flash-Next-DFlash2", "a22a1744e85c17364dcc54a6a420af7135d4c7f6")
+@@ -32,26 +32,35 @@ def read_config(name, mem):
+     p = os.path.join(ROOT, "configs", f"{name}-{mem}.env")
+     if not os.path.exists(p):
+         sys.exit(f"run.py: no config {name}-{mem} (configs/: {', '.join(sorted(os.listdir(os.path.join(ROOT, 'configs'))))})")
+-    C, line = DEFAULT_C[mem], None
++    C, lines = DEFAULT_C[mem], []
+     for ln in open(p):
+         ln = ln.strip()
+         if not ln or ln.startswith("#"):
+             continue
+         if ln.startswith("C="):
+             C = int(ln[2:])
+-        else:
+-            line = ln
++        elif not ln.startswith("SNAPSHOT="):      # the decode loop's name (snapshot() below)
++            lines.append(ln)
+     env = {}
+-    last = None                                   # one comma-separated line; a token without "=" continues the last value
+-    for tok in (line or "").split(","):           # (R57_QOM_SETS=humaneval,mbpp,...)
+-        k, eq, v = tok.partition("=")
+-        if eq and k.strip().replace("_", "").isalnum() and k.strip().upper() == k.strip():
+-            last = k.strip(); env[last] = v
+-        elif last is not None:
+-            env[last] += "," + tok
++    for line in lines:                            # comma-separated lines, applied in order (the 24 GB configs keep R57_PFCHUNK on
++        last = None                               # a line of its own); a token without "=" continues the last value
++        for tok in line.split(","):               # (R57_QOM_SETS=humaneval,mbpp,...)
++            k, eq, v = tok.partition("=")
++            if eq and k.strip().replace("_", "").isalnum() and k.strip().upper() == k.strip():
++                last = k.strip(); env[last] = v
++            elif last is not None:
++                env[last] += "," + tok
+     return C, env, p
+ 
+ 
++def snapshot(cpath):
++    """The decode loop a config runs on: its SNAPSHOT= line (the 24 GB configs: w24), else engine/loop/SNAPSHOT (rel1)."""
++    for ln in open(cpath):
++        if ln.strip().startswith("SNAPSHOT="):
++            return ln.strip()[len("SNAPSHOT="):]
++    return open(os.path.join(ROOT, "engine", "loop", "SNAPSHOT")).read().strip()
++
++
+ def tokenizer(store):
+     from transformers import AutoTokenizer
+     return AutoTokenizer.from_pretrained(store)
+@@ -140,7 +149,7 @@ def engine_child(spec_path):
+ def main():
+     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0], formatter_class=argparse.RawDescriptionHelpFormatter)
+     ap.add_argument("--config", required=True, choices=("exact", "lossy", "chat"))
+-    ap.add_argument("--mem", default="45", choices=("45", "32"))
++    ap.add_argument("--mem", default="45", choices=("45", "32", "24"))
+     g = ap.add_mutually_exclusive_group(required=True)
+     g.add_argument("--prompt")
+     g.add_argument("--prompt-file")
+@@ -164,7 +173,7 @@ def main():
+         sys.exit(f"run.py: the block drafter's base checkpoint {DRAFTER[0]} at revision {DRAFTER[1][:7]} is not in the Hugging "
+                  f"Face cache (HF_HOME). Fetch it once (1.2 GB):\n  .venv/bin/hf download {DRAFTER[0]} config.json "
+                  f"model.safetensors --revision {DRAFTER[1]}")
+-    snap = open(os.path.join(ROOT, "engine", "loop", "SNAPSHOT")).read().strip()
++    snap = snapshot(cpath)
+     screen = os.path.join(ROOT, "engine", "loop", f"r57_screen_{snap}.py")
+     os.makedirs(a.out, exist_ok=True)
+     tag = time.strftime("cli_%m%d_%H%M%S")

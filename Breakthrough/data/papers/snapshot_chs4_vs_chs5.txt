@@ -1,0 +1,14 @@
+SMALL_RAM paper check (Breakthrough, Sun 2026-11-08 19:2x): is the 45 GB chat speed run (BigMoE CHS5 arm z0, snapshot
+65cd673) the same configuration as the IFEval gate's run (EvalSuite RESULT_chat_m1b_2026-11-08.md: snapshot
+data/r57/snap/chs4 = 342f914)? Read-only on ~/BigMoE.
+
+1. Keys. Gate (RESULT_chat_m1b, 'The config'): M1-B = S5' + R57_QOM_SETS=humaneval,mbpp,ifeval,multi + R57_QOM_MTP=2 +
+   REF2_NAX_COH=1. Speed run (git -C ~/BigMoE show 275c592, the CHS5 arm list):
+   z0|humaneval,mbpp,ifeval,multi|@L,R57_QOM_MTP=2,REF2_NAX_COH=1  -> the same keys on the lossy default L.
+2. Screen scripts: diff <(sed 's/chs4/chsX/g' snap/chs4/r57_screen_chs4.py) <(sed 's/chs5/chsX/g' snap/chs5/r57_screen_chs5.py)
+   -> 0 lines. inert_span.py, pflm.py, relax_delta.py, relax_span.py: cmp equal.
+3. Frozen trees: diff -rq -x __pycache__ -x '*.pyc' snap/frozen_chs4 snap/frozen_chs5 -> 356 files differ, none only on
+   one side; after replacing the folder name (chs4 / chs5 -> chsX) in each file: 0 text files differ, 0 binary files
+   differ.
+VERDICT: same keys, and frozen code identical file for file apart from each snapshot's own folder name. Not compared: the
+compiled extension (the gate pinned ext build_qom .so ff69fa24a745).

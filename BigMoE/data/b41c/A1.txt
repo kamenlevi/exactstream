@@ -1,0 +1,45 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=21.7 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'verify_rows_sdpa': True, 'duprow': True, 'compiled_hc': 96, 'frspec': True, 'scout_bundle': {'sc2_sharedfirst': True, 'sc3b_vreadchunk_classes': 1, 'sc3_glue': {'qsa_rope': True, 'qsa_rope_idx': True}}}
+[bigmoe] tier 4433333333: C_m=147 C_l=46 per layer, 17.07 GB pools
+[after load] active 21.06 GB, peak 21.06 GB, cache 0.00 GB, phys_footprint 21.40 GB, lifetime_peak_footprint 21.40 GB, resident 4.12 GB
+parameters as loaded 19.26 GB; tier pools 17.066 GB; largest groups:
+    4.3352 GB  language_model.model.layers.*.mlp.switch_mlp.gate_proj.weight
+    4.3352 GB  language_model.model.layers.*.mlp.switch_mlp.up_proj.weight
+    4.3352 GB  language_model.model.layers.*.mlp.switch_mlp.down_proj.weight
+    0.4719 GB  language_model.model.layers.*.linear_attn.in_proj_qkv.weight
+    0.3613 GB  language_model.model.layers.*.mlp.switch_mlp.gate_proj.scales
+    0.3613 GB  language_model.model.layers.*.mlp.switch_mlp.gate_proj.biases
+    0.3613 GB  language_model.model.layers.*.mlp.switch_mlp.up_proj.scales
+    0.3613 GB  language_model.model.layers.*.mlp.switch_mlp.up_proj.biases
+    0.3613 GB  language_model.model.layers.*.mlp.switch_mlp.down_proj.scales
+    0.3613 GB  language_model.model.layers.*.mlp.switch_mlp.down_proj.biases
+    0.3178 GB  language_model.model.embed_tokens.weight
+    0.3178 GB  language_model.lm_head.weight
+    0.3146 GB  language_model.model.layers.*.attn_hyper_connection.input_mix_weight_down.weight
+    0.3146 GB  language_model.model.layers.*.attn_hyper_connection.input_mix_weight_up.weight
+    0.3146 GB  language_model.model.layers.*.mlp_hyper_connection.input_mix_weight_down.weight
+    0.3146 GB  language_model.model.layers.*.mlp_hyper_connection.input_mix_weight_up.weight
+    0.2831 GB  language_model.model.layers.*.linear_attn.in_proj_z.weight
+    0.2831 GB  language_model.model.layers.*.linear_attn.out_proj.weight
+    0.1887 GB  language_model.model.layers.*.self_attn.q_proj.weight
+    0.0944 GB  language_model.model.layers.*.self_attn.o_proj.weight
+    0.0629 GB  language_model.model.layers.*.mlp.gate.weight
+    0.0524 GB  language_model.model.layers.*.ple.key_proj.weight
+    0.0524 GB  language_model.mtp.layers.*.mlp.switch_mlp.gate_proj.weight
+    0.0524 GB  language_model.mtp.layers.*.mlp.switch_mlp.up_proj.weight
+    0.0524 GB  language_model.mtp.layers.*.mlp.switch_mlp.down_proj.weight
+    0.0393 GB  language_model.model.layers.*.mlp.shared_expert.gate_proj.weight
+    0.0393 GB  language_model.model.layers.*.mlp.shared_expert.down_proj.weight
+    0.0393 GB  language_model.model.layers.*.mlp.shared_expert.up_proj.weight
+    0.0295 GB  language_model.model.layers.*.linear_attn.in_proj_qkv.scales
+    0.0295 GB  language_model.model.layers.*.linear_attn.in_proj_qkv.biases
+[mtplx] verify SDPA head-chunked: q_len=12 heads_per_chunk=2 chunks=12
+[after warm-up] active 21.25 GB, peak 21.53 GB, cache 0.27 GB, phys_footprint 22.15 GB, lifetime_peak_footprint 22.15 GB, resident 9.15 GB
+[prefill (1-token generate), peak since reset] active 21.35 GB, peak 22.16 GB, cache 0.41 GB, phys_footprint 22.45 GB, lifetime_peak_footprint 23.06 GB, resident 9.89 GB
+[spec decode 400 tok (incl. its prefill), peak since reset] active 21.35 GB, peak 22.25 GB, cache 0.74 GB, phys_footprint 23.05 GB, lifetime_peak_footprint 23.16 GB, resident 22.51 GB
+[ar decode 128 tok (incl. its prefill), peak since reset] active 21.35 GB, peak 22.16 GB, cache 0.65 GB, phys_footprint 23.02 GB, lifetime_peak_footprint 23.66 GB, resident 22.74 GB
+saved /Users/kamen/BigMoE/data/b41c/A1.json

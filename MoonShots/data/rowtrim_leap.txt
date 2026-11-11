@@ -1,0 +1,24 @@
+{'routes': ((20, 12, 16, 10), dtype('int16')), 'accepted': ((20,), dtype('int64')), 'layers': ((12,), dtype('int64')), 'sample': ((), dtype('<U24')), 'context': ((), dtype('int64'))}
+checks 20, layers 12, accepted per check [15, 15, 11, 12, 11, 15, 15, 7, 15, 15, 15, 7, 2, 6, 1, 1, 1, 2, 12, 10] (mean 9.40)
+union per layer: all 16 rows 89.3, kept rows 63.8, rejected-only 25.5 (28.6 % of the union)
+rejected-only experts used by the kept rows of the next h checks: h=1: 43.5 %, h=2: 52.1 %, h=5: 75.4 %
+strict LFU C_m 100: misses per token per layer, all 16 rows 4.067, kept rows only 2.848 (-30.0 %)
+strict LFU C_m 159: misses per token per layer, all 16 rows 2.762, kept rows only 1.924 (-30.3 %)
+strict LFU C_m 220: misses per token per layer, all 16 rows 1.800, kept rows only 1.282 (-28.8 %)
+per layer (0-11): union all 16 rows / kept rows -> rejected-only share; pairs kept share
+  L 0: 117.5 /  80.2 -> 31.7 %
+  L 1: 103.1 /  70.0 -> 32.2 %
+  L 2:  99.2 /  68.0 -> 31.5 %
+  L 3:  78.0 /  56.0 -> 28.2 %
+  L 4:  84.1 /  60.0 -> 28.7 %
+  L 5:  92.0 /  65.0 -> 29.4 %
+  L 6:  92.6 /  64.7 -> 30.1 %
+  L 7:  96.3 /  68.5 -> 28.9 %
+  L 8:  76.0 /  56.8 -> 25.4 %
+  L 9:  73.1 /  56.7 -> 22.4 %
+  L10:  86.3 /  63.0 -> 26.9 %
+  L11:  73.5 /  56.9 -> 22.6 %
+rejected-only union share: mean 28.2 % (min 22.4, max 32.2); (row, expert) pairs kept 65.0 % -> 35.0 % of the check's expert pairs come from rejected rows
+mid-check cut from layer 12 (perfect stop-row prediction, layers uniform): 75 % reachable -> union -21.1 %, pairs -26.2 %, 24 GB strict-LFU misses -22.7 %
+mid-check cut from layer 24 (perfect stop-row prediction, layers uniform): 50 % reachable -> union -14.1 %, pairs -17.5 %, 24 GB strict-LFU misses -15.2 %
+mid-check cut from layer 36 (perfect stop-row prediction, layers uniform): 25 % reachable -> union -7.0 %, pairs -8.8 %, 24 GB strict-LFU misses -7.6 %

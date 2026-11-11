@@ -1,0 +1,18 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=35.3 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.20 GB pools
+b12: hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.20 GB, active 9.68 GB
+fit12: budget b16: 48 routers
+fit12: budget-aware JIT: 47 look-ahead routers
+fit12: JIT width 12, look-ahead on 47 layers, QD 4
+[b16jit] code: prefill 326 tokens in 4.89 s
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[b16jit] code k=3: 25.3 tok/s, 3.20 tok/pass, 40 passes | per pass: verify 117.8 ms, draft 8.3 ms, head 0.4 ms, waited 368.5, reads 380.6, pf issued 234.6 used 141.2, SSD 7.0 GB/s 883 MB | peak footprint 12.85 GB | sha 0ade4281bc | '```python\nimport re\nimport argparse\nfrom collections import defaultdict\nfrom typing import List, Dict, Tuple, Optional\n\n\n# Regex to match log lines\nLINE = re.compile(\n    r'
+[b16jit] prose: prefill 53 tokens in 2.99 s
+[b16jit] prose k=3: 17.3 tok/s, 2.25 tok/pass, 57 passes | per pass: verify 120.1 ms, draft 9.5 ms, head 0.3 ms, waited 389.5, reads 408.0, pf issued 230.1 used 148.6, SSD 6.9 GB/s 895 MB | peak footprint 12.85 GB | sha 2f36a9779f | 'Imagine you are trying to write an essay, and all your reference books are stored in a massive library across town. Every time you need to look up a fact, you have to drive all the way'
+[b16jit] done

@@ -1,0 +1,50 @@
+S10b fit on /Users/kamen/BigMoE/data/b31/s10b: 20 prompts (code 5, prose 5, edit 5, math 5), 3838 verify passes, 7017 rows per predictor layer, layers [2, 8, 14, 20, 26, 32, 38, 44]; miss.bin 211632 trunk records (0 duplicates); skipped: 7407 MTP-only seqs, 0 partial, 567 unequal-row passes, 0 without x; (row-layer, lead) without a miss record: 0
+M0 plain router, all prompts (= s10b_check): lead 1 recall@16 of misses 57.6 % (of all routed 70.8 %); lead 2 recall@16 of misses 49.1 % (of all routed 58.8 %); lead 3 recall@16 of misses 46.4 % (of all routed 60.4 %)
+  selection: layer 2 done (24 s)
+  selection: layer 8 done (45 s)
+  selection: layer 14 done (71 s)
+  selection: layer 20 done (95 s)
+  selection: layer 26 done (118 s)
+  selection: layer 32 done (138 s)
+  selection: layer 38 done (156 s)
+  selection: layer 44 done (173 s)
+selection (lead 2, validation = prompt 3 of each domain, pooled over layers): recall@16 of misses by epoch
+  M0  lr 0e+00 wd  0.0: 50.2
+  M1  lr 3e-04 wd  0.1: 45.8 45.8 47.4 48.7 49.2 49.7 49.8 50.0 49.8 49.8
+  M1  lr 3e-04 wd 10.0: 46.0 46.1 47.7 49.0 49.5 50.0 50.1 50.3 50.4 50.4
+  M1  lr 1e-03 wd  0.1: 44.6 47.9 48.9 48.7 48.6 48.3 48.3 47.9 47.8 47.5
+  M1  lr 1e-03 wd 10.0: 45.3 48.9 50.1 50.2 50.4 50.4 50.4 50.2 50.5 50.4
+  M1  lr 3e-03 wd  0.1: 44.3 40.9 40.4 39.5 39.5 40.1 40.4 40.3 40.4 40.3
+  M1  lr 3e-03 wd 10.0: 46.5 45.8 47.1 48.3 48.7 48.9 49.3 48.8 49.1 49.5
+  M1a lr 3e-04 wd  0.1: 45.6 45.7 47.5 48.7 49.2 49.6 49.8 49.8 49.6 49.8
+  M1a lr 3e-04 wd 10.0: 45.8 46.1 47.7 49.0 49.5 49.9 50.1 50.3 50.3 50.4
+  M1a lr 1e-03 wd  0.1: 44.7 47.8 48.8 48.5 48.5 48.2 48.1 47.8 47.7 47.4
+  M1a lr 1e-03 wd 10.0: 45.2 48.9 50.0 50.1 50.4 50.2 50.2 50.3 50.2 50.3
+  M1a lr 3e-03 wd  0.1: 44.3 40.4 40.2 39.2 39.1 39.5 40.0 39.7 40.5 40.4
+  M1a lr 3e-03 wd 10.0: 46.4 45.5 46.8 48.1 48.3 48.7 48.9 48.3 48.7 48.7
+  selection: layer 2 done (182 s)
+  selection: layer 8 done (193 s)
+  selection: layer 14 done (201 s)
+  selection: layer 20 done (211 s)
+  selection: layer 26 done (219 s)
+  selection: layer 32 done (228 s)
+  selection: layer 38 done (237 s)
+  selection: layer 44 done (246 s)
+  M2  lr 3e-04 wd  0.1: 29.2 32.0 37.0 40.3 42.9 44.7 46.2 46.8 47.7 48.1
+  M2  lr 3e-04 wd 10.0: 30.1 32.1 36.7 39.9 42.2 44.2 45.5 46.4 47.7 48.2
+  M2  lr 1e-03 wd  0.1: 35.5 44.0 47.2 48.6 49.3 49.5 49.4 49.3 48.7 48.6
+  M2  lr 1e-03 wd 10.0: 35.7 43.4 46.8 48.8 49.9 50.5 51.1 51.6 51.6 51.8
+  M2  lr 3e-03 wd  0.1: 44.6 48.2 47.8 47.5 47.1 46.9 46.8 47.1 46.8 47.9
+  M2  lr 3e-03 wd 10.0: 44.8 49.3 50.9 51.5 51.7 52.0 52.4 53.0 52.8 53.4
+picked M2 lr 3e-03 wd 10.0 10 epochs: validation lead-2 recall@16 of misses 53.4 % (M0 50.2 %)
+JUDGE (primary): trained on prompts 0-3, held-out prompt 4 of each domain
+  lead 1: M2 recall@16 of misses 48.4 % vs M0 57.6 % (12109 misses) | code 51.6 (M0 60.5) | prose 47.8 (M0 58.1) | edit 36.0 (M0 51.0) | math 56.6 (M0 59.9) | of all routed 74.7 % (M0 70.2 %)
+  lead 2: M2 recall@16 of misses 52.7 % vs M0 48.1 % (14683 misses) | code 56.3 (M0 53.2) | prose 49.7 (M0 47.8) | edit 35.1 (M0 37.9) | math 61.5 (M0 49.2) | of all routed 75.5 % (M0 58.0 %)
+  lead 3: M2 recall@16 of misses 48.8 % vs M0 46.0 % (14458 misses) | code 53.1 (M0 52.4) | prose 46.5 (M0 46.8) | edit 34.0 (M0 35.4) | math 56.9 (M0 46.7) | of all routed 75.8 % (M0 59.6 %)
+  lead 2 by layer: L2 55.5 (M0 51.4) | L8 63.4 (M0 60.1) | L14 35.0 (M0 49.6) | L20 60.3 (M0 44.4) | L26 61.1 (M0 62.9) | L32 52.4 (M0 34.3) | L38 25.2 (M0 29.7) | L44 38.4 (M0 41.0)
+leave-one-prompt-index-out (secondary, 5 folds pooled)
+  lead 1: M2 recall@16 of misses 50.1 % vs M0 57.6 % (64930 misses) | code 51.3 (M0 60.5) | prose 51.1 (M0 63.0) | edit 44.8 (M0 52.2) | math 55.7 (M0 57.6) | of all routed 74.6 % (M0 70.8 %)
+  lead 2: M2 recall@16 of misses 54.7 % vs M0 49.1 % (79620 misses) | code 56.8 (M0 53.0) | prose 54.7 (M0 52.1) | edit 45.4 (M0 42.7) | math 62.5 (M0 49.4) | of all routed 75.8 % (M0 58.8 %)
+  lead 3: M2 recall@16 of misses 50.2 % vs M0 46.4 % (76684 misses) | code 51.0 (M0 49.9) | prose 53.1 (M0 52.6) | edit 42.8 (M0 39.0) | math 56.4 (M0 47.0) | of all routed 74.7 % (M0 60.4 %)
+  lead 2 by layer: L2 56.9 (M0 51.6) | L8 64.8 (M0 60.9) | L14 35.6 (M0 48.7) | L20 61.4 (M0 46.2) | L26 63.3 (M0 65.0) | L32 53.2 (M0 35.5) | L38 26.5 (M0 30.1) | L44 44.2 (M0 40.3)
+VERDICT (pre-registered): held-out lead-2 recall@16 of misses 52.7 % (M2) vs M0 48.1 % -> KILL (< 55 %); leave-one-out 54.7 % (M0 49.1 %); 512 s

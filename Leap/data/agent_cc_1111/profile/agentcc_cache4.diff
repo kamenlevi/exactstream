@@ -1,0 +1,89 @@
+--- agentcc_cache3.sh	2026-11-11 08:29:29
++++ agentcc_cache4.sh	2026-11-11 08:38:03
+@@ -1,13 +1,16 @@
+ #!/bin/bash
+-# 32c2 (v3): the cached 32 GB confirmation rerun of EvalSuite's Claude Code agent test (PREREG_agentcc amendments 4, 4a and
++# 32c2 (v4, agentcc_cache4.sh): the cached 32 GB confirmation rerun of EvalSuite's Claude Code agent test (PREREG_agentcc amendments 4, 4a and
+ # 4c; agentcc_cache2.sh / 4b is void: a security review of Leap 68ec944 found that the sandbox let the agent write anywhere
+ # in <run> while the unsandboxed runner followed links there and at the check's name). As 32c (agentcc_cache.sh) with:
+-#  - agentcc_tasks4.py (frozen, sha-checked copy in the run folder): one profile per task (<run>/sandbox_<id>.sb, kept):
++#  - agentcc_tasks5.py (frozen, sha-checked copy in the run folder; = tasks4 + v5: after claude ends, the sandboxed
++#    processes still in the task's folders are killed (lingering.jsonl), and the check runs on the runner's copy of the
++#    task folder, <run>/checks/<id>, under <run>/sandbox_check_<id>.sb whose only writable folder is that copy):
++#    one profile per task (<run>/sandbox_<id>.sb, kept):
+ #    WRITES only in the task's own folder, its config folder and its temp folder <run>/cctmp/<id> (+ /private/var/folders
+ #    and /dev from the base), READS denied in ~/EvalSuite/agentcc and in <run> outside those and the read-only HOME;
+ #    CLAUDE_CODE_TMPDIR=<run>/cctmp/<id> and TMPPREFIX=<run>/cctmp/<id>/zsh per task; runner outputs opened with
+ #    O_NOFOLLOW (O_EXCL when new); the check copy removes any entry at its name first; CLAUDE_BIN from the environment;
+-#  - the base sandbox.sb names no part of <run> (agentcc_tasks4.py refuses one that does);
++#  - the base sandbox.sb names no part of <run> (agentcc_tasks5.py refuses one that does);
+ #  - Claude Code pinned to 2.1.321: CLAUDE_BIN = Leap's kept copy (logs/claude_versions/2.1.321, sha256 abc9feee...,
+ #    323,686,048 bytes; the installed claude updated itself to 2.1.322 on 11-11 08:15); a guard stops the tasks if t01's
+ #    init event is not claude_code_version 2.1.321; every transcript's version is counted at the end;
+@@ -20,13 +23,13 @@
+ # Starts only when <run>/GO exists (created once EvalSuite's dated line is in), from FROM (the orchestrator's window), on
+ # a free Mac (Kamen idle >= 600 s, no other lock / engine, no PAUSE / HOLD, 2 clear polls); last start LAST.
+ # DRYRUN=1: write <run>/provenance.txt with every pin check, then exit (no gates, no server).
+-# Usage: [DRYRUN=1] agentcc_cache3.sh <fresh run dir> "<FROM YYYY-MM-DD HH:MM:SS>" "<LAST ...>" [pid ...]
++# Usage: [DRYRUN=1] agentcc_cache4.sh <fresh run dir> "<FROM YYYY-MM-DD HH:MM:SS>" "<LAST ...>" [pid ...]
+ RUN=$1; FROMS=$2; LASTS=$3; shift 3; AFTER="$*"; GB=32; NEED=45
+-[ -e "$RUN" ] && { echo "agentcc_cache3.sh: $RUN exists; use a fresh folder"; exit 2; }
++[ -e "$RUN" ] && { echo "agentcc_cache4.sh: $RUN exists; use a fresh folder"; exit 2; }
+ A=/private/tmp/claude-501/-Users-kamen-OjoX/f2971937-6c95-4e86-a049-05beff6a8e32/scratchpad/agent
+ L=/Users/kamen/Leap; CL=$L/release/cleanclone/cache/clone; MAN=/Users/kamen/EvalSuite/agentcc/manifest.json
+-PIN=80c8041; TASKS_SRC=$L/data/agent_cc_1111/profile/agentcc_tasks4.py
+-TASKS_SHA=6e954af51732e2d8ccb07c8606fbb2b2df1f03fa097b529100770353b0604ea3
++PIN=80c8041; TASKS_SRC=$L/data/agent_cc_1111/profile/agentcc_tasks5.py
++TASKS_SHA=28caec4c6f92468cdf00884483a0c12417c7667a7a61b5bc0cf4ec96dc7989ef
+ CLAUDE_PIN=$L/logs/claude_versions/2.1.321; CLAUDE_SHA=abc9feeeca8091d51b623291e044cf0528c2f6b74e0c1d6ef671d52c73f7cd3c; CLAUDE_SIZE=323686048
+ LAUNCH=$CL/tools/claude_local.sh.80c8041; PROBE=/Users/kamen/EvalSuite/tools/probe_cc.py
+ PORT=8122; mkdir -p $RUN $RUN/cctmp; LOG=$RUN/runner.log
+@@ -61,17 +64,19 @@
+   done
+   a=$(sha $LAUNCH); b=$(grep " tools/claude_local.sh$" $RUN/SHA256SUMS.$PIN | cut -d' ' -f1)
+   [ -n "$b" ] && [ "$a" = "$b" ] && echo "launcher $LAUNCH = $PIN's tools/claude_local.sh ($a)" >> $P || { say "STOP: the launcher is not $PIN's"; return 3; }
+-  cp -p $TASKS_SRC $RUN/agentcc_tasks4.py; a=$(sha $RUN/agentcc_tasks4.py)
+-  [ "$a" = "$TASKS_SHA" ] && echo "tasks script: $RUN/agentcc_tasks4.py (frozen copy) sha256 $a" >> $P || { say "STOP: agentcc_tasks4.py sha256 $a is not the registered one"; return 3; }
++  cp -p $TASKS_SRC $RUN/agentcc_tasks5.py; a=$(sha $RUN/agentcc_tasks5.py)
++  [ "$a" = "$TASKS_SHA" ] && echo "tasks script: $RUN/agentcc_tasks5.py (frozen copy) sha256 $a" >> $P || { say "STOP: agentcc_tasks5.py sha256 $a is not the registered one"; return 3; }
+   a=$(sha $CLAUDE_PIN); b=$(stat -f %z $CLAUDE_PIN)
+   [ "$a" = "$CLAUDE_SHA" ] && [ "$b" = "$CLAUDE_SIZE" ] || { say "STOP: the pinned claude binary does not match (sha256 $a, $b bytes)"; return 3; }
+   echo "CLAUDE_BIN=$CLAUDE_PIN sha256 $a ($b bytes)" >> $P
+   echo "\$CLAUDE_BIN --version: $(CLAUDE_CONFIG_DIR=$RUN/cc_version $CLAUDE_PIN --version 2>&1 | head -1)" >> $P
+   echo "probe: $PROBE sha256 $(sha $PROBE); manifest sha256 $(sha $MAN | cut -c1-12); setting $GB GB; port $PORT; date $(date '+%F %T')" >> $P
+   echo "cache: CONV_CACHE=1 CONV_CACHE_GB=2.5 CONV_CACHE_BRANCH=1" >> $P
+-  echo "per task (set by agentcc_tasks4.py in claude's environment): CLAUDE_CODE_TMPDIR=$RUN/cctmp/<id>, TMPPREFIX=$RUN/cctmp/<id>/zsh" >> $P
+-  echo "per-task WRITE set (the profile <run>/sandbox_<id>.sb, kept; the check runs under the same profile): $RUN/tasks/<id>, $RUN/cc_home/<id>, $RUN/cctmp/<id>, /private/var/folders, /dev/* (regex ^/dev/); nothing else (HOME $RUN/home read-only)" >> $P
++  echo "per task (set by agentcc_tasks5.py in claude's environment): CLAUDE_CODE_TMPDIR=$RUN/cctmp/<id>, TMPPREFIX=$RUN/cctmp/<id>/zsh" >> $P
++  echo "per-task WRITE set for claude (the profile <run>/sandbox_<id>.sb, kept): $RUN/tasks/<id>, $RUN/cc_home/<id>, $RUN/cctmp/<id>, /private/var/folders, /dev/* (regex ^/dev/); nothing else (HOME $RUN/home read-only)" >> $P
+   echo "per-task READ denies (file contents and listings): ~/EvalSuite/agentcc, the manifest's folder, and $RUN except $RUN/tasks/<id>, $RUN/cc_home/<id>, $RUN/cctmp/<id>, $RUN/home" >> $P
++  echo "after claude ends: sandboxed processes with a cwd or open file in the task's folders are killed (logged to $RUN/lingering.jsonl)" >> $P
++  echo "the check: on the runner's copy $RUN/checks/<id> (links copied as links, other file types skipped), placed through a directory fd, run with $RUN/sandbox_check_<id>.sb (kept): WRITE set $RUN/checks/<id>, /private/var/folders, /dev/* only; READ denies as above except that copy and HOME" >> $P
+   mkdir -p $RUN/home && cp -p $A/agent_home_tpl/.zshrc $A/agent_home_tpl/.gitconfig $RUN/home/
+   echo "claude HOME: $RUN/home (.zshrc sha256 $(sha $RUN/home/.zshrc | cut -c1-12): only the exact PATH; .gitconfig: agentcc@localhost)" >> $P
+   grep "^export PATH=" $RUN/home/.zshrc | sed "s/^/  /" >> $P
+@@ -80,7 +85,7 @@
+ if [ "${DRYRUN:-0}" = 1 ]; then provenance; rc=$?; say "DRYRUN: provenance rc $rc"; cat $RUN/provenance.txt; exit $rc; fi
+ trap cleanup EXIT
+ trap 'say "stopped by a signal"; exit 1' INT TERM
+-say "armed (pid $$): 32c2 v3 (agentcc $GB GB, cached, per-task read + write profile, Claude Code 2.1.321) -> $RUN; after [$AFTER], needs $RUN/GO; from $FROMS, last start $LASTS, NO-SWAP >= $NEED"
++say "armed (pid $$): 32c2 v4 (agentcc $GB GB, cached, per-task read + write profile, Claude Code 2.1.321) -> $RUN; after [$AFTER], needs $RUN/GO; from $FROMS, last start $LASTS, NO-SWAP >= $NEED"
+ CLR=0; NOTE=""
+ while :; do
+   now=$(date +%s); [ $now -ge $LAST ] && { say "SKIP: no free window by $LASTS (last wait: $NOTE)"; exit 0; }
+@@ -133,7 +138,7 @@
+ TP=$!; while kill -0 $TP 2>/dev/null; do [ $(( $(date +%s) - P0 )) -gt 7200 ] && { say "probe: 2-h cap"; for c in $(desc $TP); do kill -TERM $c; done; kill -TERM $TP; }; sleep 5; done
+ wait $TP; say "probe rc $? in $(( $(date +%s) - P0 )) s: $(tail -1 $RUN/probe_cc.out | cut -c1-160)"; TP=""
+ export CLAUDE_BIN=$CLAUDE_PIN
+-HOME=$RUN/home /opt/homebrew/opt/python@3.12/bin/python3.12 -I $RUN/agentcc_tasks4.py $RUN $GB $MAN $PORT $RUN/sandbox.sb $A/cc_home $LAUNCH > $RUN/tasks.out 2>&1 &
++HOME=$RUN/home /opt/homebrew/opt/python@3.12/bin/python3.12 -I $RUN/agentcc_tasks5.py $RUN $GB $MAN $PORT $RUN/sandbox.sb $A/cc_home $LAUNCH > $RUN/tasks.out 2>&1 &
+ TP=$!; G1=0
+ while kill -0 $TP 2>/dev/null; do
+   if [ $G1 = 0 ] && [ -s $RUN/results.jsonl ]; then
+@@ -154,5 +159,6 @@
+ n=0; ok=0; for f in $RUN/t[0-9][0-9]_*.jsonl; do [ -e "$f" ] || continue; n=$((n + 1)); [ "$(initver "$f")" = 2.1.321 ] && ok=$((ok + 1)); done
+ say "transcripts with claude_code_version 2.1.321: $ok of $n; per-task profiles kept: $(ls $RUN/sandbox_t*.sb 2>/dev/null | wc -l | tr -d ' '); symlinks in the run folder: $(find $RUN -type l 2>/dev/null | wc -l | tr -d ' ')"
+ find $RUN -type l 2>/dev/null | sed 's/^/  link: /' >> $LOG
++say "lingering processes killed: $(grep -c . $RUN/lingering.jsonl 2>/dev/null || echo 0) task lines"
+ say "server: $(grep -c 'done:' $RUN/serve.log) requests; errors $(grep -c -E 'Traceback|Error' $RUN/serve.log); cache hits $(grep -c ' hit ' $RUN/convcache.log 2>/dev/null) of $(grep -cE ' (hit|miss) ' $RUN/convcache.log 2>/dev/null)"
+ stopsrv; say "serve.py stopped (NO-SWAP $(noswap) GB)"

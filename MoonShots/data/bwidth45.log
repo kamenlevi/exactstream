@@ -1,0 +1,33 @@
+M-21 BWIDTH on Breakthrough's capture: 12 code windows, 4 seeds; flat cost: M0 + 2.0 ms x rows + draft {8: 5.3549999999999995, 16: 6.3, 32: 8.19}; fixed 16 = 96.8 ms
+  [base] seed 0 done (6 s)
+  [base] seed 1 done (11 s)
+  [base] seed 2 done (16 s)
+  [base] seed 3 done (22 s)
+
+  rates base: policy | kept / check | rows / check | widths 8 / 16 / 32 (% of checks) | tok/s flat | SSD-aware today / NAX6 | vs fixed 16 (flat, SSD today, SSD NAX6)
+  fixed16  |   8.00 |  10.61 |    0 /  100 /    0 |   82.6 |   86.2 /  108.2 |  +0.0 %,  +0.0 %,  +0.0 %
+  fixed8   |   5.64 |   6.86 |  100 /    0 /    0 |   63.8 |   77.6 /   97.1 | -22.8 %, -10.0 %, -10.3 %
+  fixed32  |   8.88 |  14.25 |    0 /    0 /  100 |   83.8 |   84.6 /  106.6 |  +1.4 %,  -1.9 %,  -1.5 %
+  last2    |   8.11 |  11.05 |   18 /   77 /    5 |   83.0 |   86.4 /  108.6 |  +0.5 %,  +0.2 %,  +0.4 %
+  sat2     |   8.12 |  11.65 |   43 /   38 /   19 |   82.2 |   85.9 /  108.0 |  -0.6 %,  -0.4 %,  -0.2 %
+  oracle   |   8.80 |  10.60 |   64 /   25 /   12 |   91.3 |   94.0 /  116.5 | +10.5 %,  +9.0 %,  +7.6 %
+  [base] better predictor last2: +0.49 % flat -> KILL (oracle ceiling +10.5 %)
+  per window, flat tok/s vs fixed 16: Eval_10 -1.6 %, Eval_103 +4.2 %, Eval_109 +0.4 %, Eval_118 -0.5 %, Eval_121 +0.0 %, Eval_124 -0.0 %, Eval_129 -1.5 %, Eval_132 +0.5 %, Eval_135 +8.1 %, Eval_136 +9.9 %, Eval_146 -0.8 %, Eval_151 -1.6 %
+
+  [match] seed 0 done (27 s)
+  [match] seed 1 done (32 s)
+  [match] seed 2 done (37 s)
+  [match] seed 3 done (42 s)
+
+  rates match: policy | kept / check | rows / check | widths 8 / 16 / 32 (% of checks) | tok/s flat | SSD-aware today / NAX6 | vs fixed 16 (flat, SSD today, SSD NAX6)
+  fixed16  |   8.00 |  10.61 |    0 /  100 /    0 |   82.6 |   86.2 /  108.2 |  +0.0 %,  +0.0 %,  +0.0 %
+  fixed8   |   5.64 |   6.86 |  100 /    0 /    0 |   63.8 |   77.6 /   97.1 | -22.8 %, -10.0 %, -10.3 %
+  fixed32  |   9.07 |  14.36 |    0 /    0 /  100 |   85.4 |   85.7 /  107.8 |  +3.3 %,  -0.6 %,  -0.3 %
+  last2    |   8.14 |  11.09 |   18 /   77 /    5 |   83.4 |   86.7 /  108.9 |  +0.9 %,  +0.6 %,  +0.6 %
+  sat2     |   8.23 |  11.67 |   44 /   39 /   18 |   83.3 |   86.7 /  108.9 |  +0.7 %,  +0.5 %,  +0.6 %
+  oracle   |   8.95 |  10.81 |   65 /   22 /   13 |   92.5 |   94.7 /  117.3 | +11.9 %,  +9.8 %,  +8.4 %
+  [match] better predictor last2: +0.88 % flat -> BETWEEN (oracle ceiling +11.9 %)
+  per window, flat tok/s vs fixed 16: Eval_10 -1.0 %, Eval_103 +5.5 %, Eval_109 +0.4 %, Eval_118 -0.5 %, Eval_121 +0.0 %, Eval_124 -0.1 %, Eval_129 -1.5 %, Eval_132 +0.5 %, Eval_135 +6.8 %, Eval_136 +13.5 %, Eval_146 +2.2 %, Eval_151 -1.6 %
+
+  total 42 s
+exit 0 (process-tree RSS peak 198 MB)

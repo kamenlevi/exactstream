@@ -1,0 +1,10 @@
+REL ROWS (data/rel; snapshot rel1 = 0b4df8c; quiet): L + COH (data/stack/lcoh_env.txt, the package's lossy-45 / lossy-32), CAP 256, one pass. Pooled as the number check does: whole decode (sum n / sum n / tps), whole request (sum n / (decode + first token time)), first token median (pfs), lifetime peak (line 45.0 at C 256, 32.0 at C 160).
+  rlh_256: prompts 12, tokens 2617, whole decode 164.0, whole request 36.2 tok/s, first token median 4.60 s (mean 4.70), lifetime peak 42.94 GB, == AR 5/12; cut rows 0 (the screen's 600 s budget), rows ended before the cap 7
+  rlm_256: prompts 12, tokens 1519, whole decode 112.7, whole request 25.3 tok/s, first token median 3.72 s (mean 3.88), lifetime peak 42.60 GB, == AR 5/12; cut rows 0 (the screen's 600 s budget), rows ended before the cap 11
+  rli_256: prompts 12, tokens 1658, whole decode 45.4, whole request 22.3 tok/s, first token median 3.12 s (mean 3.16), lifetime peak 42.42 GB, == AR 2/12; cut rows 0 (the screen's 600 s budget), rows ended before the cap 10
+  rlt_256: prompts 12, tokens 3072, whole decode 78.9, whole request 37.9 tok/s, first token median 3.20 s (mean 3.52), lifetime peak 43.17 GB, == AR 5/12; cut rows 0 (the screen's 600 s budget), rows ended before the cap 0
+  rli_160: prompts 12, tokens 1658, whole decode 39.0, whole request 21.1 tok/s, first token median 2.90 s (mean 3.00), lifetime peak 31.30 GB, == AR 2/12; cut rows 0 (the screen's 600 s budget), rows ended before the cap 10
+  rlr_256: prompts 12, tokens 1658, whole decode 44.9, whole request 22.5 tok/s, first token median 2.91 s (mean 3.06), lifetime peak 42.42 GB, == AR 2/12; cut rows 0 (the screen's 600 s budget), rows ended before the cap 10
+  IFEval tokens C 256 == C 160: 12/12
+  REPEAT rli_256 == rlr_256 (own processes, same keys and order): 12/12 prompts token-identical; first differing token per differing prompt: none
+  live kernel files read from the planes_engine tree == the frozen copies before and after: tierglu.py dc81729b, gdn_exact.py 3b835480, gdn_exact_patch.py 936c2635, 

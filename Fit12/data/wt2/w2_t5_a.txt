@@ -1,0 +1,26 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=29.7 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.20 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: engine v3g, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.20 GB, active 9.33 GB
+[w2_t5_a] after load: footprint now 9.67 GB, lifetime peak 9.67 GB, MLX peak 9.33 GB, active 9.33 GB
+[w2_t5_a] code: prefill 326 tokens in 4.79 s
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[w2_t5_a] code k=3: 22.8 tok/s, 3.20 tok/pass, 40 passes | per pass: verify 131.2 ms, draft 8.6 ms, head 0.4 ms, waited 539.3, reads 550.5, pf issued 0.0 used 101.9, SSD 7.6 GB/s 1061 MB | peak footprint 10.40 GB | loader per pass: stalled calls 84.1 of 99.0, stall 93.9 ms, io 92.5 ms | sha fb1e61e413 | '```python\nimport re\nimport argparse\nfrom collections import defaultdict\nfrom typing import List, Dict, Tuple, Optional\n\n# Regex to match log lines\nLINE = re.compile(\n    r'
+[w2_t5_a] code k=3 tau=0.5: 2.50 draft tokens verified per pass
+[w2_t5_a] prose: prefill 53 tokens in 2.99 s
+[w2_t5_a] prose k=3: 17.1 tok/s, 2.21 tok/pass, 58 passes | per pass: verify 119.0 ms, draft 9.8 ms, head 0.4 ms, waited 485.1, reads 500.9, pf issued 0.0 used 103.9, SSD 7.4 GB/s 955 MB | peak footprint 10.83 GB | loader per pass: stalled calls 87.9 of 99.0, stall 86.1 ms, io 84.7 ms | sha 42eef85996 | 'Imagine you are building a massive LEGO castle. You have two places to store your pieces: a huge warehouse across town (your computer’s main memory, or RAM) and a small, organized box right'
+[w2_t5_a] prose k=3 tau=0.5: 1.84 draft tokens verified per pass
+[w2_t5_a] math: prefill 82 tokens in 3.14 s
+[w2_t5_a] math k=3: 18.2 tok/s, 3.12 tok/pass, 41 passes | per pass: verify 160.7 ms, draft 10.1 ms, head 0.4 ms, waited 719.6, reads 736.1, pf issued 0.0 used 121.0, SSD 8.4 GB/s 1441 MB | peak footprint 11.12 GB | loader per pass: stalled calls 88.5 of 99.0, stall 123.4 ms, io 122.1 ms | sha 6e3af723f9 | "Here is the step-by-step solution to determine how much Janet makes every day at the farmers' market:\n\n**Step 1: Determine the total number of eggs laid per day.**\nJanet"
+[w2_t5_a] math k=3 tau=0.5: 2.68 draft tokens verified per pass
+[w2_t5_a] write: prefill 47 tokens in 2.68 s
+[w2_t5_a] write k=3: 19.8 tok/s, 2.21 tok/pass, 58 passes | per pass: verify 102.9 ms, draft 8.3 ms, head 0.4 ms, waited 372.6, reads 383.6, pf issued 0.0 used 73.3, SSD 6.6 GB/s 739 MB | peak footprint 11.30 GB | loader per pass: stalled calls 76.5 of 99.0, stall 68.5 ms, io 67.1 ms | sha 92b930c6cc | '*   crafted from durable stainless steel to withstand rugged trails and rocky terrain\n*   double-wall vacuum insulation keeps drinks cold for twenty-four hours or hot for twelve\n*   leak-proof lid design prevents'
+[w2_t5_a] write k=3 tau=0.5: 1.95 draft tokens verified per pass
+[w2_t5_a] PR1: 45 keep-1 commits replayed on 2 rows
+[w2_t5_a] done

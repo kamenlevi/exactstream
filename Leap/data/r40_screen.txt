@@ -1,0 +1,5 @@
+R-40: CA's 12-layer slice, MTPLX_FUSED_GATE_UP=1 (12 of 12 MoE blocks fused); self-test {'qmm16c 6144x2560': True, 'MLX 16-row 512x2560': True, 'bf16 Linear': True}
+  Part 1 (1K): logits rows equal 16 / 16; differing (row, record) pairs 0 -> batch-invariant: True
+  Part 2 ctx 1024: per 12-layer check today 39.60, REF2 + SB 26.78 ms; saved (paired) 12.82 -> x4 = 51.3 ms per 48-layer check
+  Part 2 ctx 8192: per 12-layer check today 41.88, REF2 + SB 27.36 ms; saved (paired) 14.91 -> x4 = 59.6 ms per 48-layer check
+R-40 verdict (PASS: bitwise batch-invariant AND >= 10 ms saved per 12-layer check (40 per 48) at 1K and 8K; KILL: not invariant): PASS (worst 12.82 ms per 12-layer check = 51.3 per 48)

@@ -1,0 +1,24 @@
+SEED45: cap45, 176 live checks over 6 prompts, chained; res0 160 experts per layer
+misses per kept token, prompts 2-6 pooled (MB per kept token at 2.16 MB; vs LFU):
+  K    C~         lru       lfu    prior3   prior10   prior30  prior100     pin64    pin128    pin192       min
+  246  224        52.1      57.2      55.3      53.8      52.5      52.9      56.6      55.5         -      23.5
+                -8.8%     +0.0%     -3.3%     -5.9%     -8.2%     -7.4%     -1.0%     -3.0%              -58.9%
+  266  240        43.5      47.8      46.2      44.8      44.0      44.2      47.5      46.7      44.9      19.2
+                -9.1%     +0.0%     -3.5%     -6.3%     -8.1%     -7.7%     -0.7%     -2.3%     -6.1%    -59.9%
+  287  256        35.8      39.4      37.9      36.7      36.0      36.2      39.2      38.7      37.7      15.8
+                -9.1%     +0.0%     -3.7%     -6.7%     -8.5%     -8.0%     -0.4%     -1.7%     -4.3%    -59.9%
+  224    -        63.6      68.6      66.4      64.6      63.3      64.0      67.9      65.4         -      29.7
+                -7.3%     +0.0%     -3.1%     -5.8%     -7.8%     -6.7%     -1.0%     -4.7%              -56.7%
+  288    -        35.5      39.0      37.5      36.4      35.7      35.9      38.9      38.3      37.3      15.6
+                -9.1%     +0.0%     -4.0%     -6.8%     -8.6%     -8.1%     -0.4%     -1.8%     -4.5%    -59.9%
+  384    -        13.2      13.8      13.4      13.1      12.9      12.8      13.8      13.8      13.7       7.6
+                -4.4%     +0.0%     -3.2%     -5.1%     -6.9%     -7.4%     -0.1%     -0.5%     -0.9%    -45.3%
+  LFU MB per kept token: K 246 123, K 266 103, K 287 85, K 224 148, K 288 84, K 384 30
+per prompt at K 266 (C 240), mean misses per check: LFU / best PRIOR / best PIN / MIN
+  math500_test_prealgebra_1640      268    237 (prior30)    244 (pin192)    103  kept 5.31
+  humaneval_HumanEval_91            337    323 (prior30)    323 (pin192)    134  kept 5.88
+  math500_test_algebra_694          319    282 (prior30)    288 (pin192)    133  kept 7.47
+  math500_test_algebra_1282         256    238 (prior30)    247 (pin192)    111  kept 6.09
+  gsm8k_708                         305    293 (prior30)    298 (pin192)    117  kept 6.16
+Lines: best prior 30 cuts misses per kept token 8.1 % vs LFU at K 266 (worst prompt +0.0 %; Belady headroom 59.9 %) -> BETWEEN
+(47 s)

@@ -1,0 +1,54 @@
+--- convcache.py.7eb3401	2026-11-10 23:29:44
++++ convcache.py	2026-11-11 01:26:24
+@@ -284,6 +284,19 @@
+         tot -= e.nbytes()
+         ents.remove(e)
+     return tot
++
++
++def _named(cache):
++    """(label, leaf) per non-None leaf in _leaves' order; label = 'cache index:class[slot]' (the check's FAIL names)"""
++    out = []
++    for i, ent in enumerate(cache or []):
++        st = getattr(ent, "state", None)
++        if st is None:
++            continue
++        for j, x in enumerate(st if isinstance(st, (list, tuple)) else [st]):
++            if x is not None:
++                out.append((f"{i}:{type(ent).__name__}[{j}]", x))
++    return out
+ 
+ 
+ def _cold_ref(ids, want_w, chunk):
+@@ -295,6 +308,7 @@
+     c2, last2, T2, ws2 = S["orig"](ids, want_w, chunk)
+     N, sw = len(ids), S["swin"]
+     ref = dict(last=_sha(last2), states=[_sha(x) for ent in c2 for x in _leaves(ent)], tail=_sha(T2[max(0, N - sw):N]),
++               shapes=[tuple(x.shape) for _, x in _named(c2)],
+                ws={a: _sha(w) for a, w in ws2}, cap=None if cap is None else FG["cap"].copy())
+     if cap is not None:
+         FG["cap"] = cap
+@@ -367,7 +381,9 @@
+     g["pf1"](True)
+     g["tap_reset"]()
+     TAP["on"] = True
+-    if PFLM and N - c > chunk:                             # PF-A from c (the loop: PF-A for a prompt over one chunk)
++    if PFLM and N > chunk:                                 # PF-A from c whenever the loop runs PF-A: the WHOLE prompt over one
++                                                           # chunk (Leap T1 11-11 01:13: choosing by N - c ran short tails
++                                                           # chunk-major, whose bits differ from PF-A's full-E scratch calls)
+         lg, ws, caps = _run_pfa(g, ids, c, chunk, cache, want_w, set(edges), need_cap, sink)
+     else:
+         lg, ws, caps = _run_cm(g, ids, c, chunk, cache, want_w, set(edges), need_cap, sink)
+@@ -401,7 +417,11 @@
+             bad.append("last logits")
+         st = [_sha(x) for ent in cache for x in _leaves(ent)]
+         if st != ref["states"]:
+-            bad.append(f"states ({sum(a_ != b_ for a_, b_ in zip(st, ref['states']))} of {len(st)})")
++            nm = _named(cache)
++            dk = [k for k, (a_, b_) in enumerate(zip(st, ref["states"])) if a_ != b_]
++            lab = "; ".join(f"{nm[k][0]} {tuple(nm[k][1].shape)} vs {ref['shapes'][k]}" for k in dk[:8])
++            more = "" if len(st) == len(ref["states"]) else f"; leaf count {len(st)} vs {len(ref['states'])}"
++            bad.append(f"states ({len(dk)} of {len(st)}: {lab}{' ...' if len(dk) > 8 else ''}{more})")
+         if _sha(T[max(0, N - sw):N]) != ref["tail"]:
+             bad.append("taps tail")
+         wd = [a for a, w in ws if ref["ws"].get(a) != _sha(w)]

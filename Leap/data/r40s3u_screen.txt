@@ -1,0 +1,8 @@
+R-40 STEP 3u: full 125B via load_streamed (C = 128), loaded in 1 s, 20.9 GB active; EvalSuite's PF1 True (full scratch True): on for prefills, off for checks / commits
+  self-test: {'qmm16c 6144x2560': True, 'MLX 16-row 512x2560': True, 'experts split == fused': True, 'experts rows alone': True, 'bf16 Linear': True}
+  math500/test/prealgebra/1640.json, P 62: REF2 AR 64 steps (ar_lg[j] = the logits after toks[j])
+  U0 as STEP 3z (drafter, REF2 off while drafting, taps): 10 checks, kept [6, 8, 1, 4, 4, 2, 15, 2, 2, 11]; kept rows bitwise == AR 40 / 55; first differing check #7 (kept 2, rows [0, 1], drafts [279, 5706, 314, 279])
+  U1 drafter with REF2 left on: 10 checks, kept [6, 8, 1, 4, 4, 2, 15, 2, 2, 11]; kept rows bitwise == AR 40 / 55; first differing check #7 (kept 2, rows [0, 1], drafts [279, 5706, 314, 279])
+  U2 drafter runs (REF2 off), synthetic drafts used: 11 checks, kept [4, 1, 7, 2, 10, 3, 5, 1, 6, 2, 8]; kept rows bitwise == AR 41 / 49; first differing check #10 (kept 8, rows [0, 1, 2, 3, 4, 5, 6, 7], drafts [37630, 314, 449, 2091])
+  U3 no drafter, synthetic drafts, taps, REF2 off/on between checks: 11 checks, kept [4, 1, 7, 2, 10, 3, 5, 1, 6, 2, 8]; kept rows bitwise == AR 41 / 49; first differing check #10 (kept 8, rows [0, 1, 2, 3, 4, 5, 6, 7], drafts [37630, 314, 449, 2091])
+R-40 STEP 3u: exact per variant {'U0': False, 'U1': False, 'U2': False, 'U3': False}; 62 s

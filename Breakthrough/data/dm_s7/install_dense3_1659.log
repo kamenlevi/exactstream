@@ -1,0 +1,14 @@
+[t] dm_ablations from /Users/kamen/Breakthrough/data/abl_scratch/dense3/test/dm_ablations.py
+[t] mock: 171 quantized linears, 120 targets, 51 decoys; biases mlx.core.bfloat16
+  ok   T1 the stack resolves; ABLATIONS['dense3'] is registered
+[dm] dense3: 120 modules at MSB-3 (1 MB of 4-bit weights rewritten)
+  ok   T1 the stack's PERT == screen 6's (['gate', 'renorm', 'rmask', 't3', 't3k'])
+  ok   T2 120/120 targets at w & 0xEEEEEEEE, biases bf16(b + s/2), scales unchanged
+  ok   T2 51/51 decoys untouched (router, MTP, 8-bit, g32)
+  ok   T2 one TEARDOWN entry (1)
+  ok   T3 clear() puts back the original arrays in 171/171 modules
+  ok   T3 PERT and TEARDOWN empty after clear()
+  ok   T4 BIGMOE_PKD1=1: the setup raises, no weight touched
+  ok   T4 BIGMOE_SCOUT_BUNDLE=1: the setup raises, no weight touched
+ALL OK
+dense3: installed

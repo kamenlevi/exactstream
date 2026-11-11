@@ -1,0 +1,33 @@
+
+COH check Tue 22:42 (share lock, GPU ~74 % free (rough speed))
+layer 20 native pools built in 5 s
+
+COH check Tue 22:42 (share lock, GPU ~74 % free (rough speed); rerun with unbuildable forms dropped)
+layer 20 native pools built in 3 s
+  NAX6-N cn: does not build (invalid argument to coherent qualifier); dropped
+  NAX6-N cv: does not build (invalid argument to coherent qualifier); dropped
+  3c-N cn: does not build (no matching function for call to 'tg_codes3'); dropped
+  3c-N cv: does not build (no matching function for call to 'tg_codes3'); dropped
+(1) bits: every window, both kernels, both forms bitwise == plain
+(2) ms per call (S 16, layer 20, 4 windows): NAX6-N plain 0.673, 3c-N plain 1.460
+    cost vs plain: NAX6-N cn +inf %, NAX6-N cv +inf %, 3c-N cn +inf %, 3c-N cv +inf %
+COH verdict: KILL (best form's cost: NAX6-N +inf %, 3c-N +inf %)
+ref2.self_test: PASS
+
+COH check Tue 22:44 (share lock, rough speed; header order fixed, tg_codes3 overload)
+layer 20 native pools built in 3 s
+  3c-N cn: does not build (tg_codes3 reads more pointers); dropped
+  3c-N cv: does not build (tg_codes3 reads more pointers); dropped
+(1) bits: every window, both kernels, both forms bitwise == plain
+(2) ms per call (S 16, layer 20, 4 windows): NAX6-N plain 0.671, NAX6-N cn 0.681, NAX6-N cv 0.697, 3c-N plain 1.387
+    cost vs plain: NAX6-N cn +1.5 %, NAX6-N cv +3.9 %, 3c-N cn +inf %, 3c-N cv +inf %
+COH verdict: KILL (best form's cost: NAX6-N +1.5 %, 3c-N +inf %)
+ref2.self_test: PASS
+
+COH check Tue 22:44 (share lock, rough speed; tg_codes3 overload with both pointers coherent)
+layer 20 native pools built in 3 s
+(1) bits: every window, both kernels, both forms bitwise == plain
+(2) ms per call (S 16, layer 20, 4 windows): NAX6-N plain 0.666, NAX6-N cn 0.671, NAX6-N cv 0.698, 3c-N plain 1.410, 3c-N cn 1.781, 3c-N cv 1.808
+    cost vs plain: NAX6-N cn +0.7 %, NAX6-N cv +4.8 %, 3c-N cn +26.3 %, 3c-N cv +28.2 %
+COH verdict: KILL (best form's cost: NAX6-N +0.7 %, 3c-N +26.3 %)
+ref2.self_test: PASS

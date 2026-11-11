@@ -1,0 +1,41 @@
+SMALL_RAM 5.4 label check, Mon 09 Nov 10:23, read-only
+1. CHS2's L (BigMoE scripts/chsb.sh): the last line of data/stack/s5p_env.txt
+34:L=$(grep -v '^#' data/stack/s5p_env.txt | grep . | tail -1 | sed 's/,R57_QOM_SETS=humaneval,mbpp$//')
+   s5p_env.txt header:
+# S5' config (BigMoE s5p.sh, snapshot 6db4c24): Sat 256, MEM 47 GB, screen data/r57/snap/s5p/r57_screen_s5p.py; v1' + wired + the Sunday exact-safe bundle (seams a-e + DQ1); S5' 12 HumanEval: WHOLE DECODE 181.4,FULL PERI
+   the bundle's marker REF2_COMMIT_SUB=9 in that line: 1
+2. N45's L (scripts/n45.sh) is the same line, and refuses to run without the bundle:
+28:BUN="BIGMOE_PAUSE_EVERY_MS=50,R57_S0CARRY=1,REF2_SB_FIRST=1,REF2_PLE_LATE=1,REF2_COMMIT_SUB=9,R57_DQ1=1"
+30:L=$(grep -v '^#' data/stack/s5p_env.txt | grep . | tail -1 | sed 's/,R57_QOM_SETS=humaneval,mbpp$//')
+31:echo "$L" | tr ',' '\n' | grep -qx 'REF2_COMMIT_SUB=9' || { say "s5p_env is not S5' with the bundle: not run"; exit 2; }
+3. CHS2 per-arm token match to one-token decoding (data/chs/chs2_report.txt):
+ x2c0: WHOLE DECODE 44.8	== AR 3/12
+ x2qm1: WHOLE DECODE 45.3	== AR 3/12
+ x2qm1s: WHOLE DECODE 45.8	== AR 2/12
+ x2qm2s: WHOLE DECODE 52.0	== AR 3/12
+ x2p4: WHOLE DECODE 38.4	== AR 3/12
+ x2l2c: WHOLE DECODE 42.4	== AR 2/12
+ x2l2f: WHOLE DECODE 40.7	== AR 3/12
+ x2rc8: WHOLE DECODE 45.1	== AR 3/12
+ x2qm2: WHOLE DECODE 49.0	== AR 2/12
+ x2c0b: WHOLE DECODE 43.7	== AR 3/12
+ x2e : WHOLE DECODE 36.6	== AR 12/12
+ x2ep4: WHOLE DECODE 36.9	== AR 12/12
+4. E without coherent reads, later run (findings/2026-11-08_0750_45gb-chat-chs4.md):
+  - C4 is solved. REF2_NAX_COH=1 (Leap's coherent reads) makes the one-call path deterministic. Exact E matches
+    one-token decoding 12 / 12 in two runs (37.8 / 37.9 tok/s), against 3 / 12 without it (37.7 / 38.0), at no cost.
+5. L + COH's card gate (EvalSuite docs/RESULT_card_lcoh_2026-11-09.md; heading, config, verdict):
+# RESULT: the card gate on L + COH (lcoh) vs NAX6-N (Mon 2026-11-09 10:07) — PASS
+7:- L + COH = S5' + REF2_NAX_COH=1. QOM runs on the code sets (humaneval, mbpp) plus lcb6. IFBench and GPQA read exact
+43:| **Card gate** | | **PASS** |
+6. How the companions label these configurations:
+413:**Table 6.1b. LOSSY, same scores as NAX6-N on HumanEval+, MBPP, math and IFEval in both prompt orders (the certified
+422:| 12 IFEval (chat) | N45 L (nil1-2) | 43.4 | 21.1 | 3.00 (2.43-3.93) | 42.4 | F:2026-11-07_2330 |
+423:| 12 math | N45 L (nml1-2) | 86.9 | 39.6 | 2.96 (2.71-6.98) | 43.1 | F:2026-11-07_2330 |
+444:| 12 HumanEval | X = certified config + the exact-safe bundle (S5'; spx1-2) | 181.3 | 36.6 | 4.51 (3.96-6.25) | 42.9 | not gated: the certificate covers only the configuration it tested; the bundle is bitwise in the exact mode | BM:data/s5p/s5p_report.txt 
+19:  - Its certified base ("v1' + wired"; L adds to it a bundle of kernel changes that is bitwise in the exact mode) passed
+281:| **CERT**: "v1' + wired", the certified 45 GB configuration (C 256). L adds the exact-safe bundle (BM:data/stack/s5p_env.txt; bitwise in the exact mode, [MAIN] 4.4); the published L + COH has its own gate (below) | 
+Conclusion: CHS2's L and N45's L are S5' with the exact-safe bundle ([MAIN] 6.1c's X: 'not gated'), not the certified
+flags alone; CHS2 also predates coherent reads. SMALL_RAM 5.4 now labels L and M1-B 'lossy, ungated as run' and E
+'not exact on chat without coherent reads' (12 / 12 here, 3 / 12 later). MAIN 6.1b lists N45 L's IFEval and math
+rows under the certified flags: sent to the editor as a question.

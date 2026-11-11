@@ -1,0 +1,21 @@
+M=1 max rel err 2.64e-03
+M=2 max rel err 2.79e-03
+M=3 max rel err 2.40e-03
+M=5 max rel err 2.34e-03
+M=8 max rel err 2.37e-03
+M=16 max rel err 3.40e-03
+M=1 max rel err 2.53e-03
+M=2 max rel err 2.51e-03
+M=3 max rel err 2.64e-03
+M=5 max rel err 2.14e-03
+M=8 max rel err 2.52e-03
+M=16 max rel err 3.08e-03
+8-bit 5120->17408 x24 (2.27 GB/pass)  MLX M1 9.6 ms = 238 GB/s, skinny M1 9.7 ms = 233 GB/s
+M         1      2      3      4      5      8     12     16
+MLX   1.00x  1.00x  0.99x  0.97x  1.00x  1.68x  2.69x  1.37x
+skin  1.02x  1.03x  1.00x  0.98x  1.20x  2.00x 14.35x 28.99x   (both relative to MLX M=1)
+Traceback (most recent call last):
+  File "/Users/kamen/MoonShots/scripts/skinny.py", line 74, in <module>
+    wq, sc, bi = mx.quantize(W, group_size=G, bits=BITS)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: [quantize] The last dimension of the matrix needs to be divisible by the quantization group size 64. However the provided  matrix has shape (17408,20)

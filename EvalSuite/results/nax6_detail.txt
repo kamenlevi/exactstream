@@ -1,0 +1,98 @@
+rows: {'ref2tnax': 210, 'ref2t': 210, 'ref2b': 210, 'ref2ct': 210, 'ref2th8': 210, 'ref.r2': 210, 'floor': 367, 'ref': 367} common 210
+
+== math: 50 rows; % correct: ref2tnax 88.0, ref2t 88.0, ref2b 88.0, ref2ct 86.0, ref2th8 84.0, ref.r2 82.0, floor 88.0, ref 86.0
+   vs ref2t: token-identical 15/50; first divergence median 113, min 1
+   vs ref2b: token-identical 3/50; first divergence median 55, min 1
+   discordant ref2tnax vs ref2t (1 = correct); first diff = token where ref2tnax leaves ref2t
+  math500/test/algebra/733.json            ref2tnax 0 (length, 1536 tok)  ref2t 1 (eos, 1499 tok, cap 1536)  first diff 370  ref2b 0  ref2ct 0  ref2th8 0  ref.r2 0  floor 0  ref 0
+  math500/test/intermediate_algebra/101.json ref2tnax 1 (eos, 1504 tok)  ref2t 0 (length, 1536 tok, cap 1536)  first diff 93  ref2b 0  ref2ct 0  ref2th8 0  ref.r2 0  floor 0  ref 0
+   items one arm alone gets wrong (all 7 others right) / alone right (all others wrong)
+  ref2tnax alone wrong 0 [], alone right 1 ['math500/test/intermediate_algebra/101.json']
+  ref2t    alone wrong 0 [], alone right 1 ['math500/test/algebra/733.json']
+  ref2b    alone wrong 0 [], alone right 1 ['math500/test/intermediate_algebra/1422.json']
+  ref2ct   alone wrong 0 [], alone right 0 []
+  ref2th8  alone wrong 0 [], alone right 0 []
+  ref.r2   alone wrong 1 ['math500/test/precalculus/323.json'], alone right 0 []
+  floor    alone wrong 0 [], alone right 0 []
+  ref      alone wrong 0 [], alone right 0 []
+
+== ifeval: 100 rows; % correct: ref2tnax 87.0, ref2t 90.0, ref2b 87.0, ref2ct 85.0, ref2th8 89.0, ref.r2 90.0, floor 88.0, ref 90.0
+   vs ref2t: token-identical 15/100; first divergence median 35, min 1
+   vs ref2b: token-identical 9/100; first divergence median 15, min 0
+   discordant ref2tnax vs ref2t (1 = correct); first diff = token where ref2tnax leaves ref2t
+  ifeval/218                               ref2tnax 0 (eos, 307 tok)  ref2t 1 (eos, 335 tok, cap 1024)  first diff 76  ref2b 1  ref2ct 0  ref2th8 1  ref.r2 1  floor 1  ref 1
+      ref2tnax missed: change_case:english_lowercase
+      ref2t    missed: -
+      ref2b    missed: -
+      ref2ct   missed: change_case:english_lowercase
+      ref2th8  missed: -
+      ref.r2   missed: -
+      floor    missed: -
+      ref      missed: -
+  ifeval/2439                              ref2tnax 0 (eos, 57 tok)  ref2t 1 (eos, 39 tok, cap 1024)  first diff 4  ref2b 1  ref2ct 0  ref2th8 1  ref.r2 1  floor 1  ref 1
+      ref2tnax missed: detectable_content:number_placeholders
+      ref2t    missed: -
+      ref2b    missed: -
+      ref2ct   missed: detectable_content:number_placeholders
+      ref2th8  missed: -
+      ref.r2   missed: -
+      floor    missed: -
+      ref      missed: -
+  ifeval/2497                              ref2tnax 0 (eos, 41 tok)  ref2t 1 (eos, 49 tok, cap 1024)  first diff 24  ref2b 0  ref2ct 0  ref2th8 1  ref.r2 1  floor 0  ref 1
+      ref2tnax missed: detectable_format:number_highlighted_sections
+      ref2t    missed: -
+      ref2b    missed: detectable_format:number_highlighted_sections
+      ref2ct   missed: detectable_format:number_highlighted_sections
+      ref2th8  missed: -
+      ref.r2   missed: -
+      floor    missed: detectable_format:number_highlighted_sections
+      ref      missed: -
+  ifeval/2870                              ref2tnax 0 (eos, 164 tok)  ref2t 1 (eos, 144 tok, cap 1024)  first diff 35  ref2b 1  ref2ct 1  ref2th8 1  ref.r2 1  floor 1  ref 1
+      ref2tnax missed: change_case:capital_word_frequency
+      ref2t    missed: -
+      ref2b    missed: -
+      ref2ct   missed: -
+      ref2th8  missed: -
+      ref.r2   missed: -
+      floor    missed: -
+      ref      missed: -
+  ifeval/2997                              ref2tnax 1 (eos, 254 tok)  ref2t 0 (eos, 222 tok, cap 1024)  first diff 124  ref2b 1  ref2ct 0  ref2th8 0  ref.r2 0  floor 0  ref 0
+      ref2tnax missed: -
+      ref2t    missed: keywords:frequency
+      ref2b    missed: -
+      ref2ct   missed: keywords:frequency
+      ref2th8  missed: keywords:frequency
+      ref.r2   missed: keywords:frequency
+      floor    missed: keywords:frequency
+      ref      missed: keywords:frequency
+   items one arm alone gets wrong (all 7 others right) / alone right (all others wrong)
+  ref2tnax alone wrong 1 ['ifeval/2870'], alone right 0 []
+  ref2t    alone wrong 0 [], alone right 0 []
+  ref2b    alone wrong 3 ['ifeval/2328', 'ifeval/2534', 'ifeval/3126'], alone right 0 []
+  ref2ct   alone wrong 2 ['ifeval/3409', 'ifeval/3608'], alone right 0 []
+  ref2th8  alone wrong 1 ['ifeval/2853'], alone right 0 []
+  ref.r2   alone wrong 0 [], alone right 0 []
+  floor    alone wrong 1 ['ifeval/3280'], alone right 0 []
+  ref      alone wrong 0 [], alone right 0 []
+Load from ground-truth from /Users/kamen/Library/Caches/evalplus/fe585eb4df8c88d844eeb463ea4d0302.pkl
+
+== humaneval: 60 rows; % correct: ref2tnax 91.7, ref2t 95.0, ref2b 91.7, ref2ct 93.3, ref2th8 91.7, ref.r2 91.7, floor 95.0, ref 91.7
+   vs ref2t: token-identical 43/60; first divergence median 212, min 8
+   vs ref2b: token-identical 36/60; first divergence median 160.5, min 92
+   discordant ref2tnax vs ref2t (1 = correct); first diff = token where ref2tnax leaves ref2t
+  humaneval/HumanEval/147                  ref2tnax 0 (length, 768 tok)  ref2t 1 (eos, 654 tok, cap 768)  first diff 221  ref2b 1  ref2ct 1  ref2th8 0  ref.r2 1  floor 1  ref 1
+  humaneval/HumanEval/93                   ref2tnax 0 (eos, 347 tok)  ref2t 1 (eos, 328 tok, cap 768)  first diff 146  ref2b 0  ref2ct 0  ref2th8 0  ref.r2 0  floor 1  ref 0
+   items one arm alone gets wrong (all 7 others right) / alone right (all others wrong)
+  ref2tnax alone wrong 0 [], alone right 0 []
+  ref2t    alone wrong 0 [], alone right 0 []
+  ref2b    alone wrong 0 [], alone right 0 []
+  ref2ct   alone wrong 0 [], alone right 0 []
+  ref2th8  alone wrong 0 [], alone right 0 []
+  ref.r2   alone wrong 0 [], alone right 0 []
+  floor    alone wrong 0 [], alone right 0 []
+  ref      alone wrong 0 [], alone right 0 []
+
+== rough AR speed per set (tokens / (row seconds - heat pause)); shared GPU, not an A/B
+  math      ref2tnax 13.34 tok/s (33814 tok), ref2t 13.53 tok/s (34324 tok)
+  ifeval    ref2tnax 13.33 tok/s (30604 tok), ref2t 13.37 tok/s (29870 tok)
+  humaneval ref2tnax 10.88 tok/s (13907 tok), ref2t 11.02 tok/s (13667 tok)

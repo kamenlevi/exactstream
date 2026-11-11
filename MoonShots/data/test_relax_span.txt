@@ -1,0 +1,36 @@
+1. the module
+  ok   parse_rule: default R2:3:0.1, R2 / R1 forms
+  ok   parse_rule rejects an unknown rule
+  ok   rule_ok R2 top-3 at 0.1 p1 (rank < 3, dlm >= log 0.1)
+  ok   rule_ok equals relax_core.rule_ok
+  ok   flag-off identity: span_k with no span rows == the exact rule (2,000 random blocks)
+  ok   span_k keeps a near draft on a span row and goes on
+  ok   span_k stops at a mismatch outside the span rows
+  ok   span_k stops when the span row's draft fails the rule (p < 0.1 p1)
+  ok   span_rows: a comment row relaxes; a draft that starts a line and a row whose argmax ends the line (the guard) do not
+  ok   span_rows feeds a copy (the run's tagger is unchanged)
+  ok   span_rows: a comment that is or could become a tool comment ('# type:') never relaxes
+  ok   span_rows: a comment on the fence's first two lines never relaxes
+  ok   span_rows: a '#' inside a string is not a comment
+  ok   the engine's vendored relax_core equals EvalSuite's in CodeScan, nontool, comment_rows, comment_draft_ok, rule_ok
+2. the patch
+     r57_screen_rlx.py sha1 9b765bd6384e
+  ok   apply_span.py: all 5 anchors found once
+  ok   the patched copy compiles
+  ok   every inserted block opens behind SPAN / sscan: SPAN = os.environ.get("R57_RELAX_SPAN",  | assert not (SPAN and fz and fz["loop"]), | if SPAN and dr:                          | if sscan is not None:                    | spn=sst if SPAN else None,           # R
+  ok   run state with SPAN unset: a no-op assert, sscan / slog None, an unused counter
+  ok   the result carries spn (None when unset)
+3. the walk streams
+  ok   map 12: the engine path reproduces the replay (answer feed) on 3283 / 3283 tested rows, 0 differ
+     map 12 (answer feed): kept ratio replay x1.189, engine path x1.189
+     map 12: vs M-41's window feed: 0 of 3283 rows differ
+     map 12 (window feed): kept ratio replay x1.189, engine path x1.189
+  ok   fresh HumanEval+ 12: the engine path reproduces the replay (answer feed) on 2870 / 2870 tested rows, 0 differ
+     fresh HumanEval+ 12 (answer feed): kept ratio replay x1.074, engine path x1.074
+     fresh HumanEval+ 12: vs M-41's window feed: 0 of 2870 rows differ
+     fresh HumanEval+ 12 (window feed): kept ratio replay x1.074, engine path x1.074
+  ok   fresh MBPP 100: the engine path reproduces the replay (answer feed) on 15351 / 15351 tested rows, 0 differ
+     fresh MBPP 100 (answer feed): kept ratio replay x1.125, engine path x1.125
+     fresh MBPP 100: vs M-41's window feed: 0 of 15351 rows differ
+     fresh MBPP 100 (window feed): kept ratio replay x1.125, engine path x1.125
+ALL OK

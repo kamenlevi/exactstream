@@ -1,0 +1,13 @@
+--- /private/tmp/claude-501/-Users-kamen-OjoX/f2971937-6c95-4e86-a049-05beff6a8e32/scratchpad/r57dkv/r57_screen.py.orig	2026-11-04 19:09:05
++++ /private/tmp/claude-501/-Users-kamen-OjoX/f2971937-6c95-4e86-a049-05beff6a8e32/scratchpad/r57dkv/r57_screen.py	2026-11-04 19:09:21
+@@ -693,6 +693,10 @@
+     _DFU.install(forms=D7B != "all" and not D8NAX, draft=draft)   # R-78's forms are bf16 spellings: never on D7b / D8
+     for _k in ("hc_gate", "gdn_inproj_x"):
+         ref2.CFG[_k] = True
++if os.environ.get("R57_DKV") == "1":                    # DKV (Leap 2f726fb): the drafter's copy-free window cache, bitwise
++    sys.path.insert(0, os.path.expanduser("~/Leap/scripts"))   # (stress 726 steps 0 diffs, BP-9 walk hashes ==); wraps
++    import dkv as _DKV                                   # whatever drafter attention is installed by now (draft_fused's);
++    _DKV.install(addmask=os.environ.get("R57_DKV_ADD") == "1")   # R57_DKV_ADD=1: + the additive mask (bitwise == bool)
+ # BUILD DAY (Wed 11-04) switches, each off unless set; the all-in FAST code preset sets all three (+ U3C + R57_D7B=code):
+ if FAST == "QOM" and os.environ.get("REF2_OOO_1C") == "1":   # one-call OOO knows QOM's -2 base slots since Leap 00961fc
+     assert "ooo_1c_qom" in ref2.COUNTS, "REF2_OOO_1C with QOM needs Leap's ref2 00961fc (else QOM's drops are misread)"

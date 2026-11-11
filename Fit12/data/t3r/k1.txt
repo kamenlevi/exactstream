@@ -1,0 +1,39 @@
+[k1] records per expert: v3 MSB 2,162,688 + LSB 770,048 B | T3R base 1,884,160 (1,879,680 unpadded, 0.871x MSB) + R1 655,360 (650,880, 0.851x LSB) | rank 0-1 bits / weight: v3 4.773, T3R 4.133
+[k1] check vs item (a): v3 24 GB 16-row / accept 10 / LFU 0.99 = 115.9 MB/token (item (a) 115.9)
+[k1] cross-check vs NewIdeas b10_12gb.txt, v3 51 / 20, rows 1 accept 1 LRU: mine 361.5 vs theirs 366.8 (-1.5 %)
+[k1] cross-check vs NewIdeas b10_12gb.txt, v3 51 / 20, rows 1 accept 1 LFU 0.99: mine 333.3 vs theirs 330.5 (+0.8 %)
+[k1] cross-check vs NewIdeas b10_12gb.txt, v3 51 / 20, rows 4 accept 3 LRU: mine 348.3 vs theirs 368.6 (-5.5 %)
+[k1] cross-check vs NewIdeas b10_12gb.txt, v3 51 / 20, rows 4 accept 3 LFU 0.99: mine 315.6 vs theirs 314.8 (+0.2 %)
+
+[k1] 12 GB, B12LL (C_m 51 + C_l 20): 125.7 MB / layer (6.03 GB of slots), 16-row / accept 10 / LFU 0.99
+  v3 as configured 51 / 20: 256.4 MB/token | MSB misses / token 107.6, LSB 30.7 | per set bulgarian 229.2 chat 236.6 code 277.2 math 282.4
+  v3 best split in this budget: C_m 36 / C_l 60: 248.8 MB/token (-3.0 %)
+  T3R best: C_b 46 (0.902x C_m) / C_r 59: 214.3 MB/token | base misses / token 108.7, R1 14.5 | per set bulgarian 194.0 chat 197.2 code 230.4 math 235.5
+  T3R vs v3 as configured: +16.4 % fewer bytes / token; vs v3's best split +13.9 %; per set bulgarian 15.4 chat 16.7 code 16.9 math 16.6
+  T3R with unpadded records (side): C_b 46 / C_r 60: 213.6 MB/token (16.7 % fewer)
+  T3R by C_r: 5 215.7, 9 216.6, 13 217.1, 17 218.0, 21 217.4, 25 216.5, 29 216.2, 33 215.5, 37 215.5, 41 215.1, 45 214.7, 49 214.9, 53 214.6, 57 214.6
+DECISIVE K1 12 GB, B12LL (C_m 51 + C_l 20): T3R 214.3 vs v3 256.4 MB/token = 16.4 % fewer (kill < 20 %) -> KILL
+  side protocol rows 1 accept 1 LRU: v3 361.5, T3R 286.1 (C_b 63 / C_r 10) = 20.8 % fewer
+  side protocol rows 1 accept 1 LFU 0.99: v3 333.3, T3R 261.8 (C_b 62 / C_r 13) = 21.5 % fewer
+  side protocol rows 16 accept 10 LRU: v3 258.8, T3R 216.5 (C_b 46 / C_r 59) = 16.3 % fewer
+  (115 s)
+
+[k1] 12 GB at C_m 59 + C_l 20: 143.0 MB / layer (6.86 GB of slots), 16-row / accept 10 / LFU 0.99
+  v3 as configured 59 / 20: 250.6 MB/token | MSB misses / token 104.9, LSB 30.7 | per set bulgarian 220.5 chat 228.8 code 273.7 math 279.2
+  v3 best split in this budget: C_m 45 / C_l 59: 246.6 MB/token (-1.6 %)
+  T3R best: C_b 74 (1.254x C_m) / C_r 5 (EDGE of the C_r grid): 203.9 MB/token | base misses / token 96.3, R1 34.2 | per set bulgarian 177.5 chat 182.4 code 224.9 math 230.6
+  T3R vs v3 as configured: +18.6 % fewer bytes / token; vs v3's best split +17.3 %; per set bulgarian 19.5 chat 20.3 code 17.8 math 17.4
+  T3R with unpadded records (side): C_b 74 / C_r 5: 203.3 MB/token (18.9 % fewer)
+  T3R by C_r: 5 203.9, 9 206.4, 13 207.4, 17 209.0, 21 208.8, 25 208.2, 29 208.7, 33 208.4, 37 208.1, 41 208.9, 45 208.8, 49 209.6, 53 209.6, 57 209.6
+  (124 s)
+
+[k1] 24 GB (C_m 147 + C_l 46): 353.3 MB / layer (16.96 GB of slots), 16-row / accept 10 / LFU 0.99
+  v3 as configured 147 / 46: 115.9 MB/token | MSB misses / token 47.2, LSB 17.9 | per set bulgarian 95.8 chat 92.1 code 133.5 math 142.2
+  v3 best split in this budget: C_m 150 / C_l 37: 115.4 MB/token (-0.4 %)
+  T3R best: C_b 175 (1.190x C_m) / C_r 36: 82.0 MB/token | base misses / token 36.0, R1 21.6 | per set bulgarian 67.2 chat 64.6 code 95.0 math 101.3
+  T3R vs v3 as configured: +29.2 % fewer bytes / token; vs v3's best split +28.9 %; per set bulgarian 29.9 chat 29.8 code 28.8 math 28.7
+  T3R with unpadded records (side): C_b 173 / C_r 43: 81.4 MB/token (29.7 % fewer)
+  T3R by C_r: 11 85.2, 21 84.6, 31 82.9, 41 82.2, 51 82.9, 61 83.2, 71 84.8, 81 86.0, 91 88.3, 101 90.0, 111 92.8, 121 95.1, 131 98.3
+  (203 s)
+done in 203 s
+rc 0

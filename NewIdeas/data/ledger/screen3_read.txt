@@ -1,0 +1,12 @@
+SCREEN 3: W1B 24 GB traced arm (/Users/kamen/BigMoE/data/w1b24/w24t); 53006 miss.bin records; MB with MR 2162688 / LR 770048 B
+| prompt | kept per pass | decode MB per kept: trunk base + MTP base + LSB = total | process disk_read MB per token | engine reads (trace) MB per token | ref x 7.91 / kept (mine / Fable C) | ratio to ref, unscaled (mine) | ratio, scaled |
+|---|---|---|---|---|---|---|---|
+| p00_humaneval0 | 7.76 | 200.8 + 1.4 + 23.7 = 226.0 | 427.1 | 266.3 | 217.0 / 250.0 | 1.06 | 1.04 |
+| p01_humaneval1 | 3.88 | 217.4 + 6.8 + 23.1 = 247.4 | 409.2 | 291.4 | 434.0 / 500.0 | 1.16 | 0.57 |
+| p02_math0 | 3.32 | 199.6 + 9.5 + 19.3 = 228.4 | 367.3 | 288.2 | 506.3 / 583.4 | 1.07 | 0.45 |
+| p03_math1 | 1.30 | 195.3 + 7.5 + 18.8 = 221.6 | 438.4 | 342.9 | 1295.3 / 1492.5 | 1.04 | 0.17 |
+| p04_math2 | 3.01 | 170.8 + 9.1 + 15.5 = 195.4 | 333.6 | 263.5 | 558.9 / 644.0 | 0.92 | 0.35 |
+| p05_math3 | 3.24 | 189.3 + 7.9 + 20.4 = 217.5 | 344.0 | 269.2 | 519.4 / 598.5 | 1.02 | 0.42 |
+humaneval: decode 236.7 MB per kept token at 5.17 kept per pass; process 418.2; ratio to the replay (code ref, mine) unscaled 1.11, scaled by 7.91 / kept 0.73
+math: decode 215.7 MB per kept token at 2.34 kept per pass; process 370.8; ratio to the replay (code ref, mine) unscaled 1.01, scaled by 7.91 / kept 0.30
+misses outside the prompts' decode seqs (prefill, warm-up): trunk 1675, MTP 18, LSB 400

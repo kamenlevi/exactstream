@@ -1,0 +1,83 @@
+11-07 01:24:10 gap_s2f start (pid 37228; NO-SWAP 51.8 GB)
+11-07 01:24:20 NO-SWAP 51.8 GB -> C 224
+11-07 01:24:20 arm base (S2C_ARM=base)
+11-07 01:24:20 STEP B start (pid 37585, NO-SWAP 51.8 GB -> C 224, arms: bstackF; md5 probe a721aa8f k d27a87fe)
+11-07 01:24:20 run stepb_bstackF_224_s2f_base (swap 6606 MB)
+11-07 01:25:31 done stepb_bstackF_224_s2f_base rc=0:   step B calibration: round trip 136 us (p10-p90 121-170), dependent dispatch 2.16 us; read floor (KB: cold / warm GB/s) 16: 2 / 16384, 64: 18 / 7, 256: 24 / 25 FLAT-2 VERDICT: NO RUN (no measured pass) 
+11-07 01:25:31 STEP B end (rc 0)
+11-07 01:25:31   after base: PAUSE no; fanwatch: 01:25:18 die max 75.5 avg 66.6 batt 24.3 ssd 54 baro 95.9 state 0 fans 6500 6497 curve 94 
+11-07 01:25:31 arm keep (STEPB_KEEP_REF2C=1)
+11-07 01:25:31 STEP B start (pid 39063, NO-SWAP 51.7 GB -> C 224, arms: bstackF; md5 probe a721aa8f k d27a87fe)
+11-07 01:25:31 run stepb_bstackF_224_s2f_keep (swap 6606 MB)
+11-07 01:26:36 done stepb_bstackF_224_s2f_keep rc=0:   step B calibration: round trip 147 us (p10-p90 125-179), dependent dispatch 2.19 us; read floor (KB: cold / warm GB/s) 16: 5 / 16384, 64: 65536 / 65536, 256:  FLAT-2 VERDICT: NO RUN (no measured pass) 
+11-07 01:26:36 STEP B end (rc 0)
+11-07 01:26:36   after keep: PAUSE no; fanwatch: 01:26:19 die max 75.5 avg 66.8 batt 24.2 ssd 53 baro 96.2 state 0 fans 6492 6496 curve 94 
+lock released
+11-07 01:26:36 runs done, lock released
+=== arm base
+== stepb_bstackF_224_s2f_base_flat2.json (C 224; sync 0.133 ms)
+  pass 1 (cold, discarded)                     meas :  50 checks, rows 2-2, kept 2.00; draft 7.26, check+commit 52.90 (build 48.43, wait 5.04), misses 4506; GPU busy nan % over 9.4 s
+  stage pass                                   stage:  50 checks, rows 2-2, kept 2.00; draft 7.02, check+commit 38.70 (build 34.28, wait 3.98), misses 540; GPU busy nan % over 8.4 s
+  probe pass                                   probe:  50 checks, rows 2-2, kept 2.00; draft 7.05, check+commit 37.35 (build 33.06, wait 3.87), misses 139; GPU busy nan % over 8.3 s
+  real-block pass 1 (discarded)                meas :  12 checks, rows 13-16, kept 14.17; draft 9.12, check+commit 76.05 (build 67.13, wait 6.79), misses 1633; GPU busy nan % over 7.1 s
+  real-block pass 2                            meas :  12 checks, rows 13-16, kept 14.42; draft 7.55, check+commit 62.11 (build 55.16, wait 5.89), misses 322; GPU busy nan % over 6.8 s
+  real-block pass 3                            meas :  12 checks, rows 13-16, kept 14.42; draft 7.65, check+commit 59.08 (build 52.26, wait 5.57), misses 100; GPU busy nan % over 6.9 s
+  real-block commit pass                       stage:  12 checks, rows 12-16, kept 14.42; draft 7.47, check+commit 58.38 (build 50.84, wait 5.54), misses 164; GPU busy nan % over 6.8 s
+  real-block probe pass (S2c)                  probe:  12 checks, rows 13-16, kept 14.42; draft 7.63, check+commit 59.50 (build 52.81, wait 5.60), misses 315; GPU busy nan % over 8.6 s
+    S2C at check 6 (16 rows; previous blocks [16, 16, 13] rows):
+      same  (6 forwards; the first per block dropped): block 0: wall 47.96 (build 43.09), misses 0
+      alt2  (6 forwards; the first per block dropped): block 0: wall 43.51 (build 38.64), misses 107; block 1: wall 48.96 (build 44.18), misses 7
+      alt3  (6 forwards; the first per block dropped): block 0: wall 46.06 (build 40.88), misses 136; block 1: wall 43.85 (build 38.93), misses 9; block 2: wall 48.72 (build 43.47), misses 2
+      same2 (6 forwards; the first per block dropped): block 0: wall 48.47 (build 43.72), misses 0
+      MLX memory, live: active 36.42 -> 36.57, cache 0.987 -> 0.841, peak 36.71 GB
+      MLX memory, rep : active 36.58 -> 36.58, cache 0.842 -> 0.846, peak 36.59 GB
+      STEP 1b per piece, synced (ms; live check / its block replayed right after / again after the alternating forwards; live - replay): total 64.49 / 55.10 / 56.08
+        moe_pre     8.32 /    2.91 /    3.02    +5.41
+        experts    28.37 /   26.63 /   27.38    +1.73
+        gdn        11.15 /    9.51 /    9.74    +1.64
+        att         5.81 /    5.04 /    5.13    +0.77
+        hc_m        4.37 /    4.32 /    4.22    +0.05
+        hc_w        1.03 /    1.01 /    1.01    +0.02
+        layer       0.00 /    0.00 /    0.00    +0.00
+        hc_f        0.11 /    0.11 /    0.14    -0.00
+        ple         0.63 /    0.66 /    0.66    -0.03
+        hc_a        3.30 /    3.39 /    3.35    -0.09
+        moe         1.40 /    1.52 /    1.43    -0.11
+        layers with the largest live - replay: L41 +0.46, L19 +0.31, L44 +0.31, L25 +0.29, L34 +0.29, L35 +0.29
+        thread CPU per piece (ms; live / replay; live - replay): layer 32.58 / 27.93 (+4.65), moe 14.93 / 12.47 (+2.46), moe_pre 3.09 / 1.63 (+1.45), gdn 4.99 / 4.02 (+0.97), att 5.41 / 4.63 (+0.78), hc_m 2.72 / 2.54 (+0.18), hc_a 2.52 / 2.35 (+0.17), hc_w 1.29 / 1.25 (+0.05), ple 0.11 / 0.12 (-0.01), hc_f 0.08 / 0.08 (+0.00)
+        moe_pre per layer: live - replay wall median +0.115 ms, CPU median +0.030 ms -> ENCODE CONTENTION (CPU rises)
+  base: footprint now 37.7 GB, lifetime peak 38.6 GB
+=== arm keep
+== stepb_bstackF_224_s2f_keep_flat2.json (C 224; sync 0.134 ms)
+  pass 1 (cold, discarded)                     meas :  50 checks, rows 2-2, kept 2.00; draft 6.98, check+commit 46.16 (build 41.23, wait 4.55), misses 4506; GPU busy nan % over 8.8 s
+  stage pass                                   stage:  50 checks, rows 2-2, kept 2.00; draft 6.79, check+commit 32.57 (build 28.36, wait 3.60), misses 540; GPU busy nan % over 7.9 s
+  probe pass                                   probe:  50 checks, rows 2-2, kept 2.00; draft 6.79, check+commit 30.88 (build 26.91, wait 3.49), misses 139; GPU busy nan % over 7.9 s
+  real-block pass 1 (discarded)                meas :  12 checks, rows 13-16, kept 14.17; draft 8.84, check+commit 69.22 (build 60.82, wait 6.28), misses 1633; GPU busy nan % over 6.9 s
+  real-block pass 2                            meas :  12 checks, rows 13-16, kept 14.42; draft 7.39, check+commit 54.90 (build 47.13, wait 5.42), misses 322; GPU busy nan % over 6.7 s
+  real-block pass 3                            meas :  12 checks, rows 13-16, kept 14.42; draft 7.48, check+commit 51.66 (build 45.29, wait 5.07), misses 100; GPU busy nan % over 6.7 s
+  real-block commit pass                       stage:  12 checks, rows 12-16, kept 14.42; draft 7.20, check+commit 50.37 (build 43.75, wait 4.99), misses 164; GPU busy nan % over 6.7 s
+  real-block probe pass (S2c)                  probe:  12 checks, rows 13-16, kept 14.42; draft 7.26, check+commit 52.46 (build 45.42, wait 5.14), misses 315; GPU busy nan % over 8.4 s
+    S2C at check 6 (16 rows; previous blocks [16, 16, 13] rows):
+      same  (6 forwards; the first per block dropped): block 0: wall 47.66 (build 42.82), misses 0
+      alt2  (6 forwards; the first per block dropped): block 0: wall 43.28 (build 38.31), misses 107; block 1: wall 47.80 (build 42.98), misses 7
+      alt3  (6 forwards; the first per block dropped): block 0: wall 45.56 (build 40.34), misses 136; block 1: wall 43.50 (build 38.62), misses 9; block 2: wall 48.59 (build 43.36), misses 2
+      same2 (6 forwards; the first per block dropped): block 0: wall 48.11 (build 43.23), misses 0
+      MLX memory, live: active 36.54 -> 36.57, cache 0.846 -> 0.815, peak 36.71 GB
+      MLX memory, rep : active 36.58 -> 36.58, cache 0.816 -> 0.820, peak 36.59 GB
+      STEP 1b per piece, synced (ms; live check / its block replayed right after / again after the alternating forwards; live - replay): total 54.76 / 54.28 / 54.21
+        experts    26.96 /   26.54 /   26.85    +0.42
+        att         5.11 /    4.84 /    4.87    +0.26
+        gdn         9.43 /    9.42 /    9.28    +0.01
+        hc_a        3.21 /    3.20 /    3.19    +0.01
+        ple         0.66 /    0.65 /    0.63    +0.01
+        layer       0.00 /    0.00 /    0.00    +0.00
+        hc_f        0.10 /    0.11 /    0.10    -0.00
+        hc_m        4.28 /    4.28 /    4.18    -0.00
+        hc_w        0.87 /    0.88 /    1.11    -0.01
+        moe_pre     2.90 /    2.95 /    2.75    -0.05
+        moe         1.24 /    1.40 /    1.27    -0.16
+        layers with the largest live - replay: L41 +0.25, L7 +0.20, L15 +0.12, L47 +0.11, L23 +0.10, L29 +0.08
+        thread CPU per piece (ms; live / replay; live - replay): layer 28.09 / 27.61 (+0.48), moe 12.58 / 12.27 (+0.31), att 4.64 / 4.52 (+0.12), moe_pre 1.64 / 1.61 (+0.04), hc_a 2.39 / 2.36 (+0.03), gdn 3.96 / 3.98 (-0.02), ple 0.11 / 0.12 (-0.01), hc_m 2.53 / 2.53 (+0.01), hc_w 1.27 / 1.26 (+0.00), hc_f 0.08 / 0.08 (+0.00)
+        moe_pre per layer: live - replay wall median -0.002 ms, CPU median +0.001 ms -> neither line
+  keep: footprint now 37.9 GB, lifetime peak 39.4 GB
+11-07 01:26:36 gap_s2f end

@@ -1,0 +1,15 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=21.7 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'duprow': True, 'compiled_hc': 96, 'frspec': True, 'scout_bundle': {'sc2_sharedfirst': True, 'sc3b_vreadchunk_classes': 1, 'sc3_glue': {'qsa_rope': True, 'qsa_rope_idx': True}}}
+[bigmoe] tier 4433333333: C_m=147 C_l=46 per layer, 17.07 GB pools
+[prose] C=128 TL_PKG=main24min BIGMOE_TIER_PF_GROUP=64 BIGMOE_PF_NOLOGITS=1: 54 prompt tokens, time to first token 2.95 s (18 tok/s), decode 25.2 tok/s, sha a159046545 | footprint 22.6 GB, peak active 21.8 GB | pf {'grouped': 0, 'single': 0, 'fallback': 0, 'groups': 0, 't_read': 0.0, 't_sync': 0.0, 't_moe': 0.0, 'res_cold': 0, 'res_msb': 0, 'res_both': 0}
+[code] C=128 TL_PKG=main24min BIGMOE_TIER_PF_GROUP=64 BIGMOE_PF_NOLOGITS=1: 327 prompt tokens, time to first token 4.66 s (70 tok/s), decode 22.0 tok/s, sha ce5981c55d | footprint 22.6 GB, peak active 21.9 GB | pf {'grouped': 0, 'single': 0, 'fallback': 0, 'groups': 0, 't_read': 0.0, 't_sync': 0.0, 't_moe': 0.0, 'res_cold': 0, 'res_msb': 0, 'res_both': 0}
+[edit] C=128 TL_PKG=main24min BIGMOE_TIER_PF_GROUP=64 BIGMOE_PF_NOLOGITS=1: 346 prompt tokens, time to first token 4.87 s (71 tok/s), decode 19.0 tok/s, sha cd4289b64d | footprint 22.6 GB, peak active 21.9 GB | pf {'grouped': 0, 'single': 0, 'fallback': 0, 'groups': 0, 't_read': 0.0, 't_sync': 0.0, 't_moe': 0.0, 'res_cold': 0, 'res_msb': 0, 'res_both': 0}
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (64, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (48, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[f2k] C=128 TL_PKG=main24min BIGMOE_TIER_PF_GROUP=64 BIGMOE_PF_NOLOGITS=1: 2884 prompt tokens, time to first token 12.72 s (227 tok/s), decode 18.9 tok/s, sha 2a8ceccd01 | footprint 25.2 GB, peak active 23.7 GB | pf {'grouped': 0, 'single': 0, 'fallback': 0, 'groups': 0, 't_read': 0.0, 't_sync': 0.0, 't_moe': 0.0, 'res_cold': 0, 'res_msb': 0, 'res_both': 0}
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (61, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[f4k] C=128 TL_PKG=main24min BIGMOE_TIER_PF_GROUP=64 BIGMOE_PF_NOLOGITS=1: 5652 prompt tokens, time to first token 21.30 s (265 tok/s), decode 21.1 tok/s, sha eb7815003f | footprint 25.5 GB, peak active 24.1 GB | pf {'grouped': 0, 'single': 0, 'fallback': 0, 'groups': 0, 't_read': 0.0, 't_sync': 0.0, 't_moe': 0.0, 'res_cold': 0, 'res_msb': 0, 'res_both': 0}

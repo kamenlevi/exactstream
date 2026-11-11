@@ -1,0 +1,252 @@
+
+    constexpr int C = 10240, QK = 2048, HD = 128, VW = 6144, NHV = 48;
+    constexpr int PW = 2 * QK + VW + 2 * NHV;                // the pack's row: q | k | v | a | b
+    const int PN = (int)pn[0];                               // pending rows, 0 .. PMAX
+    const uint tid = thread_position_in_threadgroup.x;
+    const uint sg = tid / 32, lane = tid % 32;
+    const uint hv = threadgroup_position_in_grid.z;
+    const uint hk = hv / 3;
+    const bool own_qk = (hv % 3) == 0;                       // one writer per q / k channel
+    threadgroup T qs[(PMAX + S_C) * HD];
+    threadgroup T ks[(PMAX + S_C) * HD];
+    threadgroup T vs[(PMAX + S_C) * HD];
+    threadgroup T os[S_C * HD];
+#if GATES_IN
+    threadgroup float gt[PMAX + S_C];
+    threadgroup T bt[PMAX + S_C];
+    if (tid < (uint)S_C) {                                    // compute_g + sigmoid, once per (row, head)
+        const uint s = tid;
+        const T sx = a[s * NHV + hv] + dtb[hv];
+        const T sp = GbLogAddExp()(sx, static_cast<T>(0));
+        const float e = GbExp()(static_cast<float>(alog[hv]));
+        const float m = (-e) * static_cast<float>(sp);
+        gt[PN + s] = GbExp()(m);
+        bt[PN + s] = GbSigmoid()(b[s * NHV + hv]);
+        pack_out[s * PW + 2 * QK + VW + hv] = a[s * NHV + hv];
+        pack_out[s * PW + 2 * QK + VW + NHV + hv] = b[s * NHV + hv];
+    }
+    if (tid >= (uint)S_C && tid < (uint)(S_C + PN)) {
+        const uint s = tid - S_C;
+        const T sx = ppack[s * PW + 2 * QK + VW + hv] + dtb[hv];
+        const T sp = GbLogAddExp()(sx, static_cast<T>(0));
+        const float e = GbExp()(static_cast<float>(alog[hv]));
+        const float m = (-e) * static_cast<float>(sp);
+        gt[s] = GbExp()(m);
+        bt[s] = GbSigmoid()(ppack[s * PW + 2 * QK + VW + NHV + hv]);
+    }
+#endif
+
+    // ---- A0 (lazy commit): the previous check's kept rows -> rows 0 .. PN - 1 of qs / ks / vs ----
+    for (uint i = tid; i < (uint)PN * 384u; i += 32 * NSG) {
+        const uint s = i / 384, cc = i % 384, part = cc / HD, off = cc % HD;
+        if (part == 0) qs[s * HD + off] = ppack[s * PW + hk * HD + off];
+        else if (part == 1) ks[s * HD + off] = ppack[s * PW + QK + hk * HD + off];
+        else vs[s * HD + off] = ppack[s * PW + 2 * QK + hv * HD + off];
+    }
+
+    // ---- A: prework, every row (ms_gdn gdn_prework_exact's per-simdgroup body) ----
+    for (uint task = sg; task < (uint)(S_C * 3); task += NSG) {
+        const uint s = task / 3, part = task % 3;
+        const uint gch = part == 0 ? hk * HD : (part == 1 ? QK + hk * HD : 2 * QK + hv * HD);
+        const uint c0 = gch + lane * 4;
+        T sv[4];
+        for (int i = 0; i < 4; ++i) {
+            const uint c = c0 + i;
+            float acc = 0.0f;
+            for (int t = 0; t < 4; ++t) {
+                const int st = (int)s + t;
+                const float xv = st < 3 ? (float)state[st * C + c] : (float)qkv[(st - 3) * C + c];
+                acc = acc + (float)cw[c * 4 + t] * xv;
+            }
+            const T co = static_cast<T>(acc);
+            sv[i] = TgMultiply()(co, TgSigmoid()(co));
+        }
+        if (part == 2) {
+            for (int i = 0; i < 4; ++i) {
+                vs[(PN + s) * HD + lane * 4 + i] = sv[i];
+                v_out[s * VW + hv * HD + lane * 4 + i] = sv[i];
+                pack_out[s * PW + 2 * QK + hv * HD + lane * 4 + i] = sv[i];
+            }
+        } else {
+            float xf[4], p = 0.0f;
+            for (int i = 0; i < 4; ++i) xf[i] = (float)sv[i];
+            for (int i = 0; i < 4; ++i) { const float sq = xf[i] * xf[i]; p += sq; }
+            const float tot = simd_sum(p);
+            const float r = metal::precise::rsqrt(tot + 1e-6f);
+            for (int i = 0; i < 4; ++i) {
+                const T nb = static_cast<T>(xf[i] * r);
+                if (part == 0) {
+                    const T qv = TgMultiply()(scale[0], nb);
+                    qs[(PN + s) * HD + lane * 4 + i] = qv;
+                    if (own_qk) q_out[s * QK + hk * HD + lane * 4 + i] = qv;
+                    if (own_qk) pack_out[s * PW + hk * HD + lane * 4 + i] = qv;
+                } else {
+                    ks[(PN + s) * HD + lane * 4 + i] = nb;
+                    if (own_qk) k_out[s * QK + hk * HD + lane * 4 + i] = nb;
+                    if (own_qk) pack_out[s * PW + QK + hk * HD + lane * 4 + i] = nb;
+                }
+            }
+        }
+    }
+    // the new conv state: rows S, S + 1, S + 2 of [state; qkv] for this head's channels
+    for (uint i = tid; i < 3u * 384u; i += 32 * NSG) {
+        const uint j = i / 384, cc = i % 384, part = cc / HD, off = cc % HD;
+        if (part < 2 && !own_qk) continue;
+        const uint c = (part == 0 ? hk * HD : (part == 1 ? QK + hk * HD : 2 * QK + hv * HD)) + off;
+        const int st = S_C + (int)j;
+        state_out[j * C + c] = st < 3 ? state[st * C + c] : qkv[(st - 3) * C + c];
+    }
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+
+    // ---- B: the recurrence, rows in order (mlx_lm gated_delta_step's loop body, verbatim per state row) ----
+    constexpr int RPS = HD / NSG;                             // state rows per simdgroup: dv = sg + NSG j
+    float sr[RPS][4];
+    for (int j = 0; j < RPS; ++j) {
+        const uint base = (hv * HD + sg + NSG * j) * HD + lane * 4;
+        for (int i = 0; i < 4; ++i) sr[j][i] = static_cast<float>(dstate[base + i]);
+    }
+    for (int s = 0; s < PN; ++s) {                           // B0: the pending rows, state only
+        const threadgroup T* k_ = ks + s * HD;
+        const threadgroup T* q_ = qs + s * HD;
+#if GATES_IN
+        const float gv = gt[s];
+        const T bv = bt[s];
+#else
+        const float gv = g[s * NHV + hv];
+        const T bv = beta[s * NHV + hv];
+#endif
+#if G3_C
+        // G3: the same per-element operations, the RPS rows' chains interleaved (decay + dot, reductions, deltas,
+        // update + dot, reductions), so RPS independent chains are in flight per step
+        float kvm[RPS], dl[RPS], ov[RPS];
+        for (int j = 0; j < RPS; ++j) {
+            kvm[j] = 0.0f;
+            for (int i = 0; i < 4; ++i) {
+                auto s_idx = 4 * lane + i;
+                sr[j][i] = sr[j][i] * gv;
+                kvm[j] += sr[j][i] * k_[s_idx];
+            }
+        }
+        for (int j = 0; j < RPS; ++j) kvm[j] = simd_sum(kvm[j]);
+        for (int j = 0; j < RPS; ++j) {
+            auto delta = (vs[s * HD + sg + NSG * j] - kvm[j]) * bv;
+            dl[j] = delta;
+        }
+        for (int j = 0; j < RPS; ++j) {
+            ov[j] = 0.0f;
+            for (int i = 0; i < 4; ++i) {
+                auto s_idx = 4 * lane + i;
+                sr[j][i] = sr[j][i] + k_[s_idx] * dl[j];
+                ov[j] += sr[j][i] * q_[s_idx];
+            }
+        }
+        for (int j = 0; j < RPS; ++j) ov[j] = simd_sum(ov[j]);
+#else
+        for (int j = 0; j < RPS; ++j) {
+            const uint dv_idx = sg + NSG * j;
+            float kv_mem = 0.0f;
+            for (int i = 0; i < 4; ++i) {
+                auto s_idx = 4 * lane + i;
+                sr[j][i] = sr[j][i] * gv;
+                kv_mem += sr[j][i] * k_[s_idx];
+            }
+            kv_mem = simd_sum(kv_mem);
+
+            auto delta = (vs[s * HD + dv_idx] - kv_mem) * bv;
+
+            float out = 0.0f;
+            for (int i = 0; i < 4; ++i) {
+                auto s_idx = 4 * lane + i;
+                sr[j][i] = sr[j][i] + k_[s_idx] * delta;
+                out += sr[j][i] * q_[s_idx];
+            }
+            out = simd_sum(out);
+        }
+#endif
+    }
+    for (int j = 0; j < RPS; ++j) {                           // the committed state, written once
+        const uint base = (hv * HD + sg + NSG * j) * HD + lane * 4;
+        for (int i = 0; i < 4; ++i) dstate_out[base + i] = static_cast<float>(sr[j][i]);
+    }
+    for (int sn = 0; sn < S_C; ++sn) {                       // B: the new rows (the end state is not written)
+        const int s = PN + sn;
+        const threadgroup T* k_ = ks + s * HD;
+        const threadgroup T* q_ = qs + s * HD;
+#if GATES_IN
+        const float gv = gt[s];
+        const T bv = bt[s];
+#else
+        const float gv = g[s * NHV + hv];
+        const T bv = beta[s * NHV + hv];
+#endif
+#if G3_C
+        // G3: the same per-element operations, the RPS rows' chains interleaved (decay + dot, reductions, deltas,
+        // update + dot, reductions), so RPS independent chains are in flight per step
+        float kvm[RPS], dl[RPS], ov[RPS];
+        for (int j = 0; j < RPS; ++j) {
+            kvm[j] = 0.0f;
+            for (int i = 0; i < 4; ++i) {
+                auto s_idx = 4 * lane + i;
+                sr[j][i] = sr[j][i] * gv;
+                kvm[j] += sr[j][i] * k_[s_idx];
+            }
+        }
+        for (int j = 0; j < RPS; ++j) kvm[j] = simd_sum(kvm[j]);
+        for (int j = 0; j < RPS; ++j) {
+            auto delta = (vs[s * HD + sg + NSG * j] - kvm[j]) * bv;
+            dl[j] = delta;
+        }
+        for (int j = 0; j < RPS; ++j) {
+            ov[j] = 0.0f;
+            for (int i = 0; i < 4; ++i) {
+                auto s_idx = 4 * lane + i;
+                sr[j][i] = sr[j][i] + k_[s_idx] * dl[j];
+                ov[j] += sr[j][i] * q_[s_idx];
+            }
+        }
+        for (int j = 0; j < RPS; ++j) ov[j] = simd_sum(ov[j]);
+        if (lane == 0) {
+            for (int j = 0; j < RPS; ++j) os[sn * HD + sg + NSG * j] = static_cast<T>(ov[j]);
+        }
+#else
+        for (int j = 0; j < RPS; ++j) {
+            const uint dv_idx = sg + NSG * j;
+            float kv_mem = 0.0f;
+            for (int i = 0; i < 4; ++i) {
+                auto s_idx = 4 * lane + i;
+                sr[j][i] = sr[j][i] * gv;
+                kv_mem += sr[j][i] * k_[s_idx];
+            }
+            kv_mem = simd_sum(kv_mem);
+
+            auto delta = (vs[s * HD + dv_idx] - kv_mem) * bv;
+
+            float out = 0.0f;
+            for (int i = 0; i < 4; ++i) {
+                auto s_idx = 4 * lane + i;
+                sr[j][i] = sr[j][i] + k_[s_idx] * delta;
+                out += sr[j][i] * q_[s_idx];
+            }
+            out = simd_sum(out);
+            if (lane == 0) {
+                os[sn * HD + dv_idx] = static_cast<T>(out);
+            }
+        }
+#endif
+    }
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+
+    // ---- C: the gated norm, every row (ms_gdn gated_norm_exact's body) ----
+    for (uint s = sg; s < (uint)S_C; s += NSG) {
+        float acc = 0.0f;
+        float hv4[4];
+        for (int i = 0; i < 4; ++i) { hv4[i] = (float)os[s * HD + lane * 4 + i]; acc += hv4[i] * hv4[i]; }
+        acc = simd_sum(acc);
+        const float inv = metal::precise::rsqrt(acc / 128.0f + epsv[0]);
+        for (int i = 0; i < 4; ++i) {
+            const T xn = static_cast<T>(hv4[i] * inv);
+            const T xw = TgMultiply()(w[lane * 4 + i], xn);
+            const float gt = TgSigmoid()((float)z[s * VW + hv * HD + lane * 4 + i]);
+            y[s * VW + hv * HD + lane * 4 + i] = static_cast<T>(gt * (float)xw);
+        }
+    }

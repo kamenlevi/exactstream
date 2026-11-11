@@ -1,0 +1,19 @@
+B6 FATT16-S screen Tue 01:47 (quiet lock)
+1a. fatt16s: |err| vs fp64 max 1.25e-02 mean 1.75e-03
+1a. fatt16: |err| vs fp64 max 1.26e-02 mean 1.78e-03
+1a. MLX one call: |err| vs fp64 max 1.53e-02 mean 2.29e-03
+1b. INV N 2000 R 16: (a) PASS, (b) PASS, (c) PASS, (d) PASS -> PASS
+1b. INV N 2000 R 8: (a) PASS, (b) PASS, (c) PASS, (d) PASS, (e) PASS -> PASS
+1b. INV N 10000 R 16: (a) PASS, (b) PASS, (c) PASS, (d) PASS -> PASS
+1b. INV N 10000 R 8: (a) PASS, (b) PASS, (c) PASS, (d) PASS, (e) PASS -> PASS
+1b. INV N 20000 R 16: (a) PASS, (b) PASS, (c) PASS, (d) PASS -> PASS
+1b. INV N 20000 R 8: (a) PASS, (b) PASS, (c) PASS, (d) PASS, (e) PASS -> PASS
+1c. N 2000 (selection mask): 12 chunks 0.349, one call 0.106, fatt16 0.114, fatt16s KS 4 0.135, fatt16s KS 2 0.120, fatt16s KS 8 0.219 ms per call; fatt16s KS 4 2.59x vs the 12 chunks, 0.85x vs fatt16
+1c. N 10000 (selection mask): 12 chunks 1.065, one call 0.486, fatt16 0.523, fatt16s KS 4 0.517, fatt16s KS 2 0.535, fatt16s KS 8 0.652 ms per call; fatt16s KS 4 2.06x vs the 12 chunks, 1.01x vs fatt16
+1c. N 10000 R 8: fatt16s KS 4 0.311 ms per call = 1.66x faster than R 16
+1c. N 20000 (selection mask): 12 chunks 1.534, one call 1.153, fatt16 1.040, fatt16s KS 4 0.991, fatt16s KS 2 1.064, fatt16s KS 8 1.200 ms per call; fatt16s KS 4 1.55x vs the 12 chunks, 1.05x vs fatt16
+2. T0 2000: ms per 16-row layer call ref2t 0.846, single 0.484, fatt16 1.056, fs4 0.479, fs2 0.524, fs8 0.548; fs4 1.77x vs ref2t here (2.19x vs R-81's 1.05), 1.01x vs single; y vs ref2t mean |diff| / RMS single 3.5e-07, fatt16 2.4e-03, fs4 2.4e-03, fs2 2.4e-03, fs8 2.4e-03; SDPA taken {'ref2t': 'ref2', 'single': 'ref2', 'fatt16': 'fatt', 'fs4': 'fatt', 'fs2': 'fatt', 'fs8': 'fatt'}
+2. T0 10000: ms per 16-row layer call ref2t 1.936, single 1.305, fatt16 4.623, fs4 1.141, fs2 1.163, fs8 1.147; fs4 1.70x vs ref2t here (1.78x vs R-81's 2.03), 1.14x vs single; y vs ref2t mean |diff| / RMS single 1.8e-06, fatt16 2.2e-03, fs4 2.2e-03, fs2 2.2e-03, fs8 2.2e-03; SDPA taken {'ref2t': 'ref2', 'single': 'ref2', 'fatt16': 'fatt', 'fs4': 'fatt', 'fs2': 'fatt', 'fs8': 'fatt'}
+2. T0 10000, 8-row calls: fs4 (R 8) 1.233 ms vs its 16-row call 1.141 (0.93x); ref2t at 8 rows 1.922
+2. T0 20000: ms per 16-row layer call ref2t 2.838, single 2.342, fatt16 9.159, fs4 1.851, fs2 2.336, fs8 1.957; fs4 1.53x vs ref2t here (1.67x vs R-81's 3.1), 1.26x vs single; y vs ref2t mean |diff| / RMS single 2.1e-06, fatt16 2.3e-03, fs4 2.3e-03, fs2 2.3e-03, fs8 2.3e-03; SDPA taken {'ref2t': 'ref2', 'single': 'ref2', 'fatt16': 'fatt', 'fs4': 'fatt', 'fs2': 'fatt', 'fs8': 'fatt'}
+B6 verdict (INV PASS; fs4 vs ref2t at 10K 1.70x; PASS >= 3x, KILL < 1.5x): BETWEEN

@@ -1,0 +1,5 @@
+layer 0: 19 tensors loaded; modules ['A_log', 'conv1d', 'dt_bias', 'in_proj_a', 'in_proj_b', 'in_proj_qkv', 'in_proj_z', 'norm', 'out_proj']
+wiring: built True, gdn_inproj calls 2 (after the first 16-row call), counts {'qmm16c': 85, 'mlx16': 34, 'linear': 0, 'hc_read': 0, 'hc_eager16': 0, 'attention': 0, 'experts': 0, 'slot_calls': 0, 'sdpa_split': 0, 'kb_pad': 0, 'tier_calls': 0, 'gdnx': 34, 'nax4': 0, 'att_single': 0, 'gdn_inproj': 19}
+INV with the switch on: 16-row y == 16 one-row calls PASS; conv + recurrent state PASS
+switch off (REF2-T) INV control: y True, state True; on vs off: y outputs differing 0.4512
+R-71b GDN-layer INV: PASS

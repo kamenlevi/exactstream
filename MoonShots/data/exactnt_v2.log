@@ -1,0 +1,36 @@
+start Sun Nov  1 09:58:52 EET 2026
+M-15 EXACT-NT: R-61N's chat chain (block 16, L1-20 + cand21's selector at t 0.0, teacher-forced on D-02a), 6145 blocks from 54 answers; fresh T at every position (0 s)
+self-check: the chain's depth-1 token == fresh T at the same position in 6021 / 6145 blocks (97.98 %); captured top-1 == the greedy text in 73.98 % of blocks; T outside the 125B's top-32 where it could matter: 0 positions
+positions where the text token != the capture's top-1: 1954 / 89680 (2.18 %); the replay treats the text token as the greedy one (R-61N's convention)
+first misses 6099: block token == fresh T at 53.8 % (depth 1: 97.1 % of 2691; depth >= 2: 19.7 % of 3408); fresh T == the text token (the fresh block would have hit) at 27.3 %
+
+== chat (ifeval + multi): 6145 blocks; exact greedy tokens per pass 2.23
+   rho   rule        forgiven  rule-made misses / block  tokens per pass LB        MOD
+   0.5   R-61N        8.8 %        0.000              2.32 ( +3.9 %)  2.46 (+10.1 %)
+   0.5   EXACT-NT     6.8 %        0.011              2.28 ( +2.1 %)  2.38 ( +6.6 %)
+   0.25  R-61N       17.7 %        0.000              2.41 ( +7.8 %)  2.74 (+22.9 %)
+   0.25  EXACT-NT    13.1 %        0.017              2.33 ( +4.5 %)  2.54 (+14.0 %)
+   0.1   R-61N       26.7 %        0.000              2.49 (+11.8 %)  3.10 (+38.8 %)
+   0.1   EXACT-NT    19.1 %        0.023              2.38 ( +6.7 %)  2.73 (+22.2 %)
+
+== ifeval: 2850 blocks; exact greedy tokens per pass 2.44
+   rho   rule        forgiven  rule-made misses / block  tokens per pass LB        MOD
+   0.5   R-61N       11.6 %        0.000              2.55 ( +4.6 %)  2.77 (+13.4 %)
+   0.5   EXACT-NT     9.0 %        0.014              2.51 ( +2.7 %)  2.66 ( +9.0 %)
+   0.25  R-61N       23.7 %        0.000              2.67 ( +9.5 %)  3.22 (+32.1 %)
+   0.25  EXACT-NT    17.4 %        0.020              2.58 ( +5.7 %)  2.92 (+19.6 %)
+   0.1   R-61N       35.1 %        0.000              2.78 (+14.2 %)  3.81 (+56.1 %)
+   0.1   EXACT-NT    24.6 %        0.029              2.64 ( +8.1 %)  3.18 (+30.4 %)
+
+== multi: 3295 blocks; exact greedy tokens per pass 2.05
+   rho   rule        forgiven  rule-made misses / block  tokens per pass LB        MOD
+   0.5   R-61N        6.3 %        0.000              2.11 ( +3.1 %)  2.20 ( +7.1 %)
+   0.5   EXACT-NT     4.9 %        0.008              2.08 ( +1.5 %)  2.14 ( +4.5 %)
+   0.25  R-61N       12.6 %        0.000              2.18 ( +6.1 %)  2.36 (+15.1 %)
+   0.25  EXACT-NT     9.4 %        0.015              2.12 ( +3.2 %)  2.24 ( +9.3 %)
+   0.1   R-61N       19.6 %        0.000              2.24 ( +9.4 %)  2.57 (+25.3 %)
+   0.1   EXACT-NT    14.3 %        0.019              2.16 ( +5.2 %)  2.36 (+15.2 %)
+
+Lines (QUEUE M-15): EXACT-NT chat MOD at rho 0.25 +14.0 % (PASS >= +15 %, KILL < +8 %) -> BETWEEN. The rule is a served-model change (strict gate + Kamen); the loop stays bit-exact vs its own AR decode.
+(11 s)
+done rc 0 Sun Nov  1 09:59:03 EET 2026

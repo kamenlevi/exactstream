@@ -1,0 +1,1893 @@
+Here are several Python scripts from one repository. List what each does in one line.
+
+### bt_b12.py
+"""B12 (NewIdeas' PLAN_B candidate for one Eval suite decode verdict, Breakthrough 2026-10-21): frugal routing at ~10 % on
+BigMoE's v3 tier engine, in a pinned copy (~/Breakthrough/v3f = BigMoE 7b8c7b4 bigmoe/ + ext/ as bigmoe_v3f, plus a
+flag-mode loader: bit 20 = read and wait, bit 21 = late-eligible, unflagged = used only if resident; tierglu.py and hc8.py
+pinned from MoonShots). Levers, each an env switch so the suite can run B12 minus one without a rebuild:
+  B12_CM=51 B12_CL=20   MSB-3 base slots / LSB-1 sidecar slots per layer (plan 4433333333: ranks 0-1 at 4 bits, the rest
+                        MSB-3; RAM ~ 48 x (CM x 2.15 + CL x 0.77) MB). Default CM = round(FRAC x 512).
+  frugal (always)       router top-20 by score; ranks 0-1 read and waited for; the first 10 resident in rank order are
+                        used (missing ranks 2-9 -> resident ranks 10-19), weights renormalised over those 10 (w2f).
+  B12_HC=4 | 8 | 0      hyper-connection mixers (+ PLE K/V) quantised to 4 / 8 bits (MoonShots' patches/hc8); default 8
+                        (8-bit: KLD +0.0000 hard / +0.0001 easy, -0.62 GB, not slower; 4-bit: +0.024 hard. Quantised mixers turn
+                        BigMoE's HC fusions off; B12_HC=0 = bf16 mixers with the compiled HC).
+  B12_LATE1=1 | 0       (default 0: no speed gain on v3) wait for rank 0 only; a rank 1 with either record part cold is read after phase A and its output
+                        (on layer L's MoE input, rank 1's renormalised weight, at 4 bits) is written into the HC streams
+                        after layer L+1's attention, before its MLP read (tf_frugal_var.py l1t2); default 1.
+  B12_PF=1 [B12_SPARE=4] prefetch arm 1 (NewIdeas I8): layer L+1's corrected d=1 top-2 per row posted on L's base and
+                        sidecar rows (both record parts), prefetched after L's demand reads (non-JIT), spares from C.
+  B12_PRE=1 | 0         TrainLab's pre-routed frugal (replaces late rank 1; default 0 until validated): in layers 8-39
+                        (B12_PRE_BAND) the two waited (4-bit) experts are layer L's router + MoEPrefetch's correction
+                        on layer L-1's MoE input, top-2; the rest = the true router's best outside them, resident only;
+                        weights = the TRUE router's probabilities over the chosen 10, renormalised. Here the pre-picks
+                        ride in layer L's own row (quality-faithful; the one-layer slack needs an early post).
+  B12_LATE3=2,4         "B8" (NewIdeas): MSB-3 ranks 2-3, when cold, are read after phase A and added half a layer
+                        late (base pool only, BIGMOE_DEFER = 2 pairs); with FRAC 0.05 = B8 (frugal 5 % on v3).
+Agreed configs (NewIdeas 22:05, HC8 default from 01:00): B12 = load_b12(0.10) with the defaults (8-bit mixers, no late);
+  B8 = load_b12(0.05) with B12_LATE3=2,4; B8-fast = load_b12(0.05) with B12_W=3 (wait for ranks 0-2, no phase B).
+Decode 1-row calls take this path; prefill and multi-row calls stay v3's exact paths. Note: the compiled module is named
+bigmoe_ext like BigMoE's: import nothing from ~/BigMoE/bigmoe in the same process.
+API (Eval suite): load_b12(frac=0.10) -> (rt, st).   CLI: bt_b12.py FRAC speed (PROMPT code|prose, BT_N) | check | gsmN"""
+import glob, hashlib, json, os, re, sys, time
+
+V3F = os.path.expanduser("~/Breakthrough/v3f")
+K, KC = 10, 20
+STASH, PENDH = {}, {}
+CFG = {}
+
+
+def _env():
+    os.environ.setdefault("MTPLX_NGRAM_PREWARM", "off")
+    for k in ("MTPLX_COMPILED_VERIFY", "MTPLX_QWEN4EXP_COMPILE", "MTPLX_COMPILE_AR_FORWARD", "MTPLX_COMPILED_TARGET_PREFIX"):
+        os.environ.setdefault(k, "0")
+    os.environ["BIGMOE_TIER"] = "4433333333"
+    os.environ.setdefault("BIGMOE_TIER_GLU", "3c")
+    os.environ["BIGMOE_SPARE"] = str(CFG["spare"]) if CFG["pf"] else "0"   # frugal: no background reads, unless B12_PF
+    os.environ.pop("BIGMOE_PF_JIT", None)            # the loader turns JIT on if the variable exists at all
+    os.environ["BIGMOE_PF_NOPUBLISH"] = "1"
+    os.environ["BIGMOE_DEFER"] = str(CFG["l3"][1] - CFG["l3"][0]) if CFG["l3"] else ("1" if CFG["late1"] else "0")   # pairs
+
+
+def load_b12(frac=0.10, mtp=False):
+    cm = int(os.environ.get("B12_CM", "0")) or round(frac * 512)
+    CFG.update(frac=frac, hc=int(os.environ.get("B12_HC", "8")), late1=os.environ.get("B12_LATE1", "0") == "1",
+               cm=cm, cl=int(os.environ.get("B12_CL", "0")) or round(0.4 * cm),
+               pre=os.environ.get("B12_PRE", "0") == "1",
+               band=tuple(int(v) for v in os.environ.get("B12_PRE_BAND", "8,40").split(",")),
+               l3=tuple(int(v) for v in os.environ["B12_LATE3"].split(",")) if os.environ.get("B12_LATE3") else None,
+               w=int(os.environ.get("B12_W", "2")),
+               pf=os.environ.get("B12_PF") == "1", spare=int(os.environ.get("B12_SPARE", "4")))
+    assert CFG["w"] >= 2 and (not CFG["l3"] or CFG["l3"][0] >= CFG["w"]), (CFG["w"], CFG["l3"])
+    if CFG["pre"]:
+        CFG["late1"] = False                         # pre-routing replaces late rank 1 (both decide the waited pair)
+    if CFG["l3"]:                                    # B8: MSB-3 ranks A..B-1 late (base pool only); not with late rank 1
+        assert CFG["l3"][0] >= 2 and CFG["l3"][1] > CFG["l3"][0] and not CFG["late1"], CFG["l3"]
+    _env()
+    os.environ["BIGMOE_TIER_CM"], os.environ["BIGMOE_TIER_CL"] = str(CFG["cm"]), str(CFG["cl"])
+    if CFG["hc"]:     # hc8 swaps the mixers for quantised ones: MTPLX's eager HC path only (hc8.py: not with BigMoE's HC
+        for k in ("BIGMOE_COMPILE_HC", "BIGMOE_HC_VREAD", "BIGMOE_HC_PACK"):   # fusions; COMPILE_HC's kernels expect
+            os.environ[k] = "0"                                                  # bf16 mixers: Metal build error)
+    if V3F not in sys.path:
+        sys.path.insert(0, V3F)
+    import mlx.core as mx
+    from bigmoe_v3f.loader import load_streamed
+    from bigmoe_v3f import tier as T
+    md = os.path.expanduser("~/BigMoE/models/bare")
+    cfg = json.load(open(os.path.join(md, "config.json"))); cfg = cfg.get("text_config", cfg)
+    NL = cfg["num_hidden_layers"]
+    rt, st = load_streamed(md, CFG["cm"], mtp=mtp)
+    model = rt.model if hasattr(rt, "model") else rt
+    TM = model.language_model.model if hasattr(model, "language_model") else model.model
+    for i, l in enumerate(TM.layers):
+        l._b12_L = i                                  # layer index for the late writes (layer_call)
+    CFG["routers"] = [l.mlp.gate for l in TM.layers]   # B12_PRE: layer L+1's router, applied at layer L
+    if CFG["hc"]:
+        import hc8                                   # v3f/hc8.py (MoonShots 3055bf7)
+        print("b12: hc", hc8.install(model, bits=CFG["hc"]), flush=True)
+        mx.clear_cache()
+    _install(mx, T, NL)
+    if os.environ.get("B12_CACHE_MB"):                # cap MLX's buffer cache AFTER loading (MTPLX's memory plan sets
+        mx.set_cache_limit(int(os.environ["B12_CACHE_MB"]) << 20)   # its own at load); freed buffers count as RAM
+    print(f"b12: C_m={CFG['cm']} C_l={CFG['cl']} ({100 * CFG['cm'] / 512:.0f} %), HC {CFG['hc'] or 'bf16'}, late rank 1 "
+          f"{'on' if CFG['late1'] else 'off'}, late MSB-3 ranks {CFG['l3'] or 'none'}, pools {st.resident_gb():.2f} GB, "
+          f"active {mx.get_active_memory() / 1e9:.2f} GB",
+          flush=True)
+    return rt, st
+
+
+def _install(mx, T, NL):
+    from mtplx.models import qwen4_exp as Q
+    from mtplx.models.qwen4_exp import _hyper_residual_write
+    from mtplx.attention_context import current_attention_phase
+    from mtplx.attention_math import attention_gate
+    TG = T._tier_glu()
+    orig = Q.SparseMoeBlock.__call__                 # v3's tier block (prefill, multi-row): installed by load_streamed
+    R = mx.arange(KC)
+    W20, L21 = 1 << 20, 1 << 21
+    PREP, CORR, ROUT = {}, [], []
+    R22 = mx.arange(KC + 2)
+    FL22 = mx.where(R22 < 2, W20, 0).astype(mx.int32)[None]          # pre-routed rows: the two pre-picks waited
+    if CFG["pre"] or CFG["pf"]:                      # layer L+1's routers + MoEPrefetch's d=1 correction (source-indexed)
+        import numpy as np
+        z = np.load(os.path.expanduser(os.environ.get("BIGMOE_PF_CORR", "~/MoEPrefetch/data/corr125_r128.npz")))
+        CORR = [(mx.array(z["A"][i]), mx.array(z["B"][i]), mx.array(z["mu"][i]), mx.array(z["delta"][i]))
+                for i in range(z["A"].shape[0])]
+        ROUT = CFG["routers"]
+    A3, B3 = CFG["l3"] or (0, 0)
+    W = CFG["w"]                                                      # B12_W: ranks < W read and waited for (default 2)
+    FL = mx.where(R == 0, W20, mx.where(R == 1, L21 if CFG["late1"] else W20,
+                                        mx.where(R < W, W20, mx.where((R >= A3) & (R < B3), L21, 0)))).astype(mx.int32)[None]
+    NF = max(2, B3, W)                                                # ranks 0..NF-1 always among the 10 used
+    FL_MR = mx.where(R < NF, W20, 0).astype(mx.int32)[None]          # verify rows: every forced rank waited
+    from bigmoe_v3f.gated import MAXK
+    SMAX = MAXK // KC                                                 # rows per call on the frugal path
+    FL_ALL = mx.where(R < max(2, B3, CFG["w"]), W20, 0).astype(mx.int32)[None]   # last layer: nothing late, all forced waited
+    WK_M, WK_L = 255 | (K << 8), 255 | (2 << 8)                       # flag mode; LRU-touch ranks < 10 / < 2
+
+    def late3_fn(x2, wl, sml, dep_m, n_m, t, gate, L):
+        """B8: the late MSB-3 ranks A3..B3-1 of layer L (base pool only), after layer L+1's attention."""
+        Mp = B3 - A3
+
+        def f(after):
+            o = mx.isnan(after.reshape(-1)[:1]).astype(mx.int32) * 0
+            pr = gate.spin(mx.concatenate([dep_m[:1] + o, mx.array([n_m, 0] * Mp, mx.int32)]), L, 2 * Mp, phase=1)
+            p, s = pr[0::2], pr[1::2]                                 # (position, slot) pairs; pads (n, 0)
+            match = p[None, :] == mx.arange(A3, B3)[:, None]          # [late ranks, pairs]
+            sl_late = mx.where(match, s[None, :], 0).sum(axis=-1)     # each late rank's slot (0 if it was resident)
+            ms = mx.where(sml[0] >= 0, sml[0], sl_late)[None]         # resident at phase A: weight 0 here anyway
+            return TG(x2, t["base"], t["sideP"], ms, None, plan="3" * Mp, scores=wl).reshape(1, 1, -1)
+        return f
+
+    def late_fn(x2, wl, sm1, sl1, dep_m, dep_l, n_m, n_l, t, gate, L):
+        def f(after):                                                 # spins ordered after layer L+1's attention
+            o = mx.isnan(after.reshape(-1)[:1]).astype(mx.int32) * 0
+            pm = gate.spin(mx.concatenate([dep_m[:1] + o, mx.array([n_m, 0], mx.int32)]), L, 2, phase=1)
+            pl = gate.spin(mx.concatenate([dep_l[:1] + o, mx.array([n_l, 0], mx.int32)]), t["side"], 2, phase=1)
+            ms = mx.where(sm1 >= 0, sm1, pm[1:2].reshape(1, 1))       # each record part: phase A's slot if it was in,
+            ls = mx.where(sl1 >= 0, sl1, pl[1:2].reshape(1, 1))       # else the late read's
+            return TG(x2, t["base"], t["sideP"], ms, ls, plan="4", scores=wl).reshape(1, 1, -1)   # weight 0 unless late
+        return f
+
+    def pre_routed(x, x2, gates, ids, pre, L, t, gate):
+        """B12_PRE: the pre-picked pair (read and waited, 4-bit), then the true router's best resident outside it."""
+        row = mx.concatenate([pre, ids], axis=-1)                     # [1, 22]: pre-picks, then the true top-20
+        dep_m, n_m = gate.post(L, row | FL22, wk=WK_M)
+        dep_l, n_l = gate.post(t["side"], pre | FL22[:, :2], wk=WK_L)
+        sm = gate.spin(dep_m, L, n_m).reshape(1, KC + 2)
+        sl = gate.spin(dep_l, t["side"], n_l).reshape(1, 2)
+        dup = (ids == pre[:, 0:1]) | (ids == pre[:, 1:2])             # a pre-pick also in the true top-20: used once
+        pool = (sm[:, 2:] >= 0) & ~dup
+        selr = pool & (mx.cumsum(pool.astype(mx.int32), axis=-1) <= K - 2)
+        sel = mx.concatenate([mx.ones((1, 2), mx.bool_), selr], axis=-1)
+        pos = mx.argsort(mx.where(sel, R22, R22 + 1000), axis=-1)[:, :K]
+        used = mx.take_along_axis(sel, pos, axis=-1)
+        s10 = mx.where(used, mx.take_along_axis(sm, pos, axis=-1), sm[:, :1])
+        ids10 = mx.take_along_axis(row, pos, axis=-1)
+        w10 = mx.where(used, mx.take_along_axis(gates, ids10, axis=-1), 0.0)   # the TRUE router's probabilities
+        w10 = w10 / w10.sum(axis=-1, keepdims=True)
+        y = TG(x2, t["base"], t["sideP"], s10, sl, plan="".join(T.PLAN), scores=w10)
+        return y.reshape(*x.shape[:-1], y.shape[-1])
+
+    def block(self, x):
+        bm = getattr(self.switch_mlp, "_bm", None)
+        S = x.shape[-2] if x.ndim == 3 else 0
+        if bm is None or "tier" not in bm or x.ndim != 3 or x.shape[0] != 1 or not 1 <= S <= SMAX:
+            return orig(self, x)                                      # prefill / long verify: v3's exact tier paths
+        L, t, gate = bm["L"], bm["tier"], bm["gate"]
+        if L == bm["first"]:
+            gate.new_pass()
+        ae = bm.get("async_every", 0)
+        if ae and L % ae == ae - 1:
+            mx.async_eval(x)
+        if current_attention_phase() == "decode_verify":             # v3's shared-expert form per phase (numerics)
+            shared = attention_gate(self.shared_expert(x), self.shared_expert_gate(x))
+        else:
+            shared = mx.sigmoid(self.shared_expert_gate(x)) * self.shared_expert(x)
+        x2 = x.reshape(S, x.shape[-1])
+        gates = mx.softmax(self.gate(x2), axis=-1, precise=True)
+        inds = mx.argpartition(gates, kth=-KC, axis=-1)[..., -KC:]
+        sc = mx.take_along_axis(gates, inds, axis=-1)
+        o = mx.argsort(-sc, axis=-1)
+        ids = mx.take_along_axis(inds, o, axis=-1).astype(mx.int32)   # [S, 20] rank order per row
+        p20 = mx.take_along_axis(sc, o, axis=-1)
+        if CFG["pre"] and S == 1:
+            b0, b1 = CFG["band"]
+            if b0 <= L + 1 < b1 and L < len(CORR):                    # pick layer L+1's waited pair from this input
+                A, Bm, mu, dl = CORR[L]
+                x32 = x2.astype(mx.float32)
+                lg = ROUT[L + 1](x2).astype(mx.float32) + ((x32 - mu) @ A.astype(mx.float32)) @ Bm.astype(mx.float32) + dl
+                PREP[L + 1] = mx.argpartition(-lg, kth=1, axis=-1)[:, :2].astype(mx.int32)   # [1, 2]
+            pre = PREP.pop(L, None)
+            if pre is not None:
+                return pre_routed(x, x2, gates, ids, pre, L, t, gate) + shared
+        last = L == NL - 1
+        one = S == 1
+        fl = (FL_ALL if last else FL) if one else FL_MR               # verify rows: late-eligible ranks are waited for
+        rows = (ids | fl).T.reshape(-1)                               # rank-major: every row's rank 0, then rank 1, ...
+        pk = {}
+        if CFG["pf"] and L + 1 < NL and L < len(CORR):               # B12_PF arm 1: layer L+1's corrected d=1 top-2 per
+            A, Bm, mu, dl = CORR[L]                                   # row, prefetched (both record parts) after L's
+            x32 = x2.astype(mx.float32)                               # demand reads (non-JIT loader, spares from C)
+            lg = ROUT[L + 1](x2).astype(mx.float32) + ((x32 - mu) @ A.astype(mx.float32)) @ Bm.astype(mx.float32) + dl
+            pr = mx.argpartition(-lg, kth=1, axis=-1)[:, :2].reshape(-1).astype(mx.int32)
+            pk = dict(preds=pr, counts=(2 * S,))
+        dep_m, n_m = gate.post(L, rows, wk=255 | ((K * S) << 8), **pk)   # flag mode; LRU-touch every row's ranks < 10
+        dep_l, n_l = gate.post(t["side"], (ids[:, :2] | fl[:, :2]).T.reshape(-1), wk=255 | ((2 * S) << 8), **pk)
+        sm = gate.spin(dep_m, L, n_m).reshape(KC, S).T                # [S, 20] base (MSB-3) slots, -1 = absent / late
+        sl = gate.spin(dep_l, t["side"], n_l).reshape(2, S).T         # [S, 2] LSB sidecar slots of ranks 0-1
+        forced = (R < NF)[None]                                       # ranks 0-1 (+ waited / late ranks) always counted
+        pool = (sm >= 0) & ~forced
+        sel = (pool & (mx.cumsum(pool.astype(mx.int32), axis=-1) <= K - NF)) | forced   # + first resident of the rest
+        pos = mx.argsort(mx.where(sel, R, R + 1000), axis=-1)[:, :K]   # the 10 used positions, rank order (0, 1, ...)
+        used = mx.take_along_axis(sel, pos, axis=-1)                  # fewer than 10 resident: the rest are padding
+        s10 = mx.take_along_axis(sm, pos, axis=-1)
+        s10 = mx.where(used, s10, s10[:, :1])                         # padding reads rank 0's slots at weight 0
+        w10 = mx.where(used, mx.take_along_axis(p20, pos, axis=-1), 0.0)
+        w10 = w10 / w10.sum(axis=-1, keepdims=True)                   # renormalised over the 10 used (w2f)
+        l2 = sl
+        if CFG["late1"] and not last and one:
+            late = (sm[:, 1:2] < 0) | (sl[:, 1:2] < 0)                # rank 1 not in at phase A (either record part)
+            s10 = mx.concatenate([s10[:, :1], mx.where(late, s10[:, :1], s10[:, 1:2]), s10[:, 2:]], axis=-1)
+            l2 = mx.concatenate([sl[:, :1], mx.where(late, sl[:, :1], sl[:, 1:2])], axis=-1)
+            w_now = mx.concatenate([w10[:, :1], mx.where(late, 0.0, w10[:, 1:2]), w10[:, 2:]], axis=-1)
+            STASH[L] = late_fn(x2, mx.where(late, w10[:, 1:2], 0.0), sm[:, 1:2], sl[:, 1:2], dep_m, dep_l, n_m, n_l,
+                               t, gate, L)
+        elif CFG["l3"] and not last and one:                          # B8: cold ranks A3..B3-1 land half a layer late
+            late = sm[:, A3:B3] < 0                                    # [1, B3-A3] (positions = ranks for r < NF)
+            s10 = mx.concatenate([s10[:, :A3], mx.where(late, s10[:, :1], s10[:, A3:B3]), s10[:, B3:]], axis=-1)
+            w_now = mx.concatenate([w10[:, :A3], mx.where(late, 0.0, w10[:, A3:B3]), w10[:, B3:]], axis=-1)
+            STASH[L] = late3_fn(x2, mx.where(late, w10[:, A3:B3], 0.0), sm[:, A3:B3], dep_m, n_m, t, gate, L)
+        else:
+            w_now = w10
+        y = TG(x2, t["base"], t["sideP"], s10, l2, plan="".join(T.PLAN), scores=w_now)   # [S, D] combined in-kernel
+        return y.reshape(*x.shape[:-1], y.shape[-1]) + shared
+
+    def layer_call(self, hidden, *, input_ids, ssm_mask, cache):     # MTPLX DecoderLayer.__call__ + the late writes
+        if "ple" in self:
+            hidden = hidden + self.ple(hidden, input_ids, cache)
+        mixed, hyper, inject = self.attn_hyper_connection(hidden)
+        if self.is_linear:
+            block_out = self.linear_attn(mixed, ssm_mask, cache)
+        else:
+            block_out = self.self_attn(mixed, cache)
+        L = self._b12_L
+        for f, inj in PENDH.pop(L, []):                               # layer L-1's late rank 1, before this MLP read
+            hyper = _hyper_residual_write(hyper, f(block_out), inj)
+        mixed, hyper, inject = self.mlp_hyper_connection(hyper, pending=(block_out, inject))
+        block_out = self.mlp(mixed)
+        hidden = _hyper_residual_write(hyper, block_out, inject)
+        f = STASH.pop(L, None)
+        if f is not None:
+            PENDH.setdefault(L + 1, []).append((f, inject))
+        return hidden
+
+    Q.SparseMoeBlock.__call__ = block
+    if CFG["late1"] or CFG["l3"]:
+        Q.DecoderLayer.__call__ = layer_call
+
+
+# ---- D1i (TrainLab, adopted 04:35 Thu): the decoupled prefill as an API for the Eval suite and other harnesses.
+# Prefill ids (all prompt tokens but the last) into a fresh model.make_cache(); attention in s_attn-token query
+# chunks, the MoE once per s_moe tokens. Not bitwise vs plain chunked prefill (gather kernel shapes per group).
+def b12_prefill(model, ids, cache, s_attn=512, s_moe=4096, keep=False):
+    """D1i (3), TrainLab: per layer, the attention part (PLE, HC read, attention, HC write-into-read) in query chunks of
+    s_attn tokens, then the MoE ONCE over the whole s_moe chunk (its experts read once per layer per s_moe tokens),
+    then the HC residual write per query chunk. Same ops on the same shapes as a chunk-s_attn prefill except the MoE
+    block, whose per-token outputs do not depend on the batch (grouped / sorted gather per pair, per-token combine),
+    so it should equal B12_PREFILL_CHUNK=s_attn bit for bit while reading experts like chunk s_moe."""
+    import mlx.core as mx
+    import mtplx.models.qwen4_exp as Q
+    from contextlib import nullcontext
+    assert not (CFG["late1"] or CFG["l3"]), "decoupled prefill: MTPLX's own DecoderLayer only (no late writes)"
+    tm = model.language_model.model
+    P = ids.shape[1]
+    scope = Q._rope_table_scope() if Q.qwen4_opdiet_enabled("rope") else nullcontext()
+    st = lambda c: [a for a in (c.state if hasattr(c, "state") else []) if isinstance(a, mx.array)]
+    SPLIT = os.environ.get("D1I_SPLIT", "1") == "1"
+
+    def moe_split(blk, xs_):
+        """mlx_lm Qwen3NextSparseMoeBlock.__call__ (the prefill path of the tier layers: bt_b12's block -> v3's tier
+        block -> MTPLX SparseMoeBlock -> super) with router, shared expert and combine per query chunk (the
+        matmul shapes of a chunk-s_attn prefill) and the routed experts ONCE over all chunks (grouped, per-pair)."""
+        k, parts = blk.top_k, []
+        for x in xs_:
+            gates = mx.softmax(blk.gate(x), axis=-1, precise=True)
+            inds = mx.argpartition(gates, kth=-k, axis=-1)[..., -k:]
+            scores = mx.take_along_axis(gates, inds, axis=-1)
+            if blk.norm_topk_prob:
+                scores = scores / scores.sum(axis=-1, keepdims=True)
+            parts.append((inds, scores))
+        y = blk.switch_mlp(mx.concatenate(xs_, axis=1) if len(xs_) > 1 else xs_[0],
+                           mx.concatenate([p_[0] for p_ in parts], axis=1) if len(xs_) > 1 else parts[0][0])
+        outs, off = [], 0
+        for x, (inds, scores) in zip(xs_, parts):
+            n_ = x.shape[1]
+            yi = (y[:, off:off + n_] * scores[..., None]).sum(axis=-2)
+            shared_y = blk.shared_expert(x)
+            shared_y = mx.sigmoid(blk.shared_expert_gate(x)) * shared_y
+            outs.append(yi + shared_y); off += n_
+        return outs
+
+    kept = []
+    with scope:
+        for m0 in range(0, P, s_moe):
+            m1 = min(m0 + s_moe, P)
+            xs = [ids[:, a:min(a + s_attn, m1)] for a in range(m0, m1, s_attn)]
+            hs = [mx.tile(tm.embed_tokens(x), (1, 1, tm.args.hc_count)) for x in xs]
+            masks = [Q.create_ssm_mask(h, cache[tm.ssm_idx]) for h in hs]
+            for L, (layer, c) in enumerate(zip(tm.layers, cache)):
+                mixed, hyper, inject = [], [], []
+                for i, x in enumerate(xs):
+                    if L == tm._ple_stage_idx and Q._COMPILED_VERIFY_PLE.get() is None:
+                        layer.ple.ple_embedding.stage(x, c, layer.ple.NGRAM_IDX)
+                    h = hs[i]
+                    if "ple" in layer:
+                        h = h + layer.ple(h, x, c)
+                    mx_, hy, inj = layer.attn_hyper_connection(h)
+                    bo = layer.linear_attn(mx_, masks[i], c) if layer.is_linear else layer.self_attn(mx_, c)
+                    mx_, hy, inj = layer.mlp_hyper_connection(hy, pending=(bo, inj))
+                    mx.eval(mx_, hy, inj, *st(c))
+                    mixed.append(mx_); hyper.append(hy); inject.append(inj)
+                if SPLIT:                                  # dense MoE parts per query chunk: exact vs chunk s_attn
+                    bos = moe_split(layer.mlp, mixed)
+                else:
+                    bo = layer.mlp(mx.concatenate(mixed, axis=1) if len(mixed) > 1 else mixed[0])
+                    bos, off = [], 0
+                    for x in xs:
+                        bos.append(bo[:, off:off + x.shape[1]]); off += x.shape[1]
+                for i in range(len(xs)):
+                    hs[i] = Q._hyper_residual_write(hyper[i], bos[i], inject[i])
+                mx.eval(*hs)
+                del mixed, hyper, inject, bos
+            tm._last_widened = hs[-1]
+            if keep:                                               # (span, final widened stream) per query chunk
+                kept += [((a, a + x.shape[1]), h) for a, x, h in zip(range(m0, m1, s_attn), xs, hs)]
+            del hs
+            mx.clear_cache()
+    return kept
+
+
+def b12_prefill_state(model, prompt_ids, s_attn=512, s_moe=4096):
+    """spec125-compatible prefilled state (spec125.prefill_state's keys: cache, mtp_cache, logits, h) from the
+    decoupled trunk prefill; the MTP head's history is appended per query chunk as spec125._prefill does per
+    prefill chunk (draft logits for the last row only). Pass as spec125.generate(..., prefilled=state)."""
+    import mlx.core as mx
+    if os.path.expanduser("~/SpecDecode") not in sys.path:
+        sys.path.insert(1, os.path.expanduser("~/SpecDecode"))
+    import spec125
+    cache = model.make_cache()
+    ids = mx.array([list(prompt_ids)[:-1]])
+    kept = b12_prefill(model, ids, cache, s_attn, s_moe, keep=True)
+    head = spec125._MTPHead(model)
+    for (a, b), h in kept:
+        head.append(h, [int(v) for v in prompt_ids[a + 1:b + 1]])
+        mx.eval(head.logits)
+    del kept
+    mx.clear_cache()
+    return {"cache": cache, "mtp_cache": head.cache, "logits": head.logits, "h": head.h}
+
+
+if __name__ == "__main__":
+    for _k, _v in (("BIGMOE_COMPILE_HC", "1"), ("BIGMOE_HC_VREAD", "1"), ("BIGMOE_ASYNC_EVERY", "1")):
+        os.environ.setdefault(_k, _v)                                 # speed flags for the CLI only (the suite refuses them)
+    frac, TASK = float(sys.argv[1]), sys.argv[2]
+    SPEC = TASK.startswith("spec")                                    # spec3:3:0 = MTP k:max_draft:lookup (spec125)
+    MTPGSM = TASK.startswith("gsm") and bool(os.environ.get("B12_GSM_MTP"))   # GSM8K through spec125 (B12_GSM_MTP=3:3:0)
+    if SPEC or MTPGSM:
+        for _k, _v in (("BIGMOE_MTP_STREAM", "1"), ("BIGMOE_MTP_C", "64"), ("BIGMOE_MAXK", "80"), ("BIGMOE_FRSPEC", "1"),
+                       ("MTPLX_FAMILY_CAPTURE_COMMIT", "1"), ("MTPLX_DROP_EVENTS", "1"), ("MTPLX_LAZY_MTP_HISTORY_APPEND", "1"),
+                       ("MTPLX_DEFER_REPAIR_EVAL", "1")):
+            os.environ.setdefault(_k, _v)
+    rt, st = load_b12(frac, mtp=SPEC or MTPGSM)
+    import mlx.core as mx
+    from bigmoe_v3f.gated import ext
+    model, tok = rt.model, rt.tokenizer
+    EOS = set()
+    for _a in ("eos_token_ids", "eos_token_id"):
+        _v = getattr(tok, _a, None)
+        if _v is not None:
+            EOS |= set(_v) if isinstance(_v, (list, set, tuple)) else {_v}
+    for _t in ("<|im_end|>", "<|endoftext|>"):
+        try:
+            _i = tok.convert_tokens_to_ids(_t)
+            if isinstance(_i, int) and _i >= 0: EOS.add(_i)
+        except Exception:
+            pass
+
+    def chat_ids(text):
+        ids = tok.apply_chat_template([{"role": "user", "content": text}], add_generation_prompt=True, enable_thinking=False)
+        return list(ids if isinstance(ids[0], int) else ids["input_ids"])
+
+    def prefill_decoupled(ids, cache, s_attn, s_moe, keep=False):        # module-level b12_prefill on this model
+        return b12_prefill(model, ids, cache, s_attn, s_moe, keep)
+
+    def d1i_prefill_state(prompt_ids, s_attn, s_moe):
+        tp = time.perf_counter()
+        state = b12_prefill_state(model, prompt_ids, s_attn, s_moe)
+        PREF.update(n=len(prompt_ids) - 1, t=time.perf_counter() - tp)
+        return state
+
+    def generate(prompt_ids, n, stop_eos=False, per_tok=None):
+        from bigmoe_v3f.fuse import reset_generation_state
+        from bigmoe_v3f import tier as _T
+        reset_generation_state(model)
+        STASH.clear(); PENDH.clear()
+        out, cache = [], model.make_cache()
+        ids = mx.array([list(prompt_ids)[:-1]])
+        PFC = int(os.environ.get("B12_PREFILL_CHUNK", "2048"))      # smaller chunks: smaller exact-prefill scratch
+        NOLOG = os.environ.get("D1I_NOLOGITS", "1") == "1"          # D1i: prefill chunks skip the vocab head (unused; default on)
+        tp = time.perf_counter()
+        S_ATTN = int(os.environ.get("D1I_ATTN", "0") or 0)            # D1i (3): decoupled attention / MoE chunks
+        for i in (range(0, ids.shape[1], PFC) if not S_ATTN else []):
+            _T.PF["last"] = i + PFC >= ids.shape[1]                  # D1i warming: the last chunk's experts -> pools
+            if NOLOG:
+                model(ids[:, i:i + PFC], cache=cache, emit_logits=False)
+                mx.eval([c.state for c in cache if hasattr(c, "state")])
+            else:
+                lg = model(ids[:, i:i + PFC], cache=cache)
+                mx.eval(lg[0] if isinstance(lg, tuple) else lg)
+        if S_ATTN:
+            prefill_decoupled(ids, cache, S_ATTN, int(os.environ.get("D1I_MOE", "4096")))
+        _T.PF["last"] = False
+        PREF.update(n=ids.shape[1], t=time.perf_counter() - tp)
+        y = int(prompt_ids[-1])
+        ext.reset_stats(); ext.defer_reset()
+        m0, t0 = ext.stats()["misses"], time.perf_counter()
+        while len(out) < n:
+            lg = model(mx.array([[y]]), cache=cache)
+            y = int(mx.argmax((lg[0] if isinstance(lg, tuple) else lg)[0, -1]).item())
+            if stop_eos and y in EOS:
+                break
+            out.append(y)
+            if per_tok is not None:
+                per_tok.append(ext.defer_stats()[1])                 # cumulative waited misses since the decode began
+        t = time.perf_counter() - t0
+        st.gate.check()
+        rows, waited, late, over = ext.defer_stats()
+        return out, dict(t=t, n=len(out), reads=ext.stats()["misses"] - m0, waited=waited, late=late, over=over, rows=rows)
+
+    sha = lambda t: hashlib.sha1(str(list(t)).encode()).hexdigest()[:10]
+    import resource, ctypes
+
+    class _RU(ctypes.Structure):                                      # rusage_info_v4: uuid, then 64-bit counters
+        _fields_ = [("uuid", ctypes.c_uint8 * 16)] + [(f"u{i}", ctypes.c_uint64) for i in range(40)]
+
+    def footprint_peak():
+        """lifetime max physical footprint (ri_lifetime_max_phys_footprint; Activity Monitor's Memory), GB"""
+        ru = _RU()
+        if ctypes.CDLL(None).proc_pid_rusage(os.getpid(), 4, ctypes.byref(ru)) != 0:
+            return float("nan")
+        return ru.u28 / 1e9
+
+    def footprint_now():
+        ru = _RU()
+        return ru.u7 / 1e9 if ctypes.CDLL(None).proc_pid_rusage(os.getpid(), 4, ctypes.byref(ru)) == 0 else float("nan")
+
+    LOADED = mx.get_active_memory() / 1e9
+
+    mem = lambda: (f"peak active {mx.get_peak_memory() / 1e9:.1f} GB, cache {mx.get_cache_memory() / 1e9:.1f} GB, "
+                   f"max RSS {resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e9:.1f} GB, "
+                   f"PEAK FOOTPRINT {footprint_peak():.1f} GB")
+    PREF = {}
+    PROMPTS = {"ctx32k": lambda: ("Here are several Python scripts from one repository. List what each does in one line.\n\n"
+                                 + "".join(f"### {os.path.basename(f)}\n" + open(f).read() for f in
+                                           sorted(glob.glob(os.path.expanduser("~/Breakthrough/scripts/*.py"))))[:115000]),
+               "long": lambda: ("Here is a Python script. Summarise what it does, section by section.\n\n```python\n"
+                               + open(os.path.expanduser("~/Breakthrough/scripts/tf_frugal_var.py")).read()[:7600] + "\n```"),
+               "code": lambda: open(os.path.expanduser("~/BigMoE/data/prompt_code.txt")).read(),
+               "prose": lambda: ("Explain, in plain prose for a curious 14-year-old, how a CPU cache works and why it makes "
+                                 "programs faster. Use one everyday analogy and keep it to about 300 words.")}
+    tag = f"b12 C_m={CFG['cm']} C_l={CFG['cl']} hc{CFG['hc']} late1={int(CFG['late1'])} late3={CFG['l3']} w={CFG['w']} pre={int(CFG['pre'])} pf={int(CFG['pf'])}"
+    if TASK == "check":
+        out, s = generate(chat_ids(PROMPTS["code"]()), 48)
+        print(f"check {tag}: sha {sha(out)} reads {s['reads']} waited {s['waited']} late {s['late']} over {s['over']} | "
+              f"{tok.decode(out)[:160]!r}", flush=True)
+    elif TASK == "d1i":                                               # D1i (TrainLab): one cold call after load, then a repeat
+        import numpy as np
+        from bigmoe_v3f import tier as _T
+        P = os.environ.get("PROMPT", "long")
+        ids = chat_ids(PROMPTS[P]())
+        N = int(os.environ.get("BT_N", "64"))
+        tag2 = (f"chunk {os.environ.get('B12_PREFILL_CHUNK', '2048')} attn/moe {os.environ.get('D1I_ATTN', '-')}/{os.environ.get('D1I_MOE', '-')} split {os.environ.get('D1I_SPLIT', '1')} "
+                f"gpu {os.environ.get('BIGMOE_TIER_PF_GPU', '0')} nologits {os.environ.get('D1I_NOLOGITS', '1')} group"
+                f"{os.environ.get('BIGMOE_TIER_PF_GROUP', '0')} warm {os.environ.get('BIGMOE_TIER_WARM', '0')}")
+        for run in ("cold", "repeat")[:int(os.environ.get("D1I_RUNS", "2"))]:
+            for k_ in ("grouped", "single", "fallback", "groups", "warm_base", "warm_side"):
+                _T.PF[k_] = 0
+            _T.PF["t_read"] = _T.PF["t_warm"] = 0.0
+            waits = []
+            out, s = generate(ids, N, per_tok=waits)
+            w = np.diff([0] + waits)
+            seg = lambda a, b: float(w[a:b].mean()) if len(w) > a else float("nan")
+            pf = {k_: (round(v, 2) if isinstance(v, float) else v) for k_, v in _T.PF.items() if k_ != "last"}
+            print(f"[{P}] d1i {run} {tag2}: prefill {PREF['n']} tokens in {PREF['t']:.2f} s ({PREF['n'] / PREF['t']:.0f} tok/s); "
+                  f"waited misses/token 0-16 {seg(0, 16):.1f} 16-32 {seg(16, 32):.1f} 32-64 {seg(32, 64):.1f}; decode "
+                  f"{s['n'] / s['t']:.1f} tok/s, reads/token {s['reads'] / max(1, s['n']):.1f}; {mem()}; sha {sha(out)} | "
+                  f"pf {pf} | {tok.decode(out)[:60]!r}", flush=True)
+    elif TASK == "speed":
+        P = os.environ.get("PROMPT", "code")
+        ids = chat_ids(PROMPTS[P]())
+        N = int(os.environ.get("BT_N", "128"))
+        generate(ids, 16)
+        out, s = generate(ids, N)
+        nt = max(1, s["n"])
+        print(f"[{P}] {tag}: {s['n'] / s['t']:.1f} tok/s, SSD reads/token {s['reads'] / nt:.1f} (waited misses "
+              f"{s['waited'] / nt:.1f}, late {s['late'] / nt:.1f}, overflow {s['over'] / nt:.2f}), peak "
+              f"{mx.get_peak_memory() / 1e9:.1f} GB, active {mx.get_active_memory() / 1e9:.1f} GB, {mem()}, sha {sha(out)} | "
+              f"{tok.decode(out)[:70]!r}", flush=True)
+        print(f"[{P}] prefill {PREF.get('n', 0)} tokens in {PREF.get('t', 0):.2f} s ({PREF.get('n', 0) / max(PREF.get('t', 1e-9), 1e-9):.0f} tok/s, "
+              f"{('decoupled ' + os.environ['D1I_ATTN'] + '/' + os.environ.get('D1I_MOE', '4096')) if os.environ.get('D1I_ATTN') else 'chunk ' + os.environ.get('B12_PREFILL_CHUNK', '2048')})", flush=True)
+    elif SPEC:                                                      # MTP speed: verify passes take the multi-row path
+        sys.path.insert(1, os.path.expanduser("~/SpecDecode"))
+        import spec125
+        from bigmoe_v3f.fuse import reset_generation_state
+        k, md_, lk = (int(v) for v in TASK[4:].split(":")[:3])
+        P = os.environ.get("PROMPT", "code")
+        ids = chat_ids(PROMPTS[P]())
+        N = int(os.environ.get("BT_N", "128"))
+
+        def run(n):
+            reset_generation_state(model); STASH.clear(); PENDH.clear()
+            out, first, s = [], {}, {}
+
+            def cb(tk):
+                if not first:
+                    first.update(t=time.perf_counter(), m=ext.stats()["misses"], st=ext.stats(), d=ext.defer_stats(),
+                                 act=mx.get_active_memory() / 1e9, pk=mx.get_peak_memory() / 1e9, fp=footprint_now())
+                    mx.reset_peak_memory()                    # from here: the decode (draft + verify) peak alone
+                out.append(int(tk))
+            pre = PRESTATE.get("s")                                   # D1i: one decoupled prefill shared by the runs
+            spec125.generate(model, ids, n, k_mtp=k, max_draft=md_, lookup=lk, stats=s, on_token=cb,
+                             prefill_chunk=int(os.environ.get("B12_PREFILL_CHUNK", "2048")), prefilled=pre)
+            st.gate.check()
+            e1, d1 = ext.stats(), ext.defer_stats()
+            cnt = {k: e1[k] - first["st"][k] for k in ("pf_issued", "pf_used", "pf_ontime", "pf_late")}
+            cnt["waited"] = d1[1] - first["d"][1]
+            s["cnt"] = cnt
+            s["memck"] = (f"memory: loaded {LOADED:.1f} GB active; at the first token active {first['act']:.1f}, prefill "
+                          f"peak {first['pk']:.1f}, footprint {first['fp']:.1f}; decode-phase peak active "
+                          f"{mx.get_peak_memory() / 1e9:.1f} GB, footprint now {footprint_now():.1f}")
+            return out, s, time.perf_counter() - first["t"], ext.stats()["misses"] - first["m"]
+        PRESTATE = {}
+        if os.environ.get("D1I_ATTN"):
+            PRESTATE["s"] = d1i_prefill_state(ids, int(os.environ["D1I_ATTN"]), int(os.environ.get("D1I_MOE", "4096")))
+            print(f"[{P}] d1i prefilled state: {PREF['n']} tokens in {PREF['t']:.2f} s ({PREF['n'] / PREF['t']:.0f} tok/s), "
+                  f"{mem()}", flush=True)
+        run(16)                                                       # warm-up
+        out, s, tsec, rd = run(N)
+        nt = max(1, len(out) - 1)                                     # decode from the first token on
+        c, npass = s["cnt"], max(1, s.get("passes", 1))
+        print(f"[{P}] {tag} spec {TASK[4:]}: {nt / tsec:.1f} tok/s, {s.get('tok_per_pass', float('nan')):.2f} tok/pass, "
+              f"SSD reads/token {rd / nt:.1f}; per pass: waited misses {c['waited'] / npass:.1f}, reads {rd / npass:.1f}, "
+              f"prefetch issued {c['pf_issued'] / npass:.1f} used {c['pf_used'] / npass:.1f} (on time {c['pf_ontime'] / npass:.1f}, "
+              f"late {c['pf_late'] / npass:.1f}); {mem()}, sha {sha(out)} | "
+              f"{tok.decode(out)[:70]!r}", flush=True)
+        print(f"[{P}] {s['memck']}", flush=True)
+    elif TASK.startswith("gsm"):
+        N = int(TASK[3:]); OFF = int(os.environ.get("OFFSET", "0"))
+        G8 = [json.loads(l) for l in open(os.path.expanduser("~/MoEPrefetch/data/gsm8k/test.jsonl"))][OFF:OFF + N]
+        INSTR = "Solve the problem step by step, briefly. End with a line of the form 'Answer: <number>'.\n\n"
+        okn, same = 0, 0
+        ref = json.load(open(os.path.expanduser("~/MoEPrefetch/data/w125_gsm_eager.json")))["answers"]
+        nt = tt = 0
+        if MTPGSM:                                                    # the MTP decode the release would ship (spec125)
+            sys.path.insert(1, os.path.expanduser("~/SpecDecode"))
+            import spec125
+            from bigmoe_v3f.fuse import reset_generation_state
+            kk, mdd, lkk = (int(v) for v in os.environ["B12_GSM_MTP"].split(":")[:3])
+
+            def spec_gen(prompt_ids, n):
+                reset_generation_state(model); STASH.clear(); PENDH.clear()
+                pre = (b12_prefill_state(model, prompt_ids, int(os.environ["D1I_ATTN"]), int(os.environ.get("D1I_MOE", "4096")))
+                       if os.environ.get("D1I_ATTN") else None)
+                o, s_ = [], {}
+                t_ = time.perf_counter()
+                spec125.generate(model, prompt_ids, n, k_mtp=kk, max_draft=mdd, lookup=lkk, stats=s_,
+                                 on_token=lambda tk: o.append(int(tk)), prefilled=pre, stop_ids=EOS,
+                                 prefill_chunk=int(os.environ.get("B12_PREFILL_CHUNK", "2048")))
+                st.gate.check()
+                e = next((i for i, x in enumerate(o) if x in EOS), None)
+                o = o[:e] if e is not None else o
+                return o, dict(t=time.perf_counter() - t_ - s_.get("t_prefill", 0.0), n=len(o))
+        for j, p in enumerate(G8):
+            q = chat_ids(INSTR + p["question"])
+            out, s = spec_gen(q, 600) if MTPGSM else generate(q, 600, stop_eos=True)
+            text = tok.decode(out)
+            m = re.findall(r"Answer:\s*\**\s*\$?\s*(-?[\d,]*\.?\d+)", text) or re.findall(r"(-?[\d,]*\.?\d+)", text)
+            gold = p["answer"].split("####")[-1].strip().replace(",", "")
+            a = m[-1].replace(",", "").rstrip(".") if m else None
+            try:
+                okn += int(a is not None and abs(float(a) - float(gold)) < 1e-6)
+            except ValueError:
+                pass
+            same += int(OFF + j < len(ref) and ref[OFF + j] == a)
+            nt += s["n"]; tt += s["t"]
+        print(f"125B {tag}{' MTP ' + os.environ['B12_GSM_MTP'] if MTPGSM else ''}: GSM8K {okn}/{len(G8)} (offset {OFF}), answers equal to exact eager {same}, "
+              f"{nt / max(tt, 1e-9):.1f} tok/s decode", flush=True)
+### bt_b12_ar.py
+"""Breakthrough: B12 / B8 through MTPLX's generate_ar, the way the Eval suite's decode stage runs a variant
+(~/EvalSuite/evalsuite/decode.py _gen: greedy, the whole prompt prefilled at MTPLX_PREFILL_CHUNK_SIZE, the first token
+from the prefill's logits, then one token per call). Env as evalsuite/env.py sets it (MTPLX defaults, BIGMOE_SPARE 0,
+PF_NOPUBLISH 1); BT_AR_PF=1 adds the PF1 staging flags env.py forces for non-frugal variants (the tier layers bypass
+them; this checks that). None of the CLI's speed flags (COMPILE_HC, HC_VREAD, ASYNC_EVERY).
+Usage: bt_b12_ar.py FRAC [N]   (B12_* switches as for bt_b12.py, e.g. B12_LATE3=2,4 for B8)"""
+import hashlib, os, sys, time
+
+for _k, _v in {"MTPLX_NGRAM_PREWARM": "off", "MTPLX_COMPILED_VERIFY": "0", "MTPLX_QWEN4EXP_COMPILE": "0",
+               "MTPLX_COMPILE_AR_FORWARD": "0", "MTPLX_COMPILED_TARGET_PREFIX": "0"}.items():
+    os.environ.setdefault(_k, _v)
+os.environ.update({"BIGMOE_SPARE": "0", "BIGMOE_PF_NOPUBLISH": "1"})
+if os.environ.get("BT_AR_PF") == "1":
+    os.environ.update({"BIGMOE_PF_PREFILL": "1", "BIGMOE_PF_FULLSCR": "1"})
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from bt_b12 import load_b12, CFG
+
+frac, N = float(sys.argv[1]), int(sys.argv[2]) if len(sys.argv) > 2 else 96
+rt, st = load_b12(frac)
+import ctypes
+import mlx.core as mx
+from mtplx import generation as G
+from mtplx.sampling import SamplerConfig
+
+
+class _RU(ctypes.Structure):                                          # rusage_info_v4 (as bt_b12's CLI)
+    _fields_ = [("uuid", ctypes.c_uint8 * 16)] + [(f"u{i}", ctypes.c_uint64) for i in range(40)]
+
+
+def footprint_peak():
+    ru = _RU()
+    return ru.u28 / 1e9 if ctypes.CDLL(None).proc_pid_rusage(os.getpid(), 4, ctypes.byref(ru)) == 0 else float("nan")
+
+
+tok = rt.tokenizer
+EOS = {248044, 248046}                                                # the suite's EOS set
+greedy = SamplerConfig(temperature=0.0, top_p=1.0, top_k=0)
+PROMPTS = {"code": open(os.path.expanduser("~/BigMoE/data/prompt_code.txt")).read(),
+           "prose": ("Explain, in plain prose for a curious 14-year-old, how a CPU cache works and why it makes "
+                     "programs faster. Use one everyday analogy and keep it to about 300 words."),
+           "ifeval": ("Write a short note to a neighbour asking them to water your plants while you are away. "
+                      "Your entire response must be in lowercase letters, contain exactly 3 paragraphs separated by "
+                      "the markdown divider ***, and end with the phrase 'thanks again'.")}
+tag = (f"b12 C_m={CFG['cm']} C_l={CFG['cl']} late3={CFG['l3']} w={CFG['w']} chunk "
+       f"{os.environ.get('MTPLX_PREFILL_CHUNK_SIZE', '2048')} pf1={os.environ.get('BT_AR_PF', '0')}")
+for name, text in PROMPTS.items():
+    ids = tok.apply_chat_template([{"role": "user", "content": text}], add_generation_prompt=True, enable_thinking=False)
+    ids = list(ids if isinstance(ids[0], int) else ids["input_ids"])
+    first = {}
+    t0 = time.perf_counter()
+    res = G.generate_ar(rt, ids, max_tokens=N, sampler=greedy, seed=0,
+                        token_callback=lambda _t: first.setdefault("t", time.perf_counter()))
+    t1 = time.perf_counter()
+    toks = [int(x) for x in (getattr(res, "tokens", None) or [])]
+    cut = next((j + 1 for j, x in enumerate(toks) if x in EOS), None)
+    toks, finish = (toks[:cut], "eos") if cut else (toks, "length")
+    tf = first.get("t", t1)
+    print(f"[{name}] generate_ar {tag}: {len(toks)} tokens {finish}; prompt {len(ids)} tokens, first token after "
+          f"{tf - t0:.2f} s, decode {(len(toks) - 1) / max(t1 - tf, 1e-9):.1f} tok/s; PEAK FOOTPRINT "
+          f"{footprint_peak():.1f} GB; sha {hashlib.sha1(str(toks).encode()).hexdigest()[:10]} | "
+          f"{tok.decode([x for x in toks if x not in EOS])[:150]!r}", flush=True)
+### bt_bild.py
+"""Breakthrough D1c (2026-10-21): confidence-gated coverage (BiLD-style fallback) on the fast path, eager decoding.
+Each step runs frugal (wait for ranks 0-1, drop missing ranks 2-9 without renormalising: the night probes' best cheap
+rule); if the step's next-token entropy exceeds tau, the step is rolled back (MTPLX snapshot_untrimmable_cache_lazy +
+rollback_after_verify, verified_tokens=1) and recomputed with every top-10 expert waited through the native gate.
+Engine: ~/Breakthrough/fork125bt (BigMoE ffc859b + selective waiting + protect-what-fits). Spin gate (daytime only:
+a SIGSTOP mid-pass invalidates it; the night probes use tf_frugal_var.py's CPU-synchronous residency instead).
+usage: bt_bild.py FRAC TAU TASK      TASK = speed (PROMPT env code|prose|edit, BT_N tokens, 128) | gsmN (OFFSET env)
+   TAU < 0 = plain frugal (never re-run); TAU >= 99 = exact (every step exact).
+Prints tok/s, re-run share, SSD loads per token (ext misses), peak memory; GSM8K accuracy and answers equal to BigMoE's
+exact eager run (MoEPrefetch/data/w125_gsm_eager.json, problems 0-149). Checkpoints in data/bild/."""
+import hashlib, json, os, re, sys, time
+os.environ.setdefault("MTPLX_NGRAM_PREWARM", "off")
+for _k in ("MTPLX_COMPILED_VERIFY", "MTPLX_QWEN4EXP_COMPILE", "MTPLX_COMPILE_AR_FORWARD", "MTPLX_COMPILED_TARGET_PREFIX"):
+    os.environ.setdefault(_k, "0")
+os.environ["BIGMOE_SPARE"] = "0"
+os.environ["BIGMOE_PF_NOPUBLISH"] = "1"
+for _k, _v in (("BIGMOE_COMPILE_HC", "1"), ("BIGMOE_HC_VREAD", "1"), ("BIGMOE_ASYNC_EVERY", "1")):
+    os.environ.setdefault(_k, _v)
+sys.path.insert(0, os.path.expanduser("~/Breakthrough/fork125bt"))
+sys.path.insert(1, os.path.expanduser("~/MoEPrefetch/scripts"))
+import numpy as np
+import mlx.core as mx
+from bigmoe.loader import load_streamed
+from bigmoe.gated import ext
+from fused_route import topk_probs
+
+OUT = os.path.expanduser("~/Breakthrough/data/bild"); os.makedirs(OUT, exist_ok=True)
+MD = os.path.expanduser("~/BigMoE/models/bare")
+frac, TAU, TASK = float(sys.argv[1]), float(sys.argv[2]), sys.argv[3]
+cfg = json.load(open(os.path.join(MD, "config.json"))); cfg = cfg.get("text_config", cfg)
+E, K = cfg["num_experts"], cfg["num_experts_per_tok"]
+C = int(os.environ.get("BT_C", "0")) or max(16, round(frac * E))
+t0 = time.perf_counter()
+rt, st = load_streamed(MD, C, mtp=False)
+print(f"bt_bild: C={C} of {E} ({100 * C / E:.0f} %), tau {TAU}, loaded in {time.perf_counter() - t0:.0f}s", flush=True)
+from mtplx.models import qwen4_exp
+from mtplx.attention_math import attention_gate
+from mtplx.cache_state import rollback_after_verify, snapshot_untrimmable_cache_lazy
+orig_call = qwen4_exp.SparseMoeBlock.__call__
+MODE = {"exact": TAU >= 99}
+
+
+def block(self, x):
+    sw = self.switch_mlp
+    bm = getattr(sw, "_bm", None)
+    if bm is None or x.shape[1] != 1 or bm["full"]:
+        return orig_call(self, x)
+    if bm["L"] == bm["first"]:
+        bm["gate"].new_pass()
+    ae = bm.get("async_every", 0)
+    if ae and bm["L"] % ae == ae - 1:
+        mx.async_eval(x)
+    ids, pk = topk_probs(self.gate(x)[0], K)                            # [1, K] top-10, descending
+    nw = K if MODE["exact"] else 2
+    slots = bm["gate"].route_and_gate(bm["L"], ids[0], nw=nw, nk=K).reshape(1, K).astype(mx.int32)
+    res = slots >= 0
+    w = pk * res / pk.sum(axis=-1, keepdims=True)                      # no renormalisation over the computed ones
+    safe = mx.where(res, slots, slots[:, :1]).astype(mx.uint32)
+    base = type(sw).__mro__[1]
+    y = (base.__call__(sw, x, safe[None]) * w[None][..., None].astype(x.dtype)).sum(axis=-2)
+    return y + attention_gate(self.shared_expert(x), self.shared_expert_gate(x))
+
+
+qwen4_exp.SparseMoeBlock.__call__ = block
+model, tok = rt.model, rt.tokenizer
+EOS = set()
+for _a in ("eos_token_ids", "eos_token_id"):
+    _v = getattr(tok, _a, None)
+    if _v is not None:
+        EOS |= set(_v) if isinstance(_v, (list, set, tuple)) else {_v}
+for _t in ("<|im_end|>", "<|endoftext|>"):
+    try:
+        _i = tok.convert_tokens_to_ids(_t)
+        if isinstance(_i, int) and _i >= 0: EOS.add(_i)
+    except Exception:
+        pass
+
+
+def chat_ids(text):
+    ids = tok.apply_chat_template([{"role": "user", "content": text}], add_generation_prompt=True, enable_thinking=False)
+    return list(ids if isinstance(ids[0], int) else ids["input_ids"])
+
+
+def generate(prompt_ids, n, stop_eos=False):
+    """greedy BiLD decode -> tokens, stats"""
+    from bigmoe.fuse import reset_generation_state
+    reset_generation_state(model)
+    cache = model.make_cache()
+    ids = mx.array([list(prompt_ids)[:-1]])
+    for i in range(0, ids.shape[1], 2048):
+        lg = model(ids[:, i:i + 2048], cache=cache)
+        mx.eval(lg[0] if isinstance(lg, tuple) else lg)
+    y, out = int(prompt_ids[-1]), []
+    s = dict(steps=0, reruns=0, t=0.0)
+    ext.reset_stats()
+    m0, t0 = ext.stats()["misses"], time.perf_counter()
+    while len(out) < n:
+        snap = snapshot_untrimmable_cache_lazy(cache) if 0 <= TAU < 99 else None
+        lg = model(mx.array([[y]]), cache=cache)
+        lg = (lg[0] if isinstance(lg, tuple) else lg)[0, -1].astype(mx.float32)
+        lp = lg - mx.logsumexp(lg)
+        ent, nxt = -(mx.exp(lp) * lp).sum(), mx.argmax(lg)
+        mx.eval(ent, nxt)
+        if snap is not None and float(ent) > TAU:
+            rollback_after_verify(cache, snap, verified_tokens=1)
+            MODE["exact"] = True
+            try:
+                lg = model(mx.array([[y]]), cache=cache)
+                nxt = mx.argmax((lg[0] if isinstance(lg, tuple) else lg)[0, -1])
+                mx.eval(nxt)
+            finally:
+                MODE["exact"] = False
+            s["reruns"] += 1
+        s["steps"] += 1
+        y = int(nxt.item())
+        if stop_eos and y in EOS:
+            break
+        out.append(y)
+    st.gate.check()
+    s["t"] = time.perf_counter() - t0
+    s["loads"] = ext.stats()["misses"] - m0
+    return out, s
+
+
+sha = lambda t: hashlib.sha1(str(list(t)).encode()).hexdigest()[:10]
+if TASK == "speed":
+    P = os.environ.get("PROMPT", "code")
+    text = {"code": lambda: open(os.path.expanduser("~/BigMoE/data/prompt_code.txt")).read(),
+            "prose": lambda: ("Explain, in plain prose for a curious 14-year-old, how a CPU cache works and why it makes "
+                              "programs faster. Use one everyday analogy and keep it to about 300 words."),
+            "edit": lambda: ("Here is a file:\n\n```python\n" + open(os.path.expanduser("~/SpecDecode/scripts/inventory_sample.py")).read()
+                             + "```\n\nRewrite the whole file with total_value renamed to total everywhere. Output only the full file in one code block.")}[P]()
+    ids = chat_ids(text)
+    N = int(os.environ.get("BT_N", "128"))
+    generate(ids, 16)                                                   # warm-up
+    out, s = generate(ids, N)
+    print(f"[{P}] bild C={C} tau {TAU}: {s['steps'] / s['t']:.1f} tok/s, re-ran {s['reruns'] / s['steps']:.1%} of steps, "
+          f"{s['loads'] / s['steps']:.1f} expert loads/token ({s['loads'] / s['steps'] * 2.765:.0f} MB), peak "
+          f"{mx.get_peak_memory() / 1e9:.1f} GB, sha {sha(out)} | {tok.decode(out)[:70]!r}", flush=True)
+elif TASK.startswith("gsm"):
+    N = int(TASK[3:]); OFF = int(os.environ.get("OFFSET", "0"))
+    G8 = [json.loads(l) for l in open(os.path.expanduser("~/MoEPrefetch/data/gsm8k/test.jsonl"))][OFF:OFF + N]
+    INSTR = "Solve the problem step by step, briefly. End with a line of the form 'Answer: <number>'.\n\n"
+    tag = os.environ.get("BT_TAG", f"r{round(100 * C / E):02d}_t{TAU:g}")
+    ck = os.path.join(OUT, f"gsm_{tag}.json")
+    state = json.load(open(ck)) if os.path.exists(ck) else {}
+    ans, ok, st_l = (state.get(k, {}) for k in ("answers", "ok", "stats"))
+    for j, p in enumerate(G8):
+        key = str(OFF + j)
+        if key in ok:
+            continue
+        out, s = generate(chat_ids(INSTR + p["question"]), 600, stop_eos=True)
+        text = tok.decode(out)
+        m = re.findall(r"Answer:\s*\**\s*\$?\s*(-?[\d,]*\.?\d+)", text) or re.findall(r"(-?[\d,]*\.?\d+)", text)
+        gold = p["answer"].split("####")[-1].strip().replace(",", "")
+        a = m[-1].replace(",", "").rstrip(".") if m else None
+        try:
+            good = int(a is not None and abs(float(a) - float(gold)) < 1e-6)
+        except ValueError:
+            good = 0
+        ans[key], ok[key], st_l[key] = a, good, s
+        json.dump({"answers": ans, "ok": ok, "stats": st_l, "C": C, "tau": TAU}, open(ck, "w"))
+    keys = [str(OFF + j) for j in range(len(G8))]
+    ref = json.load(open(os.path.expanduser("~/MoEPrefetch/data/w125_gsm_eager.json")))["answers"]
+    same = sum(1 for k in keys if int(k) < len(ref) and ref[int(k)] == ans.get(k))
+    steps = sum(st_l[k]["steps"] for k in keys); rr = sum(st_l[k]["reruns"] for k in keys)
+    ld = sum(st_l[k]["loads"] for k in keys); tt = sum(st_l[k]["t"] for k in keys)
+    print(f"125B C={C} bild tau {TAU} [{tag}]: GSM8K {sum(ok[k] for k in keys)}/{len(keys)} (offset {OFF}), answers equal "
+          f"to exact eager {same}/{sum(1 for k in keys if int(k) < len(ref))}, re-ran {rr / max(1, steps):.1%} of steps, "
+          f"{ld / max(1, steps):.1f} loads/token, {steps / max(tt, 1e-9):.1f} tok/s decode; per-problem "
+          f"{''.join(str(ok[k]) for k in keys)}", flush=True)
+### bt_defer.py
+"""Breakthrough I1 speed prototype (2026-10-21): half-layer deferred experts on the fast path. fork125bd = fork125bf +
+BIGMOE_DEFER=M: in flag mode the loader reads the flagged (waited) experts, releases the GPU with the waited + resident
+slots (phase A, late ones -1), then reads the late ones and publishes up to M (position, slot) pairs (phase B).
+Semantics = NewIdeas' tf_defer125.py dh_wK: top-10 by score, ranks < K waited, resident ranks combined now, every other
+top-10 rank read and its gate-weighted output (on layer L's MLP input) written into the hyper-connection streams with
+layer L's inject weights after layer L+1's attention, before its MLP read (phase B's spin is ordered after that
+attention); weights p / sum(top-10 p) (no renormalisation); the last layer waits for all. Eager 1-row calls only.
+  BT_K=4 waited ranks | BT_M=6 phase-B pairs (more late ids than M: the first ones are waited) | BT_SAME=1: add the late
+  experts at the end of layer L instead (within-layer overlap only, for comparison) | BT_K=10: exact (no late)
+  BT_THETA=0.5: only ranks before 50 % of the top-10 mass are used at all (tf_defer125's _m50)
+  BT_FRUGAL=1: the qualifying frugal (w2f): top-20 candidates, ranks 0-1 waited, the first 10 resident in rank order,
+  renormalised; BT_LATE1=1 waits for rank 0 only and adds a missing rank 1 half a layer late (same set and weights).
+The GPU marks waited ids with bit 20 and late-eligible ids with bit 21 (fork125bd's loader reads both).
+usage: bt_defer.py FRAC TASK   TASK = speed (PROMPT env code|prose, BT_N) | gsmN (OFFSET env) | check (BT_K=10 vs 4)
+Prints tok/s, SSD reads per token (waited / late / overflow), peak memory."""
+import hashlib, json, os, re, sys, time
+os.environ.setdefault("MTPLX_NGRAM_PREWARM", "off")
+for _k, _v in (("MTPLX_FAMILY_CAPTURE_COMMIT", "1"), ("MTPLX_DROP_EVENTS", "1"), ("MTPLX_LAZY_MTP_HISTORY_APPEND", "1"),
+               ("MTPLX_DEFER_REPAIR_EVAL", "1")):
+    os.environ.setdefault(_k, _v)
+for _k in ("MTPLX_COMPILED_VERIFY", "MTPLX_QWEN4EXP_COMPILE", "MTPLX_COMPILE_AR_FORWARD", "MTPLX_COMPILED_TARGET_PREFIX"):
+    os.environ.setdefault(_k, "0")
+KW = int(os.environ.get("BT_K", "4"))
+M = int(os.environ.get("BT_M", "6"))
+SAME = os.environ.get("BT_SAME") == "1"
+THETA = float(os.environ.get("BT_THETA", "0"))
+FRUGAL = os.environ.get("BT_FRUGAL") == "1"
+LATE1 = FRUGAL and os.environ.get("BT_LATE1") == "1"
+os.environ["BIGMOE_SPARE"] = "0"
+os.environ["BIGMOE_PF_NOPUBLISH"] = "1"
+os.environ["BIGMOE_SPLIT"] = str(M)        # allocates the phase-B region buffer (flag-mode rows never take the split path)
+os.environ["BIGMOE_DEFER"] = str(M)
+for _k, _v in (("BIGMOE_MAXK", "80"), ("BIGMOE_COMPILE_HC", "1"), ("BIGMOE_HC_VREAD", "1"), ("BIGMOE_ASYNC_EVERY", "1"),
+               ("BIGMOE_FRSPEC", "1"), ("BIGMOE_MTP_STREAM", "0")):
+    os.environ.setdefault(_k, _v)
+sys.path.insert(0, os.path.expanduser("~/Breakthrough/fork125bd"))
+sys.path.insert(1, os.path.expanduser("~/MoEPrefetch/scripts"))
+import numpy as np
+import mlx.core as mx
+from bigmoe.loader import load_streamed
+from bigmoe.gated import ext
+from fused_route import topk_probs
+
+OUT = os.path.expanduser("~/Breakthrough/data/defer"); os.makedirs(OUT, exist_ok=True)
+MD = os.path.expanduser("~/BigMoE/models/bare")
+frac, TASK = float(sys.argv[1]), sys.argv[2]
+cfg = json.load(open(os.path.join(MD, "config.json"))); cfg = cfg.get("text_config", cfg)
+E, K, NL = cfg["num_experts"], cfg["num_experts_per_tok"], cfg["num_hidden_layers"]
+C = int(os.environ.get("BT_C", "0")) or max(16, round(frac * E))
+t0 = time.perf_counter()
+rt, st = load_streamed(MD, C, mtp=False)
+print(f"bt_defer: C={C} of {E} ({100 * C / E:.0f} %), " + (f"frugal, rank 1 {'late' if LATE1 else 'waited'}" if FRUGAL else f"wait ranks < {KW}" + (f", mass < {THETA}" if THETA else "")) + f", {M} phase-B pairs, "
+      f"{'same layer' if SAME else 'half a layer late'}, loaded in {time.perf_counter() - t0:.0f}s", flush=True)
+from mtplx.models import qwen4_exp
+from mtplx.models.qwen4_exp import _hyper_residual_write
+from mtplx.attention_math import attention_gate
+orig_call = qwen4_exp.SparseMoeBlock.__call__
+STASH, PENDH = {}, {}
+KC = 20 if FRUGAL else K
+R = mx.arange(KC)
+if FRUGAL:                                   # rank 0 waited; rank 1 waited, or late-eligible (bit 21) with BT_LATE1
+    FLAGS = mx.where(R == 0, 1 << 20, mx.where(R == 1, (1 << 21) if LATE1 else (1 << 20), 0)).astype(mx.int32)[None]
+else:                                        # ranks < K waited, the rest of the top-10 late-eligible
+    FLAGS = mx.where(R < KW, 1 << 20, 1 << 21).astype(mx.int32)[None]
+WALL = mx.where(R < (2 if FRUGAL else K), 1 << 20, 0).astype(mx.int32)[None]   # last layer: nothing late
+
+
+def late_fn(xL, wv, dep, seq, n, sw, L):
+    """phase B of layer L as a function of a later array (`after`): the spin is ordered after it"""
+    base = type(sw).__mro__[1]
+
+    def f(after):
+        o = mx.isnan(after.reshape(-1)[:1]).astype(mx.int32) * 0
+        depB = mx.concatenate([dep[:1] + o, mx.array([n, 0] * M, dtype=mx.int32)])
+        lb = ext.spin_wait(depB, L, seq, 2 * M, 1)
+        pos, slb = lb[0::2], lb[1::2]
+        xf = xL.reshape(-1, xL.shape[-1])
+        xpad = mx.concatenate([xf, mx.zeros((1, xf.shape[-1]), dtype=xf.dtype)])
+        yB = base.__call__(sw, xpad[pos // n][None], slb[:, None][None].astype(mx.uint32))[0, :, 0, :]   # [M, D]
+        wpad = mx.concatenate([wv.reshape(-1), mx.zeros((1,), wv.dtype)])                               # pads: weight 0
+        return (yB * wpad[pos][:, None].astype(yB.dtype)).sum(axis=0).reshape(1, 1, -1)
+    return f
+
+
+def block(self, x):
+    sw = self.switch_mlp
+    bm = getattr(sw, "_bm", None)
+    if bm is None or bm["full"] or x.shape[1] != 1:
+        return orig_call(self, x)
+    L = bm["L"]
+    if L == bm["first"]:
+        bm["gate"].new_pass()
+    ae = bm.get("async_every", 0)
+    if ae and L % ae == ae - 1:
+        mx.async_eval(x)
+    ids, pk = topk_probs(self.gate(x)[0], KC)                          # [1, KC] by score
+    last = L == NL - 1
+    fl = WALL if last else FLAGS
+    use = None
+    if THETA > 0 and not FRUGAL:                                       # mass rule: ranks past theta are not used at all
+        p10 = pk[:, :K]
+        use = ((mx.cumsum(p10, axis=-1) - p10) / p10.sum(axis=-1, keepdims=True)) < THETA
+        fl = mx.where(use | (R < KW), fl, 0)
+    flat = (ids.astype(mx.int32) | fl).reshape(-1)
+    slots = bm["gate"].route_and_gate(L, flat, nw=255, nk=K).reshape(1, KC).astype(mx.int32)
+    dep, seq, n = bm["gate"]._last
+    res = slots >= 0
+    if FRUGAL:                                                         # rank 0, rank 1 (now or late), then the first
+        r1 = (R == 1)[None]                                            # resident ranks 2-19 up to 10 in all
+        pool = res & ~r1
+        sel = (pool & (mx.cumsum(pool.astype(mx.int32), axis=-1) <= K - 1)) | r1
+        w = pk * sel
+        w = w / w.sum(axis=-1, keepdims=True)                          # renormalised over the 10 (as select_resident)
+    else:
+        w = pk / pk.sum(axis=-1, keepdims=True)                        # no renormalisation beyond the top-10 sum
+        if use is not None:
+            w = w * use
+    now = res                                                          # late ids are -1 here: phase B adds them
+    safe = mx.where(res, slots, slots[:, :1]).astype(mx.uint32)        # rank 0 is always waited -> resident
+    base = type(sw).__mro__[1]
+    y = (base.__call__(sw, x, safe[None]) * (w * now)[None][..., None].astype(x.dtype)).sum(axis=-2)
+    if not last and (LATE1 or (not FRUGAL and KW < K)):
+        STASH[L] = late_fn(x, w, dep, seq, n, sw, L)
+    return y + attention_gate(self.shared_expert(x), self.shared_expert_gate(x))
+
+
+def layer_call(self, hidden, *, input_ids, ssm_mask, cache):          # MTPLX DecoderLayer.__call__ + the late writes
+    if "ple" in self:
+        hidden = hidden + self.ple(hidden, input_ids, cache)
+    mixed, hyper, inject = self.attn_hyper_connection(hidden)
+    if self.is_linear:
+        block_out = self.linear_attn(mixed, ssm_mask, cache)
+    else:
+        block_out = self.self_attn(mixed, cache)
+    L = self._bt_L
+    for f, inj in PENDH.pop(L, []):                                   # layer L-1's late experts, before this MLP read
+        hyper = _hyper_residual_write(hyper, f(block_out), inj)
+    mixed, hyper, inject = self.mlp_hyper_connection(hyper, pending=(block_out, inject))
+    block_out = self.mlp(mixed)
+    hidden = _hyper_residual_write(hyper, block_out, inject)
+    f = STASH.pop(L, None)
+    if f is not None:
+        if SAME:
+            hidden = _hyper_residual_write(hidden, f(block_out), inject)
+        else:
+            PENDH.setdefault(L + 1, []).append((f, inject))
+    return hidden
+
+
+TM = rt.model.language_model.model if hasattr(rt.model, "language_model") else rt.model.model
+for i, l in enumerate(TM.layers):
+    l._bt_L = i
+qwen4_exp.SparseMoeBlock.__call__ = block
+qwen4_exp.DecoderLayer.__call__ = layer_call
+model, tok = rt.model, rt.tokenizer
+EOS = set()
+for _a in ("eos_token_ids", "eos_token_id"):
+    _v = getattr(tok, _a, None)
+    if _v is not None:
+        EOS |= set(_v) if isinstance(_v, (list, set, tuple)) else {_v}
+for _t in ("<|im_end|>", "<|endoftext|>"):
+    try:
+        _i = tok.convert_tokens_to_ids(_t)
+        if isinstance(_i, int) and _i >= 0: EOS.add(_i)
+    except Exception:
+        pass
+
+
+def chat_ids(text):
+    ids = tok.apply_chat_template([{"role": "user", "content": text}], add_generation_prompt=True, enable_thinking=False)
+    return list(ids if isinstance(ids[0], int) else ids["input_ids"])
+
+
+def generate(prompt_ids, n, stop_eos=False):
+    """-> tokens, stats (seconds of decode, SSD reads, waited misses, late reads, overflow)"""
+    from bigmoe.fuse import reset_generation_state
+    reset_generation_state(model)
+    STASH.clear(); PENDH.clear()
+    out = []
+    cache = model.make_cache()
+    ids = mx.array([list(prompt_ids)[:-1]])
+    for i in range(0, ids.shape[1], 2048):
+        lg = model(ids[:, i:i + 2048], cache=cache)
+        mx.eval(lg[0] if isinstance(lg, tuple) else lg)
+    y = int(prompt_ids[-1])
+    ext.reset_stats(); ext.wt_reset(); ext.defer_reset()
+    m0, t0 = ext.stats()["misses"], time.perf_counter()
+    while len(out) < n:
+        lg = model(mx.array([[y]]), cache=cache)
+        y = int(mx.argmax((lg[0] if isinstance(lg, tuple) else lg)[0, -1]).item())
+        if stop_eos and y in EOS:
+            break
+        out.append(y)
+    t = time.perf_counter() - t0
+    st.gate.check()
+    wm = ext.wt_stats()[0]; rows, late, over = ext.defer_stats()
+    return out, dict(t=t, n=len(out), reads=ext.stats()["misses"] - m0, waited=wm, late=late, over=over, rows=rows)
+
+
+sha = lambda t: hashlib.sha1(str(list(t)).encode()).hexdigest()[:10]
+PROMPTS = {"code": lambda: open(os.path.expanduser("~/BigMoE/data/prompt_code.txt")).read(),
+           "prose": lambda: ("Explain, in plain prose for a curious 14-year-old, how a CPU cache works and why it makes "
+                             "programs faster. Use one everyday analogy and keep it to about 300 words.")}
+if TASK == "speed":
+    P = os.environ.get("PROMPT", "code")
+    ids = chat_ids(PROMPTS[P]())
+    N = int(os.environ.get("BT_N", "128"))
+    generate(ids, 16)                                                   # warm-up
+    out, s = generate(ids, N)
+    nt = max(1, s["n"])
+    print(f"[{P}] defer C={C} K={KW} M={M} {'same' if SAME else 'dh'}: {s['n'] / s['t']:.1f} tok/s, SSD reads/token "
+          f"{s['reads'] / nt:.1f} (waited misses {s['waited'] / nt:.1f}, late {s['late'] / nt:.1f}, overflow-waited "
+          f"{s['over'] / nt:.2f}), peak {mx.get_peak_memory() / 1e9:.1f} GB, sha {sha(out)} | {tok.decode(out)[:70]!r}", flush=True)
+elif TASK.startswith("gsm"):
+    N = int(TASK[3:]); OFF = int(os.environ.get("OFFSET", "0"))
+    G8 = [json.loads(l) for l in open(os.path.expanduser("~/MoEPrefetch/data/gsm8k/test.jsonl"))][OFF:OFF + N]
+    INSTR = "Solve the problem step by step, briefly. End with a line of the form 'Answer: <number>'.\n\n"
+    tag = os.environ.get("BT_TAG", f"r{round(100 * C / E):02d}_k{KW}{'s' if SAME else 'h'}")
+    ck = os.path.join(OUT, f"gsm_{tag}.json")
+    state = json.load(open(ck)) if os.path.exists(ck) else {}
+    ans, ok, st_l = (state.get(k, {}) for k in ("answers", "ok", "stats"))
+    for j, p in enumerate(G8):
+        key = str(OFF + j)
+        if key in ok:
+            continue
+        out, s = generate(chat_ids(INSTR + p["question"]), 600, stop_eos=True)
+        text = tok.decode(out)
+        m = re.findall(r"Answer:\s*\**\s*\$?\s*(-?[\d,]*\.?\d+)", text) or re.findall(r"(-?[\d,]*\.?\d+)", text)
+        gold = p["answer"].split("####")[-1].strip().replace(",", "")
+        a = m[-1].replace(",", "").rstrip(".") if m else None
+        try:
+            good = int(a is not None and abs(float(a) - float(gold)) < 1e-6)
+        except ValueError:
+            good = 0
+        ans[key], ok[key], st_l[key] = a, good, s
+        json.dump({"answers": ans, "ok": ok, "stats": st_l, "C": C, "K": KW, "M": M, "same": SAME}, open(ck, "w"))
+    keys = [str(OFF + j) for j in range(len(G8))]
+    ref = json.load(open(os.path.expanduser("~/MoEPrefetch/data/w125_gsm_eager.json")))["answers"]
+    same_n = sum(1 for k in keys if int(k) < len(ref) and ref[int(k)] == ans.get(k))
+    nt = sum(st_l[k]["n"] for k in keys); tt = sum(st_l[k]["t"] for k in keys); rd = sum(st_l[k]["reads"] for k in keys)
+    print(f"125B C={C} defer K={KW} [{tag}]: GSM8K {sum(ok[k] for k in keys)}/{len(keys)} (offset {OFF}), answers equal "
+          f"to exact eager {same_n}/{sum(1 for k in keys if int(k) < len(ref))}, {nt / max(tt, 1e-9):.1f} tok/s decode, "
+          f"{rd / max(1, nt):.1f} reads/token; per-problem {''.join(str(ok[k]) for k in keys)}", flush=True)
+elif TASK == "check":   # K=10 must reproduce exact streaming; K<10 must stay coherent (text printed)
+    ids = chat_ids(PROMPTS["code"]())
+    out, s = generate(ids, 48)
+    print(f"check K={KW} {'same' if SAME else 'dh'}: sha {sha(out)} reads {s['reads']} waited {s['waited']} late {s['late']} "
+          f"over {s['over']} rows {s['rows']} | {tok.decode(out)[:160]!r}", flush=True)
+### bt_frugal.py
+"""Frugal wait-top-2 runtime hook for Qwen3.8-Flash-Next 125B (Breakthrough D1, 2026-10-20), for the Eval suite.
+
+    import os, sys; sys.path.insert(0, os.path.expanduser("~/Breakthrough/scripts"))
+    from bt_frugal import load_frugal
+    rt, st = load_frugal(0.10)      # 10 % of each layer's 512 experts resident (C = 51); 0.05 -> C = 26
+    # then use rt as an ordinary MTPLX runtime: mtplx.generation.generate_ar(rt, ids, ...), rt.model(...), rt.tokenizer
+    # after a run: st.gate.check() raises if any gate timed out (that pass would be invalid)
+
+What it does (the setup measured in data/expA: GSM8K-150 146/150 at 10 %, 143/150 at 5 %, vs 147 exact):
+- MoEPrefetch's fork125 streamer (read-only import from ~/MoEPrefetch/fork125) with BIGMOE_SPARE=0, so its background
+  prefetch has zero capacity: a missing expert at rank >= 2 is never read from the SSD.
+- Every decode step (one token per call): the router's top-20 are computed; ranks 0-1 are waited for (read if missing);
+  the K = 10 experts actually used are the first 10 RESIDENT ones in rank order (so missing ranks 2-9 are replaced by
+  resident ranks 10-19, else dropped), gates renormalised over the ones used. Resident ranks 2-9 are LRU-touched.
+- IMPORTANT: multi-token calls (prefill, or teacher-forcing a sequence in one call) run the EXACT streamed MoE. Frugal
+  routing depends on the expert cache, which evolves token by token, so a prefill-only / teacher-forced test of this
+  variant must feed the reference tokens one at a time (decode-style calls) to measure frugal behaviour. Prompts can be
+  prefilled normally (exact), as in the GSM8K runs.
+- Decode is eager (MTP off), on the fork's older BigMoE base (no MTP, no PF_JIT): speed numbers are not the main track's.
+"""
+import json, os, sys
+
+
+def load_frugal(frac, nwait=2, mtp=False):
+    os.environ.setdefault("MTPLX_NGRAM_PREWARM", "off")
+    for k in ("MTPLX_COMPILED_VERIFY", "MTPLX_QWEN4EXP_COMPILE", "MTPLX_COMPILE_AR_FORWARD", "MTPLX_COMPILED_TARGET_PREFIX"):
+        os.environ.setdefault(k, "0")
+    os.environ["BIGMOE_SPARE"] = "0"          # frugal: no background reads of missing low ranks
+    os.environ["BIGMOE_PF_NOPUBLISH"] = "1"
+    root = os.path.expanduser("~/MoEPrefetch")
+    sys.path.insert(0, os.path.join(root, "fork125"))
+    sys.path.insert(1, os.path.join(root, "scripts"))
+    import mlx.core as mx
+    from bigmoe_wt.loader import load_streamed
+    from fused_route import topk_probs, select_resident
+    md = os.path.expanduser("~/BigMoE/models/bare")
+    cfg = json.load(open(os.path.join(md, "config.json")))
+    cfg = cfg.get("text_config", cfg)
+    E, K = cfg["num_experts"], cfg["num_experts_per_tok"]
+    C = max(16, round(frac * E))
+    rt, st = load_streamed(md, C, mtp=mtp)
+    from mtplx.models import qwen4_exp
+    from mtplx.attention_math import attention_gate
+    orig_call = qwen4_exp.SparseMoeBlock.__call__
+    KC = 20
+
+    def block(self, x):
+        sw = self.switch_mlp
+        bm = getattr(sw, "_bm", None)
+        if bm is None or x.shape[1] != 1 or bm["full"]:
+            return orig_call(self, x)
+        if bm["L"] == bm["first"]:
+            bm["gate"].new_pass()
+        ids, pk = topk_probs(self.gate(x)[0], KC)
+        slots = bm["gate"].route_and_gate(bm["L"], ids[0], nw=nwait, nk=K).reshape(1, KC).astype(mx.int32)
+        sl, w = select_resident(slots, pk, topk=K)
+        base = type(sw).__mro__[1]
+        y = (base.__call__(sw, x, sl[None].astype(mx.uint32)) * w[None][..., None].astype(x.dtype)).sum(axis=-2)
+        return y + attention_gate(self.shared_expert(x), self.shared_expert_gate(x))
+
+    qwen4_exp.SparseMoeBlock.__call__ = block
+    print(f"bt_frugal: C={C} of {E} experts per layer ({100 * C / E:.0f} %), wait for top-{nwait}, BIGMOE_SPARE=0", flush=True)
+    return rt, st
+### bt_frugal_spec.py
+"""Breakthrough D1 x speculation (2026-10-20): frugal wait-top-2 routing on the streamed 125B with MTP / prompt-lookup
+speculative decoding (SpecDecode's spec125.generate, read-only import).
+
+Engine: ~/Breakthrough/fork125bt = MoEPrefetch's fork125 (BigMoE ffc859b + selective waiting) with one change in the
+native loader: ensure_wait protects only what fits in the pool (waited ids, then resident candidates in list order), so
+S verify rows x KC candidate ids can exceed C at 5-10 % residency without "no free slot" aborts. Eviction is unchanged
+whenever all candidates fit (every eager frugal run so far).
+
+Frugal block (every streamed MoE call with S <= 8 rows; longer calls = prefill run the exact streamed path):
+  router top-KC per row (KC = min(20, MAXK // S)); the routing row is rank-major (all rows' rank 0, then all rank 1,
+  ...), so the loader waits only for the first 2*S ids (each row's ranks 0-1), LRU-touches resident ranks 2-9 and never
+  reads a missing one (BIGMOE_SPARE=0); per row the K = 10 experts used are the first 10 resident in rank order,
+  gates renormalised over them. S = 1 is exactly the eager frugal setup of data/expA (GSM8K-150 146 at 10 %).
+usage: bt_frugal_spec.py FRAC TASK [CONFIGS]
+  TASK  smoke : 24 tokens eager + 24 tokens with the first config (mechanics only)
+        speed : PROMPT env (code | prose | edit), BT_N tokens (128): eager (ar2, pipelined) then each config
+        gsmN  : GSM8K problems OFFSET..OFFSET+N with the first config ('ar2' = eager), 600-token cap, EOS stop;
+                checkpoint per problem in data/expS/bt_gsm_<tag>.json; compared with BigMoE's exact eager answers
+  CONFIGS: comma list of k_mtp:max_draft:lookup (spec125.generate), default 3:3:1
+Env: BT_TAG (checkpoint tag), BT_SMAX (8), BIGMOE_MTP_C (64). Run with BigMoE's venv, PYTHONDONTWRITEBYTECODE=1."""
+import hashlib, json, os, re, sys, time
+
+os.environ.setdefault("MTPLX_NGRAM_PREWARM", "off")
+for _k, _v in (("MTPLX_FAMILY_CAPTURE_COMMIT", "1"), ("MTPLX_DROP_EVENTS", "1"), ("MTPLX_LAZY_MTP_HISTORY_APPEND", "1"),
+               ("MTPLX_DEFER_REPAIR_EVAL", "1")):
+    os.environ.setdefault(_k, _v)
+for _k in ("MTPLX_COMPILED_VERIFY", "MTPLX_QWEN4EXP_COMPILE", "MTPLX_COMPILE_AR_FORWARD", "MTPLX_COMPILED_TARGET_PREFIX"):
+    os.environ.setdefault(_k, "0")
+PF = os.environ.get("BT_PF") == "1"        # frugal + look-ahead prefetch of predicted experts into spare slots
+os.environ["BIGMOE_SPARE"] = os.environ.get("BT_SPARE", "12") if PF else "0"   # spare slots are part of C (C_main = C - spare)
+if PF:
+    os.environ.setdefault("BIGMOE_PREFETCH", "12")
+    os.environ.setdefault("BIGMOE_PF_JIT", "1")
+    os.environ.setdefault("BIGMOE_PF_QD", "4")
+os.environ["BIGMOE_PF_NOPUBLISH"] = "1"
+for _k, _v in (("BIGMOE_MAXK", "80"), ("BIGMOE_COMPILE_HC", "1"), ("BIGMOE_HC_VREAD", "1"), ("BIGMOE_ASYNC_EVERY", "1"),
+               ("BIGMOE_FRSPEC", "1"), ("BIGMOE_MTP_STREAM", "1"), ("BIGMOE_MTP_C", "64")):
+    os.environ.setdefault(_k, _v)
+ENG = os.path.expanduser("~/Breakthrough/fork125bt")
+sys.path.insert(0, ENG)                                   # `bigmoe` -> fork125bt/bigmoe_wt (symlink)
+sys.path.insert(1, os.path.expanduser("~/MoEPrefetch/scripts"))
+sys.path.insert(2, os.path.expanduser("~/SpecDecode"))
+import mlx.core as mx
+from bigmoe.loader import load_streamed
+from bigmoe.gated import ext, MAXK, PRED_LINES
+from bigmoe.stream import _CORR                         # None unless BIGMOE_PF_CORR names MoEPrefetch's factors
+from bigmoe import decode as D
+from fused_route import topk_probs, select_resident
+import spec125
+
+OUT = os.path.expanduser("~/Breakthrough/data/expS")
+os.makedirs(OUT, exist_ok=True)
+MD = os.path.expanduser("~/BigMoE/models/bare")
+frac, TASK = float(sys.argv[1]), sys.argv[2]
+CONFIGS = (sys.argv[3] if len(sys.argv) > 3 else "3:3:1").split(",")
+cfg = json.load(open(os.path.join(MD, "config.json"))); cfg = cfg.get("text_config", cfg)
+E, K = cfg["num_experts"], cfg["num_experts_per_tok"]
+C = int(os.environ.get("BT_C", "0")) or max(16, round(frac * E))   # BT_C: exact slot count (plane-cache emulation)
+SMAX = int(os.environ.get("BT_SMAX", "8"))
+NW = 2
+t0 = time.perf_counter()
+rt, st = load_streamed(MD, C, mtp=True)
+print(f"bt_frugal_spec: C={C} of {E} ({100 * C / E:.0f} %), loaded in {time.perf_counter() - t0:.0f}s, "
+      f"active {mx.get_active_memory() / 1e9:.1f} GB, MAXK {MAXK}, SMAX {SMAX}", flush=True)
+
+from mtplx.models import qwen4_exp
+from mtplx.attention_math import attention_gate
+orig_call = qwen4_exp.SparseMoeBlock.__call__
+CALLS = {"frugal": 0, "rows": 0, "exact": 0}
+PLAN = os.environ.get("BT_PLAN")   # e.g. 4433332222: bits by position in the used list (MoonShots planes125, one-row
+if PLAN:                           # calls only: eager decode; verify rows stay 4-bit). Emulates a plane cache whose
+    sys.path.insert(0, os.path.expanduser("~/MoonShots/patches/planes125"))   # MSB tier holds C experts (plane_sim.py)
+    import planes125
+    planes125.install(0, rt.model, plan=PLAN)
+    print(f"bt_frugal_spec: plan {PLAN} on one-row calls (planes125)", flush=True)
+
+
+def block(self, x):
+    sw = self.switch_mlp
+    bm = getattr(sw, "_bm", None)
+    S = x.shape[1]
+    kc = min(20, MAXK // max(1, S))
+    if bm is None or bm["full"] or S > SMAX or kc < K:
+        CALLS["exact"] += 1
+        return orig_call(self, x)
+    CALLS["frugal"] += 1; CALLS["rows"] += S
+    if bm["L"] == bm["first"]:
+        bm["gate"].new_pass()
+    ae = bm.get("async_every", 0)
+    if ae and bm["L"] % ae == ae - 1:   # as the streamed SwitchGLU: hand the graph so far to the GPU
+        mx.async_eval(x)
+    ids, pk = topk_probs(self.gate(x)[0], kc)                     # [S, kc] router top-kc, softmax probs (descending)
+    flat = ids.T.reshape(-1) if S > 1 else ids.reshape(-1)        # rank-major: every row's rank 0 first, then rank 1 ...
+    preds, counts = None, (0, 0)
+    nx = bm.get("next") if PF else None
+    if nx is not None:   # BT_PF: look-ahead predictions for layers L+1.. (stream.py's unranked path) -> spare-slot prefetch
+        rows = x.reshape(-1, x.shape[-1])
+        parts, cnt, left = [], [], 30 + 31 * PRED_LINES
+        for router, ratio, B in nx:
+            b = min(B, left // rows.shape[0])
+            if b <= 0:
+                break
+            lg = router(rows * ratio if ratio is not None else rows)
+            if _CORR is not None and router is nx[0][0] and bm["L"] < len(_CORR):   # MoEPrefetch's corrected d=1
+                _c = _CORR[bm["L"]]                                               # (BIGMOE_PF_CORR, as stream.py)
+                lg = lg.astype(mx.float32) + ((rows.astype(mx.float32) - _c[2]) @ _c[0]) @ _c[1] + _c[3]
+            parts.append(mx.argpartition(-lg, kth=b - 1, axis=-1)[:, :b].reshape(-1)); cnt.append(b * rows.shape[0])
+            left -= cnt[-1]
+        if parts:
+            preds = mx.concatenate(parts) if len(parts) > 1 else parts[0]
+            counts = tuple(cnt + [0] * (3 - len(cnt))) + (0,)
+    slots = bm["gate"].route_and_gate(bm["L"], flat, preds=preds, counts=counts, nw=NW * S, nk=K * S)
+    slots = (slots.reshape(kc, S).T if S > 1 else slots.reshape(1, kc)).astype(mx.int32)
+    sl, w = select_resident(slots, pk, topk=K)                    # first K resident per row, renormalised
+    base = type(sw).__mro__[1]
+    y = (base.__call__(sw, x, sl[None].astype(mx.uint32)) * w[None][..., None].astype(x.dtype)).sum(axis=-2)
+    return y + attention_gate(self.shared_expert(x), self.shared_expert_gate(x))
+
+
+qwen4_exp.SparseMoeBlock.__call__ = block
+tok = rt.tokenizer
+
+
+def chat_ids(text):
+    ids = tok.apply_chat_template([{"role": "user", "content": text}], add_generation_prompt=True, enable_thinking=False)
+    return list(ids if isinstance(ids[0], int) else ids["input_ids"])
+
+
+EOS = set()
+for _a in ("eos_token_ids", "eos_token_id"):
+    _v = getattr(tok, _a, None)
+    if _v is not None:
+        EOS |= set(_v) if isinstance(_v, (list, set, tuple)) else {_v}
+for _t in ("<|im_end|>", "<|endoftext|>"):
+    try:
+        _i = tok.convert_tokens_to_ids(_t)
+        if isinstance(_i, int) and _i >= 0:
+            EOS.add(_i)
+    except Exception:
+        pass
+EOS = {int(e) for e in EOS if e is not None}
+
+
+class _Stop(Exception):
+    pass
+
+
+def gen(ids, n, conf, stop_eos=False):
+    """-> tokens, tok/s, stats dict (passes, tok/pass, waited misses / token, ...)"""
+    out, stamps = [], []
+
+    def cb(t):
+        if stamps == []:
+            ext.reset_stats()
+            if hasattr(ext, "wt_reset"): ext.wt_reset()
+        stamps.append(time.perf_counter())
+        if stop_eos and int(t) in EOS:
+            raise _Stop
+        out.append(int(t))
+    s = {}
+    try:
+        if conf == "ar2":
+            D.greedy(rt.model, ids, n, on_token=cb)
+        else:
+            k, md, lk = (int(v) for v in conf.split(":")[:3])
+            spec125.generate(rt.model, ids, n, k_mtp=k, max_draft=md, lookup=lk, stats=s, on_token=cb)
+    except _Stop:
+        pass
+    st.gate.check()
+    nd = max(1, len(stamps) - 1)
+    tps = nd / (stamps[-1] - stamps[0]) if len(stamps) > 1 else float("nan")
+    wm = ext.wt_stats()[0] if hasattr(ext, "wt_stats") else 0
+    s.update(waited_per_tok=wm / nd, n=len(out))
+    return out, tps, s
+
+
+sha = lambda t: hashlib.sha1(str(list(t)).encode()).hexdigest()[:10]
+PROMPTS = {"code": lambda: open(os.path.expanduser("~/BigMoE/data/prompt_code.txt")).read(),
+           "prose": lambda: ("Explain, in plain prose for a curious 14-year-old, how a CPU cache works and why it makes "
+                             "programs faster. Use one everyday analogy and keep it to about 300 words."),
+           "edit": lambda: ("Here is a file:\n\n```python\n" + open(os.path.expanduser("~/SpecDecode/scripts/inventory_sample.py")).read()
+                            + "```\n\nRewrite the whole file with total_value renamed to total everywhere. Output only the full file in one code block.")}
+
+if TASK in ("smoke", "speed"):
+    P = os.environ.get("PROMPT", "code")
+    ids = chat_ids(PROMPTS[P]())
+    N = 24 if TASK == "smoke" else int(os.environ.get("BT_N", "128"))
+    ref, tps, s = gen(ids, N, "ar2")
+    print(f"[{P}] ar2 C={C}: {tps:6.1f} tok/s, waited misses/tok {s['waited_per_tok']:.1f}, sha {sha(ref)} | "
+          f"{tok.decode(ref)[:70]!r}", flush=True)
+    if TASK == "speed":
+        gen(ids, 16, CONFIGS[0])                                  # warm-up (first spec run after load is slow)
+    for conf in CONFIGS:
+        CALLS.update(frugal=0, rows=0, exact=0)
+        out, tps, s = gen(ids, N, conf)
+        div = next((i for i, (a, b) in enumerate(zip(out, ref)) if a != b), None)
+        print(f"[{P}] spec {conf} C={C}: {tps:6.1f} tok/s, {s.get('tok_per_pass', float('nan')):.2f} tok/pass, "
+              f"lookup {s.get('lookup_used', 0)}/{s.get('passes', 0)}, waited misses/tok {s['waited_per_tok']:.1f}, "
+              f"draft {s.get('t_draft', 0):.2f}s verify {s.get('t_verify', 0):.2f}s, refused {s.get('commit_refused', 0)}, "
+              f"frugal calls {CALLS['frugal']} ({CALLS['rows'] / max(1, CALLS['frugal']):.2f} rows) exact {CALLS['exact']}, "
+              f"sha {sha(out)} {'= ar2' if out == ref else 'differs from ar2 at ' + str(div)} | {tok.decode(out)[:70]!r}", flush=True)
+    print(f"peak {mx.get_peak_memory() / 1e9:.1f} GB", flush=True)
+elif TASK.startswith("gsm"):
+    N = int(TASK[3:])
+    OFF = int(os.environ.get("OFFSET", "0"))
+    G8 = [json.loads(l) for l in open(os.path.expanduser("~/MoEPrefetch/data/gsm8k/test.jsonl"))]
+    probs = G8[OFF:OFF + N]
+    INSTR = "Solve the problem step by step, briefly. End with a line of the form 'Answer: <number>'.\n\n"
+    conf = CONFIGS[0]
+    tag = os.environ.get("BT_TAG", f"r{round(frac * 100):02d}_{conf.replace(':', '')}")
+    ck = os.path.join(OUT, f"bt_gsm_{tag}.json")
+    state = json.load(open(ck)) if os.path.exists(ck) else {}
+    ans, ok, tps_l, n_l = (state.get(k, {}) for k in ("answers", "ok", "tps", "ntok"))
+    t0 = time.perf_counter()
+    for j, p in enumerate(probs):
+        key = str(OFF + j)
+        if key in ok:
+            continue
+        toks, tps, s = gen(chat_ids(INSTR + p["question"]), 600, conf, stop_eos=True)
+        text = tok.decode(toks)
+        m = re.findall(r"Answer:\s*\**\s*\$?\s*(-?[\d,]*\.?\d+)", text) or re.findall(r"(-?[\d,]*\.?\d+)", text)
+        gold = p["answer"].split("####")[-1].strip().replace(",", "")
+        a = m[-1].replace(",", "").rstrip(".") if m else None
+        try:
+            good = int(a is not None and abs(float(a) - float(gold)) < 1e-6)
+        except ValueError:
+            good = 0
+        ans[key], ok[key], tps_l[key], n_l[key] = a, good, round(tps, 2), len(toks)
+        json.dump({"answers": ans, "ok": ok, "tps": tps_l, "ntok": n_l, "C": C, "conf": conf}, open(ck, "w"))
+    keys = [str(OFF + j) for j in range(len(probs))]
+    ref = json.load(open(os.path.expanduser("~/MoEPrefetch/data/w125_gsm_eager.json")))   # BigMoE exact eager, 0-149
+    ra = ref.get("answers", [])
+    same = sum(1 for k in keys if int(k) < len(ra) and ra[int(k)] == ans.get(k))
+    nref = sum(1 for k in keys if int(k) < len(ra))
+    tot_tok = sum(n_l[k] for k in keys)
+    mean_tps = tot_tok / max(1e-9, sum(n_l[k] / tps_l[k] for k in keys if tps_l[k] == tps_l[k] and tps_l[k] > 0))
+    print(f"125B C={C} frugal spec {conf} [{tag}]: GSM8K {sum(ok[k] for k in keys)}/{len(keys)} (offset {OFF}), "
+          f"answers equal to exact eager {same}/{nref}, decode {mean_tps:.1f} tok/s (token-weighted, {tot_tok} tokens), "
+          f"{time.perf_counter() - t0:.0f}s, peak {mx.get_peak_memory() / 1e9:.1f} GB; per-problem "
+          f"{''.join(str(ok[k]) for k in keys)}", flush=True)
+### bt_mass.py
+"""Breakthrough D1 quality policies on the fast path (2026-10-21): wait-by-gate-mass routing with the wait decision made
+on the GPU and carried to the loader as a flag bit (bit 20) on each routing-row id (~/Breakthrough/fork125bf: fork125bt
++ flag mode: post kernel masks the flag, the loader waits for exactly the flagged ids, ensure_wait_list). No CPU sync per
+layer, works for multi-row verify (each row waits for its own prefix).
+Rule per row: rank r of the top-10 is waited if the gate mass of ranks < r is below theta (so ranks up to the one that
+crosses theta); missing non-waited ranks take the first resident ranks 10-19 at their own weight; no renormalisation
+(weights = p / sum of the top-10), as tf_frugal_var.py's mNN_nr probes.
+  BT_THETA=0.85 (default) | BT_ADA=lo,hi,tau (eager only: theta = lo if the previous step's entropy <= tau else hi)
+usage: bt_mass.py FRAC TASK [CONFIG]   TASK = speed (PROMPT env code|prose|edit, BT_N) | gsmN (OFFSET env)
+  CONFIG = ar (eager, default) | k:md:lookup (spec125.generate, fixed theta)
+Prints tok/s, SSD reads per token (ext misses), peak; GSM8K accuracy + answers equal to BigMoE's exact eager run."""
+import hashlib, json, os, re, sys, time
+os.environ.setdefault("MTPLX_NGRAM_PREWARM", "off")
+for _k, _v in (("MTPLX_FAMILY_CAPTURE_COMMIT", "1"), ("MTPLX_DROP_EVENTS", "1"), ("MTPLX_LAZY_MTP_HISTORY_APPEND", "1"),
+               ("MTPLX_DEFER_REPAIR_EVAL", "1")):
+    os.environ.setdefault(_k, _v)
+for _k in ("MTPLX_COMPILED_VERIFY", "MTPLX_QWEN4EXP_COMPILE", "MTPLX_COMPILE_AR_FORWARD", "MTPLX_COMPILED_TARGET_PREFIX"):
+    os.environ.setdefault(_k, "0")
+PF = os.environ.get("BT_PF") == "1"        # look-ahead prefetch of predicted experts into spare slots (part of C)
+os.environ["BIGMOE_SPARE"] = os.environ.get("BT_SPARE", "12") if PF else "0"
+if PF:
+    os.environ.setdefault("BIGMOE_PREFETCH", "12")
+    os.environ.setdefault("BIGMOE_PF_JIT", "1")
+    os.environ.setdefault("BIGMOE_PF_QD", "4")
+os.environ["BIGMOE_PF_NOPUBLISH"] = "1"
+for _k, _v in (("BIGMOE_MAXK", "80"), ("BIGMOE_COMPILE_HC", "1"), ("BIGMOE_HC_VREAD", "1"), ("BIGMOE_ASYNC_EVERY", "1"),
+               ("BIGMOE_FRSPEC", "1"), ("BIGMOE_MTP_STREAM", "1"), ("BIGMOE_MTP_C", "64")):
+    os.environ.setdefault(_k, _v)
+if (sys.argv[3] if len(sys.argv) > 3 else "ar") == "ar":
+    os.environ["BIGMOE_MTP_STREAM"] = "0"   # no MTP head in eager runs: a streamed MTP gate layer would be a phantom
+sys.path.insert(0, os.path.expanduser("~/Breakthrough/fork125bf"))
+sys.path.insert(1, os.path.expanduser("~/MoEPrefetch/scripts"))
+sys.path.insert(2, os.path.expanduser("~/SpecDecode"))
+import numpy as np
+import mlx.core as mx
+from bigmoe.loader import load_streamed
+from bigmoe.gated import ext, MAXK, PRED_LINES
+from fused_route import topk_probs
+
+OUT = os.path.expanduser("~/Breakthrough/data/mass"); os.makedirs(OUT, exist_ok=True)
+MD = os.path.expanduser("~/BigMoE/models/bare")
+frac, TASK = float(sys.argv[1]), sys.argv[2]
+CONF = sys.argv[3] if len(sys.argv) > 3 else "ar"
+cfg = json.load(open(os.path.join(MD, "config.json"))); cfg = cfg.get("text_config", cfg)
+E, K = cfg["num_experts"], cfg["num_experts_per_tok"]
+C = int(os.environ.get("BT_C", "0")) or max(16, round(frac * E))
+THETA = float(os.environ.get("BT_THETA", "0.85"))
+ADA = [float(v) for v in os.environ["BT_ADA"].split(",")] if os.environ.get("BT_ADA") else None
+assert ADA is None or CONF == "ar", "adaptive theta is eager-only"
+t0 = time.perf_counter()
+rt, st = load_streamed(MD, C, mtp=CONF != "ar")
+print(f"bt_mass: C={C} of {E} ({100 * C / E:.0f} %), theta {THETA if ADA is None else 'ada %s' % ADA}, {CONF}, "
+      f"loaded in {time.perf_counter() - t0:.0f}s", flush=True)
+from mtplx.models import qwen4_exp
+from mtplx.attention_math import attention_gate
+orig_call = qwen4_exp.SparseMoeBlock.__call__
+PREV_ENT = {"v": mx.array(99.0)}         # previous step's next-token entropy (lazy, on the GPU)
+
+
+def block(self, x):
+    sw = self.switch_mlp
+    bm = getattr(sw, "_bm", None)
+    S = x.shape[1]
+    kc = min(20, MAXK // max(1, S))
+    if bm is None or bm["full"] or S > 8 or kc < K:
+        return orig_call(self, x)
+    if bm["L"] == bm["first"]:
+        bm["gate"].new_pass()
+    ae = bm.get("async_every", 0)
+    if ae and bm["L"] % ae == ae - 1:
+        mx.async_eval(x)
+    ids, pk = topk_probs(self.gate(x)[0], kc)                           # [S, kc]
+    p10 = pk[:, :K]; tot = p10.sum(axis=-1, keepdims=True)
+    before = (mx.cumsum(p10, axis=-1) - p10) / tot                       # mass of the ranks before r
+    th = mx.array(THETA) if ADA is None else mx.where(PREV_ENT["v"] <= ADA[2], ADA[0], ADA[1])
+    wait = before < th                                                   # rank 0 always waited
+    if S > 1 and S * K > C - 4:   # IDEAS D1d: a pass may not wait for more distinct experts than the pool holds
+        M = max(0, C - 4 - S)                                            # every row's rank 0, then M more by priority
+        prio = mx.where(wait, p10 / tot * (0.8 ** mx.arange(S, dtype=mx.float32))[:, None], -1.0)
+        prio = mx.concatenate([mx.full((S, 1), -1.0), prio[:, 1:]], axis=-1)   # rank 0 is handled separately
+        kth = mx.sort(prio.reshape(-1))[-M] if M > 0 else mx.array(9.0)
+        wait = mx.concatenate([mx.ones((S, 1), mx.bool_), (prio[:, 1:] >= kth) & (prio[:, 1:] >= 0)], axis=-1)
+    wait = wait.astype(mx.int32)
+    flags = mx.concatenate([wait << 20, mx.zeros((S, kc - K), mx.int32)], axis=-1) if kc > K else wait << 20
+    idf = ids.astype(mx.int32) | flags
+    flat = idf.T.reshape(-1) if S > 1 else idf.reshape(-1)               # rank-major
+    preds, counts = None, (0, 0)
+    nx = bm.get("next") if PF else None
+    if nx is not None:   # BT_PF: look-ahead predictions for layers L+1.. (stream.py's unranked path) -> spare-slot prefetch
+        rows = x.reshape(-1, x.shape[-1])
+        parts, cnt, left = [], [], 30 + 31 * PRED_LINES
+        for router, ratio, B in nx:
+            b = min(B, left // rows.shape[0])
+            if b <= 0:
+                break
+            lg = router(rows * ratio if ratio is not None else rows)
+            parts.append(mx.argpartition(-lg, kth=b - 1, axis=-1)[:, :b].reshape(-1)); cnt.append(b * rows.shape[0])
+            left -= cnt[-1]
+        if parts:
+            preds = mx.concatenate(parts) if len(parts) > 1 else parts[0]
+            counts = tuple(cnt + [0] * (3 - len(cnt))) + (0,)
+    slots = bm["gate"].route_and_gate(bm["L"], flat, preds=preds, counts=counts, nw=255, nk=K * S)
+    slots = (slots.reshape(kc, S).T if S > 1 else slots.reshape(1, kc)).astype(mx.int32)
+    res = slots >= 0
+    sel = res & (mx.cumsum(res.astype(mx.int32), axis=-1) <= K)         # first K resident in rank order
+    w = pk * sel / tot                                                   # no renormalisation
+    safe = mx.where(sel, slots, slots[:, :1]).astype(mx.uint32)
+    base = type(sw).__mro__[1]
+    y = (base.__call__(sw, x, safe[None]) * w[None][..., None].astype(x.dtype)).sum(axis=-2)
+    return y + attention_gate(self.shared_expert(x), self.shared_expert_gate(x))
+
+
+qwen4_exp.SparseMoeBlock.__call__ = block
+model, tok = rt.model, rt.tokenizer
+EOS = set()
+for _a in ("eos_token_ids", "eos_token_id"):
+    _v = getattr(tok, _a, None)
+    if _v is not None:
+        EOS |= set(_v) if isinstance(_v, (list, set, tuple)) else {_v}
+for _t in ("<|im_end|>", "<|endoftext|>"):
+    try:
+        _i = tok.convert_tokens_to_ids(_t)
+        if isinstance(_i, int) and _i >= 0: EOS.add(_i)
+    except Exception:
+        pass
+
+
+def chat_ids(text):
+    ids = tok.apply_chat_template([{"role": "user", "content": text}], add_generation_prompt=True, enable_thinking=False)
+    return list(ids if isinstance(ids[0], int) else ids["input_ids"])
+
+
+class _Stop(Exception):
+    pass
+
+
+def generate(prompt_ids, n, stop_eos=False):
+    """-> tokens, stats (steps, seconds of decode, SSD reads)"""
+    from bigmoe.fuse import reset_generation_state
+    reset_generation_state(model)
+    out, s = [], {}
+    if CONF == "ar":
+        cache = model.make_cache()
+        ids = mx.array([list(prompt_ids)[:-1]])
+        for i in range(0, ids.shape[1], 2048):
+            lg = model(ids[:, i:i + 2048], cache=cache)
+            mx.eval(lg[0] if isinstance(lg, tuple) else lg)
+        y = int(prompt_ids[-1]); PREV_ENT["v"] = mx.array(99.0)
+        ext.reset_stats(); m0, t0 = ext.stats()["misses"], time.perf_counter()
+        while len(out) < n:
+            lg = model(mx.array([[y]]), cache=cache)
+            lg = (lg[0] if isinstance(lg, tuple) else lg)[0, -1].astype(mx.float32)
+            nxt = mx.argmax(lg)
+            if ADA is not None:
+                lp = lg - mx.logsumexp(lg); PREV_ENT["v"] = -(mx.exp(lp) * lp).sum()
+            y = int(nxt.item())
+            if stop_eos and y in EOS:
+                break
+            out.append(y)
+    else:
+        import spec125
+        k, md, lk = (int(v) for v in CONF.split(":")[:3])
+        first = {}                                  # clock and read counter start at the first generated token
+        m0, t0 = None, None                         # (spec125.generate runs the prompt prefill itself)
+
+        def cb(t):
+            if not first:
+                first.update(t=time.perf_counter(), m=ext.stats()["misses"])
+            if stop_eos and int(t) in EOS:
+                raise _Stop
+            out.append(int(t))
+        try:
+            spec125.generate(model, prompt_ids, n, k_mtp=k, max_draft=md, lookup=lk, stats=s, on_token=cb)
+        except _Stop:
+            pass
+    st.gate.check()
+    if CONF != "ar":                                # decode only: from the first token on (one token of the count fewer)
+        t0, m0 = first.get("t", time.perf_counter()), first.get("m", ext.stats()["misses"])
+        s.update(t=time.perf_counter() - t0, reads=ext.stats()["misses"] - m0, n=max(1, len(out) - 1))
+        return out, s
+    s.update(t=time.perf_counter() - t0, reads=ext.stats()["misses"] - m0, n=len(out))
+    return out, s
+
+
+sha = lambda t: hashlib.sha1(str(list(t)).encode()).hexdigest()[:10]
+if TASK == "speed":
+    P = os.environ.get("PROMPT", "code")
+    text = {"code": lambda: open(os.path.expanduser("~/BigMoE/data/prompt_code.txt")).read(),
+            "prose": lambda: ("Explain, in plain prose for a curious 14-year-old, how a CPU cache works and why it makes "
+                              "programs faster. Use one everyday analogy and keep it to about 300 words."),
+            "edit": lambda: ("Here is a file:\n\n```python\n" + open(os.path.expanduser("~/SpecDecode/scripts/inventory_sample.py")).read()
+                             + "```\n\nRewrite the whole file with total_value renamed to total everywhere. Output only the full file in one code block.")}[P]()
+    ids = chat_ids(text)
+    N = int(os.environ.get("BT_N", "128"))
+    generate(ids, 16)                                                   # warm-up
+    out, s = generate(ids, N)
+    print(f"[{P}] mass C={C} theta {THETA if ADA is None else ADA} {CONF}: {s['n'] / s['t']:.1f} tok/s (incl. the first step), "
+          f"{s['reads'] / max(1, s['n']):.1f} SSD reads/token ({s['reads'] / max(1, s['n']) * 2.765:.0f} MB), "
+          f"{s.get('tok_per_pass', float('nan')):.2f} tok/pass, peak {mx.get_peak_memory() / 1e9:.1f} GB, sha {sha(out)} | "
+          f"{tok.decode(out)[:70]!r}", flush=True)
+elif TASK.startswith("gsm"):
+    N = int(TASK[3:]); OFF = int(os.environ.get("OFFSET", "0"))
+    G8 = [json.loads(l) for l in open(os.path.expanduser("~/MoEPrefetch/data/gsm8k/test.jsonl"))][OFF:OFF + N]
+    INSTR = "Solve the problem step by step, briefly. End with a line of the form 'Answer: <number>'.\n\n"
+    tag = os.environ.get("BT_TAG", f"r{round(100 * C / E):02d}_{'ada' if ADA else 't%g' % THETA}_{CONF.replace(':', '')}")
+    ck = os.path.join(OUT, f"gsm_{tag}.json")
+    state = json.load(open(ck)) if os.path.exists(ck) else {}
+    ans, ok, st_l = (state.get(k, {}) for k in ("answers", "ok", "stats"))
+    for j, p in enumerate(G8):
+        key = str(OFF + j)
+        if key in ok:
+            continue
+        out, s = generate(chat_ids(INSTR + p["question"]), 600, stop_eos=True)
+        text = tok.decode(out)
+        m = re.findall(r"Answer:\s*\**\s*\$?\s*(-?[\d,]*\.?\d+)", text) or re.findall(r"(-?[\d,]*\.?\d+)", text)
+        gold = p["answer"].split("####")[-1].strip().replace(",", "")
+        a = m[-1].replace(",", "").rstrip(".") if m else None
+        try:
+            good = int(a is not None and abs(float(a) - float(gold)) < 1e-6)
+        except ValueError:
+            good = 0
+        ans[key], ok[key], st_l[key] = a, good, {k2: s[k2] for k2 in ("t", "reads", "n")}
+        json.dump({"answers": ans, "ok": ok, "stats": st_l, "C": C, "theta": THETA, "ada": ADA, "conf": CONF}, open(ck, "w"))
+    keys = [str(OFF + j) for j in range(len(G8))]
+    ref = json.load(open(os.path.expanduser("~/MoEPrefetch/data/w125_gsm_eager.json")))["answers"]
+    same = sum(1 for k in keys if int(k) < len(ref) and ref[int(k)] == ans.get(k))
+    nt = sum(st_l[k]["n"] for k in keys); tt = sum(st_l[k]["t"] for k in keys); rd = sum(st_l[k]["reads"] for k in keys)
+    print(f"125B C={C} mass {THETA if ADA is None else ADA} {CONF} [{tag}]: GSM8K {sum(ok[k] for k in keys)}/{len(keys)} "
+          f"(offset {OFF}), answers equal to exact eager {same}/{sum(1 for k in keys if int(k) < len(ref))}, "
+          f"{nt / max(tt, 1e-9):.1f} tok/s decode, {rd / max(1, nt):.1f} reads/token; per-problem "
+          f"{''.join(str(ok[k]) for k in keys)}", flush=True)
+### bt_waittop125.py
+"""Breakthrough copy of MoEPrefetch scripts/waittop125.py (2026-10-19): identical logic; reads MoEPrefetch's fork125
+and GSM8K data read-only, writes checkpoints only to ~/Breakthrough/data/expA. Original docstring:
+Selective waiting on Qwen3.8-Flash-Next 125B (BigMoE's model, MTPLX runtime), forked gate in fork125/
+(upstream BigMoE 1fde1b8 + fork/apply_patch.py). Decode only (MTP off: BigMoE measured no MTP gain here).
+  waittop125.py FRAC MODE TASK
+    MODE  exact  : BigMoE's unmodified streamed block (reference)
+          w10    : our block, wait for all top-10 (should reproduce exact)
+          w2     : wait for missing top-2 of 10, substitute ranks 3-10 from resident ranks 11-20
+          wl     : layer-aware: early layers (0-11 of 48) wait only for top-1, later layers top-2
+                   (the gate cannot express "wait for none" without a C++ change; top-1 is the conservative stand-in)
+    TASK  speed  : BigMoE's code prompt, 128 tokens -> tok/s, stalls, sha
+          trace  : (MODE exact) log each decode token's router top-20 per layer on code/chat/math prompts
+                   -> data/traces125/<name>.npz  (125B routing traces for residency policy work)
+          gsmN   : first N GSM8K problems (env OFFSET), greedy, 600-token cap -> accuracy + per-problem string
+Run with BigMoE's venv. Model ~/BigMoE/models/bare is read-only. Summary only."""
+import hashlib, json, os, re, sys, time
+os.environ.setdefault("MTPLX_NGRAM_PREWARM", "off")
+for k in ("MTPLX_COMPILED_VERIFY", "MTPLX_QWEN4EXP_COMPILE", "MTPLX_COMPILE_AR_FORWARD", "MTPLX_COMPILED_TARGET_PREFIX"):
+    os.environ.setdefault(k, "0")
+os.environ.setdefault("BIGMOE_SPARE", "8")
+os.environ["BIGMOE_PF_NOPUBLISH"] = "1"
+ROOT = os.path.expanduser("~/MoEPrefetch")          # read-only: fork125, data/gsm8k
+OUT = os.path.expanduser("~/Breakthrough/data/expA")  # all writes go here
+UPSTREAM = os.environ.get("W125_UPSTREAM") == "1"     # exact mode via BigMoE's current package (its new flags)
+import numpy as np
+import mlx.core as mx
+if UPSTREAM:
+    sys.path.insert(0, os.path.expanduser("~/BigMoE"))
+    from bigmoe.loader import load_streamed
+    from bigmoe.gated import ext
+else:
+    sys.path.insert(0, os.path.join(ROOT, "fork125"))
+    from bigmoe_wt.loader import load_streamed
+    from bigmoe_wt.gated import ext
+sys.path.insert(1, os.path.join(ROOT, "scripts"))
+from fused_route import topk_probs, select_resident
+
+MD = os.path.expanduser("~/BigMoE/models/bare")
+frac, MODE, TASK = float(sys.argv[1]), sys.argv[2], sys.argv[3]
+cfg = json.load(open(os.path.join(MD, "config.json"))); cfg = cfg.get("text_config", cfg)
+E, K = cfg["num_experts"], cfg["num_experts_per_tok"]
+C = max(16, round(frac * E))
+if MODE == "exact":
+    os.environ["BIGMOE_SPARE"] = "0"
+rt, st = load_streamed(MD, C, mtp=False)
+
+if MODE != "exact":
+    from mtplx.models import qwen4_exp
+    from mtplx.attention_math import attention_gate
+    orig_call = qwen4_exp.SparseMoeBlock.__call__
+    KC = 20
+    NK = int(os.environ.get("BT_NK", K))   # Breakthrough: ranks nw..NK-1 are LRU-touched / loaded in the background;
+                                           # BT_NK=2 with w2 = frugal mode: missing ranks >= 2 are never read from the SSD
+
+    def block(self, x):
+        sw = self.switch_mlp
+        bm = getattr(sw, "_bm", None)
+        if bm is None or x.shape[1] != 1 or bm["full"]:
+            return orig_call(self, x)
+        if bm["L"] == bm["first"]:
+            bm["gate"].new_pass()
+        ids, pk = topk_probs(self.gate(x)[0], KC)        # fused: softmax over 512 + bitonic top-20
+        if MODE == "w10":
+            sl = bm["gate"].route_and_gate(bm["L"], ids[0, :K]).reshape(1, 1, K)
+            w = pk[None, :, :K]
+            if self.norm_topk_prob:
+                w = w / mx.maximum(w.sum(axis=-1, keepdims=True), 1e-6)
+        else:
+            nw = 1 if (MODE == "wl" and bm["L"] < 12) else 2
+            slots = bm["gate"].route_and_gate(bm["L"], ids[0], nw=nw, nk=NK).reshape(1, KC).astype(mx.int32)
+            sl, w = select_resident(slots, pk, topk=K)     # fused: first K resident, renormalised
+            sl, w = sl[None], w[None]
+        base = type(sw).__mro__[1]
+        y = (base.__call__(sw, x, sl.astype(mx.uint32)) * w[..., None].astype(x.dtype)).sum(axis=-2)
+        return y + attention_gate(self.shared_expert(x), self.shared_expert_gate(x))
+
+    qwen4_exp.SparseMoeBlock.__call__ = block
+
+TRACE = {}
+if TASK == "trace":
+    from mtplx.models import qwen4_exp as _q
+    _orig_tr = _q.SparseMoeBlock.__call__
+    def _traced(self, x):
+        bm = getattr(self.switch_mlp, "_bm", None)
+        if bm is not None and x.shape[1] == 1:
+            g = self.gate(x)[0, 0].astype(mx.float32)
+            top = mx.argsort(-g, axis=-1)[:20]
+            TRACE.setdefault(bm["L"], []).append(top.astype(mx.int16))
+            TRACE.setdefault(f"G{bm['L']}", []).append(mx.softmax(g)[top].astype(mx.float16))   # Breakthrough: router probs
+            for d, (router, ratio, _B) in enumerate(bm.get("next") or [], 1):   # BigMoE's look-ahead predictor:
+                xin = x[0, 0] * ratio if ratio is not None else x[0, 0]           # router_{L+d}(MoE input of L), top-32
+                TRACE.setdefault(f"P{d}_{bm['L']}", []).append(mx.argsort(-router(xin), axis=-1)[:32].astype(mx.int16))
+        return _orig_tr(self, x)
+    _q.SparseMoeBlock.__call__ = _traced
+
+from mtplx.sampling import SamplerConfig
+from mtplx import generation as G
+greedy = SamplerConfig(temperature=0.0, top_p=1.0, top_k=0)
+
+
+def chat_ids(text):
+    ids = rt.tokenizer.apply_chat_template([{"role": "user", "content": text}], add_generation_prompt=True, enable_thinking=False)
+    return list(ids if isinstance(ids[0], int) else ids["input_ids"])
+
+
+import threading
+_last = [None]                       # Breakthrough watchdog: time of the last generated token (None = not started)
+
+
+def _watchdog(limit=float(os.environ.get("BT_WATCHDOG_S", "180"))):
+    while True:
+        time.sleep(10)
+        if _last[0] is not None and time.time() - _last[0] > limit:
+            print(f"HANG watchdog: no token for {time.time() - _last[0]:.0f}s, exiting", flush=True)
+            os._exit(3)
+
+
+threading.Thread(target=_watchdog, daemon=True).start()
+
+
+def run(ids, n):
+    stamps = []
+    _last[0] = time.time()           # a new generation: prefill + first tokens must arrive within the limit
+    def cb(toks):
+        _last[0] = time.time()
+        if not stamps:
+            ext.reset_stats()
+            if hasattr(ext, 'wt_reset'): ext.wt_reset()
+        stamps.append((time.perf_counter(), len(toks) if isinstance(toks, list) else 1))
+    res = G.generate_ar(rt, ids, max_tokens=n, sampler=greedy, token_callback=cb)
+    toks = getattr(res, "tokens", None) or getattr(res, "token_ids", None) or (res.get("tokens") if isinstance(res, dict) else None)
+    if toks is None and isinstance(res, tuple): toks = res[0]
+    toks = list(toks or [])
+    n_dec = max(1, sum(k for _, k in stamps) - stamps[0][1]) if stamps else 1
+    dec = stamps[-1][0] - stamps[0][0] if len(stamps) > 1 else float("nan")
+    return toks, n_dec / dec if dec == dec and dec > 0 else float("nan"), n_dec
+
+
+if TASK == "trace":
+    os.makedirs(os.path.join(OUT, "traces125"), exist_ok=True)
+    G8 = [json.loads(l) for l in open(os.path.join(ROOT, "data", "gsm8k", "test.jsonl"))][:3]
+    prompts = {"code": open(os.path.expanduser("~/BigMoE/data/prompt_code.txt")).read(),
+               "chat": "Explain how a refrigerator works to a curious 10 year old.",
+               "bulgarian": "Разкажи ми накратко историята на Рилския манастир.",
+               "math": "\n\n".join(p["question"] for p in G8)}
+    NT = int(os.environ.get("TRACE_TOKENS", "200"))
+    for name, text in prompts.items():
+        TRACE.clear()
+        run(chat_ids(text), NT)
+        arr = {(k if isinstance(k, str) else f"L{k}"): np.array(mx.stack(v)) for k, v in TRACE.items()}
+        np.savez_compressed(os.path.join(OUT, "traces125", f"{name}{'_' + str(NT) if NT != 200 else ''}{os.environ.get('TRACE_SUFFIX', '')}.npz"), **arr)
+        print(f"125B trace {name}: {len(next(iter(TRACE.values())))} decode tokens x {sum(isinstance(k, int) for k in TRACE)} streamed layers, {sum(isinstance(k, str) for k in TRACE)} look-ahead lists", flush=True)
+elif TASK == "speed":
+    toks, tps, n_dec = run(chat_ids(open(os.path.expanduser("~/BigMoE/data/prompt_code.txt")).read()), 128)
+    st.gate.check()
+    s = ext.stats(); wm, rl, pr = ext.wt_stats() if hasattr(ext, 'wt_stats') else (0, 0, 0)
+    print(f"125B C={C} {MODE}: decode {tps:.1f} tok/s, stalled layers/tok {s['stalled']/n_dec:.1f}, waited misses/tok {wm/n_dec:.1f}, "
+          f"bg loads/tok {rl/n_dec:.1f}, sha {hashlib.sha1(str(toks).encode()).hexdigest()[:10]}, peak {mx.get_peak_memory()/1e9:.1f} GB")
+else:
+    N = int(TASK[3:])
+    OFF = int(os.environ.get("OFFSET", "0"))
+    probs = [json.loads(l) for l in open(os.path.join(ROOT, "data", "gsm8k", "test.jsonl"))][OFF:OFF + N]
+    INSTR = "Solve the problem step by step, briefly. End with a line of the form 'Answer: <number>'.\n\n"
+    tag = os.environ.get("W125_TAG", MODE)
+    ck = os.path.join(OUT, f"w125_gsm_{tag}.json")
+    state = json.load(open(ck)) if os.path.exists(ck) else {"offset": OFF, "answers": [], "ok": []}
+    ok, answers, t0 = state["ok"], state["answers"], time.perf_counter()
+    budget = int(os.environ.get("W125_CHUNK", "0")) or len(probs)    # problems per invocation (resumable)
+    done_now = 0
+    for p in probs[len(answers):]:
+        if done_now >= budget:
+            break
+        done_now += 1
+        toks, _, _ = run(chat_ids(INSTR + p["question"]), 600)
+        text = rt.tokenizer.decode(toks)
+        m = re.findall(r"Answer:\s*\**\s*\$?\s*(-?[\d,]*\.?\d+)", text) or re.findall(r"(-?[\d,]*\.?\d+)", text)
+        gold = p["answer"].split("####")[-1].strip().replace(",", "")
+        answers.append(m[-1].replace(",", "").rstrip(".") if m else None)
+        try:
+            ok.append(int(bool(m) and abs(float(m[-1].replace(",", "").rstrip(".")) - float(gold)) < 1e-6))
+        except ValueError:
+            ok.append(0)
+        json.dump({"offset": OFF, "answers": answers, "ok": ok}, open(ck, "w"))   # checkpoint every problem
+    st.gate.check()
+    print(f"125B C={C} {MODE} [{tag}]: GSM8K {sum(ok)}/{len(ok)} of {len(probs)} target ({time.perf_counter()-t0:.0f}s) per-problem {''.join(map(str, ok))}")
+### combo_sim.py
+"""How the levers multiply (Breakthrough, 2026-10-19). 125B routing traces (MoEPrefetch traces125, top-20 ids per
+token/layer). A pass covers K consecutive tokens (K=1 eager, K=4 ~ a depth-3 MTP verify pass when all drafts are
+accepted). Per pass and layer: ranks < r of every row are exact (fetched if not resident); a row's rank >= r uses its
+expert if resident, else the best-ranked resident expert among that row's ranks 10-19 not already used by the row, else
+the rank is dropped. Strict LRU capacity C per layer (experts used in the pass become MRU). r=10 = exact routing.
+Cache sizes in GB depend on bits per weight: an expert is 4.9152M weights x b/8 bytes (4.5 bits today, 2.5 if the
+bits direction works). Prints SSD MB per token = fetches/token x expert MB.
+"""
+import numpy as np
+from collections import OrderedDict
+T = "/Users/kamen/MoEPrefetch/data/traces125/"; SETS = ["code", "chat", "bulgarian", "math"]; NL = 48
+trs = {s: np.stack([np.load(T + f"{s}_800.npz")[f"L{l}"] for l in range(NL)], 1).astype(np.int32) for s in SETS}
+def run(tr, C, r, K):
+    fetch = subs = drops = 0
+    for l in range(NL):
+        c = OrderedDict()
+        for a in range(0, tr.shape[0], K):
+            used_all = []
+            for t in range(a, min(a + K, tr.shape[0])):
+                row = [int(x) for x in tr[t, l]]
+                alt = [e for e in row[10:20] if e in c]
+                used = []
+                for rank, e in enumerate(row[:10]):
+                    if rank < r or e in c or e in used_all:
+                        if e not in c and e not in used_all: fetch += 1
+                        used.append(e)
+                    else:
+                        x = next((y for y in alt if y not in used), None)
+                        if x is None: drops += 1
+                        else: subs += 1; used.append(x); alt.remove(x)
+                used_all += [e for e in used if e not in used_all]
+            for e in used_all:
+                if e in c: c.move_to_end(e)
+                else: c[e] = 1
+            while len(c) > C: c.popitem(last=False)
+    n = tr.shape[0]; return fetch / n, subs / n, drops / n
+import sys
+cases = [(c.split(":")[0], float(c.split(":")[1]), float(c.split(":")[2])) for c in sys.argv[1:]] or [  # (label, GB of expert cache, bits/weight)
+    ("12 GB total today (5.4 GB, 4.5 b)", 5.4, 4.5), ("6.9 GB cache, 4.5 b", 6.9, 4.5),
+    ("12 GB total + bits/dense diet (7.6 GB, 2.5 b)", 7.6, 2.5), ("6 GB total + diet (1.6 GB, 2.5 b)", 1.6, 2.5),
+    ("17 GB cache, 4.5 b (today's 24 GB)", 17.0, 4.5)]
+print("SSD MB per token (fetches/token) [substituted/dropped ranks per token], mean of 4 prompts")
+for label, gb, b in cases:
+    mb = 4.9152 * b / 8; C = int(gb * 1000 / mb / NL)
+    print(f"\n{label}: expert {mb:.2f} MB, C={C} per layer ({100*C/512:.1f} %)")
+    for K in (1, 4, 16):
+        cells = []
+        for r in (10, 3, 2, 1):
+            f, s_, d = np.mean([run(trs[s], C, r, K) for s in SETS], 0)
+            cells.append(f"r={r:<2d} {f*mb:5.0f} MB ({f:5.1f}) [{s_:4.0f}/{d:4.0f}]")
+        print(f"  K={K:<3d} " + "   ".join(cells))
+### d3_mustfix.py
+"""D3 first experiment: the must-fix gap F (Breakthrough, 2026-10-20). How many tokens can a small in-RAM drafter write
+before the 125B would have to correct it, under exact and lossy acceptance rules? (research/sparse_consult.md: chunked
+verification only beats eager decoding on the SSD if F >= ~100-250, and it is the key number for one-stream speed.)
+  gen125 C  : the 125B (BigMoE's streamed runtime, exact eager greedy, C = fraction of experts resident) answers 40 prompts
+              (20 GSM8K, 8 code, 8 knowledge, 4 Bulgarian; <= 320 tokens), then is teacher-forced over each prompt +
+              answer to log its top-20 log-probs at every answer position -> data/d3/gen125.npz
+  draft NAME: a same-vocabulary drafter (q2b / q4b = Qwen3.5-2B / 4B MLX 4-bit) teacher-forced over the same tokens:
+              its top-1, top-5, entropy and its log-prob of the 125B's token -> data/d3/draft_NAME.npz
+  analyze   : (CPU) per drafter and acceptance rule, must-fix rate and F = answer tokens / (must-fix tokens + 1) per
+              answer, pooled and by prompt type; AUROC of the drafter's entropy as a stop predictor. Teacher-forced: the
+              drafter always continues from the 125B's own text (the usual approximation; real drafts diverge after a
+              lossy accept, so end-to-end answer identity is the later check).
+"""
+import glob, json, os, sys, time
+import numpy as np
+
+OUT = os.path.expanduser(os.environ.get("BT_D3_OUT", "~/Breakthrough/data/d3"))
+os.makedirs(OUT, exist_ok=True)
+MD = os.path.expanduser("~/BigMoE/models/bare")
+DRAFT = {"q2b": "models--mlx-community--Qwen3.5-2B-MLX-4bit", "q4b": "models--mlx-community--Qwen3.5-4B-MLX-4bit"}
+CODE = ["Write a Python function that returns the n-th Fibonacci number iteratively, with a docstring and two tests.",
+        "Write a Python function that parses an ISO 8601 date string (YYYY-MM-DD) and returns the day of the week.",
+        "Write a shell one-liner that counts the lines of every .py file under the current directory, largest first.",
+        "Write a Python class LRUCache with get and put in O(1), using collections.OrderedDict.",
+        "Explain and fix the bug: def avg(xs): return sum(xs) / len(xs) - it crashes on an empty list.",
+        "Write a SQL query that returns the top 3 customers by total order amount from tables customers and orders.",
+        "Write a Python function that merges two sorted l

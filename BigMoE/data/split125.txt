@@ -1,0 +1,78 @@
+A base     ar    C=282: decode    1.4 tok/s (63 tok), prefill+first   19.7s | per gen token: misses  22.7 stalled layers  15.3 io  14.5 ms slow calls 15.3 x 953 us, fast hits 32.7 | peak 43.8 GB | tokens 64 sha c09a8163f9 | '```python\nimport re\nimport argparse\nfrom collections 
+B nowait   mtplx.sampling.NonFiniteLogitsError: non-finite logits in greedy argmax (nan=248320, inf=0, vocab=248320)
+C async6   ar    C=282: decode   21.8 tok/s (63 tok), prefill+first   13.1s | per gen token: misses  22.7 stalled layers  15.3 io  10.6 ms slow calls 15.3 x 699 us, fast hits 32.7 | peak 43.8 GB | tokens 64 sha c09a8163f9 | '```python\nimport re\nimport argparse\nfrom collections 
+D fused    ar    C=282: decode   19.8 tok/s (63 tok), prefill+first   10.1s | per gen token: misses  24.1 stalled layers  15.4 io  11.0 ms slow calls 15.4 x 718 us, fast hits 32.6 | peak 43.9 GB | tokens 64 sha e54e072797 | "I'll refactor the module with type hints, percentile cal
+E async+f  ar    C=282: decode   21.0 tok/s (63 tok), prefill+first   11.1s | per gen token: misses  24.1 stalled layers  15.4 io  11.4 ms slow calls 15.4 x 742 us, fast hits 32.6 | peak 43.9 GB | tokens 64 sha e54e072797 | "I'll refactor the module with type hints, percentile cal
+F E+mtp2   mtp2  C=282: decode   19.7 tok/s (63 tok), prefill+first    7.0s | per gen token: misses  31.4 stalled layers  14.1 io  12.1 ms slow calls 14.1 x 860 us, fast hits 10.2 | peak 43.9 GB | tokens 64 sha 97fae6f3e4 | "I'll refactor the module with type hints, percentile cal
+G E+mtp1   mtp1  C=282: decode   25.9 tok/s (63 tok), prefill+first    6.6s | per gen token: misses  26.3 stalled layers  13.9 io  10.8 ms slow calls 13.9 x 782 us, fast hits 15.0 | peak 43.9 GB | tokens 64 sha 97fae6f3e4 | "I'll refactor the module with type hints, percentile cal
+[100%] Built target bigmoe_ext
+52 ms/token over 39 tokens; gated calls/token 48.0; fast-path hits 1289; CPU per call 228 us; misses/token 22.5; io 10.7 ms/token
+per token (median over 37): loader CPU on slow calls 9.5 ms | GPU gaps after fast layers 17.0 ms | after slow layers 8.9 ms | token-to-token (last layer -> next layer 0) 8.4 ms | slow layers/token 14.9
+capture-commit mtp1  C=282: decode   18.7 tok/s (63 tok), prefill+first    9.1s | per gen token: misses  25.1 stalled layers  10.2 io   9.3 ms slow calls  8.0 x 781 us, fast hits  9.8 | peak 43.8 GB | tokens 64 sha eb5801b31c | '```python\nimport re\nimport argparse\nfrom collections 
+capture-commit mtp2  C=282: decode   24.0 tok/s (63 tok), prefill+first    6.7s | per gen token: misses  24.7 stalled layers   9.7 io   9.1 ms slow calls  8.3 x 873 us, fast hits  5.4 | peak 43.8 GB | tokens 64 sha b479abaa7f | '```python\nimport re\nimport argparse\nfrom collections 
+System-wide memory free percentage: 87%
+base50   ar    C=256: decode    5.0 tok/s (63 tok), prefill+first   15.5s | per gen token: misses  31.0 stalled layers  19.6 io  14.9 ms slow calls 19.6 x 764 us, fast hits 28.4 | peak 40.4 GB | tokens 64 sha 
+FUSED_HC ar    C=256: decode    5.1 tok/s (63 tok), prefill+first    7.4s | per gen token: misses  31.1 stalled layers  19.5 io  14.6 ms slow calls 19.5 x 749 us, fast hits 28.5 | peak 40.4 GB | tokens 64 sha 
+one decode step: 8392 primitives (175 per layer over 48 layers)
+    1176  Broadcast
+     976  Reshape
+     873  Multiply
+     469  QuantizedMatmul
+     432  AsType
+     361  ExpandDims
+     340  Transpose
+     326  Sigmoid
+     292  Flatten
+     292  Matmul
+     292  Unflatten
+     266  Sum
+     254  Add
+     242  Divide
+     205  Slice
+     196  Squeeze
+     160  RMSNorm
+     156  Arange
+     144  GatherQMM
+     134  CompiledSigmoidBroadcastBroadcastMultiply
+      97  Concatenate
+      96  CompiledSigmoidBroadcastBroadcastMultiplyBroadcastBroadcastMultiply
+      72  Rsqrt
+      48  Split
+      48  Softmax
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=auto source=default table=29.8 GiB free=11.3 GiB reserved=0.0 GiB margin=6.0 GiB budget=5.3 GiB order=small_maps_first
+[mtplx] n-gram table pre-read 5.3 GiB in 0.6 s (9.5 GiB/s)
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[mtplx] verify SDPA head-chunked: q_len=22 heads_per_chunk=1 chunks=24
+row-0 logits bit-identical bands: {1-1} (next band differs by 0.594)  {2-6}
+System-wide memory free percentage: 87%
+[HC] gpu quiet (0%)
+[HC] base    18.9 tok/s sha fa74791482
+[HC] [bigmoe] fusions: {'compiled_hc': 96}
+[HC] variant 19.2 tok/s sha 4476df254d
+[HC] gpu quiet (0%)
+[HC] base    19.1 tok/s sha fa74791482
+[HC] [bigmoe] fusions: {'compiled_hc': 96}
+[HC] variant 20.7 tok/s sha 4476df254d
+[HC] gpu quiet (0%)
+[HC] base    18.2 tok/s sha fa74791482
+[HC] [bigmoe] fusions: {'compiled_hc': 96}
+[HC] variant 19.6 tok/s sha 4476df254d
+[DUPROW probe] [bigmoe] fusions: {'duprow': True}
+[DUPROW probe] row-0 logits bit-identical bands: {1-6}
+System-wide memory free percentage: 88%
+R  plain 19.0 tok/s sha c09a8163f9
+RM mtp2  5.6 tok/s sha c09a8163f9
+R  plain 19.7 tok/s sha c09a8163f9
+RM mtp2  26.2 tok/s sha c09a8163f9
+D  duprow-only 20.0 tok/s sha eb5801b31c
+System-wide memory free percentage: 89%
+ar X=1: 19.1 tok/s sha c09a8163f9
+ar2 BIGMOE_ASYNC_EVERY=1: 22.5 tok/s sha b479abaa7f
+ar2 X=1: 19.8 tok/s sha b479abaa7f
+ar X=1: 20.3 tok/s sha c09a8163f9
+ar2 BIGMOE_ASYNC_EVERY=1: 23.3 tok/s sha b479abaa7f
+ar2 X=1: 20.4 tok/s sha b479abaa7f
+ar X=1: 19.3 tok/s sha c09a8163f9
+ar2 BIGMOE_ASYNC_EVERY=1: 23.6 tok/s sha c09a8163f9
+ar2 BIGMOE_ASYNC_EVERY=1: 23.7 tok/s sha c09a8163f9

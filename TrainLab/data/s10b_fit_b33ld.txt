@@ -1,0 +1,93 @@
+S10b fit on /Users/kamen/BigMoE/data/b33/s10b (targets: routed ids): 20 prompts (code 5, prose 5, edit 5, math 5), 4228 verify passes, 8802 rows per predictor layer, layers [2, 8, 14, 20, 26, 32, 38, 44]; miss.bin 203136 trunk records (0 duplicates; misses by kind: demand 298424, on time 75064, late 115780, queued 61277, scored: late + demand (S10B_LABEL=ld)); skipped: 556 re-run calls (first call per pass and layer kept), 7412 MTP-only seqs, 0 partial, 0 unequal-row passes, 0 without x; (row-layer, lead) without a miss record: 0; res.bin: 101568 (pass, L -> T) records at the predictor layers, scored (pass, L -> T) without one: 0
+S10c: the frozen recipe is trained on /Users/kamen/BigMoE/data/b32/s10b (targets: routed ids): 20 prompts (code 5, prose 5, edit 5, math 5), 4363 verify passes, 8861 rows per predictor layer, layers [2, 8, 14, 20, 26, 32, 38, 44]; miss.bin 209616 trunk records (0 duplicates; misses by kind: demand 551969, on time 0, late 0, queued 0, scored: late + demand (S10B_LABEL=ld)); skipped: 605 re-run calls (first call per pass and layer kept), 7406 MTP-only seqs, 0 partial, 0 unequal-row passes, 0 without x; (row-layer, lead) without a miss record: 0; res.bin: 104808 (pass, L -> T) records at the predictor layers, scored (pass, L -> T) without one: 0
+M0 plain router, all prompts (= s10b_check): lead 1 recall@16 of misses 51.5 % (of all routed 71.3 %); lead 2 recall@16 of misses 46.8 % (of all routed 59.5 %); lead 3 recall@16 of misses 44.9 % (of all routed 61.4 %)
+M0 DEPLOYABLE lead 1 (= s10b_check; per row, top-k among the experts not resident at the decision; all prompts | held-out): k2 26.5 | 26.2, k4 41.5 | 41.8, k8 56.9 | 57.4, k12 65.0 | 65.7, k16 70.2 | 70.6; k16 by domain: code 71.7, prose 73.8, edit 64.8, math 72.9
+M0 DEPLOYABLE lead 2 (= s10b_check; per row, top-k among the experts not resident at the decision; all prompts | held-out): k2 23.6 | 23.0, k4 35.8 | 35.3, k8 48.5 | 48.0, k12 55.7 | 55.4, k16 60.8 | 60.7; k16 by domain: code 65.0, prose 62.3, edit 55.2, math 61.2
+M0 DEPLOYABLE lead 3 (= s10b_check; per row, top-k among the experts not resident at the decision; all prompts | held-out): k2 22.7 | 22.4, k4 34.0 | 33.5, k8 47.1 | 46.8, k12 55.0 | 55.1, k16 60.4 | 60.3; k16 by domain: code 63.7, prose 67.2, edit 52.2, math 61.3
+M0 BUDGET (= s10b_check; per pass and target layer: recall of the pass's misses, all prompts | held-out; unique non-resident reads (of them never routed at T in the pass); precision = caught / reads; all12 = top-12 over all 512, resident skipped = the shipped engine's lead-1 policy):
+  lead 1    k2: recall  29.1 % |  28.9 %, reads   3.6 (  2.8 unused) vs misses  1.8 per pass-layer, precision 14.9 %
+  lead 1    k4: recall  44.9 % |  45.1 %, reads   6.9 (  5.8 unused) vs misses  1.8 per pass-layer, precision 11.9 %
+  lead 1    k8: recall  61.0 % |  61.3 %, reads  13.3 ( 11.9 unused) vs misses  1.8 per pass-layer, precision  8.4 %
+  lead 1   k12: recall  69.1 % |  69.7 %, reads  19.4 ( 17.8 unused) vs misses  1.8 per pass-layer, precision  6.5 %
+  lead 1   k16: recall  74.0 % |  74.5 %, reads  25.2 ( 23.6 unused) vs misses  1.8 per pass-layer, precision  5.4 %
+  lead 1 all12: recall  43.6 % |  43.4 %, reads   4.9 (  3.8 unused) vs misses  1.8 per pass-layer, precision 16.4 %
+  lead 2    k2: recall  25.7 % |  25.2 %, reads   3.6 (  2.8 unused) vs misses  2.4 per pass-layer, precision 16.8 %
+  lead 2    k4: recall  38.5 % |  38.1 %, reads   6.9 (  5.8 unused) vs misses  2.4 per pass-layer, precision 13.1 %
+  lead 2    k8: recall  51.7 % |  51.3 %, reads  13.2 ( 11.7 unused) vs misses  2.4 per pass-layer, precision  9.3 %
+  lead 2   k12: recall  59.2 % |  58.9 %, reads  19.2 ( 17.5 unused) vs misses  2.4 per pass-layer, precision  7.3 %
+  lead 2   k16: recall  64.4 % |  64.4 %, reads  24.9 ( 23.1 unused) vs misses  2.4 per pass-layer, precision  6.1 %
+  lead 2 all12: recall  41.3 % |  40.6 %, reads   6.4 (  5.2 unused) vs misses  2.4 per pass-layer, precision 15.3 %
+  lead 3    k2: recall  24.8 % |  24.1 %, reads   3.5 (  2.7 unused) vs misses  2.2 per pass-layer, precision 15.7 %
+  lead 3    k4: recall  36.7 % |  36.0 %, reads   6.7 (  5.7 unused) vs misses  2.2 per pass-layer, precision 12.0 %
+  lead 3    k8: recall  50.6 % |  50.1 %, reads  13.0 ( 11.6 unused) vs misses  2.2 per pass-layer, precision  8.6 %
+  lead 3   k12: recall  58.8 % |  58.5 %, reads  19.0 ( 17.4 unused) vs misses  2.2 per pass-layer, precision  6.8 %
+  lead 3   k16: recall  64.6 % |  64.0 %, reads  24.8 ( 23.1 unused) vs misses  2.2 per pass-layer, precision  5.7 %
+  lead 3 all12: recall  38.7 % |  38.2 %, reads   5.8 (  4.8 unused) vs misses  2.2 per pass-layer, precision 14.5 %
+M0 AT 4.8 READS lead 1 (per pass-layer, linear in reads between the two budgets around it; all prompts | held-out): top-k among non-resident 35.5 | 34.4 %, top-K over all 512 (resident skipped) 43.1 | 41.0 %
+M0 AT 4.8 READS lead 2 (per pass-layer, linear in reads between the two budgets around it; all prompts | held-out): top-k among non-resident 30.9 | 29.6 %, top-K over all 512 (resident skipped) 35.4 | 33.7 %
+M0 AT 4.8 READS lead 3 (per pass-layer, linear in reads between the two budgets around it; all prompts | held-out): top-k among non-resident 30.2 | 28.7 %, top-K over all 512 (resident skipped) 34.1 | 32.5 %
+frozen recipe (S10B_FROZEN, no selection): M1a lr 3e-04 wd 10.0 5 epochs, trained on /Users/kamen/BigMoE/data/b32/s10b (not the scored trace: no refit there)
+JUDGE (primary): trained on prompts 0-3, held-out prompt 4 of each domain
+  lead 1: M1a recall@16 of misses 44.9 % vs M0 52.2 % (14201 misses) | code 49.6 (M0 56.6) | prose 42.7 (M0 53.7) | edit 33.7 (M0 45.8) | math 52.0 (M0 51.4) | of all routed 73.2 % (M0 70.5 %)
+  lead 2: M1a recall@16 of misses 51.2 % vs M0 46.2 % (17497 misses) | code 55.1 (M0 52.2) | prose 48.3 (M0 46.9) | edit 35.8 (M0 37.4) | math 58.6 (M0 45.3) | of all routed 74.4 % (M0 58.7 %)
+  lead 3: M1a recall@16 of misses 47.3 % vs M0 44.6 % (16757 misses) | code 51.4 (M0 51.6) | prose 45.3 (M0 45.9) | edit 34.9 (M0 35.1) | math 53.8 (M0 43.4) | of all routed 74.9 % (M0 60.4 %)
+  lead 2 by layer: L2 54.5 (M0 48.9) | L8 61.7 (M0 56.5) | L14 32.9 (M0 46.8) | L20 56.7 (M0 43.3) | L26 62.5 (M0 62.9) | L32 46.8 (M0 31.6) | L38 25.7 (M0 30.2) | L44 37.6 (M0 36.9)
+  DEPLOYABLE lead 1: M1a recall@16 of misses 70.6 % vs M0 70.6 % (14201 misses) | code 73.2 (M0 72.1) | prose 61.9 (M0 71.0) | edit 67.7 (M0 66.0) | math 78.1 (M0 73.0) | per row at k 2: 32.4 (M0 26.2), 4: 46.5 (M0 41.8), 8: 59.4 (M0 57.4), 12: 66.1 (M0 65.7)
+  DEPLOYABLE lead 2: M1a recall@16 of misses 74.5 % vs M0 60.7 % (17497 misses) | code 77.6 (M0 66.8) | prose 69.1 (M0 59.1) | edit 67.4 (M0 52.8) | math 79.6 (M0 60.6) | per row at k 2: 34.1 (M0 23.0), 4: 50.3 (M0 35.3), 8: 63.9 (M0 48.0), 12: 70.5 (M0 55.4)
+  DEPLOYABLE lead 3: M1a recall@16 of misses 71.9 % vs M0 60.3 % (16757 misses) | code 75.3 (M0 66.0) | prose 65.0 (M0 62.0) | edit 66.7 (M0 51.4) | math 77.5 (M0 59.4) | per row at k 2: 32.5 (M0 22.4), 4: 47.1 (M0 33.5), 8: 60.7 (M0 46.8), 12: 67.6 (M0 55.1)
+  DEPLOYABLE lead 2 by layer: L2 70.8 (M0 58.0) | L8 81.9 (M0 78.0) | L14 66.6 (M0 64.3) | L20 76.9 (M0 55.4) | L26 83.9 (M0 76.1) | L32 74.2 (M0 48.3) | L38 54.7 (M0 43.3) | L44 69.4 (M0 50.1)
+  read budget per pass and target layer (the union over the pass's rows), M1a vs M0:
+    lead 1    k2: recall  35.0 % (M0  28.9), reads   3.6 (M0   3.7), unused   2.7 (M0   2.9), precision 19.0 % (M0 15.2)
+    lead 1    k4: recall  49.5 % (M0  45.1), reads   6.9 (M0   7.2), unused   5.7 (M0   6.0), precision 14.1 % (M0 12.3)
+    lead 1    k8: recall  62.9 % (M0  61.3), reads  13.2 (M0  13.9), unused  11.7 (M0  12.3), precision  9.3 % (M0  8.7)
+    lead 1   k12: recall  69.7 % (M0  69.7), reads  19.3 (M0  20.2), unused  17.6 (M0  18.5), precision  7.1 % (M0  6.8)
+    lead 1   k16: recall  74.1 % (M0  74.5), reads  25.2 (M0  26.2), unused  23.4 (M0  24.4), precision  5.8 % (M0  5.6)
+    lead 1 all12: recall  37.9 % (M0  43.4), reads   2.7 (M0   5.2), unused   1.8 (M0   4.1), precision 27.4 % (M0 16.3)
+    lead 1 AT 4.8 READS: top-k among non-resident M1a 40.9 % (M0 34.4) [M1a k2-k3] | top-K over all 512, resident skipped: M1a 47.3 % (M0 41.0) [M1a all16-all24] | by domain (top-k): code 36.8 (M0 33.1), prose 34.4 (M0 32.3), edit 37.3 (M0 29.9), math 53.6 (M0 40.5)
+    lead 2    k2: recall  36.6 % (M0  25.2), reads   3.7 (M0   3.7), unused   2.6 (M0   2.9), precision 24.1 % (M0 16.5)
+    lead 2    k4: recall  53.0 % (M0  38.1), reads   7.1 (M0   7.2), unused   5.6 (M0   6.0), precision 18.2 % (M0 13.0)
+    lead 2    k8: recall  66.9 % (M0  51.3), reads  13.5 (M0  13.6), unused  11.6 (M0  12.1), precision 12.1 % (M0  9.2)
+    lead 2   k12: recall  73.5 % (M0  58.9), reads  19.7 (M0  19.8), unused  17.6 (M0  18.1), precision  9.1 % (M0  7.3)
+    lead 2   k16: recall  77.5 % (M0  64.4), reads  25.7 (M0  25.8), unused  23.5 (M0  23.9), precision  7.4 % (M0  6.1)
+    lead 2 all12: recall  43.8 % (M0  40.6), reads   2.9 (M0   6.6), unused   1.6 (M0   5.4), precision 37.5 % (M0 15.0)
+    lead 2 AT 4.8 READS: top-k among non-resident M1a 42.9 % (M0 29.6) [M1a k2-k3] | top-K over all 512, resident skipped: M1a 52.5 % (M0 33.7) [M1a all16-all24] | by domain (top-k): code 37.4 (M0 28.4), prose 40.0 (M0 28.8), edit 38.3 (M0 24.5), math 52.8 (M0 33.8)
+    lead 3    k2: recall  35.1 % (M0  24.1), reads   3.7 (M0   3.6), unused   2.7 (M0   2.9), precision 22.3 % (M0 15.7)
+    lead 3    k4: recall  50.0 % (M0  36.0), reads   7.1 (M0   6.9), unused   5.6 (M0   5.9), precision 16.6 % (M0 12.1)
+    lead 3    k8: recall  63.8 % (M0  50.1), reads  13.5 (M0  13.4), unused  11.7 (M0  12.0), precision 11.1 % (M0  8.7)
+    lead 3   k12: recall  70.6 % (M0  58.5), reads  19.6 (M0  19.7), unused  17.6 (M0  18.0), precision  8.4 % (M0  7.0)
+    lead 3   k16: recall  74.8 % (M0  64.0), reads  25.6 (M0  25.7), unused  23.5 (M0  23.8), precision  6.8 % (M0  5.8)
+    lead 3 all12: recall  39.7 % (M0  38.2), reads   2.6 (M0   6.2), unused   1.5 (M0   5.1), precision 35.2 % (M0 14.4)
+    lead 3 AT 4.8 READS: top-k among non-resident M1a 40.8 % (M0 28.7) [M1a k2-k3] | top-K over all 512, resident skipped: M1a 49.5 % (M0 32.5) [M1a all16-all24] | by domain (top-k): code 38.2 (M0 29.9), prose 35.3 (M0 28.9), edit 37.3 (M0 22.4), math 50.0 (M0 31.1)
+leave-one-prompt-index-out (secondary, 5 folds pooled)
+  lead 1: M1a recall@16 of misses 46.7 % vs M0 51.5 % (69546 misses) | code 46.8 (M0 54.7) | prose 46.6 (M0 56.0) | edit 41.8 (M0 46.1) | math 53.1 (M0 51.7) | of all routed 74.6 % (M0 71.3 %)
+  lead 2: M1a recall@16 of misses 53.1 % vs M0 46.8 % (88003 misses) | code 53.8 (M0 50.8) | prose 52.3 (M0 48.8) | edit 44.5 (M0 41.1) | math 61.2 (M0 46.9) | of all routed 75.7 % (M0 59.5 %)
+  lead 3: M1a recall@16 of misses 48.8 % vs M0 44.9 % (82372 misses) | code 48.3 (M0 48.0) | prose 50.8 (M0 50.6) | edit 41.8 (M0 37.6) | math 55.5 (M0 45.6) | of all routed 75.1 % (M0 61.4 %)
+  lead 2 by layer: L2 56.8 (M0 49.9) | L8 63.3 (M0 57.2) | L14 34.7 (M0 46.2) | L20 58.5 (M0 44.4) | L26 64.2 (M0 64.0) | L32 46.3 (M0 31.0) | L38 24.5 (M0 29.4) | L44 42.0 (M0 36.9)
+  DEPLOYABLE lead 1: M1a recall@16 of misses 71.4 % vs M0 70.2 % (69546 misses) | code 73.9 (M0 71.7) | prose 66.7 (M0 73.8) | edit 68.2 (M0 64.8) | math 77.3 (M0 72.9) | per row at k 2: 32.8 (M0 26.5), 4: 47.1 (M0 41.5), 8: 60.3 (M0 56.9), 12: 67.1 (M0 65.0)
+  DEPLOYABLE lead 2: M1a recall@16 of misses 75.3 % vs M0 60.8 % (88003 misses) | code 77.5 (M0 65.0) | prose 72.7 (M0 62.3) | edit 69.8 (M0 55.2) | math 80.0 (M0 61.2) | per row at k 2: 34.3 (M0 23.6), 4: 50.4 (M0 35.8), 8: 64.6 (M0 48.5), 12: 71.2 (M0 55.7)
+  DEPLOYABLE lead 3: M1a recall@16 of misses 72.7 % vs M0 60.4 % (82372 misses) | code 74.3 (M0 63.7) | prose 71.4 (M0 67.2) | edit 67.8 (M0 52.2) | math 77.6 (M0 61.3) | per row at k 2: 32.1 (M0 22.7), 4: 47.1 (M0 34.0), 8: 61.0 (M0 47.1), 12: 68.1 (M0 55.0)
+  DEPLOYABLE lead 2 by layer: L2 71.4 (M0 58.6) | L8 83.0 (M0 78.3) | L14 64.2 (M0 64.4) | L20 77.8 (M0 56.8) | L26 84.4 (M0 77.0) | L32 74.7 (M0 45.7) | L38 52.4 (M0 43.6) | L44 71.8 (M0 49.0)
+  read budget per pass and target layer (the union over the pass's rows), M1a vs M0:
+    lead 1    k2: recall  35.2 % (M0  29.1), reads   3.5 (M0   3.6), unused   2.7 (M0   2.8), precision 18.5 % (M0 14.9)
+    lead 1    k4: recall  49.8 % (M0  44.9), reads   6.7 (M0   6.9), unused   5.6 (M0   5.8), precision 13.6 % (M0 11.9)
+    lead 1    k8: recall  63.1 % (M0  61.0), reads  12.8 (M0  13.3), unused  11.4 (M0  11.9), precision  9.0 % (M0  8.4)
+    lead 1   k12: recall  69.9 % (M0  69.1), reads  18.7 (M0  19.4), unused  17.1 (M0  17.8), precision  6.9 % (M0  6.5)
+    lead 1   k16: recall  74.4 % (M0  74.0), reads  24.4 (M0  25.2), unused  22.7 (M0  23.6), precision  5.6 % (M0  5.4)
+    lead 1 all12: recall  39.2 % (M0  43.6), reads   2.6 (M0   4.9), unused   1.7 (M0   3.8), precision 27.7 % (M0 16.4)
+    lead 1 AT 4.8 READS: top-k among non-resident M1a 42.1 % (M0 35.5) [M1a k2-k3] | top-K over all 512, resident skipped: M1a 49.0 % (M0 43.1) [M1a all16-all24] | by domain (top-k): code 40.3 (M0 35.0), prose 42.9 (M0 44.4), edit 33.2 (M0 25.1), math 49.1 (M0 38.1)
+    lead 2    k2: recall  36.9 % (M0  25.7), reads   3.6 (M0   3.6), unused   2.5 (M0   2.8), precision 24.4 % (M0 16.8)
+    lead 2    k4: recall  53.1 % (M0  38.5), reads   6.8 (M0   6.9), unused   5.4 (M0   5.8), precision 18.3 % (M0 13.1)
+    lead 2    k8: recall  67.4 % (M0  51.7), reads  13.1 (M0  13.2), unused  11.2 (M0  11.7), precision 12.2 % (M0  9.3)
+    lead 2   k12: recall  73.9 % (M0  59.2), reads  19.0 (M0  19.2), unused  17.0 (M0  17.5), precision  9.2 % (M0  7.3)
+    lead 2   k16: recall  78.0 % (M0  64.4), reads  24.8 (M0  24.9), unused  22.7 (M0  23.1), precision  7.4 % (M0  6.1)
+    lead 2 all12: recall  45.4 % (M0  41.3), reads   2.9 (M0   6.4), unused   1.6 (M0   5.2), precision 37.5 % (M0 15.3)
+    lead 2 AT 4.8 READS: top-k among non-resident M1a 43.9 % (M0 30.9) [M1a k2-k3] | top-K over all 512, resident skipped: M1a 54.3 % (M0 35.4) [M1a all16-all24] | by domain (top-k): code 40.7 (M0 30.4), prose 48.9 (M0 37.3), edit 34.1 (M0 22.4), math 48.7 (M0 32.0)
+    lead 3    k2: recall  34.8 % (M0  24.8), reads   3.5 (M0   3.5), unused   2.6 (M0   2.7), precision 21.6 % (M0 15.7)
+    lead 3    k4: recall  50.1 % (M0  36.7), reads   6.8 (M0   6.7), unused   5.4 (M0   5.7), precision 16.2 % (M0 12.0)
+    lead 3    k8: recall  64.2 % (M0  50.6), reads  13.0 (M0  13.0), unused  11.2 (M0  11.6), precision 10.9 % (M0  8.6)
+    lead 3   k12: recall  71.3 % (M0  58.8), reads  18.9 (M0  19.0), unused  17.0 (M0  17.4), precision  8.3 % (M0  6.8)
+    lead 3   k16: recall  75.7 % (M0  64.6), reads  24.7 (M0  24.8), unused  22.6 (M0  23.1), precision  6.7 % (M0  5.7)
+    lead 3 all12: recall  41.1 % (M0  38.7), reads   2.7 (M0   5.8), unused   1.6 (M0   4.8), precision 33.5 % (M0 14.5)
+    lead 3 AT 4.8 READS: top-k among non-resident M1a 41.7 % (M0 30.2) [M1a k2-k3] | top-K over all 512, resident skipped: M1a 50.7 % (M0 34.1) [M1a all16-all24] | by domain (top-k): code 39.0 (M0 29.9), prose 45.8 (M0 40.1), edit 32.5 (M0 20.7), math 46.9 (M0 30.9)
+the frozen models on their training trace's own prompts (/Users/kamen/BigMoE/data/b32/s10b; they must reproduce S10b there), lead 2 at 4.8 reads: held-out: top-K over all 512 (resident skipped) 53.3 % (M0 36.5), top-k among non-resident 44.4 % (M0 32.9); leave-one-out: top-K over all 512 (resident skipped) 55.6 % (M0 39.0), top-k among non-resident 46.2 % (M0 35.2)
+VERDICT S10c-1 (pre-registered; NewIdeas 14:08): late + demand misses, lead 2, per-pass catch at 4.8 reads per pass-layer, the shipped rule's family (top-K over all 512, resident skipped): held-out M1a 52.5 % vs router 33.7 % (+18.8 points); leave-one-out M1a 54.3 % vs router 35.4 % (+18.9 points) -> PASS (>= +10 points, held-out and leave-one-out): (2) the engine A/B, BigMoE designs it; top-k among non-resident beside it: held-out 42.9 % (router 29.6), leave-one-out 43.9 % (router 30.9); 125 s

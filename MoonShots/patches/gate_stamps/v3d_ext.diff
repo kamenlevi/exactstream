@@ -1,0 +1,200 @@
+--- defer/v3d/ext/bigmoe_ext.cpp	2026-10-22 11:02:43
++++ defer/v3d2/ext/bigmoe_ext.cpp	2026-10-25 05:18:55
+@@ -232,6 +232,18 @@
+ static int g_rs = g_xlines ? 96 : 64;                 // ints per release-region entry
+ static int g_row = 96 + 32 * g_plines + 32 * g_xlines, g_pcap = 30 + 31 * g_plines;
+ static inline int ipos(int i) { return i < 30 ? 2 + i : i < 61 ? 33 + (i - 30) : 96 + 32 * g_plines + 1 + (i - 61); }
++// [MoonShots v3h, Sun 25 Oct] seq stamps on every handoff word: routing-row ids and preds (GPU -> loader), release
++// regions and residency tables (loader -> GPU); bits 22-31 = seq & 0x3FF. A 128-byte line carries its seq tag only in
++// word 0, and under another process's GPU load a reader saw a fresh tag next to a stale 64-byte sector (the loader read the
++// previous post's ids from words 16+ of routing-row lines: data/b8mr/handoff_*.json in ~/MoonShots). Readers now check
++// every word's stamp, not just the line tags. Payloads fit in bits 0-21 (expert ids < 2^20 plus flag bits 20-21; slots,
++// positions; -1 travels as 0x3FFFFF). Wrap: 10 bits = 1024 gate passes; a stale word comes from an earlier post /
++// publication of the same row, region or table a few passes back (MTP draft steps advance the pass too), far below 1024.
++static inline uint32_t stamp_of(int32_t seq) { return ((uint32_t)seq & 0x3FFu) << 22; }
++static inline int32_t stamp_enc(int32_t v, int32_t seq) { return (int32_t)(((uint32_t)v & 0x3FFFFFu) | stamp_of(seq)); }
++static inline bool stamp_ok(int32_t w, int32_t seq) { return ((uint32_t)w & 0xFFC00000u) == stamp_of(seq); }
++static inline int32_t stamp_dec(int32_t w) { int32_t v = (int32_t)((uint32_t)w & 0x3FFFFFu); return v == 0x3FFFFF ? -1 : v; }
++static std::atomic<int64_t> g_stamp_calls{0}, g_stamp_rereads{0}, g_stamp_ns{0}, g_stamp_joint{0};
+ static inline int pidx(int i) { return i < 30 ? 66 + i : 97 + 32 * ((i - 30) / 31) + (i - 30) % 31; }   // prediction i's int
+ static bool g_jit = getenv("BIGMOE_PF_JIT") != nullptr;
+ static int g_qd = getenv("BIGMOE_PF_QD") ? atoi(getenv("BIGMOE_PF_QD")) : 0;
+@@ -497,22 +509,25 @@
+         if (m.w && (int)t < n) {
+           int e = ids[t] & 0xFFFFF, li = e / 31;   // strip the GPU flags (bit 20 wait, bit 21 late)
+           const volatile device int* tb = (const volatile device int*)tab;
+-          int tag = tb[li * 32], sl = tb[li * 32 + 1 + (e - li * 31)];
++          int tag = tb[li * 32], w = tb[li * 32 + 1 + (e - li * 31)];
++          bool fresh = tag == m.y && (((uint)w) & 0xFFC00000u) == ((((uint)m.y) & 0x3FFu) << 22);   // [v3h] stamped entry
++          int sl = (((uint)w) & 0x3FFFFFu) == 0x3FFFFFu ? -1 : (int)(((uint)w) & 0x3FFFFFu);
+           bool must = nw != 255 || ((ids[t] >> 20) & 3) != 0;   // flag mode: the fast path needs only the waited and
+-          if ((tag != m.y || sl < 0) && must) atomic_store_explicit(&ok, 0, memory_order_relaxed);   // late ids resident
+-          dep[1 + t] = (tag == m.y) ? sl : -1;     // OoO (MoEPrefetch): partial-hit row, -1 = wait for the loader
++          if ((!fresh || sl < 0) && must) atomic_store_explicit(&ok, 0, memory_order_relaxed);   // late ids resident
++          dep[1 + t] = fresh ? sl : -1;            // OoO (MoEPrefetch): partial-hit row, -1 = wait for the loader
+         }
+         if (!m.w && (int)t < n) dep[1 + t] = -1;
+         threadgroup_barrier(mem_flags::mem_threadgroup);
+         if (t != 0) return;
+         dep[0] = atomic_load_explicit(&ok, memory_order_relaxed);
+         device atomic_int* row = route + m.x * (96 + 32 * PLINES + 32 * XLINES);
++        const uint STAMP = (((uint)m.y) & 0x3FFu) << 22;               // [v3h] every id / pred word carries seq & 0x3FF
+         atomic_store_explicit(&row[65], np, memory_order_relaxed);                 // line 3: next-layer predictions
+         int tot = min(30 + 31 * PLINES, (np & 255) + ((np >> 8) & 255) + ((np >> 16) & 255));   // n(L+1) | n(L+2) << 8 | n(L+3) << 16
+         for (int i = 0; i < tot; i++)
+-          atomic_store_explicit(&row[i < 30 ? 66 + i : 97 + 32 * ((i - 30) / 31) + (i - 30) % 31], preds[i], memory_order_relaxed);
++          atomic_store_explicit(&row[i < 30 ? 66 + i : 97 + 32 * ((i - 30) / 31) + (i - 30) % 31], (int)((((uint)preds[i]) & 0x3FFFFFu) | STAMP), memory_order_relaxed);
+         atomic_store_explicit(&row[1], m.z, memory_order_relaxed);     // packed n | nw << 8 | nk << 16 (plain rows: n)
+-        for (int i = 0; i < n; i++) atomic_store_explicit(&row[i < 30 ? 2 + i : i < 61 ? 33 + (i - 30) : 96 + 32 * PLINES + 1 + (i - 61)], ids[i], memory_order_relaxed);
++        for (int i = 0; i < n; i++) atomic_store_explicit(&row[i < 30 ? 2 + i : i < 61 ? 33 + (i - 30) : 96 + 32 * PLINES + 1 + (i - 61)], (int)((((uint)ids[i]) & 0x3FFFFFu) | STAMP), memory_order_relaxed);
+         atomic_thread_fence(mem_flags::mem_device, memory_order_seq_cst, thread_scope_device);
+         for (int j = 0; j < PLINES + XLINES; j++) atomic_store_explicit(&row[96 + 32 * j], m.y, memory_order_relaxed);
+         atomic_store_explicit(&row[64], m.y, memory_order_relaxed);
+@@ -554,14 +569,22 @@
+         float x = 1.0f, d = 32.0f; int got = -1;
+         for (int p = 0; p < pairs; p++) {
+           const volatile device int* l0 = (const volatile device int*)(reg + p * RS);
+-          if (l0[0] == seq && l0[32] == seq && (RS == 64 || l0[64] == seq)) { got = p; break; }
++          if (l0[0] == seq && l0[32] == seq && (RS == 64 || l0[64] == seq)) {   // [v3h] and every word stamped
++            const uint STAMP = (((uint)seq) & 0x3FFu) << 22;
++            bool good = true;
++            for (int i = 0; i < n && good; i++) {
++              uint w = (uint)(i < 31 ? l0[1 + i] : i < 62 ? l0[32 + 1 + (i - 31)] : l0[64 + 1 + (i - 62)]);
++              good = (w & 0xFFC00000u) == STAMP;
++              out[i] = (w & 0x3FFFFFu) == 0x3FFFFFu ? -1 : (int)(w & 0x3FFFFFu);
++            }
++            if (good) { got = p; break; }
++            atomic_fetch_add_explicit(status + 17, 1, memory_order_relaxed);   // fresh tags, a stale word: next pair
++          }
+           for (int j = 0; j < (int)d; j++) x = x * 1.0000001f + 1e-7f;
+           d = d < SPIN_KNEE ? d * SPIN_G1 : min(d * SPIN_G2, 400000.0f);   // fine polls first, then fast growth (Scout SC5)
+         }
+         if (got < 0) { atomic_fetch_add_explicit(status, 1, memory_order_relaxed); for (int i = 0; i < n; i++) out[i] = 0; return; }
+-        const volatile device int* l0 = (const volatile device int*)(reg + got * RS);
+-        for (int i = 0; i < n; i++) out[i] = i < 31 ? l0[1 + i] : i < 62 ? l0[32 + 1 + (i - 31)] : l0[64 + 1 + (i - 62)];
+-        if (x == 12345.0f) out[0] = 0;
++        if (x == 12345.0f) out[0] = 0;                // out[] was decoded from the stamped pair above
+       })";
+     NS::Error* err = nullptr;
+     auto* lib = dev->newLibrary(NS::String::string(srcs.c_str(), NS::UTF8StringEncoding), nullptr, &err);
+@@ -639,9 +662,9 @@
+   Layer& ly = g_layers.at(X);
+   int32_t* tb = g_tab + ((int64_t)((uint64_t)seq * g_nl + X) % g_tab_n) * g_tab_lines * 32;
+   for (int64_t li = 0; li < g_tab_lines; li++)
+-    for (int j = 0; j < 31; j++) { int64_t e = li * 31 + j; tb[li * 32 + 1 + j] = e < ly.E ? ly.table[e] : -1; }
++    for (int j = 0; j < 31; j++) { int64_t e = li * 31 + j; tb[li * 32 + 1 + j] = stamp_enc(e < ly.E ? ly.table[e] : -1, seq); }
+   for (auto& [e, s] : ly.pf)                       // a queued (unissued) prefetch has ready = 0
+-    if ((*ly.ready)[s].load(std::memory_order_acquire)) tb[(e / 31) * 32 + 1 + e % 31] = s;
++    if ((*ly.ready)[s].load(std::memory_order_acquire)) tb[(e / 31) * 32 + 1 + e % 31] = stamp_enc(s, seq);
+   __atomic_thread_fence(__ATOMIC_RELEASE);
+   for (int64_t li = 0; li < g_tab_lines; li++) __atomic_store_n(tb + li * 32, seq, __ATOMIC_RELAXED);
+   g_st.pub_jit++;
+@@ -741,7 +764,7 @@
+   bool ranked = (np >> 24) & 1;                    // one unique list per distance, most likely first
+   int tot = std::min(g_pcap, nd[0] + nd[1] + nd[2]);
+   int32_t pr[160];
+-  for (int i = 0; i < tot; i++) pr[i] = row[pidx(i)];
++  for (int i = 0; i < tot; i++) pr[i] = stamp_dec(row[pidx(i)]);
+   static std::vector<int32_t> slot_of(1024, -1);    // expert -> index in u (loader thread only)
+   for (int d = 1, off = 0; d <= 3; off += nd[d - 1], d++) {
+     int n = std::min(nd[d - 1], tot - off), X = L + d;
+@@ -891,9 +914,9 @@
+   int32_t* reg = ((phaseB && g_regB) ? g_regB : g_reg) + ((int64_t)((uint64_t)seq * g_nl + L) % g_reg_n) * g_pairs * g_rs;
+   for (int64_t p = 0; p < g_pairs; p++) {
+     int32_t* l0 = reg + p * g_rs; int32_t* l1 = l0 + 32; int32_t* l2 = l0 + 64;
+-    for (int i = 0; i < n && i < 31; i++) l0[1 + i] = sl[i];
+-    for (int i = 31; i < n && i < 62; i++) l1[1 + (i - 31)] = sl[i];
+-    for (int i = 62; i < n; i++) l2[1 + (i - 62)] = sl[i];
++    for (int i = 0; i < n && i < 31; i++) l0[1 + i] = stamp_enc(sl[i], seq);     // [v3h] stamped words
++    for (int i = 31; i < n && i < 62; i++) l1[1 + (i - 31)] = stamp_enc(sl[i], seq);
++    for (int i = 62; i < n; i++) l2[1 + (i - 62)] = stamp_enc(sl[i], seq);
+   }
+   __atomic_thread_fence(__ATOMIC_RELEASE);
+   for (int64_t p = 0; p < g_pairs; p++) {
+@@ -933,7 +956,18 @@
+       {
+         std::lock_guard<std::mutex> lk(g_mu);
+         int32_t ids_copy[256];
+-        for (int i = 0; i < n; i++) ids_copy[i] = row[ipos(i)];
++        {                                            // [v3h] fresh line tags != fresh sectors: every id word must carry
++          double t_st = 0; int64_t rr = 0;           // this post's stamp (re-read until it does), then strip it
++          for (;;) {
++            bool good = true;
++            for (int i = 0; i < n; i++) { ids_copy[i] = row[ipos(i)]; good = good && stamp_ok(ids_copy[i], seq); }
++            if (good) break;
++            if (!rr++) t_st = now_s();
++            if (now_s() - t_st > 0.25) { fprintf(stderr, "bigmoe: stamp wait > 250 ms at layer %d seq %d\n", L, seq); break; }
++          }
++          if (rr) { g_stamp_calls++; g_stamp_rereads += rr; g_stamp_ns += (int64_t)((now_s() - t_st) * 1e9); }
++          for (int i = 0; i < n; i++) ids_copy[i] = (int32_t)((uint32_t)ids_copy[i] & 0x3FFFFFu);
++        }
+         int32_t wl[256]; int nwl = 0; bool lf[256] = {false};
+         if (flagmode)                                // [v3f] collect the waited (bit 20) and late (bit 21) ids, strip flags
+           for (int i = 0; i < n; i++) {
+@@ -1038,7 +1072,7 @@
+         if (L + 1 < g_nl) {                         // remember L+1's look-ahead set for the miss split
+           int np0 = row[65], k1 = std::min(np0 & 255, g_pcap);
+           Layer& nx = g_layers.at(L + 1); nx.pred.assign(k1, 0);
+-          for (int i = 0; i < k1; i++) nx.pred[i] = row[pidx(i)];
++          for (int i = 0; i < k1; i++) nx.pred[i] = stamp_dec(row[pidx(i)]);
+           nx.pred_seq = seq;
+         }
+         slow_call = g_st.misses.load() != m0;
+@@ -1057,7 +1091,7 @@
+           } else {
+           int np = row[65], n1 = std::min(np & 255, g_pcap), n2 = std::min((np >> 8) & 255, g_pcap - n1);
+           int32_t pr[160];
+-          for (int i = 0; i < n1 + n2; i++) pr[i] = row[pidx(i)];
++          for (int i = 0; i < n1 + n2; i++) pr[i] = stamp_dec(row[pidx(i)]);
+           if (n1 && L + 1 < g_nl) prefetch(L + 1, pr, n1, seq, true);
+           if (n2 && L + 2 < g_nl) prefetch(L + 2, pr + n1, n2, seq, true);
+           }
+@@ -1070,20 +1104,7 @@
+       if (g_reg && split_early) {                  // [v3f] phase A went out before the late reads: publish phase B
+         write_region(L, seq, split_lb, split_lb_n, true);
+       } else if (g_reg) {   // spin mode: write [seq, slots...] into every line pair of this (layer, pass) region
+-        int32_t* reg = g_reg + ((int64_t)((uint64_t)seq * g_nl + L) % g_reg_n) * g_pairs * g_rs;
+-        const int32_t* sl = g_ring + ring_off(L, (uint64_t)seq);
+-        for (int64_t p = 0; p < g_pairs; p++) {
+-          int32_t* l0 = reg + p * g_rs; int32_t* l1 = l0 + 32; int32_t* l2 = l0 + 64;
+-          for (int i = 0; i < n && i < 31; i++) l0[1 + i] = sl[i];
+-          for (int i = 31; i < n && i < 62; i++) l1[1 + (i - 31)] = sl[i];
+-          for (int i = 62; i < n; i++) l2[1 + (i - 62)] = sl[i];
+-        }
+-        __atomic_thread_fence(__ATOMIC_RELEASE);
+-        for (int64_t p = 0; p < g_pairs; p++) {
+-          int32_t* l0 = reg + p * g_rs;
+-          if (g_rs == 96) __atomic_store_n(l0 + 64, seq, __ATOMIC_RELAXED);
+-          __atomic_store_n(l0 + 32, seq, __ATOMIC_RELAXED); __atomic_store_n(l0, seq, __ATOMIC_RELAXED);
+-        }
++        write_region(L, seq, g_ring + ring_off(L, (uint64_t)seq), n, false);   // [v3h] same layout, stamped words
+       } else {
+         g_events[L]->setSignaledValue((uint64_t)seq);
+       }
+@@ -1094,7 +1115,7 @@
+         int32_t nseq = seq + 1;
+         int32_t* tb = g_tab + ((int64_t)((uint64_t)nseq * g_nl + L) % g_tab_n) * g_tab_lines * 32;
+         for (int64_t li = 0; li < g_tab_lines; li++)
+-          for (int j = 0; j < 31; j++) { int64_t e = li * 31 + j; tb[li * 32 + 1 + j] = e < ly.E ? ly.table[e] : -1; }
++          for (int j = 0; j < 31; j++) { int64_t e = li * 31 + j; tb[li * 32 + 1 + j] = stamp_enc(e < ly.E ? ly.table[e] : -1, nseq); }
+         __atomic_thread_fence(__ATOMIC_RELEASE);
+         for (int64_t li = 0; li < g_tab_lines; li++) __atomic_store_n(tb + li * 32, nseq, __ATOMIC_RELAXED);
+       }
+@@ -1110,7 +1131,7 @@
+         pump();
+       } else if (n1 + n2 > 0 && !victim_done) {
+         int32_t pr[160];
+-        for (int i = 0; i < n1 + n2; i++) pr[i] = row[pidx(i)];
++        for (int i = 0; i < n1 + n2; i++) pr[i] = stamp_dec(row[pidx(i)]);
+         std::lock_guard<std::mutex> lk(g_mu);
+         if (n1 && L + 1 < g_nl) prefetch(L + 1, pr, n1, seq);
+         if (n2 && L + 2 < g_nl) prefetch(L + 2, pr + n1, n2, seq);
+@@ -1424,6 +1445,8 @@
+     nb::dict d; d["uses"] = g_st.uses.load(); d["misses"] = g_st.misses.load(); d["stalled"] = g_st.stalled.load();
+     d["gated"] = g_st.gated.load(); d["io_s"] = g_st.io_ns.load() * 1e-9; d["cpu_wait_s"] = g_st.wait_ns.load() * 1e-9; d["proc_s"] = g_st.proc_ns.load() * 1e-9;
+     d["pf_issued"] = g_st.pf_issued.load(); d["pf_used"] = g_st.pf_used.load(); d["pf_waited_s"] = g_st.pf_waited_ns.load() * 1e-9;
++    d["stamp_calls"] = g_stamp_calls.load(); d["stamp_rereads"] = g_stamp_rereads.load();   // [v3h] routing-row re-reads
++    d["stamp_wait_s"] = g_stamp_ns.load() * 1e-9;
+     d["slow_calls"] = g_st.slow_calls.load(); d["slow_s"] = g_st.slow_ns.load() * 1e-9; d["pf_victims"] = g_st.pf_victims.load();
+     d["pf_ontime"] = g_st.pf_ontime.load(); d["pf_late"] = g_st.pf_late.load(); d["miss_pred_unissued"] = g_st.miss_pred_unissued.load(); d["miss_unpred"] = g_st.miss_unpred.load();
+     d["pf_reserved"] = g_st.pf_reserved.load(); d["pf_cancel"] = g_st.pf_cancel.load(); d["pf_qdemand"] = g_st.pf_qdemand.load();

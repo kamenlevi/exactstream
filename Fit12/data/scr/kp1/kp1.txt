@@ -1,0 +1,23 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=14.7 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 15M, prefetch on)
+[bigmoe] tier 4433333333: C_m=47 C_l=32 per layer, 6.03 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: engine v3p, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+b12: C_m=47 C_l=32 (9 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.03 GB, active 8.96 GB
+[kp1] KPORTS installed (f12_kports.py; kernels from /Users/kamen/Fit12/pinned/leap_1106)
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+qmm16c N 2560 K 4096 ks 4: max rel err 1.46e-03
+qmm16c N 1024 K 2560 ks 10: max rel err 8.39e-04
+qmm16c N 16384 K 2560 ks 1: max rel err 6.17e-03
+qmm16c N 2560 K 2560 ks 4: max rel err 1.67e-03
+qmm16c N 5120 K 2560 ks 2: max rel err 7.14e-03
+qmm16c N 2560 K 1280 ks 4: max rel err 1.18e-03
+single SDPA vs head chunks, 300 keys: max abs diff 0.00e+00, bitwise True
+single SDPA vs head chunks, 700 keys: max abs diff 2.44e-04, bitwise False
+[kp1] bt_b12 8db71cc537, engine /Users/kamen/Breakthrough/v3p, C_m 47 C_l 32, cap 256; drafter 0.928 GB (own params), SW 2048; after load: lifetime 10.506 GB, MLX active 9.529; prompts humaneval/HumanEval/156 (n 146), humaneval/HumanEval/42 (n 149), humaneval/HumanEval/68 (n 367), humaneval/HumanEval/91 (n 144), humaneval/HumanEval/16 (n 103), humaneval/HumanEval/6 (n 148), humaneval/HumanEval/79 (n 184), humaneval/HumanEval/19 (n 140), humaneval/HumanEval/161 (n 148), humaneval/HumanEval/17 (n 208), humaneval/HumanEval/56 (n 129), humaneval/HumanEval/141 (n 253), humaneval/HumanEval/101 (n 152), humaneval/HumanEval/63 (n 187), humaneval/HumanEval/114 (n 121), humaneval/HumanEval/77 (n 148)
+[kp1] humaneval/HumanEval/156 ex PHASES draft: 26 runs, 13.5 ms, 0 MB, 0 misses, 0.00 passes per run, 0.01 GB/s | exact: 26 runs, 587.1 ms, 3692 MB, 1974 misses, 2.85 passes per run, 6.29 GB/s
+[kp1] humaneval/HumanEval/156 ex theta None  | tok 256 sha 91741e1500 | lsha 76aaee5f0c | = ex tokens True (first divergence None) | checks 26, kept 9.85 | pass2 0 exact 26 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 293 in 74 calls, refused 0 | prefill 5.19 s, decode 15.63 s, 16.37 tok/s | lifetime 11.091 GB | per check ms: draft 13.5 pass 1 0.0 pass 2 / exact 587.1 commit 0.0; misses per check pass 1 0 pass 2 1974
+[kp1] humaneval/HumanEval/156 t80ck2 PHASES draft: 27 runs, 14.8 ms, 0 MB, 0 misses, 0.00 passes per run, 0.00 GB/s | p1: 25 runs, 251.9 ms, 660 MB, 493 misses, 1.00 passes per run, 2.62 GB/s | commit: 25 runs, 25.0 ms, 69 MB, 0 misses, 0.00 passes per run, 2.74 GB/s | exact: 7 runs, 194.7 ms, 932 MB, 494 misses, 1.14 passes per run, 4.79 GB/s
+[kp1] humaneval/HumanEval/156 t80ck2 theta 0.8 {'cfmin': 0.9} | tok 256 sha ba7f9b3682 | lsha 674de3d0b4 | = ex tokens False (first divergence 118) | checks 27, kept 9.48 | pass2 5 exact 2 cfgate 2 skipped 0 | rows pass 1 398 / pass 2 22 in 8 calls, refused 0 | prefill 5.65 s, decode 8.82 s, 29.02 tok/s | lifetime 11.162 GB | per check ms: draft 14.8 pass 1 233.3 pass 2 / exact 50.5 commit 23.2; misses per check pass 1 456 pass 2 128

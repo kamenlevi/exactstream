@@ -1,0 +1,97 @@
+== 1000 tok/s budget per kept token: RAM 270 MB, SSD 12.0 MB, compute 14.0 G MAC (bf16 peak), time 1.0 ms
+   touched per kept token: experts 1.03 GB + trunk 3.44 GB = 4.47 GB -> reuse needed 16.6x
+
+== A. today's shape (single stream, 16-row checks, serial 12 ms draft)
+EXACT today a 0.909, C 256 (SSD 62 MB/kept)  rows   16 kept   10.5 U  76.6 groups/kept    349 | GPU   75.3 ms ->    140 | RAM roof    250 | SSD cap    192 | compute    8 % bf16 | =>   140 tok/s
+EXACT today a 0.909, C 320 (SSD 37.9)        rows   16 kept   10.5 U  76.6 groups/kept    350 | GPU   75.3 ms ->    139 | RAM roof    250 | SSD cap    317 | compute    8 % bf16 | =>   139 tok/s
+EXACT today, no SSD at all                   rows   16 kept   10.5 U  76.6 groups/kept    350 | GPU   75.3 ms ->    139 | RAM roof    250 | SSD cap    inf | compute    8 % bf16 | =>   139 tok/s
+
+== B. single stream, everything RAM-resident, draft overlapped (best case per alpha)
+  EXACT a 0.909 (today's drafter) N16        rows   16 kept    8.8 U  76.6 groups/kept    417 | GPU   63.3 ms ->    139 | RAM roof    210 | SSD cap    inf | compute    9 % bf16 | =>   139 tok/s
+  EXACT a 0.909 (today's drafter) N32        rows   32 kept   10.5 U 115.1 groups/kept    525 | GPU   87.2 ms ->    121 | RAM roof    185 | SSD cap    inf | compute   13 % bf16 | =>   121 tok/s
+  EXACT a 0.909 (today's drafter) N64        rows   64 kept   11.0 U 165.6 groups/kept    725 | GPU  122.1 ms ->     90 | RAM roof    144 | SSD cap    inf | compute   19 % bf16 | =>    90 tok/s
+  EXACT a 0.909 (today's drafter) N128       rows  128 kept   11.0 U 228.0 groups/kept    996 | GPU  173.1 ms ->     63 | RAM roof    110 | SSD cap    inf | compute   27 % bf16 | =>    63 tok/s
+  -> best 139 tok/s at N 16
+  EXACT a 0.9485 (sure rows perfect) N16     rows   16 kept   11.5 U  76.6 groups/kept    319 | GPU   63.3 ms ->    182 | RAM roof    274 | SSD cap    inf | compute    9 % bf16 | =>   182 tok/s
+  EXACT a 0.9485 (sure rows perfect) N32     rows   32 kept   16.0 U 115.1 groups/kept    345 | GPU   87.2 ms ->    184 | RAM roof    282 | SSD cap    inf | compute   13 % bf16 | =>   184 tok/s
+  EXACT a 0.9485 (sure rows perfect) N64     rows   64 kept   18.8 U 165.6 groups/kept    423 | GPU  122.1 ms ->    154 | RAM roof    247 | SSD cap    inf | compute   19 % bf16 | =>   154 tok/s
+  EXACT a 0.9485 (sure rows perfect) N128    rows  128 kept   19.4 U 228.0 groups/kept    564 | GPU  173.1 ms ->    112 | RAM roof    194 | SSD cap    inf | compute   27 % bf16 | =>   112 tok/s
+  -> best 184 tok/s at N 32
+  EXACT a 0.982 (ideal drafter bound [G]) N16 rows   16 kept   14.8 U  76.6 groups/kept    249 | GPU   63.3 ms ->    233 | RAM roof    351 | SSD cap    inf | compute    9 % bf16 | =>   233 tok/s
+  EXACT a 0.982 (ideal drafter bound [G]) N32 rows   32 kept   25.0 U 115.1 groups/kept    221 | GPU   87.2 ms ->    287 | RAM roof    441 | SSD cap    inf | compute   13 % bf16 | =>   287 tok/s
+  EXACT a 0.982 (ideal drafter bound [G]) N64 rows   64 kept   38.5 U 165.6 groups/kept    206 | GPU  122.1 ms ->    315 | RAM roof    506 | SSD cap    inf | compute   19 % bf16 | =>   315 tok/s
+  EXACT a 0.982 (ideal drafter bound [G]) N128 rows  128 kept   50.2 U 228.0 groups/kept    218 | GPU  173.1 ms ->    290 | RAM roof    503 | SSD cap    inf | compute   27 % bf16 | =>   290 tok/s
+  -> best 315 tok/s at N 64
+  FAST a 0.974 R2 relaxed + sure perfect N16 rows   16 kept   13.9 U  76.6 groups/kept    265 | GPU   63.3 ms ->    219 | RAM roof    330 | SSD cap    inf | compute    9 % bf16 | =>   219 tok/s
+  FAST a 0.974 R2 relaxed + sure perfect N32 rows   32 kept   22.3 U 115.1 groups/kept    247 | GPU   87.2 ms ->    256 | RAM roof    394 | SSD cap    inf | compute   13 % bf16 | =>   256 tok/s
+  FAST a 0.974 R2 relaxed + sure perfect N64 rows   64 kept   31.5 U 165.6 groups/kept    252 | GPU  122.1 ms ->    258 | RAM roof    415 | SSD cap    inf | compute   19 % bf16 | =>   258 tok/s
+  FAST a 0.974 R2 relaxed + sure perfect N128 rows  128 kept   37.2 U 228.0 groups/kept    294 | GPU  173.1 ms ->    215 | RAM roof    372 | SSD cap    inf | compute   27 % bf16 | =>   215 tok/s
+  -> best 258 tok/s at N 64
+  FAST a 0.974 + Q1-UNION groups x0.6 [G] N16 rows   16 kept   13.9 U  46.0 groups/kept    159 | GPU   48.4 ms ->    287 | RAM roof    458 | SSD cap    inf | compute   12 % bf16 | =>   287 tok/s
+  FAST a 0.974 + Q1-UNION groups x0.6 [G] N32 rows   32 kept   22.3 U  69.1 groups/kept    148 | GPU   64.8 ms ->    345 | RAM roof    571 | SSD cap    inf | compute   18 % bf16 | =>   345 tok/s
+  FAST a 0.974 + Q1-UNION groups x0.6 [G] N64 rows   64 kept   31.5 U  99.4 groups/kept    151 | GPU   89.8 ms ->    351 | RAM roof    622 | SSD cap    inf | compute   26 % bf16 | =>   351 tok/s
+  FAST a 0.974 + Q1-UNION groups x0.6 [G] N128 rows  128 kept   37.2 U 136.8 groups/kept    177 | GPU  128.6 ms ->    289 | RAM roof    572 | SSD cap    inf | compute   36 % bf16 | =>   289 tok/s
+  -> best 351 tok/s at N 64
+  FAST a 0.99 + Q1 x0.6 (beyond data) N16    rows   16 kept   15.7 U  46.0 groups/kept    140 | GPU   48.4 ms ->    325 | RAM roof    518 | SSD cap    inf | compute   12 % bf16 | =>   325 tok/s
+  FAST a 0.99 + Q1 x0.6 (beyond data) N32    rows   32 kept   28.2 U  69.1 groups/kept    117 | GPU   64.8 ms ->    436 | RAM roof    721 | SSD cap    inf | compute   18 % bf16 | =>   436 tok/s
+  FAST a 0.99 + Q1 x0.6 (beyond data) N64    rows   64 kept   48.0 U  99.4 groups/kept     99 | GPU   89.8 ms ->    534 | RAM roof    946 | SSD cap    inf | compute   26 % bf16 | =>   534 tok/s
+  FAST a 0.99 + Q1 x0.6 (beyond data) N128   rows  128 kept   72.7 U 136.8 groups/kept     90 | GPU  128.6 ms ->    565 | RAM roof   1117 | SSD cap    inf | compute   36 % bf16 | =>   565 tok/s
+  -> best 565 tok/s at N 128
+
+== C. copy spans (agentic edits), single stream, EXACT, RAM-resident
+  copy a 0.995 N128                          rows  128 kept   95.2 U 228.0 groups/kept    115 | GPU  173.1 ms ->    550 | RAM roof    953 | SSD cap    inf | compute   27 % bf16 | =>   550 tok/s
+  copy a 0.995 N256                          rows  256 kept  144.8 U 283.0 groups/kept     94 | GPU  241.0 ms ->    601 | RAM roof   1198 | SSD cap    inf | compute   38 % bf16 | =>   601 tok/s
+  copy a 0.995 N512                          rows  512 kept  184.7 U 351.3 groups/kept     91 | GPU  356.6 ms ->    518 | RAM roof   1257 | SSD cap    inf | compute   52 % bf16 | =>   518 tok/s
+  copy a 0.999 N128                          rows  128 kept  121.1 U 228.0 groups/kept     90 | GPU  173.1 ms ->    700 | RAM roof   1212 | SSD cap    inf | compute   27 % bf16 | =>   700 tok/s
+  copy a 0.999 N256                          rows  256 kept  226.7 U 283.0 groups/kept     60 | GPU  241.0 ms ->    941 | RAM roof   1875 | SSD cap    inf | compute   38 % bf16 | =>   941 tok/s
+  copy a 0.999 N512                          rows  512 kept  401.5 U 351.3 groups/kept     42 | GPU  356.6 ms ->   1126 | RAM roof   2731 | SSD cap    inf | compute   52 % bf16 | =>  1126 tok/s
+
+== D. one user's B concurrent streams (aggregate), 32 rows each, draft batched + overlapped
+  EXACT a 0.909 code, SSD C320 x1.11 B4      rows  128 kept   42.1 U 228.0 groups/kept    260 | GPU  173.1 ms ->    243 | RAM roof    421 | SSD cap    285 | compute   27 % bf16 | =>   243 tok/s
+  EXACT a 0.909 code, SSD C320 x1.11 B8      rows  256 kept   84.1 U 283.0 groups/kept    161 | GPU  241.0 ms ->    349 | RAM roof    696 | SSD cap    285 | compute   38 % bf16 | =>   285 tok/s
+  EXACT a 0.909 code, SSD C320 x1.11 B12     rows  384 kept  126.2 U 321.1 groups/kept    122 | GPU  300.7 ms ->    420 | RAM roof    932 | SSD cap    285 | compute   46 % bf16 | =>   285 tok/s
+  EXACT a 0.909 code, SSD C320 x1.11 B16     rows  512 kept  168.3 U 351.3 groups/kept    100 | GPU  356.6 ms ->    472 | RAM roof   1145 | SSD cap    285 | compute   52 % bf16 | =>   285 tok/s
+  EXACT a 0.909 code, store in RAM B4        rows  128 kept   42.1 U 228.0 groups/kept    260 | GPU  173.1 ms ->    243 | RAM roof    421 | SSD cap    inf | compute   27 % bf16 | =>   243 tok/s
+  EXACT a 0.909 code, store in RAM B8        rows  256 kept   84.1 U 283.0 groups/kept    161 | GPU  241.0 ms ->    349 | RAM roof    696 | SSD cap    inf | compute   38 % bf16 | =>   349 tok/s
+  EXACT a 0.909 code, store in RAM B12       rows  384 kept  126.2 U 321.1 groups/kept    122 | GPU  300.7 ms ->    420 | RAM roof    932 | SSD cap    inf | compute   46 % bf16 | =>   420 tok/s
+  EXACT a 0.909 code, store in RAM B16       rows  512 kept  168.3 U 351.3 groups/kept    100 | GPU  356.6 ms ->    472 | RAM roof   1145 | SSD cap    inf | compute   52 % bf16 | =>   472 tok/s
+  FAST a 0.974 + Q1 code, sidecar drop C320 B4 rows  128 kept   89.4 U 136.8 groups/kept     73 | GPU  128.6 ms ->    695 | RAM roof   1374 | SSD cap   1335 | compute   36 % bf16 | =>   695 tok/s
+  FAST a 0.974 + Q1 code, sidecar drop C320 B8 rows  256 kept  178.7 U 169.8 groups/kept     46 | GPU  185.9 ms ->    961 | RAM roof   2302 | SSD cap   1335 | compute   50 % bf16 | =>   961 tok/s
+  FAST a 0.974 + Q1 code, sidecar drop C320 B12 rows  384 kept  268.1 U 192.7 groups/kept     35 | GPU  238.2 ms ->   1126 | RAM roof   3103 | SSD cap   1335 | compute   58 % bf16 | =>  1126 tok/s
+  FAST a 0.974 + Q1 code, sidecar drop C320 B16 rows  512 kept  357.4 U 210.8 groups/kept     28 | GPU  288.1 ms ->   1241 | RAM roof   3831 | SSD cap   1335 | compute   64 % bf16 | =>  1241 tok/s
+  FAST a 0.974 + Q1 mixed domains B4         rows  128 kept   89.4 U 164.2 groups/kept     88 | GPU  142.0 ms ->    629 | RAM roof   1184 | SSD cap   1335 | compute   33 % bf16 | =>   629 tok/s
+  FAST a 0.974 + Q1 mixed domains B8         rows  256 kept  178.7 U 203.8 groups/kept     55 | GPU  202.4 ms ->    883 | RAM roof   1972 | SSD cap   1335 | compute   46 % bf16 | =>   883 tok/s
+  FAST a 0.974 + Q1 mixed domains B12        rows  384 kept  268.1 U 231.2 groups/kept     41 | GPU  256.9 ms ->   1043 | RAM roof   2651 | SSD cap   1335 | compute   54 % bf16 | =>  1043 tok/s
+  FAST a 0.974 + Q1 mixed domains B16        rows  512 kept  357.4 U 252.9 groups/kept     34 | GPU  308.6 ms ->   1158 | RAM roof   3267 | SSD cap   1335 | compute   60 % bf16 | =>  1158 tok/s
+  FAST a 0.974 + Q1 mixed, int8 trunk B4     rows  128 kept   89.4 U 164.2 groups/kept     88 | GPU  126.5 ms ->    706 | RAM roof   1184 | SSD cap   1335 | compute   36 % bf16 | =>   706 tok/s
+  FAST a 0.974 + Q1 mixed, int8 trunk B8     rows  256 kept  178.7 U 203.8 groups/kept     55 | GPU  171.6 ms ->   1042 | RAM roof   1972 | SSD cap   1335 | compute   54 % bf16 | =>  1042 tok/s
+  FAST a 0.974 + Q1 mixed, int8 trunk B12    rows  384 kept  268.1 U 231.2 groups/kept     41 | GPU  210.6 ms ->   1273 | RAM roof   2651 | SSD cap   1335 | compute   66 % bf16 | =>  1273 tok/s
+  FAST a 0.974 + Q1 mixed, int8 trunk B16    rows  512 kept  357.4 U 252.9 groups/kept     34 | GPU  246.9 ms ->   1447 | RAM roof   3267 | SSD cap   1335 | compute   75 % bf16 | =>  1335 tok/s
+
+== E. Parareal decoding: one exact sweep (N_main rows, drafts = 125B lookahead text, accept rate rho)
+      + L lookahead streams x 16 rows (DFlash2 drafts, kept 8.8 each) that must supply >= kept_main tokens per pass
+  rho 0.95 N_main 64 + L  3 lookahead        rows  112 kept   19.3 U 214.4 groups/kept    534 | GPU  161.3 ms ->    120 | RAM roof    204 | SSD cap    inf | compute   25 % bf16 | =>   120 tok/s
+  rho 0.95 N_main 128 + L  3 lookahead       rows  176 kept   20.0 U 251.8 groups/kept    605 | GPU  200.1 ms ->    100 | RAM roof    183 | SSD cap    inf | compute   32 % bf16 | =>   100 tok/s
+  rho 0.98 N_main 64 + L  5 lookahead        rows  144 kept   36.6 U 236.5 groups/kept    311 | GPU  182.4 ms ->    200 | RAM roof    354 | SSD cap    inf | compute   28 % bf16 | =>   200 tok/s
+  rho 0.98 N_main 128 + L  6 lookahead       rows  224 kept   46.3 U 271.5 groups/kept    281 | GPU  225.1 ms ->    206 | RAM roof    398 | SSD cap    inf | compute   36 % bf16 | =>   206 tok/s
+  rho 0.99 N_main 64 + L  6 lookahead        rows  160 kept   48.0 U 244.4 groups/kept    245 | GPU  191.4 ms ->    251 | RAM roof    452 | SSD cap    inf | compute   30 % bf16 | =>   251 tok/s
+  rho 0.99 N_main 128 + L  9 lookahead       rows  272 kept   72.7 U 288.4 groups/kept    191 | GPU  248.8 ms ->    292 | RAM roof    591 | SSD cap    inf | compute   39 % bf16 | =>   292 tok/s
+  rho 0.995 N_main 64 + L  7 lookahead       rows  176 kept   55.6 U 251.8 groups/kept    217 | GPU  200.1 ms ->    278 | RAM roof    510 | SSD cap    inf | compute   32 % bf16 | =>   278 tok/s
+  rho 0.995 N_main 128 + L 11 lookahead      rows  304 kept   95.2 U 298.6 groups/kept    150 | GPU  264.0 ms ->    361 | RAM roof    751 | SSD cap    inf | compute   42 % bf16 | =>   361 tok/s
+  rho 0.999 N_main 64 + L  8 lookahead       rows  192 kept   63.0 U 258.7 groups/kept    197 | GPU  208.6 ms ->    302 | RAM roof    564 | SSD cap    inf | compute   33 % bf16 | =>   302 tok/s
+  rho 0.999 N_main 128 + L 14 lookahead      rows  352 kept  121.1 U 312.5 groups/kept    124 | GPU  286.3 ms ->    423 | RAM roof    916 | SSD cap    inf | compute   44 % bf16 | =>   423 tok/s
+  FAST: rho 0.99 N_main 128 + L 9 + Q1 x0.6  rows  272 kept   72.7 U 173.0 groups/kept    114 | GPU  159.8 ms ->    455 | RAM roof    921 | SSD cap    inf | compute   61 % bf16 | =>   455 tok/s
+  FAST: rho 0.995 N_main 128 + L 11 + Q1 x0.6 rows  304 kept   95.2 U 179.1 groups/kept     90 | GPU  169.2 ms ->    563 | RAM roof   1173 | SSD cap    inf | compute   65 % bf16 | =>   563 tok/s
+
+== F. EXACT aggregate if the EXACT store were RAM-resident (re-based all-3-bit, 52.8 GB) + horizon fix, int8 trunk
+  EXACT a 0.909 (today's drafter) B8 x32, int8 rows  256 kept   84.1 U 339.6 groups/kept    194 | GPU  237.7 ms ->    354 | RAM roof    590 | SSD cap    inf | compute   39 % bf16 | =>   354 tok/s
+  EXACT a 0.909 (today's drafter) B12 x32, int8 rows  384 kept  126.2 U 385.4 groups/kept    147 | GPU  285.7 ms ->    442 | RAM roof    789 | SSD cap    inf | compute   48 % bf16 | =>   442 tok/s
+  EXACT a 0.909 (today's drafter) B16 x32, int8 rows  512 kept  168.3 U 421.5 groups/kept    120 | GPU  329.1 ms ->    511 | RAM roof    968 | SSD cap    inf | compute   56 % bf16 | =>   511 tok/s
+  EXACT a 0.909 (today's drafter) B24 x32, int8 rows  768 kept  252.4 U 478.3 groups/kept     91 | GPU  408.2 ms ->    618 | RAM roof   1291 | SSD cap    inf | compute   68 % bf16 | =>   618 tok/s
+  EXACT a 0.9485 (sure rows perfect) B8 x32, int8 rows  256 kept  128.2 U 339.6 groups/kept    127 | GPU  237.7 ms ->    539 | RAM roof    899 | SSD cap    inf | compute   39 % bf16 | =>   539 tok/s
+  EXACT a 0.9485 (sure rows perfect) B12 x32, int8 rows  384 kept  192.3 U 385.4 groups/kept     96 | GPU  285.7 ms ->    673 | RAM roof   1202 | SSD cap    inf | compute   48 % bf16 | =>   673 tok/s
+  EXACT a 0.9485 (sure rows perfect) B16 x32, int8 rows  512 kept  256.4 U 421.5 groups/kept     79 | GPU  329.1 ms ->    779 | RAM roof   1475 | SSD cap    inf | compute   56 % bf16 | =>   779 tok/s
+  EXACT a 0.9485 (sure rows perfect) B24 x32, int8 rows  768 kept  384.6 U 478.3 groups/kept     60 | GPU  408.2 ms ->    942 | RAM roof   1967 | SSD cap    inf | compute   68 % bf16 | =>   942 tok/s
+
+== G. prefill (agent tool output): compute per token 5.05 G MAC -> 1663 tok/s at 60 % of bf16, 2661 with int8
+   store sizes: EXACT 3-bit + sidecar 71.8 GB, all-3-bit 52.8 GB (24,576 experts)

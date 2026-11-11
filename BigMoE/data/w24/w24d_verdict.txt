@@ -1,0 +1,10 @@
+set h: 12 of 12 prompts unpaused + uncut in all of w14c w13e w13f w14d
+  w14c: whole decode ALL 12 prompts 126.35, COMMON 126.35; lifetime peak 23.828 GB; bad rows 0
+  w13e: whole decode ALL 12 prompts 130.20, COMMON 130.20; lifetime peak 23.819 GB; bad rows 0
+  w13f: whole decode ALL 12 prompts 130.46, COMMON 130.46; lifetime peak 23.781 GB; bad rows 0
+  w14d: whole decode ALL 12 prompts 125.48, COMMON 125.48; lifetime peak 23.782 GB; bad rows 0
+W24d rule (docs/W24_DECISION.md 'W24d'):
+  [PASS] w13b pooled (w13e + w13f) 130.33 vs 14-row pooled (w14c + w14d) 125.91: +3.51 % > +1 %
+  [PASS] w13b peaks w13e 23.819 / w13f 23.781 < 24.000 GB (14-row: 23.828 / 23.782)
+  [PASS] bad or cut rows in all four arms: 0
+  VERDICT: w13b WINS (still needs card_w24d_env.txt + EvalSuite's dry run + NewIdeas' check by 01:30)

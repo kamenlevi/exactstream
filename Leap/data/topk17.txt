@@ -1,0 +1,14 @@
+L1-17: fewer experts per token, layers [2, 12, 24, 36, 46], 8,336 tokens each (Fit12 Q2 capture); MoE-block output error vs top-10
+  layer  2 (2 s): top-10 weight held by top-1 0.233, top-4 0.600, top-6 0.756, top-8 0.886; shared share of ||y10||^2 0.556
+  layer 12 (5 s): top-10 weight held by top-1 0.212, top-4 0.585, top-6 0.751, top-8 0.885; shared share of ||y10||^2 0.345
+  layer 24 (7 s): top-10 weight held by top-1 0.220, top-4 0.587, top-6 0.750, top-8 0.885; shared share of ||y10||^2 0.191
+  layer 36 (9 s): top-10 weight held by top-1 0.202, top-4 0.569, top-6 0.738, top-8 0.878; shared share of ||y10||^2 0.152
+  layer 46 (11 s): top-10 weight held by top-1 0.209, top-4 0.575, top-6 0.745, top-8 0.882; shared share of ||y10||^2 0.192
+variant | MoE-block output error | vs MSB-3 all 10 | 16-token union (mean over layers) | vs top-10
+  MSB-3 all 10    | 0.0334 |  1.00x |  74.8 |  1.00
+  top-8           | 0.0261 |  0.78x |  62.4 |  0.84
+  top-6           | 0.0996 |  2.98x |  49.5 |  0.66
+  top-4           | 0.3245 |  9.70x |  35.6 |  0.48
+  adaptive p0.9   | 0.0127 |  0.38x |  67.1 |  0.90
+  adaptive p0.8   | 0.0478 |  1.43x |  57.2 |  0.76
+  top-10 union 74.8 of 512 per layer

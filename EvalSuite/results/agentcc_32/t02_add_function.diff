@@ -1,0 +1,42 @@
+diff --git a/tests/test_textutil.py b/tests/test_textutil.py
+index 44ea3f6..ce09159 100644
+--- a/tests/test_textutil.py
++++ b/tests/test_textutil.py
+@@ -1,7 +1,20 @@
+ import unittest
+-from textutil import title_case
++from textutil import title_case, slugify
+ 
+ 
+ class T(unittest.TestCase):
+     def test_title(self):
+         self.assertEqual(title_case('a b'), 'A B')
++
++    def test_slugify(self):
++        self.assertEqual(
++            slugify('Hello,   World! -- Again'), 'hello-world-again'
++        )
++        # Hyphens stripped from both ends; all-punctuation input -> empty.
++        self.assertEqual(slugify('--Hello--World--'), 'hello-world')
++        self.assertEqual(slugify('!!!'), '')
++        # Already-slugged and plain input pass through unchanged.
++        self.assertEqual(slugify('hello-world'), 'hello-world')
++        self.assertEqual(
++            slugify('Total 100% of the 2 cases'), 'total-100-of-the-2-cases'
++        )
+diff --git a/textutil.py b/textutil.py
+index 62d0d8b..556654d 100644
+--- a/textutil.py
++++ b/textutil.py
+@@ -1,2 +1,11 @@
++import re
++
++
+ def title_case(s):
+     return ' '.join(w.capitalize() for w in s.split())
++
++
++def slugify(text):
++    """Lowercase `text`, collapse runs of non-alphanumeric chars to one
++    hyphen, and strip hyphens from both ends."""
++    return re.sub(r'[^a-z0-9]+', '-', text.lower()).strip('-')

@@ -1,0 +1,57 @@
+[dm] discover_layers: 48 layers, {'gdn': 48, 'hc': 96, 'moe': 48}; missing []
+[dm] MoE block: top_k 10, norm_topk_prob True
+[t] patched harness from /Users/kamen/FableGod/far/build_1105/patched; MLX device Device(cpu, 0); 48 layers x 32 dims, 64 experts, top 10; window 80 rows (answer from 20) in chunks [40, 33, 7], float64; late flags: 352 (nw1), 6.0 per answer row
+A. the old arms are unchanged by the patch
+  ok   baseline, topk4 and the rmask twin == the unpatched harness's outputs, bit for bit
+  ok   the twin == the reference forward with no late flag (relative error 2.6e-16): the reference copies the model's forward
+B. self-check (i): never-wait path, late flags off
+  ok   nw_zero == the twin, bit for bit
+  ok   no late write, nothing stashed, no gates held
+C. self-check (ii): lateness 0
+  ok   nw0 == the twin up to the order of two adds (relative error 5.2e-16; float64 here, bf16 rounding on the 125B)
+  ok   nw0 is not bit-equal to the twin (the late writes did run)
+  ok   every late flag used once (366 of 366)
+D. nw1 / nw2 against the independent reference; the test's power
+  ok   nw1 == the reference (relative error 2.6e-16)
+  ok   nw1 differs from the twin by 4.0e-03 (relative), 4013467 x the match: the late terms matter here
+  ok   power: a reference with layer L + 1's gates instead of layer L's is 2.2e-03 from the harness (2246143 x the match)
+  ok   power: a reference with the late rows shifted by one is 6.5e-03 from the harness (6540287 x the match)
+  ok   power: a reference with lateness 2 on nw1's flags is 4.8e-03 from the harness (4837478 x the match)
+  ok   power: a reference with lateness 0 on nw1's flags is 4.0e-03 from the harness (4013467 x the match)
+  ok   nw2 == the reference (relative error 2.6e-16)
+  ok   power: nw2 is 4.8e-03 from a lateness-1 reference (4843317 x the match)
+E. self-check (iii): rows, flags, writes
+  ok   every layer saw each of the 80 rows once (kpos == the twin's)
+  ok   every late flag used exactly once (nw1 352, nw2 342)
+  ok   late writes == the (chunk, layer) pairs with a late flag (nw0 118, nw1 115, nw2 112)
+  ok   nothing left stashed, no gates held after the last layer
+  ok   both chunk widths stashed late terms (88 from _combine_p, 27 from the narrow path)
+  ok   nw1 with one wide chunk [80]: every late flag used once, nothing left stashed
+  ok   nw1 with one wide chunk [80] == the reference
+  ok   nw1 with narrow chunks only [20, 20, 20, 20]: every late flag used once, nothing left stashed
+  ok   nw1 with narrow chunks only [20, 20, 20, 20] == the reference
+  ok   nw1 with uneven chunks [33, 5, 42]: every late flag used once, nothing left stashed
+  ok   nw1 with uneven chunks [33, 5, 42] == the reference
+F. guards
+  ok   a late flag at a tail layer under nw1: refused (the mask must resolve the tail (no late flag in the last 1 layers))
+  ok   a late flag outside keep: refused (late must have keep's shape and lie within keep)
+  ok   never-wait with topk: refused (never-wait is not wired with t3 / gate / reuse / q / topk)
+  ok   a late term that reaches the last layer: refused (late terms of layers [47] were never written (the mask's tail rule))
+G. no state leaks
+  ok   the twin after the never-wait runs == the twin before them, bit for bit
+  ok   the baseline after them == the baseline before, bit for bit
+H. dm_ablations arms
+  ok   12/12 arms resolve, alone and with +code, to the expected PERT and an absolute mask folder
+  ok   every arm name stands in dm_ablations.py in quotes (the s67 runner's installed() check)
+  ok   run_window and clear reset the never-wait state; measure loads the late flags
+I. the real measure() and run_window(), end to end
+  ok   measure(): nwz's JSON (top-8 ids and log-probs) == the twin's, exactly, on both windows; no WARNING
+  ok   measure(): nw0 runs with its record and no WARNING
+  ok   measure(): nw0's top-8 ids == the twin's, max |d log p| 0.0e+00
+  ok   measure(): nw1's res['nw'] holds d, late, terms (== the mask's count), writes (== the chunk-layer pairs); no warn
+  ok   measure(): nw1's top-1 == the reference run's on both windows (max |d log p| 1.8e-07)
+  ok   measure(): the 'never-wait' note is printed per window, no WARNING
+  ok   measure(): nw1 moves the log-probs by up to 1.8e-02 against the twin (the arm is not a no-op)
+  ok   measure(): a prefill that skips rows trips both WARNINGs (the row count's and the never-wait one) and marks the windows
+  ok   measure(): the twin after all of it == the twin before, exactly
+ALL OK

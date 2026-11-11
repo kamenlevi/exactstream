@@ -1,0 +1,11 @@
+# <one-line claim with the number, e.g. "Qwen4-XXX at 45 GB on an M5 Pro: NN tok/s exact (bit-identical to one-token decode)">
+- Date / time (EET, from `date`): YYYY-MM-DD HH:MM. Hours since the weights went public: T+H:MM.
+- Model: <HF repo id> @ <commit sha of the weights>, quantization <bits / group / tool>, our store <records layout + sha>.
+- Machine: <Mac model, RAM, macOS, MLX version>; other load during the run: <none / named>.
+- Number [K measured / P priced / G guess]:
+  - <tok/s whole decode (and steady), prompts set (e.g. 12 HumanEval), RAM line (45 / 24 / 12 GB), exact or lossy>;
+  - exactness: <tokens == the reference AR on N / N prompts> (exact) or <quality gate + its numbers> (lossy);
+  - comparison: <the same machine's MLX / llama.cpp / mlx-lm baseline, same prompts>.
+- How (reproducible): <commit of our engine>, `<exact command>`, logs <path>.
+- Prior art: <nearest published result, link>; tag: published / adapted / new / engineering (see QWEN4_READY.md section 4).
+- What it means / next: <one line>.

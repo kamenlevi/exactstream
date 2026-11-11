@@ -1,0 +1,123 @@
+== micro (threads 4): one linear on the CPU device; ms median, GFLOP/s, weight GB/s, cores used
+  2560->7680 rows 16 F32      :   1.937 ms    324.9 GFLOP/s    40.6 GB/s  cores  1.0
+  2560->7680 rows 16 B16      :   1.429 ms    440.2 GFLOP/s    27.5 GB/s  cores  1.0
+  2560->7680 rows 16 F16      :   1.473 ms    427.0 GFLOP/s    26.7 GB/s  cores  1.0
+  2560->7680 rows 16 Q4       : 1391.157 ms      0.5 GFLOP/s     0.0 GB/s  cores  1.0
+  2560->7680 rows 16 Q8       : 1412.365 ms      0.4 GFLOP/s     0.0 GB/s  cores  1.0
+  2560->7680 rows 16 numpy F32:   3.110 ms    202.3 GFLOP/s    25.3 GB/s  cores  1.0
+  2560->7680 rows 64 F32      :   2.663 ms    945.1 GFLOP/s    29.5 GB/s  cores  1.0
+  2560->7680 rows 64 B16      :   2.415 ms   1042.0 GFLOP/s    16.3 GB/s  cores  1.0
+  2560->7680 rows 64 F16      :   2.466 ms   1020.6 GFLOP/s    15.9 GB/s  cores  1.0
+== micro (threads 4): one linear on the CPU device; ms median, GFLOP/s, weight GB/s, cores used
+  2560->7680 rows 16 F32      :   1.920 ms    327.7 GFLOP/s    41.0 GB/s  cores  1.0
+  2560->7680 rows 16 B16      :   1.448 ms    434.5 GFLOP/s    27.2 GB/s  cores  1.0
+  2560->7680 rows 16 F16      :   1.474 ms    426.8 GFLOP/s    26.7 GB/s  cores  1.0
+  2560->7680 rows 16 Q4       : 1391.347 ms      0.5 GFLOP/s     0.0 GB/s  cores  1.0
+  2560->7680 rows 16 Q8       : 1528.835 ms      0.4 GFLOP/s     0.0 GB/s  cores  1.0
+  2560->7680 rows 16 numpy F32:   4.489 ms    140.2 GFLOP/s    17.5 GB/s  cores  1.0
+  2560->7680 rows 64 F32      :   3.783 ms    665.2 GFLOP/s    20.8 GB/s  cores  1.0
+  2560->7680 rows 64 B16      :   3.255 ms    773.0 GFLOP/s    12.1 GB/s  cores  1.0
+  2560->7680 rows 64 F16      :   3.296 ms    763.4 GFLOP/s    11.9 GB/s  cores  1.0
+== pmicro (VECLIB threads 1): one linear split over N streams / threads; ms median, weight GB/s, cores used
+  2560->7680 F32 rows 16 streams 1:  2.443 ms    32.2 GB/s  cores  1.0
+  2560->7680 F32 rows 16 streams 2:  2.016 ms    39.0 GB/s  cores  1.7
+  2560->7680 F32 rows 16 streams 3:  1.619 ms    48.6 GB/s  cores  2.6
+  2560->7680 F32 rows 16 streams 4:  1.403 ms    56.1 GB/s  cores  3.3
+  2560->7680 F32 rows 16 streams 6:  2.179 ms    36.1 GB/s  cores  4.6
+  2560->7680 F32 rows 16 streams 8:  2.216 ms    35.5 GB/s  cores  6.7
+  2560->7680 F32 rows 48 streams 1:  3.438 ms    22.9 GB/s  cores  1.0
+  2560->7680 F32 rows 48 streams 2:  2.948 ms    26.7 GB/s  cores  1.9
+  2560->7680 F32 rows 48 streams 3:  2.543 ms    30.9 GB/s  cores  2.8
+  2560->7680 F32 rows 48 streams 4:  2.183 ms    36.0 GB/s  cores  3.4
+  2560->7680 F32 rows 48 streams 6:  2.414 ms    32.6 GB/s  cores  4.8
+  2560->7680 F32 rows 48 streams 8:  2.140 ms    36.8 GB/s  cores  5.6
+  2560->7680 numpy F32 rows 48 threads 1:  5.653 ms    13.9 GB/s  cores  1.0
+  2560->7680 numpy F32 rows 48 threads 2:  3.659 ms    21.5 GB/s  cores  1.9
+  2560->7680 numpy F32 rows 48 threads 4:  2.446 ms    32.2 GB/s  cores  3.7
+  2560->7680 numpy F32 rows 48 threads 8:  1.679 ms    46.9 GB/s  cores  6.4
+  2560->7680 B16 rows 16 streams 1:  1.920 ms    20.5 GB/s  cores  1.0
+  2560->7680 B16 rows 16 streams 2:  1.612 ms    24.4 GB/s  cores  1.9
+  2560->7680 B16 rows 16 streams 3:  1.658 ms    23.7 GB/s  cores  2.3
+  2560->7680 B16 rows 16 streams 4:  1.621 ms    24.3 GB/s  cores  2.8
+  2560->7680 B16 rows 16 streams 6:  1.315 ms    29.9 GB/s  cores  4.0
+  2560->7680 B16 rows 16 streams 8:  1.143 ms    34.4 GB/s  cores  5.2
+  2560->7680 B16 rows 48 streams 1:  2.982 ms    13.2 GB/s  cores  1.0
+  2560->7680 B16 rows 48 streams 2:  2.521 ms    15.6 GB/s  cores  1.9
+  2560->7680 B16 rows 48 streams 3:  2.427 ms    16.2 GB/s  cores  2.7
+  2560->7680 B16 rows 48 streams 4:  2.231 ms    17.6 GB/s  cores  3.5
+  2560->7680 B16 rows 48 streams 6:  1.762 ms    22.3 GB/s  cores  4.7
+  2560->7680 B16 rows 48 streams 8:  1.593 ms    24.7 GB/s  cores  5.8
+  7680->2560 F32 rows 16 streams 1:  2.732 ms    28.8 GB/s  cores  1.0
+  7680->2560 F32 rows 16 streams 2:  1.947 ms    40.4 GB/s  cores  1.9
+  7680->2560 F32 rows 16 streams 3:  1.778 ms    44.2 GB/s  cores  2.8
+  7680->2560 F32 rows 16 streams 4:  1.414 ms    55.6 GB/s  cores  3.6
+  7680->2560 F32 rows 16 streams 6:  1.671 ms    47.1 GB/s  cores  4.7
+  7680->2560 F32 rows 16 streams 8:  1.366 ms    57.6 GB/s  cores  6.3
+  7680->2560 F32 rows 48 streams 1:  3.698 ms    21.3 GB/s  cores  1.0
+  7680->2560 F32 rows 48 streams 2:  2.875 ms    27.4 GB/s  cores  1.6
+  7680->2560 F32 rows 48 streams 3:  2.439 ms    32.2 GB/s  cores  2.7
+  7680->2560 F32 rows 48 streams 4:  2.304 ms    34.1 GB/s  cores  3.3
+  7680->2560 F32 rows 48 streams 6:  2.278 ms    34.5 GB/s  cores  4.8
+  7680->2560 F32 rows 48 streams 8:  2.580 ms    30.5 GB/s  cores  5.4
+  7680->2560 numpy F32 rows 48 threads 1:  5.464 ms    14.4 GB/s  cores  1.0
+  7680->2560 numpy F32 rows 48 threads 2:  3.664 ms    21.5 GB/s  cores  1.9
+  7680->2560 numpy F32 rows 48 threads 4:  2.554 ms    30.8 GB/s  cores  3.7
+  7680->2560 numpy F32 rows 48 threads 8:  1.947 ms    40.4 GB/s  cores  6.6
+  7680->2560 B16 rows 16 streams 1:  2.546 ms    15.4 GB/s  cores  1.0
+  7680->2560 B16 rows 16 streams 2:  1.826 ms    21.5 GB/s  cores  1.9
+  7680->2560 B16 rows 16 streams 3:  1.591 ms    24.7 GB/s  cores  2.7
+  7680->2560 B16 rows 16 streams 4:  1.432 ms    27.5 GB/s  cores  3.4
+  7680->2560 B16 rows 16 streams 6:  1.228 ms    32.0 GB/s  cores  4.8
+  7680->2560 B16 rows 16 streams 8:  1.139 ms    34.5 GB/s  cores  5.9
+  7680->2560 B16 rows 48 streams 1:  3.921 ms    10.0 GB/s  cores  1.0
+  7680->2560 B16 rows 48 streams 2:  4.082 ms     9.6 GB/s  cores  1.9
+  7680->2560 B16 rows 48 streams 3:  3.750 ms    10.5 GB/s  cores  2.7
+  7680->2560 B16 rows 48 streams 4:  3.261 ms    12.1 GB/s  cores  3.5
+  7680->2560 B16 rows 48 streams 6:  1.949 ms    20.2 GB/s  cores  4.6
+  7680->2560 B16 rows 48 streams 8:  1.652 ms    23.8 GB/s  cores  5.8
+== check form B16 on Device(gpu, 0): my batched path vs DFlash2's propose (B = 1, full head, he taps): identical draft tokens 679 / 705 (96.31%)
+== time form B16, 1 CPU stream(s) (loaded in 0 s; MLX peak 1.92 GB)
+  form B16 streams 1 head fr32 ring  528 B 1:  77.63 ms (p90  80.99), cores  1.0
+  form B16 streams 1 head fr32 ring  528 B 3: 128.85 ms (p90 135.98), cores  1.0
+  form B16 streams 1 head fr32 ring 2047 B 1:  95.49 ms (p90 105.61), cores  1.0
+  form B16 streams 1 head fr32 ring 2047 B 3: 147.03 ms (p90 154.22), cores  1.0
+  form B16 streams 1: MLX peak 2.81 GB, max RSS 3.63 GB
+== time form B16, 4 CPU stream(s) (loaded in 0 s; MLX peak 2.16 GB)
+  form B16 streams 4 head fr32 ring  528 B 1:  57.92 ms (p90  76.72), cores  2.8
+  form B16 streams 4 head fr32 ring  528 B 3: 104.36 ms (p90 112.70), cores  2.6
+  form B16 streams 4 head fr32 ring 2047 B 1:  53.82 ms (p90  55.61), cores  2.9
+  form B16 streams 4 head fr32 ring 2047 B 3:  99.47 ms (p90 101.38), cores  2.7
+  form B16 streams 4: MLX peak 2.81 GB, max RSS 4.64 GB
+== time form B16, 8 CPU stream(s) (loaded in 0 s; MLX peak 2.07 GB)
+  form B16 streams 8 head fr32 ring  528 B 1:  54.85 ms (p90  59.16), cores  4.3
+  form B16 streams 8 head fr32 ring  528 B 3:  96.27 ms (p90 104.15), cores  3.9
+  form B16 streams 8 head fr32 ring 2047 B 1:  60.02 ms (p90  64.24), cores  4.5
+  form B16 streams 8 head fr32 ring 2047 B 3:  97.53 ms (p90 100.85), cores  4.3
+  form B16 streams 8: MLX peak 2.81 GB, max RSS 4.82 GB
+== time form F32, 1 CPU stream(s) (loaded in 0 s; MLX peak 3.42 GB)
+  form F32 streams 1 head fr32 ring  528 B 1:  76.73 ms (p90  85.64), cores  1.0
+  form F32 streams 1 head fr32 ring  528 B 3: 134.77 ms (p90 148.87), cores  1.0
+  form F32 streams 1 head fr32 ring 2047 B 1:  81.30 ms (p90  89.75), cores  1.0
+  form F32 streams 1 head fr32 ring 2047 B 3: 120.98 ms (p90 126.16), cores  1.0
+  form F32 streams 1: MLX peak 4.10 GB, max RSS 5.87 GB
+== time form F32, 4 CPU stream(s) (loaded in 0 s; MLX peak 3.42 GB)
+  form F32 streams 4 head fr32 ring  528 B 1:  36.40 ms (p90  37.42), cores  3.2
+  form F32 streams 4 head fr32 ring  528 B 3:  62.17 ms (p90  66.35), cores  3.0
+  form F32 streams 4 head fr32 ring 2047 B 1:  38.18 ms (p90  38.98), cores  3.3
+  form F32 streams 4 head fr32 ring 2047 B 3:  67.29 ms (p90  68.41), cores  3.0
+  form F32 streams 4: MLX peak 4.10 GB, max RSS 7.76 GB
+== time form F32, 8 CPU stream(s) (loaded in 0 s; MLX peak 3.42 GB)
+  form F32 streams 8 head fr32 ring  528 B 1:  42.42 ms (p90  43.75), cores  5.0
+  form F32 streams 8 head fr32 ring  528 B 3:  62.78 ms (p90  65.99), cores  4.6
+  form F32 streams 8 head fr32 ring 2047 B 1:  44.15 ms (p90  45.80), cores  5.0
+  form F32 streams 8 head fr32 ring 2047 B 3:  68.37 ms (p90  69.60), cores  4.6
+  form F32 streams 8: MLX peak 4.10 GB, max RSS 7.47 GB
+== RESULT M-19 CPUDRAFT (Mon 21:38; shared machine, rough; 12 threads not run by day, and 8 streams were no faster than 4):
+  KILL by the pre-registered line (CPU draft > 20 ms); step 2 (the GPU check's slowdown beside it) is not needed.
+  Best batched 3-candidate call (ANE-2's shape: 16 context + 3 x 16 rows, FR-Spec 32K head): 62.2 ms (fp32, 4 streams,
+  ring 528; 67.3 at the full 2,047 ring) vs ANE-2's 12.42 ms and the 20 ms kill line; bf16 (BNNS) 96-147 ms; a single
+  16-row draft 36.4 ms at best (the GPU's D7b: 6.3 ms). The D7b 4-bit form cannot run on MLX's CPU backend (its quantized
+  matmul is a reference loop: 1.4 s for one 2560 x 7680 linear at 16 rows).
+  Why: the call is ~60 GFLOP over 1.1 (bf16) - 2.2 (fp32) GB of weights; the CPU's measured aggregate is ~1.0-1.2 TFLOPS
+  and 35-57 GB/s of weight streaming at 4-8 threads (3 clusters with one SME unit each), where 12 ms needs ~5 TFLOPS (what
+  ANE-2 delivers). The harness drafts what DFlash2's own propose drafts: 679 / 705 identical tokens (96.3 %, GPU check).

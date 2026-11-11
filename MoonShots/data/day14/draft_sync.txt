@@ -1,0 +1,18 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=21.9 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+resident bytes per layer (MB): attention side gdn 47.7 / qsa 43.0, MoE side 17.4
+non-layer resident MB: embed_tokens 358, hyper_connection_mixer 13, lm_head 358
+GDN recurrent state per layer: 3.15 MB (fp32)
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+code: 1872 loader events, 1872 gated (pass, layer) calls, 115 draft steps
+math: 2208 loader events, 2208 gated (pass, layer) calls, 136 draft steps
+
+82 consecutive pass pairs (C=256, committed MTP depth 3, greedy)
+pass wall (gate to gate) 140.2 ms: loader stalls 33.3 ms (24%), inter-pass block 19.7 ms (14%)
+component                         count  ms/each  ms/pass  MB/each   GB/s   % of 318
+MoE(L) + GDN attention(L+1)         35    1.841     64.4    144.2       78     25%
+MoE(L) + QSA attention(L+1)         12    1.904     22.8    139.7       73     23%
+inter-pass block (head, sampling, drafts)  1    19.69
+loader stalls (48 gates)                  48    0.693     33.3

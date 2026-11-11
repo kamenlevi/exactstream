@@ -1,0 +1,20 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=20.0 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=192 C_l=77 per layer, 22.66 GB pools
+b12: hc (196, 1336.9344, 710.2464)
+b12: C_m=192 C_l=77 (38 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 22.66 GB, active 25.94 GB
+fit12: oracle drafts from x_df192, verify width [8, 16], KC 10, MAXK 80, active 25.94 GB
+[mtplx] verify SDPA head-chunked: q_len=8 heads_per_chunk=4 chunks=6
+[x_or192f] code k=8: 40.9 tok/s, 7.88 tok/pass, 8 passes (8 full) | full pass 192.3 ms (median 198.4) | reads 647.2, stall 108.5 ms, SSD 6395 MB per pass | refused 0 | diverged 63 | peak footprint 27.55 GB | sha cd0d98caaa
+[x_or192f] code k=16: 6.7 tok/s, 11.00 tok/pass, 2 passes (2 full) | full pass 1632.1 ms (median 1632.1) | reads 0.0, stall 0.0 ms, SSD 31410 MB per pass | refused 0 | diverged 22 | peak footprint 27.55 GB | sha a632134b99
+[x_or192f] tfc0 k=16: 8.7 tok/s, 15.50 tok/pass, 12 passes (12 full) | full pass 1781.9 ms (median 1798.7) | reads 0.0, stall 0.0 ms, SSD 14282 MB per pass | refused 0 | diverged 186 | peak footprint 27.55 GB | sha f077bd7975
+[x_or192f] tfc0 k=8: 44.2 tok/s, 8.00 tok/pass, 32 passes (32 full) | full pass 181.0 ms (median 171.2) | reads 650.2, stall 113.4 ms, SSD 2284 MB per pass | refused 0 | diverged - | peak footprint 27.55 GB | sha 29dec94bb4
+[x_or192f] tfc1 k=8: 46.7 tok/s, 8.00 tok/pass, 32 passes (32 full) | full pass 171.1 ms (median 169.0) | reads 581.2, stall 103.2 ms, SSD 2131 MB per pass | refused 0 | diverged - | peak footprint 27.55 GB | sha 906c29133a
+[x_or192f] tfc1 k=16: 9.4 tok/s, 16.00 tok/pass, 16 passes (16 full) | full pass 1709.4 ms (median 1731.6) | reads 0.0, stall 0.0 ms, SSD 12847 MB per pass | refused 0 | diverged - | peak footprint 27.55 GB | sha 906c29133a
+[x_or192f] tfg0 k=16: 9.1 tok/s, 14.88 tok/pass, 8 passes (8 full) | full pass 1643.1 ms (median 1648.3) | reads 0.0, stall 0.0 ms, SSD 13919 MB per pass | refused 0 | diverged 119 | peak footprint 27.55 GB | sha 153a46cbfa
+[x_or192f] tfg0 k=8: 40.1 tok/s, 7.62 tok/pass, 16 passes (16 full) | full pass 190.3 ms (median 178.8) | reads 682.2, stall 121.3 ms, SSD 2997 MB per pass | refused 0 | diverged 122 | peak footprint 27.55 GB | sha b445356bb5
+[x_or192f] tfg1 k=8: 52.3 tok/s, 7.97 tok/pass, 29 passes (29 full) | full pass 152.4 ms (median 146.7) | reads 421.8, stall 82.7 ms, SSD 1806 MB per pass | refused 0 | diverged 231 | peak footprint 27.55 GB | sha a4cc239020
+[x_or192f] tfg1 k=16: 7.8 tok/s, 13.00 tok/pass, 4 passes (4 full) | full pass 1665.0 ms (median 1660.5) | reads 0.0, stall 0.0 ms, SSD 18084 MB per pass | refused 0 | diverged 52 | peak footprint 27.55 GB | sha 842cd2f343
+[x_or192f] ALL: full-pass mean T8 173.3 ms (117 passes), T16 1709.6 ms (42 passes) | T16/T8 = 9.868

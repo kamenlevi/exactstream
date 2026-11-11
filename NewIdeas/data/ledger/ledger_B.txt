@@ -1,0 +1,12 @@
+PART B: per-request locality (36 map windows; mass = the mean router mass by rank, approximate)
+| domain | answer tokens | distinct experts per layer | per layer at 90 / 95 / 99 % of the answer's mass | 95 % set GB at 4 bits | answer mass on experts the prefill routed | distinct experts the prefill routed |
+|---|---|---|---|---|---|---|
+| code | 280 | 292 of 512 | 146 / 188 / 256 | 26.4 | 86 % | 69 % |
+| ifeval | 283 | 207 of 512 | 95 / 123 / 174 | 17.4 | 66 % | 49 % |
+| multi | 296 | 219 of 512 | 92 / 124 / 182 | 17.4 | 63 % | 32 % |
+
+Compulsory floor (no prefill reuse, every distinct expert read once): MB per answer token at t tokens; distinct experts per layer in brackets; fit D(t) = c t^b on the fixed t points, extrapolated to 1K / 4K
+  code: t 8: 656.9 (47); t 16: 525.8 (74); t 32: 416.0 (117); t 64: 301.5 (168); t 128: 206.4 (227); t 256: 130.3 (282) | fit b 0.52, sidecar / base distinct 0.39 | 1024: ~512 per layer -> ~59.2 MB per token; 4096: ~512 per layer -> ~14.8 MB per token
+  ifeval: t 8: 593.3 (42); t 16: 468.0 (66); t 32: 343.2 (95); t 64: 247.3 (136); t 128: 164.6 (179); t 256: 106.0 (227) | fit b 0.49, sidecar / base distinct 0.42 | 1024: ~485 per layer -> ~56.5 MB per token; 4096: ~512 per layer -> ~14.9 MB per token
+  multi: t 8: 521.5 (37); t 16: 411.6 (58); t 32: 303.6 (85); t 64: 223.5 (125); t 128: 154.1 (170); t 256: 98.3 (214) | fit b 0.51, sidecar / base distinct 0.37 | 1024: ~476 per layer -> ~54.5 MB per token; 4096: ~512 per layer -> ~14.7 MB per token
+  (fixed points [K] on the captures; the 1K / 4K points are a power-law extrapolation [P] with the sidecar share held at its longest measured value)

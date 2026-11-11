@@ -1,0 +1,114 @@
+
+### code: 12 windows, 391 checks, 3388 kept tokens, prompt rows 2623 (0 s)
+| C | LRU | +prot N=10 | +prot N=30 | +prot N=100 | +pin C/4 (prompt) | +pin C/4 (prior) | prot 30 + pin C/4 | Belady MIN |
+|---|---|---|---|---|---|---|---|---|
+| 51 | 362.4 | 354.6 | 336.3 | 321.2 | 344.9 | 340.0 | 331.8 | 260.6 |  (23 s)
+| 160 | 65.5 | 74.4 | 92.7 | 106.9 | 65.8 | 65.4 | 92.6 | 41.2 |  (71 s)
+| 256 | 29.6 | 36.5 | 50.8 | 58.8 | 29.3 | 29.1 | 50.7 | 15.1 |  (136 s)
+| 320 | 15.3 | 17.4 | 23.2 | 25.4 | 15.3 | 15.1 | 23.2 | 7.9 |  (198 s)
+start-up at C 51: misses in the first 1 / 2 / 3 checks per window: LRU 2726 / 6321 / 9957; pre-loaded prompt experts 2840 / 6435 / 10070; steady misses per check (LRU) 3140
+start-up at C 160: misses in the first 1 / 2 / 3 checks per window: LRU 1138 / 2582 / 3701; pre-loaded prompt experts 1092 / 2362 / 3414; steady misses per check (LRU) 568
+start-up at C 256: misses in the first 1 / 2 / 3 checks per window: LRU 506 / 1151 / 1637; pre-loaded prompt experts 459 / 1000 / 1417; steady misses per check (LRU) 257
+| two-pass scheme | C | policy | misses per check | MB per check | misses per kept | SSD cap tok/s (13 GB/s) |
+|---|---|---|---|---|---|---|
+| exact | 51 | lru | 3140 | 6908 | 362.4 | 16 |
+| exact | 51 | prot 30 | 2914 | 6411 | 336.3 | 18 |
+| exact | 160 | lru | 568 | 1249 | 65.5 | 90 |
+| exact | 160 | prot 30 | 803 | 1766 | 92.7 | 64 |
+| exact | 256 | lru | 257 | 564 | 29.6 | 200 |
+| exact | 256 | prot 30 | 440 | 969 | 50.8 | 116 |
+| two-pass top-5 | 51 | lru | 1001 | 2203 | 115.6 | 51 |
+| two-pass top-5 | 51 | prot 30 | 952 | 2093 | 109.8 | 54 |
+| two-pass top-5 | 160 | lru | 263 | 580 | 30.4 | 194 |
+| two-pass top-5 | 160 | prot 30 | 373 | 820 | 43.0 | 137 |
+| two-pass top-5 | 256 | lru | 113 | 250 | 13.1 | 451 |
+| two-pass top-5 | 256 | prot 30 | 184 | 405 | 21.3 | 278 |
+| two-pass top-2 | 51 | lru | 569 | 1252 | 65.7 | 90 |
+| two-pass top-2 | 51 | prot 30 | 585 | 1287 | 67.5 | 88 |
+| two-pass top-2 | 160 | lru | 211 | 464 | 24.3 | 243 |
+| two-pass top-2 | 160 | prot 30 | 267 | 587 | 30.8 | 192 |
+| two-pass top-2 | 256 | lru | 96 | 211 | 11.1 | 534 |
+| two-pass top-2 | 256 | prot 30 | 131 | 289 | 15.1 | 390 |
+| oracle | 51 | lru | 754 | 1659 | 87.0 | 68 |
+| oracle | 51 | prot 30 | 738 | 1624 | 85.2 | 69 |
+| oracle | 160 | lru | 141 | 310 | 16.2 | 364 |
+| oracle | 160 | prot 30 | 239 | 525 | 27.6 | 214 |
+| oracle | 256 | lru | 63 | 139 | 7.3 | 810 |
+| oracle | 256 | prot 30 | 118 | 260 | 13.6 | 433 |
+
+### ifeval: 12 windows, 1373 checks, 3416 kept tokens, prompt rows 769 (227 s)
+| C | LRU | +prot N=10 | +prot N=30 | +prot N=100 | +pin C/4 (prompt) | +pin C/4 (prior) | prot 30 + pin C/4 | Belady MIN |
+|---|---|---|---|---|---|---|---|---|
+| 51 | 1066.8 | 1041.0 | 995.5 | 870.9 | 1123.7 | 1046.1 | 1064.3 | 920.9 |  (255 s)
+| 160 | 43.3 | 64.4 | 119.2 | 286.7 | 48.8 | 44.5 | 124.0 | 23.1 |  (290 s)
+| 256 | 16.7 | 18.3 | 21.9 | 35.4 | 17.3 | 16.7 | 22.4 | — |  (296 s)
+| 320 | 9.7 | 9.8 | 10.0 | 10.7 | 9.8 | 9.6 | 10.0 | — |  (301 s)
+start-up at C 51: misses in the first 1 / 2 / 3 checks per window: LRU 2529 / 5239 / 7786; pre-loaded prompt experts 2644 / 5354 / 7905; steady misses per check (LRU) 2654
+start-up at C 160: misses in the first 1 / 2 / 3 checks per window: LRU 1082 / 1358 / 1529; pre-loaded prompt experts 1028 / 1284 / 1451; steady misses per check (LRU) 108
+start-up at C 256: misses in the first 1 / 2 / 3 checks per window: LRU 409 / 520 / 588; pre-loaded prompt experts 405 / 513 / 580; steady misses per check (LRU) 42
+| two-pass scheme | C | policy | misses per check | MB per check | misses per kept | SSD cap tok/s (13 GB/s) |
+|---|---|---|---|---|---|---|
+| exact | 51 | lru | 2654 | 5839 | 1066.8 | 6 |
+| exact | 51 | prot 30 | 2477 | 5449 | 995.5 | 6 |
+| exact | 160 | lru | 108 | 237 | 43.3 | 136 |
+| exact | 160 | prot 30 | 297 | 653 | 119.2 | 50 |
+| exact | 256 | lru | 42 | 92 | 16.7 | 353 |
+| exact | 256 | prot 30 | 54 | 120 | 21.9 | 270 |
+| two-pass top-5 | 51 | lru | 748 | 1646 | 300.7 | 20 |
+| two-pass top-5 | 51 | prot 30 | 773 | 1700 | 310.7 | 19 |
+| two-pass top-5 | 160 | lru | 74 | 164 | 29.9 | 198 |
+| two-pass top-5 | 160 | prot 30 | 156 | 343 | 62.6 | 94 |
+| two-pass top-5 | 256 | lru | 30 | 66 | 12.1 | 490 |
+| two-pass top-5 | 256 | prot 30 | 34 | 75 | 13.7 | 430 |
+| two-pass top-2 | 51 | lru | 336 | 739 | 134.9 | 44 |
+| two-pass top-2 | 51 | prot 30 | 389 | 856 | 156.5 | 38 |
+| two-pass top-2 | 160 | lru | 88 | 194 | 35.5 | 167 |
+| two-pass top-2 | 160 | prot 30 | 133 | 292 | 53.4 | 111 |
+| two-pass top-2 | 256 | lru | 35 | 78 | 14.2 | 415 |
+| two-pass top-2 | 256 | prot 30 | 37 | 82 | 15.0 | 394 |
+| oracle | 51 | lru | 1791 | 3941 | 720.0 | 8 |
+| oracle | 51 | prot 30 | 1702 | 3744 | 683.9 | 9 |
+| oracle | 160 | lru | 74 | 162 | 29.6 | 200 |
+| oracle | 160 | prot 30 | 219 | 483 | 88.2 | 67 |
+| oracle | 256 | lru | 30 | 66 | 12.1 | 489 |
+| oracle | 256 | prot 30 | 40 | 88 | 16.1 | 367 |
+
+### multi: 12 windows, 1845 checks, 3573 kept tokens, prompt rows 385 (331 s)
+| C | LRU | +prot N=10 | +prot N=30 | +prot N=100 | +pin C/4 (prompt) | +pin C/4 (prior) | prot 30 + pin C/4 | Belady MIN |
+|---|---|---|---|---|---|---|---|---|
+| 51 | 1005.8 | 986.3 | 949.5 | 866.6 | 1083.9 | 1055.3 | 1025.8 | 857.8 |  (358 s)
+| 160 | 39.9 | 45.3 | 59.7 | 118.4 | 43.7 | 42.0 | 63.1 | 22.7 |  (386 s)
+| 256 | 17.6 | 17.6 | 17.7 | 18.3 | 18.2 | 17.8 | 18.3 | — |  (392 s)
+| 320 | 10.7 | 10.7 | 10.7 | 10.8 | 10.8 | 10.6 | 10.8 | — |  (398 s)
+start-up at C 51: misses in the first 1 / 2 / 3 checks per window: LRU 2004 / 4149 / 6277; pre-loaded prompt experts 2105 / 4252 / 6381; steady misses per check (LRU) 1948
+start-up at C 160: misses in the first 1 / 2 / 3 checks per window: LRU 819 / 989 / 1122; pre-loaded prompt experts 822 / 991 / 1124; steady misses per check (LRU) 77
+start-up at C 256: misses in the first 1 / 2 / 3 checks per window: LRU 478 / 568 / 639; pre-loaded prompt experts 478 / 568 / 639; steady misses per check (LRU) 34
+| two-pass scheme | C | policy | misses per check | MB per check | misses per kept | SSD cap tok/s (13 GB/s) |
+|---|---|---|---|---|---|---|
+| exact | 51 | lru | 1948 | 4285 | 1005.8 | 6 |
+| exact | 51 | prot 30 | 1839 | 4045 | 949.5 | 6 |
+| exact | 160 | lru | 77 | 170 | 39.9 | 148 |
+| exact | 160 | prot 30 | 116 | 255 | 59.7 | 99 |
+| exact | 256 | lru | 34 | 75 | 17.6 | 335 |
+| exact | 256 | prot 30 | 34 | 75 | 17.7 | 334 |
+| two-pass top-5 | 51 | lru | 307 | 676 | 158.7 | 37 |
+| two-pass top-5 | 51 | prot 30 | 387 | 851 | 199.7 | 30 |
+| two-pass top-5 | 160 | lru | 50 | 110 | 25.7 | 230 |
+| two-pass top-5 | 160 | prot 30 | 57 | 125 | 29.4 | 201 |
+| two-pass top-5 | 256 | lru | 23 | 50 | 11.8 | 500 |
+| two-pass top-5 | 256 | prot 30 | 23 | 50 | 11.8 | 500 |
+| two-pass top-2 | 51 | lru | 215 | 474 | 111.2 | 53 |
+| two-pass top-2 | 51 | prot 30 | 264 | 581 | 136.5 | 43 |
+| two-pass top-2 | 160 | lru | 68 | 149 | 35.0 | 169 |
+| two-pass top-2 | 160 | prot 30 | 71 | 157 | 36.8 | 161 |
+| two-pass top-2 | 256 | lru | 31 | 67 | 15.8 | 374 |
+| two-pass top-2 | 256 | prot 30 | 31 | 67 | 15.8 | 373 |
+| oracle | 51 | lru | 961 | 2114 | 496.1 | 12 |
+| oracle | 51 | prot 30 | 978 | 2152 | 505.1 | 12 |
+| oracle | 160 | lru | 50 | 109 | 25.6 | 231 |
+| oracle | 160 | prot 30 | 68 | 150 | 35.1 | 168 |
+| oracle | 256 | lru | 23 | 50 | 11.8 | 500 |
+| oracle | 256 | prot 30 | 23 | 50 | 11.9 | 499 |
+
+done in 429 s
+nice -n 10 python3 -I cache_replay.py  419.42s user 5.58s system 99% cpu 7:09.23 total

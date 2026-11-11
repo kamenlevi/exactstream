@@ -1,0 +1,17 @@
+Load from ground-truth from /Users/kamen/Library/Caches/evalplus/fe585eb4df8c88d844eeb463ea4d0302.pkl
+evalsuite: ref2tnax vs ref2b (as the reference)  (anchors: floor = same weights, accepted = AutoRound int4 experts)
+test                                       variant               floor (same weights)  variant vs reference [90% CI]               pass
+-----------------------------------------  --------------------  --------------------  ------------------------------------------  ----
+math (n=50)                                88.0% vs ref 88.0%    88.0%                 +0.0 [-4.7, +4.7] pt, McNemar p=1.00 (1/1)  -   
+math final-answer agreement with ref       96.0% (48/50)         96.0% (48/50)                                                     -   
+ifeval (n=100)                             87.0% vs ref 87.0%    88.0%                 +0.0 [-4.0, +4.0] pt, McNemar p=1.00 (3/3)  PASS
+ifeval final-answer agreement with ref     94.0% (94/100)        94.0% (94/100)                                                    -   
+humaneval (n=60)                           91.7% vs ref 91.7%    95.0%                 +0.0 [-3.9, +3.9] pt, McNemar p=1.00 (1/1)  PASS
+humaneval final-answer agreement with ref  96.7% (58/60)         96.7% (58/60)                                                     -   
+decode answer agreement with ref (n=210)   95.2%                 95.2%                                                             -   
+token-identical outputs (context only)     48/210                63/210                                                            -   
+decode length ratio vs ref                 x0.984                                                                                  PASS
+hesitation words / 1K tokens               0.26 vs ref 0.26                                                                        PASS
+truncations / loops                        12 / 4 vs ref 15 / 3                                                                    PASS
+  decode: {'generated_tokens': {'variant': 78325, 'ref': 79628}, 'loops_ref2tnax': ['gsm8k/709', 'ifeval/3326', 'ifeval/3439', 'ifeval/3608'], 'truncated_ref2tnax': ['humaneval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'math500', 'math500', 'math500', 'math500', 'math500', 'math500'], 'rows_ref2tnax': 210, 'loops_ref': ['humaneval/HumanEval/93', 'ifeval/3326', 'ifeval/3439'], 'truncated_ref': ['humaneval', 'humaneval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'math500', 'math500', 'math500', 'math500', 'math500', 'math500'], 'rows_ref': 210, 'loops_floor': ['ifeval/3326', 'ifeval/3439'], 'truncated_floor': ['ifeval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'math500', 'math500', 'math500', 'math500', 'math500', 'math500'], 'rows_floor': 210}
+VERDICT: PASS  (5/5 rules pass; margins: evalsuite/margins.json)

@@ -1,0 +1,39 @@
+ENGINE PACKAGE: full expert-store conversion from the model's safetensors, Mon 9 Nov 2026 16:07:42 - 16:19:50 (the orchestrator's 12:44 request; RELEASE section 4, Conversion; runner release/convert_full.sh, Leap d922781)
+
+WHAT: the tested package clone's convert/convert_store.sh (rel1 242553d, release/cleanclone/final/clone, its venv) on
+every MoE layer of ~/BigMoE/models/bare (the script's default layer detection) into a temporary folder
+(release/cleanclone/convert_full/records3), then a byte compare (cmp) of every layer file and of index.json with the
+measured store ~/BigMoE/models/bare/records3 (index entries parsed when the bytes differ), then the temporary store
+deleted. Share lock, after EvalSuite's m1b ended; CPU math libraries at 4 threads; watchdog: hard stop 16:58, swap +2 GB,
+free disk < 40 GB. The store the engine reads was never written (the script only reads the model folder).
+
+RESULT [K]: 11-09 16:19:50 CONVERT_FULL DONE: PASS
+  layers converted: 48 (48 by STORE DONE, 48 layer files) in 571 s = 9.5 min
+  per layer: repack 1-2 s (median 1), split + verify 4-6 s (median 4), p11 6-7 s (median 6); the three together 11-14 s (median 12)
+  11-09 16:19:49 layer files: 48 byte-identical, 0 differ, 0 missing (reference: 48 files); other files in the new store: 0
+  11-09 16:19:49 index.json: byte-identical
+  new store size 64 GB (du)
+  11-09 16:17:14 convert_store.sh rc 0 after 572 s; free min 155 GB, swap max 5531 MB (start 5531)
+  11-09 16:19:50 temporary store deleted; free 219 GB
+
+RAW: data/release/convert_full/convert_full.log (the runner), convert_store_report.txt (convert_store.sh's report,
+per layer), convert_store.stdout. The runner's log, verbatim:
+
+  11-09 16:07:42 start: clone 242553d Engine package from snapshot rel1 (BigMoE 0b4df8c3, ; model /Users/kamen/BigMoE/models/bare -> /Users/kamen/Leap/release/cleanclone/convert_full/records3; free 219 GB; swap 5531 MB; hard stop 16:58:00
+  11-09 16:07:42 convert_store.sh pid 83727
+  11-09 16:17:14 convert_store.sh rc 0 after 572 s; free min 155 GB, swap max 5531 MB (start 5531)
+    11-09 16:17:02 L46: native+p11+pad; repack 1 s, split + verify 4 s, p11 7 s
+    11-09 16:17:13 L47: native+p11+pad; repack 1 s, split + verify 4 s, p11 6 s
+    11-09 16:17:13 STORE DONE: 48 layers converted in 571 s; 48 layer files in /Users/kamen/Leap/release/cleanclone/convert_full/records3
+  11-09 16:19:49 layer files: 48 byte-identical, 0 differ, 0 missing (reference: 48 files); other files in the new store: 0
+  11-09 16:19:49 index.json: byte-identical
+    new store size 64 GB (du)
+  11-09 16:19:50 temporary store deleted; free 219 GB
+  11-09 16:19:50 CONVERT_FULL DONE: PASS
+NOTES (16:2x, by hand)
+- Units: the runner's free-disk figures (df -g) and the store size (du -sg) count GiB (2^30 B). The new store's 48 files are
+  48 x 1,426,063,360 B = 68,451,041,280 B = 68.45 GB = 63.75 GiB ("64" in du's rounding). Free disk 219 -> min 155 GiB
+  (sampled every 10 s) -> 219 GiB after the delete: at most ~0.3 GiB beside the store at the sampled peak.
+- Swap stayed at 5,531 MB throughout. The run took 9.5 min, faster than the 15-31 min priced from the earlier layer tests
+  (19-39 s per layer, measured with other jobs running); here the three steps took 11-14 s per layer on a quiet machine.
+- The done file data/release/convert_full.done (gitignored) was written at 16:19:50; Fit12's chw19 gate waits for it.

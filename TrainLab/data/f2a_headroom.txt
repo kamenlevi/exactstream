@@ -1,0 +1,15 @@
+F2A headroom (CPU; data/f2a_headroom.txt). Chat wall today: 47.0 + 3.25 x rows + draft (0.43 + 2.59 x steps) ms;
+F1 = NewIdeas' ~30 ms check at 3 rows + the same verify per extra row + a fused 0.6 ms per drafted row.
+scenario (share of misses fixed at the 125B's p1 >= 0.8 / 0.5-0.8 / < 0.5) | set | depth-1 hit | kept/check (rows) t 0.3 | t 0.15 | tok/s today t 0.3 | tok/s with F1, best t
+today (head b5)  (0, 0, 0)        | ifeval | 0.756 | 2.34 (3.0) | 2.57 (3.8) |  36.2 |  74.0 (t 0.3)
+today (head b5)  (0, 0, 0)        | multi  | 0.784 | 2.54 (3.2) | 2.74 (4.1) |  38.3 |  77.6 (t 0.3)
+modest           (0.5, 0.25, 0.1) | ifeval | 0.827 | 2.93 (3.5) | 3.34 (4.5) |  43.2 |  89.0 (t 0.2)
+modest           (0.5, 0.25, 0.1) | multi  | 0.857 | 3.23 (3.9) | 3.58 (5.0) |  46.0 |  92.7 (t 0.3)
+strong           (0.8, 0.5, 0.2)  | ifeval | 0.886 | 3.56 (4.0) | 4.24 (5.3) |  50.2 | 104.5 (t 0.1)
+strong           (0.8, 0.5, 0.2)  | multi  | 0.911 | 4.07 (4.6) | 4.68 (5.9) |  54.8 | 109.9 (t 0.1)
+all sure tokens  (1.0, 0.5, 0.2)  | ifeval | 0.906 | 3.90 (4.3) | 4.75 (5.6) |  53.8 | 114.1 (t 0.1)
+all sure tokens  (1.0, 0.5, 0.2)  | multi  | 0.930 | 4.58 (5.0) | 5.46 (6.5) |  59.6 | 121.8 (t 0.1)
+near-perfect     (1.0, 0.8, 0.5)  | ifeval | 0.950 | 4.65 (4.9) | 5.88 (6.5) |  61.3 | 133.1 (t 0.1)
+near-perfect     (1.0, 0.8, 0.5)  | multi  | 0.962 | 5.43 (5.7) | 6.80 (7.6) |  67.2 | 139.9 (t 0.1)
+
+Reading: today's replay keeps 2.34 (IFEval) at t 0.3; NewIdeas' F2a target is ~4.5 kept at ~6 rows (150 tok/s with F1).

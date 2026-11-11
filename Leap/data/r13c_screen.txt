@@ -1,0 +1,6 @@
+R-13c: the NAX qmm family of a 16-row check (kern23's shapes / counts, random 4-bit weights, cold), ms per check
+  in_proj_qkv   10240 x 2560 (36): MLX   3.38 | C1   3.47 (bitwise) | C2   3.40 (bitwise) | C3   3.81 (bitwise) | C4   3.79 (bitwise) | C5   4.07 (bitwise)
+  q_proj        12288 x 2560 (12): MLX   1.52 | C1   1.53 (bitwise) | C2   1.48 (bitwise) | C3   1.49 (bitwise) | C4   1.63 (bitwise) | C5   1.64 (bitwise)
+  lm_head      248320 x 2560 ( 1): MLX   2.31 | C1   2.27 (bitwise) | C2   2.18 (bitwise) | C3   2.11 (bitwise) | C4   2.55 (bitwise) | C5   2.49 (bitwise)
+  per check: MLX 7.20 ms; C1 7.26, C2 7.06, C3 7.41, C4 7.97, C5 8.19
+R-13c verdict (PASS >= 1.5 ms saved per check AND bitwise on every shape; KILL < 0.5 ms or not bitwise): KILL (best bitwise C2: 0.14 ms saved per check)

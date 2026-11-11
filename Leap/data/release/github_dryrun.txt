@@ -1,0 +1,139 @@
+ENGINE PACKAGE: private GitHub dry run, Mon 9 Nov 2026 13:2x-13:4x (the orchestrator's 13:07 request, relaying the owner's
+decision: author Kamen Levi; name ExactStream unless a well-known project uses it; a PRIVATE repo kamenlevi/exactstream with
+the package and no weights; a clean clone from the GitHub URL as far as it runs without the GPU; the drafter files as assets
+of a DRAFT release v1.0.0 with their licence notices; docs/ left for Breakthrough. Nothing public: the repo stays private and
+the release a draft until the owner's word, through the orchestrator.)
+
+NAME CHECK (13:3x): gh search repos ExactStream --match name: none; --match description: none; --match readme: one
+(WAN-Solutions/wan24-Core, 2 stars, a .NET extensions library naming it in its readme); kamenlevi/exactstream did not exist.
+-> ExactStream.
+
+PACKAGE CHANGES (Leap c167024; no code file changed)
+- README: title "ExactStream: ...", author line, the papers in docs/, the model's source and licence (Qwen3.8-Flash-Next by
+  Qwen, Qwen Community License 1.0, as MTPLX's 4-bit pack Youssofal/Qwen3.8-Flash-Next-MTPLX-Bare-Speed; from RELEASE
+  sections 3 and 7), the drafter files as release v1.0.0 assets, a copyright line + GPL-3 notice. LICENSE stays the verbatim
+  GPL-3.0 text (the GPL forbids changing it), so the copyright line is in README (the GPL's own "how to apply" form).
+- CITATION.cff (new): ExactStream, Kamen Levi, 1.0.0, GPL-3.0-only, the repo URL (parses as YAML; names unquoted so no
+  line puts a double quote after the name, which the public snapshot's quote rule would rewrite).
+- d22_b5: the model's own MTP head with 11 tensors trained further (TL:sticky/d22_ttt.py load_head: the stock head, then the
+  checkpoint over it; the engine: r57_screen_rel1.py l435-445, experts / norms / lm_head as shipped) -> Qwen Community License
+  1.0 (RELEASE section 7: derived weights stay under it): third_party/LICENSE-qwen (= ~/BigMoE/models/bare/LICENSE, md5
+  74d74256dcc9265da9bd7ca7a49a22fe) + third_party/NOTICE-d22_b5 (our changes); THIRD_PARTY.md row.
+- Rebuilt: make_release.py rel1 --commit 0b4df8c --refs release/refs_rel1.json -> "228 files, 6.3 MB; BigMoE 0b4df8c3,
+  EvalSuite 47cce6c6; ... leaks 0; unsafe quote lines 0; home_paths_left 43; live research paths 0; syntax errors 0";
+  COMMITTED e759a63 (230 files in git, largest 2.0 MB data/frspec_rank.npy; no /Users/ path; author kamenlevi noreply).
+- vs the tested package 242553d (the 12:10 clean-clone PASS): CITATION.cff, third_party/LICENSE-qwen, third_party/NOTICE-d22_b5
+  added; README.md, THIRD_PARTY.md, MANIFEST.json changed; MANIFEST: sha256 changed only for README.md and THIRD_PARTY.md,
+  top-level keys only leap_commit / evalsuite_commit; EvalSuite evalsuite/ 98c6072d..47cce6c6: no change. So every code file
+  the clean-clone run tested is byte-identical in e759a63.
+
+REPO (13:36-13:37): gh repo create kamenlevi/exactstream --private -> https://github.com/kamenlevi/exactstream (visibility
+PRIVATE, default branch main). git push main (credential helper = gh, given on the command line): remote main = e759a635.
+
+CLEAN CLONE FROM THE GITHUB URL (13:36:48-13:37:05; share lock, CPU only, no GPU while EvalSuite's m1b ran): tools/
+clean_clone_test.sh https://github.com/kamenlevi/exactstream.git release/cleanclone/gh prep (WHEELS = the local wheel dir;
+git credentials from gh via GIT_CONFIG_* env, no global config change): "cloned e759a63"; install.sh --offline rc 0 in 14 s
+(mlx 0.32.2, mlx-metal 0.32.2, mlx-lm 0.31.3, mtplx 2.12.2; extension built; store and drafter weights linked; drafter base
+found at the pinned revision); dry runs 6/6 "Powered by MTPLX"; PREP DONE. The run phase (GPU) was not repeated: the code
+it runs is byte-identical to the 12:10 PASS (above).
+
+DRAFT RELEASE v1.0.0 (13:37:42-13:41:56): gh release create v1.0.0 --draft --target main --title "ExactStream 1.0.0"
+(notes: the assets and their licences; the model's source). GitHub API: draft=true, tag v1.0.0 (created only when it is
+published), target main. RELEASE ASSETS, size and the API's sha256 digest = the local sha256 (shasum -a 256) for all 7:
+  d22_b5.safetensors   276,573,152 B  6af8251ada6171738e2b763cc51f76faf339a9308c47cca85ea35681c05814d4 (md5 1f8de68a = the
+                                      engine's pinned md5)
+  l120_ft.safetensors  1,140,598,723 B 9df51645d1acd6a05c372c8652f3cf64555bd7070fc1d94d2c184d921a43eb02 (md5 20aca5d0 = the file
+                                      the clean-clone runs linked)
+  NOTICE-l120_ft 748 B, LICENSE-dflash2 11,357 B, NOTICE-d22_b5 984 B, LICENSE-qwen 3,235 B, SHA256SUMS 171 B (the two
+  weight files' sha256): all digests equal. No download was made (the digests come from the API).
+GITHUB PAGES: off (GET repos/kamenlevi/exactstream/pages -> 404, 13:39); stays off until the owner's word (a Pages site is
+public even for a private repo). docs/ is added only from Breakthrough's final build (~16:50), in one commit.
+
+FINAL PACKAGE PUSH (16:2x): the README's last items (chat-45 label after the m1b card gate's PASS at 16:06, RELEASE rows
+29-30; the 7.45 GB volatile tier sentence, RELEASE l26-29; the multilingual limit, RELEASE section 5; the full conversion's
+result, convert_full.txt; no [[...]] marker; no SMALL_RAM link; the owner's line on the 12 / 24 GB paper, verbatim).
+- A first rebuild took EvalSuite's HEAD (41b1a34), whose evalsuite/cli.py had changed since the tested 98c6072d (95f91a0:
+  a PAUSE recheck in its lock handling, +15 lines): not pushed. make_release.py got --es-commit (default HEAD) and the
+  package was rebuilt pinned to 98c6072d: 0d0ad3f.
+- vs the tested 242553d: CITATION.cff, third_party/LICENSE-qwen, third_party/NOTICE-d22_b5 added; README.md,
+  THIRD_PARTY.md, MANIFEST.json changed; MANIFEST: sha256 changed only for README.md and THIRD_PARTY.md, top-level only
+  leap_commit (evalsuite_commit 98c6072d as tested). Every code and harness file is byte-identical to the tested package.
+- release/push_pkg.sh pkg: fetched main (e759a63), re-parented, diff = MANIFEST.json + README.md, pushed fast-forward:
+  github main = 061f4f1 (remote == local). docs/ follows from Breakthrough's final build.
+- 16:5x: README lists the complete report docs/pdf/complete.pdf first (Breakthrough's combined PDF, the owner's 16:49 ask);
+  rebuilt pinned to 98c6072d (06b452f; vs tested 242553d: the same docs + notices only), pushed: github main 9be6c98
+  (diff vs 061f4f1: README.md +1 line, MANIFEST.json). 16:34: push_pkg.sh's private names moved to the gitignored file
+  (7a3c16f; it had blocked the 16:32 public refresh).
+- 17:2x: 'laptop' out of the package (the owner's wording via the orchestrator): README 'on a 64 GB Mac', MAIN's entry = its new
+  title 'What It Takes to Run a 125B LLM Fast on a 64 GB Mac, and How to Go Faster', CITATION.cff abstract; draft release
+  notes and repo description had none. Rebuilt pinned (46e991e), pushed: main 4c1162e.
+- 17:46 DOCS: Breakthrough's FINAL (build 17:34:44-17:34:55; lint 0; NewIdeas' number check PASS 17:35): release/push_pkg.sh
+  docs -> one commit, 13 files (index.html, complete / main / kernels / evaluation / drafter / release .html, pdf/ x6);
+  SHA-256 prefixes = Breakthrough's list for all six PDFs (complete aa27a147e775, drafter c366a6c3ccdb, evaluation
+  1bb865aa20a8, kernels 1ca4a022f72f, main cb59dd6f8094, release 6b2ffcb2b7c5); checks: no small-ram file, no local path,
+  no private name; pushed fast-forward: github main 16f3885 (remote == local). diff -r docs/ vs the site: equal. No
+  'laptop' / 'small-ram' in README, CITATION.cff or docs/. main.html's title == the README's MAIN entry.
+FINAL STATE (17:46): kamenlevi/exactstream PRIVATE; main 16f3885 = package (code byte-identical to the 12:13 clean-clone PASS)
++ docs/; draft release v1.0.0 (7 assets, API digests == local); Pages off (API 404). Making it public, publishing the
+release and enabling Pages are the orchestrator's, on the owner's word.
+- 17:56 DOCS AGAIN (MAIN's new section 12, on the owner's word): Breakthrough's FINAL build 17:55:46-17:56:02; 13 files;
+  SHA-256 prefixes = its list (complete 5f13112f4a4f, drafter 1fe29053a426, evaluation b6052600d7b3, kernels 1205dc1105f9,
+  main 933605513df4, release e5df6e9ad933); main.html's title unchanged (= README's MAIN entry); push_pkg.sh docs replaced
+  docs/ (9 files changed) and pushed fast-forward: github main b3c1bcc; diff -r docs/ vs the site: equal; no small-ram /
+  laptop; repo PRIVATE, release DRAFT, Pages off.
+- 18:14 BARE-MINIMUM README + DOCS (the owner's 18:1x ask via the orchestrator: README to the minimum, no tables, details in
+  separate files; one commit with Breakthrough's next final): README 42 lines of plain prose, 0 table rows (what it is, the
+  papers line with complete.pdf first, the 12 / 24 GB line verbatim, requirements, install + run, one sentence linking the
+  detail files incl. 'measured on one M5 Pro Mac' -> LIMITS.md, the credits the licences require, GPL-3, copyright Kamen
+  Levi). Moved out unchanged in substance: WEIGHTS.md, INSTALL.md (requirements, install, run options, install check),
+  CONFIGS.md, RESULTS.md, CONVERSION.md, LIMITS.md. No package text had an AI-use statement (nothing to reword).
+  Rebuilt pinned (b9213a5; vs tested 242553d: docs + notices + the six .md only). push_pkg.sh got AMEND=1 (fold docs/ into
+  the re-parented package commit). Breakthrough's 3rd FINAL (build 18:12:04-18:12:20; SHA-256 complete 8ede9605b798,
+  drafter 4c2e45962dce, evaluation 5b6e0b8641e9, kernels b11e28789491, main 0d87b79c8a2b, release 0974d65cf411: all equal).
+  One commit pushed fast-forward: github main c0cdb27 (17 files vs b3c1bcc); docs/ == the site; no laptop / small-ram /
+  Claude / Anthropic in the docs files; repo PRIVATE, release DRAFT, Pages off. Orchestrator + Breakthrough told.
+- 18:16 MINIMAL README (the owner: 'too long and too complicated... no tables'; exact text from the orchestrator 18:1x):
+  README.md = that text, 13 lines (commands checked against install.sh / run.py; MTPLX's NOTICE wants the attribution
+  in-product, which run.py's banner shows, so no README change was required). What it cut: INSTALL.md (disk about 174 GB
+  + 20 GB swap), CONFIGS.md (summary), THIRD_PARTY.md (Qwen licence line, DFlash2 / z-lab, how to cite), notices -> WEIGHTS.md.
+  Rebuilt pinned (7f0b99b; vs tested 242553d only .md files + notices changed), pushed: github main a6def5d (docs/ kept).
+  Draft release: NOTICE-d22_b5 / NOTICE-l120_ft re-uploaded (--clobber; API digests == local). Repo PRIVATE, DRAFT, Pages off.
+- 18:18 COMMENT FIX (the orchestrator 18:1x: no person's or product's name in public files): make_release.py step 4b applies
+  4 exact rewordings from the gitignored private file to the package copies (drafters/mtp125.py l2, l14, l263;
+  harness/evalsuite/data.py l301: 'coding-agent turns', 'the agent's real continuation'); each old text must occur once and
+  a .py file's AST without docstrings must stay equal (passed). Source repos untouched. Rebuilt pinned (1c865f6), pushed:
+  github main 84d116a (diff vs a6def5d: the 2 files + MANIFEST). vs the tested 242553d: 220 / 225 files byte-identical; the
+  5 others are README, THIRD_PARTY, NOTICE-l120_ft and the 2 docstring-only .py files. No 'Claude' left in the package.
+  make_release.py leak simulation: 0 hits. Repo PRIVATE, release DRAFT, Pages off.
+- 18:21 README = the owner's 18:2x text ("three or four" paragraphs, no tables), fact-checked against RESULTS.md / RELEASE
+  section 2, INSTALL.md, run.py (--config exact|lossy|chat, --mem 45|32) and docs/pdf (6 files; complete.html's title).
+  Two minimal fixes: the 7.45 GB reclaimable cache beside "under 45 GB of memory"; licence texts are in third_party/
+  (listed in THIRD_PARTY.md). Rebuilt pinned (8b4b50d), pushed: github main d5f92f7 (README + MANIFEST). PRIVATE / DRAFT /
+  Pages off.
+- 18:24 MACBOOK PRO WORDING + 4th DOCS, one commit: 'MacBook Pro' where the package text names the exact test machine
+  (README, RESULTS, LIMITS x3, INSTALL, CONVERSION; general 'Mac' kept); Breakthrough's 4th FINAL (build 18:23:26-18:23:42;
+  SHA-256 complete 9c26aa95e585, drafter e75821d2be04, evaluation 0d208a6b3e16, kernels ba1501673e5c, main 0ad3a0bd2495,
+  release b997a7467c1e: all equal). Rebuilt pinned (7dc835d), DRY pkg + AMEND docs: github main f978615 (14 files vs
+  d5f92f7); docs/ == the site; vs tested: README, THIRD_PARTY, NOTICE-l120_ft + the 2 docstring-only .py changed.
+  PRIVATE / DRAFT / Pages off.
+- 18:31 PRECISION PARAGRAPH (the owner: say the model runs at its Q4 precision): README gains "The model is the 4-bit (Q4)
+  version, and its routed experts take 68.5 GB on the SSD. At run time each token's two strongest experts use all 4 bits and
+  the other eight use 3, about 3.2 bits per expert weight on average." (checked: RELEASE l25 / l93, MAIN l60 / l166, STYLE
+  l26; 'per expert weight' instead of the suggested 'per weight'); Run: "`exact` gives the same tokens as decoding one
+  token at a time with these same weights". Rebuilt pinned (aff8cf6), pushed: github main c8f0582 (README + MANIFEST).
+- 18:32 MACHINE VARIANT (the owner: 18/20-core, 2 TB): system_profiler: MacBook Pro, Apple M5 Pro, 18-core CPU (6 Super +
+  12 Performance), 20-core GPU, 64 GB, APPLE SSD AP2048Z 2.0 TB. README speeds sentence, LIMITS.md first line and
+  INSTALL.md "Tested:" carry it. Rebuilt pinned (f5e8bbd), pushed: github main 9a929bc (README, LIMITS, INSTALL, MANIFEST).
+  docs/ refresh follows with Breakthrough's next final.
+- 18:33 5th DOCS: Breakthrough's FINAL (build 18:32:52-18:33:07; papers' first machine mention 'MacBook Pro (M5 Pro, 18-core
+  CPU, 20-core GPU, 64 GB, 2 TB SSD)'); SHA-256 complete 637bf582c2a9, drafter 9f206078d339, evaluation 8ae67ebd34d1,
+  kernels 0274193d5c2a, main 1496907d644c, release 2732ffc27569: all equal. push_pkg.sh docs: github main 43ace24 (docs/
+  only, 11 files); docs/ == the site. PRIVATE / DRAFT / Pages off.
+- 18:35 PUBLISHED by the orchestrator on the owner's go (repo public, release v1.0.0 published, Pages on).
+- 18:43 README speed-range sentence (the owner: 'say 190 tps on prompts'; the repo is public): checked BM:data/r57/
+  rlh_256_runs.json: 12 prompts at 129.8-198.3 tok/s whole decode, two above 190 (192.6, 198.3). Fact fix: 'from a single
+  run' holds for the lossy / chat numbers only (exact IFEval / math pool two N45 passes, RELEASE section 8), and the range is
+  the lossy setting's -> "These are averages over 12 prompts per set, from a single run for the lossy and chat settings,
+  and speed depends on the prompt: on the lossy setting the 12 HumanEval prompts ranged from 130 to 198 tokens per second,
+  and the fastest ran above 190." push_pkg.sh now needs PUBLIC_OK=1 for a public repo (set for this owner-requested
+  change). Rebuilt pinned (7ae8c40), pushed: github main 5a07228 (README + MANIFEST).

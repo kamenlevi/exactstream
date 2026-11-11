@@ -1,0 +1,13 @@
+resident bytes per layer (MB): attention side gdn 47.7 / qsa 43.0, MoE side 17.4
+non-layer resident MB: embed_tokens 358, hyper_connection_mixer 13, lm_head 358
+GDN recurrent state per layer: 3.15 MB (fp32)
+code: 1872 loader events, 1872 gated (pass, layer) calls, 115 draft steps
+math: 2208 loader events, 2208 gated (pass, layer) calls, 136 draft steps
+
+82 consecutive pass pairs (C=256, committed MTP depth 3, greedy)
+pass wall (gate to gate) 96.3 ms: loader stalls 31.9 ms (33%), inter-pass block 17.7 ms (18%)
+component                         count  ms/each  ms/pass  MB/each   GB/s   % of 318
+MoE(L) + GDN attention(L+1)         35    0.988     34.6    144.2      146     46%
+MoE(L) + QSA attention(L+1)         12    1.003     12.0    139.7      139     44%
+inter-pass block (head, sampling, drafts)  1    17.72
+loader stalls (48 gates)                  48    0.665     31.9

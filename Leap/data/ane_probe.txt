@@ -1,0 +1,89 @@
+ANE-1 Mon 2026-11-02 16:59 build
+built body.mlpackage in 9 s
+built head.mlpackage in 10 s
+built headm.mlpackage in 10 s
+ANE-1 17:00 check
+  check dfl2d_code/tf_code_HumanEval_10.npz at 16: hidden cos min 0.9322 mean 0.9641; layer-0 ctx keys rel err 0.0138; logits top-1 = MLX's on 15/15 rows; drafted tokens = MLX's on 6/15 (equal prefix 6)
+  check dfl2d_code/tf_code_HumanEval_10.npz at 56: hidden cos min 0.9012 mean 0.9264; layer-0 ctx keys rel err 0.0142; logits top-1 = MLX's on 6/15 rows; drafted tokens = MLX's on 2/15 (equal prefix 1)
+  check dfl2d_code/tf_code_HumanEval_103.npz at 16: hidden cos min 0.9322 mean 0.9641; layer-0 ctx keys rel err 0.0138; logits top-1 = MLX's on 15/15 rows; drafted tokens = MLX's on 6/15 (equal prefix 6)
+  check dfl2d_code/tf_code_HumanEval_103.npz at 56: hidden cos min 0.8985 mean 0.9148; layer-0 ctx keys rel err 0.0157; logits top-1 = MLX's on 7/15 rows; drafted tokens = MLX's on 6/15 (equal prefix 6)
+  check dfl2d_code/tf_code_HumanEval_109.npz at 16: hidden cos min 0.9286 mean 0.9656; layer-0 ctx keys rel err 0.0131; logits top-1 = MLX's on 14/15 rows; drafted tokens = MLX's on 5/15 (equal prefix 1)
+  check dfl2d_code/tf_code_HumanEval_109.npz at 56: hidden cos min 0.8645 mean 0.8881; layer-0 ctx keys rel err 0.0175; logits top-1 = MLX's on 4/15 rows; drafted tokens = MLX's on 8/15 (equal prefix 2)
+  check dfl2d_math/tf_gsm_600.npz at 16: hidden cos min 0.8905 mean 0.9471; layer-0 ctx keys rel err 0.0122; logits top-1 = MLX's on 11/15 rows; drafted tokens = MLX's on 1/15 (equal prefix 1)
+  check dfl2d_math/tf_gsm_600.npz at 56: hidden cos min 0.8564 mean 0.8824; layer-0 ctx keys rel err 0.0169; logits top-1 = MLX's on 2/15 rows; drafted tokens = MLX's on 11/15 (equal prefix 4)
+  check dfl2d_math/tf_gsm_601.npz at 16: hidden cos min 0.8971 mean 0.9452; layer-0 ctx keys rel err 0.0133; logits top-1 = MLX's on 11/15 rows; drafted tokens = MLX's on 4/15 (equal prefix 2)
+  check dfl2d_math/tf_gsm_601.npz at 56: hidden cos min 0.7451 mean 0.8485; layer-0 ctx keys rel err 0.0163; logits top-1 = MLX's on 3/15 rows; drafted tokens = MLX's on 1/15 (equal prefix 0)
+  check dfl2d_math/tf_gsm_602.npz at 16: hidden cos min 0.8966 mean 0.9443; layer-0 ctx keys rel err 0.0128; logits top-1 = MLX's on 11/15 rows; drafted tokens = MLX's on 3/15 (equal prefix 1)
+  check dfl2d_math/tf_gsm_602.npz at 56: hidden cos min 0.7477 mean 0.8705; layer-0 ctx keys rel err 0.0190; logits top-1 = MLX's on 8/15 rows; drafted tokens = MLX's on 9/15 (equal prefix 1)
+check vs MLX (bf16 drafter, 4-bit head): 12 blocks, hidden cos min 0.7451 mean 0.9218, top-1 agreement 59.4 %, drafted tokens equal 62/180, equal prefix mean 2.6/15
+ANE-1 17:01 time (shared lock; MTP Head training on the GPU)
+placement body: {'NeuralEngine': 598}; ops off the Neural Engine: {}
+placement head: {'NeuralEngine': 60, 'CPU': 2}; ops off the Neural Engine: {'concat': 2}
+placement headm: {'NeuralEngine': 61}; ops off the Neural Engine: {}
+  body: median 14.78 ms, p90 14.95 ms
+  head: median 11.25 ms, p90 11.46 ms
+  headm: median 8.05 ms, p90 8.11 ms
+  post: median 0.29 ms, p90 0.31 ms
+  full: median 26.79 ms, p90 27.45 ms
+  fullm: median 23.53 ms, p90 23.83 ms
+step 1: one 16-row block (body + head + CPU top-16 and chain, Python CoreML calls) 26.79 ms; body + head without the Python copy of the logits 23.53 ms (+ CPU post ~0.29 on the block max path) -> line 30 ms: PASS
+  int8 weight bytes per block: body 0.477 GB + head 0.636 GB -> body 32 GB/s, headm 79 GB/s, body + headm 47 GB/s effective (Python call overhead included)
+ANE-1 17:02 gpu (shared lock; MTP Head training on the GPU)
+step 2: GPU check proxy = the expert part of a 16-row check (48 chained NAX6 calls on real layers 6/20/40, real routing, 7.4 GB), ms per check; ANE worker modes: 0 idle, 1 back to back, 2 = 12 drafts/s, 3 = 36 drafts/s
+  idle blocks: median 61.5 ms (spread 60.9-63.5)
+  ANE back to back: check 66.0 ms, vs the neighbouring idle blocks x1.070 (per block 1.068, 1.082, 1.083, 1.070, 1.066); ANE draft (body + headm) median 24.12 ms over 185 drafts
+  ANE 12 drafts/s: check 62.4 ms, vs the neighbouring idle blocks x1.013 (per block 1.014, 1.013, 1.015, 1.002, 1.010); ANE draft (body + headm) median 24.42 ms over 50 drafts
+  ANE 36 drafts/s: check 65.6 ms, vs the neighbouring idle blocks x1.060 (per block 1.065, 1.060, 1.060, 1.050, 1.064); ANE draft (body + headm) median 24.19 ms over 152 drafts
+step 2 verdict (line +10 %, back to back): PASS at x1.070; at 36/s x1.060, 12/s x1.013
+ANE-1 17:03 build16 + diag
+built body.mlpackage in 3 s
+  diag mlx bf16             vs MLX fp32: hidden cos mean 0.9999, min 0.9998, rows < 0.99: 0/90
+  diag body CPU_ONLY        vs MLX fp32: hidden cos mean nan, min nan, rows < 0.99: 0/90
+  diag body CPU_AND_NE      vs MLX fp32: hidden cos mean 0.8885, min 0.7439, rows < 0.99: 90/90
+  diag body16 CPU_ONLY      vs MLX fp32: hidden cos mean nan, min nan, rows < 0.99: 0/90
+  diag body16 CPU_AND_NE    vs MLX fp32: hidden cos mean 0.8897, min 0.7448, rows < 0.99: 90/90
+  magnitudes: ctx features max 3.1, fc out max 8.1, h_ctx max 4.4, embeddings max 0.021
+  layer 0: norm1 3.9, conv-in 46.9, attn 448.2, h 34942.1, norm2 10.1, mlp-in 5.1, gate*up 22.9, mlp out 109.8, h 37395.5
+  layer 1: norm1 5.1, conv-in 18.0, attn 244.7, h 52758.5, norm2 14.8, mlp-in 2.6, gate*up 35.6, mlp out 176.0, h 57371.7
+  layer 2: norm1 6.6, conv-in 19.7, attn 321.7, h 57407.0, norm2 11.5, mlp-in 2.8, gate*up 135.9, mlp out 307.4, h 49123.8
+  layer 3: norm1 28.9, conv-in 25.3, attn 437.9, h 70366.3, norm2 14.4, mlp-in 7.3, gate*up 415.5, mlp out 1389.4, h 142880.5
+  layer 4: norm1 36.5, conv-in 80.8, attn 564.7, h 196415.1, norm2 23.2, mlp-in 13.0, gate*up 788.8, mlp out 5617.2, h 157392.3
+ANE-1 17:06 body rebuilt with the residual stream / 32 (fp16 range fix); check + diag
+built body.mlpackage in 8 s
+  diag mlx bf16             vs MLX fp32: hidden cos mean 0.9999, min 0.9998, rows < 0.99: 0/90
+  diag body CPU_ONLY        vs MLX fp32: hidden cos mean 0.9988, min 0.9971, rows < 0.99: 0/90
+  diag body CPU_AND_NE      vs MLX fp32: hidden cos mean 0.9989, min 0.9971, rows < 0.99: 0/90
+  magnitudes: ctx features max 3.1, fc out max 8.1, h_ctx max 4.4, embeddings max 0.021
+  layer 0: norm1 3.9, conv-in 46.9, attn 448.2, h 34942.1, norm2 10.1, mlp-in 5.1, gate*up 22.9, mlp out 109.8, h 37395.5
+  layer 1: norm1 5.1, conv-in 18.0, attn 244.7, h 52758.5, norm2 14.8, mlp-in 2.6, gate*up 35.6, mlp out 176.0, h 57371.7
+  layer 2: norm1 6.6, conv-in 19.7, attn 321.7, h 57407.0, norm2 11.5, mlp-in 2.8, gate*up 135.9, mlp out 307.4, h 49123.8
+  layer 3: norm1 28.9, conv-in 25.3, attn 437.9, h 70366.3, norm2 14.4, mlp-in 7.3, gate*up 415.5, mlp out 1389.4, h 142880.5
+  layer 4: norm1 36.5, conv-in 80.8, attn 564.7, h 196415.1, norm2 23.2, mlp-in 13.0, gate*up 788.8, mlp out 5617.2, h 157392.3
+  check dfl2d_code/tf_code_HumanEval_10.npz at 16: hidden cos min 0.9975 mean 0.9979; layer-0 ctx keys rel err 0.0138; logits top-1 = MLX's on 15/15 rows; drafted tokens = MLX's on 9/15 (equal prefix 9)
+  check dfl2d_code/tf_code_HumanEval_10.npz at 56: hidden cos min 0.9980 mean 0.9985; layer-0 ctx keys rel err 0.0142; logits top-1 = MLX's on 14/15 rows; drafted tokens = MLX's on 10/15 (equal prefix 10)
+  check dfl2d_code/tf_code_HumanEval_103.npz at 16: hidden cos min 0.9975 mean 0.9979; layer-0 ctx keys rel err 0.0138; logits top-1 = MLX's on 15/15 rows; drafted tokens = MLX's on 9/15 (equal prefix 9)
+  check dfl2d_code/tf_code_HumanEval_103.npz at 56: hidden cos min 0.9973 mean 0.9984; layer-0 ctx keys rel err 0.0157; logits top-1 = MLX's on 12/15 rows; drafted tokens = MLX's on 9/15 (equal prefix 7)
+  check dfl2d_code/tf_code_HumanEval_109.npz at 16: hidden cos min 0.9977 mean 0.9980; layer-0 ctx keys rel err 0.0131; logits top-1 = MLX's on 14/15 rows; drafted tokens = MLX's on 9/15 (equal prefix 9)
+  check dfl2d_code/tf_code_HumanEval_109.npz at 56: hidden cos min 0.9984 mean 0.9990; layer-0 ctx keys rel err 0.0175; logits top-1 = MLX's on 13/15 rows; drafted tokens = MLX's on 6/15 (equal prefix 1)
+  check dfl2d_math/tf_gsm_600.npz at 16: hidden cos min 0.9989 mean 0.9991; layer-0 ctx keys rel err 0.0122; logits top-1 = MLX's on 14/15 rows; drafted tokens = MLX's on 15/15 (equal prefix 15)
+  check dfl2d_math/tf_gsm_600.npz at 56: hidden cos min 0.9987 mean 0.9991; layer-0 ctx keys rel err 0.0169; logits top-1 = MLX's on 15/15 rows; drafted tokens = MLX's on 15/15 (equal prefix 15)
+  check dfl2d_math/tf_gsm_601.npz at 16: hidden cos min 0.9987 mean 0.9989; layer-0 ctx keys rel err 0.0133; logits top-1 = MLX's on 14/15 rows; drafted tokens = MLX's on 15/15 (equal prefix 15)
+  check dfl2d_math/tf_gsm_601.npz at 56: hidden cos min 0.9989 mean 0.9992; layer-0 ctx keys rel err 0.0163; logits top-1 = MLX's on 15/15 rows; drafted tokens = MLX's on 1/15 (equal prefix 1)
+  check dfl2d_math/tf_gsm_602.npz at 16: hidden cos min 0.9987 mean 0.9989; layer-0 ctx keys rel err 0.0128; logits top-1 = MLX's on 15/15 rows; drafted tokens = MLX's on 11/15 (equal prefix 11)
+  check dfl2d_math/tf_gsm_602.npz at 56: hidden cos min 0.9989 mean 0.9992; layer-0 ctx keys rel err 0.0190; logits top-1 = MLX's on 15/15 rows; drafted tokens = MLX's on 12/15 (equal prefix 12)
+check vs MLX (bf16 drafter, 4-bit head): 12 blocks, hidden cos min 0.9973 mean 0.9987, top-1 agreement 95.0 %, drafted tokens equal 121/180, equal prefix mean 9.5/15
+ANE-1 17:08 time again with the fixed body
+placement body: {'NeuralEngine': 620}; ops off the Neural Engine: {}
+placement head: {'NeuralEngine': 60, 'CPU': 2}; ops off the Neural Engine: {'concat': 2}
+placement headm: {'NeuralEngine': 61}; ops off the Neural Engine: {}
+  body: median 16.12 ms, p90 16.50 ms
+  head: median 15.27 ms, p90 16.47 ms
+  headm: median 8.53 ms, p90 8.71 ms
+  post: median 0.42 ms, p90 0.52 ms
+  full: median 31.56 ms, p90 32.61 ms
+  fullm: median 25.21 ms, p90 25.89 ms
+step 1: one 16-row block (body + head + CPU top-16 and chain, Python CoreML calls) 31.56 ms; body + head without the Python copy of the logits 25.21 ms (+ CPU post ~0.42 on the block max path) -> line 30 ms: PASS on the native path
+  int8 weight bytes per block: body 0.477 GB + head 0.636 GB -> body 30 GB/s, headm 75 GB/s, body + headm 44 GB/s effective (Python call overhead included)
+ANE-1 17:09 walk (kept replay, r84 protocol)
+walk code (HumanEval+): kept per check MLX bf16 9.569 (666 checks, 34 s), Neural Engine int8 9.540 (668 checks, 32 s) -> -0.30 %; identical drafts on 393 / 664 aligned checks
+walk math (GSM8K CoT): kept per check MLX bf16 7.011 (2042 checks, 240 s), Neural Engine int8 7.010 (2042 checks, 82 s) -> -0.01 %; identical drafts on 961 / 2025 aligned checks

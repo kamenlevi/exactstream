@@ -1,0 +1,83 @@
+== fcpc (NOCLEAR False): 24 windows, 6 prompts (run 0..2 = warm-ups if 6 runs)
+  measured runs [3, 4, 5]; per check: median over them
+  metric                   chk0       chk1       chk2       chk3   c0 - med(1-3)
+  wall                     87.2       82.1       91.9       89.8         -2.5
+  build                    72.7       68.3       78.0       77.2         -4.6
+  wait                     15.3       13.6       13.6       12.6         +1.7
+  main                     38.8       30.3       29.8       29.8         +9.1
+  other                    92.8       84.4       97.1      102.6         -4.3
+  mtl                       0.0        0.0        0.0        0.0         +0.0
+  mtl_n                     0.0        0.0        0.0        0.0         +0.0
+  ev.msg_sent            2073.0     1416.0     1411.0     1409.0       +662.0
+  ev.sys_mach            1493.0      810.0      804.0      809.0       +684.0
+  ev.sys_unix            3877.0     3838.0     4085.0     3972.0        -95.0
+  ev.csw                 2201.0     2227.0     2492.0     2436.0       -235.0
+  ev.faults             14293.0    15536.0    20965.0    21847.0      -6672.0
+  vm.zero_fill          12742.0      297.0        0.0        0.0     +12742.0
+  vm.faults             14301.0     5551.0        0.0        0.0     +14301.0
+  vm.pageins                0.0        0.0        0.0        0.0         +0.0
+  vm.decompressions         0.0        0.0        0.0        0.0         +0.0
+  vm.purges                 0.0        0.0        0.0        0.0         +0.0
+  vm.wire_mb              210.1        0.8        0.0        0.0       +210.1
+  mlx_cache0_mb           250.9      336.5      347.6      349.8        -96.8
+  mlx_act0_mb           40635.2    40769.2    40767.2    40767.5       -132.3
+  threads (CPU ms, mean per prompt: check 0 | mean of checks 1-3): 6211875040 61.0 | 59.6; 8282955616 38.8 | 30.1; 6212448480 5.0 | 4.7; 6138441952 4.0 | 4.2; 482710860000 3.6 | 1.8; 482712580320 3.5 | 3.3
+  calls (per prompt mean: n, wall ms, CPU ms) check 0 vs mean of checks 1-3:
+    mx.async_eval        build chk0 n   23.0 wall     68.1 cpu    16.9   | chk1-3 n   23.0 wall     62.4 cpu    11.0
+    mx.eval              wait  chk0 n    1.0 wall      9.2 cpu     1.7   | chk1-3 n    1.0 wall      6.4 cpu     0.7
+    Gate.new_pass        build chk0 n    1.0 wall      0.0 cpu     0.0   | chk1-3 n    1.0 wall      0.0 cpu     0.0
+    tier.prefill_done    build chk0 n   48.0 wall      0.0 cpu     0.0   | chk1-3 n   48.0 wall      0.0 cpu     0.0
+  longest single calls in check 0: mx.eval 12.5 ms (cpu 1.6) at r57_screen_fcp.py:1278 [wait]; mx.eval 7.8 ms (cpu 1.6) at r57_screen_fcp.py:1278 [wait]; mx.eval 7.1 ms (cpu 1.8) at r57_screen_fcp.py:1278 [wait]; mx.async_eval 5.4 ms (cpu 0.7) at qwen4_exp.py:6491 [build]; mx.async_eval 5.4 ms (cpu 0.6) at qwen4_exp.py:6491 [build]; mx.async_eval 5.2 ms (cpu 0.7) at qwen4_exp.py:6491 [build]
+  sampler build: main-thread wall by line, check 0 minus mean(1-3) per prompt (ms): +7.0 fcprobe.py:130:w < qwen4_exp.py:6491:_forward; +1.5 threading.py:355:wait < _base.py:451:result; +0.5 memmap.py:359:__getitem__ < qwen4_exp.py:5566:_rows_matrices; -0.3 <frozen genericpath>:19:exists < gated.py:130:new_pass
+  sampler wait: main-thread wall by line, check 0 minus mean(1-3) per prompt (ms): +2.6 fcprobe.py:130:w < r57_screen_fcp.py:1278:run; +0.5 r57_screen_fcp.py:1281:run < r57_screen_fcp.py:1547:<module>
+
+== fcpd (NOCLEAR False): 24 windows, 6 prompts (run 0..2 = warm-ups if 6 runs)
+  measured runs [3, 4, 5]; per check: median over them
+  metric                   chk0       chk1       chk2       chk3   c0 - med(1-3)
+  wall                     88.8       68.7       81.5       91.8         +7.2
+  build                    73.0       56.1       68.2       78.2         +4.8
+  wait                     15.8       12.7       13.4       13.6         +2.4
+  main                     40.3       31.3       29.9       30.3        +10.0
+  other                   104.0       82.4       95.3       97.5         +8.8
+  mtl                       0.0        0.0        0.0        0.0         +0.0
+  mtl_n                     0.0        0.0        0.0        0.0         +0.0
+  ev.msg_sent            2052.0     1412.0     1393.0     1401.0       +651.0
+  ev.sys_mach            1500.0      793.0      798.0      806.0       +702.0
+  ev.sys_unix            3954.0     3306.0     3820.0     3947.0       +134.0
+  ev.csw                 2289.0     1756.0     2203.0     2425.0        +86.0
+  ev.faults             14130.0     6114.0    14064.0    20506.0        +66.0
+  vm.zero_fill          13526.0      853.0        0.0        0.0     +13526.0
+  vm.faults             19197.0    13959.0        0.0        0.0     +19197.0
+  vm.pageins               23.0        0.0        0.0        0.0        +23.0
+  vm.decompressions        79.0       23.0        0.0        0.0        +79.0
+  vm.purges                 0.0        0.0        0.0        0.0         +0.0
+  vm.wire_mb              214.6        2.0        0.0        0.0       +214.6
+  mlx_cache0_mb           241.9      329.4      341.0      342.6        -99.1
+  mlx_act0_mb           40635.3    40769.2    40767.2    40767.5       -132.2
+  threads (CPU ms, mean per prompt: check 0 | mean of checks 1-3): 6232748256 63.3 | 56.9; 8282955616 40.9 | 32.7; 6233321696 5.5 | 5.1; 481315320032 4.5 | 2.5; 481378808032 3.6 | 4.4; 481417867488 3.4 | 3.2
+  calls (per prompt mean: n, wall ms, CPU ms) check 0 vs mean of checks 1-3:
+    mx.async_eval        build chk0 n   23.0 wall     68.0 cpu    17.7   | chk1-3 n   23.0 wall     57.6 cpu    12.0
+    mx.eval              wait  chk0 n    1.0 wall      9.2 cpu     1.8   | chk1-3 n    1.0 wall      6.4 cpu     0.8
+    Gate.new_pass        build chk0 n    1.0 wall      0.0 cpu     0.0   | chk1-3 n    1.0 wall      0.0 cpu     0.0
+    tier.prefill_done    build chk0 n   48.0 wall      0.0 cpu     0.0   | chk1-3 n   48.0 wall      0.0 cpu     0.0
+  longest single calls in check 0: mx.eval 12.7 ms (cpu 1.6) at r57_screen_fcp.py:1278 [wait]; mx.eval 7.7 ms (cpu 2.2) at r57_screen_fcp.py:1278 [wait]; mx.eval 7.0 ms (cpu 1.6) at r57_screen_fcp.py:1278 [wait]; mx.async_eval 5.4 ms (cpu 0.7) at qwen4_exp.py:6491 [build]; mx.async_eval 5.4 ms (cpu 0.7) at qwen4_exp.py:6491 [build]; mx.async_eval 5.3 ms (cpu 0.7) at qwen4_exp.py:6491 [build]
+  sampler build: main-thread wall by line, check 0 minus mean(1-3) per prompt (ms): +11.0 fcprobe.py:130:w < qwen4_exp.py:6491:_forward; +0.5 qwen4_exp.py:5581:_rows_matrices < qwen4_exp.py:5651:gather_np; +0.2 <frozen genericpath>:19:exists < gated.py:130:new_pass
+  sampler wait: main-thread wall by line, check 0 minus mean(1-3) per prompt (ms): +2.2 fcprobe.py:130:w < r57_screen_fcp.py:1278:run; +0.9 r57_screen_fcp.py:1281:run < r57_screen_fcp.py:1547:<module>
+
+LINES (pre-registered in fcp_run.sh's commit): NAME = one line / call holds >= 60 % of check 0's build excess; class by counters (COMPILE: MTLCompilerService CPU >= 50 % of the excess; VM: zero fills + decompressions + pageins >= 1 GB more than checks 1-3; THREAD: other threads' CPU >= 50 % of it). fcpb: PASS if check 0's wall drops >= 100 ms vs fcpa with every check's logits hash equal; KILL < 30 ms; else BETWEEN.
+fcpc: 
+fcpd: 
+== fcpc: commit split (main thread, ms; medians; runs [0, 1, 2, 3, 4, 5]; CSYNC False)
+    commit        partial n   31  wall    1.08  cpu    1.08
+    commit        full    n   33  wall    0.16  cpu    0.16
+    mtplx_commit  partial n   31  wall    1.00  cpu    0.99
+    mtplx_commit  full    n   33  wall    0.07  cpu    0.07
+    layer_fwd     partial n   31  wall    0.27  cpu    0.27
+    checks.json: [Errno 2] No such file or directory: '/Users/kamen/Leap/data/fcp/r57/fcpc_checks.json'
+== fcpd: commit split (main thread, ms; medians; runs [0, 1, 2, 3, 4, 5]; CSYNC True)
+    commit        partial n   32  wall    1.09  cpu    1.08  sync after    2.88
+    commit        full    n   34  wall    0.16  cpu    0.16  sync after    0.18
+    mtplx_commit  partial n   32  wall    1.01  cpu    1.00
+    mtplx_commit  full    n   34  wall    0.07  cpu    0.07
+    layer_fwd     partial n   32  wall    0.28  cpu    0.28
+    checks.json: [Errno 2] No such file or directory: '/Users/kamen/Leap/data/fcp/r57/fcpd_checks.json'

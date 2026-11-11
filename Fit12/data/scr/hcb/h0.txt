@@ -1,0 +1,55 @@
+bt_b12 from /Users/kamen/Fit12/btc/bt_b12.py
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=27.2 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.20 GB pools
+b12: engine v3l, trims embed 4-bit g64 hc -
+b12: C_m=51 C_l=20 (10 %), HC bf16, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.20 GB, active 9.85 GB
+[h0] engine /Users/kamen/Fit12/v3p, PFR 1 (cap 16384), s_moe 4096 when off, C_m 51 C_l 20, pools 6.20 GB | after load: active 9.85 GB, footprint now 10.19, lifetime peak 10.19 GB
+[h0] p2k: released 6.00 GB of trunk pools in 0.03 s; footprint now 7.05 GB, MLX active 3.85 GB
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (64, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (67, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (62, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[h0] p2k: re-created 6.00 GB of pools in 0.12 s (released 6.00); footprint now 10.59 GB
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[h0] p2k: prefill 2617 tokens in 9.87 s = 265 tok/s (s_moe 2617) | MLX peak 4.49 GB, process lifetime peak 10.94 GB, now 10.88 GB | decode 256: 13.6 tok/s, sha 25191629fa
+[h0] p2k RESULT logits d7f5c82f1c sha32 82995cdb4e sha256 25191629fa kv 2bf1dbcb0d head 147ce2bd77 | n 2617 C_m 51 C_l 20 | warm tok/s 13.33 (tokens 33-256), all 13.56 | lifetime peak 10.94 GB before the hash
+[h0] p2k: time to first token 10.35 s (before decode 10.03, state copy 0.00, first pass 0.33); tokens 1 -> 256 in 18.55 s; prompt wall 28.91 s
+[h0] p8k: released 6.00 GB of trunk pools in 0.03 s; footprint now 8.32 GB, MLX active 3.95 GB
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (41, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (56, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (48, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (42, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (25, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (32, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (50, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (37, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (63, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (35, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (22, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (39, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (46, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (36, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (30, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (23, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (59, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[h0] p8k: re-created 6.00 GB of pools in 0.12 s (released 6.00); footprint now 10.89 GB
+[h0] p8k: prefill 8474 tokens in 19.84 s = 427 tok/s (s_moe 8474) | MLX peak 5.72 GB, process lifetime peak 11.21 GB, now 11.14 GB | decode 256: 15.2 tok/s, sha f0037c6232
+[h0] p8k RESULT logits 9fa9f12321 sha32 4f1259dff2 sha256 f0037c6232 kv 72f464f73d head d6195ae303 | n 8474 C_m 51 C_l 20 | warm tok/s 15.10 (tokens 33-256), all 15.17 | lifetime peak 11.21 GB before the hash
+[h0] p8k: time to first token 20.30 s (before decode 19.99, state copy 0.00, first pass 0.31); tokens 1 -> 256 in 16.58 s; prompt wall 36.87 s
+[h0] phase load: peak footprint 10.19 GB, peak MLX active 9.85 GB (43 samples)
+[h0] phase p2k release: peak footprint 7.05 GB, peak MLX active 3.85 GB (1 samples)
+[h0] phase p2k prefill: peak footprint 5.43 GB, peak MLX active 4.97 GB (324 samples)
+[h0] phase p2k restore: peak footprint 9.34 GB, peak MLX active 9.05 GB (4 samples)
+[h0] phase p2k decode: peak footprint 10.92 GB, peak MLX active 10.42 GB (760 samples)
+[h0] phase p2k hash: peak footprint 10.81 GB, peak MLX active 10.27 GB (5 samples)
+[h0] phase idle: peak footprint 10.62 GB, peak MLX active 10.05 GB (12 samples)
+[h0] phase p8k release: peak footprint 9.84 GB, peak MLX active 3.95 GB (1 samples)
+[h0] phase p8k prefill: peak footprint 7.01 GB, peak MLX active 6.51 GB (671 samples)
+[h0] phase p8k restore: peak footprint 9.71 GB, peak MLX active 9.28 GB (4 samples)
+[h0] phase p8k decode: peak footprint 11.19 GB, peak MLX active 10.66 GB (677 samples)
+[h0] phase p8k hash: peak footprint 11.11 GB, peak MLX active 10.50 GB (9 samples)
+[h0] done

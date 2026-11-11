@@ -1,0 +1,38 @@
+layer 2 done (15 s): experts [8, 20, 38, 137, 156, 259, 322, 429]
+layer 12 done (29 s): experts [141, 275, 284, 319, 343, 368, 416, 475]
+layer 24 done (44 s): experts [11, 41, 45, 88, 153, 276, 427, 438]
+layer 36 done (59 s): experts [130, 196, 235, 265, 313, 328, 338, 389]
+layer 46 done (74 s): experts [68, 197, 295, 348, 356, 369, 424, 445]
+
+LAYOUT CHECKS over 3072000 groups: q min 0 in 100.0000%, q max 15 in 84.9662%, b3 == bf16(b + s mean(l)) in 100.0000%
+
+O1 lossless (per tensor, mean over 40 experts; MSB-3 part = codes 3 bits + s3 16 + b3 16 per 64 weights)
+| proj | H(m) bits | static Huffman m | H(l given m) | s3 byte-wise | b3 byte-wise | s3 lzma | b3 lzma | MSB part, entropy bound |
+|---|---|---|---|---|---|---|---|---|
+| gate | 2.716 | 2.757 | 0.986 | 8.85 | 9.09 | 8.83 | 9.15 | 14.4% smaller (Huffman m: 13.2%) |
+| up | 2.719 | 2.759 | 0.987 | 8.78 | 9.04 | 8.74 | 9.06 | 14.4% smaller (Huffman m: 13.2%) |
+| down | 2.725 | 2.766 | 0.987 | 8.92 | 9.12 | 8.89 | 9.17 | 14.1% smaller (Huffman m: 12.9%) |
+All three projections: entropy bound 14.3% smaller, static Huffman on m 13.1%
+
+O2 re-quantization: relative squared error vs W4 (mean over 40 experts; lower = closer to the reference)
+| format | bits / weight | gate | up | down | all | vs MSB-3 |
+|---|---|---|---|---|---|---|
+| MSB-3 (v3 tier, today) | 3.5 | 0.0256 | 0.0252 | 0.0248 | 0.0252 | 1.00x |
+| MSB-2 truncation | 2.5 | 0.1293 | 0.1275 | 0.1256 | 0.1275 | 5.06x |
+| RTN-3 g64 fresh | 3.5 | 0.0365 | 0.0360 | 0.0353 | 0.0359 | 1.43x |
+| RTN-3 g128 | 3.25 | 0.0478 | 0.0468 | 0.0457 | 0.0468 | 1.86x |
+| LM-3 g64 (symmetric) | 3.25 | 0.0327 | 0.0318 | 0.0309 | 0.0318 | 1.26x |
+| RHT + RTN-3 g64 | 3.5 | 0.0369 | 0.0369 | 0.0369 | 0.0369 | 1.46x |
+| RHT + RTN-3 g128 | 3.25 | 0.0457 | 0.0457 | 0.0457 | 0.0457 | 1.81x |
+| RHT + LM-3 g128 | 3.125 | 0.0318 | 0.0318 | 0.0318 | 0.0318 | 1.26x |
+| RHT + LM-3 per row | 3.006 / 3.025 (gate+up / down) | 0.0345 | 0.0345 | 0.0340 | 0.0343 | 1.36x |
+| RHT + RTN-2 g32 | 3.0 | 0.1543 | 0.1544 | 0.1544 | 0.1544 | 6.13x |
+| RHT + RTN-2 g64 | 2.5 | 0.2024 | 0.2023 | 0.2023 | 0.2023 | 8.03x |
+| RHT + LM-2 g64 | 2.25 | 0.1113 | 0.1113 | 0.1113 | 0.1113 | 4.42x |
+
+O3 shared base: cosine of an expert with the leave-one-out mean of its 7 sampled layer-mates
+  gate: mean +0.0033, max +0.0114 (explained energy ~ cos^2 = 0.0000)
+  up: mean +0.0001, max +0.0020 (explained energy ~ cos^2 = 0.0000)
+  down: mean -0.0001, max +0.0020 (explained energy ~ cos^2 = 0.0000)
+
+done in 74 s

@@ -1,0 +1,18 @@
+F1-SWITCH smoke Tue 22:27 (share lock beside Breakthrough's shared run (~50 % GPU); speed rough)
+(2) flag off vs data/ref2_before_f1.py, y bitwise per T0_R: {'2000_16': True, '2000_8': True, '10000_16': True, '10000_8': True}; counts old {"sdpa_split": 0, "kb_pad": 4}, new {"sdpa_split": 0, "kb_pad": 4, "fatt_verify": 0, "verify_old": 16, "verify_old_eligible": 4}
+T0 2000 R 16 flag off: counts check {'fatt_verify': 0, 'verify_old': 1, 'verify_old_eligible': 1}, check + 16 AR steps {'fatt_verify': 0, 'verify_old': 17, 'verify_old_eligible': 17} -> switch OK; SD == AR bitwise 16/16
+T0 2000 R 16 flag on : counts check {'fatt_verify': 1, 'verify_old': 0, 'verify_old_eligible': 0}, check + 16 AR steps {'fatt_verify': 17, 'verify_old': 0, 'verify_old_eligible': 0} -> switch OK; SD == AR bitwise 16/16
+  y(on) vs y(off): mean |diff| / RMS 2.33e-03
+T0 2000 R  8 flag off: counts check {'fatt_verify': 0, 'verify_old': 1, 'verify_old_eligible': 1}, check + 8 AR steps {'fatt_verify': 0, 'verify_old': 9, 'verify_old_eligible': 9} -> switch OK; SD == AR bitwise 8/8
+T0 2000 R  8 flag on : counts check {'fatt_verify': 1, 'verify_old': 0, 'verify_old_eligible': 0}, check + 8 AR steps {'fatt_verify': 9, 'verify_old': 0, 'verify_old_eligible': 0} -> switch OK; SD == AR bitwise 8/8
+  y(on) vs y(off): mean |diff| / RMS 2.28e-03
+T0 10000 R 16 flag off: counts check {'fatt_verify': 0, 'verify_old': 1, 'verify_old_eligible': 1}, check + 16 AR steps {'fatt_verify': 0, 'verify_old': 17, 'verify_old_eligible': 17} -> switch OK; SD == AR bitwise 16/16
+T0 10000 R 16 flag on : counts check {'fatt_verify': 1, 'verify_old': 0, 'verify_old_eligible': 0}, check + 16 AR steps {'fatt_verify': 17, 'verify_old': 0, 'verify_old_eligible': 0} -> switch OK; SD == AR bitwise 16/16
+  y(on) vs y(off): mean |diff| / RMS 1.86e-03
+T0 10000 R  8 flag off: counts check {'fatt_verify': 0, 'verify_old': 1, 'verify_old_eligible': 1}, check + 8 AR steps {'fatt_verify': 0, 'verify_old': 9, 'verify_old_eligible': 9} -> switch OK; SD == AR bitwise 8/8
+T0 10000 R  8 flag on : counts check {'fatt_verify': 1, 'verify_old': 0, 'verify_old_eligible': 0}, check + 8 AR steps {'fatt_verify': 9, 'verify_old': 0, 'verify_old_eligible': 0} -> switch OK; SD == AR bitwise 8/8
+  y(on) vs y(off): mean |diff| / RMS 1.93e-03
+(5) T0 10000: ms per 16-row layer call, flag off 2.584 (B6 ref2t 1.936), on 1.711 (B6 fs4 1.141); 1.51x
+F1-SWITCH smoke: FAIL {'(2) flag off == pre-switch, bitwise': True, '(3) switch takes effect (counts)': True, '(4) SD == AR bitwise, flag on': True, "(5) speed within 15 % of B6's fs4": False, '(1) self_test': True}
+F1-SWITCH smoke Tue 22:31 (quiet lock)
+(5) T0 10000, quiet: ms per 16-row layer call, flag off 2.047 [2.042635445832275, 2.0504531858023256] (B6 ref2t 1.936), on 1.179 [1.1956822563661262, 1.1623541213339195] (B6 fs4 1.141); 1.74x; (5) PASS

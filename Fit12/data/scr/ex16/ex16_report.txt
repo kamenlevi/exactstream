@@ -1,0 +1,34 @@
+12 GB VERIFIED-GREEDY loop, alone in its process (/Users/kamen/Fit12/data/scr/ex16/ex16.txt; tag ex16)
+  arm ex: DFlash2 L1-20 (4-bit) drafts 15 tokens per check; the 12 GB model verifies every token in <= 4-row calls
+  (verify rows wait for all ten ranks; ranks 0-1 at 4 bits, 2-9 at 3). NOT exact: 2-4-row verify calls round differently
+  from one-token decoding, and near-tie tokens depend on the draft pattern (keep-1 replays; PR1 not installed).
+  Workload: T3R2's 16 HumanEval prompts (EvalSuite b12llff4 keys), greedy, cap 256 new tokens, full outputs.
+Settings as printed by the engine:
+  [bigmoe] tier 4433333333: C_m=47 C_l=32 per layer, 6.03 GB pools
+  b12: hc (0, 0.0, 0.0)
+  b12: engine v3p, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+  b12: C_m=47 C_l=32 (9 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.03 GB, active 8.96 GB
+  [ex16] bt_b12 8db71cc537, engine /Users/kamen/Breakthrough/v3p, C_m 47 C_l 32, cap 256; drafter 0.928 GB (own params), SW 2048; after load: lifetime 10.583 GB, MLX active 9.529; prompts humaneval/HumanEval/156 (n 146), humaneval/HumanEval/42 (n 149), humaneval/HumanEval/68 (n 367), humaneval/HumanEv
+Per prompt (16 counted of 16):
+  key                    | prompt | tokens | prefill s | decode s | decode tok/s | e2e tok/s | checks | tok/check | ms/check draft  exact | SSD GB/check
+  humaneval/HumanEval/156 |    146 |    256 |      3.61 |    12.61 |        20.30 |     15.78 |     26 |      9.85 |           11.3  473.2 |   3.69
+  humaneval/HumanEval/42 |    149 |    132 |      3.64 |     6.88 |        19.19 |     12.55 |      9 |     14.67 |           12.0  752.3 |   6.41
+  humaneval/HumanEval/68 |    367 |    256 |      4.94 |    14.64 |        17.49 |     13.07 |     18 |     14.22 |           11.9  800.7 |   7.05
+  humaneval/HumanEval/91 |    144 |    256 |      3.71 |    14.02 |        18.26 |     14.44 |     37 |      6.92 |           10.6  367.6 |   2.98
+  humaneval/HumanEval/16 |    103 |     81 |      3.46 |     4.72 |        17.16 |      9.90 |      6 |     13.50 |           12.4  774.0 |   6.77
+  humaneval/HumanEval/6  |    148 |    209 |      3.71 |    11.08 |        18.86 |     14.13 |     18 |     11.61 |           10.9  604.1 |   5.04
+  humaneval/HumanEval/79 |    184 |    224 |      3.94 |    12.48 |        17.95 |     13.64 |     21 |     10.67 |           11.2  582.5 |   4.86
+  humaneval/HumanEval/19 |    140 |    256 |      3.43 |    12.82 |        19.97 |     15.75 |     28 |      9.14 |           10.9  446.3 |   3.56
+  humaneval/HumanEval/161 |    148 |    243 |      3.64 |    13.19 |        18.42 |     14.44 |     23 |     10.57 |           10.8  562.0 |   4.74
+  humaneval/HumanEval/17 |    208 |    256 |      3.99 |    13.83 |        18.51 |     14.37 |     21 |     12.19 |           11.2  646.8 |   5.46
+  humaneval/HumanEval/56 |    129 |    157 |      3.42 |     9.01 |        17.43 |     12.63 |     12 |     13.08 |           11.7  738.3 |   5.96
+  humaneval/HumanEval/141 |    253 |    256 |      5.15 |    14.09 |        18.17 |     13.31 |     21 |     12.19 |           11.4  659.0 |   5.65
+  humaneval/HumanEval/101 |    152 |    181 |      3.62 |     9.43 |        19.19 |     13.87 |     20 |      9.05 |           11.0  459.8 |   3.72
+  humaneval/HumanEval/63 |    187 |    256 |      4.08 |    13.73 |        18.65 |     14.37 |     22 |     11.64 |           11.6  611.8 |   5.12
+  humaneval/HumanEval/114 |    121 |    181 |      3.45 |    10.20 |        17.75 |     13.26 |     22 |      8.23 |           11.4  451.4 |   3.67
+  humaneval/HumanEval/77 |    148 |    256 |      3.72 |    14.38 |        17.80 |     14.14 |     39 |      6.56 |           10.8  357.3 |   2.85
+Decode tok/s over 16 prompts: GEOMETRIC MEAN 18.42; pooled 18.47 (3456 tokens in 187.11 s); min 17.16, max 20.30
+End-to-end tok/s (prefill + decode): geometric mean 13.66; tokens per check 10.08; ms per check draft 11.2, exact 533.7; SSD 4.42 GB per check
+Lifetime peak phys_footprint of this process (RUSAGE_INFO_V4): 11.144 GB = 10.379 GiB
+PAUSE: [ex16] PAUSE summary: intervals [] s from the start; re-run []; excluded []; void runs: none
+Harness's own total: [ex16] TOTAL ex: 16 prompts, 3456 tokens in 187.11 s = 18.47 tok/s | 343 checks, kept 10.08 | pass2 0 exact 343 | per check ms: draft 11.2 pass 1 0.0 pass 2 / exact 533.7 commit 0.0; misses per check pass 1 0 pass 2 2377

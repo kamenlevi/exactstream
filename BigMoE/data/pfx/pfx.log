@@ -1,0 +1,45 @@
+11-08 07:43:53 PFX start (pid 44915, NO-SWAP 54.1 GB, snapshot 94a6f02)
+11-08 07:46:08 pe1024 rc=0
+11-08 07:48:29 pe1024nl rc=0
+11-08 07:49:29 plm1 rc=0
+11-08 07:50:55 plm2 rc=0
+11-08 07:52:35 pe2048 rc=0
+11-08 07:53:55 pe4096 rc=0
+11-08 07:55:01 pe8192 rc=0
+11-08 07:56:06 pe8192nl rc=0
+11-08 07:57:16 pl8192 rc=0
+PFX (data/pfx; snapshot 94a6f02; C 256, CAP 64; quiet): prefill TTFT (pfs: prefill + setup + the first token) and tok/s by R57_PFCHUNK
+  pe1024: lifetime peak 44.50 GB; edit10 P 1565: 15.2 s = 103 tok/s (tokens == 1024's; logits hash == 8/8); write13 P 4730: 37.3 s = 127 tok/s (tokens == 1024's; logits hash == 28/28); write11 P 7932: 61.9 s = 128 tok/s (tokens == 1024's; logits hash == 22/22)
+  pe1024nl: lifetime peak 44.10 GB; edit10 P 1565: 15.4 s = 101 tok/s (tokens == 1024's; logits hash == 8/8); write13 P 4730: 38.8 s = 122 tok/s (tokens == 1024's; logits hash == 28/28); write11 P 7932: 64.3 s = 123 tok/s (tokens == 1024's; logits hash == 22/22)
+  plm1: lifetime peak 45.10 GB; edit10 P 1565: 8.0 s = 195 tok/s (tokens == 1024's; logits hash == 8/8); write13 P 4730: 12.9 s = 368 tok/s (tokens == 1024's; logits hash == 28/28); write11 P 7932: 18.0 s = 441 tok/s (tokens == 1024's; logits hash == 22/22)
+  plm2: lifetime peak 45.90 GB; edit10 P 1565: 11.3 s = 138 tok/s (tokens == 1024's; logits hash == 8/8); write13 P 4730: 21.1 s = 224 tok/s (tokens == 1024's; logits hash == 28/28); write11 P 7932: 31.0 s = 256 tok/s (tokens == 1024's; logits hash == 22/22)
+  pe2048: lifetime peak 46.50 GB; edit10 P 1565: 9.7 s = 161 tok/s (tokens == 1024's; logits hash == 0/7); write13 P 4730: 27.7 s = 171 tok/s (tokens == 1024's; logits hash == 0/26); write11 P 7932: 39.4 s = 201 tok/s (tokens DIFF 1024's; logits hash == 0/22)
+  pe4096: lifetime peak 49.90 GB; edit10 P 1565: 9.7 s = 161 tok/s (tokens == 1024's; logits hash == 0/7); write13 P 4730: 21.0 s = 225 tok/s (tokens == 1024's; logits hash == 0/26); write11 P 7932: 27.3 s = 290 tok/s (tokens DIFF 1024's; logits hash == 0/22)
+  pe8192: lifetime peak 53.10 GB; edit10 P 1565: 9.9 s = 159 tok/s (tokens == 1024's; logits hash == 0/7); write13 P 4730: 15.2 s = 312 tok/s (tokens DIFF 1024's; logits hash == 0/27); write11 P 7932: 20.4 s = 389 tok/s (tokens DIFF 1024's; logits hash == 0/22)
+  pe8192nl: lifetime peak 53.10 GB; edit10 P 1565: 9.9 s = 159 tok/s (tokens == 1024's; logits hash == 0/7); write13 P 4730: 14.5 s = 326 tok/s (tokens DIFF 1024's; logits hash == 0/27); write11 P 7932: 19.6 s = 405 tok/s (tokens DIFF 1024's; logits hash == 0/22)
+  pl8192: lifetime peak 53.80 GB; edit10 P 1565: 10.2 s = 153 tok/s (tokens == 1024's; logits hash == 0/6); write13 P 4730: 15.1 s = 314 tok/s (tokens DIFF 1024's; logits hash == 0/22); write11 P 7932: 20.2 s = 392 tok/s (tokens DIFF 1024's; logits hash == 0/22)
+Verdict PFX (pre-registered, NewIdeas 00:1x): BETWEEN: write13 (4.7K) TTFT x2.46 at R57_PFCHUNK 8192 vs 1024; decode tokens DIFFER from the 1024 arm's; lifetime peak 53.10 GB (PASS >= x2.5 AND tokens == AND peak <= 45.0; KILL < x1.5)
+  beside: edit10 x1.54; tokens ==
+  beside: write11 x3.04; tokens DIFFER
+PF-A plm1 edit10: TTFT x1.90 vs pe1024 (195 tok/s); decode tokens == pe1024's; logits hash == 8/8; scratch {'reads': 22845, 'hits': 16210, 'calls': 96}; R57_PFLM=1 (full-E scratch, original ids)
+PF-A plm1 write13: TTFT x2.90 vs pe1024 (368 tok/s); decode tokens == pe1024's; logits hash == 28/28; scratch {'reads': 23855, 'hits': 70648, 'calls': 240}; R57_PFLM=1 (full-E scratch, original ids)
+PF-A plm1 write11: TTFT x3.44 vs pe1024 (441 tok/s); decode tokens == pe1024's; logits hash == 22/22; scratch {'reads': 24236, 'hits': 129396, 'calls': 384}; R57_PFLM=1 (full-E scratch, original ids)
+PF-A plm1: lifetime peak 45.10 GB (line 45.0)
+PF-A plm2 edit10: TTFT x1.34 vs pe1024 (138 tok/s); decode tokens == pe1024's; logits hash == 8/8; scratch {'reads': 22845, 'hits': 16210, 'calls': 96}; R57_PFLM=2 (compact copy = today's call shape)
+PF-A plm2 write13: TTFT x1.77 vs pe1024 (224 tok/s); decode tokens == pe1024's; logits hash == 28/28; scratch {'reads': 23855, 'hits': 70648, 'calls': 240}; R57_PFLM=2 (compact copy = today's call shape)
+PF-A plm2 write11: TTFT x1.99 vs pe1024 (256 tok/s); decode tokens == pe1024's; logits hash == 22/22; scratch {'reads': 24236, 'hits': 129396, 'calls': 384}; R57_PFLM=2 (compact copy = today's call shape)
+PF-A plm2: lifetime peak 45.90 GB (line 45.0)
+PF-D price (R57_PFSTAT: experts resident at prefill start, which today's prefill re-reads from SSD; base = MSB-3 pool, side = LSB):
+  pe1024 edit10: prefill SSD 109.3 GB; resident at start: base 8746 / side 2620 expert-layers (of 48 x 512 = 24576)
+  pe1024 write13: prefill SSD 264.5 GB; resident at start: base 13453 / side 4205 expert-layers (of 48 x 512 = 24576)
+  pe1024 write11: prefill SSD 430.1 GB; resident at start: base 13944 / side 4272 expert-layers (of 48 x 512 = 24576)
+  pe8192 edit10: prefill SSD 63.9 GB; resident at start: base 8746 / side 2620 expert-layers (of 48 x 512 = 24576)
+  pe8192 write13: prefill SSD 67.2 GB; resident at start: base 13421 / side 4192 expert-layers (of 48 x 512 = 24576)
+  pe8192 write11: prefill SSD 68.3 GB; resident at start: base 13948 / side 4272 expert-layers (of 48 x 512 = 24576)
+  plm1 edit10: prefill SSD 63.9 GB; resident at start: base 8746 / side 2620 expert-layers (of 48 x 512 = 24576)
+  plm1 write13: prefill SSD 67.2 GB; resident at start: base 13453 / side 4205 expert-layers (of 48 x 512 = 24576)
+  plm1 write11: prefill SSD 68.3 GB; resident at start: base 13944 / side 4272 expert-layers (of 48 x 512 = 24576)
+  plm2 edit10: prefill SSD 63.6 GB; resident at start: base 8746 / side 2620 expert-layers (of 48 x 512 = 24576)
+  plm2 write13: prefill SSD 66.5 GB; resident at start: base 13453 / side 4205 expert-layers (of 48 x 512 = 24576)
+  plm2 write11: prefill SSD 67.8 GB; resident at start: base 13944 / side 4272 expert-layers (of 48 x 512 = 24576)
+11-08 07:57:16 report rc=0 (data/pfx/pfx_report.txt)

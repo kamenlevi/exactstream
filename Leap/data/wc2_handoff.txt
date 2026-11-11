@@ -1,0 +1,21 @@
+share read 206 GB/s (steady, 4096 threads; target 200); full layer 144.0 MB (0.700 ms); models K 4 / 8 / 12 / 16
+  A gpu-only per layer: wall   735.2 us (p90   761.5), GPU   730.3 us, predict inside    0.0 us
+  E1 gpu-event per layer: wall   151.8 us (p90   157.9), GPU   148.7 us, predict inside    0.0 us
+  E2 flag per layer: wall   128.7 us (p90   139.2), GPU   126.1 us, predict inside    0.0 us
+  C4 handoff per layer: wall   331.3 us (p90   349.4), GPU   328.5 us, predict inside  228.7 us
+  B4 split per layer: wall   720.8 us (p90   740.0), GPU   717.3 us, predict inside  234.2 us
+  D4 alone per layer: wall   244.5 us (p90   255.5), GPU     0.0 us, predict inside    0.0 us
+  C8 handoff per layer: wall   464.6 us (p90   501.0), GPU   461.7 us, predict inside  360.6 us
+  B8 split per layer: wall   700.7 us (p90   721.9), GPU   696.3 us, predict inside  395.8 us
+  D8 alone per layer: wall   386.3 us (p90   468.1), GPU     0.0 us, predict inside    0.0 us
+  C12 handoff per layer: wall   659.7 us (p90   779.9), GPU   657.0 us, predict inside  527.5 us
+  B12 split per layer: wall   694.9 us (p90   778.1), GPU   690.9 us, predict inside  551.7 us
+  D12 alone per layer: wall   512.6 us (p90   596.5), GPU     0.0 us, predict inside    0.0 us
+  C16 handoff per layer: wall   773.1 us (p90   882.0), GPU   769.9 us, predict inside  643.2 us
+  B16 split per layer: wall   725.7 us (p90   751.0), GPU   722.6 us, predict inside  640.6 us
+  D16 alone per layer: wall   657.6 us (p90   668.8), GPU     0.0 us, predict inside    0.0 us
+K 4: overhead per layer C - predict-inside 102.6 us (C - D 86.8 us) = 4.93 ms per check; split B / A = 0.980 (720.8 vs 735.2 us)
+K 8: overhead per layer C - predict-inside 104.0 us (C - D 78.4 us) = 4.99 ms per check; split B / A = 0.953 (700.7 vs 735.2 us)
+K 12: overhead per layer C - predict-inside 132.2 us (C - D 147.1 us) = 6.35 ms per check; split B / A = 0.945 (694.9 vs 735.2 us)
+K 16: overhead per layer C - predict-inside 129.9 us (C - D 115.5 us) = 6.24 ms per check; split B / A = 0.987 (725.7 vs 735.2 us)
+round trip alone: E1 GPU-signalled event 151.8 us, E2 post + CPU-signalled wait 128.7 us per layer

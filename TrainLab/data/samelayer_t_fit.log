@@ -1,0 +1,27 @@
+SAMELAYER-T FIT 11-04 14:56 (/Users/kamen/BigMoE/data/r57/pr_dump/pr2_160_*): 18 prompts (12 code, 6 chat), 123845 row-layers, layers 1..47; loaded in 0 s; lambdas (0.1, 0.3, 1.0, 3.0, 10.0) x mean eigenvalue, picked per layer on the 18-fold LOPO grid
+  check (layer 1, fold 0): leave-one-out Gram / cross terms vs direct, max rel err 1.5e-15 / 5.4e-15
+  layer 1: 2635 rows, 12.9 s; lambda 0.3 (pooled LOPO 0.1: 0.6343, 0.3: 0.6391, 1: 0.6307, 3: 0.6087, 10: 0.5737); in-sample fp64 / bf16 / R+dW 0.8258 / 0.8257 / 0.8258
+  layer 24: 2635 rows, 11.1 s; lambda 1 (pooled LOPO 0.1: 0.8337, 0.3: 0.8506, 1: 0.8582, 3: 0.8563, 10: 0.8483); in-sample fp64 / bf16 / R+dW 0.9027 / 0.9027 / 0.9026
+  layer 47: 2635 rows, 14.6 s; lambda 1 (pooled LOPO 0.1: 0.8125, 0.3: 0.8220, 1: 0.8225, 3: 0.8125, 10: 0.7946); in-sample fp64 / bf16 / R+dW 0.8857 / 0.8857 / 0.8856
+  LOPO recall at the chosen lambdas (pooled rows x layers): code 0.706 -> 0.824, chat 0.821 -> 0.851 (SAMELAYER-T's nested pick: code 0.706 -> 0.823, chat 0.821 -> 0.851)
+  lambda picks over layers: 0.1 x0, 0.3 x3, 1 x41, 3 x3, 10 x0
+  in-sample recall (all prompts, optimistic): fp64 W code 0.8802 chat 0.9259; saved bf16 W code 0.8802 chat 0.9258; R exact + dW bf16 code 0.8802 chat 0.9259
+  saved /Users/kamen/TrainLab/data/samelayer_t_W.npz: 118 MB (W_bf16 (47, 512, 2560), b (47, 512)); read back OK; 593 s in all; max RSS 3.3 GB
+      592.65 real       585.95 user         2.69 sys
+          3580329984  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              222697  page reclaims
+                1009  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                 305  voluntary context switches
+              208336  involuntary context switches
+       2876256585156  instructions retired
+       2401125426675  cycles elapsed
+          3571420232  peak memory footprint

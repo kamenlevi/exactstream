@@ -1,0 +1,26 @@
+run_g2 Sun 00:49:25 (quiet lock): avail ~53.1 GB, swap 6702.56M
+== hc8f check + K1M check + bench (00:49:25)
+HC8-F check: 30 of 30 cases bitwise == k2b + k3c on the real rows (mixed, inject)
+HC8-F K1M check: 72 of 72 cases bitwise (K1 outputs on all 16 rows vs v4 / v5 on padded inputs; read_fold(M rows) vs hc8r.read(padded) on the real rows)
+HC8-F bench M 1: read_v4_padded 58.0 us | fold_padded 62.1 us | fold_k1m 53.6 us | x 96 reads: fold_padded +0.39 ms, fold_k1m -0.42 ms per check (GPU, dependent chain)
+HC8-F bench M 2: read_v4_padded 55.0 us | fold_padded 57.0 us | fold_k1m 49.1 us | x 96 reads: fold_padded +0.20 ms, fold_k1m -0.56 ms per check (GPU, dependent chain)
+HC8-F bench M 3: read_v4_padded 55.5 us | fold_padded 58.0 us | fold_k1m 51.1 us | x 96 reads: fold_padded +0.24 ms, fold_k1m -0.43 ms per check (GPU, dependent chain)
+HC8-F bench M 4: read_v4_padded 55.1 us | fold_padded 60.6 us | fold_k1m 53.6 us | x 96 reads: fold_padded +0.52 ms, fold_k1m -0.15 ms per check (GPU, dependent chain)
+== K1M _gr check (00:49:27)
+K1M-GR: 16 of 16 cases bitwise (_gr fold / fold+k1m vs the unfolded hc8r path; rows 1-4, pending off / on); COUNTS hc8_k1m 8, hc8_fold 16
+HC8-G via _gr (FAST): max rel error of mixed / inject vs the unfolded path 6.19e-04; written bitwise yes; COUNTS hc8_g 8
+== HC8-G check + bench (00:49:28)
+HC8-G check: max rel error vs hc8r.read v4: mixed 9.47e-04, inject 0.00e+00; mixed values differing 13 / 153600 (0.01 %, bf16 ulps); written bitwise yes
+HC8-G bench M 1: read_v4_padded 54.5 us | fold_k1m 48.0 us | gemv 40.1 us | gemv x 96 reads: -1.38 ms vs v4, -0.75 ms vs fold_k1m per check (7 MB per read: 174 GB/s)
+HC8-G bench M 2: read_v4_padded 55.1 us | fold_k1m 49.3 us | gemv 46.0 us | gemv x 96 reads: -0.88 ms vs v4, -0.32 ms vs fold_k1m per check (7 MB per read: 152 GB/s)
+HC8-G bench M 3: read_v4_padded 54.8 us | fold_k1m 50.6 us | gemv 56.2 us | gemv x 96 reads: +0.14 ms vs v4, +0.54 ms vs fold_k1m per check (7 MB per read: 125 GB/s)
+HC8-G bench M 4: read_v4_padded 55.0 us | fold_k1m 53.0 us | gemv 66.9 us | gemv x 96 reads: +1.15 ms vs v4, +1.34 ms vs fold_k1m per check (7 MB per read: 105 GB/s)
+== G2-PRICE (00:49:29)
+
+G2-PRICE Sun 00:49:29 (quiet lock; MLX 0.32.2); M [1, 2, 3, 4, 8, 16]
+Traceback (most recent call last):
+  File "/Users/kamen/Leap/scripts/g2_bench.py", line 76, in <module>
+    assert (sm_of >= 0).all() and (sl_of >= 0).all(), "an expert did not load"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: an expert did not load
+run_g2 done 00:49:29, swap 6702.56M

@@ -1,0 +1,104 @@
+rows: {'t0_mode_T0': 210, 'ref': 367, 'b12llff': 239, 'floor': 367, 'ref.r2': 210, 'ref2t': 210} common 210
+
+== math: 50 rows; % correct: t0_mode_T0 84.0, ref 86.0, b12llff 86.0, floor 88.0, ref.r2 82.0, ref2t 88.0
+   vs ref: token-identical 0/50; first divergence median 20.5, min 1
+   discordant t0_mode_T0 vs ref (1 = correct); first diff = token where t0_mode_T0 leaves ref
+  math500/test/counting_and_probability/430.json t0_mode_T0 0 (length, 1536 tok)  ref 1 (eos, 1497 tok, cap 1536)  first diff 1  b12llff 0  floor 1  ref.r2 0  ref2t 0
+   items one arm alone gets wrong (all 5 others right) / alone right (all others wrong)
+  t0_mode_T0 alone wrong 0 [], alone right 0 []
+  ref      alone wrong 0 [], alone right 0 []
+  b12llff  alone wrong 0 [], alone right 0 []
+  floor    alone wrong 0 [], alone right 0 []
+  ref.r2   alone wrong 1 ['math500/test/precalculus/323.json'], alone right 0 []
+  ref2t    alone wrong 0 [], alone right 1 ['math500/test/algebra/733.json']
+
+== ifeval: 100 rows; % correct: t0_mode_T0 84.0, ref 90.0, b12llff 87.0, floor 88.0, ref.r2 90.0, ref2t 90.0
+   vs ref: token-identical 8/100; first divergence median 10.0, min 0
+   discordant t0_mode_T0 vs ref (1 = correct); first diff = token where t0_mode_T0 leaves ref
+  ifeval/1051                              t0_mode_T0 0 (eos, 115 tok)  ref 1 (eos, 81 tok, cap 1024)  first diff 4  b12llff 1  floor 1  ref.r2 1  ref2t 1
+      t0_mode_T0 missed: change_case:english_lowercase
+      ref      missed: -
+      b12llff  missed: -
+      floor    missed: -
+      ref.r2   missed: -
+      ref2t    missed: -
+  ifeval/1954                              t0_mode_T0 0 (eos, 404 tok)  ref 1 (eos, 423 tok, cap 1024)  first diff 67  b12llff 1  floor 1  ref.r2 1  ref2t 1
+      t0_mode_T0 missed: length_constraints:nth_paragraph_first_word
+      ref      missed: -
+      b12llff  missed: -
+      floor    missed: -
+      ref.r2   missed: -
+      ref2t    missed: -
+  ifeval/2246                              t0_mode_T0 0 (eos, 816 tok)  ref 1 (eos, 610 tok, cap 1024)  first diff 9  b12llff 1  floor 1  ref.r2 1  ref2t 1
+      t0_mode_T0 missed: detectable_content:number_placeholders
+      ref      missed: -
+      b12llff  missed: -
+      floor    missed: -
+      ref.r2   missed: -
+      ref2t    missed: -
+  ifeval/2497                              t0_mode_T0 0 (eos, 51 tok)  ref 1 (eos, 53 tok, cap 1024)  first diff 0  b12llff 0  floor 0  ref.r2 1  ref2t 1
+      t0_mode_T0 missed: detectable_format:number_highlighted_sections
+      ref      missed: -
+      b12llff  missed: detectable_format:number_highlighted_sections
+      floor    missed: detectable_format:number_highlighted_sections
+      ref.r2   missed: -
+      ref2t    missed: -
+  ifeval/2943                              t0_mode_T0 0 (eos, 50 tok)  ref 1 (eos, 133 tok, cap 1024)  first diff 4  b12llff 1  floor 1  ref.r2 1  ref2t 1
+      t0_mode_T0 missed: keywords:frequency
+      ref      missed: -
+      b12llff  missed: -
+      floor    missed: -
+      ref.r2   missed: -
+      ref2t    missed: -
+  ifeval/2997                              t0_mode_T0 1 (eos, 218 tok)  ref 0 (eos, 271 tok, cap 1024)  first diff 0  b12llff 1  floor 0  ref.r2 0  ref2t 0
+      t0_mode_T0 missed: -
+      ref      missed: keywords:frequency
+      b12llff  missed: -
+      floor    missed: keywords:frequency
+      ref.r2   missed: keywords:frequency
+      ref2t    missed: keywords:frequency
+  ifeval/3089                              t0_mode_T0 0 (eos, 901 tok)  ref 1 (eos, 432 tok, cap 1024)  first diff 7  b12llff 1  floor 1  ref.r2 1  ref2t 1
+      t0_mode_T0 missed: length_constraints:number_sentences
+      ref      missed: -
+      b12llff  missed: -
+      floor    missed: -
+      ref.r2   missed: -
+      ref2t    missed: -
+  ifeval/3608                              t0_mode_T0 0 (eos, 194 tok)  ref 1 (eos, 126 tok, cap 1024)  first diff 7  b12llff 1  floor 1  ref.r2 1  ref2t 1
+      t0_mode_T0 missed: keywords:letter_frequency
+      ref      missed: -
+      b12llff  missed: -
+      floor    missed: -
+      ref.r2   missed: -
+      ref2t    missed: -
+   items one arm alone gets wrong (all 5 others right) / alone right (all others wrong)
+  t0_mode_T0 alone wrong 6 ['ifeval/1051', 'ifeval/1954', 'ifeval/2246', 'ifeval/2943', 'ifeval/3089', 'ifeval/3608'], alone right 0 []
+  ref      alone wrong 0 [], alone right 0 []
+  b12llff  alone wrong 3 ['ifeval/2439', 'ifeval/3326', 'ifeval/3409'], alone right 0 []
+  floor    alone wrong 1 ['ifeval/3280'], alone right 0 []
+  ref.r2   alone wrong 0 [], alone right 0 []
+  ref2t    alone wrong 0 [], alone right 0 []
+Load from ground-truth from /Users/kamen/Library/Caches/evalplus/fe585eb4df8c88d844eeb463ea4d0302.pkl
+
+== humaneval: 60 rows; % correct: t0_mode_T0 80.0, ref 91.7, b12llff 91.7, floor 95.0, ref.r2 91.7, ref2t 95.0
+   vs ref: token-identical 21/60; first divergence median 133, min 8
+   discordant t0_mode_T0 vs ref (1 = correct); first diff = token where t0_mode_T0 leaves ref
+  humaneval/HumanEval/101                  t0_mode_T0 0 (eos, 146 tok)  ref 1 (eos, 180 tok, cap 768)  first diff 125  b12llff 1  floor 1  ref.r2 1  ref2t 1
+  humaneval/HumanEval/127                  t0_mode_T0 0 (length, 768 tok)  ref 1 (eos, 495 tok, cap 768)  first diff 310  b12llff 1  floor 1  ref.r2 1  ref2t 1
+  humaneval/HumanEval/134                  t0_mode_T0 0 (eos, 332 tok)  ref 1 (eos, 342 tok, cap 768)  first diff 149  b12llff 1  floor 1  ref.r2 1  ref2t 1
+  humaneval/HumanEval/143                  t0_mode_T0 0 (eos, 306 tok)  ref 1 (eos, 281 tok, cap 768)  first diff 208  b12llff 1  floor 1  ref.r2 1  ref2t 1
+  humaneval/HumanEval/154                  t0_mode_T0 0 (eos, 188 tok)  ref 1 (eos, 190 tok, cap 768)  first diff 8  b12llff 1  floor 1  ref.r2 1  ref2t 1
+  humaneval/HumanEval/157                  t0_mode_T0 0 (length, 768 tok)  ref 1 (eos, 233 tok, cap 768)  first diff 133  b12llff 1  floor 1  ref.r2 1  ref2t 1
+  humaneval/HumanEval/75                   t0_mode_T0 0 (length, 768 tok)  ref 1 (eos, 368 tok, cap 768)  first diff 104  b12llff 1  floor 1  ref.r2 1  ref2t 1
+   items one arm alone gets wrong (all 5 others right) / alone right (all others wrong)
+  t0_mode_T0 alone wrong 7 ['humaneval/HumanEval/101', 'humaneval/HumanEval/127', 'humaneval/HumanEval/134', 'humaneval/HumanEval/143', 'humaneval/HumanEval/154', 'humaneval/HumanEval/157', 'humaneval/HumanEval/75'], alone right 0 []
+  ref      alone wrong 0 [], alone right 0 []
+  b12llff  alone wrong 0 [], alone right 0 []
+  floor    alone wrong 0 [], alone right 0 []
+  ref.r2   alone wrong 0 [], alone right 0 []
+  ref2t    alone wrong 0 [], alone right 0 []
+
+== rough AR speed per set (tokens / (row seconds - heat pause)); shared GPU, not an A/B
+  math      t0_mode_T0 16.46 tok/s (36178 tok), ref 16.57 tok/s (35298 tok)
+  ifeval    t0_mode_T0 8.45 tok/s (34823 tok), ref 16.23 tok/s (29496 tok)
+  humaneval t0_mode_T0 16.06 tok/s (15321 tok), ref 13.50 tok/s (14169 tok)

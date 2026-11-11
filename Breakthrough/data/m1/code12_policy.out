@@ -1,0 +1,8 @@
+code12 eviction policies (12 GB pools: C_m 51 base / C_l 32 sidecar per layer; code windows 12; live checks; MB per kept token (GB per check), vs LRU)
+| rule | LRU | LIP | LRU2 | LFUd0.5 | LFUd0.8 | LFUd0.9 | PIN | OPT |
+|---|---|---|---|---|---|---|---|---|
+| QOM0 | 152.1 (1.20) +0% | 148.9 (1.18) -2% | 144.5 (1.14) -5% | 150.3 (1.19) -1% | 145.2 (1.15) -5% | 142.6 (1.13) -6% | 157.2 (1.24) +3% | 93.2 (0.74) -39% |
+| QOM0+ball | 95.9 (0.76) +0% | 95.9 (0.76) +0% | 91.3 (0.72) -5% | 94.7 (0.75) -1% | 92.0 (0.73) -4% | 90.4 (0.72) -6% | 100.5 (0.80) +5% | 54.2 (0.43) -43% |
+| EXACT | 589.5 (4.66) +0% | 449.6 (3.56) -24% | 585.3 (4.63) -1% | 587.5 (4.65) -0% | 584.7 (4.63) -1% | 583.6 (4.62) -1% | 540.0 (4.27) -8% | 351.2 (2.78) -40% |
+check: LRU here vs bytes10_core.simulate LRU (code12_replay.out): QOM0 162.5, EXACT 636.8, QOM0+ball 101.8
+done in 148 s

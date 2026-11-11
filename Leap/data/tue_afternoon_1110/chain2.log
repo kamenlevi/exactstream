@@ -1,0 +1,25 @@
+14:05:58 GO: NO-SWAP 51 GB, swap 7062 MB
+14:07:16   24 GB 10k default: whole decode 23.5 tok/s | whole request 1.0 tok/s | first token 60.44 s (60.44-60.44) | lifetime peak 25.82 GB | 1 prompt(s), 64 tokens, process wall 76 s (load + warm-up | swap 7062 MB
+14:07:59   24 GB 10k pfa: whole decode 23.3 tok/s | whole request 2.4 tok/s | first token 23.74 s (23.74-23.74) | lifetime peak 26.54 GB | 1 prompt(s), 64 tokens, process wall 39 s (load + warm-up | swap 7062 MB
+14:11:33   24 GB 30k default: whole decode 18.7 tok/s | whole request 0.3 tok/s | first token 194.95 s (194.95-194.95) | lifetime peak 28.17 GB | 1 prompt(s), 64 tokens, process wall 211 s (load + war | swap 7062 MB
+14:13:03   24 GB 30k pfa: whole decode 17.4 tok/s | whole request 0.8 tok/s | first token 71.73 s (71.73-71.73) | lifetime peak 30.60 GB | 1 prompt(s), 64 tokens, process wall 88 s (load + warm-up | swap 7062 MB
+14:13:03 kernel check:
+layer 1: hidden 2560; router bits 8 gs 64; shared gate bits 4; shared expert bits 4 / 4; MLX 0.32.2, applegpu_g17s
+M 5412 (30K, TOK 8192: FAIL) = 1024+1024+1024+1024+1024+292: router (N=512): 292 of 5412 rows DIFFER; shared expert gate (N=1): 3302 of 5412 rows DIFFER; shared expert MLP: 292 of 5412 rows DIFFER
+M 4096 (30K, TOK 4096: FAIL) = 1024+1024+1024+1024: router (N=512): EQUAL; shared expert gate (N=1): 2613 of 4096 rows DIFFER; shared expert MLP: EQUAL
+M 1316 (30K, TOK 4096: FAIL) = 1024+292: router (N=512): 292 of 1316 rows DIFFER; shared expert gate (N=1): 190 of 1316 rows DIFFER; shared expert MLP: 292 of 1316 rows DIFFER
+M 8192 (10-25K: pass) = 1024+1024+1024+1024+1024+1024+1024+1024: router (N=512): EQUAL; shared expert gate (N=1): 5050 of 8192 rows DIFFER; shared expert MLP: EQUAL
+M 1796 (10K: pass) = 1024+772: router (N=512): EQUAL; shared expert gate (N=1): 1241 of 1796 rows DIFFER; shared expert MLP: EQUAL
+M 6810 (15K: pass) = 1024+1024+1024+1024+1024+1024+666: router (N=512): EQUAL; shared expert gate (N=1): 4202 of 6810 rows DIFFER; shared expert MLP: EQUAL
+M 3619 (20K: pass) = 1024+1024+1024+547: router (N=512): EQUAL; shared expert gate (N=1): 2340 of 3619 rows DIFFER; shared expert MLP: EQUAL
+M 427 (25K, one chunk) = 427: router (N=512): EQUAL; shared expert gate (N=1): EQUAL; shared expert MLP: EQUAL
+14:13:03 kernel check, layer 30:
+M 5412 (30K, TOK 8192: FAIL) = 1024+1024+1024+1024+1024+292: router (N=512): 292 of 5412 rows DIFFER; shared expert gate (N=1): 3365 of 5412 rows DIFFER; shared expert MLP: 292 of 5412 rows DIFFER
+M 4096 (30K, TOK 4096: FAIL) = 1024+1024+1024+1024: router (N=512): EQUAL; shared expert gate (N=1): 2667 of 4096 rows DIFFER; shared expert MLP: EQUAL
+M 1316 (30K, TOK 4096: FAIL) = 1024+292: router (N=512): 292 of 1316 rows DIFFER; shared expert gate (N=1): 194 of 1316 rows DIFFER; shared expert MLP: 292 of 1316 rows DIFFER
+M 8192 (10-25K: pass) = 1024+1024+1024+1024+1024+1024+1024+1024: router (N=512): EQUAL; shared expert gate (N=1): 5079 of 8192 rows DIFFER; shared expert MLP: EQUAL
+M 1796 (10K: pass) = 1024+772: router (N=512): EQUAL; shared expert gate (N=1): 1237 of 1796 rows DIFFER; shared expert MLP: EQUAL
+M 6810 (15K: pass) = 1024+1024+1024+1024+1024+1024+666: router (N=512): EQUAL; shared expert gate (N=1): 4246 of 6810 rows DIFFER; shared expert MLP: EQUAL
+M 3619 (20K: pass) = 1024+1024+1024+547: router (N=512): EQUAL; shared expert gate (N=1): 2404 of 3619 rows DIFFER; shared expert MLP: EQUAL
+M 427 (25K, one chunk) = 427: router (N=512): EQUAL; shared expert gate (N=1): EQUAL; shared expert MLP: EQUAL
+14:13:03 chain2 end: NO-SWAP 50 GB, swap 7062 MB (start 7062)

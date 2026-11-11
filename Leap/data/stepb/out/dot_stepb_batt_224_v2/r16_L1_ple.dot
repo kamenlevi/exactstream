@@ -1,0 +1,220 @@
+digraph {
+{ rank=source; "A"; }
+{ rank=source; "B"; }
+{ 33655112904 [label ="View bfloat16", shape=rectangle]; }
+"B" -> 33655112904
+{ "C"; }
+33655112904 -> "C"
+{ rank=source; "D"; }
+{ 33655114184 [label ="View bfloat16", shape=rectangle]; }
+"D" -> 33655114184
+{ "E"; }
+33655114184 -> "E"
+{ 33595398072 [label ="Quantize", shape=rectangle]; }
+"A" -> 33595398072
+"C" -> 33595398072
+"E" -> 33595398072
+{ "F"; }
+33595398072 -> "F"
+{ 33632283416 [label ="Reshape", shape=rectangle]; }
+"F" -> 33632283416
+{ "G"; }
+33632283416 -> "G"
+{ 33553559128 [label ="Flatten", shape=rectangle]; }
+"G" -> 33553559128
+{ "H"; }
+33553559128 -> "H"
+{ rank=source; "I"; }
+{ 33511035528 [label ="Transpose", shape=rectangle]; }
+"I" -> 33511035528
+{ "J"; }
+33511035528 -> "J"
+{ 33674863928 [label ="Matmul", shape=rectangle]; }
+"H" -> 33674863928
+"J" -> 33674863928
+{ "K"; }
+33674863928 -> "K"
+{ 33546063000 [label ="Unflatten", shape=rectangle]; }
+"K" -> 33546063000
+{ "L"; }
+33546063000 -> "L"
+{ 33511038968 [label ="ExpandDims", shape=rectangle]; }
+"L" -> 33511038968
+{ "M"; }
+33511038968 -> "M"
+{ 33553559192 [label ="Flatten", shape=rectangle]; }
+"G" -> 33553559192
+{ "N"; }
+33553559192 -> "N"
+{ rank=source; "O"; }
+{ 33511031608 [label ="Transpose", shape=rectangle]; }
+"O" -> 33511031608
+{ "P"; }
+33511031608 -> "P"
+{ 33674867768 [label ="Matmul", shape=rectangle]; }
+"N" -> 33674867768
+"P" -> 33674867768
+{ "Q"; }
+33674867768 -> "Q"
+{ 33546063128 [label ="Unflatten", shape=rectangle]; }
+"Q" -> 33546063128
+{ "R"; }
+33546063128 -> "R"
+{ 33632285976 [label ="Reshape", shape=rectangle]; }
+"R" -> 33632285976
+{ "S"; }
+33632285976 -> "S"
+{ rank=source; "T"; }
+{ 33672337240 [label ="RMSNorm", shape=rectangle]; }
+"S" -> 33672337240
+"T" -> 33672337240
+{ "U"; }
+33672337240 -> "U"
+{ 33632274072 [label ="Reshape", shape=rectangle]; }
+"U" -> 33632274072
+{ "V"; }
+33632274072 -> "V"
+{ rank=source; "W"; }
+{ 33546226584 [label ="Broadcast", shape=rectangle]; }
+"W" -> 33546226584
+{ "X"; }
+33546226584 -> "X"
+{ 33515269016 [label ="Multiply", shape=rectangle]; }
+"V" -> 33515269016
+"X" -> 33515269016
+{ "Y"; }
+33515269016 -> "Y"
+{ 33632275992 [label ="Reshape", shape=rectangle]; }
+"Y" -> 33632275992
+{ "Z"; }
+33632275992 -> "Z"
+{ rank=source; "AA"; }
+{ 33632283544 [label ="Reshape", shape=rectangle]; }
+"AA" -> 33632283544
+{ "AB"; }
+33632283544 -> "AB"
+{ rank=source; "AC"; }
+{ 33672338488 [label ="RMSNorm", shape=rectangle]; }
+"AB" -> 33672338488
+"AC" -> 33672338488
+{ "AD"; }
+33672338488 -> "AD"
+{ 33632280856 [label ="Reshape", shape=rectangle]; }
+"AD" -> 33632280856
+{ "AE"; }
+33632280856 -> "AE"
+{ rank=source; "AF"; }
+{ 33546224024 [label ="Broadcast", shape=rectangle]; }
+"AF" -> 33546224024
+{ "AG"; }
+33546224024 -> "AG"
+{ 33515261960 [label ="Multiply", shape=rectangle]; }
+"AE" -> 33515261960
+"AG" -> 33515261960
+{ "AH"; }
+33515261960 -> "AH"
+{ 33632286488 [label ="Reshape", shape=rectangle]; }
+"AH" -> 33632286488
+{ "AI"; }
+33632286488 -> "AI"
+{ 33515258984 [label ="Multiply", shape=rectangle]; }
+"Z" -> 33515258984
+"AI" -> 33515258984
+{ "AJ"; }
+33515258984 -> "AJ"
+{ 33629597272 [label ="Sum", shape=rectangle]; }
+"AJ" -> 33629597272
+{ "AK"; }
+33629597272 -> "AK"
+{ rank=source; "AL"; }
+{ 33546229528 [label ="Broadcast", shape=rectangle]; }
+"AL" -> 33546229528
+{ "AM"; }
+33546229528 -> "AM"
+{ 33515270168 [label ="Divide", shape=rectangle]; }
+"AK" -> 33515270168
+"AM" -> 33515270168
+{ "AN"; }
+33515270168 -> "AN"
+{ 33667266552 [label ="Abs", shape=rectangle]; }
+"AN" -> 33667266552
+{ "AO"; }
+33667266552 -> "AO"
+{ rank=source; "AP"; }
+{ 33546225432 [label ="Broadcast", shape=rectangle]; }
+"AP" -> 33546225432
+{ "AQ"; }
+33546225432 -> "AQ"
+{ 33666297400 [label ="Maximum", shape=rectangle]; }
+"AO" -> 33666297400
+"AQ" -> 33666297400
+{ "AR"; }
+33666297400 -> "AR"
+{ 33667267704 [label ="Sqrt", shape=rectangle]; }
+"AR" -> 33667267704
+{ "AS"; }
+33667267704 -> "AS"
+{ 33674858168 [label ="Sign", shape=rectangle]; }
+"AN" -> 33674858168
+{ "AT"; }
+33674858168 -> "AT"
+{ 33515265032 [label ="Multiply", shape=rectangle]; }
+"AS" -> 33515265032
+"AT" -> 33515265032
+{ "AU"; }
+33515265032 -> "AU"
+{ 33511247128 [label ="CompiledBroadcastAsTypeAsTypeSigmoidBroadcastMultiply", shape=rectangle]; }
+"M" -> 33511247128
+"AU" -> 33511247128
+{ "AV"; }
+33511247128 -> "AV"
+{ 33632279448 [label ="Reshape", shape=rectangle]; }
+"AV" -> 33632279448
+{ "AW"; }
+33632279448 -> "AW"
+{ rank=source; "AX"; }
+{ 33632281624 [label ="Reshape", shape=rectangle]; }
+"AW" -> 33632281624
+{ "AY"; }
+33632281624 -> "AY"
+{ rank=source; "AZ"; }
+{ 33672337912 [label ="RMSNorm", shape=rectangle]; }
+"AY" -> 33672337912
+"AZ" -> 33672337912
+{ "BA"; }
+33672337912 -> "BA"
+{ 33632283672 [label ="Reshape", shape=rectangle]; }
+"BA" -> 33632283672
+{ "BB"; }
+33632283672 -> "BB"
+{ rank=source; "BC"; }
+{ 33546227096 [label ="Broadcast", shape=rectangle]; }
+"BC" -> 33546227096
+{ "BD"; }
+33546227096 -> "BD"
+{ 33515260424 [label ="Multiply", shape=rectangle]; }
+"BB" -> 33515260424
+"BD" -> 33515260424
+{ "BE"; }
+33515260424 -> "BE"
+{ 33666290968 [label ="Concatenate", shape=rectangle]; }
+"AX" -> 33666290968
+"BE" -> 33666290968
+{ "BF"; }
+33666290968 -> "BF"
+{ rank=source; "BG"; }
+{ 33609551064 [label ="Convolution", shape=rectangle]; }
+"BF" -> 33609551064
+"BG" -> 33609551064
+{ "BH"; }
+33609551064 -> "BH"
+{ 33593593112 [label ="CompiledSigmoidBroadcastBroadcastMultiply", shape=rectangle]; }
+"BH" -> 33593593112
+{ "BI"; }
+33593593112 -> "BI"
+{ 33666291784 [label ="Add", shape=rectangle]; }
+"AW" -> 33666291784
+"BI" -> 33666291784
+{ rank=sink; "BJ"; }
+33666291784 -> "BJ"
+}

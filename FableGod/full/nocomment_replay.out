@@ -1,0 +1,28 @@
+== code: 24 windows (24 with a code fence seen by the tagger), 666 checks, 7007 tested rows
+base: kept drafted rows per check 8.57 (+1 bonus = 9.57); first-miss hazard per tested row 0.0568
+generated tokens 6351: comment tokens 844 (13.3 %), comment-ending newlines 54 (0.9 %), comment-only lines 63
+tokens a comment-free answer drops: 907 = 14.3 % of generated tokens (comment tokens + one newline per comment-only line)
+tested rows: comment 1168 (16.7 %) hazard 0.1687; comment-end newline 72 hazard 0.1389; code after a comment line 363 hazard 0.0854; other code 5404 hazard 0.0296
+first misses: 398; on comment tokens or the comment's end 207 = 52.0 %
+pure-code checks (no comment in the truth or the draft): 396 (59 % of checks), kept 11.73 (+1 = 12.73) = x1.330 of base; all 15 right 62 %
+pure-code hazard by depth 1-15: 0.000 0.010 0.005 0.018 0.005 0.010 0.021 0.038 0.025 0.038 0.042 0.063 0.070 0.079 0.105
+  chain on the pure-code hazards: 16 rows 13.89; 32 rows 19.09 (rows 16-31 at x1.0 the depth 11-15 hazard 0.072)
+  chain on the pure-code hazards: 16 rows 13.89; 32 rows 17.90 (rows 16-31 at x1.5 the depth 11-15 hazard 0.072)
+  chain on the pure-code hazards: 16 rows 13.89; 32 rows 17.04 (rows 16-31 at x2.0 the depth 11-15 hazard 0.072)
+strip (draft minus its comments vs truth minus comments, no refill; anchors in comments dropped): 454 checks, kept 10.81 of 13.69 drafted code rows (+1 = 11.81) = x1.234 of base
+code-row hazard 0.0331 vs all-row 0.0568; if code after a comment line took the 'other code' hazard x1 .. its own: range 0.0296 .. 0.0331
+
+== mbpp: 100 windows (100 with a code fence seen by the tagger), 2630 checks, 20039 tested rows
+base: kept drafted rows per check 4.94 (+1 bonus = 5.94); first-miss hazard per tested row 0.1152
+generated tokens 15541: comment tokens 3084 (19.8 %), comment-ending newlines 196 (1.3 %), comment-only lines 205
+tokens a comment-free answer drops: 3289 = 21.2 % of generated tokens (comment tokens + one newline per comment-only line)
+tested rows: comment 4306 (21.5 %) hazard 0.1712; comment-end newline 263 hazard 0.1293; code after a comment line 1215 hazard 0.1111; other code 14255 hazard 0.0984
+first misses: 2308; on comment tokens or the comment's end 771 = 33.4 %
+pure-code checks (no comment in the truth or the draft): 1608 (61 % of checks), kept 5.74 (+1 = 6.74) = x1.134 of base; all 15 right 18 %
+pure-code hazard by depth 1-15: 0.000 0.061 0.085 0.101 0.103 0.114 0.137 0.127 0.140 0.163 0.148 0.167 0.182 0.212 0.233
+  chain on the pure-code hazards: 16 rows 8.58; 32 rows 9.07 (rows 16-31 at x1.0 the depth 11-15 hazard 0.188)
+  chain on the pure-code hazards: 16 rows 8.58; 32 rows 8.87 (rows 16-31 at x1.5 the depth 11-15 hazard 0.188)
+  chain on the pure-code hazards: 16 rows 8.58; 32 rows 8.77 (rows 16-31 at x2.0 the depth 11-15 hazard 0.188)
+strip (draft minus its comments vs truth minus comments, no refill; anchors in comments dropped): 1847 checks, kept 5.56 of 13.77 drafted code rows (+1 = 6.56) = x1.104 of base
+code-row hazard 0.0994 vs all-row 0.1152; if code after a comment line took the 'other code' hazard x1 .. its own: range 0.0984 .. 0.0994
+

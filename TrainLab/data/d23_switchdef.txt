@@ -1,0 +1,22 @@
+D-23 SWITCHDEF: the 45 GB default (REF2-T tiers 4433333333 / 3c, C_l 112; gate MAXK 160, ext build_next; TIER_COMBINE False, OOO False; truncation t 0.3) at C 224 with the MTP head b3; loaded in 2 s, 35.5 GB active; arms ('dfl', 'mtp7'); CAP 256
+  warm-up (discarded): gsm8k/708 [dfl] 64 tokens, 16.5 tok/s
+  warm-up (discarded): gsm8k/708 [mtp7] 64 tokens, 40.7 tok/s
+  ifeval/3407 [chat] dfl: 132 tokens, 22.1 tok/s (steady 23.5), kept 2.13 of 3.1 rows, median cycle 87.3 ms (draft 11.3 + check 76.1); misses 80, SSD 24.2 ms per check; prefill 3.0 s; == REF2-T AR: None
+  ifeval/3407 [chat] mtp7: 132 tokens, 24.4 tok/s (steady 26.0), kept 2.52 of 8.0 rows, median cycle 96.0 ms (draft 17.4 + check 78.8); misses 39, SSD 13.7 ms per check; prefill 3.0 s + MTP history 0.03 s; == REF2-T AR: None
+  agent/bash19 [agent] mtp7: 114 tokens, 15.2 tok/s (steady 26.0), kept 4.60 of 8.0 rows, median cycle 163.8 ms (draft 19.7 + check 144.3); misses 284, SSD 60.5 ms per check; prefill 75.4 s + MTP history 0.31 s; == REF2-T AR: None
+  agent/bash19 [agent] dfl: 114 tokens, 13.8 tok/s (steady 24.5), kept 2.85 of 6.2 rows, median cycle 111.1 ms (draft 13.4 + check 97.6); misses 68, SSD 21.6 ms per check; prefill 76.5 s; == REF2-T AR: None
+  multi/es9 [chat] dfl: 256 tokens, 24.1 tok/s (steady 24.4), kept 2.44 of 4.3 rows, median cycle 96.3 ms (draft 11.6 + check 84.7); misses 90, SSD 26.3 ms per check; prefill 1.9 s; == REF2-T AR: None
+  multi/es9 [chat] mtp7: 256 tokens, 24.1 tok/s (steady 24.5), kept 2.98 of 8.0 rows, median cycle 119.6 ms (draft 17.5 + check 101.6); misses 144, SSD 34.1 ms per check; prefill 2.0 s + MTP history 0.22 s; == REF2-T AR: None
+  humaneval/HumanEval/19 [code] mtp7: 256 tokens, 40.6 tok/s (steady 44.4), kept 7.03 of 8.0 rows, median cycle 155.6 ms (draft 17.8 + check 135.9); misses 333, SSD 68.9 ms per check; prefill 4.1 s + MTP history 0.03 s; == REF2-T AR: True
+  humaneval/HumanEval/19 [code] dfl: 256 tokens, 56.9 tok/s (steady 60.7), kept 9.21 of 10.6 rows, median cycle 152.0 ms (draft 11.8 + check 137.8); misses 276, SSD 55.3 ms per check; prefill 4.1 s; == REF2-T AR: True
+  math500/test/number_theory/427.json [math] dfl: 256 tokens, 44.0 tok/s (steady 47.6), kept 7.50 of 10.9 rows, median cycle 160.5 ms (draft 11.7 + check 147.7); misses 336, SSD 68.7 ms per check; prefill 2.9 s; == REF2-T AR: None
+  math500/test/number_theory/427.json [math] mtp7: 256 tokens, 48.7 tok/s (steady 52.0), kept 6.42 of 8.0 rows, median cycle 121.5 ms (draft 17.7 + check 104.6); misses 178, SSD 39.6 ms per check; prefill 2.9 s + MTP history 0.04 s; == REF2-T AR: None
+  agent/edit02 [agent] mtp7: 256 tokens, 24.8 tok/s (steady 39.5), kept 7.03 of 8.0 rows, median cycle 180.6 ms (draft 20.1 + check 159.6); misses 363, SSD 74.5 ms per check; prefill 104.9 s + MTP history 0.32 s; == REF2-T AR: None
+  agent/edit02 [agent] dfl: 256 tokens, 25.2 tok/s (steady 41.1), kept 6.54 of 9.5 rows, median cycle 173.1 ms (draft 13.3 + check 162.5); misses 244, SSD 55.2 ms per check; prefill 103.0 s; == REF2-T AR: None
+D-23 read-out (C 224, head b3): 18 prompts with both arms, 18 clean (no pause / invalid / cut); every token equal across arms: True; == REF2-T AR where a file exists: [('humaneval/HumanEval/16', True), ('humaneval/HumanEval/16', True), ('humaneval/HumanEval/19', True), ('humaneval/HumanEval/19', True)]
+  code   (4): mean tok/s dfl 50.2 -> mtp7 47.0 (-6.5 %), geo-mean ratio 0.908, mtp7 faster on 1; kept per check 11.20 of 12.9 rows -> 7.23 of 8
+  math   (4): mean tok/s dfl 43.7 -> mtp7 40.7 (-6.7 %), geo-mean ratio 0.921, mtp7 faster on 2; kept per check 6.76 of 9.2 rows -> 5.81 of 8
+  chat   (6): mean tok/s dfl 26.6 -> mtp7 23.5 (-11.8 %), geo-mean ratio 0.918, mtp7 faster on 3; kept per check 2.71 of 3.9 rows -> 3.07 of 8
+  agent  (4): mean tok/s dfl 20.2 -> mtp7 21.3 (+5.6 %), geo-mean ratio 1.008, mtp7 faster on 2; kept per check 4.92 of 7.4 rows -> 5.50 of 8
+  whole set (18 prompts, 3793 tokens): dfl (the default) 29.4 tok/s, mtp7 everywhere 27.8, the switch 28.6 = -2.7 % over the default -> D-23 verdict (PASS >= +10 %, KILL < +4 %): KILL
+  footprint now 39.1 GB, lifetime peak 42.4 GB; 598 s

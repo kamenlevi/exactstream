@@ -1,0 +1,363 @@
+"""Decision map of the 125B (FableGod mission 9): teacher-forced replays with one part of the computation perturbed,
+measuring how often the ARGMAX changes, by domain (code / IFEval / multi) and by the 125B's own confidence class
+(sure p1 >= 0.99 / tie p1 - p2 <= 0.1 / mid). Runs inside the BigMoE venv like ~/TrainLab/sticky/d02a_extract.py.
+
+ADAPT (the only names a runner must check, all taken from ref2.py / d02a_extract.py as read on 2026-11-01):
+  A1 model loading: bigmoe.loader.load_streamed(...) with the 45 GB preset, as d02a_extract.py does (copy its call).
+  A2 forward: FORWARD(model, ids) -> logits [T, V] for a token window, chunked prefill with a fresh cache; d02a_extract's
+     patched _text / mtplx.generation pattern. Replace the body of forward_logits() with that call.
+  A3 layer discovery: model.layers[i] holds Q.GatedDeltaNet or Q.Attention (mixer), Q.GatedResidual (HC read),
+     Q._FusedGateUpSwitchGLU or SL.SwitchGLU (routed experts), and a shared-expert module whose attribute name contains
+     "shared". discover_layers() walks modules by class; fix the names if the walk prints "missing".
+  A4 windows: d02b_walk_{code,d02a_ifeval,d02a_multi}.npz hold names, {s}_ids, {s}_off, {s}_gen (prompt | greedy answer).
+  A5 the routed-experts call signature: __call__(self, x, indices) (ref2.py _switch); the expert weights are per-row
+     top-10 ids in `indices` with gate scores applied inside. Rank cuts are applied by masking indices (see dm_ablations).
+
+WIRED (Breakthrough, Mon 2026-11-02 01:xx; Fable's originals kept as *.orig):
+  A1 d02a_extract.py's own call and env: load_streamed(~/BigMoE/models/bare, C 51, mtp=False), compiled paths off, PAUSE-
+     aware passes (Leap's pausewait). That is D-02a's configuration (4-bit experts, exact prefill, ~20 GB peak), NOT the
+     3-bit-tier 45 GB preset: the gate below compares with D-02a's stored top-1, which only D-02a's own configuration can
+     reproduce; C only changes speed in an exact prefill. DM_C overrides C.
+  A2 d02a_extract.py's _text hook: cold G.restore_or_prefill_prompt_state per window (no session bank, so no prefix
+     restore), the lm_head on each 256-row slice of the final hidden, top-32 by argpartition + sort as D-02a, top-8 kept.
+     run_window() returns (top-8 ids, log-probs) for rows 0..N-2 (row j predicts token j+1).
+  A3 by attribute: layers[i].linear_attn (GDN) / .self_attn (attention), .attn_hyper_connection + .mlp_hyper_connection
+     (both HC reads), .mlp (SparseMoeBlock: routed experts + shared expert).
+  A4 as written (12 windows per set; all have off 0).
+  A5 WRONG in the original: the block's top-10 ids come from argpartition, in NO rank order, and the scores are applied
+     OUTSIDE the switch (moe_prefill_combine for >= 32-row chunks, the parent's (y * scores).sum for narrower ones), so
+     index masking would keep 2 arbitrary experts of the 10 and break the combine's shapes. MoE perturbations act on the
+     SCORES instead (PERT below): the wrapper ranks each row's 10 scores, zeroes ranks >= k ("mass": the kept experts
+     keep the model's own weights) or also rescales them to the row's original routed weight ("renorm"), then runs the
+     model's own combine. The dropped experts are still computed and weighted 0 (bit-exact zero contribution).
+"""
+import os, sys, json, time
+for _k, _v in (("MTPLX_NGRAM_PREWARM", "off"), ("MTPLX_COMPILED_VERIFY", "0"), ("MTPLX_QWEN4EXP_COMPILE", "0"),
+               ("MTPLX_COMPILED_GDN", "0"), ("MTPLX_COMPILE_AR_FORWARD", "0"), ("MTPLX_COMPILED_TARGET_PREFIX", "0")):
+    os.environ[_k] = _v                                  # = d02a_extract.py (A1)
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
+import numpy as np
+import mlx.core as mx
+sys.path.insert(0, os.path.expanduser("~/BigMoE"))
+sys.path.insert(1, os.path.expanduser("~/Leap/scripts"))      # pausewait (read-only import, as d02a_extract.py)
+sys.path.insert(2, os.path.expanduser("~/TrainLab/sticky"))
+from mtplx.models import qwen4_exp as Q
+from mtplx import generation as G
+import mtplx.kernels.qwen4_moe_prefill_combine as PC
+
+TD = os.path.expanduser("~/TrainLab/data")
+MD = os.path.expanduser("~/BigMoE/models/bare")
+OUT = os.path.expanduser(os.environ.get("DM_OUT", "~/FableGod/decision_map/out")); os.makedirs(OUT, exist_ok=True)
+SETS = [("code", "d02b_walk_code.npz"), ("ifeval", "d02b_walk_d02a_ifeval.npz"), ("multi", "d02b_walk_d02a_multi.npz")]
+TOPK = 8
+CHUNK = 512
+RT = {}
+
+def load_windows(max_per_set=12):
+    """[(domain, name, ids(np.int32), off, gen)] : positions >= gen+1 (the answer) are the measured ones."""
+    W = []
+    for dom, wf in SETS:
+        z = np.load(os.path.join(TD, wf))
+        for s, nm in enumerate(z["names"]):
+            if s >= max_per_set: break
+            W.append((dom, str(nm), z[f"{s}_ids"].astype(np.int32), int(z[f"{s}_off"]), int(z[f"{s}_gen"])))
+    return W
+
+def load_model():
+    """A1: d02a_extract.py's call (see WIRED). Returns (model, None); the runtime and streamer stay in RT."""
+    from bigmoe.loader import load_streamed
+    import pausewait                                     # noqa: F401 (BigMoE passes wait while PAUSE exists)
+    t0 = time.time()
+    rt, st = load_streamed(MD, int(os.environ.get("DM_C", "51")), mtp=False)
+    model = rt.model if hasattr(rt, "model") else rt
+    RT.update(rt=rt, st=st, head=model.language_model.lm_head)
+    print(f"[dm] loaded in {time.time() - t0:.0f}s (C {os.environ.get('DM_C', '51')})", flush=True)
+    return model, None
+
+# ---- A2: the capture hook (d02a_extract.py's _text) ------------------------------------------------------------
+REC = {"on": False, "tk": [], "lp": []}
+_text_call = Q.Qwen4ExpTextModel.__call__
+def _text(self, inputs, cache=None, input_embeddings=None):
+    out = _text_call(self, inputs, cache, input_embeddings)
+    if REC["on"]:
+        h = out[0]
+        for i in range(0, h.shape[0], 256):
+            lg = RT["head"](h[i:i + 256]).astype(mx.float32)
+            top = mx.argpartition(-lg, 31, axis=-1)[:, :32]
+            v = mx.take_along_axis(lg, top, axis=-1)
+            o = mx.argsort(-v, axis=-1)
+            top, v = mx.take_along_axis(top, o, axis=-1)[:, :TOPK], mx.take_along_axis(v, o, axis=-1)[:, :TOPK]
+            lp = v - mx.logsumexp(lg, axis=-1, keepdims=True)
+            mx.async_eval(top, lp)
+            REC["tk"].append(top.astype(mx.int32)); REC["lp"].append(lp)
+    return out
+Q.Qwen4ExpTextModel.__call__ = _text
+
+def forward_logits(model, ids):
+    raise NotImplementedError("wired as run_window(): the [T, V] logits are reduced to top-8 inside the hook (A2)")
+
+def run_window(model, ids):
+    """Cold teacher-forced prefill of ids; returns (top-8 ids int64 [N-1, 8], log-probs float32 [N-1, 8])."""
+    REC["tk"], REC["lp"] = [], []
+    PREV.clear(); CUR["pos"] = {}                          # reuse carries and row counters start fresh per window
+    REC["on"] = True
+    try:
+        G.restore_or_prefill_prompt_state(RT["rt"], [int(t) for t in ids], base_hidden_variant=None,
+                                          mtp_history_policy="cycle", capture_hidden=False)
+    finally:
+        REC["on"] = False
+    RT["st"].gate.check()
+    tk, lp = np.array(mx.concatenate(REC["tk"])).astype(np.int64), np.array(mx.concatenate(REC["lp"])).astype(np.float32)
+    N = len(ids)
+    assert tk.shape[0] in (N - 1, N), f"captured rows {tk.shape[0]}, want {N - 1}"
+    mx.clear_cache()
+    return tk[:N - 1], lp[:N - 1]
+
+def topk_stats(logits, k=TOPK):
+    lp = mx.log(mx.softmax(logits.astype(mx.float32), axis=-1))
+    o = mx.argsort(-lp, axis=-1)[:, :k]
+    v = mx.take_along_axis(lp, o, axis=-1)
+    return np.array(o).astype(np.int64), np.array(v).astype(np.float32)
+
+def classes(lp):
+    p1, p2 = np.exp(lp[:, 0]), np.exp(lp[:, 1])
+    c = np.where(p1 >= 0.99, 0, np.where(p1 - p2 <= 0.1, 1, 2))   # 0 sure, 1 tie, 2 mid
+    return c
+
+# ---- layer discovery and perturbation registry -----------------------------------------------------------------
+LAYERS = {}   # id(module) -> (layer_index, kind)
+ACTIVE = {}   # kind -> callable(layer_index, self, args, y_out) -> y_out' ; set by dm_ablations (att / gdn / hc)
+PREV = {}     # per (kind, layer) previous-position output for "reuse previous position" perturbations
+PERT = {}     # MoE block perturbation (A5): topk k, renorm, shared_zero, reuse (None / "all" / set of layers), q (bits)
+
+def discover_layers(model):
+    """A3: by attribute (see WIRED)."""
+    LAYERS.clear(); missing = []
+    layers = model.language_model.model.layers
+    for i, layer in enumerate(layers):
+        mix = getattr(layer, "linear_attn", None) or getattr(layer, "self_attn", None)
+        if isinstance(mix, Q.GatedDeltaNet): LAYERS[id(mix)] = (i, "gdn")
+        elif isinstance(mix, Q.Attention): LAYERS[id(mix)] = (i, "att")
+        else: missing.append((i, "mixer"))
+        for nm in ("attn_hyper_connection", "mlp_hyper_connection"):
+            m = getattr(layer, nm, None)
+            if isinstance(m, Q.GatedResidual): LAYERS[id(m)] = (i, "hc")
+            else: missing.append((i, nm))
+        if isinstance(getattr(layer, "mlp", None), Q.SparseMoeBlock): LAYERS[id(layer.mlp)] = (i, "moe")
+        else: missing.append((i, "mlp"))
+    kinds = {}
+    for i, k in LAYERS.values(): kinds[k] = kinds.get(k, 0) + 1
+    print(f"[dm] discover_layers: {len(layers)} layers, {kinds}; missing {missing[:8]}", flush=True)
+    assert not missing, missing
+    blk = layers[0].mlp
+    print(f"[dm] MoE block: top_k {blk.top_k}, norm_topk_prob {blk.norm_topk_prob!r}", flush=True)
+    return LAYERS
+
+def _moe_on():
+    return bool(PERT)
+
+def _rank_mask(scores, k):
+    order = mx.argsort(-scores.astype(mx.float32), axis=-1)
+    return mx.argsort(order, axis=-1) < k                 # rank of each of the row's 10 scores < k
+
+def _pert_scores(scores):
+    k = PERT.get("topk")
+    if not k: return scores
+    s = scores * _rank_mask(scores, k).astype(scores.dtype)
+    if PERT.get("renorm"):                                # keep the row's routed weight: x sum(all 10) / sum(kept)
+        s = (s.astype(mx.float32) * (scores.astype(mx.float32).sum(axis=-1, keepdims=True)
+                                     / s.astype(mx.float32).sum(axis=-1, keepdims=True))).astype(scores.dtype)
+    return s
+
+def _reuse_here(li):
+    r = PERT.get("reuse")
+    return r is not None and (r == "all" or li in r)
+
+def _shift(z, axis):
+    """Each position takes the previous position's value (position 0 of the call keeps its own)."""
+    n = z.shape[axis]
+    if n < 2: return z
+    a = mx.take(z, mx.array([0] + list(range(n - 1))), axis=axis)
+    return a
+
+def _fq(z, bits):
+    s = mx.max(mx.abs(z), axis=-1, keepdims=True) / (2 ** (bits - 1) - 1)
+    return mx.round(z / mx.maximum(s, 1e-12)) * s
+
+CUR = {"L": None, "pos": {}, "skip": None}
+
+def _reuse(li, z):
+    """Night 2 (Breakthrough, Mon 2026-11-02 07:xx): MoE routed output z [rows, D] of layer li for this call's rows, in
+    window order (CUR['pos'] counts each layer's rows since the window started, so chunks line up).
+    Lag k (PERT 'lag', default 1): every row t takes the COMPUTED output of row t - k of the window, carried across
+    chunk calls in PREV (rows t < k keep their own). Night 1's _shift restarted at each call; this does not.
+    Chain (PERT 'chain'): rows flagged in CUR['skip'] (the measured rows whose BASELINE class is sure, the 125B's own
+    class as an oracle) take the output of the last unflagged row, which computes as usual; the chain runs back across
+    calls, so a run of sure rows all reuse one computed row (what an engine that skips sure rows would see)."""
+    assert z.ndim == 2, z.shape
+    n = z.shape[0]
+    p0 = CUR["pos"].get(li, 0); CUR["pos"][li] = p0 + n
+    if PERT.get("chain"):
+        skip, s = CUR["skip"], np.zeros(n, bool)
+        if skip is not None:
+            m = max(0, min(n, len(skip) - p0)); s[:m] = skip[p0:p0 + m]
+        carry = PREV.get(("chain", li))                     # [1, D]: the last computed row of earlier calls
+        if not s.all(): PREV[("chain", li)] = z[int(np.nonzero(~s)[0][-1])][None]
+        if not s.any(): return z
+        idx = np.maximum.accumulate(np.where(~s, np.arange(n), -1))
+        if (idx < 0).any():
+            assert carry is not None, f"chain: layer {li} row {p0} skips with no computed row before it"
+            idx[idx < 0] = n; z_ext = mx.concatenate([z, carry.astype(z.dtype)], axis=0)
+        else: z_ext = z
+        return mx.take(z_ext, mx.array(idx.astype(np.int32)), axis=0)
+    k = int(PERT.get("lag", 1))
+    prev = PREV.get(("lag", li))                            # the last <= k computed rows of this window's earlier calls
+    m = 0 if prev is None else prev.shape[0]
+    z_ext = z if prev is None else mx.concatenate([prev.astype(z.dtype), z], axis=0)
+    if k: PREV[("lag", li)] = z_ext[-k:]
+    idx = np.arange(n) + m - k
+    idx[idx < 0] = (np.arange(n) + m)[idx < 0]             # window rows t < k keep their own output
+    return mx.take(z_ext, mx.array(idx.astype(np.int32)), axis=0)
+_combine = PC.moe_prefill_combine
+def _combine_p(y_sorted, inv_order, scores, shared):
+    """>= 32-row chunks (SparseMoeBlock._prefill_call imports this name at each call)."""
+    if not _moe_on(): return _combine(y_sorted, inv_order, scores, shared)
+    li = CUR["L"]
+    scores = _pert_scores(scores)
+    sh = shared * 0 if PERT.get("shared_zero") else shared
+    if _reuse_here(li) or PERT.get("q"):
+        routed = _combine(y_sorted, inv_order, scores, shared * 0)     # [rows, D]
+        if _reuse_here(li): routed = _reuse(li, routed)
+        if PERT.get("q"): routed = _fq(routed, PERT["q"])
+        return (routed + sh).astype(routed.dtype)
+    return _combine(y_sorted, inv_order, scores, sh)
+
+_ORIG = {}
+def install():
+    """att / gdn / hc: wrap the class __call__ once (ACTIVE[kind] for the layer index of `self`). MoE: wrap
+    SparseMoeBlock.__call__ (after BigMoE's own patches) and the prefill combine (PERT)."""
+    def wrap(cls, kind):
+        if (cls, kind) in _ORIG: return
+        orig = cls.__call__; _ORIG[(cls, kind)] = orig
+        def call(self, *a, **kw):
+            li = LAYERS.get(id(self), (None, None))[0]
+            pre = ACTIVE.get(kind + "_pre")
+            if pre is not None and li is not None: a = pre(li, self, a)
+            y = orig(self, *a, **kw)
+            post = ACTIVE.get(kind)
+            return post(li, self, a, y) if (post is not None and li is not None) else y
+        cls.__call__ = call
+    wrap(Q.GatedDeltaNet, "gdn"); wrap(Q.Attention, "att"); wrap(Q.GatedResidual, "hc")
+    if "moe" in _ORIG: return
+    orig = Q.SparseMoeBlock.__call__; _ORIG["moe"] = orig
+    def moe_call(self, x):
+        li = LAYERS.get(id(self), (None, None))[0]
+        CUR["L"] = li
+        if not _moe_on() or li is None or Q._moe_prefill_combine_applies(self, x):
+            return orig(self, x)                          # stock path; >= 32 rows meet _combine_p inside _prefill_call
+        # < 32-row chunks: the parent's own ops (mlx_lm Qwen3NextSparseMoeBlock) with the perturbed scores
+        gates = mx.softmax(self.gate(x), axis=-1, precise=True)
+        k = self.top_k
+        inds = mx.argpartition(gates, kth=-k, axis=-1)[..., -k:]
+        scores = mx.take_along_axis(gates, inds, axis=-1)
+        if self.norm_topk_prob:
+            scores = scores / scores.sum(axis=-1, keepdims=True)
+        y = self.switch_mlp(x, inds)
+        y = (y * _pert_scores(scores)[..., None]).sum(axis=-2)
+        if _reuse_here(li):
+            assert y.ndim == 2 or y.shape[0] == 1, y.shape     # one sequence: rows in window order
+            y = _reuse(li, y.reshape(-1, y.shape[-1])).reshape(y.shape)
+        if PERT.get("q"): y = _fq(y, PERT["q"])
+        shared = mx.sigmoid(self.shared_expert_gate(x)) * self.shared_expert(x)
+        if PERT.get("shared_zero"): shared = shared * 0
+        return y + shared
+    Q.SparseMoeBlock.__call__ = moe_call
+    PC.moe_prefill_combine = _combine_p
+
+def clear(): ACTIVE.clear(); PREV.clear(); PERT.clear()
+
+_BASE = {}
+def _chain_skip(nm, a, n):
+    """Chain mode's skip mask over the window's n rows: measured rows (j >= a) whose BASELINE class is sure."""
+    if not _BASE: _BASE.update(json.load(open(os.path.join(OUT, "baseline.json"))))
+    b = _BASE[nm]; assert b["a"] == a, (nm, b["a"], a)
+    c = classes(np.array(b["lp"]))
+    skip = np.zeros(n, bool); skip[a:a + len(c)] = c == 0
+    return bound_runs(skip, int(PERT.get("chain_max") or 0))
+
+def bound_runs(skip, S):
+    """Stage 2 (bounded chain, S >= 1): inside each run of skipping rows, every (S + 1)-th row computes instead (a
+    refresh), so no row reuses an output more than S rows old. S = 0: unbounded (stage 1's chain)."""
+    if not S: return skip
+    r = np.zeros(len(skip), int)                          # 1-based position inside the current run
+    for j in range(len(skip)): r[j] = (r[j - 1] + 1 if j else 1) if skip[j] else 0
+    return skip & (r % (S + 1) != 0)
+
+def measure(model, windows, name, setup):
+    """setup(): registers ACTIVE / PERT perturbations (or nothing for the baseline). Writes out/<name>.json with per-
+    position top-8 ids and log-probs for the answer positions."""
+    clear(); setup()
+    res = {}
+    t0 = time.time()
+    for dom, nm, ids, off, gen in windows:
+        a = gen + 1 - off                                   # first answer position inside ids
+        CUR["skip"] = _chain_skip(nm, a, len(ids)) if PERT.get("chain") else None
+        tk, lp = run_window(model, ids)
+        res[nm] = dict(dom=dom, a=int(a), off=int(off), tk=tk[a:].tolist(), lp=lp[a:].tolist())
+        extra = ""
+        if PERT.get("reuse") is not None:                   # every reused layer saw each row exactly once, in order
+            seen = {CUR["pos"].get(L) for L in (range(48) if PERT["reuse"] == "all" else PERT["reuse"])}
+            if not (len(seen) == 1 and next(iter(seen)) in (len(ids) - 1, len(ids))):
+                extra = f"; WARNING reuse row counts {sorted(seen, key=str)} for {len(ids)} ids (rows misaligned)"
+                res[nm]["warn"] = extra
+        if CUR["skip"] is not None:
+            s = CUR["skip"][a:]; runs = np.diff(np.flatnonzero(np.diff(np.r_[0, s.astype(np.int8), 0])))[::2]
+            extra += f"; chain skips {int(s.sum())}/{len(ids) - 1 - a} answer rows, longest run {int(runs.max()) if len(runs) else 0}"
+        print(f"{name} {dom} {nm} {len(ids) - 1 - a} positions {time.time() - t0:.0f}s{extra}", flush=True)
+    json.dump(res, open(os.path.join(OUT, name + ".json"), "w"))
+    clear()
+    return res
+
+def gate(base_name="baseline", need=0.999):
+    """Baseline top-1 vs D-02a's stored top-1 (ifeval / multi: ~/TrainLab/data/d02a/<name>; code: ~/Leap/data/l118_tgt,
+    D-02a's code reference) on every measured position. Writes out/gate.txt; returns (agreement, ok)."""
+    base = json.load(open(os.path.join(OUT, base_name + ".json")))
+    win = {nm: (ids, off) for dom, nm, ids, off, gen in load_windows(10 ** 6)}
+    eq = n = 0; per = {}
+    for nm, b in base.items():
+        f = os.path.join(os.path.expanduser("~/Leap/data/l118_tgt") if b["dom"] == "code" else os.path.join(TD, "d02a"), nm)
+        z = np.load(f)
+        ref = z["tk"][:, 0] if "tk" in z else z["top1"]
+        roff = int(z["off"]) if "off" in z else 0
+        ids, off = win[nm]                                    # the same text as the reference (absolute positions)
+        assert off == b["off"] and np.array_equal(np.asarray(z["ids"])[off - roff:off - roff + len(ids)], ids), nm
+        mine = np.array(b["tk"])[:, 0]
+        pos = b["off"] + b["a"] + np.arange(len(mine))       # absolute row index (row j predicts token j + 1)
+        r = ref[pos - roff]
+        e = int((r == mine).sum()); eq += e; n += len(mine)
+        d = per.setdefault(b["dom"], [0, 0]); d[0] += e; d[1] += len(mine)
+    ag = eq / max(n, 1)
+    txt = (f"GATE baseline vs D-02a stored top-1: {eq}/{n} = {100 * ag:.3f} % (need >= {100 * need:.1f} %): "
+           + ("PASS" if ag >= need else "FAIL") + "; " + ", ".join(f"{k} {v[0]}/{v[1]}" for k, v in per.items()))
+    open(os.path.join(OUT, "gate.txt"), "w").write(txt + "\n"); print(txt, flush=True)
+    return ag, ag >= need
+
+def report(base_name="baseline", names=None):
+    base = json.load(open(os.path.join(OUT, base_name + ".json")))
+    names = names or [f[:-5] for f in sorted(os.listdir(OUT)) if f.endswith(".json") and f[:-5] != base_name]
+    rows = ["| perturbation | code sure / tie / mid flip % (n) | ifeval sure / tie / mid | multi sure / tie / mid | mean dmargin |", "|---|---|---|---|---|"]
+    for nm in names:
+        r = json.load(open(os.path.join(OUT, nm + ".json"))); cells = []; dm = []
+        for dom in ("code", "ifeval", "multi"):
+            flips = np.zeros(3); n = np.zeros(3)
+            for w, b in base.items():
+                if b["dom"] != dom or w not in r: continue
+                btk, blp = np.array(b["tk"]), np.array(b["lp"]); rtk, rlp = np.array(r[w]["tk"]), np.array(r[w]["lp"])
+                m = min(len(btk), len(rtk)); btk, blp, rtk, rlp = btk[:m], blp[:m], rtk[:m], rlp[:m]
+                c = classes(blp)
+                f = rtk[:, 0] != btk[:, 0]
+                dm.append(((rlp[:, 0] - rlp[:, 1]) - (blp[:, 0] - blp[:, 1])).mean())
+                for k in range(3): flips[k] += f[c == k].sum(); n[k] += (c == k).sum()
+            cells.append(" / ".join(f"{100 * flips[k] / max(n[k], 1):.2f}" for k in range(3)) + f" ({int(n.sum())})")
+        rows.append(f"| {nm} | " + " | ".join(cells) + f" | {np.mean(dm) if dm else 0:+.3f} |")
+    txt = "\n".join(rows); open(os.path.join(OUT, "report.md"), "w").write(txt + "\n"); print(txt)

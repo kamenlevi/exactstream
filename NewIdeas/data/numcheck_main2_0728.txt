@@ -1,0 +1,67 @@
+== 1. chat arms vs the one-token reference (full / prefix to n)
+yes1: full 11 / prefix 12 / 12
+ycoh: full 11 / prefix 12 / 12
+ycoh2: full 11 / prefix 12 / 12
+yeh: full 11 / prefix 12 / 12
+yesh: full 11 / prefix 12 / 12
+y0: full 3 / prefix 3 / 12
+y0b: full 3 / prefix 3 / 12
+e32: full 11 / prefix 12 / 12
+nie1: full 11 / prefix 12 / 12
+nie2: full 11 / prefix 12 / 12
+zs: full 2 / prefix 2 / 12
+z0: full 2 / prefix 2 / 12
+pdz0: full 2 / prefix 2 / 12
+pdz4a: full 2 / prefix 2 / 12
+
+== 2. rounding edges
+S5 HE: decode 175.3456, request nan, first token median nan, tok/prompt 216.500, decode s/prompt 1.2347, request s/prompt nan
+S5' B MBPP: decode 114.4533, request 25.7736, first token median 3.7861, tok/prompt 130.083, decode s/prompt 1.1366, request s/prompt 5.0472
+N45 L math: decode 86.9130, request 39.5641, first token median 2.9645, tok/prompt 256.000, decode s/prompt 2.9455, request s/prompt 6.4705
+z0+z0b: decode 49.8038, request 24.3795, first token median 2.9245, tok/prompt 145.167, decode s/prompt 2.9148, request s/prompt 5.9545
+zsgcr: decode 56.0414, request 24.6197, first token median 2.9352, tok/prompt 133.917, decode s/prompt 2.3896, request s/prompt 5.4394
+pdzfa: decode 49.2845, request 30.4544, first token median 1.8256, tok/prompt 138.417, decode s/prompt 2.8085, request s/prompt 4.5450
+pdz1p: decode 50.7670, request 27.9988, first token median 2.2546, tok/prompt 145.167, decode s/prompt 2.8595, request s/prompt 5.1847
+N45 EB IFEval: decode 37.1371, request 20.7794, first token median 2.8853, tok/prompt 140.583, decode s/prompt 3.7855, request s/prompt 6.7655
+S5' B HE: decode 170.9644, request 35.9596, first token median 4.5610, tok/prompt 217.125, decode s/prompt 1.2700, request s/prompt 6.0380
+Strata full33 B humaneval: decode 47.0020, request 40.9435, ttft median 0.6743
+Strata full33 B mbpp: decode 45.5633, request 36.9112, ttft median 0.5424
+Strata full33 B ifeval: decode 41.8485, request 33.6965, ttft median 0.8340
+Strata full33 B math: decode 47.1098, request 40.5473, ttft median 1.0110
+Strata full33 D humaneval: decode 46.3752, request 40.5740, ttft median 0.6620
+Strata full33 D mbpp: decode 43.5641, request 35.8001, ttft median 0.5402
+Strata full33 D ifeval: decode 40.6279, request 33.0183, ttft median 0.8315
+Strata full33 D math: decode 46.2593, request 39.8667, ttft median 1.0132
+
+== 3. logits hashes pdz4a vs pdz0 (per check)
+pdz4a lh entries 721, pdz0 lh entries 721, equal position-wise 721
+
+== 4. PF-D staged-but-unused per prompt (pB+pC vs hB+hC), pdz4a and pdzfa
+pdz4a: per prompt unused 21.4-26.9 % (mean 24.1); B part 17.0-21.7 %; C part 23.3-38.7 %
+
+== 5. N45 long agent prompts (npe = exact, npl = lossy) and pfx
+npe1 agent/edit10 P 1565 pfs 15.9225 peak 43.683; agent/write13 P 4730 pfs 40.701 peak 44.064; agent/write11 P 7932 pfs 63.7776 peak 44.462
+npe2 agent/edit10 P 1565 pfs 15.8826 peak 43.697; agent/write13 P 4730 pfs 39.5093 peak 44.098; agent/write11 P 7932 pfs 64.3563 peak 44.464
+npl1 agent/edit10 P 1565 pfs 16.3134 peak 44.236; agent/write13 P 4730 pfs 40.2781 peak 44.751; agent/write11 P 7932 pfs 66.1547 peak 45.108
+npl2 agent/edit10 P 1565 pfs 16.2541 peak 44.230; agent/write13 P 4730 pfs 42.1897 peak 44.745; agent/write11 P 7932 pfs 66.9892 peak 45.084
+
+== 6. CT1 fit: first token (pfs) = a + GB / b over the 12 CT1 rows
+rows 12, GB per prompt mean 20.41 (sum 244.94), a = 0.318 s, b = 7.33 GB/s; at 9.63 GB -> 1.63 s
+
+== 8. Strata both passes vs our exact reference (default cache) and full-cache pass 1
+results B humaneval: full 2 / prefix 4 / 24
+results B mbpp: full 0 / prefix 0 / 24
+results B ifeval: full 2 / prefix 2 / 24
+results B math: full 0 / prefix 0 / 24
+results D humaneval: full 2 / prefix 4 / 24
+results D mbpp: full 0 / prefix 0 / 24
+results D ifeval: full 2 / prefix 2 / 24
+results D math: full 0 / prefix 0 / 24
+results_arena33 B humaneval: full 1 / prefix 2 / 12
+results_arena33 B mbpp: full 0 / prefix 0 / 12
+results_arena33 B ifeval: full 1 / prefix 1 / 12
+results_arena33 B math: full 0 / prefix 0 / 12
+results_arena33 D humaneval: full 1 / prefix 2 / 12
+results_arena33 D mbpp: full 0 / prefix 0 / 12
+results_arena33 D ifeval: full 1 / prefix 1 / 12
+results_arena33 D math: full 0 / prefix 0 / 12

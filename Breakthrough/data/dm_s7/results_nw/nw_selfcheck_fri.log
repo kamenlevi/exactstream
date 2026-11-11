@@ -1,0 +1,44 @@
+[gslot nw_selfcheck] armed: env BIGMOE_EXT_BUILD=build_nat /Users/kamen/BigMoE/.venv/bin/python /Users/kamen/FableGod/far/build_1105/nw_selfcheck.py; est 4 min, MEM 18 GB; last start Fri 13:30, hard stop Fri 14:10 Fri 13:00:46
+shared run reserved until 13:23 (about 200% CPU, 100% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done.
+Free for it now: about 15 cores (1564% CPU) and about 0% of the GPU after other shared runs (ojox-e8: 200% CPU, 100% GPU). That's less than it asked for, so run it now sized to this rather than wait: about 15 workers or -j 15, and the GPU part in smaller batches or chunks. Others' shared runs keep their share.
+[gslot nw_selfcheck] go (NO-SWAP 38 GB, swap 11991 MB) Fri 13:01:07
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=21.5 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[dm] loaded in 1s (C 51)
+[dm] discover_layers: 48 layers, {'gdn': 36, 'hc': 96, 'moe': 48, 'att': 12}; missing []
+[dm] MoE block: top_k 10, norm_topk_prob True
+sc_twin code tf_code_HumanEval_135.npz 144 positions 12s; kept experts per row-layer 8.44
+sc_twin code tf_code_HumanEval_121.npz 148 positions 23s; kept experts per row-layer 8.52
+sc_twin2 code tf_code_HumanEval_135.npz 144 positions 11s; kept experts per row-layer 8.44
+sc_twin2 code tf_code_HumanEval_121.npz 148 positions 22s; kept experts per row-layer 8.52
+[gslot nw_selfcheck] armed: env BIGMOE_EXT_BUILD=build_nat /Users/kamen/BigMoE/.venv/bin/python /Users/kamen/FableGod/far/build_1105/nw_selfcheck.py; est 4 min, MEM 18 GB; last start Fri 13:30, hard stop Fri 14:10 Fri 13:17:47
+shared run reserved until 13:40 (about 200% CPU, 100% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done.
+Free for it now: about 17 cores (1743% CPU) and about 100% of the GPU. It fits: use about 2 workers or -j 2.
+[gslot nw_selfcheck] go (NO-SWAP 48 GB, swap 11911 MB) Fri 13:18:08
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=28.2 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[dm] loaded in 1s (C 51)
+[dm] discover_layers: 48 layers, {'gdn': 36, 'hc': 96, 'moe': 48, 'att': 12}; missing []
+[dm] MoE block: top_k 10, norm_topk_prob True
+sc_twin code tf_code_HumanEval_135.npz 144 positions 6s; kept experts per row-layer 8.44
+sc_twin code tf_code_HumanEval_121.npz 148 positions 13s; kept experts per row-layer 8.52
+sc_twin2 code tf_code_HumanEval_135.npz 144 positions 6s; kept experts per row-layer 8.44
+sc_twin2 code tf_code_HumanEval_121.npz 148 positions 13s; kept experts per row-layer 8.52
+sc_nwz code tf_code_HumanEval_135.npz 144 positions 6s; kept experts per row-layer 8.44; never-wait d 1: late terms per answer row 0.00, 0 late writes
+sc_nwz code tf_code_HumanEval_121.npz 148 positions 13s; kept experts per row-layer 8.52; never-wait d 1: late terms per answer row 0.00, 0 late writes
+sc_nw0 code tf_code_HumanEval_135.npz 144 positions 6s; kept experts per row-layer 8.44; never-wait d 0: late terms per answer row 12.55, 48 late writes
+sc_nw0 code tf_code_HumanEval_121.npz 148 positions 13s; kept experts per row-layer 8.52; never-wait d 0: late terms per answer row 11.08, 48 late writes
+sc_nw1 code tf_code_HumanEval_135.npz 144 positions 6s; kept experts per row-layer 8.43; never-wait d 1: late terms per answer row 12.52, 47 late writes
+sc_nw1 code tf_code_HumanEval_121.npz 148 positions 13s; kept experts per row-layer 8.52; never-wait d 1: late terms per answer row 11.07, 47 late writes
+[nwsc] 5 arms x 2 windows in 64s (load 1s), MLX peak 12.5 GB
+[nwsc] 2 code windows, 292 answer rows; the twin against itself (twin2): exactly equal
+[nwsc] (i)   nwz vs the twin: exactly equal (top-8 ids and log-probs): PASS
+[nwsc] (ii)  nw0 vs the twin: 0 top-1 flips of 292 rows (0.00 %), mean |d log p1| 0.0016, max |d lp| 2.875: PASS (PASS <= 2 flips and mean <= 0.02; FAIL > 8 flips or mean > 0.2; between: REPORT); for scale, nw1 vs the twin: 0 flips, mean |d log p1| 0.0018
+[nwsc] (iii) rows and late flags: PASS (nwz 0 terms, 0 writes / 0 terms, 0 writes; nw0 1807 terms, 48 writes / 1640 terms, 48 writes; nw1 1803 terms, 47 writes / 1639 terms, 47 writes)
+[nwsc] SELF-CHECK PASS: run the arms
+lock released
+[gslot nw_selfcheck] done (rc 0); unlocked Fri 13:19:24

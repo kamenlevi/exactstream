@@ -1,0 +1,27 @@
+diff --git a/__pycache__/report.cpython-314.pyc b/__pycache__/report.cpython-314.pyc
+new file mode 100644
+index 0000000..7cbb7e8
+Binary files /dev/null and b/__pycache__/report.cpython-314.pyc differ
+diff --git a/report.py b/report.py
+index f3dccca..2867279 100644
+--- a/report.py
++++ b/report.py
+@@ -1,10 +1,15 @@
++def format_money(amount):
++    """Format an amount as a dollar string, e.g. 1234.5 -> '$1,234.50'."""
++    return f'${amount:,.2f}'
++
++
+ def line_item(name, amount):
+-    return f'{name}: ${amount:,.2f}'
++    return f'{name}: {format_money(amount)}'
+ 
+ 
+ def total_line(amount):
+-    return f'Total: ${amount:,.2f}'
++    return f'Total: {format_money(amount)}'
+ 
+ 
+ def tax_line(amount, rate):
+-    return f'Tax: ${amount * rate:,.2f}'
++    return f'Tax: {format_money(amount * rate)}'

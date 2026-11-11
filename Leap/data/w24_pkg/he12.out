@@ -1,0 +1,322 @@
+Powered by MTPLX
+https://github.com/youssofal/mtplx
+config lossy-24 (configs/lossy-24.env), C 100, cap 256, snapshot w24, 12 prompt(s): humaneval/HumanEval/68, humaneval/HumanEval/16, humaneval/HumanEval/91, humaneval/HumanEval/6, humaneval/HumanEval/79, humaneval/HumanEval/19, humaneval/HumanEval/161, humaneval/HumanEval/17, humaneval/HumanEval/56, humaneval/HumanEval/141, humaneval/HumanEval/101, humaneval/HumanEval/63; drafter base incoai/Qwen3.8-Flash-Next-DFlash2 @ a22a174
+[transformers] PyTorch was not found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
+
+=== humaneval/HumanEval/68 [gate+t, code, drafter dfl] 256 tokens
+```python
+def pluck(arr):
+    """
+    "Given an array representing a branch of a tree that has non-negative integer nodes
+    your task is to pluck one of the nodes and return it.
+    The plucked node should be the node with the smallest even value.
+    If multiple nodes with the same smallest even value are found return the node that has smallest index.
+
+    The plucked node should be returned in a list, [ smalest_value, its index ],
+    If there are no even values or the given array is empty, return [].
+
+    Example 1:
+        Input: [4,2,3]
+        Output: [2, 1]
+        Explanation: 2 has the smallest even value, and 2 has the smallest index.
+
+    Example 2:
+        Input: [1,2,3]
+        Output: [2, 1]
+        Explanation: 2 has the smallest even value, and 2 has the smallest index. 
+
+    Example 3:
+        Input: []
+        Output: []
+    
+    Example 4:
+        Input: [5, 0, 3, 0, 4
+
+=== humaneval/HumanEval/16 [gate+t, code, drafter dfl] 81 tokens
+```python
+def count_distinct_characters(string: str) -> int:
+    """ Given a string, find out how many distinct characters (regardless of case) does it consist of
+    >>> count_distinct_characters('xyzXYZ')
+    3
+    >>> count_distinct_characters('Jerry')
+    4
+    """
+    return len(set(string.lower()))
+```
+
+=== humaneval/HumanEval/91 [gate+t, code, drafter dfl] 238 tokens
+```python
+def is_bored(S):
+    """
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word "I".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored("Hello world")
+    0
+    >>> is_bored("The sky is blue. The sun is shining. I love this weather")
+    1
+    """
+    import re
+    # Split the string by sentence delimiters: '.', '?', or '!'
+    sentences = re.split(r'[.?!]', S)
+    count = 0
+    for sentence in sentences:
+        # Strip leading/trailing whitespace
+        stripped = sentence.strip()
+        if not stripped:
+            continue
+        # Check if the first word is "I"
+        # Get the first word by splitting on whitespace
+        words = stripped.split()
+        if words and words[0] == "I":
+            count += 1
+    return count
+```
+
+=== humaneval/HumanEval/6 [gate+t, code, drafter dfl] 214 tokens
+```python
+from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """ Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """
+    groups = paren_string.split()
+    result = []
+    for group in groups:
+        max_depth = 0
+        current_depth = 0
+        for char in group:
+            if char == '(':
+                current_depth += 1
+                if current_depth > max_depth:
+                    max_depth = current_depth
+            elif char == ')':
+                current_depth -= 1
+        result.append(max_depth)
+    return result
+```
+
+=== humaneval/HumanEval/79 [gate+t, code, drafter dfl] 208 tokens
+```python
+def decimal_to_binary(decimal):
+    """You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns "db1111db"
+    decimal_to_binary(32)   # returns "db100000db"
+    """
+    if decimal == 0:
+        return "db0db"
+    
+    # Convert to binary string without '0b' prefix
+    binary_str = bin(decimal)[2:]
+    
+    return "db" + binary_str + "db"
+```
+
+=== humaneval/HumanEval/19 [gate+t, code, drafter dfl] 256 tokens
+```python
+from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """ Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """
+    if not numbers:
+        return ""
+    
+    word_to_num = {
+        'zero': 0,
+        'one': 1,
+        'two': 2,
+        'three': 3,
+        'four': 4,
+        'five': 5,
+        'six': 6,
+        'seven': 7,
+        'eight': 8,
+        'nine': 9
+    }
+    
+    num_to_word = {v: k for k, v in word_to_num.items()}
+    
+    words = numbers.split()
+    # Convert each word to its corresponding number
+    nums = [word_to_num[w]
+
+=== humaneval/HumanEval/161 [gate+t, code, drafter dfl] 246 tokens
+```python
+def solve(s):
+    """You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve("1234") = "4321"
+    solve("ab") = "AB"
+    solve("#a@C") = "#A@c"
+    """
+    # Check if the string contains any letters
+    has_letters = any(c.isalpha() for c in s)
+    
+    if not has_letters:
+        # No letters, reverse the string
+        return s[::-1]
+    else:
+        # Swap case for letters, keep non-letters as is
+        result = []
+        for c in s:
+            if c.isalpha():
+                if c.islower():
+                    result.append(c.upper())
+                else:
+                    result.append(c.lower())
+            else:
+                result.append(c)
+        return ''.join(result)
+```
+
+=== humaneval/HumanEval/17 [gate+t, code, drafter dfl] 256 tokens
+```python
+from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """ Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """
+    # Split the string by spaces to get individual note tokens
+    tokens = music_string.split()
+    result = []
+    for token in tokens:
+        if token == 'o':
+            result.append(4)
+        elif token == 'o|':
+            result.append(2)
+        elif token == '.|':
+            result.append(1)
+   
+
+=== humaneval/HumanEval/56 [gate+t, code, drafter dfl] 157 tokens
+```python
+def correct_bracketing(brackets: str):
+    """ brackets is a string of "<" and ">".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing("<")
+    False
+    >>> correct_bracketing("<>")
+    True
+    >>> correct_bracketing("<<><>>")
+    True
+    >>> correct_bracketing("><<>")
+    False
+    """
+    depth = 0
+    for char in brackets:
+        if char == '<':
+            depth += 1
+        elif char == '>':
+            depth -= 1
+        if depth < 0:
+            return False
+    return depth == 0
+```
+
+=== humaneval/HumanEval/141 [gate+t, code, drafter dfl] 256 tokens
+```python
+def file_name_check(file_name):
+    """Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check("example.txt") # => 'Yes'
+    file_name_check("1example.dll") # => 'No' (the name should start with a latin alphapet letter)
+    """
+    # Check that there is exactly one dot
+    if file_name.count('.') != 1:
+        return 'No'
+    
+    # Split into name and extension
+
+=== humaneval/HumanEval/101 [gate+t, code, drafter dfl] 186 tokens
+```python
+def words_string(s):
+    """
+    You will be given a string of words separated by commas or spaces. Your task is
+    to split the string into words and return an array of the words.
+    
+    For example:
+    words_string("Hi, my name is John") == ["Hi", "my", "name", "is", "John"]
+    words_string("One, two, three, four, five, six") == ["One", "two", "three", "four", "five", "six"]
+    """
+    import re
+    # Split on commas or spaces, and filter out empty strings
+    words = re.split(r'[,\s]+', s)
+    # Filter out empty strings (e.g., if there are multiple separators in a row)
+    return [word for word in words if word]
+```
+
+=== humaneval/HumanEval/63 [gate+t, code, drafter dfl] 256 tokens
+```python
+def fibfib(n: int):
+    """The FibFib number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fibfib(0) == 0
+    fibfib(1) == 0
+    fibfib(2) == 1
+    fibfib(n) == fibfib(n-1) + fibfib(n-2) + fibfib(n-3).
+    Please write a function to efficiently compute the n-th element of the fibfib number sequence.
+    >>> fibfib(1)
+    0
+    >>> fibfib(5)
+    4
+    >>> fibfib(8)
+    24
+    """
+    if n == 0:
+        return 0
+    if n == 1:
+        return 0
+    if n == 2:
+        return 1
+    
+    # Use iterative approach to avoid recursion overhead and potential recursion depth issues
+    a, b, c = 0, 0, 1  # fibfib(0), fibfib(1), fibfib(2)
+    for _ in range(3, n + 1):
+
+
+whole decode 135.9 tok/s | whole request 40.8 tok/s | first token 3.63 s (3.29-4.82) | lifetime peak 23.78 GB | 12 prompt(s), 2610 tokens, process wall 78 s (load + warm-up included)
+tokens: /Users/kamen/Leap/release/cleanclone/final/clone/out/cli_1110_100130_tokens.json; log: /Users/kamen/Leap/release/cleanclone/final/clone/out/cli_1110_100130.log; module manifest: /Users/kamen/Leap/release/cleanclone/final/clone/out/cli_1110_100130_modules.json

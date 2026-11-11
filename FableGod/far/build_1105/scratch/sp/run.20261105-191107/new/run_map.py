@@ -1,0 +1,1 @@
+/Users/kamen/FableGod/far/build_1105/scratch/dm_copy4/run_map.py

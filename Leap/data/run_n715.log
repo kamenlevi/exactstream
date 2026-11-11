@@ -1,0 +1,44 @@
+== N7-15 self-test start 01:51:48 (swap 8862.56 MB)
+N7-15 repack_slots self-test Tue 01:51; layer 20, 212 slots
+  A pools: PASS (50 base + 17 sidecar slots rewritten)
+  A flags: PASS
+  A slots out == in: PASS
+  B second call changes nothing: PASS
+  C 160 pairs, one slot: rewritten once: PASS
+  D two chained calls: PASS
+  E NAX6-N after repack_slots == NAX6 (y): PASS 12 / 12
+  F OOO two phases + repack == NAX6 + combine: PASS 12 / 12
+N7-15 self-test: PASS
+== N7-15 self-test end rc 0 01:51:53
+== N7-15 screen start 01:51:53 (swap 8862.56 MB)
+N7-15 repack-at-load screen Tue 01:51 (quiet lock); layer 20
+Traceback (most recent call last):
+  File "/Users/kamen/Leap/scripts/n7_repack.py", line 99, in <module>
+    run(k, n)                                                         # warm-up / compile
+    ^^^^^^^^^
+  File "/Users/kamen/Leap/scripts/n7_repack.py", line 96, in run
+    mx.eval(out)
+RuntimeError: [metal::Device] Unable to build metal library from source
+mlx/backend/metal/kernels/utils.h:481:27: error: zero-length arrays are not permitted in C++
+    threadgroup int key_s[P_C];
+                          ^~~
+mlx/backend/metal/kernels/utils.h:523:234: note: in instantiation of function template specialization 'custom_kernel_tierglu_nax6_grp__0_10_3_0_2_int32_tc_int32_tc_int32_t_int32_t_int32_t<0, 10, 3, 0, 2>' requested here
+template [[host_name("custom_kernel_tierglu_nax6_grp__0_10_3_0_2_int32_tc_int32_tc_int32_t_int32_t_int32_t")]] [[kernel]] decltype(custom_kernel_tierglu_nax6_grp__0_10_3_0_2_int32_tc_int32_tc_int32_t_int32_t_int32_t<0, 10, 3, 0, 2>) custom_kernel_tierglu_nax6_grp__0_10_3_0_2_int32_tc_int32_tc_int32_t_int32_t_int32_t<0, 10, 3, 0, 2>;
+                                                                                                                                                                                                                                         ^
+mlx/backend/metal/kernels/utils.h:482:26: error: zero-length arrays are not permitted in C++
+    threadgroup int skey[P_C];
+                         ^~~
+mlx/backend/metal/kernels/utils.h:483:29: error: zero-length arrays are not permitted in C++
+    threadgroup int start_s[P_C];
+                            ^~~
+
+
+== N7-15 screen end rc 1 01:51:58
+== ref2 wiring start 01:51:58 (swap 8862.56 MB)
+ref2 patched (backup: ~/Leap/data/ref2_before_n715.py)
+== ref2 wiring end rc 0 01:52:03
+== ref2 self_test start 01:52:03 (swap 8862.56 MB)
+self_test {'qmm16c 6144x2560': True, 'MLX 16-row 512x2560': True, 'experts split == fused': True, 'experts rows alone': True, 'bf16 Linear': True} inert True
+REF2 SELF_TEST ALL PASS
+== ref2 self_test end rc 0 01:52:08
+== all done 01:52:08 (swap 8862.56 MB)

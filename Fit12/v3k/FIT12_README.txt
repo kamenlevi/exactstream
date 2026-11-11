@@ -1,0 +1,2 @@
+Fit12 v3k (2026-10-24): Breakthrough's v3f (copied 08:5x, sources only) + /Users/kamen/Fit12/patches/b1v2_joint_v3f.diff
+(B1 v2: BIGMOE_JOINT=1, BIGMOE_CALLLOG). The fold-check copy for Breakthrough. Build: cmake -S ext -B ext/build -DCMAKE_BUILD_TYPE=Release -DPython_EXECUTABLE=/Users/kamen/BigMoE/.venv/bin/python -DNB_CMAKE_DIR=/Users/kamen/BigMoE/.nb215/nanobind/cmake && cmake --build ext/build -j 2

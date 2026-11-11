@@ -1,0 +1,202 @@
+## 0. data
+  code: 24 answers, 6399 block starts x 15 depths; rank values {-1: 2880, 0: 85878, 1: 3330, 2: 1306, 3: 2591}
+  gsm: 60 answers, 14380 block starts x 15 depths; rank values {-1: 7200, 0: 178988, 1: 14230, 2: 4961, 3: 10321}
+  mgsm: 30 answers, 13134 block starts x 15 depths; rank values {-1: 3600, 0: 150063, 1: 14235, 2: 5530, 3: 23582}
+  ifeval: 30 answers, 7013 block starts x 15 depths; rank values {-1: 3561, 0: 50258, 1: 10113, 2: 5495, 3: 35768}
+  multi: 24 answers, 6803 block starts x 15 depths; rank values {-1: 2880, 0: 45371, 1: 9322, 2: 5221, 3: 39251}
+
+## 1. Reproducing D-24's table (tokens per pass / rows): chain K15, cut K15 t 0.3 by the two cut rules, cut + 2 leaves at p < 0.8
+  | set | chain K15 (D-24) | cut prod (D-24 cut K15) | cut step | cut + 2 leaf p<0.8 (D-24 K15: ifeval 2.56/4.59, multi 2.75/4.99, mgsm 5.28/8.52, gsm 7.30/11.43, code 9.68/12.64) |
+  | code | 10.19 / 16.00 (D-24 10.16 / 15.67) | 9.29 / 11.03 (D-24 9.24 / 10.72) | 10.00 / 13.85 | 9.76 / 12.68 |
+  | gsm | 7.73 / 16.00 (D-24 7.7 / 15.76) | 6.91 / 9.10 (D-24 6.91 / 8.92) | 7.59 / 13.77 | 7.32 / 11.21 |
+  | mgsm | 5.73 / 16.00 (D-24 5.74 / 15.91) | 5.02 / 6.58 (D-24 4.94 / 6.4) | 5.39 / 9.32 | 5.39 / 8.57 |
+  | ifeval | 2.74 / 16.00 (D-24 2.74 / 15.63) | 2.40 / 3.28 (D-24 2.34 / 2.97) | 2.55 / 4.39 | 2.70 / 5.09 |
+  | multi | 2.92 / 16.00 (D-24 2.91 / 15.6) | 2.58 / 3.53 (D-24 2.54 / 3.25) | 2.74 / 4.74 | 2.85 / 5.36 |
+
+## 2. Hard-position detection by the head's own p1 (per drafted depth along the true path): P(miss | p1 < tau), share of misses at p1 < tau, share of depths flagged
+  code: misses 10.5 % of depths; at misses rank 1 33 %, rank 2 13 %; tau 0.5: flagged 5 %, P(miss | flag) 63 %, misses caught 32 %; tau 0.8: flagged 12 %, P(miss | flag) 49 %, misses caught 58 %; tau 0.9: flagged 16 %, P(miss | flag) 42 %, misses caught 63 %; tau 0.95: flagged 20 %, P(miss | flag) 36 %, misses caught 67 %; 
+  gsm: misses 17.0 % of depths; at misses rank 1 39 %, rank 2 14 %; tau 0.5: flagged 9 %, P(miss | flag) 60 %, misses caught 32 %; tau 0.8: flagged 25 %, P(miss | flag) 45 %, misses caught 65 %; tau 0.9: flagged 33 %, P(miss | flag) 38 %, misses caught 73 %; tau 0.95: flagged 40 %, P(miss | flag) 32 %, misses caught 77 %; 
+  mgsm: misses 23.8 % of depths; at misses rank 1 30 %, rank 2 12 %; tau 0.5: flagged 18 %, P(miss | flag) 69 %, misses caught 52 %; tau 0.8: flagged 34 %, P(miss | flag) 55 %, misses caught 78 %; tau 0.9: flagged 41 %, P(miss | flag) 49 %, misses caught 85 %; tau 0.95: flagged 48 %, P(miss | flag) 44 %, misses caught 88 %; 
+  ifeval: misses 52.2 % of depths; at misses rank 1 18 %, rank 2 10 %; tau 0.5: flagged 53 %, P(miss | flag) 76 %, misses caught 77 %; tau 0.8: flagged 69 %, P(miss | flag) 68 %, misses caught 90 %; tau 0.9: flagged 74 %, P(miss | flag) 64 %, misses caught 92 %; tau 0.95: flagged 78 %, P(miss | flag) 62 %, misses caught 93 %; 
+  multi: misses 55.5 % of depths; at misses rank 1 16 %, rank 2 9 %; tau 0.5: flagged 50 %, P(miss | flag) 80 %, misses caught 72 %; tau 0.8: flagged 69 %, P(miss | flag) 72 %, misses caught 89 %; tau 0.9: flagged 75 %, P(miss | flag) 68 %, misses caught 92 %; tau 0.95: flagged 80 %, P(miss | flag) 65 %, misses caught 94 %; 
+
+## 2b. What a rescue is worth: at the chain's first miss (sequential passes), the share rescued by #2 / #3 and the teacher-forced run that follows a rescued token (the continuation a branch could keep), by set
+  code: passes ending in a miss inside the cut chain 272; rescued by #2 or #3 68 %; the run after a rescued token (next 6 depths, teacher-forced): mean 3.15 tokens, 0 in 23 %, >= 3 in 57 %
+  gsm: passes ending in a miss inside the cut chain 1095; rescued by #2 or #3 77 %; the run after a rescued token (next 6 depths, teacher-forced): mean 3.21 tokens, 0 in 19 %, >= 3 in 54 %
+  mgsm: passes ending in a miss inside the cut chain 1313; rescued by #2 or #3 63 %; the run after a rescued token (next 6 depths, teacher-forced): mean 2.47 tokens, 0 in 28 %, >= 3 in 43 %
+  ifeval: passes ending in a miss inside the cut chain 1398; rescued by #2 or #3 57 %; the run after a rescued token (next 6 depths, teacher-forced): mean 1.08 tokens, 0 in 45 %, >= 3 in 13 %
+  multi: passes ending in a miss inside the cut chain 1290; rescued by #2 or #3 52 %; the run after a rescued token (next 6 depths, teacher-forced): mean 1.12 tokens, 0 in 46 %, >= 3 in 15 %
+
+## 3. Policies at the floor engine (tokens per pass, rows, forks, drafted steps; ms per check; tok/s; gain vs the cut chain; halved gain)
+
+  code: cut chain K15 t 0.3 = 9.29 tokens, 11.03 rows, 50.1 ms, 185 tok/s at the floor engine (48.3 on today's model)
+  | set | policy | tokens | rows | forks | steps | floor ms | tok/s | gain | halved | tok/s at 1.0 ms per draft step (gain) | gain with rows and forks free (bound) | gain with a boundary-capture fork (1.2 ms) | today's model tok/s (gain) |
+  |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+  | code | chain K15 no cut | 10.19 | 16.0 | 0.00 | 15.0 | 66.0 | 154 | -16.7 % | -8.4 % | 212 (-13.0 %) | rows free -14.3 % | capture fork -16.7 % | 42.1 (-12.9 %) |
+  | code | LEAF-HARD #2+#3 at first p1<0.8 | 9.57 | 12.2 | 0.00 | 10.0 | 51.4 | 186 | +0.3 % | +0.2 % | 243 (-0.5 %) | rows free +2.9 % | capture fork +0.3 % | 47.5 (-1.6 %) |
+  | code | LEAF-HARD #2+#3 at first p1<0.9 | 9.48 | 12.3 | 0.00 | 10.0 | 51.4 | 185 | -0.4 % | -0.2 % | 241 (-1.4 %) | rows free +2.5 % | capture fork -0.4 % | 47.0 (-2.7 %) |
+  | code | LEAF-HARD #2+#3 at first p1<0.95 | 9.38 | 12.3 | 0.00 | 9.8 | 51.1 | 184 | -1.0 % | -0.5 % | 239 (-2.2 %) | rows free +2.2 % | capture fork -1.0 % | 46.5 (-3.6 %) |
+  | code | FORK-HARD #2+1 (+#3) at first p1<0.8, B16 | 9.67 | 12.7 | 0.54 | 10.2 | 52.3 | 185 | -0.3 % | -0.1 % | 241 (-1.1 %) | rows free +3.1 % | capture fork -1.2 % | 47.0 (-2.6 %) |
+  | code | FORK-HARD #2+1 (+#3) at first p1<0.8, B32 | 9.83 | 13.0 | 0.58 | 10.5 | 53.2 | 185 | -0.4 % | -0.2 % | 242 (-1.0 %) | rows free +3.3 % | capture fork -1.4 % | 47.0 (-2.6 %) |
+  | code | FORK-HARD #2+2 (+#3) at first p1<0.8, B16 | 9.74 | 13.1 | 0.54 | 10.4 | 53.1 | 183 | -1.1 % | -0.6 % | 239 (-1.9 %) | rows free +2.8 % | capture fork -2.0 % | 46.5 (-3.8 %) |
+  | code | FORK-HARD #2+2 (+#3) at first p1<0.8, B32 | 9.95 | 13.7 | 0.57 | 10.8 | 54.5 | 182 | -1.6 % | -0.8 % | 239 (-2.0 %) | rows free +2.8 % | capture fork -2.5 % | 46.4 (-4.0 %) |
+  | code | FORK-HARD #2+3 (+#3) at first p1<0.8, B16 | 9.75 | 13.4 | 0.51 | 10.6 | 53.9 | 181 | -2.4 % | -1.2 % | 237 (-3.0 %) | rows free +1.8 % | capture fork -3.2 % | 45.9 (-4.9 %) |
+  | code | FORK-HARD #2+3 (+#3) at first p1<0.8, B32 | 10.06 | 14.3 | 0.58 | 11.1 | 55.8 | 180 | -2.8 % | -1.4 % | 237 (-3.1 %) | rows free +2.3 % | capture fork -3.7 % | 45.7 (-5.3 %) |
+  | code | FORK-HARD #2+6 (+#3) at first p1<0.8, B16 | 9.70 | 14.2 | 0.43 | 11.5 | 56.6 | 171 | -7.6 % | -3.8 % | 227 (-7.2 %) | rows free -3.6 % | capture fork -8.2 % | 44.1 (-8.7 %) |
+  | code | FORK-HARD #2+6 (+#3) at first p1<0.8, B32 | 10.22 | 16.0 | 0.58 | 12.3 | 60.3 | 170 | -8.5 % | -4.3 % | 225 (-7.9 %) | rows free -2.5 % | capture fork -9.3 % | 43.2 (-10.4 %) |
+  | code | FORK-HARD #2+1 (+#3) at first p1<0.9, B16 | 9.59 | 12.8 | 0.64 | 10.0 | 51.9 | 185 | -0.3 % | -0.2 % | 240 (-1.6 %) | rows free +3.5 % | capture fork -1.4 % | 46.6 (-3.4 %) |
+  | code | FORK-HARD #2+1 (+#3) at first p1<0.9, B32 | 9.78 | 13.3 | 0.68 | 10.4 | 53.4 | 183 | -1.1 % | -0.6 % | 239 (-2.0 %) | rows free +3.2 % | capture fork -2.3 % | 46.4 (-3.9 %) |
+  | code | FORK-HARD #2+2 (+#3) at first p1<0.9, B16 | 9.58 | 13.2 | 0.63 | 10.1 | 52.6 | 182 | -1.8 % | -0.9 % | 236 (-3.1 %) | rows free +2.7 % | capture fork -2.9 % | 45.7 (-5.4 %) |
+  | code | FORK-HARD #2+2 (+#3) at first p1<0.9, B32 | 9.94 | 14.1 | 0.68 | 10.7 | 54.9 | 181 | -2.4 % | -1.2 % | 237 (-3.1 %) | rows free +2.9 % | capture fork -3.4 % | 45.6 (-5.5 %) |
+  | code | FORK-HARD #2+3 (+#3) at first p1<0.9, B16 | 9.62 | 13.6 | 0.58 | 10.4 | 53.6 | 179 | -3.2 % | -1.6 % | 234 (-4.2 %) | rows free +1.5 % | capture fork -4.1 % | 45.1 (-6.5 %) |
+  | code | FORK-HARD #2+3 (+#3) at first p1<0.9, B32 | 10.01 | 14.7 | 0.68 | 11.1 | 56.3 | 178 | -4.1 % | -2.0 % | 233 (-4.6 %) | rows free +1.9 % | capture fork -5.1 % | 44.7 (-7.3 %) |
+  | code | FORK-HARD #2+6 (+#3) at first p1<0.9, B16 | 9.54 | 14.4 | 0.50 | 11.3 | 56.5 | 169 | -8.9 % | -4.5 % | 222 (-8.9 %) | rows free -4.4 % | capture fork -9.7 % | 43.0 (-10.8 %) |
+  | code | FORK-HARD #2+6 (+#3) at first p1<0.9, B32 | 10.17 | 16.7 | 0.67 | 12.3 | 61.5 | 165 | -10.8 % | -5.4 % | 218 (-10.7 %) | rows free -3.0 % | capture fork -11.7 % | 42.0 (-12.9 %) |
+  | code | ORACLE-FORK #2+6 (+#3) at the first miss, B32 | 10.56 | 14.4 | 0.38 | 11.6 | 57.1 | 185 | -0.2 % | -0.1 % | 245 (+0.3 %) | rows free +4.4 % | capture fork -0.8 % | 47.5 (-1.7 %) |
+  | code | ORACLE-FORK #2+6 (+#3) at the first miss, B16 | 10.35 | 12.9 | 0.25 | 11.0 | 54.0 | 192 | +3.4 % | +1.7 % | 253 (+3.8 %) | rows free +6.0 % | capture fork +2.9 % | 49.6 (+2.8 %) |
+  | code | WIDE-1 top-3 at depth 1 +3 each, then FORK-HARD #2+3 at p1<0.8, B16 | 10.03 | 13.8 | 2.22 | 10.4 | 54.3 | 185 | -0.4 % | -0.2 % | 240 (-1.9 %) | rows free +5.9 % | capture fork -4.0 % | 46.6 (-3.4 %) |
+  | code | WIDE-1 top-3 at depth 1 +3 each, then FORK-HARD #2+6 at p1<0.8, B32 | 10.29 | 15.2 | 2.26 | 11.2 | 57.6 | 179 | -3.6 % | -1.8 % | 233 (-4.4 %) | rows free +3.6 % | capture fork -6.9 % | 45.2 (-6.3 %) |
+  | code | WIDE-1 top-3 at depth 1 +3 each, then FORK-HARD #2+3 at p1<0.9, B16 | 9.89 | 14.0 | 2.29 | 10.2 | 54.2 | 182 | -1.6 % | -0.8 % | 236 (-3.4 %) | rows free +5.3 % | capture fork -5.2 % | 45.7 (-5.3 %) |
+  | code | WIDE-1 top-3 at depth 1 +3 each, then FORK-HARD #2+6 at p1<0.9, B32 | 10.29 | 16.0 | 2.36 | 11.4 | 58.8 | 175 | -5.7 % | -2.8 % | 228 (-6.5 %) | rows free +2.6 % | capture fork -9.0 % | 43.9 (-9.0 %) |
+  | code | WIDE-1 top-3 at depth 1 +4 each, then FORK-HARD #2+3 at p1<0.8, B16 | 5.49 | 16.0 | 2.00 | 5.0 | 44.6 | 123 | -33.6 % | -16.8 % | 142 (-41.7 %) | rows free -17.5 % | capture fork -36.2 % | 24.9 (-48.3 %) |
+  | code | WIDE-1 top-3 at depth 1 +4 each, then FORK-HARD #2+6 at p1<0.8, B32 | 10.27 | 16.1 | 2.21 | 11.2 | 58.6 | 175 | -5.4 % | -2.7 % | 228 (-6.6 %) | rows free +3.5 % | capture fork -8.5 % | 43.8 (-9.4 %) |
+  | code | WIDE-1 top-3 at depth 1 +4 each, then FORK-HARD #2+3 at p1<0.9, B16 | 5.49 | 16.0 | 2.00 | 5.0 | 44.6 | 123 | -33.6 % | -16.8 % | 142 (-41.7 %) | rows free -17.5 % | capture fork -36.2 % | 24.9 (-48.3 %) |
+  | code | WIDE-1 top-3 at depth 1 +4 each, then FORK-HARD #2+6 at p1<0.9, B32 | 10.30 | 16.9 | 2.30 | 11.5 | 60.3 | 171 | -7.9 % | -4.0 % | 221 (-9.3 %) | rows free +2.5 % | capture fork -11.0 % | 42.7 (-11.5 %) |
+
+  gsm: cut chain K15 t 0.3 = 6.91 tokens, 9.10 rows, 43.9 ms, 157 tok/s at the floor engine (44.5 on today's model)
+  | set | policy | tokens | rows | forks | steps | floor ms | tok/s | gain | halved | tok/s at 1.0 ms per draft step (gain) | gain with rows and forks free (bound) | gain with a boundary-capture fork (1.2 ms) | today's model tok/s (gain) |
+  |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+  | gsm | chain K15 no cut | 7.73 | 16.0 | 0.00 | 15.0 | 66.0 | 117 | -25.5 % | -12.8 % | 161 (-20.3 %) | rows free -22.1 % | capture fork -25.5 % | 34.5 (-22.6 %) |
+  | gsm | LEAF-HARD #2+#3 at first p1<0.8 | 7.15 | 10.7 | 0.00 | 8.0 | 45.6 | 157 | -0.3 % | -0.2 % | 199 (-1.6 %) | rows free +4.0 % | capture fork -0.3 % | 42.7 (-4.1 %) |
+  | gsm | LEAF-HARD #2+#3 at first p1<0.9 | 7.09 | 10.8 | 0.00 | 7.9 | 45.5 | 156 | -1.0 % | -0.5 % | 197 (-2.5 %) | rows free +3.6 % | capture fork -1.0 % | 42.3 (-5.1 %) |
+  | gsm | LEAF-HARD #2+#3 at first p1<0.95 | 7.05 | 10.8 | 0.00 | 7.9 | 45.5 | 155 | -1.4 % | -0.7 % | 196 (-3.0 %) | rows free +3.3 % | capture fork -1.4 % | 42.0 (-5.8 %) |
+  | gsm | FORK-HARD #2+1 (+#3) at first p1<0.8, B16 | 7.25 | 11.4 | 0.81 | 8.1 | 46.5 | 156 | -0.9 % | -0.5 % | 197 (-2.4 %) | rows free +4.8 % | capture fork -2.4 % | 41.9 (-5.9 %) |
+  | gsm | FORK-HARD #2+1 (+#3) at first p1<0.8, B32 | 7.40 | 11.8 | 0.85 | 8.4 | 47.5 | 156 | -0.9 % | -0.5 % | 198 (-2.1 %) | rows free +5.1 % | capture fork -2.5 % | 41.9 (-5.9 %) |
+  | gsm | FORK-HARD #2+2 (+#3) at first p1<0.8, B16 | 7.30 | 12.1 | 0.80 | 8.4 | 47.7 | 153 | -2.7 % | -1.3 % | 194 (-4.0 %) | rows free +4.0 % | capture fork -4.1 % | 40.8 (-8.3 %) |
+  | gsm | FORK-HARD #2+2 (+#3) at first p1<0.8, B32 | 7.51 | 12.7 | 0.85 | 8.7 | 49.2 | 153 | -2.9 % | -1.5 % | 194 (-3.9 %) | rows free +4.4 % | capture fork -4.4 % | 40.7 (-8.6 %) |
+  | gsm | FORK-HARD #2+3 (+#3) at first p1<0.8, B16 | 7.35 | 12.6 | 0.77 | 8.7 | 48.9 | 150 | -4.4 % | -2.2 % | 191 (-5.5 %) | rows free +2.7 % | capture fork -5.8 % | 40.0 (-10.2 %) |
+  | gsm | FORK-HARD #2+3 (+#3) at first p1<0.8, B32 | 7.62 | 13.5 | 0.85 | 9.2 | 51.0 | 149 | -5.0 % | -2.5 % | 191 (-5.6 %) | rows free +3.1 % | capture fork -6.4 % | 39.7 (-11.0 %) |
+  | gsm | FORK-HARD #2+6 (+#3) at first p1<0.8, B16 | 7.40 | 13.8 | 0.68 | 10.1 | 53.2 | 139 | -11.5 % | -5.8 % | 180 (-10.8 %) | rows free -4.8 % | capture fork -12.5 % | 37.7 (-15.3 %) |
+  | gsm | FORK-HARD #2+6 (+#3) at first p1<0.8, B32 | 7.82 | 16.0 | 0.85 | 11.0 | 57.4 | 136 | -13.4 % | -6.7 % | 177 (-12.5 %) | rows free -4.2 % | capture fork -14.5 % | 36.3 (-18.5 %) |
+  | gsm | FORK-HARD #2+1 (+#3) at first p1<0.9, B16 | 7.18 | 11.5 | 0.90 | 8.0 | 46.4 | 155 | -1.6 % | -0.8 % | 195 (-3.4 %) | rows free +4.7 % | capture fork -3.3 % | 41.3 (-7.3 %) |
+  | gsm | FORK-HARD #2+1 (+#3) at first p1<0.9, B32 | 7.37 | 12.0 | 0.92 | 8.4 | 47.6 | 155 | -1.6 % | -0.8 % | 196 (-2.9 %) | rows free +5.0 % | capture fork -3.3 % | 41.4 (-7.1 %) |
+  | gsm | FORK-HARD #2+2 (+#3) at first p1<0.9, B16 | 7.19 | 12.2 | 0.88 | 8.1 | 47.1 | 152 | -3.1 % | -1.5 % | 192 (-5.1 %) | rows free +4.3 % | capture fork -4.7 % | 40.2 (-9.8 %) |
+  | gsm | FORK-HARD #2+2 (+#3) at first p1<0.9, B32 | 7.45 | 12.9 | 0.92 | 8.6 | 49.1 | 152 | -3.6 % | -1.8 % | 192 (-4.9 %) | rows free +4.4 % | capture fork -5.2 % | 40.1 (-10.0 %) |
+  | gsm | FORK-HARD #2+3 (+#3) at first p1<0.9, B16 | 7.18 | 12.8 | 0.86 | 8.3 | 48.4 | 148 | -5.7 % | -2.8 % | 187 (-7.4 %) | rows free +2.5 % | capture fork -7.1 % | 38.9 (-12.7 %) |
+  | gsm | FORK-HARD #2+3 (+#3) at first p1<0.9, B32 | 7.54 | 13.8 | 0.92 | 9.0 | 51.0 | 148 | -5.9 % | -3.0 % | 188 (-7.0 %) | rows free +3.2 % | capture fork -7.4 % | 38.8 (-12.8 %) |
+  | gsm | FORK-HARD #2+6 (+#3) at first p1<0.9, B16 | 7.10 | 14.2 | 0.78 | 9.7 | 52.8 | 134 | -14.5 % | -7.3 % | 173 (-14.6 %) | rows free -6.7 % | capture fork -15.6 % | 35.8 (-19.7 %) |
+  | gsm | FORK-HARD #2+6 (+#3) at first p1<0.9, B32 | 7.74 | 16.6 | 0.92 | 10.7 | 57.7 | 134 | -14.7 % | -7.3 % | 173 (-14.6 %) | rows free -3.6 % | capture fork -15.9 % | 35.3 (-20.7 %) |
+  | gsm | ORACLE-FORK #2+6 (+#3) at the first miss, B32 | 8.38 | 13.5 | 0.53 | 10.0 | 52.7 | 159 | +1.1 % | +0.5 % | 206 (+2.0 %) | rows free +8.2 % | capture fork +0.2 % | 43.3 (-2.9 %) |
+  | gsm | ORACLE-FORK #2+6 (+#3) at the first miss, B16 | 8.15 | 11.8 | 0.40 | 9.3 | 49.4 | 165 | +5.0 % | +2.5 % | 213 (+5.5 %) | rows free +9.9 % | capture fork +4.2 % | 45.5 (+2.2 %) |
+  | gsm | WIDE-1 top-3 at depth 1 +3 each, then FORK-HARD #2+3 at p1<0.8, B16 | 7.53 | 12.9 | 2.35 | 8.3 | 48.8 | 154 | -1.9 % | -1.0 % | 194 (-4.1 %) | rows free +7.8 % | capture fork -6.0 % | 40.7 (-8.7 %) |
+  | gsm | WIDE-1 top-3 at depth 1 +3 each, then FORK-HARD #2+6 at p1<0.8, B32 | 7.76 | 14.6 | 2.40 | 9.4 | 53.1 | 146 | -7.1 % | -3.5 % | 186 (-8.1 %) | rows free +3.7 % | capture fork -10.7 % | 38.5 (-13.5 %) |
+  | gsm | WIDE-1 top-3 at depth 1 +3 each, then FORK-HARD #2+3 at p1<0.9, B16 | 7.46 | 13.2 | 2.45 | 8.2 | 48.9 | 152 | -3.1 % | -1.5 % | 191 (-5.6 %) | rows free +7.5 % | capture fork -7.2 % | 39.8 (-10.6 %) |
+  | gsm | WIDE-1 top-3 at depth 1 +3 each, then FORK-HARD #2+6 at p1<0.9, B32 | 7.77 | 15.4 | 2.48 | 9.5 | 54.1 | 144 | -8.6 % | -4.3 % | 182 (-9.8 %) | rows free +3.1 % | capture fork -12.3 % | 37.5 (-15.8 %) |
+  | gsm | WIDE-1 top-3 at depth 1 +4 each, then FORK-HARD #2+3 at p1<0.8, B16 | 5.12 | 16.0 | 2.00 | 5.0 | 44.6 | 115 | -27.1 % | -13.5 % | 133 (-34.4 %) | rows free -7.9 % | capture fork -29.9 % | 25.3 (-43.2 %) |
+  | gsm | WIDE-1 top-3 at depth 1 +4 each, then FORK-HARD #2+6 at p1<0.8, B32 | 7.85 | 16.1 | 2.33 | 9.5 | 54.8 | 143 | -8.9 % | -4.5 % | 181 (-10.4 %) | rows free +4.4 % | capture fork -12.3 % | 36.9 (-17.3 %) |
+  | gsm | WIDE-1 top-3 at depth 1 +4 each, then FORK-HARD #2+3 at p1<0.9, B16 | 5.12 | 16.0 | 2.00 | 5.0 | 44.6 | 115 | -27.1 % | -13.5 % | 133 (-34.4 %) | rows free -7.9 % | capture fork -29.9 % | 25.3 (-43.2 %) |
+  | gsm | WIDE-1 top-3 at depth 1 +4 each, then FORK-HARD #2+6 at p1<0.9, B32 | 7.83 | 16.8 | 2.42 | 9.6 | 56.2 | 140 | -11.3 % | -5.7 % | 176 (-13.1 %) | rows free +3.4 % | capture fork -14.6 % | 35.8 (-19.5 %) |
+
+  mgsm: cut chain K15 t 0.3 = 5.02 tokens, 6.58 rows, 35.9 ms, 140 tok/s at the floor engine (38.7 on today's model)
+  | set | policy | tokens | rows | forks | steps | floor ms | tok/s | gain | halved | tok/s at 1.0 ms per draft step (gain) | gain with rows and forks free (bound) | gain with a boundary-capture fork (1.2 ms) | today's model tok/s (gain) |
+  |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+  | mgsm | chain K15 no cut | 5.73 | 16.0 | 0.00 | 15.0 | 66.0 | 87 | -38.0 % | -19.0 % | 119 (-30.6 %) | rows free -33.1 % | capture fork -38.0 % | 25.6 (-33.9 %) |
+  | mgsm | LEAF-HARD #2+#3 at first p1<0.8 | 5.30 | 8.2 | 0.00 | 5.6 | 37.9 | 140 | -0.1 % | -0.0 % | 170 (-1.1 %) | rows free +5.1 % | capture fork -0.1 % | 37.1 (-4.1 %) |
+  | mgsm | LEAF-HARD #2+#3 at first p1<0.9 | 5.28 | 8.4 | 0.00 | 5.6 | 38.1 | 139 | -0.9 % | -0.5 % | 169 (-2.0 %) | rows free +4.8 % | capture fork -0.9 % | 36.6 (-5.3 %) |
+  | mgsm | LEAF-HARD #2+#3 at first p1<0.95 | 5.26 | 8.5 | 0.00 | 5.6 | 38.1 | 138 | -1.2 % | -0.6 % | 168 (-2.4 %) | rows free +4.7 % | capture fork -1.2 % | 36.4 (-5.8 %) |
+  | mgsm | FORK-HARD #2+1 (+#3) at first p1<0.8, B16 | 5.41 | 9.0 | 0.80 | 5.9 | 39.3 | 138 | -1.6 % | -0.8 % | 168 (-2.3 %) | rows free +5.0 % | capture fork -3.4 % | 36.2 (-6.5 %) |
+  | mgsm | FORK-HARD #2+1 (+#3) at first p1<0.8, B32 | 5.47 | 9.2 | 0.81 | 6.0 | 39.7 | 138 | -1.6 % | -0.8 % | 169 (-2.1 %) | rows free +5.3 % | capture fork -3.3 % | 36.2 (-6.4 %) |
+  | mgsm | FORK-HARD #2+2 (+#3) at first p1<0.8, B16 | 5.46 | 9.7 | 0.78 | 6.3 | 40.7 | 134 | -4.3 % | -2.1 % | 164 (-4.5 %) | rows free +3.3 % | capture fork -5.9 % | 35.1 (-9.2 %) |
+  | mgsm | FORK-HARD #2+2 (+#3) at first p1<0.8, B32 | 5.53 | 10.0 | 0.81 | 6.5 | 41.4 | 134 | -4.5 % | -2.2 % | 164 (-4.5 %) | rows free +3.4 % | capture fork -6.1 % | 35.0 (-9.5 %) |
+  | mgsm | FORK-HARD #2+3 (+#3) at first p1<0.8, B16 | 5.49 | 10.4 | 0.78 | 6.8 | 42.5 | 129 | -7.7 % | -3.9 % | 160 (-7.2 %) | rows free +0.4 % | capture fork -9.2 % | 33.9 (-12.4 %) |
+  | mgsm | FORK-HARD #2+3 (+#3) at first p1<0.8, B32 | 5.59 | 10.8 | 0.81 | 7.0 | 43.5 | 129 | -8.2 % | -4.1 % | 159 (-7.4 %) | rows free +0.5 % | capture fork -9.7 % | 33.7 (-12.9 %) |
+  | mgsm | FORK-HARD #2+6 (+#3) at first p1<0.8, B16 | 5.45 | 12.0 | 0.71 | 8.4 | 47.7 | 114 | -18.3 % | -9.1 % | 145 (-15.7 %) | rows free -10.4 % | capture fork -19.4 % | 30.6 (-20.8 %) |
+  | mgsm | FORK-HARD #2+6 (+#3) at first p1<0.8, B32 | 5.69 | 13.2 | 0.81 | 8.9 | 50.1 | 113 | -18.9 % | -9.5 % | 144 (-16.1 %) | rows free -9.6 % | capture fork -20.1 % | 30.1 (-22.2 %) |
+  | mgsm | FORK-HARD #2+1 (+#3) at first p1<0.9, B16 | 5.38 | 9.2 | 0.88 | 5.9 | 39.5 | 136 | -2.7 % | -1.3 % | 166 (-3.6 %) | rows free +4.7 % | capture fork -4.6 % | 35.5 (-8.1 %) |
+  | mgsm | FORK-HARD #2+1 (+#3) at first p1<0.9, B32 | 5.45 | 9.4 | 0.90 | 6.0 | 40.0 | 136 | -2.6 % | -1.3 % | 167 (-3.3 %) | rows free +5.1 % | capture fork -4.5 % | 35.6 (-7.9 %) |
+  | mgsm | FORK-HARD #2+2 (+#3) at first p1<0.9, B16 | 5.44 | 10.0 | 0.87 | 6.2 | 40.9 | 133 | -4.9 % | -2.4 % | 163 (-5.5 %) | rows free +3.6 % | capture fork -6.7 % | 34.5 (-10.8 %) |
+  | mgsm | FORK-HARD #2+2 (+#3) at first p1<0.9, B32 | 5.53 | 10.3 | 0.90 | 6.5 | 41.8 | 132 | -5.4 % | -2.7 % | 162 (-5.6 %) | rows free +3.5 % | capture fork -7.2 % | 34.3 (-11.2 %) |
+  | mgsm | FORK-HARD #2+3 (+#3) at first p1<0.9, B16 | 5.44 | 10.7 | 0.86 | 6.6 | 42.6 | 128 | -8.8 % | -4.4 % | 157 (-8.7 %) | rows free +0.4 % | capture fork -10.4 % | 33.0 (-14.5 %) |
+  | mgsm | FORK-HARD #2+3 (+#3) at first p1<0.9, B32 | 5.59 | 11.2 | 0.89 | 7.0 | 43.9 | 127 | -9.0 % | -4.5 % | 157 (-8.5 %) | rows free +0.7 % | capture fork -10.7 % | 33.0 (-14.6 %) |
+  | mgsm | FORK-HARD #2+6 (+#3) at first p1<0.9, B16 | 5.37 | 12.6 | 0.81 | 8.4 | 48.4 | 111 | -20.7 % | -10.4 % | 140 (-18.4 %) | rows free -12.0 % | capture fork -21.9 % | 29.4 (-24.0 %) |
+  | mgsm | FORK-HARD #2+6 (+#3) at first p1<0.9, B32 | 5.69 | 13.9 | 0.90 | 9.0 | 50.9 | 112 | -20.2 % | -10.1 % | 142 (-17.7 %) | rows free -9.7 % | capture fork -21.4 % | 29.2 (-24.4 %) |
+  | mgsm | ORACLE-FORK #2+6 (+#3) at the first miss, B32 | 6.00 | 10.8 | 0.51 | 7.8 | 45.0 | 133 | -4.8 % | -2.4 % | 168 (-2.3 %) | rows free +2.6 % | capture fork -5.7 % | 35.9 (-7.2 %) |
+  | mgsm | ORACLE-FORK #2+6 (+#3) at the first miss, B16 | 5.91 | 9.8 | 0.43 | 7.3 | 43.1 | 137 | -2.0 % | -1.0 % | 172 (+0.1 %) | rows free +3.9 % | capture fork -2.9 % | 37.2 (-3.9 %) |
+  | mgsm | WIDE-1 top-3 at depth 1 +3 each, then FORK-HARD #2+3 at p1<0.8, B16 | 5.74 | 12.7 | 2.22 | 6.6 | 44.8 | 128 | -8.5 % | -4.3 % | 155 (-9.7 %) | rows free +6.3 % | capture fork -12.4 % | 32.0 (-17.3 %) |
+  | mgsm | WIDE-1 top-3 at depth 1 +3 each, then FORK-HARD #2+6 at p1<0.8, B32 | 5.83 | 13.7 | 2.25 | 7.3 | 47.4 | 123 | -12.1 % | -6.1 % | 151 (-12.4 %) | rows free +3.0 % | capture fork -15.7 % | 30.8 (-20.4 %) |
+  | mgsm | WIDE-1 top-3 at depth 1 +3 each, then FORK-HARD #2+3 at p1<0.9, B16 | 5.69 | 12.9 | 2.29 | 6.5 | 44.9 | 127 | -9.5 % | -4.8 % | 153 (-10.9 %) | rows free +5.9 % | capture fork -13.5 % | 31.4 (-18.9 %) |
+  | mgsm | WIDE-1 top-3 at depth 1 +3 each, then FORK-HARD #2+6 at p1<0.9, B32 | 5.83 | 14.2 | 2.31 | 7.3 | 48.0 | 121 | -13.3 % | -6.6 % | 149 (-13.6 %) | rows free +2.6 % | capture fork -16.9 % | 30.2 (-21.9 %) |
+  | mgsm | WIDE-1 top-3 at depth 1 +4 each, then FORK-HARD #2+3 at p1<0.8, B16 | 4.51 | 16.0 | 2.00 | 5.0 | 44.6 | 101 | -27.8 % | -13.9 % | 117 (-32.2 %) | rows free -6.1 % | capture fork -30.6 % | 22.3 (-42.4 %) |
+  | mgsm | WIDE-1 top-3 at depth 1 +4 each, then FORK-HARD #2+6 at p1<0.8, B32 | 5.86 | 15.8 | 2.19 | 7.6 | 50.1 | 117 | -16.5 % | -8.3 % | 143 (-17.0 %) | rows free +1.4 % | capture fork -19.7 % | 28.4 (-26.5 %) |
+  | mgsm | WIDE-1 top-3 at depth 1 +4 each, then FORK-HARD #2+3 at p1<0.9, B16 | 4.51 | 16.0 | 2.00 | 5.0 | 44.6 | 101 | -27.8 % | -13.9 % | 117 (-32.2 %) | rows free -6.1 % | capture fork -30.6 % | 22.3 (-42.4 %) |
+  | mgsm | WIDE-1 top-3 at depth 1 +4 each, then FORK-HARD #2+6 at p1<0.9, B32 | 5.86 | 16.2 | 2.24 | 7.7 | 50.8 | 115 | -17.5 % | -8.8 % | 141 (-18.1 %) | rows free +1.0 % | capture fork -20.7 % | 28.0 (-27.6 %) |
+
+  ifeval: cut chain K15 t 0.3 = 2.40 tokens, 3.28 rows, 25.3 ms, 95 tok/s at the floor engine (29.7 on today's model)
+  | set | policy | tokens | rows | forks | steps | floor ms | tok/s | gain | halved | tok/s at 1.0 ms per draft step (gain) | gain with rows and forks free (bound) | gain with a boundary-capture fork (1.2 ms) | today's model tok/s (gain) |
+  |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+  | ifeval | chain K15 no cut | 2.74 | 16.0 | 0.00 | 15.0 | 66.0 | 42 | -56.2 % | -28.1 % | 57 (-46.3 %) | rows free -49.7 % | capture fork -56.2 % | 13.2 (-55.7 %) |
+  | ifeval | LEAF-HARD #2+#3 at first p1<0.8 | 2.67 | 4.9 | 0.00 | 2.3 | 27.2 | 98 | +3.2 % | +1.6 % | 109 (+2.4 %) | rows free +10.9 % | capture fork +3.2 % | 28.5 (-4.3 %) |
+  | ifeval | LEAF-HARD #2+#3 at first p1<0.9 | 2.66 | 5.1 | 0.00 | 2.3 | 27.3 | 97 | +2.4 % | +1.2 % | 108 (+1.5 %) | rows free +10.6 % | capture fork +2.4 % | 28.1 (-5.6 %) |
+  | ifeval | LEAF-HARD #2+#3 at first p1<0.95 | 2.65 | 5.1 | 0.00 | 2.3 | 27.4 | 97 | +1.8 % | +0.9 % | 107 (+1.0 %) | rows free +10.4 % | capture fork +1.8 % | 27.9 (-6.3 %) |
+  | ifeval | FORK-HARD #2+1 (+#3) at first p1<0.8, B16 | 2.77 | 5.7 | 0.82 | 2.8 | 29.2 | 95 | -0.3 % | -0.1 % | 107 (+0.6 %) | rows free +9.2 % | capture fork -2.7 % | 27.3 (-8.1 %) |
+  | ifeval | FORK-HARD #2+1 (+#3) at first p1<0.8, B32 | 2.77 | 5.8 | 0.82 | 2.8 | 29.3 | 94 | -0.5 % | -0.3 % | 107 (+0.4 %) | rows free +9.0 % | capture fork -3.0 % | 27.3 (-8.4 %) |
+  | ifeval | FORK-HARD #2+2 (+#3) at first p1<0.8, B16 | 2.80 | 6.5 | 0.82 | 3.5 | 31.5 | 89 | -6.4 % | -3.2 % | 103 (-3.7 %) | rows free +3.7 % | capture fork -8.6 % | 25.7 (-13.6 %) |
+  | ifeval | FORK-HARD #2+2 (+#3) at first p1<0.8, B32 | 2.80 | 6.6 | 0.82 | 3.5 | 31.6 | 89 | -6.7 % | -3.4 % | 102 (-3.9 %) | rows free +3.5 % | capture fork -8.8 % | 25.6 (-13.8 %) |
+  | ifeval | FORK-HARD #2+3 (+#3) at first p1<0.8, B16 | 2.82 | 7.3 | 0.82 | 4.3 | 34.0 | 83 | -12.6 % | -6.3 % | 98 (-8.1 %) | rows free -2.0 % | capture fork -14.4 % | 24.1 (-18.8 %) |
+  | ifeval | FORK-HARD #2+3 (+#3) at first p1<0.8, B32 | 2.82 | 7.4 | 0.82 | 4.3 | 34.1 | 83 | -12.8 % | -6.4 % | 98 (-8.4 %) | rows free -2.3 % | capture fork -14.7 % | 24.1 (-19.1 %) |
+  | ifeval | FORK-HARD #2+6 (+#3) at first p1<0.8, B16 | 2.83 | 9.7 | 0.81 | 6.6 | 41.6 | 68 | -28.3 % | -14.2 % | 84 (-20.9 %) | rows free -17.9 % | capture fork -29.6 % | 20.1 (-32.5 %) |
+  | ifeval | FORK-HARD #2+6 (+#3) at first p1<0.8, B32 | 2.84 | 9.8 | 0.82 | 6.7 | 41.8 | 68 | -28.6 % | -14.3 % | 84 (-21.1 %) | rows free -18.1 % | capture fork -29.8 % | 20.0 (-32.7 %) |
+  | ifeval | FORK-HARD #2+1 (+#3) at first p1<0.9, B16 | 2.76 | 5.9 | 0.89 | 2.8 | 29.4 | 94 | -1.3 % | -0.7 % | 106 (-0.5 %) | rows free +8.9 % | capture fork -3.9 % | 26.8 (-9.8 %) |
+  | ifeval | FORK-HARD #2+1 (+#3) at first p1<0.9, B32 | 2.76 | 6.0 | 0.89 | 2.9 | 29.5 | 93 | -1.6 % | -0.8 % | 106 (-0.8 %) | rows free +8.6 % | capture fork -4.2 % | 26.7 (-10.1 %) |
+  | ifeval | FORK-HARD #2+2 (+#3) at first p1<0.9, B16 | 2.79 | 6.8 | 0.89 | 3.5 | 31.9 | 87 | -7.9 % | -3.9 % | 101 (-5.2 %) | rows free +3.1 % | capture fork -10.1 % | 25.1 (-15.6 %) |
+  | ifeval | FORK-HARD #2+2 (+#3) at first p1<0.9, B32 | 2.79 | 6.8 | 0.89 | 3.6 | 32.0 | 87 | -8.2 % | -4.1 % | 101 (-5.4 %) | rows free +2.8 % | capture fork -10.4 % | 25.0 (-15.9 %) |
+  | ifeval | FORK-HARD #2+3 (+#3) at first p1<0.9, B16 | 2.81 | 7.7 | 0.89 | 4.4 | 34.6 | 81 | -14.3 % | -7.1 % | 96 (-9.9 %) | rows free -3.1 % | capture fork -16.2 % | 23.5 (-21.1 %) |
+  | ifeval | FORK-HARD #2+3 (+#3) at first p1<0.9, B32 | 2.81 | 7.7 | 0.89 | 4.4 | 34.7 | 81 | -14.6 % | -7.3 % | 96 (-10.1 %) | rows free -3.4 % | capture fork -16.6 % | 23.4 (-21.4 %) |
+  | ifeval | FORK-HARD #2+6 (+#3) at first p1<0.9, B16 | 2.81 | 10.3 | 0.88 | 6.9 | 42.8 | 66 | -30.8 % | -15.4 % | 82 (-23.4 %) | rows free -20.0 % | capture fork -32.0 % | 19.3 (-35.1 %) |
+  | ifeval | FORK-HARD #2+6 (+#3) at first p1<0.9, B32 | 2.83 | 10.4 | 0.89 | 7.0 | 43.1 | 66 | -30.9 % | -15.4 % | 82 (-23.4 %) | rows free -20.0 % | capture fork -32.1 % | 19.2 (-35.3 %) |
+  | ifeval | ORACLE-FORK #2+6 (+#3) at the first miss, B32 | 2.92 | 7.0 | 0.47 | 4.8 | 34.7 | 84 | -11.5 % | -5.7 % | 101 (-5.3 %) | rows free -2.8 % | capture fork -12.5 % | 25.2 (-15.1 %) |
+  | ifeval | ORACLE-FORK #2+6 (+#3) at the first miss, B16 | 2.91 | 6.9 | 0.46 | 4.7 | 34.4 | 85 | -10.7 % | -5.4 % | 101 (-4.8 %) | rows free -2.3 % | capture fork -11.8 % | 25.5 (-14.3 %) |
+  | ifeval | WIDE-1 top-3 at depth 1 +3 each, then FORK-HARD #2+3 at p1<0.8, B16 | 3.04 | 12.8 | 2.02 | 4.3 | 40.0 | 76 | -19.8 % | -9.9 % | 88 (-17.8 %) | rows free +5.2 % | capture fork -23.3 % | 19.0 (-36.0 %) |
+  | ifeval | WIDE-1 top-3 at depth 1 +3 each, then FORK-HARD #2+6 at p1<0.8, B32 | 3.05 | 12.9 | 2.02 | 4.4 | 40.2 | 76 | -20.2 % | -10.1 % | 87 (-18.0 %) | rows free +4.8 % | capture fork -23.6 % | 18.9 (-36.3 %) |
+  | ifeval | WIDE-1 top-3 at depth 1 +3 each, then FORK-HARD #2+3 at p1<0.9, B16 | 3.04 | 12.9 | 2.02 | 4.3 | 40.0 | 76 | -19.9 % | -10.0 % | 87 (-17.9 %) | rows free +5.1 % | capture fork -23.4 % | 19.0 (-36.2 %) |
+  | ifeval | WIDE-1 top-3 at depth 1 +3 each, then FORK-HARD #2+6 at p1<0.9, B32 | 3.05 | 13.0 | 2.03 | 4.4 | 40.3 | 76 | -20.3 % | -10.2 % | 87 (-18.2 %) | rows free +4.7 % | capture fork -23.8 % | 18.9 (-36.5 %) |
+  | ifeval | WIDE-1 top-3 at depth 1 +4 each, then FORK-HARD #2+3 at p1<0.8, B16 | 2.99 | 16.0 | 2.00 | 5.0 | 44.6 | 67 | -29.4 % | -14.7 % | 77 (-27.2 %) | rows free -2.1 % | capture fork -32.1 % | 16.1 (-46.0 %) |
+  | ifeval | WIDE-1 top-3 at depth 1 +4 each, then FORK-HARD #2+6 at p1<0.8, B32 | 3.10 | 15.9 | 2.01 | 5.3 | 45.1 | 69 | -27.6 % | -13.8 % | 80 (-24.9 %) | rows free -0.6 % | capture fork -30.4 % | 16.6 (-44.0 %) |
+  | ifeval | WIDE-1 top-3 at depth 1 +4 each, then FORK-HARD #2+3 at p1<0.9, B16 | 2.99 | 16.0 | 2.00 | 5.0 | 44.6 | 67 | -29.4 % | -14.7 % | 77 (-27.2 %) | rows free -2.1 % | capture fork -32.1 % | 16.1 (-46.0 %) |
+  | ifeval | WIDE-1 top-3 at depth 1 +4 each, then FORK-HARD #2+6 at p1<0.9, B32 | 3.10 | 15.9 | 2.02 | 5.3 | 45.1 | 69 | -27.8 % | -13.9 % | 80 (-25.1 %) | rows free -0.8 % | capture fork -30.6 % | 16.6 (-44.1 %) |
+
+  multi: cut chain K15 t 0.3 = 2.58 tokens, 3.53 rows, 26.1 ms, 99 tok/s at the floor engine (31.0 on today's model)
+  | set | policy | tokens | rows | forks | steps | floor ms | tok/s | gain | halved | tok/s at 1.0 ms per draft step (gain) | gain with rows and forks free (bound) | gain with a boundary-capture fork (1.2 ms) | today's model tok/s (gain) |
+  |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+  | multi | chain K15 no cut | 2.92 | 16.0 | 0.00 | 15.0 | 66.0 | 44 | -55.4 % | -27.7 % | 61 (-45.8 %) | rows free -49.0 % | capture fork -55.4 % | 14.0 (-54.8 %) |
+  | multi | LEAF-HARD #2+#3 at first p1<0.8 | 2.82 | 5.2 | 0.00 | 2.6 | 28.1 | 100 | +1.4 % | +0.7 % | 113 (+0.6 %) | rows free +8.7 % | capture fork +1.4 % | 29.3 (-5.7 %) |
+  | multi | LEAF-HARD #2+#3 at first p1<0.9 | 2.82 | 5.3 | 0.00 | 2.6 | 28.2 | 100 | +0.7 % | +0.4 % | 112 (-0.1 %) | rows free +8.7 % | capture fork +0.7 % | 28.9 (-6.9 %) |
+  | multi | LEAF-HARD #2+#3 at first p1<0.95 | 2.81 | 5.4 | 0.00 | 2.6 | 28.3 | 99 | +0.2 % | +0.1 % | 111 (-0.7 %) | rows free +8.4 % | capture fork +0.2 % | 28.7 (-7.6 %) |
+  | multi | FORK-HARD #2+1 (+#3) at first p1<0.8, B16 | 2.89 | 6.0 | 0.81 | 3.0 | 29.9 | 97 | -2.4 % | -1.2 % | 110 (-1.8 %) | rows free +6.6 % | capture fork -4.7 % | 27.9 (-10.1 %) |
+  | multi | FORK-HARD #2+1 (+#3) at first p1<0.8, B32 | 2.90 | 6.0 | 0.81 | 3.1 | 30.0 | 97 | -2.6 % | -1.3 % | 110 (-1.9 %) | rows free +6.5 % | capture fork -4.9 % | 27.9 (-10.2 %) |
+  | multi | FORK-HARD #2+2 (+#3) at first p1<0.8, B16 | 2.92 | 6.8 | 0.81 | 3.7 | 32.1 | 91 | -8.3 % | -4.1 % | 105 (-6.0 %) | rows free +1.5 % | capture fork -10.3 % | 26.2 (-15.5 %) |
+  | multi | FORK-HARD #2+2 (+#3) at first p1<0.8, B32 | 2.92 | 6.8 | 0.81 | 3.7 | 32.2 | 91 | -8.5 % | -4.2 % | 105 (-6.1 %) | rows free +1.4 % | capture fork -10.5 % | 26.2 (-15.6 %) |
+  | multi | FORK-HARD #2+3 (+#3) at first p1<0.8, B16 | 2.93 | 7.6 | 0.81 | 4.4 | 34.5 | 85 | -14.3 % | -7.1 % | 100 (-10.5 %) | rows free -4.1 % | capture fork -16.1 % | 24.6 (-20.7 %) |
+  | multi | FORK-HARD #2+3 (+#3) at first p1<0.8, B32 | 2.93 | 7.6 | 0.81 | 4.4 | 34.6 | 85 | -14.5 % | -7.3 % | 100 (-10.7 %) | rows free -4.4 % | capture fork -16.3 % | 24.5 (-20.9 %) |
+  | multi | FORK-HARD #2+6 (+#3) at first p1<0.8, B16 | 2.93 | 10.0 | 0.81 | 6.7 | 41.9 | 70 | -29.4 % | -14.7 % | 87 (-22.8 %) | rows free -19.3 % | capture fork -30.6 % | 20.6 (-33.7 %) |
+  | multi | FORK-HARD #2+6 (+#3) at first p1<0.8, B32 | 2.95 | 10.0 | 0.81 | 6.8 | 42.2 | 70 | -29.5 % | -14.8 % | 86 (-22.8 %) | rows free -19.4 % | capture fork -30.7 % | 20.5 (-33.9 %) |
+  | multi | FORK-HARD #2+1 (+#3) at first p1<0.9, B16 | 2.90 | 6.2 | 0.89 | 3.0 | 30.2 | 96 | -3.0 % | -1.5 % | 109 (-2.5 %) | rows free +6.9 % | capture fork -5.5 % | 27.5 (-11.5 %) |
+  | multi | FORK-HARD #2+1 (+#3) at first p1<0.9, B32 | 2.90 | 6.3 | 0.89 | 3.0 | 30.2 | 96 | -3.2 % | -1.6 % | 109 (-2.7 %) | rows free +6.7 % | capture fork -5.7 % | 27.4 (-11.7 %) |
+  | multi | FORK-HARD #2+2 (+#3) at first p1<0.9, B16 | 2.92 | 7.1 | 0.89 | 3.7 | 32.5 | 90 | -9.1 % | -4.6 % | 104 (-7.0 %) | rows free +1.7 % | capture fork -11.3 % | 25.7 (-17.2 %) |
+  | multi | FORK-HARD #2+2 (+#3) at first p1<0.9, B32 | 2.92 | 7.1 | 0.89 | 3.7 | 32.6 | 90 | -9.4 % | -4.7 % | 104 (-7.2 %) | rows free +1.4 % | capture fork -11.6 % | 25.6 (-17.5 %) |
+  | multi | FORK-HARD #2+3 (+#3) at first p1<0.9, B16 | 2.94 | 8.0 | 0.89 | 4.5 | 35.1 | 84 | -15.5 % | -7.8 % | 99 (-11.9 %) | rows free -4.4 % | capture fork -17.4 % | 24.0 (-22.8 %) |
+  | multi | FORK-HARD #2+3 (+#3) at first p1<0.9, B32 | 2.94 | 8.0 | 0.89 | 4.5 | 35.2 | 83 | -15.8 % | -7.9 % | 99 (-12.1 %) | rows free -4.7 % | capture fork -17.7 % | 23.9 (-23.0 %) |
+  | multi | FORK-HARD #2+6 (+#3) at first p1<0.9, B16 | 2.94 | 10.6 | 0.89 | 7.0 | 43.2 | 68 | -31.3 % | -15.7 % | 84 (-24.7 %) | rows free -20.6 % | capture fork -32.6 % | 19.8 (-36.2 %) |
+  | multi | FORK-HARD #2+6 (+#3) at first p1<0.9, B32 | 2.95 | 10.7 | 0.89 | 7.0 | 43.5 | 68 | -31.4 % | -15.7 % | 84 (-24.8 %) | rows free -20.7 % | capture fork -32.7 % | 19.8 (-36.3 %) |
+  | multi | ORACLE-FORK #2+6 (+#3) at the first miss, B32 | 3.06 | 7.5 | 0.49 | 5.1 | 35.9 | 85 | -14.1 % | -7.0 % | 103 (-8.4 %) | rows free -5.6 % | capture fork -15.1 % | 25.5 (-17.9 %) |
+  | multi | ORACLE-FORK #2+6 (+#3) at the first miss, B16 | 3.05 | 7.3 | 0.48 | 5.0 | 35.5 | 86 | -13.2 % | -6.6 % | 103 (-7.7 %) | rows free -4.9 % | capture fork -14.3 % | 25.8 (-17.0 %) |
+  | multi | WIDE-1 top-3 at depth 1 +3 each, then FORK-HARD #2+3 at p1<0.8, B16 | 3.13 | 12.7 | 2.04 | 4.3 | 39.7 | 79 | -20.6 % | -10.3 % | 90 (-19.3 %) | rows free +3.1 % | capture fork -24.1 % | 19.7 (-36.4 %) |
+  | multi | WIDE-1 top-3 at depth 1 +3 each, then FORK-HARD #2+6 at p1<0.8, B32 | 3.13 | 12.8 | 2.04 | 4.4 | 40.1 | 78 | -21.3 % | -10.6 % | 90 (-19.8 %) | rows free +2.2 % | capture fork -24.7 % | 19.6 (-36.9 %) |
+  | multi | WIDE-1 top-3 at depth 1 +3 each, then FORK-HARD #2+3 at p1<0.9, B16 | 3.13 | 12.7 | 2.05 | 4.3 | 39.8 | 79 | -20.7 % | -10.3 % | 90 (-19.4 %) | rows free +3.1 % | capture fork -24.2 % | 19.7 (-36.6 %) |
+  | multi | WIDE-1 top-3 at depth 1 +3 each, then FORK-HARD #2+6 at p1<0.9, B32 | 3.13 | 12.8 | 2.05 | 4.5 | 40.3 | 78 | -21.6 % | -10.8 % | 90 (-20.0 %) | rows free +1.9 % | capture fork -25.0 % | 19.5 (-37.1 %) |
+  | multi | WIDE-1 top-3 at depth 1 +4 each, then FORK-HARD #2+3 at p1<0.8, B16 | 3.10 | 16.0 | 2.00 | 5.0 | 44.6 | 70 | -29.8 % | -14.9 % | 80 (-28.3 %) | rows free -3.2 % | capture fork -32.5 % | 16.7 (-46.3 %) |
+  | multi | WIDE-1 top-3 at depth 1 +4 each, then FORK-HARD #2+6 at p1<0.8, B32 | 3.17 | 15.7 | 2.02 | 5.2 | 44.8 | 71 | -28.6 % | -14.3 % | 82 (-26.7 %) | rows free -2.8 % | capture fork -31.4 % | 17.2 (-44.7 %) |
+  | multi | WIDE-1 top-3 at depth 1 +4 each, then FORK-HARD #2+3 at p1<0.9, B16 | 3.10 | 16.0 | 2.00 | 5.0 | 44.6 | 70 | -29.8 % | -14.9 % | 80 (-28.3 %) | rows free -3.2 % | capture fork -32.5 % | 16.7 (-46.3 %) |
+  | multi | WIDE-1 top-3 at depth 1 +4 each, then FORK-HARD #2+6 at p1<0.9, B32 | 3.17 | 15.8 | 2.03 | 5.3 | 44.9 | 71 | -28.7 % | -14.4 % | 82 (-26.7 %) | rows free -3.0 % | capture fork -31.5 % | 17.1 (-44.8 %) |
+
+(0.6 s, CPU only)

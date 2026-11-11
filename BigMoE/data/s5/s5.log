@@ -1,0 +1,26 @@
+11-07 14:09:16 FREEZE: 344 files point into frozen_s5, 0 live code paths left
+11-07 14:12:07 FREEZE: 344 files point into frozen_s5, 0 live code paths left
+11-07 14:12:07 S5 start (pid 83602, NO-SWAP 49.0 GB, C 256, snapshot d8eb2e4); screen md5 600254b9ca558245367a7df3641109d1
+11-07 14:12:42 PRE-FLIGHT CLEAN (2 / 2, 0 live modules): the S5 arms run
+11-07 14:14:28 s5q1 rc=0
+11-07 14:16:03 s5v1 rc=0
+11-07 14:17:34 s5v2 rc=0
+11-07 14:19:19 s5q2 rc=0
+11-07 14:20:49 s5mq1 rc=0
+11-07 14:22:10 s5mv1 rc=0
+11-07 14:23:35 s5mv2 rc=0
+11-07 14:25:05 s5mq2 rc=0
+S5, C 256 (data/s5; snapshot d8eb2e4; quiet): qall / v1' + wired / v1' + wired / qall on 12 HumanEval, then MBPP12; freeze windows [('02:47:37', '02:48:18'), ('03:05:46', '03:06:47'), ('05:11:06', '05:12:07'), ('06:17:59', '06:19:00')]; passes dropped for a freeze: none; arms missing: none
+Modules: 30 loaded from the s5 snapshot per process; LIVE outside modules (Leap / TrainLab / Breakthrough): 0
+12 HumanEval:
+  qall          WHOLE DECODE   92.5 tok/s (92.0, 92.9); FULL PERIOD  100.9 (100.4, 101.3); tpsw  101.1; check 0 330 ms; cycle 105.3 ms; kept 10.17; tokens/task 250; lifetime peak 42.5 GB
+  v1' + wired   WHOLE DECODE  175.9 tok/s (174.6, 176.9); FULL PERIOD  170.5 (169.1, 171.6); tpsw  171.0; check 0 68 ms; cycle 64.4 ms; kept 10.74; tokens/task 242; lifetime peak 42.9 GB
+  v1' + wired vs qall over 12: whole decode +90.1 %, full period +68.9 %; tokens identical v1 vs v2 9 / 12, q1 vs q2 9 / 12
+MBPP12:
+  qall          WHOLE DECODE   65.8 tok/s (66.1, 65.5); FULL PERIOD   72.8 (72.4, 73.1); tpsw   72.9; check 0 307 ms; cycle 85.4 ms; kept 6.25; tokens/task 123; lifetime peak 42.2 GB
+  v1' + wired   WHOLE DECODE  118.3 tok/s (118.1, 118.4); FULL PERIOD  115.4 (115.0, 115.7); tpsw  115.8; check 0 60 ms; cycle 52.2 ms; kept 6.21; tokens/task 123; lifetime peak 42.6 GB
+  v1' + wired vs qall over 12: whole decode +79.7 %, full period +58.5 %; tokens identical v1 vs v2 7 / 12, q1 vs q2 6 / 12
+CLEAN: True (all 8 arms, 0 live modules, v1' + wired lifetime peak 42.9 GB <= 45.0)
+11-07 14:25:06 report rc=0 (data/s5/s5_report.txt)
+11-07 14:25:06 cert_env.txt + s5_env.txt written (snapshot d8eb2e4)
+11-07 14:25:06 S5 end

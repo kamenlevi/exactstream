@@ -1,0 +1,48 @@
+06:56 lock taken (kv64)
+06:56 start build_v3i
+06:56 done build_v3i (rc 0): 
+06:56 start smoke_v3i
+06:56 done smoke_v3i (rc 0): [code] memory: loaded 9.2 GB active; at the first token active 9.7, prefill peak 9.7, footprint 10.2; decode-phase peak active 9.8 GB, footprint now 10.2 [code] SSD during decode: 7.7 GB/s, 1144 MB/pass, late reads 0.0/pass, waited 574.8/pass 
+06:56 start mem64k_bf16
+07:01 done mem64k_bf16 (rc 0): [moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (414, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit [mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4 
+07:01 start mem64k_kv_64
+07:06 done mem64k_kv_64 (rc 0): [moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (416, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit [mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4 
+07:06 kv64 done
+10:33 lock taken (kvlong)
+10:33 start long_tasks
+11:04 lost the lock during long_tasks: stopping it
+11:04 note: the Mac slept 10:48-11:03, my lock expired (10:55) in the sleep and BigMoE took the quiet lock at 11:03; the 60K kv:64 arm was mid-prefill (re-run it later)
+14:54 lock taken (kvlane)
+14:54 start lane_off
+15:02 done lane_off (rc 0): long L=32000_g64 (35002 tok) bf16: mq 4/4 vt 5/5 uuid 1/1 | prefill 127 s | '7666894, 9215608, 5439688, 9311120' || 'MASVC, WHLAU, KILQW, MPUDM, RLAKB' || '12b5 long L=60000_g64 (63022 tok) bf16: mq 4/4 vt 5/5 uuid 1/1 | prefill 268 s | '1128180, 3985050, 6088131, 3870172' || 'YXDCU, HVNYD, LUSMP, MWGGW, VTQYR' || '0192 
+15:02 start lane_on
+15:08 done lane_on (rc 0): long L=32000_g64_lane (35002 tok) bf16: mq 4/4 vt 5/5 uuid 1/1 | prefill 121 s | '7666894, 9215608, 5439688, 9311120' || 'MASVC, WHLAU, KILQW, MPUDM, RLAKB' ||  long L=60000_g64_lane (63022 tok) bf16: mq 4/4 vt 5/5 uuid 1/1 | prefill 210 s | '1128180, 3985050, 6088131, 3870172' || 'YXDCU, HVNYD, LUSMP, MWGGW, VTQYR' ||  
+15:08 start kv64_60k
+15:13 done kv64_60k (rc 0): long L=60000_kv64 (63022 tok) kv:64: mq 4/4 vt 5/5 uuid 1/1 | prefill 288 s | '1128180, 3985050, 6088131, 3870172' || 'YXDCU, HVNYD, LUSMP, MWGGW, VTQYR' || '01 
+15:13 kvlane done
+09:44 lock taken (kvdx)
+09:44 start dx_build
+09:44 done dx_build (rc 0): kv8_long build_dx L=32000: prefix 32265 tokens, 6 chains x 4: 75958=WFEZX/DDTYQ/IARAT/OXGDX 10775=DNSFW/NVPXX/NODOD/DMLPK 10489=SLTDT/YLSCL/PMDVU/LSYAF 38005=VUPOY/NYDQL/ONWCK/DWXHE 59610=DEUMU/BZFCE/ kv8_long build_dx L=60000: prefix 60292 tokens, 6 chains x 4: 66332=DTZII/MWHOB/IWSBD/INUGF 82631=QBKNP/RIIJG/ULCXN/YXBRA 83126=RHTYL/MWWFH/FHXFZ/JDODH 75369=HRMLE/PGXCE/TYSJU/NSHRB 97228=DAIAA/OEJYS/ 
+09:44 start dx_run
+10:01 done dx_run (rc 0): long L=60000_dx_g64_lane (60292 tok) bf16: vt 0/4 vt 1/4 vt 1/4 vt 1/4 vt 1/4 vt 1/4 | prefill 204 s | decode 11.85 tok/s (288 tokens), feed 11.53 rows/s | fork check item 0 again: DIFFERS | 'Based on long L=60000 bf16 memory: prefill footprint peak 13.63 GB (MLX active 11.61) at (53248, 46, 'post'); widest footprint - active 12.49 GB (MLX active 9.98) at (20480, 8, 'attn'); prefill MLX peak 11.52  long L=60000_dx_g64_lane (60292 tok) kv:64: vt 0/4 vt 0/4 vt 1/4 vt 1/4 vt 1/4 vt 1/4 | prefill 196 s | decode 10.1 tok/s (288 tokens), feed 10.12 rows/s | fork check item 0 again: identical | 'Based  long L=60000 kv:64 memory: prefill footprint peak 13.04 GB (MLX active 11.53) at (53248, 44, 'moe'); widest footprint - active 11.92 GB (MLX active 9.20) at (0, 0, 'attn'); prefill MLX peak 10.83 GB;  
+10:01 start dx_score
+10:01 done dx_score (rc 0): long L=32000_dx bf16: gold names 13/24, distractor names 19, items with a (near-)whole other chain 2 [0, 3] | per item hits/distractors 4/7 3/0 1/0 2/10 2/2 1/0 | decode 8.62 tok/s | fork check False long L=32000_dx kv:64: gold names 14/24, distractor names 16, items with a (near-)whole other chain 2 [0, 3] | per item hits/distractors 4/7 3/0 1/0 3/9 2/0 1/0 | decode 14.13 tok/s | fork check False long L=60000_dx bf16: gold names 5/24, distractor names 1, items with a (near-)whole other chain 0 [] | per item hits/distractors 0/1 1/0 1/0 1/0 1/0 1/0 | decode 11.85 tok/s | fork check False long L=60000_dx kv:64: gold names 4/24, distractor names 2, items with a (near-)whole other chain 0 [] | per item hits/distractors 0/1 0/1 1/0 1/0 1/0 1/0 | decode 10.1 tok/s | fork check True 
+10:01 kvdx done
+14:00 lock taken (kvdx)
+14:00 start dx_build
+14:00 done dx_build (rc 0): kv8_long build_dx L=32000: prefix 32265 tokens, 6 chains x 4: 75958=WFEZX/DDTYQ/IARAT/OXGDX 10775=DNSFW/NVPXX/NODOD/DMLPK 10489=SLTDT/YLSCL/PMDVU/LSYAF 38005=VUPOY/NYDQL/ONWCK/DWXHE 59610=DEUMU/BZFCE/ kv8_long build_dx L=60000: prefix 60292 tokens, 6 chains x 4: 66332=DTZII/MWHOB/IWSBD/INUGF 82631=QBKNP/RIIJG/ULCXN/YXBRA 83126=RHTYL/MWWFH/FHXFZ/JDODH 75369=HRMLE/PGXCE/TYSJU/NSHRB 97228=DAIAA/OEJYS/ 
+14:00 start dx_run
+14:01 done dx_run (rc 3): kv8_long selftest bf16 (2048 tokens): FAIL | fingerprint after prefill c02d6276f1, after each restore c02d6276f1 c02d6276f1 c02d6276f1 | item 0 logits 6a3b9ca775 / again 7e1b585e89, ids equal False (6 kv8_long selftest kv:64 (2048 tokens): FAIL | fingerprint after prefill 284da08a91, after each restore 284da08a91 284da08a91 284da08a91 | item 0 logits 5f5ff2d58d / again 06ce04bb87, ids equal False ( kv8_long selftest FAILED: no long runs 
+14:01 dx_run stopped: no score (see dx_run.txt)
+20:44 lock taken (kvdx)
+20:44 start dx_build
+20:45 health monitor at ACT: stopping dx_build
+20:45 done dx_build (rc 127): kv8_long build_dx L=32000: prefix 32265 tokens, 6 chains x 4: 75958=WFEZX/DDTYQ/IARAT/OXGDX 10775=DNSFW/NVPXX/NODOD/DMLPK 10489=SLTDT/YLSCL/PMDVU/LSYAF 38005=VUPOY/NYDQL/ONWCK/DWXHE 59610=DEUMU/BZFCE/ kv8_long build_dx L=60000: prefix 60292 tokens, 6 chains x 4: 66332=DTZII/MWHOB/IWSBD/INUGF 82631=QBKNP/RIIJG/ULCXN/YXBRA 83126=RHTYL/MWWFH/FHXFZ/JDODH 75369=HRMLE/PGXCE/TYSJU/NSHRB 97228=DAIAA/OEJYS/ 
+19:26 lock taken (kvdx)
+19:26 start dx_build
+19:26 done dx_build (rc 0): kv8_long build_dx L=32000: prefix 32265 tokens, 6 chains x 4: 75958=WFEZX/DDTYQ/IARAT/OXGDX 10775=DNSFW/NVPXX/NODOD/DMLPK 10489=SLTDT/YLSCL/PMDVU/LSYAF 38005=VUPOY/NYDQL/ONWCK/DWXHE 59610=DEUMU/BZFCE/ kv8_long build_dx L=60000: prefix 60292 tokens, 6 chains x 4: 66332=DTZII/MWHOB/IWSBD/INUGF 82631=QBKNP/RIIJG/ULCXN/YXBRA 83126=RHTYL/MWWFH/FHXFZ/JDODH 75369=HRMLE/PGXCE/TYSJU/NSHRB 97228=DAIAA/OEJYS/ 
+19:26 start dx_run
+19:45 done dx_run (rc 0): long L=60000_dx_g64_lane_r3 (60292 tok) bf16: vt 1/4 vt 0/4 vt 4/4 vt 3/4 vt 1/4 vt 1/4 | prefill 207 s | decode 12.29 tok/s (648 tokens), feed 11.97 rows/s | fork check item 0 again: identical (finge long L=60000 bf16 memory: prefill footprint peak 13.59 GB (MLX active 12.21) at (53248, 46, 'post'); widest footprint - active 13.42 GB (MLX active 11.52) at (49152, 47, 'attn'); prefill MLX peak 12.1 long L=60000_dx_g64_lane_r3 (60292 tok) kv:64: vt 1/4 vt 0/4 vt 4/4 vt 3/4 vt 4/4 vt 3/4 | prefill 210 s | decode 9.31 tok/s (960 tokens), feed 9.17 rows/s | fork check item 0 again: identical (finger long L=60000 kv:64 memory: prefill footprint peak 14.34 GB (MLX active 12.31) at (49152, 47, 'post'); widest footprint - active 14.24 GB (MLX active 12.15) at (49152, 34, 'attn'); prefill MLX peak 12. 
+19:45 start dx_score
+19:45 done dx_score (rc 0): long L=32000_dx bf16: gold names 14/24, distractor names 23, items with a (near-)whole other chain 2 [0, 3] | per item hits/distractors 4/7 3/0 1/1 2/15 2/0 2/0 | decode 13.63 tok/s | fork check same long L=32000_dx kv:64: gold names 15/24, distractor names 5, items with a (near-)whole other chain 0 [] | per item hits/distractors 1/1 3/0 1/2 4/0 4/2 2/0 | decode 11.93 tok/s | fork check same long L=60000_dx bf16: gold names 10/24, distractor names 5, items with a (near-)whole other chain 1 [1] | per item hits/distractors 1/1 0/3 4/0 3/1 1/0 1/0 | decode 12.29 tok/s | fork check same long L=60000_dx kv:64: gold names 15/24, distractor names 8, items with a (near-)whole other chain 2 [0, 1] | per item hits/distractors 1/3 0/3 4/0 3/1 4/0 3/1 | decode 9.31 tok/s | fork check same 
+19:45 kvdx done

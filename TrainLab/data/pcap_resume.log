@@ -1,0 +1,15 @@
+[20:55:51] 1. waiting for BigMoE's early 45 GB run to come and go (if it hasn't started by 21:15, it runs at 23:00)
+[21:15:27] no BigMoE lock by 21:15: it runs at 23:00; the resume goes as soon as the GPU is free
+[21:15:27] 2. waiting for a clear slot (>= 36 GB available; gives up 22:25)
+[21:21:30] clear for 6 polls (3 min): 36 GB available
+[21:21:30] lock try 1: shared run reserved until 22:21 (about 300% CPU, 90% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done.
+[21:21:30] start (swap 10873.69 MB): /usr/bin/time -l /Users/kamen/BigMoE/.venv/bin/python3 sticky/pcap_train.py --expand --lr-new 2e-4 --A 32 --S 8 --micro 1 --epochs 2 --minutes 75 --lr 2e-5 --bs 32 --pmask 0.5 --data /Users/kamen/Leap/data/l120 --out /Users/kamen/TrainLab/ext/pcap/pcap10.safetensors --resume
+[21:32:11] rc=0 (swap 10841.69 MB)
+[21:32:11] start (swap 10841.69 MB): env TL_EXPAND=1 TL_DRAFT=/Users/kamen/TrainLab/ext/pcap/pcap10.safetensors TL_WALK_TAG=_pcap /usr/bin/time -l /Users/kamen/BigMoE/.venv/bin/python3 sticky/d02b_walk.py
+[21:33:11] rc=0 (swap 10841.69 MB)
+[21:33:11] walk rc=0:   code (HumanEval+): 24 samples, 654 checks; kept per check 9.75; per-token rate 0.9281; P(first 15 right) 0.301 (of 625 full checks)   math (GSM8K CoT): 60 samples, 2069 checks; kept per check 6.92; per-token rate 0.8703; P(first 15 right) 0.093 (of 1991 full checks) 
+lock released
+[21:33:11] 3. BigMoE runs at 23:00 and it is <= 21:45: P-OFF's extraction (ends by ~22:20)
+[22:10:25] extraction runner rc=0: lock released [22:10:25] DONE 
+[22:10:25] P-OFF on-path rate (assistant): 0.860 (alive line 0.75; training is Thursday's either way)
+[22:10:25] DONE

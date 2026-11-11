@@ -1,0 +1,36 @@
+D-20 SWITCH45: full 125B via load_streamed (C = 160) with the MTP head (b3), loaded in 1 s, 27.2 GB active; arms ['dfl', 'mtp7', 'mtp15']; 256 tokens
+  ref2 self-test: {'qmm16c 6144x2560': True, 'MLX 16-row 512x2560': True, 'experts split == fused': True, 'experts rows alone': True, 'bf16 Linear': True}
+  warm-up (discarded): humaneval/HumanEval/68
+  ifeval/3280 [chat] dfl: 140 tokens, 8.9 tok/s, kept 2.62 of 16.0 rows, median cycle 277.6 ms (draft 11.9 + check 264.8); prefill 4.5 s; == REF2 row: True
+  ifeval/3280 [chat] mtp7: 140 tokens, 12.5 tok/s, kept 3.11 of 8.0 rows, median cycle 230.3 ms (draft 17.5 + check 213.0); prefill 4.4 s + MTP history 0.25 s; == REF2 row: True
+  ifeval/3280 [chat] mtp15: 140 tokens, 9.0 tok/s, kept 3.18 of 16.0 rows, median cycle 341.6 ms (draft 41.2 + check 299.0); prefill 4.3 s + MTP history 0.07 s; == REF2 row: True
+  ifeval/1561 [chat] dfl: 55 tokens, 18.8 tok/s, kept 9.00 of 16.0 rows, median cycle 408.2 ms (draft 15.7 + check 400.4); prefill 4.5 s; == REF2 row: True
+  ifeval/1561 [chat] mtp7: 55 tokens, 20.4 tok/s, kept 6.75 of 8.0 rows, median cycle 313.6 ms (draft 19.5 + check 291.0); prefill 4.4 s + MTP history 0.14 s; == REF2 row: True
+  ifeval/1561 [chat] mtp15: 55 tokens, 18.8 tok/s, kept 9.00 of 16.0 rows, median cycle 464.4 ms (draft 43.1 + check 414.8); prefill 4.5 s + MTP history 0.05 s; == REF2 row: True
+  multi/bg0 [chat] dfl: 256 tokens, 7.7 tok/s, kept 1.93 of 16.0 rows, median cycle 233.4 ms (draft 13.2 + check 219.9); prefill 5.4 s; == REF2 row: None
+  multi/bg0 [chat] mtp7: 256 tokens, 15.5 tok/s, kept 3.34 of 8.0 rows, median cycle 204.9 ms (draft 17.4 + check 185.4); prefill 4.6 s + MTP history 0.23 s; == REF2 row: None
+  multi/bg0 [chat] mtp15: 256 tokens, 11.8 tok/s, kept 3.43 of 16.0 rows, median cycle 280.8 ms (draft 36.9 + check 243.6); prefill 4.5 s + MTP history 0.06 s; == REF2 row: None
+  multi/de3 [chat] dfl: 256 tokens, 10.3 tok/s, kept 2.46 of 16.0 rows, median cycle 225.0 ms (draft 11.7 + check 213.1); prefill 4.3 s; == REF2 row: None
+  multi/de3 [chat] mtp7: 256 tokens, 15.5 tok/s, kept 3.02 of 8.0 rows, median cycle 185.0 ms (draft 17.2 + check 167.8); prefill 4.4 s + MTP history 0.13 s; == REF2 row: None
+  multi/de3 [chat] mtp15: 256 tokens, 11.1 tok/s, kept 3.06 of 16.0 rows, median cycle 267.2 ms (draft 36.6 + check 229.1); prefill 4.4 s + MTP history 0.06 s; == REF2 row: None
+  agent/bash17 [agent] dfl: 97 tokens, 9.1 tok/s, kept 3.03 of 16.0 rows, median cycle 289.2 ms (draft 13.8 + check 272.3); prefill 47.0 s; == REF2 row: None
+  agent/bash17 [agent] mtp7: 97 tokens, 14.6 tok/s, kept 4.55 of 8.0 rows, median cycle 267.7 ms (draft 19.6 + check 252.0); prefill 89.2 s + MTP history 0.32 s; == REF2 row: None
+  agent/bash17 [agent] mtp15: 97 tokens, 12.2 tok/s, kept 5.26 of 16.0 rows, median cycle 379.8 ms (draft 41.8 + check 335.9); prefill 62.2 s + MTP history 0.33 s; == REF2 row: None
+  agent/edit00 [agent] dfl: 114 tokens, 12.0 tok/s, kept 8.14 of 16.0 rows, median cycle 555.8 ms (draft 20.2 + check 527.3); prefill 67.5 s; == REF2 row: None
+  agent/edit00 [agent] mtp7: 114 tokens, 17.1 tok/s, kept 7.60 of 8.0 rows, median cycle 410.3 ms (draft 21.3 + check 406.2); prefill 54.1 s + MTP history 0.39 s; == REF2 row: None
+  agent/edit00 [agent] mtp15: 114 tokens, 20.0 tok/s, kept 13.11 of 16.0 rows, median cycle 567.2 ms (draft 42.3 + check 542.6); prefill 94.2 s + MTP history 0.34 s; == REF2 row: None
+D-20 summary (C 160, 256 tokens, head b3; wall-clock tok/s per prompt, unpaused, cut runs dropped):
+  agent/bash17 [agent]: dfl 9.1, mtp15 12.2, mtp7 14.6; tokens equal across arms True
+  agent/edit00 [agent]: dfl 12.0, mtp15 20.0, mtp7 17.1; tokens equal across arms True
+  gsm8k/708 [math]: dfl 15.6, mtp15 15.8, mtp7 18.0; tokens equal across arms True
+  humaneval/HumanEval/68 [code]: dfl 30.2, mtp15 23.6, mtp7 21.9; tokens equal across arms True
+  humaneval/HumanEval/91 [code]: dfl 20.1, mtp15 1.2p, mtp7 18.9; tokens equal across arms True
+  ifeval/1220 [chat]: dfl 8.9, mtp15 8.1, mtp7 10.4; tokens equal across arms True
+  ifeval/1561 [chat]: dfl 18.8, mtp15 18.8, mtp7 20.4; tokens equal across arms True
+  ifeval/3280 [chat]: dfl 8.9, mtp15 9.0, mtp7 12.5; tokens equal across arms True
+  math500/test/algebra/1282.json [math]: dfl 17.9, mtp15 1.2, mtp7 18.1; tokens equal across arms True
+  multi/bg0 [chat]: dfl 7.7, mtp15 11.8, mtp7 15.5; tokens equal across arms True
+  multi/de3 [chat]: dfl 10.3, mtp15 11.1, mtp7 15.5; tokens equal across arms True
+  mtp7 vs dfl on chat / agent (7 prompts): mean tok/s 15.15 vs 10.79 = +40.3 %; tokens equal True; PASS (PASS >= +10 %, KILL < +4 %)
+  mtp15 vs dfl on chat / agent (7 prompts): mean tok/s 12.99 vs 10.79 = +20.4 %; tokens equal True; PASS (PASS >= +10 %, KILL < +4 %)
+  footprint now 31.1 GB, lifetime peak 36.8 GB, MLX peak 36.3 GB; 716 s running

@@ -1,0 +1,16 @@
+R-58 INV-T on the GATE (MAXK 160, GATE_N 160, ext build_next): full 125B via load_streamed with BIGMOE_TIER 4433333333 / GLU 3c (C = 192), loaded in 2 s; REF2 defaults {'dense_min_n': 1024, 'experts': True, 'experts_cfg_a': (4, 1), 'experts_cfg_b': (1, 1), 'slot_call': True, 'commit_phase': True, 'sdpa_classes': True, 'sdpa_bounds': (128,), 'key_buckets': True, 'kb_from': 512, 'kb_step': 512, 'tiers': True}
+  self-test: {'qmm16c 6144x2560': True, 'MLX 16-row 512x2560': True, 'experts split == fused': True, 'experts rows alone': True, 'bf16 Linear': True}
+  B humaneval/HumanEval/68 (P 367): check at absolute 367 (keys 383), rows' AR steps at keys 383..398: logits rows bitwise 16 / 16: ================
+    every layer output of every row equal
+    max |logit delta| per row: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    tier calls: AR (gated tier_call) 768; check: gated tier_call 48, REF2-T slot branch 0
+  A math500/test/geometry/702.json (P 520): check at absolute 520 (keys 536), rows' AR steps at keys 536..551: logits rows bitwise 16 / 16: ================
+    every layer output of every row equal
+    max |logit delta| per row: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    tier calls: AR (gated tier_call) 768; check: gated tier_call 48, REF2-T slot branch 0
+  control (gate off, tiers branch off) humaneval/HumanEval/68 (P 367): check at absolute 367 (keys 383), rows' AR steps at keys 383..398: logits rows bitwise 0 / 16: xxxxxxxxxxxxxxxx
+    first differing layer 0 (GDN): rows [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    max |logit delta| per row: [3.0508, 2.3438, 1.9688, 1.1562, 1.3125, 1.3516, 1.1875, 1.2188, 0.9609, 1.1631, 1.3965, 1.2241, 1.1094, 1.4204, 0.8438, 1.0781]
+    tier calls: AR (gated tier_call) 768; check: gated tier_call 0, REF2-T slot branch 0
+R-58 INV-T on the GATE verdict (PASS: A and B 16/16 rows + every layer equal, the check on the gate's tier_call, and the control differs): PASS; {'B': (16, 0, 768, 48, 0), 'A': (16, 0, 768, 48, 0), 'control (gate off, tiers branch off)': (0, 1, 768, 0, 0)}
+R-58 INV-T done in 48 s

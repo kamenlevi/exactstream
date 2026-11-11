@@ -1,0 +1,22 @@
+L1-15 decisive test: tf_code/HumanEval/103, context 235, 30 GDN mixers, real verify rows
+{'ks_in': 2, 'nt_in': 2, 'ks_out': 4, 'nt_out': 2, 'rec': 'gates', 'r': 8, 'mm': 'c'} S = 16: spec (one 16-row call) vs plain (16 x 1-row calls): out 0 / 983040 differ, final state 0 / 15728640, conv state 0  -> BITWISE EQUAL
+{'ks_in': 2, 'nt_in': 2, 'ks_out': 4, 'nt_out': 2, 'rec': 'gates', 'r': 8, 'mm': 'c'} S =  8: spec (one 8-row call) vs plain (8 x 1-row calls): out 0 / 491520 differ, final state 0 / 15728640, conv state 0  -> BITWISE EQUAL
+{'ks_in': 2, 'nt_in': 2, 'ks_out': 8, 'rec': 'gates', 'r': 8, 'mm': 'c'} S = 16: spec (one 16-row call) vs plain (16 x 1-row calls): out 0 / 983040 differ, final state 0 / 15728640, conv state 0  -> BITWISE EQUAL
+{'ks_in': 2, 'nt_in': 2, 'ks_out': 8, 'rec': 'gates', 'r': 8, 'mm': 'c'} S =  8: spec (one 8-row call) vs plain (8 x 1-row calls): out 0 / 491520 differ, final state 0 / 15728640, conv state 0  -> BITWISE EQUAL
+recurrence_gates vs MLX gates + recurrence_r4 (same matmul config), S = 16 outputs: 112 differ
+Time, 30 mixers (median of 21):
+  S =  1: stock MLX eager   3.46 ms
+          {'ks_in': 2, 'nt_in': 2, 'ks_out': 4, 'nt_out': 2, 'rec': 'gates', 'r': 8, 'mm': 'c'}:   4.31 ms
+          {'ks_in': 2, 'nt_in': 2, 'ks_out': 4, 'nt_out': 2, 'rec': 'gates', 'r': 8}:   4.44 ms
+          {'ks_in': 2, 'nt_in': 2, 'ks_out': 8, 'rec': 'gates', 'r': 8, 'mm': 'c'}:   4.28 ms
+  S =  8: stock MLX eager   6.09 ms
+          {'ks_in': 2, 'nt_in': 2, 'ks_out': 4, 'nt_out': 2, 'rec': 'gates', 'r': 8, 'mm': 'c'}:   4.49 ms
+          {'ks_in': 2, 'nt_in': 2, 'ks_out': 4, 'nt_out': 2, 'rec': 'gates', 'r': 8}:   4.60 ms
+          {'ks_in': 2, 'nt_in': 2, 'ks_out': 8, 'rec': 'gates', 'r': 8, 'mm': 'c'}:   4.55 ms
+  S = 16: stock MLX eager  11.61 ms
+          {'ks_in': 2, 'nt_in': 2, 'ks_out': 4, 'nt_out': 2, 'rec': 'gates', 'r': 8, 'mm': 'c'}:   4.29 ms
+          {'ks_in': 2, 'nt_in': 2, 'ks_out': 4, 'nt_out': 2, 'rec': 'gates', 'r': 8}:   4.40 ms
+          {'ks_in': 2, 'nt_in': 2, 'ks_out': 8, 'rec': 'gates', 'r': 8, 'mm': 'c'}:   4.29 ms
+  vs stock MLX at S = 16: max |diff| / max |out| per layer: median 4.21e-03, max 1.34e-02
+  stages of {'ks_in': 2, 'nt_in': 2, 'ks_out': 8, 'rec': 'gates', 'r': 8, 'mm': 'c'} at S = 16: qmm16 in_proj 2.14 ms, prework35 0.47 ms, recurrence_gates 1.12 ms, gated_norm35 0.36 ms, qmm16 out_proj 1.07 ms
+peak 20.2 GB

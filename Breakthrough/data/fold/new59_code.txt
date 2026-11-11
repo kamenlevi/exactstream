@@ -1,0 +1,15 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=29.8 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=59 C_l=24 per layer, 7.07 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: engine v3g, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+b12: C_m=59 C_l=24 (12 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 7.07 GB, active 10.21 GB
+[code] d1i prefilled state: 326 tokens in 5.44 s (60 tok/s), peak active 10.5 GB, cache 0.0 GB, max RSS 4.3 GB, PEAK FOOTPRINT 12.0 GB
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[code] b12 C_m=59 C_l=24 hc8 late1=0 late3=(2, 10) w=2 pre=0 pf=0 norm=mass spec 3:3:0: 23.9 tok/s, 3.37 tok/pass, SSD reads/token 161.7; per pass: waited misses 523.7, reads 540.4, prefetch issued 0.0 used 104.2 (on time 103.6, late 0.6); peak active 10.8 GB, cache 0.1 GB, max RSS 10.4 GB, PEAK FOOTPRINT 12.0 GB, sha 259e67193e | '```python\nimport re\nimport argparse\nfrom collections import defaultdic'
+[code] memory: loaded 10.2 GB active; at the first token active 10.7, prefill peak 10.7, footprint 11.1; decode-phase peak active 10.8 GB, footprint now 11.1
+[code] SSD during decode: 7.4 GB/s, 1041 MB/pass, late reads 0.0/pass, waited 523.7/pass

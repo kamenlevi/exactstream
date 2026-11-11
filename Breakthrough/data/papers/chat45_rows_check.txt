@@ -1,0 +1,15 @@
+SMALL_RAM 5.4 number check from BigMoE's run records (data/r57/<arm>_256_runs.json), read-only
+CHS2 (BM:chs2; the 5.4 table):
+  x2c0    rows 12 tokens  1418 | whole decode pooled 44.80 (geo 46.45, median 44.63) | whole request pooled 20.41 | first token median 3.0467 s (2.60-3.85; total 37.84 of 69.49 s) | lifetime peak 42.3714 GB
+  x2c0b   rows 12 tokens  1471 | whole decode pooled 43.71 (geo 45.62, median 42.59) | whole request pooled 20.78 | first token median 3.0219 s (2.57-3.80; total 37.15 of 70.80 s) | lifetime peak 42.4084 GB
+  x2qm1   rows 12 tokens  1476 | whole decode pooled 45.26 (geo 49.36, median 44.94) | whole request pooled 21.26 | first token median 2.9398 s (2.50-3.72; total 36.82 of 69.43 s) | lifetime peak 42.3829 GB
+  x2qm2   rows 12 tokens  1580 | whole decode pooled 49.05 (geo 53.15, median 47.82) | whole request pooled 23.00 | first token median 2.9607 s (2.40-3.74; total 36.48 of 68.70 s) | lifetime peak 42.3790 GB
+  x2qm2s  rows 12 tokens  1480 | whole decode pooled 52.01 (geo 55.41, median 50.96) | whole request pooled 22.11 | first token median 3.1039 s (2.56-3.84; total 38.47 of 66.92 s) | lifetime peak 42.3264 GB
+  x2e     rows 12 tokens  1687 | whole decode pooled 36.61 (geo 39.32, median 37.23) | whole request pooled 20.66 | first token median 2.9748 s (2.25-3.70; total 35.58 of 81.66 s) | lifetime peak 41.7003 GB
+CHS5 chat configuration M1-B + COH (BM:chs5), per pass and two passes pooled:
+  z0      rows 12 tokens  1742 | whole decode pooled 49.67 (geo 53.40, median 48.51) | whole request pooled 24.39 | first token median 2.9245 s (2.40-3.72; total 36.35 of 71.42 s) | lifetime peak 42.3627 GB
+  z0b     rows 12 tokens  1742 | whole decode pooled 49.94 (geo 54.06, median 48.61) | whole request pooled 24.37 | first token median 2.9196 s (2.34-3.81; total 36.60 of 71.48 s) | lifetime peak 42.3768 GB
+  z0+z0b  rows 24 tokens  3484 | whole decode pooled 49.80 (geo 53.73, median 48.60) | whole request pooled 24.38 | first token median 2.9245 s (2.34-3.81; total 72.95 of 142.91 s) | lifetime peak 42.3768 GB
+PF-D (BM:pfd): chat as shipped (pdz4a = zs + PF-D v4 + read-ahead) and its control (pdz0 = zs):
+  pdz4a   rows 12 tokens  1742 | whole decode pooled 50.67 (geo 54.29, median 48.07) | whole request pooled 28.84 | first token median 2.2625 s (1.55-2.59; total 26.03 of 60.41 s) | lifetime peak 43.6903 GB
+  pdz0    rows 12 tokens  1742 | whole decode pooled 50.29 (geo 53.73, median 48.24) | whole request pooled 24.59 | first token median 2.9078 s (2.34-3.74; total 36.20 of 70.84 s) | lifetime peak 42.4040 GB

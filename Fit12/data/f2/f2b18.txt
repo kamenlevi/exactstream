@@ -1,0 +1,16 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=36.4 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.20 GB pools
+b12: hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.20 GB, active 9.68 GB
+fit12: budget b18: 48 routers
+[f2b18] code: prefill 326 tokens in 4.85 s
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[f2b18] code k=3: 26.3 tok/s, 3.20 tok/pass, 40 passes | per pass: verify 113.0 ms, draft 8.2 ms, head 0.3 ms, waited 375.2, reads 387.2, pf issued 0.0 used 0.0, SSD 5.7 GB/s 695 MB | peak footprint 11.35 GB | sha 0ade4281bc | '```python\nimport re\nimport argparse\nfrom collections import defaultdict\nfrom typing import List, Dict, Tuple, Optional\n\n\n# Regex to match log lines\nLINE = re.compile(\n    r'
+[f2b18] prose: prefill 53 tokens in 2.91 s
+[f2b18] prose k=3: 16.4 tok/s, 2.37 tok/pass, 54 passes | per pass: verify 133.6 ms, draft 10.4 ms, head 0.3 ms, waited 416.1, reads 431.8, pf issued 0.0 used 0.0, SSD 5.3 GB/s 761 MB | peak footprint 11.35 GB | sha 7811bf4be1 | 'Imagine you are trying to write an essay, but all your reference books are stored in a warehouse across town. Every time you need to check a fact, you have to drive all the way there,'
+[f2b18] done

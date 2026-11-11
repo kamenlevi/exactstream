@@ -1,0 +1,9 @@
+math: 2208 loader events, 2208 gated (pass, layer) calls, 136 draft steps
+
+82 consecutive pass pairs (C=256, committed MTP depth 3, greedy)
+pass wall (gate to gate) 140.9 ms: loader stalls 33.3 ms (24%), inter-pass block 19.1 ms (14%)
+component                         count  ms/each  ms/pass  MB/each   GB/s   % of 318
+MoE(L) + GDN attention(L+1)         35    1.868     65.4    144.2       77     24%
+MoE(L) + QSA attention(L+1)         12    1.928     23.1    139.7       72     23%
+inter-pass block (head, sampling, drafts)  1    19.12
+loader stalls (48 gates)                  48    0.693     33.3

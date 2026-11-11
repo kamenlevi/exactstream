@@ -1,0 +1,17 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=21.1 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=164 C_l=112 per layer, 21.06 GB pools
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 160), loaded in 1 s, 25.0 GB active; REF2 + SB; gate rows MAXK 160 (ext build), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 64
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 19.5 tok/s; MLX peak prefill 26.9 / decode 27.2 GB, lifetime peak 27.5 -> 28.0 GB
+  humaneval/HumanEval/68 [gate+t]: 64 tokens in 4 checks (kept 16.00), 40.6 tok/s (steady state, checks >= 2: 51.3), median cycle 401.2 ms, check + commit 361.0 ms; per check (medians) 1912 misses, demand SSD 290.8 ms, gate service 292.2 ms (96 calls with misses), draft 12.3 ms; per kept token SSD 215.6 MB, 119.6 misses; tokens == REF2 row 64 / 64
+    mem: MLX peak prefill 28.4 / decode 27.4 GB; at the end active 27.4, cache 0.7, footprint 28.5 GB; lifetime peak after prefill 29.0 -> after decode 29.0 GB
+  gate+t: tok/s 40.6 (steady state 51.3), cycle 401.2 ms, check + commit 361.0 ms, misses 1912, demand SSD 290.8 ms per check (medians over valid runs, then prompts)
+  gate+t where the time goes (medians per check): check + commit 361.0 ms, demand SSD busy 290.8 ms (81% of the check), gate service on misses 292.2 ms (the GPU's spin bound; OOO overlaps part of it), draft 12.3 ms (SSD idle)
+  gate+t per kept token (pooled over valid runs): SSD 215.6 MB, misses 119.6 (64 kept tokens; median per prompt 215.6 MB, 119.6 misses)
+  tier flags: TIER_COMBINE True, OOO True (823 OOO calls); EVICT_PRIOR None; REFTOK : every token equal True
+  K-73 engagement: exact MoE block calls 823; ref2 att_rope 204, idx_prep 456, hc_write 823 (counted at graph build)
+  C1 NAX6 (ref2 tier_nax_ooo): engagement nax6_ooo 823 OOO calls, nax6 0 other tier calls (counted at graph build); tokens are NAX6's own reference: compare across NAX processes only
+  footprint now 27.7 GB, lifetime peak 29.0 GB; 14 s

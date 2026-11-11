@@ -1,0 +1,38 @@
+DAY9 report (BigMoE), C 160; data /Users/kamen/BigMoE/data/r57
+
+== B2 (condition 9): C 300 / 320 with per-layer sizes vs C 256
+  c45l_300: not run (skipped by its NO-SWAP gate, or not reached)
+  c45l_320: not run (skipped by its NO-SWAP gate, or not reached)
+
+== chat switch (Kamen 'Yes, 1-3'): A = the default (DFlash2), B = R57_CHATSW=1, C 160
+  not run
+
+== C1 (condition 4): NAX6 live (ref2 tier_nax_ooo) vs the default; warm split; P on L
+  c1d_160: not run
+  c1k_160: not run
+  c1n_160: not run
+  c1n_160r: not run
+  ws_160: not run
+  wsn_160: not run
+  c45p_160: not run
+
+== A6 (condition 7) at C 160: first cycle after a long prefill, excess over the median of checks 2-8
+  a6c_160 (tokens == reference 3 / 3):
+    agent/bash18: excess 465 ms = SSD 117 (25 %) + draft 142 (31 %) + other 205 (44 %); 1st check 442 vs 119 ms (build 395 vs 104), misses 856 vs 296; pre-loop {}
+    agent/text23: excess 1131 ms = SSD 194 (17 %) + draft 145 (13 %) + other 793 (70 %); 1st check 1179 vs 192 ms (build 1109 vs 167), misses 1202 vs 713; pre-loop {}
+    agent/bash18: excess 1681 ms = SSD 30 (2 %) + draft 45 (3 %) + other 1606 (96 %); 1st check 1728 vs 92 ms (build 1417 vs 78), misses 127 vs 134; pre-loop {}
+  a6r_160 (tokens == reference 3 / 3):
+    agent/bash18: excess 22 ms = SSD -67 (-307 %) + draft 86 (392 %) + other 3 (15 %); 1st check 58 vs 122 ms (build 48 vs 106), misses 0 vs 296; pre-loop {}; rep: copy 1 765 ms (856 misses, SSD 208) vs copy 2 56 ms (0 misses) -> one-time 502 ms beyond SSD
+    agent/text23: excess 22 ms = SSD -130 (-601 %) + draft 139 (646 %) + other 12 (55 %); 1st check 77 vs 195 ms (build 65 vs 169), misses 0 vs 713; pre-loop {}; rep: copy 1 909 ms (1202 misses, SSD 292) vs copy 2 75 ms (0 misses) -> one-time 543 ms beyond SSD
+    agent/bash18: excess 305 ms = SSD -37 (-12 %) + draft 163 (53 %) + other 179 (59 %); 1st check 231 vs 89 ms (build 221 vs 73), misses 0 vs 134; pre-loop {}; rep: copy 1 1774 ms (127 misses, SSD 67) vs copy 2 229 ms (0 misses) -> one-time 1478 ms beyond SSD
+  a6k_160 (tokens == reference 3 / 3):
+    agent/bash18: excess 211 ms = SSD 115 (55 %) + draft 30 (14 %) + other 65 (31 %); 1st check 300 vs 120 ms (build 257 vs 105), misses 856 vs 296; pre-loop {}
+    agent/text23: excess 154 ms = SSD 82 (53 %) + draft 28 (18 %) + other 44 (28 %); 1st check 319 vs 193 ms (build 272 vs 167), misses 1202 vs 713; pre-loop {}
+    agent/bash18: excess 130 ms = SSD 3 (2 %) + draft 32 (24 %) + other 96 (73 %); 1st check 187 vs 88 ms (build 152 vs 72), misses 127 vs 134; pre-loop {}
+  a6p_160 (tokens == reference 3 / 3):
+    agent/bash18: excess 163 ms = SSD 81 (50 %) + draft 39 (24 %) + other 43 (26 %); 1st check 240 vs 117 ms (build 197 vs 101), misses 737 vs 283; pre-loop {'pools_ms': 138.7, 'pools_miss': 724.0, 'pools_mb': 1565.8}
+    agent/text23: excess 134 ms = SSD 44 (33 %) + draft 28 (21 %) + other 62 (46 %); 1st check 307 vs 200 ms (build 273 vs 174), misses 970 vs 743; pre-loop {'pools_ms': 92.9, 'pools_miss': 433.0, 'pools_mb': 936.4}
+    agent/bash18: excess 168 ms = SSD 11 (7 %) + draft 32 (19 %) + other 125 (74 %); 1st check 228 vs 92 ms (build 207 vs 71), misses 141 vs 123; pre-loop {'pools_ms': 105.1, 'pools_miss': 503.0, 'pools_mb': 1087.8}
+  A6 line on the control: largest share per prompt [44, 70, 96] % -> PASS (the split names a cause >= 30 %)
+
+== SSD wait per check (lead step 3), 2421 checks with misses: demand SSD ms ~ reads: 0.155 ms per miss (R^2 0.946); ~ MB: 0.088 ms per MB = 11.3 GB/s (R^2 0.945); both: 0.088 ms/miss + 0.038 ms/MB (R^2 0.946) -> no separation (reads and MB collinear)

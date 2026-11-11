@@ -1,0 +1,30 @@
+windows: {'code': 12, 'ifeval': 12, 'multi': 12}  gen rows: {'code': 3390, 'ifeval': 3421, 'multi': 3577}
+
+A. union per layer by block length R (mean over blocks and windows); rows per group = 10R/union
+dom         1      2      4      8     16     32     64    128    256   whole-answer WS (rows)
+code     10.0   17.3   29.2   48.3   76.6  115.1  165.6  228.0  283.0    293.3 (282)
+         1.00   1.16   1.37   1.66   2.09   2.78   3.87   5.61   9.05   rows/group
+ifeval   10.0   16.2   26.4   42.3   65.9   97.1  134.3  179.1  224.6    209.8 (285)
+         1.00   1.23   1.52   1.89   2.43   3.29   4.76   7.15  11.40   rows/group
+multi    10.0   15.2   23.7   37.2   58.0   86.8  123.0  170.4  215.1    220.1 (298)
+         1.00   1.31   1.69   2.15   2.76   3.69   5.20   7.51  11.90   rows/group
+
+B. cross-stream: B windows of one domain side by side, aligned 16-row blocks (mean per layer)
+code   B1   77.5 (x1.01 of B x single)  B2  124.7 (x0.81 of B x single)  B4  178.9 (x0.58 of B x single)  B8  236.9 (x0.39 of B x single)  B12  270.3 (x0.29 of B x single)
+ifeval B1   67.6 (x1.03 of B x single)  B2  114.4 (x0.87 of B x single)  B4  170.6 (x0.65 of B x single)  B8  241.0 (x0.46 of B x single)  B12  278.5 (x0.35 of B x single)
+multi  B1   58.3 (x1.01 of B x single)  B2  101.3 (x0.87 of B x single)  B4  162.1 (x0.70 of B x single)  B8  229.2 (x0.49 of B x single)  B12  269.9 (x0.39 of B x single)
+mixed  B8  283.4 per layer (random 512-way draw of 8 x 66 would give 342)
+
+C. per kept token at agreement alpha (kept = (1 - a^(R+1)) / (1 - a)): groups, expert GB, trunk GB, total GB
+code   a 0.910  R8: k   6.4    365 g  1.23 GB | R16: k   8.9    414 g  1.17 GB | R32: k  10.6    521 g  1.31 GB | R64: k  11.1    717 g  1.67 GB | R128: k  11.1    985 g  2.18 GB
+code   a 0.940  R8: k   7.1    326 g  1.10 GB | R16: k  10.8    339 g  0.96 GB | R32: k  14.5    381 g  0.96 GB | R64: k  16.4    486 g  1.13 GB | R128: k  16.7    657 g  1.45 GB
+code   a 0.960  R8: k   7.7    302 g  1.02 GB | R16: k  12.5    294 g  0.83 GB | R32: k  18.5    299 g  0.75 GB | R64: k  23.2    342 g  0.80 GB | R128: k  24.9    440 g  0.97 GB
+code   a 0.980  R8: k   8.3    279 g  0.94 GB | R16: k  14.5    253 g  0.72 GB | R32: k  24.3    227 g  0.57 GB | R64: k  36.6    217 g  0.51 GB | R128: k  46.3    236 g  0.52 GB
+code   a 0.990  R8: k   8.6    268 g  0.91 GB | R16: k  15.7    234 g  0.66 GB | R32: k  28.2    196 g  0.49 GB | R64: k  48.0    166 g  0.39 GB | R128: k  72.7    151 g  0.33 GB
+code   a 0.995  R8: k   8.8    263 g  0.89 GB | R16: k  16.3    225 g  0.64 GB | R32: k  30.5    181 g  0.46 GB | R64: k  55.6    143 g  0.33 GB | R128: k  95.2    115 g  0.25 GB
+ifeval a 0.910  R8: k   6.4    319 g  1.15 GB | R16: k   8.9    356 g  1.06 GB | R32: k  10.6    439 g  1.16 GB | R64: k  11.1    582 g  1.42 GB | R128: k  11.1    774 g  1.78 GB
+ifeval a 0.940  R8: k   7.1    285 g  1.03 GB | R16: k  10.8    291 g  0.87 GB | R32: k  14.5    321 g  0.85 GB | R64: k  16.4    394 g  0.96 GB | R128: k  16.7    516 g  1.19 GB
+ifeval a 0.960  R8: k   7.7    264 g  0.95 GB | R16: k  12.5    253 g  0.76 GB | R32: k  18.5    252 g  0.66 GB | R64: k  23.2    277 g  0.68 GB | R128: k  24.9    346 g  0.80 GB
+ifeval a 0.980  R8: k   8.3    244 g  0.88 GB | R16: k  14.5    217 g  0.65 GB | R32: k  24.3    192 g  0.51 GB | R64: k  36.6    176 g  0.43 GB | R128: k  46.3    186 g  0.43 GB
+ifeval a 0.990  R8: k   8.6    235 g  0.84 GB | R16: k  15.7    201 g  0.60 GB | R32: k  28.2    165 g  0.44 GB | R64: k  48.0    134 g  0.33 GB | R128: k  72.7    118 g  0.27 GB
+ifeval a 0.995  R8: k   8.8    230 g  0.83 GB | R16: k  16.3    193 g  0.58 GB | R32: k  30.5    153 g  0.40 GB | R64: k  55.6    116 g  0.28 GB | R128: k  95.2     90 g  0.21 GB

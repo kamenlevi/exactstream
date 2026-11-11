@@ -1,0 +1,8 @@
+GDNB A/B (R57_GDNB=1 on v1' + wired), data/gdnb; freeze windows [('02:47:37', '02:48:18'), ('03:05:46', '03:06:47'), ('05:11:06', '05:12:07'), ('06:17:59', '06:19:00')]; passes dropped for a freeze: none
+BITS(G) (exact env, C 224, CAP 64, gx1 vs gx0): PASS: tokens equal 3 / 3; verify-logits hash equal 43 / 43 checks (gx0 has 43); peaks 38.2 / 38.2 GB
+BITS(G') (exact env, C 224, CAP 64, gx2 vs gx0): PASS: tokens equal 3 / 3; verify-logits hash equal 43 / 43 checks (gx0 has 43); peaks 38.2 / 38.2 GB
+B : median cycle 63.48 ms; WHOLE DECODE  169.7; full period  164.5; check 0 67 ms; kept 10.10; peak 42.9 GB
+G : median cycle 63.99 ms; WHOLE DECODE  174.9; full period  169.8; check 0 65 ms; kept 10.59; peak 42.9 GB
+G': median cycle 63.55 ms; WHOLE DECODE  172.3; full period  167.2; check 0 65 ms; kept 10.31; peak 42.9 GB
+Verdict GDNB G (pre-registered, NewIdeas' exact-safe line): KILL: median cycle +0.81 % (+0.52 ms per check) vs B, BITS PASS (PASS = cycle <= -1 % AND BITS; KILL = cycle >= +0.5 %). Beside: whole decode +3.1 %, full period +3.2 % over 12
+Verdict GDNB G' (pre-registered, NewIdeas' exact-safe line): BETWEEN: median cycle +0.12 % (+0.08 ms per check) vs B, BITS PASS (PASS = cycle <= -1 % AND BITS; KILL = cycle >= +0.5 %). Beside: whole decode +1.6 %, full period +1.6 % over 12

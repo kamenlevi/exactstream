@@ -1,0 +1,71 @@
+diff --git a/app/__pycache__/__init__.cpython-314.pyc b/app/__pycache__/__init__.cpython-314.pyc
+new file mode 100644
+index 0000000..ddb2f83
+Binary files /dev/null and b/app/__pycache__/__init__.cpython-314.pyc differ
+diff --git a/app/__pycache__/api.cpython-314.pyc b/app/__pycache__/api.cpython-314.pyc
+new file mode 100644
+index 0000000..d1daf96
+Binary files /dev/null and b/app/__pycache__/api.cpython-314.pyc differ
+diff --git a/app/__pycache__/cli.cpython-314.pyc b/app/__pycache__/cli.cpython-314.pyc
+new file mode 100644
+index 0000000..9b746a7
+Binary files /dev/null and b/app/__pycache__/cli.cpython-314.pyc differ
+diff --git a/app/__pycache__/users.cpython-314.pyc b/app/__pycache__/users.cpython-314.pyc
+new file mode 100644
+index 0000000..6032360
+Binary files /dev/null and b/app/__pycache__/users.cpython-314.pyc differ
+diff --git a/app/api.py b/app/api.py
+index 4c7c533..0958573 100644
+--- a/app/api.py
++++ b/app/api.py
+@@ -1,5 +1,5 @@
+-from app.users import get_user
++from app.users import fetch_user
+ 
+ 
+ def handle(uid):
+-    return {'user': get_user(uid)}
++    return {'user': fetch_user(uid)}
+diff --git a/app/cli.py b/app/cli.py
+index e4e92ec..4ebd01a 100644
+--- a/app/cli.py
++++ b/app/cli.py
+@@ -2,4 +2,4 @@ from app import users
+ 
+ 
+ def main(uid):
+-    print(users.get_user(uid))
++    print(users.fetch_user(uid))
+diff --git a/app/users.py b/app/users.py
+index c5803bf..cb25842 100644
+--- a/app/users.py
++++ b/app/users.py
+@@ -1,5 +1,5 @@
+ USERS = {1: 'ann', 2: 'bo'}
+ 
+ 
+-def get_user(uid):
++def fetch_user(uid):
+     return USERS.get(uid)
+diff --git a/tests/__pycache__/__init__.cpython-314.pyc b/tests/__pycache__/__init__.cpython-314.pyc
+new file mode 100644
+index 0000000..88a738c
+Binary files /dev/null and b/tests/__pycache__/__init__.cpython-314.pyc differ
+diff --git a/tests/__pycache__/test_users.cpython-314.pyc b/tests/__pycache__/test_users.cpython-314.pyc
+new file mode 100644
+index 0000000..46bb1fa
+Binary files /dev/null and b/tests/__pycache__/test_users.cpython-314.pyc differ
+diff --git a/tests/test_users.py b/tests/test_users.py
+index 1e921ba..49f1bee 100644
+--- a/tests/test_users.py
++++ b/tests/test_users.py
+@@ -1,7 +1,7 @@
+ import unittest
+-from app.users import get_user
++from app.users import fetch_user
+ 
+ 
+ class T(unittest.TestCase):
+     def test_get(self):
+-        self.assertEqual(get_user(1), 'ann')
++        self.assertEqual(fetch_user(1), 'ann')

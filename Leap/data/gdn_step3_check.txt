@@ -1,0 +1,15 @@
+
+GDN-STEP3 check Fri 09:03:02 (share lock; MLX 0.32.2)
+  var 0 (Fable B's reference loop) vs mlx_lm at S 16: y 0.0e+00 (0.00 % differ), state 0.0e+00 (bitwise True)
+  S 16 chained (us per call): mlx_lm 67.1, v0a0 73.9, v0a1 79.8, v0a2 78.6, v0a3 69.4
+  abl 1 (no simd_sum) drops var 0 by -8 % (Fable B's gate for var 1 / 2: >= 25 %); abl 2 (k, q constants) by -6 %
+RESULT KILL by Fable B's own gate: the reductions are not the cost (var 1 / 2 not run)
+
+GDN-STEP3 check Fri 09:12:39 (share lock, prefetch ablation (EvalSuite shared run at 60 % GPU); MLX 0.32.2)
+  pf 1: bits vs mlx_lm at S 16: y 0.0e+00, state 0.0e+00 (bitwise y True, state True)
+  pf 4: bits vs mlx_lm at S 16: y 0.0e+00, state 0.0e+00 (bitwise y True, state True)
+  pf 3: bits vs mlx_lm at S 16: y 0.0e+00, state 0.0e+00 (bitwise y True, state True)
+  pf 7: bits vs mlx_lm at S 16: y 0.0e+00, state 0.0e+00 (bitwise y True, state True)
+  S 16 chained (us per call): mlx_lm 63.7, pf0 74.9, pf1 93.4, pf4 74.1, pf3 83.3, pf7 69.6
+  S 2 chained: mlx_lm 39.8, pf0 51.7, pf7 49.1
+RESULT STOP (Fable B's line: >= 25 % off pf 0; best pf7 7 %, -0.21 ms per 16-row check vs mlx_lm)

@@ -1,0 +1,172 @@
+--- a/bigmoe_v3f/tier.py	2026-10-29 19:19:24
++++ b/bigmoe_v3f/tier.py	2026-10-30 19:07:10
+@@ -135,6 +135,8 @@
+ def tier_call(self, x, ids, bm, route, post=None):
+     """Decode/verify: ids = expert ids in gate-rank order [..., K]. route(L, ids) -> slots (the streamed gate)."""
+     STATS["calls"] += 1
++    if R53["bufs"] is not None:                                  # [Fit12 R-53 a] decode keeps no prefill buffers
++        r53_drop()
+     t = bm["tier"]
+     if _OOO and post is not None and _GLU == "3c" and t.get("scores") is not None:
+         return _ooo_call(x, ids, bm, t, post, t.pop("scores"), t.pop("shared", None))
+@@ -245,6 +247,8 @@
+         return _prefill_single(cls, self, x, indices, ids, uniq, bm, warm, *a, **kw)
+     finally:
+         _mem_out()
++        if _R53A and bm["L"] == R53["last"]:                    # [Fit12 R-53 a] the MoE chunk's last tier layer
++            r53_drop()
+         PF["t_moe"] = PF.get("t_moe", 0.0) + (_time.perf_counter() - _t1)
+         if LA is not None and STREAM is None:                  # D1k: layer L's reads are done: stage layer L + 1's
+             _la_advise(bm, x)                                    # predicted union in the OS read-ahead
+@@ -408,6 +412,36 @@
+ _WARM_BATCH = 8                                               # experts converted per MLX batch
+ PF = {"last": False, "grouped": 0, "single": 0, "fallback": 0, "groups": 0, "t_read": 0.0, "warm_base": 0,
+       "warm_side": 0, "t_warm": 0.0, "act_in_gb": 0.0, "peak_pre_gb": 0.0, "peak_moe_gb": 0.0}
++# [Fit12 R-53] prefill scratch reuse (PLAN.md 'R-53 A/B pre-registration'; F12_R53A / B / C = 0 turns a part off):
++# (a) _prefill_grouped's two group buffers live across a MoE chunk's layer calls (grow-only to the largest group, smaller
++#     groups take slices as before) and are dropped after the chunk's last tier layer (R53["last"], set by stream's
++#     _tier_layer) and at any decode call; (b) after the groups, each output goes into its pair rows of one array, one synced scatter at a time (MLX
++#     then donates the buffer: in place) instead of concatenate + take. Data movement only: exact by construction.
++_R53A = os.environ.get("F12_R53A", "1") == "1"
++_R53B = os.environ.get("F12_R53B", "1") == "1"
++R53 = {"bufs": None, "key": None, "last": -1, "alloc": 0, "reuse": 0, "drop": 0, "scat": 0, "mtp": 0}
++
++
++def _r53_bufs(t, G):
++    """two persistent group buffers with >= G rows (one set of tier expert shapes for every layer)"""
++    key = tuple((tuple(sh), str(dt)) for sh, dt in t["shapes4"])
++    b = R53["bufs"]
++    if b is not None and R53["key"] == key and b[0][0].shape[0] >= G:
++        R53["reuse"] += 1
++        return b
++    R53["bufs"] = b = None                                       # the smaller set goes first
++    b = [[mx.zeros((G, *sh), dt) for sh, dt in t["shapes4"]] for _ in range(2)]
++    mx.eval(*[arr for b_ in b for arr in b_])
++    R53["bufs"], R53["key"] = b, key
++    R53["alloc"] += 1
++    return b
++
++
++def r53_drop():
++    if R53["bufs"] is not None:
++        R53["bufs"] = None
++        R53["drop"] += 1
++        mx.clear_cache()
+ 
+ 
+ def _mem_in():
+@@ -539,8 +573,11 @@
+         return _prefill_grouped_gpu(cls, self, x, indices, ids, uniq, bm, warm, groups, poss, *a, **kw)
+     x2 = x.reshape(-1, x.shape[-1])
+     nb = min(2, len(groups))
+-    bufs = [[mx.zeros((G, *sh), dt) for sh, dt in t["shapes4"]] for _ in range(nb)]
+-    mx.eval(*[arr for b_ in bufs for arr in b_])
++    if _R53A:
++        bufs = _r53_bufs(t, G)
++    else:
++        bufs = [[mx.zeros((G, *sh), dt) for sh, dt in t["shapes4"]] for _ in range(nb)]
++        mx.eval(*[arr for b_ in bufs for arr in b_])
+ 
+     def fill(i):
+         t0 = _time.perf_counter()
+@@ -550,11 +587,11 @@
+         PF["t_read"] += _time.perf_counter() - t0
+ 
+     saved = [getattr(getattr(self, proj), field) for proj, field in PIECES]
+-    outs, prev = [], []
++    outs, prev, Y = [], [], None
+     fill(0)
+     try:
+         for i, (grp, pos) in enumerate(zip(groups, poss)):
+-            scr = bufs[i % nb] if len(grp) == G else [arr[:len(grp)] for arr in bufs[i % nb]]
++            scr = bufs[i % nb] if len(grp) == bufs[i % nb][0].shape[0] else [arr[:len(grp)] for arr in bufs[i % nb]]
+             for (proj, field), arr in zip(PIECES, scr):
+                 setattr(getattr(self, proj), field, arr)
+             xp = mx.take(x2, mx.array((pos // k).astype(np.int32)), axis=0)
+@@ -578,10 +615,19 @@
+     finally:
+         for (proj, field), arr in zip(PIECES, saved):
+             setattr(getattr(self, proj), field, arr)
+-    order = np.argsort(np.concatenate(poss), kind="stable").astype(np.int32)
+-    y = mx.take(mx.concatenate(outs, axis=0), mx.array(order), axis=0).reshape(*lead, k, -1)
++    if _R53B:                                                    # [Fit12 R-53 b] each group's output into its pair rows,
++        Y = mx.zeros((flat.size, outs[0].shape[-1]), outs[0].dtype)   # one synced scatter at a time: MLX donates Y's
++        for j, ps in enumerate(poss):                            # buffer only once the scatter before is done (async
++            Y[mx.array(ps.astype(np.int32))] = outs[j]           # chains copied all of Y per group: scratchpad don4)
++            outs[j] = None
++            mx.eval(Y)
++            R53["scat"] += 1
++        y = Y.reshape(*lead, k, -1)
++    else:
++        order = np.argsort(np.concatenate(poss), kind="stable").astype(np.int32)
++        y = mx.take(mx.concatenate(outs, axis=0), mx.array(order), axis=0).reshape(*lead, k, -1)
+     mx.eval(y)
+-    del bufs, outs
++    del bufs, outs, Y
+     if warm is not None:
+         warm.adopt(bm)
+     mx.clear_cache()
+--- a/bigmoe_v3f/stream.py	2026-10-29 19:19:24
++++ b/bigmoe_v3f/stream.py	2026-10-30 19:07:10
+@@ -268,6 +268,8 @@
+ 
+ _PF_GROUP = int(os.environ.get("BIGMOE_PF_GROUP", "0") or 0)
+ _PF_SEG = int(os.environ.get("BIGMOE_PF_SEG", "0") or 0)
++_R53B = os.environ.get("F12_R53B", "1") == "1"                 # [Fit12 R-53 b, c] (notes in tier.py, 'Fit12 R-53')
++_R53C_MB = int(os.environ.get("F12_R53C_MB", "256") or 0)      # c: MLX's cache limit inside _sync_grouped, MB (0 = off)
+ 
+ 
+ def _sync_segment(self, x, ids, uniq, bm):
+@@ -324,7 +326,10 @@
+     flat = ids.reshape(-1)                                   # pair p = row * k + slot
+     pools = bm["pools"]
+     G = min(_PF_GROUP, int(C * 0.9))
+-    outs, poss = [], []
++    outs, poss, Y = [], [], None
++    lim = mx.set_cache_limit(_R53C_MB << 20) if _R53C_MB else None   # [Fit12 R-53 c] the groups' takes reuse freed scratch
++    from . import tier as _tier
++    _tier.R53["mtp"] += 1                                    # [Fit12 R-53] calls through this patched path
+     for g0 in range(0, len(uniq), G):
+         grp = uniq[g0:g0 + G]
+         pos = np.nonzero(np.isin(flat, grp))[0]              # ascending pair positions of this group
+@@ -342,15 +347,27 @@
+                 cpn = np.concatenate([cpn, np.zeros(pad, np.int32)])
+             cp = mx.array(cpn).reshape(-1, 1).astype(indices.dtype)
+             y = cls.__call__(self, xp, cp, *a, **kw).reshape(len(cpn), -1)[:len(pos)]
+-            mx.eval(y)                                       # before the next group can evict these experts
++            if _R53B:                                        # [Fit12 R-53 b] into its pair rows (Y donated: in place)
++                if Y is None:
++                    Y = mx.zeros((flat.size, y.shape[-1]), y.dtype)
++                Y[mx.array(pos.astype(np.int32))] = y
++                mx.eval(Y)                                   # before the next group can evict these experts
++            else:
++                mx.eval(y)                                   # before the next group can evict these experts
+         finally:
+             for (proj, field), arr in zip(PIECES, saved):
+                 setattr(getattr(self, proj), field, arr)
+-        outs.append(y); poss.append(pos)
+-        del scratch
+-    order = np.argsort(np.concatenate(poss), kind="stable").astype(np.int32)
+-    y = mx.take(mx.concatenate(outs, axis=0), mx.array(order), axis=0).reshape(*lead, k, -1)
++        if not _R53B:
++            outs.append(y); poss.append(pos)
++        del scratch, y
++    if _R53B:
++        y = Y.reshape(*lead, k, -1)
++    else:
++        order = np.argsort(np.concatenate(poss), kind="stable").astype(np.int32)
++        y = mx.take(mx.concatenate(outs, axis=0), mx.array(order), axis=0).reshape(*lead, k, -1)
+     mx.eval(y)
++    if lim is not None:
++        mx.set_cache_limit(lim)
+     mx.clear_cache()
+     return y
+ 
+@@ -523,6 +540,7 @@
+         assert len(_tier.PLAN) == 10, _tier.PLAN
+         object.__setattr__(sw, "_bm", dict(L=L, C=C_m, full=False, gate=self.gate, first=0, pools=P, tier=tier,
+                                            async_every=int(os.environ.get("BIGMOE_ASYNC_EVERY", "0"))))
++        _tier.R53["last"] = max(_tier.R53["last"], L)            # [Fit12 R-53 a] a MoE chunk's last tier layer
+         sw.__class__ = _streamed_class(type(sw))
+         self.pools[L] = P
+         self._tier_sws = getattr(self, "_tier_sws", []) + [sw]

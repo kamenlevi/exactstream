@@ -1,0 +1,82 @@
+diff --git a/CITATION.cff b/CITATION.cff
+index 4e9b4d3..3bdabe3 100644
+--- a/CITATION.cff
++++ b/CITATION.cff
+@@ -5,7 +5,7 @@ title: "ExactStream: a 125B mixture-of-experts model on a 64 GB Mac"
+ authors:
+   - family-names: Levi
+     given-names: Kamen
+-version: 1.0.0
++version: 1.0.1
+ license: GPL-3.0-only
+ repository-code: https://github.com/kamenlevi/exactstream
+ abstract: >-
+diff --git a/LIMITS.md b/LIMITS.md
+index 7152a3e..ae9ca02 100644
+--- a/LIMITS.md
++++ b/LIMITS.md
+@@ -9,8 +9,11 @@ on macOS 26.5 (25F71).
+ - First token on short prompts at 45 GB takes 2.7-4.6 s (2.26 s on `chat`). Strata (MIT; github.com/Niko1221/Strata),
+   which we ran on the same MacBook Pro and prompts, takes 0.5-1.0 s, so up to 256 generated tokens it wins or ties every
+   whole-request number; our decode is ahead on code and math, about level on chat, and behind on exact chat.
+-- The chat prefill path (PF-D) is on for `chat` at 45 GB only and was measured on chat-length prompts (37-101 tokens).
+-- Lifetime peaks go above 45.0 GB on long prompts (45.1-46.4 GB on 7.9K tokens).
++- The chat prefill path (PF-D) is on for `chat` at 45 GB only. It was measured on chat-length prompts (37-101 tokens)
++  and checked exact on 10K and 30K-token prompts, where it shortens the first token by only 3-4 % and adds about 2 GB
++  to the lifetime peak.
++- Lifetime peaks go above 45.0 GB on long prompts: 45.1-46.4 GB on 7.9K tokens, and `chat` as shipped (with PF-D)
++  reaches 47.5 GB on 10K tokens and 48.6 GB on 30K.
+ - At 32 GB, `exact` was measured on chat (IFEval) only, and `lossy` has no code or math rows of its own.
+ - The lossy configs are gated on the named benchmarks only. On a multilingual chat set, M1-B (the `chat` configs' lossy
+   part) fails our own blunder check, which is information only.
+diff --git a/MANIFEST.json b/MANIFEST.json
+index e67a1dc..30785d0 100644
+--- a/MANIFEST.json
++++ b/MANIFEST.json
+@@ -100,8 +100,8 @@
+  ],
+  "files": {
+   "CITATION.cff": {
+-   "sha256": "672e66898e4f081eed3331849bae7a69bc20b530ed7636e3fd1358412ba6dfb0",
+-   "source": "Leap release/src/CITATION.cff"
++   "sha256": "06247378d1ac2402a358f8e097d5e30f47398fce450d95d7805e586fd0482ed9",
++   "source": "Leap release/src/CITATION.cff + v1.0.1 correction (Leap release/staged/make_v101.py)"
+   },
+   "CONFIGS.md": {
+    "sha256": "c1d9772687ad580d96d1808b5a0c3507eb4d85db98ae785a2f551dde9e4fdef4",
+@@ -120,8 +120,8 @@
+    "source": "Leap release/src/LICENSE"
+   },
+   "LIMITS.md": {
+-   "sha256": "c55abb46fc5557b73744f6b5c4cbecb928e9f65ff1c126567e50854270643ebe",
+-   "source": "Leap release/src/LIMITS.md"
++   "sha256": "6361de3aa54e05de04376e49049a3cdb2830854662a4361e4e05960c98daa7fc",
++   "source": "Leap release/src/LIMITS.md + v1.0.1 correction (Leap release/staged/make_v101.py)"
+   },
+   "README.md": {
+    "sha256": "a6b63d1d1e22aa144784d46ccfec2dd4a9232573c9931036c862d91229145a76",
+@@ -616,8 +616,8 @@
+    "source": "Leap release/src/requirements.txt"
+   },
+   "run.py": {
+-   "sha256": "747d451d2799f735f68a777af485ac5b4f89323d81941dd0cbac8b44d2753af2",
+-   "source": "Leap release/src/run.py"
++   "sha256": "a03c3cd9e34f2f62ca210ca874b07f20add10ec595650fd20e4f85b9b6ff7b18",
++   "source": "Leap release/src/run.py + v1.0.1 correction (Leap release/staged/make_v101.py)"
+   },
+   "third_party/LICENSE-dflash": {
+    "sha256": "6fd2aebd899c0b48ea9abb845aef043c6dadff00a6726a10a1bc32db528a5422",
+diff --git a/run.py b/run.py
+index 1140c1f..8add462 100644
+--- a/run.py
++++ b/run.py
+@@ -151,7 +151,8 @@ def main():
+     ap.add_argument("--out", default=os.path.join(ROOT, "out"))
+     ap.add_argument("--trace", action="store_true", help="log every file the engine opens (closure check)")
+     ap.add_argument("--env", action="append", default=[], help="extra KEY=VALUE for the engine (research switches, e.g. the "
+-                    "prefill paths: R57_PFLM=1 PF-A, R57_PFLM=3 PF-B, R57_PFD=1 PF-D; all exact)")
++                    "prefill paths: R57_PFLM=1 PF-A and R57_PFD=1 PF-D, both exact; R57_PFLM=3 PF-B, exact only up to about "
++                    "8K tokens)")
+     ap.add_argument("--dry-run", action="store_true", help="print the engine command and environment, run nothing")
+     a = ap.parse_args()
+ 

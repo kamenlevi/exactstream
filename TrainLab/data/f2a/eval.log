@@ -1,0 +1,11 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=37.2 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+heldout ifeval   b5  : depth hits 0.756 0.638 0.576 0.532 0.507 0.488 | kept/check 2.301 (rows 2.88) | tok/s [P] 35.9 | n 30
+heldout ifeval   f2a : depth hits 0.758 0.639 0.581 0.531 0.506 0.485 | kept/check 2.334 (rows 2.98) | tok/s [P] 36.1 | n 30
+heldout multi    b5  : depth hits 0.784 0.657 0.567 0.512 0.468 0.442 | kept/check 2.507 (rows 3.18) | tok/s [P] 38.1 | n 24
+heldout multi    f2a : depth hits 0.790 0.660 0.576 0.523 0.480 0.443 | kept/check 2.540 (rows 3.22) | tok/s [P] 38.4 | n 24
+onpolicy ifeval  b5  : depth hits 0.770 0.671 0.610 0.558 0.537 0.518 | kept/check 2.444 (rows 3.01) | tok/s [P] 37.8 | n 24
+onpolicy ifeval  f2a : depth hits 0.777 0.670 0.603 0.560 0.533 0.509 | kept/check 2.450 (rows 3.02) | tok/s [P] 37.8 | n 24
+Verdict F2a (f2a vs b5; pre-registered): KILL: held-out kept x1.014 (geo of IFEval x1.014, multi x1.013), on-policy IFEval kept x1.002 (PASS >= x1.08 AND on-policy >= x1.05; KILL < x1.03)

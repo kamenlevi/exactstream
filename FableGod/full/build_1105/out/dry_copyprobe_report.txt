@@ -1,0 +1,19 @@
+SYNTHETIC ms (dryrun_copyprobe.py's cost model): this exercises the report only, it is not a measurement
+COPY PROBE /Users/kamen/FableGod/full/build_1105/out/dry_copyprobe.jsonl: 24 probe points in 12 runs, 396 passes, 0 failed
+  arm: FAST QOM, split 0.9, D17 True; copied tokens left at the points: median 98 (min 32)
+  pass   | n | cold-first ms (misses, uses) | warm ms | per copied token cold / warm | confirmed | strict built
+  g4     |  48 |       - (never first) |    54.5 |     - / 13.62 | 1.000 | yes
+  g8     |  48 |       - (never first) |    57.0 |     - /  7.12 | 1.000 | yes
+  g16    |  48 |    79.5 (48, 608; 5 first) |    61.9 |  4.97 /  3.87 | 1.000 | yes
+  x32    |  48 |       - (never first) |   220.0 |     - /  6.88 | 0.990 | exact
+  x64    |  36 |       - (never first) |   380.0 |     - /  5.94 | 0.965 | exact
+  s32    |  48 |   172.0 (96, 1216; 12 first) |   136.8 |  5.38 /  4.28 | 0.990 | yes
+  s64    |  36 |   284.0 (192, 2432; 7 first) |   213.6 |  4.44 /  3.34 | 0.965 | yes
+  t32    |  48 |       - (never first) |    77.4 |     - /  2.42 | 0.990 | yes
+  t64    |  36 |       - (never first) |    99.8 |     - /  1.56 | 0.965 | yes
+  fast path (gate, <= 16 rows, 24 points): warm 0.62 ms per strict copied row + 52.0 ms; a first-touch g16 pass costs 1.10 ms per row more than a warm one (5 first passes)
+  SLOPE, W 32: 72 ms warm, 107 ms first-touch = 3.35 ms per copied token (today's 16-row gate pass on the same rows: 4.97, no drafter in either)
+  SLOPE, W 64: 92 ms warm, 162 ms first-touch = 2.53 ms per copied token (today's 16-row gate pass on the same rows: 4.97, no drafter in either)
+  DIRECT, W 32: 3.52 ms per copied token (t32, first touch estimated; the exact wide pass x32: 6.88)
+  DIRECT, W 64: 2.66 ms per copied token (t64, first touch estimated; the exact wide pass x64: 5.94)
+Verdict T-A1 (pre-registered Thu 5 Nov): BETWEEN; confirmed 0.965 (>= 0.90), per copied token W 32 3.35 (<= 3.0), W 64 2.53 (<= 1.8); KILL at >= 4.5 everywhere or confirmed < 0.80

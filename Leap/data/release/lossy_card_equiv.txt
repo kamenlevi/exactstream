@@ -1,0 +1,33 @@
+LOSSY = CARD-GATED CONFIG? (Leap, Mon 2026-11-09 10:39; CPU only, read-only git archive of BigMoE)
+Question: does the package's lossy-45 (rel1, BigMoE 0b4df8c) run the code and env that EvalSuite's card gate passed (RESULT_card_lcoh_2026-11-09: card snapshot BigMoE e057abf, data/stack/card_lcoh_env.txt)?
+Method: git archive of {data/r57/snap/<snap>, data/r57/snap/frozen_<snap>, bigmoe, ext} at e057abf and 0b4df8c into ~/.cache/leap_snapdiff/{card,rel1}; the snapshot names the freeze writes into paths (frozen_<snap>, snap/<snap>/, r57_screen_<snap>) normalised to X; diff -rq.
+== diff -rq after normalising:
+Files card/data/r57/snap/frozen/Leap_scripts/convert_records_p11.py and rel1/data/r57/snap/frozen/Leap_scripts/convert_records_p11.py differ
+Only in rel1/data/r57/snap/frozen/Leap_scripts: natfri_pooled.py
+Only in rel1/data/r57/snap/frozen/Leap_scripts: pfb_moe_inv.py
+Only in rel1/data/r57/snap/frozen/Leap_scripts: pfb_seg.py
+Only in rel1/data/r57/snap/frozen/TrainLab_sticky: paper_speed.py
+Files card/data/r57/snap/loop/pflm.py and rel1/data/r57/snap/loop/pflm.py differ
+Files card/data/r57/snap/loop/r57_screen.py and rel1/data/r57/snap/loop/r57_screen.py differ
+== r57_screen (the decode loop) diff, all lines:
+  changed lines: 11
+  > PFD_ON = os.environ.get("R57_PFD") == "1"                # Sun 17:xx PF-D (scripts/pflm.py; the orchestrator's GO): a tier prefill
+  > if PFD_ON:                                               # call's pool-resident experts rebuilt on the GPU from their base / side
+  >     assert TIER and not (A6 & {"pools", "warm"}), "R57_PFD=1 needs R57_TIER (the 45 GB pools) and no A6 pools / warm capture"
+  >     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # slots (side read if absent), absent bases as today;
+  >     import pflm as PFLMM                                 # the same scratch and call: bitwise by construction (R57_PFD_CHECK=1
+  >     import bigmoe.tier as _BTD                           # compares every rebuilt row with the ext's)
+  >     PFLMM.install_pfd(_BTD, check=os.environ.get("R57_PFD_CHECK") == "1", layers=lay)   # layers: R57_PFD_AHEAD's router
+  >     pd0_ = dict(PFLMM.PFD) if PFD_ON else None           # R57_PFD: this prefill's row counters
+  >                 pfd=None if pd0_ is None else {k_: PFLMM.PFD[k_] - pd0_[k_] for k_ in PFLMM.PFD},   # R57_PFD: rows A / B / C, SSD bytes, 
+  <                          d7b=draft is DRAFT4, rlx=r.get("rlx"), spn=r.get("spn"), nwk=r.get("nwk"), pfs=r.get("pfs"), pfst=r.get("pfst"), 
+  >                          d7b=draft is DRAFT4, rlx=r.get("rlx"), spn=r.get("spn"), nwk=r.get("nwk"), pfs=r.get("pfs"), pfst=r.get("pfst"), 
+== pflm.py: 1 line(s) removed, 761 added; imported only under R57_PFLM (r57_screen l501-506) or R57_PFD (l509-515); neither key is in lossy-45 / lossy-32's env
+== convert_records_p11.py: only the --floor-gb option (converter; not imported by decode)
+== extra in rel1: natfri_pooled.py, pfb_moe_inv.py, pfb_seg.py (Leap_scripts), paper_speed.py (TrainLab_sticky): not imported by the lossy runs: none of natfri_pooled, pfb_moe_inv, pfb_seg, paper_speed, pflm, convert_records_p11 appears in the 07:28 smoke lossy-45 / lossy-32 cli_*_modules.json (848 entries each, data/release/smoke3_0728/out/) or BM:data/r57/rli_256_modules.json (33 entries)
+== bigmoe/ and ext/: identical (not in the diff list); ext source last changed 5bb2743 (2026-11-04 15:28, 'QOM in the engine (FAST, ext/build_qom)'); BigMoE's ext/build_qom .so was built 11-04 15:25 from that work; the package compiles the 0b4df8c source (== e057abf's) into one build
+== env: card_lcoh_env.txt vs the package's configs/lossy-45.env line (sorted keys):
+  35d34
+  < lcb6
+  (the card adds lcb6 to R57_QOM_SETS so QOM runs on LiveCodeBench rows; the package's run.py names a --kind code prompt 'humaneval' (KIND_SET), which is in R57_QOM_SETS, and a chat prompt 'multi', which is not: QOM on code, exact expert reads on chat, as in the card)
+VERDICT: for lossy-45 (no R57_PFD, no R57_PFLM) the decode code is the card snapshot's (bigmoe/, ext source, decode loop and every module it runs), and the env line is the card's up to the QOM set name of the card's own code benchmark. The card gate's PASS applies to the shipped lossy-45 config (C 256). lossy-32 is the same line at C 160; the card ran at C 256 only.

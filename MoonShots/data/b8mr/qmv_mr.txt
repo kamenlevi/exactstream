@@ -1,0 +1,36 @@
+in_proj 16480x2560:
+  mr16 == MLX M=1 rows (M 1..16): True
+  mr8 == MLX M=1 rows (M 1..16): True
+  MLX plain == its M=1 rows at M [1]
+  M=1: mr16 87, mr8 84, mlx 85, mlx_c5 84 us
+  M=4: mr16 193, mr8 156, mlx 92, mlx_c5 92 us
+  M=8: mr16 344, mr8 302, mlx 197, mlx_c5 188 us
+  M=12: mr16 504, mr8 454, mlx 362, mlx_c5 289 us
+  M=16: mr16 697, mr8 608, mlx 145, mlx_c5 396 us
+out_proj 2560x6144:
+  mr16 == MLX M=1 rows (M 1..16): True
+  mr8 == MLX M=1 rows (M 1..16): True
+  MLX plain == its M=1 rows at M [1]
+  M=1: mr16 51, mr8 35, mlx 34, mlx_c5 35 us
+  M=4: mr16 79, mr8 60, mlx 39, mlx_c5 39 us
+  M=8: mr16 133, mr8 114, mlx 77, mlx_c5 74 us
+  M=12: mr16 197, mr8 170, mlx 113, mlx_c5 109 us
+  M=16: mr16 219, mr8 223, mlx 154, mlx_c5 141 us
+router_sh 1792x2560:
+  mr16 == MLX M=1 rows (M 1..16): True
+  mr8 == MLX M=1 rows (M 1..16): True
+  MLX plain == its M=1 rows at M [1]
+  M=1: mr16 16, mr8 16, mlx 15, mlx_c5 15 us
+  M=4: mr16 20, mr8 23, mlx 17, mlx_c5 17 us
+  M=8: mr16 34, mr8 39, mlx 26, mlx_c5 26 us
+  M=12: mr16 47, mr8 56, mlx 36, mlx_c5 35 us
+  M=16: mr16 60, mr8 71, mlx 45, mlx_c5 46 us
+lm_head 248320x2560:
+  mr16 == MLX M=1 rows (M 1..16): True
+  mr8 == MLX M=1 rows (M 1..16): True
+  MLX plain == its M=1 rows at M [1]
+  M=1: mr16 1280, mr8 1185, mlx 1183, mlx_c5 1186 us
+  M=4: mr16 3004, mr8 2325, mlx 1608, mlx_c5 1610 us
+  M=8: mr16 5391, mr8 4612, mlx 4199, mlx_c5 3038 us
+  M=12: mr16 8400, mr8 7114, mlx 7103, mlx_c5 4601 us
+  M=16: mr16 11252, mr8 9583, mlx 2183, mlx_c5 6331 us

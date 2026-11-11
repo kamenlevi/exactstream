@@ -1,0 +1,14 @@
+
+K90 arms 0-2 Wed 18:30:07 QUIET (queued quiet lock): MLX 0.32.2; layer 20, plan 4433333333
+bits: NAX6-N == NAX6 in 96 / 96; NAX-CN == NAX-C (row-major) in 96 / 96; NAX-CN INV (row 0 alone == inside) 96 / 96; NAX-CN vs NAX6: 87.2 % of bf16 outputs differ (max 53231421689271351820662341632 ulps)
+code S  8: B 90 MB, 44 groups; R (STREAM) 290 GB/s (0.310 ms) | NAX6-N 0.432 ms, 208 GB/s, 72 % of R, 9.89 us/group | NAX6 0.548 ms, 164 GB/s, 57 % of R, 12.56 us/group | NAX6-NH 0.404 ms, 222 GB/s, 77 % of R, 9.26 us/group | NAX-CN 0.443 ms, 203 GB/s, 70 % of R, 10.14 us/group
+chat S  8: B 91 MB, 45 groups; R (STREAM) 287 GB/s (0.316 ms) | NAX6-N 0.441 ms, 205 GB/s, 72 % of R, 9.79 us/group | NAX6 0.561 ms, 161 GB/s, 56 % of R, 12.47 us/group | NAX6-NH 0.415 ms, 218 GB/s, 76 % of R, 9.21 us/group | NAX-CN 0.455 ms, 199 GB/s, 69 % of R, 10.12 us/group
+code S 16: B 153 MB, 76 groups; R (STREAM) 296 GB/s (0.517 ms) | NAX6-N 0.699 ms, 219 GB/s, 74 % of R, 9.24 us/group | NAX6 0.886 ms, 172 GB/s, 58 % of R, 11.71 us/group | NAX6-NH 0.653 ms, 234 GB/s, 79 % of R, 8.63 us/group | NAX-CN 0.717 ms, 213 GB/s, 72 % of R, 9.48 us/group
+chat S 16: B 158 MB, 80 groups; R (STREAM) 295 GB/s (0.538 ms) | NAX6-N 0.728 ms, 218 GB/s, 74 % of R, 9.14 us/group | NAX6 0.919 ms, 172 GB/s, 59 % of R, 11.53 us/group | NAX6-NH 0.665 ms, 238 GB/s, 81 % of R, 8.35 us/group | NAX-CN 0.744 ms, 213 GB/s, 72 % of R, 9.33 us/group
+code S 32: B 232 MB, 120 groups; R (STREAM) 300 GB/s (0.775 ms) | NAX6-N 1.075 ms, 216 GB/s, 72 % of R, 8.98 us/group | NAX6 1.366 ms, 170 GB/s, 57 % of R, 11.42 us/group | NAX6-NH 0.983 ms, 236 GB/s, 79 % of R, 8.22 us/group | NAX-CN 1.095 ms, 212 GB/s, 71 % of R, 9.15 us/group
+chat S 32: B 225 MB, 117 groups; R (STREAM) 305 GB/s (0.736 ms) | NAX6-N 1.047 ms, 215 GB/s, 70 % of R, 8.92 us/group | NAX6 1.333 ms, 169 GB/s, 55 % of R, 11.36 us/group | NAX6-NH 0.964 ms, 233 GB/s, 76 % of R, 8.22 us/group | NAX-CN 1.075 ms, 209 GB/s, 68 % of R, 9.16 us/group
+arm 3 S 8: NAX-CN time saved vs NAX6-N: code -2.5 %, chat -3.4 %
+arm 3 S 16: NAX-CN time saved vs NAX6-N: code -2.7 %, chat -2.2 %
+arm 3 S 32: NAX-CN time saved vs NAX6-N: code -1.9 %, chat -2.6 %
+arm 3 verdict (S 16, mean of code / chat; PASS >= 8 %, KILL < 3 %): KILL (-2.4 %)
+  (19 s; mlx peak 2.80 GB)

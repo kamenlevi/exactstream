@@ -1,0 +1,27 @@
+shadow exact: attention projections 18.04 MB/layer (0s)
+shadow gdn2bit: attention projections 11.73 MB/layer (0s)
+shadow gdn2bit_h50: attention projections 8.80 MB/layer (0s)
+d=2 T=8: router-reuse@12 0.678 exact:res1@12 0.918 exact:res2@12 0.925 exact:resid@12 0.999 gdn2bit:res2@12 0.851 gdn2bit:resid@12 0.903 gdn2bit_h50:res2@12 0.820
+d=2 T=16: router-reuse@12 0.862 exact:res1@12 0.950 exact:res2@12 0.955 exact:resid@12 1.000 gdn2bit:res2@12 0.931 gdn2bit:resid@12 0.969 gdn2bit_h50:res2@12 0.920
+d=2 T=24: router-reuse@12 0.918 exact:res1@12 0.972 exact:res2@12 0.974 exact:resid@12 1.000 gdn2bit:res2@12 0.964 gdn2bit:resid@12 0.985 gdn2bit_h50:res2@12 0.957
+d=2 T=32: router-reuse@12 0.899 exact:res1@12 0.969 exact:res2@12 0.971 exact:resid@12 1.000 gdn2bit:res2@12 0.957 gdn2bit:resid@12 0.973 gdn2bit_h50:res2@12 0.955
+d=3 T=8: router-reuse@12 0.639 exact:res1@12 0.869 exact:res2@12 0.880 exact:resid@12 0.998 gdn2bit:res2@12 0.777 gdn2bit:resid@12 0.857 gdn2bit_h50:res2@12 0.734
+d=3 T=16: router-reuse@12 0.818 exact:res1@12 0.927 exact:res2@12 0.931 exact:resid@12 1.000 gdn2bit:res2@12 0.889 gdn2bit:resid@12 0.931 gdn2bit_h50:res2@12 0.868
+d=3 T=24: router-reuse@12 0.892 exact:res1@12 0.957 exact:res2@12 0.962 exact:resid@12 0.999 gdn2bit:res2@12 0.938 gdn2bit:resid@12 0.959 gdn2bit_h50:res2@12 0.923
+d=3 T=32: router-reuse@12 0.843 exact:res1@12 0.955 exact:res2@12 0.960 exact:resid@12 1.000 gdn2bit:res2@12 0.929 gdn2bit:resid@12 0.962 gdn2bit_h50:res2@12 0.921
+
+900 tokens (recall over tokens >= 300), mean over target layers; slice attention bytes per predicted layer:
+  d=2 router-reuse   @8: 0.704  @12: 0.816  @16: 0.867
+  d=2 exact:res1     @8: 0.841  @12: 0.947  @16: 0.976  per step: attn 18.04 + routed  1.77 MB = 0.62 of a layer (x 2 steps)
+  d=2 exact:res2     @8: 0.848  @12: 0.952  @16: 0.978  per step: attn 18.04 + routed  3.54 MB = 0.67 of a layer (x 2 steps)
+  d=2 exact:resid    @8: 0.967  @12: 0.999  @16: 1.000  per step: attn 18.04 + routed 14.16 MB = 1.00 of a layer (x 2 steps)
+  d=2 gdn2bit:res2   @8: 0.802  @12: 0.912  @16: 0.950  per step: attn 11.73 + routed  3.54 MB = 0.47 of a layer (x 2 steps)
+  d=2 gdn2bit:resid  @8: 0.853  @12: 0.951  @16: 0.976  per step: attn 11.73 + routed 14.16 MB = 0.80 of a layer (x 2 steps)
+  d=2 gdn2bit_h50:res2 @8: 0.782  @12: 0.892  @16: 0.933  per step: attn  8.80 + routed  3.54 MB = 0.38 of a layer (x 2 steps)
+  d=3 router-reuse   @8: 0.659  @12: 0.768  @16: 0.823
+  d=3 exact:res1     @8: 0.811  @12: 0.922  @16: 0.960  per step: attn 18.04 + routed  1.77 MB = 0.62 of a layer (x 3 steps)
+  d=3 exact:res2     @8: 0.819  @12: 0.930  @16: 0.965  per step: attn 18.04 + routed  3.54 MB = 0.67 of a layer (x 3 steps)
+  d=3 exact:resid    @8: 0.964  @12: 0.998  @16: 1.000  per step: attn 18.04 + routed 14.16 MB = 1.00 of a layer (x 3 steps)
+  d=3 gdn2bit:res2   @8: 0.767  @12: 0.879  @16: 0.923  per step: attn 11.73 + routed  3.54 MB = 0.47 of a layer (x 3 steps)
+  d=3 gdn2bit:resid  @8: 0.829  @12: 0.932  @16: 0.964  per step: attn 11.73 + routed 14.16 MB = 0.80 of a layer (x 3 steps)
+  d=3 gdn2bit_h50:res2 @8: 0.744  @12: 0.855  @16: 0.902  per step: attn  8.80 + routed  3.54 MB = 0.38 of a layer (x 3 steps)

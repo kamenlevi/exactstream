@@ -1,0 +1,146 @@
+digraph {
+{ rank=source; "A"; }
+{ 50037834904 [label ="Reshape", shape=rectangle]; }
+"A" -> 50037834904
+{ "B"; }
+50037834904 -> "B"
+{ rank=source; "C"; }
+{ 50037841560 [label ="Broadcast", shape=rectangle]; }
+"C" -> 50037841560
+{ "D"; }
+50037841560 -> "D"
+{ 50034704792 [label ="Full", shape=rectangle]; }
+"D" -> 50034704792
+{ "E"; }
+50034704792 -> "E"
+{ 50065536152 [label ="Concatenate", shape=rectangle]; }
+"B" -> 50065536152
+"E" -> 50065536152
+{ "F"; }
+50065536152 -> "F"
+{ rank=source; "G"; }
+{ rank=source; "H"; }
+{ rank=source; "I"; }
+{ 50037619480 [label ="QuantizedMatmul", shape=rectangle]; }
+"F" -> 50037619480
+"G" -> 50037619480
+"H" -> 50037619480
+"I" -> 50037619480
+{ "J"; }
+50037619480 -> "J"
+{ 49920469016 [label ="Slice", shape=rectangle]; }
+"J" -> 49920469016
+{ "K"; }
+49920469016 -> "K"
+{ 50037833880 [label ="Reshape", shape=rectangle]; }
+"K" -> 50037833880
+{ "L"; }
+50037833880 -> "L"
+{ 50037838488 [label ="Reshape", shape=rectangle]; }
+"L" -> 50037838488
+{ "M"; }
+50037838488 -> "M"
+{ 50073319896 [label ="CustomKernel", shape=rectangle]; }
+"M" -> 50073319896
+{ "N"; }
+50073319896 -> "N"
+{ "O"; }
+50073319896 -> "O"
+{ 50037848088 [label ="Reshape", shape=rectangle]; }
+"N" -> 50037848088
+{ rank=sink; "P"; }
+50037848088 -> "P"
+{ 50037848856 [label ="Reshape", shape=rectangle]; }
+"O" -> 50037848856
+{ rank=sink; "Q"; }
+50037848856 -> "Q"
+{ 50037839384 [label ="Reshape", shape=rectangle]; }
+"A" -> 50037839384
+{ "R"; }
+50037839384 -> "R"
+{ rank=source; "S"; }
+{ 50037839000 [label ="Broadcast", shape=rectangle]; }
+"S" -> 50037839000
+{ "T"; }
+50037839000 -> "T"
+{ 50034714440 [label ="Full", shape=rectangle]; }
+"T" -> 50034714440
+{ "U"; }
+50034714440 -> "U"
+{ 50065533368 [label ="Concatenate", shape=rectangle]; }
+"R" -> 50065533368
+"U" -> 50065533368
+{ "V"; }
+50065533368 -> "V"
+{ rank=source; "W"; }
+{ rank=source; "X"; }
+{ rank=source; "Y"; }
+{ 50073319000 [label ="CustomKernel", shape=rectangle]; }
+"V" -> 50073319000
+"W" -> 50073319000
+"X" -> 50073319000
+"Y" -> 50073319000
+{ "Z"; }
+50073319000 -> "Z"
+{ 49920465816 [label ="Slice", shape=rectangle]; }
+"Z" -> 49920465816
+{ "AA"; }
+49920465816 -> "AA"
+{ 49920464856 [label ="Slice", shape=rectangle]; }
+"AA" -> 49920464856
+{ "AB"; }
+49920464856 -> "AB"
+{ 50037834776 [label ="Reshape", shape=rectangle]; }
+"AB" -> 50037834776
+{ "AC"; }
+50037834776 -> "AC"
+{ 49920470616 [label ="Slice", shape=rectangle]; }
+"AC" -> 49920470616
+{ "AD"; }
+49920470616 -> "AD"
+{ 49920459096 [label ="Slice", shape=rectangle]; }
+"AC" -> 49920459096
+{ "AE"; }
+49920459096 -> "AE"
+{ 49984851992 [label ="CompiledSigmoidBroadcastBroadcastMultiplyBroadcastBroadcastMultiply", shape=rectangle]; }
+"AD" -> 49984851992
+"AE" -> 49984851992
+{ "AF"; }
+49984851992 -> "AF"
+{ 50037841432 [label ="Reshape", shape=rectangle]; }
+"AF" -> 50037841432
+{ "AG"; }
+50037841432 -> "AG"
+{ rank=source; "AH"; }
+{ 50037838360 [label ="Broadcast", shape=rectangle]; }
+"AH" -> 50037838360
+{ "AI"; }
+50037838360 -> "AI"
+{ 50034714728 [label ="Full", shape=rectangle]; }
+"AI" -> 50034714728
+{ "AJ"; }
+50034714728 -> "AJ"
+{ 50065536776 [label ="Concatenate", shape=rectangle]; }
+"AG" -> 50065536776
+"AJ" -> 50065536776
+{ "AK"; }
+50065536776 -> "AK"
+{ rank=source; "AL"; }
+{ rank=source; "AM"; }
+{ rank=source; "AN"; }
+{ 50073316760 [label ="CustomKernel", shape=rectangle]; }
+"AK" -> 50073316760
+"AL" -> 50073316760
+"AM" -> 50073316760
+"AN" -> 50073316760
+{ "AO"; }
+50073316760 -> "AO"
+{ 49920466776 [label ="Slice", shape=rectangle]; }
+"AO" -> 49920466776
+{ "AP"; }
+49920466776 -> "AP"
+{ 50037837336 [label ="Reshape", shape=rectangle]; }
+"AP" -> 50037837336
+{ rank=sink; "AQ"; }
+50037837336 -> "AQ"
+}

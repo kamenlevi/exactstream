@@ -1,0 +1,37 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=32.0 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 15M, prefetch on)
+[bigmoe] tier 4433333333: C_m=47 C_l=32 per layer, 6.03 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: engine v3p, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+b12: C_m=47 C_l=32 (9 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.03 GB, active 8.96 GB
+[pf13k] bt_b12 8db71cc537, engine /Users/kamen/Breakthrough/v3p, C_m 47 C_l 32, cap 32; drafter 0.928 GB (own params), SW 2048; after load: lifetime 10.618 GB, MLX active 9.529; prompts agent/edit10 (n 1565), agent/write13 (n 4730), agent/write11 (n 7932)
+[pf13k] start (SSD <= 55 C, no PAUSE): SSD 51 C, no PAUSE (waited 0 s)
+[mtplx] verify SDPA head-chunked: q_len=28 heads_per_chunk=1 chunks=24
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (64, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[pf13k] agent/edit10 ex PHASES draft: 5 runs, 14.6 ms, 0 MB, 0 misses, 0.00 passes per run, 0.00 GB/s | exact: 5 runs, 447.8 ms, 3970 MB, 2173 misses, 2.00 passes per run, 8.87 GB/s
+[pf13k] agent/edit10 ex theta None  | tok 32 sha 6d2ad3e99f | lsha 9ad5513138 | = ex tokens True (first divergence None) | checks 5, kept 6.40 | pass2 0 exact 5 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 37 in 10 calls, refused 0 | prefill 8.35 s, decode 2.31 s, 13.82 tok/s | lifetime 10.618 GB | per check ms: draft 14.6 pass 1 0.0 pass 2 / exact 447.8 commit 0.0; misses per check pass 1 0 pass 2 2173
+[pf13k] agent/edit10 ex PREFILL n 1565 smoe 3072 | 8.352 s, 187.3 tok/s, SSD 63327 MB | lifetime 10.618 GB | pfr [(1564, 3072, 6.03, 0.03, 0.13)] | gq {'calls': 1140, 'sorted': 1140, 'maxm': 4672, 'exposed': 0, 'padded': 0}
+[pf13k] PAIR agent/edit10: SSD per arm (C) ex 51->51 | PAUSE 0.0 s inside -> ok
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (46, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (56, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (55, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (53, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[pf13k] agent/write13 ex PHASES draft: 11 runs, 13.3 ms, 0 MB, 0 misses, 0.00 passes per run, 0.00 GB/s | exact: 11 runs, 150.9 ms, 957 MB, 532 misses, 1.18 passes per run, 6.34 GB/s
+[pf13k] agent/write13 ex theta None  | tok 32 sha 91fc7bf91a | lsha 71e3536246 | = ex tokens True (first divergence None) | checks 11, kept 2.91 | pass2 0 exact 11 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 52 in 13 calls, refused 0 | prefill 18.23 s, decode 1.81 s, 17.66 tok/s | lifetime 10.759 GB | per check ms: draft 13.3 pass 1 0.0 pass 2 / exact 150.9 commit 0.0; misses per check pass 1 0 pass 2 532
+[pf13k] agent/write13 ex PREFILL n 4730 smoe 3072 | 18.234 s, 259.4 tok/s, SSD 122272 MB | lifetime 10.759 GB | pfr [(4729, 3072, 6.03, 0.03, 0.13)] | gq {'calls': 1870, 'sorted': 1870, 'maxm': 6080, 'exposed': 0, 'padded': 0}
+[pf13k] PAIR agent/write13: SSD per arm (C) ex 51->51 | PAUSE 0.0 s inside -> ok
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (47, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (58, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (54, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (57, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (62, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[pf13k] agent/write11 ex PHASES draft: 17 runs, 13.5 ms, 0 MB, 0 misses, 0.00 passes per run, 0.00 GB/s | exact: 17 runs, 171.8 ms, 1261 MB, 704 misses, 1.12 passes per run, 7.34 GB/s
+[pf13k] agent/write11 ex theta None  | tok 32 sha dae816a68c | lsha 224aa40148 | = ex tokens True (first divergence None) | checks 17, kept 1.88 | pass2 0 exact 17 cfgate 0 skipped 0 | rows pass 1 0 / pass 2 70 in 19 calls, refused 0 | prefill 29.08 s, decode 3.16 s, 10.13 tok/s | lifetime 10.918 GB | per check ms: draft 13.5 pass 1 0.0 pass 2 / exact 171.8 commit 0.0; misses per check pass 1 0 pass 2 704
+[pf13k] agent/write11 ex PREFILL n 7932 smoe 3072 | 29.082 s, 272.7 tok/s, SSD 180452 MB | lifetime 10.918 GB | pfr [(7931, 3072, 6.03, 0.03, 0.13)] | gq {'calls': 2538, 'sorted': 2538, 'maxm': 6400, 'exposed': 0, 'padded': 0}
+[pf13k] PAIR agent/write11: SSD per arm (C) ex 51->56 | PAUSE 0.0 s inside -> ok
+[pf13k] PAUSE summary: intervals [] s from the start; re-run []; excluded []
+[pf13k] TOTAL ex: 3 prompts, 96 tokens in 7.29 s = 13.17 tok/s | 33 checks, kept 2.91 | pass2 0 exact 33 | per check ms: draft 13.6 pass 1 0.0 pass 2 / exact 206.7 commit 0.0; misses per check pass 1 0 pass 2 869
+[pf13k] IDS: 3 keys -> /Users/kamen/Fit12/data/scr/pf13/pf13k_ids.json
+[pf13k] done; lifetime 10.918 GB

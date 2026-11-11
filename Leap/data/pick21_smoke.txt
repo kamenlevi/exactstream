@@ -1,0 +1,24 @@
+L1-21: autoregressive picker over DFlash2's top-64 lattice; drafter data/l120_ft.safetensors; training lattices every 2nd anchor of L1-20's windows; held-out replay on 24 HumanEval samples
+  lattices block 16: 282 blocks (82 train / 200 val), 3 s; true token in top-64 at valid depths: 0.973 (train 0.975, val 0.972)
+  picker block 16: 12.3 M parameters, 20 steps, 2 s. Teacher-forced accuracy (val / train): picker 0.807 / 0.711, drafter top-1 0.635 / 0.556; accepted run from every anchor (val): picker 7.93, drafter top-1 7.08
+  block 16 selector truncate t 0.0:  9.20 tokens per pass at 16.0 rows; at the stack  259 tok/s (top-8:  245) (1 s)
+  block 16 selector truncate t 0.1:  9.04 tokens per pass at 12.9 rows; at the stack  283 tok/s (top-8:  268) (1 s)
+  block 16 selector truncate t 0.3:  9.04 tokens per pass at 11.1 rows; at the stack  303 tok/s (top-8:  288) (1 s)
+  block 16 selector truncate t 0.5:  8.05 tokens per pass at  9.1 rows; at the stack  296 tok/s (top-8:  282) (1 s)
+  block 16 picker   truncate t 0.0:  9.20 tokens per pass at 16.0 rows; at the stack  259 tok/s (top-8:  245) (1 s)
+  block 16 picker   truncate t 0.1:  9.04 tokens per pass at 11.7 rows; at the stack  295 tok/s (top-8:  280) (1 s)
+  block 16 picker   truncate t 0.3:  8.44 tokens per pass at  9.4 rows; at the stack  303 tok/s (top-8:  289) (1 s)
+  block 16 picker   truncate t 0.5:  7.05 tokens per pass at  7.6 rows; at the stack  278 tok/s (top-8:  266) (2 s)
+  block 16 oracle   truncate t 0.0: 13.55 tokens per pass at 16.0 rows; at the stack  382 tok/s (top-8:  361) (0 s)
+  lattices block 32: 282 blocks (82 train / 200 val), 4 s; true token in top-64 at valid depths: 0.931 (train 0.936, val 0.930)
+  picker block 32: 12.3 M parameters, 20 steps, 1 s. Teacher-forced accuracy (val / train): picker 0.664 / 0.594, drafter top-1 0.375 / 0.388; accepted run from every anchor (val): picker 8.34, drafter top-1 7.02
+  block 32 selector truncate t 0.0:  9.90 tokens per pass at 32.0 rows; at the stack  196 tok/s (top-8:  184) (1 s)
+  block 32 selector truncate t 0.1:  9.72 tokens per pass at 14.7 rows; at the stack  285 tok/s (top-8:  270) (1 s)
+  block 32 selector truncate t 0.3:  9.36 tokens per pass at 11.7 rows; at the stack  305 tok/s (top-8:  290) (1 s)
+  block 32 selector truncate t 0.5:  8.44 tokens per pass at  9.5 rows; at the stack  301 tok/s (top-8:  287) (1 s)
+  block 32 picker   truncate t 0.0: 10.10 tokens per pass at 32.0 rows; at the stack  200 tok/s (top-8:  187) (2 s)
+  block 32 picker   truncate t 0.1:  9.90 tokens per pass at 13.3 rows; at the stack  303 tok/s (top-8:  288) (2 s)
+  block 32 picker   truncate t 0.3:  9.04 tokens per pass at 10.7 rows; at the stack  305 tok/s (top-8:  290) (2 s)
+  block 32 picker   truncate t 0.5:  7.92 tokens per pass at  8.6 rows; at the stack  292 tok/s (top-8:  280) (2 s)
+  block 32 oracle   truncate t 0.0: 19.81 tokens per pass at 32.0 rows; at the stack  392 tok/s (top-8:  367) (0 s)
+Lines (L1-21): kill < 10.5 tokens per 16-row pass (FT selector 9.54) and < +10 % priced at block 32; pass >= 13.1 per 16-row pass or >= 350 tok/s at the top-8 stack

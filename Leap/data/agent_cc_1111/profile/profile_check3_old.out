@@ -1,0 +1,36 @@
+MODE=old (agentcc_tasks3.py); mock serve.py ready in 1 s (pid 84662); CLAUDE_BIN=/Users/kamen/Leap/logs/claude_versions/2.1.321
+tasks.out:
+  08:27:58 t00a: start (timeout 240 s)
+  08:28:01 t00a: claude rc 0, 3 s, check rc 1
+  08:28:01 t00b: start (timeout 240 s)
+  08:28:04 t00b: claude rc 0, 3 s, check rc 1
+  TASKS DONE
+== t00a (init: "claude_code_version":"2.1.321"; transcript is a link: no)
+    WRITE_TASK OK
+    OWN_FOLDER OK
+    GIT OK
+    GIT_COMMIT OK
+    OWN_TMP OK
+    READ_RUN_TASKS DENIED
+    READ_OTHER_TASK DENIED
+    READ_RUNNER_LOG DENIED
+    READ_OWN_TRANSCRIPT DENIED
+    READ_EVAL_LS DENIED
+    READ_EVAL_MANIFEST DENIED
+    WRITE_RUN OK
+    LINK_NEXT_TRANSCRIPT OK
+    WRITE_HOME OK
+    WRITE_OTHER_TMP DENIED
+    LINK_CHECK_NAME OK
+    HEREDOC_OK
+    TMPPREFIX under the task temp: no (<scratch>/profile_check3_old/run/cctmp/
+  result success, turns 2
+  check: 
+== t00b (init: ; transcript is a link: YES)
+  check: 
+results:
+{"id": "t00a", "claude_rc": 0, "timed_out": false, "wall_s": 3.0, "check_rc": 1}
+{"id": "t00b", "claude_rc": 0, "timed_out": false, "wall_s": 3.0, "check_rc": 1}
+CANARY now: print('check ran')  -> OVERWRITTEN
+per-task profiles kept: 2; links anywhere in the run folder: <run>/tasks/t00b/.agentcc_check.py <run>/tasks/t00a/.agentcc_check.py <run>/t00b.jsonl <run>/t00c.jsonl 
+mock serve.py stopped

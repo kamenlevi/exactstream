@@ -1,0 +1,14 @@
+== fcps: GPU-idle seams per cycle (ms, medians; checks >= 1 of the measured prompts ['humaneval/HumanEval/68', 'humaneval/HumanEval/16', 'humaneval/HumanEval/91'])
+  D c0 -> draft end partial 1.49 (n 6)   full 0.63 (n 18)
+  A     partial 7.06 (n 6)   full 6.18 (n 18)
+  A1 draft end -> c1 partial 4.74 (n 6)   full 4.84 (n 18)
+  A2 c1 -> check submit partial 2.32 (n 6)   full 1.14 (n 18)
+  RB the draft's readbacks (GPU busy) partial 4.12 (n 6)   full 4.24 (n 18)
+  I1 readback end -> c1 (idle, Python) partial 0.16 (n 6)   full 0.16 (n 18)
+  IDLE A' = readback end -> check submit partial 2.47 (n 6)   full 1.3 (n 18)
+  B     partial 1.22 (n 6)   full 0.87 (n 18)
+  C     partial 0.23 (n 6)   full 0.2 (n 18)
+  cycle partial 69.59 (n 6)   full 88.18 (n 18)
+  main thread during A (samples per cycle ~ ms): full 0.3 <frozen genericpath>:19:exists < gated.py:130:new_pass; partial 0.8 threading.py:355:wait < _base.py:451:result; full 0.1 _arraysetops_impl.py:382:_unique1d < _arraysetops_impl.py:296:unique; partial 0.3 r57_screen_fcp.py:681:disk_read_bytes < r57_screen_fcp.py:1171:run; full 0.1 threading.py:355:wait < _base.py:451:result; full 0.1 fcprobe.py:75:_threads < fcprobe.py:118:_snap; full 0.1 fcprobe.py:89:_task_events < fcprobe.py:110:_snap; partial 0.2 qwen4_exp.py:5581:_rows_matrices < qwen4_exp.py:5651:gather_np; partial 0.2 memmap.py:359:__getitem__ < qwen4_exp.py:5566:_rows_matrices; full 0.1 qwen4_exp.py:5581:_rows_matrices < qwen4_exp.py:5651:gather_np
+  main thread during B (samples per cycle ~ ms): full 0.17 fcprobe.py:103:_mtl_pids < fcprobe.py:279:mark; full 0.11 fcprobe.py:100:_mtl_pids < fcprobe.py:279:mark; partial 0.17 _arraysetops_impl.py:382:_unique1d < _arraysetops_impl.py:296:unique; partial 0.17 qwen4_exp.py:6037:_stage_body < qwen4_exp.py:6025:stage
+  callers: draft end @ draft_fused.py:179 x24; commit submit @ r57_screen_fcp.py:1390 x24; check submit @ qwen4_exp.py:6491 x23; next draft submit @ draft_fused.py:179 x22; next draft submit @ r57_screen_fcp.py:1429 x2; check submit @ r57_screen_fcp.py:1284 x1

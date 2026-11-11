@@ -1,0 +1,8 @@
+R-13b: small 4-bit dense shapes of a 16-row check (kern23's shapes / counts, random weights, cold), ms per check
+  shared gate/up        640 x 2560 (96): MLX 16-row  1.85 | NV4  1.94 ms (bitwise) | NV8  1.77 ms (bitwise) | NV16  4.45 ms (bitwise)
+  shared down          2560 x  640 (48): MLX 16-row  1.51 | NV4  1.51 ms (bitwise) | NV8  1.34 ms (bitwise) | NV16  3.61 ms (bitwise)
+  k/v_proj              512 x 2560 (24): MLX 16-row  0.61 | NV4  0.57 ms (bitwise) | NV8  0.54 ms (bitwise) | NV16  1.10 ms (bitwise)
+  in_proj_a/b            48 x 2560 (72): MLX 16-row  0.47 | NV4  0.56 ms (bitwise) | NV8  0.52 ms (bitwise) | NV16  0.65 ms (bitwise)
+  shared_expert_gate      1 x 2560 (48): MLX 16-row  0.31 | NV4  0.35 ms (bitwise) | NV8  0.33 ms (bitwise) | NV16  0.37 ms (bitwise)
+  per check: MLX 4.76 ms; NV4 4.93, NV8 4.50, NV16 10.17; NV16 saves -5.41 ms
+R-13b verdict (PASS >= 2 ms saved per check AND bitwise on every shape; KILL < 1 ms or not bitwise): KILL

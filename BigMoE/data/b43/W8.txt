@@ -1,0 +1,21 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=20.6 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'verify_rows_sdpa': True, 'duprow': True, 'compiled_hc': 96, 'frspec': True, 'scout_bundle': {'sc2_sharedfirst': True, 'sc3b_vreadchunk_classes': 1, 'sc3_glue': {'qsa_rope': True, 'qsa_rope_idx': True}}}
+[bigmoe] tier 4433333333: C_m=147 C_l=46 per layer, 17.07 GB pools
+[mtplx] verify SDPA head-chunked: q_len=12 heads_per_chunk=2 chunks=12
+   joint: tried 2016 paired 2010 reads 7605 wait 35.6 ms (cumulative)
+[edit] 41.2 tok/s, 6.74 tok/pass, S 6.74, verify 159.6 ms/pass x 38 passes, sha 8b72b3d757
+   forecasts: 19196 misses at forecast layers; raw recall at lead 1/2/3 38/0/0 % (unique list 31/-/-), known >= 2 ahead 0 %; reads issued 10379/0/0, precision 42/nan/nan %, recall of issued 23/0/0 %
+   38 traced verify passes: span 141.2 ms = gate wait 96.8 + GPU 44.4; SSD busy 136.2 ms; reads/pass demand 392.8 + joint 189.6 + prefetch 273.1
+   reads in flight: during gate waits 8.0 (>= 8: 46 % of the time), during GPU time 3.5 (>= 8: 0 %, SSD idle 7 %)
+   experts/pass 2543.1: resident 1827.3, misses 715.8 = prefetched on time 283.4 + late 39.6 + predicted-unissued 59.4 + unpredicted 333.4 (queued-then-cancelled 35.6); known >= 1 layer ahead 53 %, read in time 40 %
+   joint: tried 3744 paired 3727 reads 14121 wait 67.0 ms (cumulative)
+[copy_math] 45.4 tok/s, 7.11 tok/pass, S 7.11, verify 152.8 ms/pass x 36 passes, sha 0dbb029e29
+   forecasts: 15207 misses at forecast layers; raw recall at lead 1/2/3 40/0/0 % (unique list 30/-/-), known >= 2 ahead 0 %; reads issued 8095/0/0, precision 47/nan/nan %, recall of issued 25/0/0 %
+   36 traced verify passes: span 131.4 ms = gate wait 86.7 + GPU 44.7; SSD busy 123.6 ms; reads/pass demand 322.2 + joint 181.0 + prefetch 224.9
+   reads in flight: during gate waits 7.6 (>= 8: 40 % of the time), during GPU time 3.0 (>= 8: 0 %, SSD idle 14 %)
+   experts/pass 2412.9: resident 1784.8, misses 628.1 = prefetched on time 268.1 + late 37.7 + predicted-unissued 48.8 + unpredicted 273.4 (queued-then-cancelled 24.6); known >= 1 layer ahead 56 %, read in time 43 %
+saved /Users/kamen/BigMoE/data/b43/W8.json

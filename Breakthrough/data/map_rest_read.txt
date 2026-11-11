@@ -1,0 +1,161 @@
+== map_rest.sh read-out (Sat 2026-11-07; runner 03:54:45-04:12:57, T1 04:12:57-04:21:59; extracted from data/s67_slot.log lines 18814-18912 and ~/FableGod/lossy350a/run_1105/run.log)
+
+-- runner events
+[s67] go qom_0_live_ball_nw3 (est 9 min; NO-SWAP 51 GB, swap 6933 MB) Sat 03:55:08
+[s67] qom_0_live_ball_nw3 ended (rc 0, done, 36 windows); left: qom_0_live_ball_c208_nw3 p1c_oea_k1_ku4_p08_cf09+code p1c_oea_k1_ku4_p09_cf09+code p1c_oea_k1_ku4_p095_cf09+code ; lock kept for the next arm Sat 04:01:12
+[s67] go qom_0_live_ball_c208_nw3 (est 9 min; NO-SWAP 53 GB, swap 6917 MB) Sat 04:01:13
+[s67] qom_0_live_ball_c208_nw3 ended (rc 0, done, 36 windows); left: p1c_oea_k1_ku4_p08_cf09+code p1c_oea_k1_ku4_p09_cf09+code p1c_oea_k1_ku4_p095_cf09+code ; lock kept for the next arm Sat 04:07:32
+[s67] go p1c_oea_k1_ku4_p08_cf09+code (est 4 min; NO-SWAP 53 GB, swap 6909 MB) Sat 04:07:33
+[s67] p1c_oea_k1_ku4_p08_cf09+code ended (rc 0, done, 12 windows); left: p1c_oea_k1_ku4_p09_cf09+code p1c_oea_k1_ku4_p095_cf09+code ; lock kept for the next arm Sat 04:09:19
+[s67] go p1c_oea_k1_ku4_p09_cf09+code (est 4 min; NO-SWAP 52 GB, swap 6909 MB) Sat 04:09:20
+[s67] p1c_oea_k1_ku4_p09_cf09+code ended (rc 0, done, 12 windows); left: p1c_oea_k1_ku4_p095_cf09+code ; lock kept for the next arm Sat 04:11:06
+[s67] go p1c_oea_k1_ku4_p095_cf09+code (est 4 min; NO-SWAP 52 GB, swap 6909 MB) Sat 04:11:07
+[s67] p1c_oea_k1_ku4_p095_cf09+code ended (rc 0, done, 12 windows); left: ; lock kept for the next arm Sat 04:12:54
+
+-- map_kl.py + dm_screen_read read-out (nw3 chat arms, step 0)
+[s67] map_kl.py (NewIdeas, read-only use), extra arms + twins: qom_0_live_ball_nw3 qom_0_live_ball_c208_nw3 p1c_oea_k1_ku4_p08_cf09+code p1c_oea_k1_ku4_p09_cf09+code p1c_oea_k1_ku4_p095_cf09+code cert_top5_p09 p1c_oea_k1_ku4_p08_cf09+code p1c_oea_k1_p08 qom_0_live_ball_c208_nw1 qom_0_live_ball_nw1  Sat 04:12:55
+| arm | code flips % / KL / dlp | ifeval | multi |
+| qom_0_live_ball_nw3 | 0.71 / 0.0024 / 0.0034 | 6.18 / 0.0184 / 0.0323 | 5.60 / 0.0252 / 0.0371 |
+| qom_0_live_ball_c208_nw3 | 0.86 / 0.0043 / 0.0076 | 6.33 / 0.0256 / 0.0415 | 5.46 / 0.0262 / 0.0402 |
+| cert_top5_p09 | 0.92 / 0.0038 / 0.0050 | 5.09 / 0.0154 / 0.0280 | 3.88 / 0.0181 / 0.0272 |
+| p1c_oea_k1_p08 | 1.52 / 0.0188 / 0.0222 | 9.48 / 0.0803 / 0.1179 | 7.06 / 0.0829 / 0.1050 |
+| qom_0_live_ball_c208_nw1 | 0.68 / 0.0030 / 0.0054 | 5.33 / 0.0166 / 0.0299 | 3.72 / 0.0141 / 0.0215 |
+| qom_0_live_ball_nw1 | 0.59 / 0.0016 / 0.0031 | 3.97 / 0.0096 / 0.0168 | 3.24 / 0.0113 / 0.0181 |
+Map screen: qom_0_live_ball_nw3 vs qom_0_live_ball_nw1 (paired); all-row flips vs the baseline argmax, live checks
+  qom_0_live_ball_nw3: 36 windows, 0 with row-count warnings; qom_0_live_ball_nw1: 36 windows, 0 with row-count warnings
+| arm | code | ifeval | multi |
+|---|---|---|---|
+| qom_0_live_ball_nw1 | 0.59 % (20/3366) | 3.97 % (135/3397) | 3.24 % (115/3553) |
+| qom_0_live_ball_nw1, non-tie rows | 0.18 % (6/3316) | 1.38 % (43/3107) | 0.85 % (28/3304) |
+| qom_0_live_ball_nw1, tie rows | 28.0 % (14/50) | 31.7 % (92/290) | 34.9 % (87/249) |
+| qom_0_live_ball_nw3 | 0.71 % (24/3366) | 6.18 % (210/3397) | 5.60 % (199/3553) |
+| qom_0_live_ball_nw3, non-tie rows | 0.30 % (10/3316) | 2.61 % (81/3107) | 2.48 % (82/3304) |
+| qom_0_live_ball_nw3, tie rows | 28.0 % (14/50) | 44.5 % (129/290) | 47.0 % (117/249) |
+| Q1 at 0.99 (pre-registered level) | 1.34 % | 5.42 % | 3.69 % |
+| gate_top2_cf099 (recomputed, information) | 1.34 % | 5.42 % | 3.69 % |
+| non-tie level (gate_top2_cf099's non-tie flips) | 0.87 % | 2.22 % | 1.63 % |
+| gate_top2_cf099, non-tie rows (recomputed, information) | 0.87 % | 2.22 % | 1.63 % |
+VERDICT qom_0_live_ball_nw3: code PASS 0.71 % (level 1.34, x1.5 2.01) / ifeval BETWEEN 6.18 % (level 5.42, x1.5 8.13) / multi KILL 5.60 % (level 3.69, x1.5 5.54)
+  McNemar vs qom_0_live_ball_nw1 (only-qom_0_live_ball_nw3 / only-qom_0_live_ball_nw1 flips): code 12 / 8, z +0.89; ifeval 122 / 47, z +5.77; multi 122 / 38, z +6.64
+NON-TIE qom_0_live_ball_nw3: code PASS 0.30 % (level 0.87) / ifeval OVER 2.61 % (level 2.22) / multi OVER 2.48 % (level 1.63)
+  McNemar vs qom_0_live_ball_nw1 on non-tie rows: code 7 / 3, z +1.26; ifeval 52 / 14, z +4.68; multi 67 / 13, z +6.04
+VERDICT2 qom_0_live_ball_nw3 (all-row PASS and non-tie PASS): code PASS / ifeval FAIL / multi FAIL
+[s67] read-out: VERDICT qom_0_live_ball_nw3: code PASS 0.71 % (level 1.34, x1.5 2.01) / ifeval BETWEEN 6.18 % (level 5.42, x1.5 8.13) / multi KILL 5.60 % (level 3.69, x1.5 5.54)
+VERDICT2 qom_0_live_ball_nw3 (all-row PASS and non-tie PASS): code PASS / ifeval FAIL / multi FAIL Sat 04:12:56
+Map screen: qom_0_live_ball_c208_nw3 vs qom_0_live_ball_c208_nw1 (paired); all-row flips vs the baseline argmax, live checks
+  qom_0_live_ball_c208_nw3: 36 windows, 0 with row-count warnings; qom_0_live_ball_c208_nw1: 36 windows, 0 with row-count warnings
+| arm | code | ifeval | multi |
+|---|---|---|---|
+| qom_0_live_ball_c208_nw1 | 0.68 % (23/3366) | 5.33 % (181/3397) | 3.72 % (132/3553) |
+| qom_0_live_ball_c208_nw1, non-tie rows | 0.27 % (9/3316) | 2.35 % (73/3107) | 1.39 % (46/3304) |
+| qom_0_live_ball_c208_nw1, tie rows | 28.0 % (14/50) | 37.2 % (108/290) | 34.5 % (86/249) |
+| qom_0_live_ball_c208_nw3 | 0.86 % (29/3366) | 6.33 % (215/3397) | 5.46 % (194/3553) |
+| qom_0_live_ball_c208_nw3, non-tie rows | 0.45 % (15/3316) | 3.28 % (102/3107) | 2.45 % (81/3304) |
+| qom_0_live_ball_c208_nw3, tie rows | 28.0 % (14/50) | 39.0 % (113/290) | 45.4 % (113/249) |
+| Q1 at 0.99 (pre-registered level) | 1.34 % | 5.42 % | 3.69 % |
+| gate_top2_cf099 (recomputed, information) | 1.34 % | 5.42 % | 3.69 % |
+| non-tie level (gate_top2_cf099's non-tie flips) | 0.87 % | 2.22 % | 1.63 % |
+| gate_top2_cf099, non-tie rows (recomputed, information) | 0.87 % | 2.22 % | 1.63 % |
+VERDICT qom_0_live_ball_c208_nw3: code PASS 0.86 % (level 1.34, x1.5 2.01) / ifeval BETWEEN 6.33 % (level 5.42, x1.5 8.13) / multi BETWEEN 5.46 % (level 3.69, x1.5 5.54)
+  McNemar vs qom_0_live_ball_c208_nw1 (only-qom_0_live_ball_c208_nw3 / only-qom_0_live_ball_c208_nw1 flips): code 13 / 7, z +1.34; ifeval 95 / 61, z +2.72; multi 104 / 42, z +5.13
+NON-TIE qom_0_live_ball_c208_nw3: code PASS 0.45 % (level 0.87) / ifeval OVER 3.28 % (level 2.22) / multi OVER 2.45 % (level 1.63)
+  McNemar vs qom_0_live_ball_c208_nw1 on non-tie rows: code 8 / 2, z +1.90; ifeval 54 / 25, z +3.26; multi 55 / 20, z +4.04
+VERDICT2 qom_0_live_ball_c208_nw3 (all-row PASS and non-tie PASS): code PASS / ifeval FAIL / multi FAIL
+[s67] read-out: VERDICT qom_0_live_ball_c208_nw3: code PASS 0.86 % (level 1.34, x1.5 2.01) / ifeval BETWEEN 6.33 % (level 5.42, x1.5 8.13) / multi BETWEEN 5.46 % (level 3.69, x1.5 5.54)
+VERDICT2 qom_0_live_ball_c208_nw3 (all-row PASS and non-tie PASS): code PASS / ifeval FAIL / multi FAIL Sat 04:12:56
+Code-only map screen: p1c_oea_k1_ku4_p08_cf09+code: 12 code windows, 3366 rows; all-row flips vs the baseline argmax
+  p1c_oea_k1_ku4_p08_cf09+code: non-tie rows 0.78 % (26/3316); tie rows 36.0 % (18/50)
+  vs cert_top5_p09 (0.92 %): only-p1c_oea_k1_ku4_p08_cf09+code / only-cert_top5_p09 flips 25 / 12, z +2.14
+     non-tie rows (cert_top5_p09 0.42 %): only-p1c_oea_k1_ku4_p08_cf09+code / only-cert_top5_p09 flips 17 / 5, z +2.56
+VERDICT p1c_oea_k1_ku4_p08_cf09+code: code PASS 1.31 % (44/3366; PASS <= 1.34, BETWEEN <= 2.0, KILL above)
+VERDICT2 p1c_oea_k1_ku4_p08_cf09+code: code PASS (all-row 1.31 % <= 1.34 AND non-tie 0.78 % <= 0.87)
+[s67] read-out: VERDICT p1c_oea_k1_ku4_p08_cf09+code: code PASS 1.31 % (44/3366; PASS <= 1.34, BETWEEN <= 2.0, KILL above)
+VERDICT2 p1c_oea_k1_ku4_p08_cf09+code: code PASS (all-row 1.31 % <= 1.34 AND non-tie 0.78 % <= 0.87) Sat 04:12:56
+Code-only map screen: p1c_oea_k1_ku4_p08_cf09+code: 12 code windows, 3366 rows; all-row flips vs the baseline argmax
+  p1c_oea_k1_ku4_p08_cf09+code: non-tie rows 0.78 % (26/3316); tie rows 36.0 % (18/50)
+  vs p1c_oea_k1_p08 (1.52 %): only-p1c_oea_k1_ku4_p08_cf09+code / only-p1c_oea_k1_p08 flips 13 / 20, z -1.22
+     non-tie rows (p1c_oea_k1_p08 1.00 %): only-p1c_oea_k1_ku4_p08_cf09+code / only-p1c_oea_k1_p08 flips 7 / 14, z -1.53
+VERDICT p1c_oea_k1_ku4_p08_cf09+code: code PASS 1.31 % (44/3366; PASS <= 1.34, BETWEEN <= 2.0, KILL above)
+VERDICT2 p1c_oea_k1_ku4_p08_cf09+code: code PASS (all-row 1.31 % <= 1.34 AND non-tie 0.78 % <= 0.87)
+[s67] read-out: VERDICT p1c_oea_k1_ku4_p08_cf09+code: code PASS 1.31 % (44/3366; PASS <= 1.34, BETWEEN <= 2.0, KILL above)
+VERDICT2 p1c_oea_k1_ku4_p08_cf09+code: code PASS (all-row 1.31 % <= 1.34 AND non-tie 0.78 % <= 0.87) Sat 04:12:56
+Code-only map screen: p1c_oea_k1_ku4_p09_cf09+code: 12 code windows, 3366 rows; all-row flips vs the baseline argmax
+  p1c_oea_k1_ku4_p09_cf09+code: non-tie rows 0.66 % (22/3316); tie rows 34.0 % (17/50)
+  vs p1c_oea_k1_p08 (1.52 %): only-p1c_oea_k1_ku4_p09_cf09+code / only-p1c_oea_k1_p08 flips 15 / 27, z -1.85
+     non-tie rows (p1c_oea_k1_p08 1.00 %): only-p1c_oea_k1_ku4_p09_cf09+code / only-p1c_oea_k1_p08 flips 8 / 19, z -2.12
+VERDICT p1c_oea_k1_ku4_p09_cf09+code: code PASS 1.16 % (39/3366; PASS <= 1.34, BETWEEN <= 2.0, KILL above)
+VERDICT2 p1c_oea_k1_ku4_p09_cf09+code: code PASS (all-row 1.16 % <= 1.34 AND non-tie 0.66 % <= 0.87)
+[s67] read-out: VERDICT p1c_oea_k1_ku4_p09_cf09+code: code PASS 1.16 % (39/3366; PASS <= 1.34, BETWEEN <= 2.0, KILL above)
+VERDICT2 p1c_oea_k1_ku4_p09_cf09+code: code PASS (all-row 1.16 % <= 1.34 AND non-tie 0.66 % <= 0.87) Sat 04:12:57
+Code-only map screen: p1c_oea_k1_ku4_p09_cf09+code: 12 code windows, 3366 rows; all-row flips vs the baseline argmax
+  p1c_oea_k1_ku4_p09_cf09+code: non-tie rows 0.66 % (22/3316); tie rows 34.0 % (17/50)
+  vs p1c_oea_k1_ku4_p08_cf09+code (1.31 %): only-p1c_oea_k1_ku4_p09_cf09+code / only-p1c_oea_k1_ku4_p08_cf09+code flips 7 / 12, z -1.15
+     non-tie rows (p1c_oea_k1_ku4_p08_cf09+code 0.78 %): only-p1c_oea_k1_ku4_p09_cf09+code / only-p1c_oea_k1_ku4_p08_cf09+code flips 4 / 8, z -1.15
+VERDICT p1c_oea_k1_ku4_p09_cf09+code: code PASS 1.16 % (39/3366; PASS <= 1.34, BETWEEN <= 2.0, KILL above)
+VERDICT2 p1c_oea_k1_ku4_p09_cf09+code: code PASS (all-row 1.16 % <= 1.34 AND non-tie 0.66 % <= 0.87)
+[s67] read-out: VERDICT p1c_oea_k1_ku4_p09_cf09+code: code PASS 1.16 % (39/3366; PASS <= 1.34, BETWEEN <= 2.0, KILL above)
+VERDICT2 p1c_oea_k1_ku4_p09_cf09+code: code PASS (all-row 1.16 % <= 1.34 AND non-tie 0.66 % <= 0.87) Sat 04:12:57
+Code-only map screen: p1c_oea_k1_ku4_p095_cf09+code: 12 code windows, 3366 rows; all-row flips vs the baseline argmax
+  p1c_oea_k1_ku4_p095_cf09+code: non-tie rows 0.60 % (20/3316); tie rows 34.0 % (17/50)
+  vs cert_top5_p09 (0.92 %): only-p1c_oea_k1_ku4_p095_cf09+code / only-cert_top5_p09 flips 19 / 13, z +1.06
+     non-tie rows (cert_top5_p09 0.42 %): only-p1c_oea_k1_ku4_p095_cf09+code / only-cert_top5_p09 flips 12 / 6, z +1.41
+VERDICT p1c_oea_k1_ku4_p095_cf09+code: code PASS 1.10 % (37/3366; PASS <= 1.34, BETWEEN <= 2.0, KILL above)
+VERDICT2 p1c_oea_k1_ku4_p095_cf09+code: code PASS (all-row 1.10 % <= 1.34 AND non-tie 0.60 % <= 0.87)
+[s67] read-out: VERDICT p1c_oea_k1_ku4_p095_cf09+code: code PASS 1.10 % (37/3366; PASS <= 1.34, BETWEEN <= 2.0, KILL above)
+VERDICT2 p1c_oea_k1_ku4_p095_cf09+code: code PASS (all-row 1.10 % <= 1.34 AND non-tie 0.60 % <= 0.87) Sat 04:12:57
+Code-only map screen: p1c_oea_k1_ku4_p095_cf09+code: 12 code windows, 3366 rows; all-row flips vs the baseline argmax
+  p1c_oea_k1_ku4_p095_cf09+code: non-tie rows 0.60 % (20/3316); tie rows 34.0 % (17/50)
+  vs p1c_oea_k1_ku4_p08_cf09+code (1.31 %): only-p1c_oea_k1_ku4_p095_cf09+code / only-p1c_oea_k1_ku4_p08_cf09+code flips 8 / 15, z -1.46
+     non-tie rows (p1c_oea_k1_ku4_p08_cf09+code 0.78 %): only-p1c_oea_k1_ku4_p095_cf09+code / only-p1c_oea_k1_ku4_p08_cf09+code flips 3 / 9, z -1.73
+VERDICT p1c_oea_k1_ku4_p095_cf09+code: code PASS 1.10 % (37/3366; PASS <= 1.34, BETWEEN <= 2.0, KILL above)
+VERDICT2 p1c_oea_k1_ku4_p095_cf09+code: code PASS (all-row 1.10 % <= 1.34 AND non-tie 0.60 % <= 0.87)
+[s67] read-out: VERDICT p1c_oea_k1_ku4_p095_cf09+code: code PASS 1.10 % (37/3366; PASS <= 1.34, BETWEEN <= 2.0, KILL above)
+VERDICT2 p1c_oea_k1_ku4_p095_cf09+code: code PASS (all-row 1.10 % <= 1.34 AND non-tie 0.60 % <= 0.87) Sat 04:12:57
+[s67] read-out (extra arms) done Sat 04:12:57
+
+-- T1 (Fable A's LOSSY350_A T1, input sparsity on the routed experts; its decide.py / read_xs.py)
+[t1] armed: xs64+code xs48+code xs40+code xs32+code, then xs48 on chat if code leaves room; NO-SWAP >= 24 GB to start, swap +1024 MB ends the batch; code last start Thu 21:45, hard stop 22:00; chat ends by 22:15; BIGMOE_EXT_BUILD=build_nat Sat 04:12:57
+[t1] go code (est 11 min; NO-SWAP 52 GB, swap 6909 MB) Sat 04:13:18
+| perturbation | code sure / tie / mid flip % (n) | ifeval sure / tie / mid | multi sure / tie / mid | mean dmargin |
+|---|---|---|---|---|
+| xs32+code | 0.00 / 52.00 / 5.58 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -0.548 |
+| xs40+code | 0.00 / 42.00 / 2.79 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -0.226 |
+| xs48+code | 0.00 / 22.00 / 1.02 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -0.039 |
+| xs64+code | 0.00 / 0.00 / 0.00 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | +0.000 |
+lock released
+[t1] code ended (rc 0; swap 6909 -> 6909 MB); unlocked Sat 04:19:21
+[t1] code arms: guarded rc 0; files: 4 of 4 Sat 04:19:21
+xs64+code: 12 windows, 3366 rows, top-1 flips 0 (0.00 %), non-tie 0.00 %, top-8 lists equal on 3366 rows
+xs48+code: 12 windows, 3366 rows, top-1 flips 15 (0.45 %), non-tie 0.12 %, top-8 lists equal on 354 rows, 288048 masked switch rows recorded
+xs40+code: 12 windows, 3366 rows, top-1 flips 32 (0.95 %), non-tie 0.33 %, top-8 lists equal on 127 rows, 288048 masked switch rows recorded
+xs32+code: 12 windows, 3366 rows, top-1 flips 48 (1.43 %), non-tie 0.66 %, top-8 lists equal on 35 rows, 288048 masked switch rows recorded
+CHAT GO
+| arm | rows code / IFEval / multi | all-row flips % | non-tie | tie | sure | mid |
+|---|---|---|---|---|---|---|
+| xs64+code | 3366 / 0 / 0 | 0.00 / - / - | 0.00 / - / - | 0.00 / - / - | 0.00 / - / - | 0.00 / - / - |
+| xs48+code | 3366 / 0 / 0 | 0.45 / - / - | 0.12 / - / - | 22.00 / - / - | 0.00 / - / - | 1.02 / - / - |
+| xs40+code | 3366 / 0 / 0 | 0.95 / - / - | 0.33 / - / - | 42.00 / - / - | 0.00 / - / - | 2.79 / - / - |
+| xs32+code | 3366 / 0 / 0 | 1.43 / - / - | 0.66 / - / - | 52.00 / - / - | 0.00 / - / - | 5.58 / - / - |
+
+xs64+code: identity arm, 0 flips: OK, the wrapper is inert
+xs48+code code: non-tie 0.12 % (predicted 0.05-0.07); room above today's preset 0.66: FITS
+xs48+code: lever check, non-tie code 0.12 % vs the kill level 0.21 (top_k8's own cost, at 3x this arm's error): alive
+xs40+code code: non-tie 0.33 % (predicted 0.17-0.24); room above today's preset 0.66: FITS
+xs32+code code: non-tie 0.66 % (predicted 0.42-0.60); room above today's preset 0.66: OVER
+xs32+code: lever check, non-tie code 0.66 % vs the kill level 1.03 (topk5's own cost, at 1.6x this arm's error): alive
+shared run reserved until 04:50 (about 200% CPU, 100% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done.
+Free for it now: about 17 cores (1772% CPU) and about 100% of the GPU. It fits: use about 2 workers or -j 2.
+[t1] go chat (est 7 min; NO-SWAP 52 GB, swap 6909 MB) Sat 04:19:42
+| perturbation | code sure / tie / mid flip % (n) | ifeval sure / tie / mid | multi sure / tie / mid | mean dmargin |
+|---|---|---|---|---|
+| xs48 | 0.00 / 0.00 / 0.00 (0) | 0.00 / 34.48 / 1.33 (3397) | 0.00 / 29.32 / 1.18 (3553) | -0.029 |
+lock released
+[t1] chat ended (rc 0; swap 6909 -> 6909 MB); unlocked Sat 04:21:59
+[t1] chat arm: guarded rc 0; file: 1 Sat 04:21:59
+| arm | rows code / IFEval / multi | all-row flips % | non-tie | tie | sure | mid |
+|---|---|---|---|---|---|---|
+| xs48 | 0 / 3397 / 3553 | - / 3.74 / 2.67 | - / 0.87 / 0.67 | - / 34.48 / 29.32 | - / 0.00 / 0.00 | - / 1.33 / 1.18 |
+
+xs48 ifeval: non-tie 0.87 % (predicted 0.55-0.66); room above today's preset 1.03: FITS
+xs48 multi: non-tie 0.67 % (predicted 0.48-0.54); room above today's preset 0.72: FITS
+[t1] batch over: code and chat done Sat 04:21:59

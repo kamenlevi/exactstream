@@ -1,0 +1,67 @@
+#!/bin/bash
+# R-58G + R-55L runner: scripts/r58g_invt_screen.py (INV-T on the gate, tiers; Leap 17:1x, NewIdeas 17:04), then the clean slot vs gate live re-run (the orchestrator 17:0x): scripts/r57_screen.py arms slot,gate on S45's six prompts (BIGMOE_MAXK=160, ext/build_next) under one quiet lock, with a
+# swap guard (stops the job's process group if swap grows > 2 GB; C 176 loads tripped Leap's guard at 13 GB compressor).
+# usage: HAVE_LOCK=1 nohup bash scripts/r55l_runner.sh > data/r57/r55l_runner.out 2>&1 &
+export PATH="$HOME/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:$PATH"
+set -m   # each run is its own process group: time-up or a lost lock stops the whole tree (RULES, orchestrator 20:5x)
+cd "$HOME/BigMoE" || exit 1
+OUT="$HOME/BigMoE/data/r57"; mkdir -p "$OUT"
+LOG="$OUT/r55l.log"
+PY="$HOME/BigMoE/.venv/bin/python"
+REF="BIGMOE_DUPROW=1 BIGMOE_COMPILE_HC=1 BIGMOE_HC_VREAD=1 BIGMOE_ASYNC_EVERY=1 BIGMOE_PF_JIT=1 BIGMOE_PF_QD=4 BIGMOE_PREFETCH=12"
+LOCKF="$HOME/.claude-peers/locks/${CLAUDE_PID}.json"
+keepalive() { "$PY" -I -S -c '
+import json, os, sys, time
+p = sys.argv[1]
+try: d = json.load(open(p))
+except Exception: sys.exit(1)
+if d.get("mode") != "quiet" or d.get("until", 0) <= time.time(): sys.exit(1)
+d["active_at"] = time.time(); t = "%s.tmp%d" % (p, os.getpid()); json.dump(d, open(t, "w")); os.replace(t, p)' "$LOCKF"; }
+say() { echo "$(date +%H:%M:%S) $*" >> "$LOG"; }
+source "$HOME/BigMoE/scripts/ssd_gate.sh"
+run() {  # run NAME TIMEOUT OUTFILE CMD...  (memory gate at most 30 s: the lock is only 15 min)
+  local name=$1 to=$2 of=$3; shift 3
+  keepalive || { say "lost the lock before $name: stopping the batch"; exit 1; }
+  while [ -e "$HOME/.local/share/quiet/PAUSE" ]; do sleep 5; keepalive || { say "lock ended during a PAUSE"; exit 1; }; done
+  ssd_wait 66
+  local i=0
+  while { [ "$(memory_pressure | tail -1 | grep -o '[0-9]*')" -lt 60 ] || [ "$(ps -axo rss=,pid= | awk -v me=$$ '$1 > 8000000 && $2 != me' | wc -l)" -gt 0 ]; } && [ $i -lt 6 ]; do sleep 5; i=$((i+1)); done
+  [ $i -ge 6 ] && say "memory busy at the start of $name (ran anyway after 30 s)"
+  say "run $name"
+  perl -e 'alarm shift; exec @ARGV' "$to" "$@" >> "$OUT/$of" 2>&1 &
+  local jp=$!
+  while kill -0 $jp 2>/dev/null; do
+    for k in $(seq 36); do kill -0 $jp 2>/dev/null || break; sleep 5; done
+    kill -0 $jp 2>/dev/null || break
+    keepalive || { say "lost the lock during $name: stopping"; kill -- -$jp; sleep 5; kill -9 -- -$jp 2>/dev/null; exit 1; }
+  done
+  wait $jp; local rc=$?; kill -9 -- -$jp 2>/dev/null; say "done $name rc=$rc"   # the job's whole group (RULES)
+  ssd_check || say "SSD hot after $name"
+  return $rc
+}
+say "r55l start (CLAUDE_PID=$CLAUDE_PID)"
+if [ -z "$HAVE_LOCK" ]; then
+  PEER_QUEUE_TIMEOUT=21600 peer lock quiet --queue 15m "BigMoE R-58G + R-55L: INV-T on the gate (tiers, ~2 min) + clean live re-run shipped vs gate (6 prompts, ~8 min), C 192" >> "$LOG" 2>&1 || { say "no lock"; exit 1; }
+fi
+swap_gb() { sysctl -n vm.swapusage | awk '{gsub("M","",$6); print $6 / 1024}'; }
+S0=$(swap_gb); say "swap at start: $S0 GB"
+( seen=0; while sleep 5; do
+    S=$(swap_gb)
+    if awk -v s="$S" -v s0="$S0" 'BEGIN { exit !(s - s0 > 2) }'; then
+      say "SWAP GUARD: swap $S GB (start $S0): stopping the screen"
+      P=$(pgrep -P $$ -f "scripts/(r57_screen|r58g_invt_screen).py" | head -1)     # the runner's own job, by PID (RULES: no pkill)
+      [ -n "$P" ] && kill -TERM -- -"$P"; break
+    fi
+    kill -0 $$ 2>/dev/null || break                      # two jobs: guard until the runner itself ends
+  done ) &
+GUARD=$!
+run invt 300 ../r58g/r58g_run.txt env $PY scripts/r58g_invt_screen.py 192 || say "invt failed"
+left=$("$PY" -I -S -c 'import json, sys, time; print(int(json.load(open(sys.argv[1])).get("until", 0) - time.time()))' "$LOCKF" 2>/dev/null || echo 0)
+if [ "${left:-0}" -lt 600 ]; then say "R-55L skipped: ${left}s of lock left (< 600 s); queue it on its own"; else
+run screen 690 r55l_run.txt env BIGMOE_MAXK=160 BIGMOE_EXT_BUILD=build_next R57_ARMS=slot,gate R57_PROMPTS=6 R57_TAG=r55l $PY scripts/r57_screen.py 192 256 || say "screen failed"
+fi
+kill $GUARD 2>/dev/null
+[ -n "$KEEP_LOCK" ] || peer unlock >> "$LOG" 2>&1
+say "lock released"
+tail -4 "$OUT/r55l_screen.txt" >> "$LOG" 2>/dev/null
+say "r55l end"

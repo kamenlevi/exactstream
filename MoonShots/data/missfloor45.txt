@@ -1,0 +1,26 @@
+M-13 MISSFLOOR: cap45, 176 live checks over 6 prompts; res0 holds 160 experts per layer at loop start
+(a) replay misses per check (median) vs the logged median at C 160:
+  prompt                          kept  logged   LRU 160  LFU 160 |  LFU 224  LFU 288  LFU 384
+  humaneval_HumanEval_68         14.00     970      1449     1449 |     1129     1060     1060
+  math500_test_prealgebra_1640    5.31     552       552      534 |      263      152      117
+  humaneval_HumanEval_91          5.88     624       522      559 |      341      253      184
+  math500_test_algebra_694        7.47     870       848      804 |      448      284      190
+  math500_test_algebra_1282       6.09     601       620      644 |      368      232      184
+  gsm8k_708                       6.16     666       672      665 |      380      264      228
+  calibration (one policy within 15 % of the logged median on every prompt): NOT OK
+(b) floor with an unlimited cache (first use in the decode, absent from res0), per kept token:
+  humaneval_HumanEval_68         whole answer   71.2, second half   60.2 misses per kept token (  130 MB at 2.16 MB); LFU C 288 second half   60.3; 5 checks
+  math500_test_prealgebra_1640   whole answer   32.5, second half   13.4 misses per kept token (   29 MB at 2.16 MB); LFU C 288 second half   23.3; 48 checks
+  humaneval_HumanEval_91         whole answer   49.4, second half   29.8 misses per kept token (   64 MB at 2.16 MB); LFU C 288 second half   43.9; 25 checks
+  math500_test_algebra_694       whole answer   34.1, second half   17.1 misses per kept token (   37 MB at 2.16 MB); LFU C 288 second half   29.8; 32 checks
+  math500_test_algebra_1282      whole answer   37.8, second half   21.9 misses per kept token (   47 MB at 2.16 MB); LFU C 288 second half   31.9; 34 checks
+  gsm8k_708                      whole answer   41.8, second half   23.5 misses per kept token (   51 MB at 2.16 MB); LFU C 288 second half   35.1; 32 checks
+(c) who the floor's first uses are: share inside the global popularity top-K per layer (counted on the OTHER five prompts' checks, leave-one-prompt-out), second half:
+  humaneval_HumanEval_68         top-224   29 %, top-288   44 %, top-384   68 % of 2408 first uses
+  math500_test_prealgebra_1640   top-224   31 %, top-288   50 %, top-384   77 % of 2078 first uses
+  humaneval_HumanEval_91         top-224   37 %, top-288   53 %, top-384   77 % of 1728 first uses
+  math500_test_algebra_694       top-224   34 %, top-288   51 %, top-384   77 % of 2048 first uses
+  math500_test_algebra_1282      top-224   33 %, top-288   51 %, top-384   79 % of 2935 first uses
+  gsm8k_708                      top-224   27 %, top-288   42 %, top-384   70 % of 2581 first uses
+Lines: steady-state floor on the code prompt (HumanEval/91; /68 has 5 checks) 29.8 misses per kept token (PASS <= 14, KILL > 28) -> KILL (replay calibration NOT OK: read (a) with care)
+(3 s)

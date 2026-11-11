@@ -1,0 +1,7 @@
+DFlash2: 5 layers ('sliding_attention', 'sliding_attention', 'sliding_attention', 'sliding_attention', 'sliding_attention'), hidden 2560, heads 32/8 x 128, ffn 7680, window 2048, selector rank 256 top-k 16; taps (5, 15, 25, 35, 45)
+kernels per propose: hidden_states 469, + head2s 12, + chain 168; total 649
+  hidden_states: Add 95, Multiply 81, Gather 63, Matmul 56, Full 40, Concatenate 40, RMSNorm 27, RoPE 15, Arange 10, Less 10, Subtract 5, BitwiseAnd 5, GreaterEqual 5, BitwiseOr 5, ScaledDotProductAttention 5, CompiledSigmoidBroadcastBroadcastMultiplyBroadcastBroadcastMultiply 5, Quantize 1, AsType 1
+  whole: Multiply 113, Add 111, Gather 93, Matmul 57, Concatenate 42, Full 40
+context 1000 rows, 8 new per cycle: synced pieces hidden_states 10.91 ms, head2s (lm_head 248,320 x 16 rows + top-k) 2.84, chain (15 steps + read-back) 1.43, sum 15.36; one eval + read-back 15.12 ms (shared GPU, rough)
+context 1000 rows, 16 new per cycle: synced pieces hidden_states 12.28 ms, head2s (lm_head 248,320 x 16 rows + top-k) 2.83, chain (15 steps + read-back) 1.44, sum 16.69; one eval + read-back 15.59 ms (shared GPU, rough)
+context 300 rows, 8 new per cycle: synced pieces hidden_states 10.02 ms, head2s (lm_head 248,320 x 16 rows + top-k) 2.89, chain (15 steps + read-back) 1.49, sum 14.41; one eval + read-back 14.12 ms (shared GPU, rough)

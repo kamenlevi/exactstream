@@ -1,0 +1,12 @@
+R-40 STEP 3x: full 125B via load_streamed (C = 176), 27.2 GB active; self-test {'qmm16c 6144x2560': True, 'MLX 16-row 512x2560': True, 'experts split == fused': True, 'experts rows alone': True, 'bf16 Linear': True}
+  AR: prefill + 16 ar_step in 12 s; AR argmax == REF2 row: 15 / 15
+  V0  REF2 on: prefill last logits == AR cache's: True; verify rows bitwise == AR: 16 / 16 (rows equal: ================); argmax == AR argmax: 16 / 16; 9 s
+  V0b REF2 on, again: prefill last logits == AR cache's: True; verify rows bitwise == AR: 16 / 16 (rows equal: ================); argmax == AR argmax: 16 / 16; 10 s
+  V0 rows == V0b rows (verify determinism): 16 / 16
+  V1  + SB mid-loop async: prefill last logits == AR cache's: True; verify rows bitwise == AR: 16 / 16 (rows equal: ================); argmax == AR argmax: 16 / 16; 8 s
+  V2  + drafter taps: prefill last logits == AR cache's: True; verify rows bitwise == AR: 16 / 16 (rows equal: ================); argmax == AR argmax: 16 / 16; 9 s
+  V3  drafter loaded + one draft before the verify: prefill last logits == AR cache's: True; verify rows bitwise == AR: 16 / 16 (rows equal: ================); argmax == AR argmax: 16 / 16; 11 s
+  V4  STEP 3's loop: SB + taps + draft: prefill last logits == AR cache's: True; verify rows bitwise == AR: 16 / 16 (rows equal: ================); argmax == AR argmax: 16 / 16; 8 s
+  V5  REF2 on after a stock 16-row check + commit (STEP 3's order): prefill last logits == AR cache's: False; verify rows bitwise == AR: 0 / 16 (rows equal: xxxxxxxxxxxxxxxx); argmax == AR argmax: 16 / 16; 8 s
+  Part B (warm 16-row checks, commit keep 1, sliding along the REF2 row): today 4299.8 ms (misses per check 0.0), REF2 + SB 4277.4 ms (misses 0.0); saved 22.4 ms per 48-layer check; spread today 4231-7390, REF2 4217-5722
+R-40 STEP 3x Part B (PASS >= 40 ms saved on warm checks, KILL < 20): BETWEEN

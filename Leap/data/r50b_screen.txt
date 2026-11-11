@@ -1,0 +1,7 @@
+R-50b: full 125B via load_streamed (C = 192), loaded in 3 s, 29.4 GB active; REF2 + SB on; humaneval/HumanEval/68; 14 sliding windows per pass
+  pass 1 [gather]: check + commit ms per window [2057, 852, 609, 648, 615, 669, 597, 598, 685, 657, 658, 704, 682, 624]; misses per check [891, 107, 108, 85, 87, 103, 39, 70, 100, 105, 121, 107, 54, 67]; slot calls 0, fallbacks 0
+  pass 2 [slot]: check + commit ms per window [846, 164, 205, 225, 228, 199, 184, 190, 201, 209, 230, 240, 231, 200]; misses per check [219, 24, 32, 24, 34, 33, 9, 21, 49, 31, 40, 27, 17, 23]; slot calls 672, fallbacks 0
+  pass 3 [slot]: check + commit ms per window [1037, 167, 166, 169, 192, 224, 186, 185, 204, 231, 231, 178, 159, 163]; misses per check [219, 29, 38, 29, 42, 38, 14, 27, 58, 46, 52, 42, 20, 27]; slot calls 672, fallbacks 0
+  pass 4 [gather]: check + commit ms per window [1309, 1522, 1382, 1439, 1455, 1594, 1414, 1494, 1544, 1519, 1511, 1604, 1494, 1492]; misses per check [219, 30, 43, 34, 44, 44, 17, 30, 66, 48, 60, 50, 24, 32]; slot calls 0, fallbacks 0
+  warm checks (windows >= 2, 2 passes each): gather median 1043.1 ms, slot median 200.3 ms; saved 842.9 ms per 48-layer check; logits equal across all 4 passes for every window: True; misses per warm check gather 64.1, slot 32.2
+R-50b verdict (PASS: bit-equal AND >= 40 ms saved per warm check at C 192; KILL: < 15 ms): PASS; 65 s

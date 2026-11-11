@@ -1,0 +1,42 @@
+[fcp] installed: 4 checks per prompt, sampler 1000 Hz, MTLCompilerService pids [], NOCLEAR False
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=16.6 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=440 C_l=136 per layer, 32.32 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.45 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R57_WIRED: mx.set_wired_limit(55.66 GB), was 0.00 GB
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 256), loaded in 2 s, 38.0 GB active; REF2 + SB; gate rows MAXK 160 (ext build_qom), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 64
+[r57] DENSE-N-RAM: 180 weights native (1531 MB, in place)
+[r57] HC8: 194 mixers 8-bit (1271 -> 675 MB), hc8_fast v4
+[r57] FAST-TAX: gdn_inproj skipped under R57_DNR=1 (K-83's gdn_inproj_x stays)
+[r57] FAST-TAX: att on (ref2 att_single True, gdn_inproj False, fatt_verify False)
+[fcp] wrapped: tier True, stream True, gated True
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 28.0 tok/s; MLX peak prefill 40.9 / decode 40.8 GB, lifetime peak 41.9 -> 42.0 GB
+[mtplx] verify SDPA head-chunked: q_len=3 heads_per_chunk=10 chunks=4
+  warm-up (discarded): gsm8k/708 [gate+t, mtp] 64 tokens, 66.2 tok/s; MLX peak prefill 41.2 / decode 40.8 GB, lifetime peak 42.2 -> 42.2 GB
+  warm-up (discarded): gsm8k/708 [gate+t, d7b] 64 tokens, 89.6 tok/s; MLX peak prefill 41.2 / decode 40.8 GB, lifetime peak 42.2 -> 42.2 GB
+  humaneval/HumanEval/68 [gate+t] [code: dfl]: 64 tokens in 4 checks (kept 16.00), 143.4 tok/s (steady state, checks >= 2: 160.1), median cycle 110.4 ms, check + commit 101.6 ms; per check (medians) 264 misses, demand SSD 49.0 ms, gate service 50.2 ms (80 calls with misses), draft 5.9 ms; per kept token SSD 33.1 MB, 17.3 misses; tokens == REF2 row 64 / 64; copy g2: used 48 of 60 drafted positions (4 changed the draft, 48 accepted), host 0.5 ms; drafter D7b (4-bit); FAST QOM: 64 of 64 rows gated, kept 64 vs exact 64; JOINT reads 132; demand bursts 186: after >= 0.25 ms idle 186, >= 1 ms 37; keepalive reads 1887; tier: 0 hits (copied back, no SSD read), 0 copied in, 0 dropped, 48 slabs found purged; filled 0.00 of 7.45 GB (volatile, beside the footprint); QOM: 18317 optional uses, 4709 optional-only misses not read (dropped)
+    mem: MLX peak prefill 42.0 / decode 41.0 GB; at the end active 40.9, cache 0.7, footprint 42.3 GB; lifetime peak after prefill 43.0 -> after decode 43.0 GB
+    A6 ctl: pre-loop {'copy_join_ms': 0.01}; first checks (draft, build, wait, check + commit ms, misses, demand SSD ms, gate service ms, rows): [(8.7, 106.6, 18.8, 127.0, 383, 69.9, 70.9, 16), (5.8, 90.5, 12.6, 104.5, 283, 51.9, 53.3, 16), (5.7, 84.6, 12.6, 98.6, 245, 46.2, 47.2, 16), (6.0, 76.5, 11.6, 89.6, 198, 37.4, 38.6, 16)]; prompt 367 tokens
+  humaneval/HumanEval/16 [gate+t] [code: dfl]: 64 tokens in 4 checks (kept 16.00), 161.0 tok/s (steady state, checks >= 2: 156.0), median cycle 99.3 ms, check + commit 92.8 ms; per check (medians) 200 misses, demand SSD 38.1 ms, gate service 39.2 ms (77 calls with misses), draft 5.5 ms; per kept token SSD 22.3 MB, 11.8 misses; tokens == REF2 row 64 / 64; copy g2: used 49 of 60 drafted positions (3 changed the draft, 49 accepted), host 0.4 ms; drafter D7b (4-bit); FAST QOM: 64 of 64 rows gated, kept 64 vs exact 64; JOINT reads 101; demand bursts 182: after >= 0.25 ms idle 182, >= 1 ms 52; keepalive reads 1864; tier: 0 hits (copied back, no SSD read), 3 copied in, 0 dropped, 0 slabs found purged; filled 0.01 of 7.45 GB (volatile, beside the footprint); QOM: 18665 optional uses, 4270 optional-only misses not read (dropped)
+    mem: MLX peak prefill 41.5 / decode 40.8 GB; at the end active 40.7, cache 0.3, footprint 41.8 GB; lifetime peak after prefill 43.0 -> after decode 43.0 GB
+    A6 ctl: pre-loop {'copy_join_ms': 0.01}; first checks (draft, build, wait, check + commit ms, misses, demand SSD ms, gate service ms, rows): [(9.4, 73.9, 14.5, 89.8, 128, 29.1, 30.2, 16), (5.7, 72.8, 12.7, 86.9, 175, 33.8, 35.1, 16), (5.3, 83.9, 13.5, 98.8, 227, 44.3, 45.4, 16), (5.1, 83.0, 11.5, 95.9, 224, 42.4, 43.4, 16)]; prompt 103 tokens
+  humaneval/HumanEval/91 [gate+t] [code: dfl]: 64 tokens in 4 checks (kept 16.00), 190.0 tok/s (steady state, checks >= 2: 187.5), median cycle 82.8 ms, check + commit 79.3 ms; per check (medians) 104 misses, demand SSD 23.7 ms, gate service 24.8 ms (60 calls with misses), draft 5.6 ms; per kept token SSD 12.2 MB, 6.7 misses; tokens == REF2 row 64 / 64; copy g2: used 48 of 60 drafted positions (6 changed the draft, 48 accepted), host 0.4 ms; drafter D7b (4-bit); FAST QOM: 64 of 64 rows gated, kept 64 vs exact 64; JOINT reads 78; demand bursts 161: after >= 0.25 ms idle 161, >= 1 ms 55; keepalive reads 1772; tier: 1 hits (copied back, no SSD read), 10 copied in, 0 dropped, 0 slabs found purged; filled 0.02 of 7.45 GB (volatile, beside the footprint); QOM: 18388 optional uses, 3328 optional-only misses not read (dropped)
+    mem: MLX peak prefill 41.5 / decode 40.8 GB; at the end active 40.8, cache 0.3, footprint 41.9 GB; lifetime peak after prefill 43.0 -> after decode 43.0 GB
+    A6 ctl: pre-loop {'copy_join_ms': 0.0}; first checks (draft, build, wait, check + commit ms, misses, demand SSD ms, gate service ms, rows): [(9.8, 66.3, 13.9, 81.6, 79, 21.7, 22.5, 16), (5.4, 56.8, 10.9, 69.1, 64, 15.2, 17.7, 16), (5.7, 62.5, 13.0, 76.9, 128, 25.7, 27.1, 16), (5.4, 68.3, 12.7, 82.5, 155, 31.1, 32.0, 16)]; prompt 144 tokens
+  gate+t: tok/s 161.0 (steady state 160.1), cycle 99.3 ms, check + commit 92.8 ms, misses 200, demand SSD 38.1 ms per check (medians over valid runs, then prompts)
+  gate+t where the time goes (medians per check): check + commit 92.8 ms, demand SSD busy 38.1 ms (41% of the check), gate service on misses 39.2 ms (the GPU's spin bound; OOO overlaps part of it), draft 5.6 ms (SSD idle)
+  gate+t per kept token (pooled over valid runs): SSD 22.5 MB, misses 11.9 (192 kept tokens; median per prompt 22.3 MB, 11.8 misses)
+  tier flags: TIER_COMBINE True, OOO True (2375 OOO calls); EVICT_PRIOR None; REFTOK : every token equal True
+  K-73 engagement: exact MoE block calls 2375; ref2 att_rope 588, idx_prep 1320, hc_write 2375 (counted at graph build); K-83: hc_gate / hc_read 0, gdn_inproj_x 1787, drafter forms + chain_fused
+  build-day engagement (ref2 counts at graph build): dense_native 7125, dense_native_repack 0, dense_native_unpack 648, hc8_fast 4750, hc_b 0, ooo_1c 2375, ooo_1c_qom 576
+  FAST-TAX engagement: att_single 672, gdn_inproj 0, gdn_inproj_x 1787, fatt_verify 0, verify_old 768, verify_old_eligible 588, sdpa_split 84, kb_pad 0
+  C1 NAX6 (ref2 tier_nax_ooo): engagement nax6_ooo 2375 OOO calls, nax6 0 other tier calls (counted at graph build); tokens are NAX6's own reference: compare across NAX processes only
+  chat switch: MTP head d22_b5 (md5 pinned) resident, K15, cut t 0.3 with early exit; type rule runs: {'chat': 0, 'code': 3, 'math': 0, 'agent': 0} (chat -> MTP, the rest -> DFlash2)
+  footprint now 41.8 GB, lifetime peak 43.0 GB; 31 s
+SESSION-VOCAB {'prompts': 6, 'committed': 407, 'head2s': 38, 'chk_rows': 0, 'chk_out': 0, 'svh_extra': 3, 'svh_calls': 49, 'dsub_extra': 3}
+[fcp] 24 check windows, 1819 calls, 1562 samples -> /Users/kamen/Leap/data/fcp/fcpf_fcp.json
+[fcp] ref2 COUNTS seams: sb_first 42, ple_late 42, ple_late_stale 0, commit_sub 92
+[fcp] ref2 COUNTS: gdn_tg 0, eprep 0, ooo_1c 2375, ooo_1c_qom 576; CFG gdn_tg False, eprep False

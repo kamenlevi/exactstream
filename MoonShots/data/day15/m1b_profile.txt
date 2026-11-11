@@ -1,0 +1,77 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=20.8 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] fusions: {'duprow': True, 'compiled_hc': 96, 'scout_bundle': {'sc2_sharedfirst': True, 'sc3b_vreadchunk_classes': 1, 'sc3_glue': {'qsa_rope': True, 'qsa_rope_idx': True}}}
+[bigmoe] tier 4433333333: C_m=147 C_l=46 per layer, 16.87 GB pools
+eng: loaded in 1 s
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+--- cProfile over 16 timed passes (cumulative)
+         188664 function calls (188532 primitive calls) in 1.102 seconds
+
+   Ordered by: cumulative time
+   List reduced from 209 to 28 due to restriction <28>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    17/16    0.000    0.000    1.029    0.064 /Users/kamen/MoonShots/engine/test_m1b_speed.py:36(<lambda>)
+    17/16    0.001    0.000    1.029    0.064 /Users/kamen/MoonShots/engine/rle/model.py:110(forward)
+  769/768    0.004    0.000    1.028    0.001 /Users/kamen/MoonShots/engine/rle/model.py:86(layer)
+      768    0.003    0.000    0.955    0.001 /Users/kamen/MoonShots/engine/rle/model.py:66(moe)
+      768    0.009    0.000    0.952    0.001 /Users/kamen/BigMoE/bigmoe/tier.py:255(_call)
+      768    0.864    0.001    0.930    0.001 /Users/kamen/BigMoE/bigmoe/stream.py:64(__call__)
+      768    0.001    0.000    0.061    0.000 /Users/kamen/BigMoE/bigmoe/tier.py:135(tier_call)
+      768    0.016    0.000    0.060    0.000 /Users/kamen/BigMoE/bigmoe/tier.py:107(_ooo_call)
+      192    0.004    0.000    0.041    0.000 /Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py:4833(__call__)
+     1536    0.022    0.000    0.029    0.000 /Users/kamen/MoonShots/patches/planes_engine/tierglu.py:572(tier_glu_phase)
+      192    0.000    0.000    0.021    0.000 /Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py:4575(__call__)
+      192    0.001    0.000    0.021    0.000 /Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py:4566(_call_prefill)
+      192    0.002    0.000    0.019    0.000 /Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py:4399(_call_rows)
+      576    0.001    0.000    0.012    0.000 /Users/kamen/MoonShots/engine/rle/gdn.py:39(attn_half)
+    17/16    0.000    0.000    0.010    0.001 /Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py:6206(__call__)
+    17/16    0.000    0.000    0.009    0.001 /Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py:6057(__call__)
+    17/16    0.000    0.000    0.009    0.001 /Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py:6120(_graph_path)
+     5584    0.002    0.000    0.008    0.000 /Users/kamen/BigMoE/bigmoe/fuse.py:83(_call)
+    17/16    0.000    0.000    0.008    0.001 /Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py:5227(__call__)
+    17/16    0.000    0.000    0.008    0.001 /Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py:5665(__call__)
+     1552    0.008    0.000    0.008    0.000 /Users/kamen/MoonShots/engine/rle/kernels.py:221(hc_read)
+      192    0.001    0.000    0.008    0.000 /Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py:3379(_extend_pooled)
+      768    0.000    0.000    0.007    0.000 /Users/kamen/BigMoE/bigmoe/tier.py:101(_tier_glu_mod)
+      768    0.001    0.000    0.007    0.000 /Users/kamen/BigMoE/bigmoe/tier.py:88(_tier_glu)
+      192    0.000    0.000    0.007    0.000 /Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py:4033(_prepare_queries)
+     5552    0.006    0.000    0.007    0.000 /Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mlx/nn/layers/quantized.py:270(__call__)
+      768    0.003    0.000    0.006    0.000 /Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mlx_lm/models/qwen3_next.py:168(__call__)
+     1536    0.002    0.000    0.006    0.000 /Users/kamen/MoonShots/patches/planes_engine/tierglu.py:383(plan_masks)
+
+
+--- (tottime)
+         188664 function calls (188532 primitive calls) in 1.102 seconds
+
+   Ordered by: internal time
+   List reduced from 209 to 22 due to restriction <22>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+      768    0.864    0.001    0.930    0.001 /Users/kamen/BigMoE/bigmoe/stream.py:64(__call__)
+    17/16    0.072    0.004    0.003    0.000 /Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py:5631(gather_np)
+     1536    0.022    0.000    0.029    0.000 /Users/kamen/MoonShots/patches/planes_engine/tierglu.py:572(tier_glu_phase)
+      768    0.016    0.000    0.060    0.000 /Users/kamen/BigMoE/bigmoe/tier.py:107(_ooo_call)
+      768    0.009    0.000    0.952    0.001 /Users/kamen/BigMoE/bigmoe/tier.py:255(_call)
+     1552    0.008    0.000    0.008    0.000 /Users/kamen/MoonShots/engine/rle/kernels.py:221(hc_read)
+     5552    0.006    0.000    0.007    0.000 /Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mlx/nn/layers/quantized.py:270(__call__)
+       17    0.005    0.000    0.005    0.000 {built-in method numpy.asarray}
+      192    0.004    0.000    0.041    0.000 /Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py:4833(__call__)
+  769/768    0.004    0.000    1.028    0.001 /Users/kamen/MoonShots/engine/rle/model.py:86(layer)
+      384    0.004    0.000    0.004    0.000 /Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py:430(_apply_partial_rope)
+     1536    0.004    0.000    0.004    0.000 /Users/kamen/MoonShots/engine/rle/kernels.py:231(hc_write)
+      768    0.003    0.000    0.003    0.000 /Users/kamen/MoonShots/patches/planes_engine/tierglu.py:597(combine_phase)
+     1536    0.003    0.000    0.003    0.000 /Users/kamen/BigMoE/bigmoe/gated.py:138(post)
+      192    0.003    0.000    0.003    0.000 /Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py:2080(_sdpa_head_chunked)
+    12080    0.003    0.000    0.004    0.000 /Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mlx/nn/layers/base.py:99(__getattr__)
+      768    0.003    0.000    0.955    0.001 /Users/kamen/MoonShots/engine/rle/model.py:66(moe)
+      768    0.003    0.000    0.006    0.000 /Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mlx_lm/models/qwen3_next.py:168(__call__)
+      768    0.002    0.000    0.005    0.000 <frozen posixpath>:256(expanduser)
+    19952    0.002    0.000    0.002    0.000 {method 'get' of 'dict' objects}
+      384    0.002    0.000    0.002    0.000 /Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py:287(_rope_cos_sin)
+      976    0.002    0.000    0.003    0.000 /Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/attention_math.py:39(attention_gate)
+
+
+eng/bigmoe frac 0.25 REPEAT (all hits): 4-row verify pass median 63.1 ms, mean 68.8 ms (p10 56.0, p90 84.2) over 16 passes; graph build (until the last eval) median 59.2 ms; ext stats {"uses": 38197, "misses": 8992, "stalled": 1646, "gated": 2304, "io_s": 1.3573048870000002, "cpu_wait_s": 1.479373151, "proc_s": 1.710045843, "pf_issued": 5217, "pf_used": 2863, "pf_waited_s": 0.34008506, "slow_calls": 1798, "slow_s": 1.707563133, "pf_victims": 223, "pf_ontime": 2164, "pf_late": 699

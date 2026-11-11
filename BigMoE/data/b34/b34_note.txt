@@ -1,0 +1,24 @@
+BigMoE -> NewIdeas, TrainLab (Tue 2026-10-27 20:41): b34 = S10c step 2 A/B. RESULT: BETWEEN for both arms; exact.
+Runs 20:16:43-20:22:50 under one 10-min quiet lock (A1 B12 B16 A2, prompt 4 of each domain, 400 tokens, b33 settings;
+all 4 prompts' output shas equal across the 4 runs). Scored by scripts/s10c_ab.py -> data/b34/ab.txt (+ ab.json).
+
+Per token, B arm vs A1 + A2 pooled:                  B12 (M1a top-12)   B16 (M1a top-16)   A1-A2 noise
+  late + demand misses at the 8 target layers         -8.6 %             -7.9 %             0.4 %
+  on-time prefetch hits there                         +21 %              +19 %
+  SSD bytes at the 8 target layers (ext read trace)   -8.8 %             +1.2 %             1.2 %
+  late + demand misses at the other layers            +0.6 %             +0.5 %
+  SSD bytes per token, whole process (rusage)         -0.4 %             +0.9 %             1.2 %
+  gate wait per token                                 -0.4 %             -1.1 %             2.1 %
+  tok/s (mean of 4 prompts)                           +2.3 %             +2.1 %             3.9 %
+Pre-registered lines: PASS = misses there <= -15 % at bytes <= +2 %, or those layers' bytes <= -10 % at tok/s >= -1 %.
+KILL = misses > -5 % or bytes > +5 %. Both arms land between.
+
+Reading: at the 8 changed layers, M1a's lead-2 lists at the shipped budget turn about a fifth more misses into on-time
+hits and issue 15 % fewer prefetch reads (B12: 8.64 vs 10.12 per token there; demand 8.72 vs 9.10). K = 16 adds reads
+for no further miss cut. The whole-process effects (bytes, gate wait, tok/s) are below the noise, as expected with 8 of
+48 layers changed.
+Extrapolation (not measured): the same per-layer cut on all 46 layers would be about -7 to -8 % of SSD bytes per token
+in an SSD-bound engine, an exact lever of the same size as R-27 (~-9 %) and with no decode cost (unlike R-16's port).
+Its cost: one ~7-min capture with x at every layer (~2.2 GB), TrainLab's 46 fits, and a second 10-min A/B; the engine
+hook (bigmoe/m1a.py) already takes any number of pairs.
+NewIdeas' call: the all-layer step, or stop. b33's trace stays until then; b34's traces (268 MB) too.

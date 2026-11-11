@@ -1,0 +1,19 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=20.3 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=448 C_l=48 per layer, 48.21 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: engine v3g, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+b12: C_m=448 C_l=48 (88 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 48.21 GB, active 51.34 GB
+[res_c448] after load: footprint now 51.69 GB, lifetime peak 51.69 GB, MLX peak 51.34 GB, active 51.34 GB
+[res_c448] code: prefill 326 tokens in 4.99 s
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[res_c448] code k=3: 0.7 tok/s, 3.05 tok/pass, 42 passes | per pass: verify 4348.7 ms, draft 61.7 ms, head 0.5 ms, waited 232.1, reads 243.2, pf issued 0.0 used 67.6, SSD 0.1 GB/s 445 MB | peak footprint 52.56 GB | loader per pass: stalled calls 70.5 of 99.0, stall 144.6 ms, io 137.1 ms | sha fb1e61e413 | '```python\nimport re\nimport argparse\nfrom collections import defaultdict\nfrom typing import List, Dict, Tuple, Optional\n\n# Regex to match log lines\nLINE = re.compile(\n    r'
+[res_c448] code k=3 tau=0.7: 2.17 draft tokens verified per pass
+[res_c448] prose: prefill 53 tokens in 3.53 s
+[res_c448] prose k=3: 0.3 tok/s, 2.10 tok/pass, 61 passes | per pass: verify 6572.3 ms, draft 70.9 ms, head 0.5 ms, waited 99.3, reads 114.8, pf issued 0.0 used 51.6, SSD 0.0 GB/s 195 MB | peak footprint 53.63 GB | loader per pass: stalled calls 53.3 of 99.0, stall 108.5 ms, io 83.1 ms | sha 42eef85996 | 'Imagine you are building a massive LEGO castle. You have two places to store your pieces: a huge warehouse across town (your computer’s main memory, or RAM) and a small, organized box right'
+[res_c448] prose k=3 tau=0.7: 1.56 draft tokens verified per pass
+[res_c448] math: prefill 82 tokens in 3.77 s

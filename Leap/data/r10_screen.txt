@@ -1,0 +1,18 @@
+  drafter bf16: 1.21 GB of its own parameters
+    E  block 16: draft  11.24 ms (min 10.94, graph build 0.46); 9.536 tokens per check (666 checks, 7 s)
+    E  block 32: draft  12.21 ms (min 11.84, graph build 0.50); 10.227 tokens per check (621 checks, 16 s)
+    C  block 16: draft  10.58 ms (min 10.35, graph build 0.17); 9.536 tokens per check (666 checks, 15 s); drafts on sample 0 bitwise = eager
+    C  block 32: draft  11.55 ms (min 10.98, graph build 0.19); 10.227 tokens per check (621 checks, 7 s); drafts on sample 0 bitwise = eager
+    P  block 16: draft  10.50 ms (min 10.23, graph build 0.18); 9.536 tokens per check (666 checks, 15 s); drafts on sample 0 bitwise = eager
+    P  block 32: draft  11.54 ms (min 11.27, graph build 0.20); 10.227 tokens per check (621 checks, 7 s); drafts on sample 0 bitwise = eager
+  drafter 4-bit: 0.52 GB of its own parameters
+    E4 block 16: draft   9.81 ms (min 9.30, graph build 0.43); 9.479 tokens per check (670 checks, 14 s)
+    E4 block 32: draft  11.44 ms (min 10.92, graph build 0.53); 10.162 tokens per check (625 checks, 7 s)
+    P4 block 16: draft   9.37 ms (min 9.00, graph build 0.17); 9.479 tokens per check (670 checks, 13 s); drafts on sample 0 bitwise = eager
+    P4 block 32: draft  10.96 ms (min 10.51, graph build 0.21); 10.162 tokens per check (625 checks, 7 s); drafts on sample 0 bitwise = eager
+  E : b16  11.24 ms, tokens x1.0000; b32  12.21 ms, tokens x1.0000
+  C : b16  10.58 ms, tokens x1.0000; b32  11.55 ms, tokens x1.0000
+  P : b16  10.50 ms, tokens x1.0000; b32  11.54 ms, tokens x1.0000
+  E4: b16   9.81 ms, tokens x0.9940; b32  11.44 ms, tokens x0.9936
+  P4: b16   9.37 ms, tokens x0.9940; b32  10.96 ms, tokens x0.9936
+R-10 verdict (PASS draft <= 6.5 ms at b16 with tokens within 1 % at b16 and b32; KILL > 8.5 ms): KILL (best within 1 %: P4 9.37 ms)

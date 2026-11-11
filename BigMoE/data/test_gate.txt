@@ -1,0 +1,5 @@
+loader idle-wait per gated call 291 us (incl. GPU compute between layers)
+plain 48 layers: 6.63 ms/token | gated, all hits: 7.67 ms/token -> 21.7 us/layer (gated calls 720, misses 16)
+gated, 4 stalled layers/token: 8.08 ms/token -> 101 us per stalled layer (misses/token 4.1, io 1.15 ms/token)
+gated, 12 stalled layers/token: 9.27 ms/token -> 133 us per stalled layer (misses/token 12.0, io 2.99 ms/token)
+delay 0 us: correctness: 0 mismatches of 2400 gathered experts (random ids, many misses)

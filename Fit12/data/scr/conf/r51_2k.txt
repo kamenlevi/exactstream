@@ -1,0 +1,96 @@
+bt_b12 from /Users/kamen/Fit12/btc/bt_b12.py
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=29.4 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.20 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: engine v3l, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.20 GB, active 9.33 GB
+[r51_2k] engine /Users/kamen/Fit12/v3p, PFR 1 (cap 16384), s_moe 4096 when off, C_m 51 C_l 20, pools 6.20 GB | after load: active 9.33 GB, footprint now 9.67, lifetime peak 9.67 GB
+[r51_2k] c2k_1: released 6.00 GB of trunk pools in 0.03 s; footprint now 6.20 GB, MLX active 3.33 GB
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (64, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[mtplx] verify SDPA head-chunked: q_len=31 heads_per_chunk=1 chunks=24
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (32, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (61, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (52, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (67, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (62, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[r51_2k] c2k_1: re-created 6.00 GB of pools in 0.12 s (released 6.00); footprint now 9.97 GB
+[r51_2k] c2k_1: prefill 2591 tokens in 10.18 s = 255 tok/s (s_moe 2591) | MLX peak 3.96 GB, process lifetime peak 10.31 GB, now 10.18 GB | decode 256: 15.3 tok/s, sha 0959f510e1
+[r51_2k] c2k_1 RESULT logits c8e3eb0bc2 sha32 1962a901fc sha256 0959f510e1 kv 7738030cf9 head b00852440d | n 2591 C_m 51 C_l 20 | warm tok/s 15.12 (tokens 33-256), all 15.34 | lifetime peak 10.31 GB before the hash | pos 1 | clean peak 10.31 GB (decode 10.31, MLX decode 9.80) | first128 15.72 tok/s | kv cap 3070/2847 head cap 3070/2847 | lpre c8e3eb0bc2
+[r51_2k] c2k_1: time to first token 10.63 s (before decode 10.34, state copy 0.00, first pass 0.30); tokens 1 -> 256 in 16.40 s; prompt wall 27.03 s
+[r51_2k] c2k_2: released 6.00 GB of trunk pools in 0.03 s; footprint now 7.69 GB, MLX active 3.33 GB
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (50, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (57, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (58, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (60, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (65, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[r51_2k] c2k_2: re-created 6.00 GB of pools in 0.12 s (released 6.00); footprint now 10.03 GB
+[r51_2k] c2k_2: prefill 2682 tokens in 10.30 s = 260 tok/s (s_moe 2682) | MLX peak 3.98 GB, process lifetime peak 10.34 GB, now 10.20 GB | decode 256: 16.7 tok/s, sha 52e2249946
+[r51_2k] c2k_2 RESULT logits 1dd4c62462 sha32 2901f50482 sha256 52e2249946 kv 5660394464 head ddd80a365c | n 2682 C_m 51 C_l 20 | warm tok/s 16.28 (tokens 33-256), all 16.66 | lifetime peak 10.34 GB before the hash | pos 2 | clean peak 10.33 GB (decode 10.33, MLX decode 9.80) | first128 16.19 tok/s | kv cap 3072/2938 head cap 3072/2938 | lpre 1dd4c62462
+[r51_2k] c2k_2: time to first token 10.75 s (before decode 10.46, state copy 0.00, first pass 0.29); tokens 1 -> 256 in 15.08 s; prompt wall 25.83 s
+[r51_2k] c2k_3: released 6.00 GB of trunk pools in 0.03 s; footprint now 7.74 GB, MLX active 3.33 GB
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (53, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (35, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (49, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (39, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (56, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[r51_2k] c2k_3: re-created 6.00 GB of pools in 0.12 s (released 6.00); footprint now 10.06 GB
+[r51_2k] c2k_3: prefill 2699 tokens in 10.32 s = 262 tok/s (s_moe 2699) | MLX peak 3.98 GB, process lifetime peak 10.38 GB, now 10.32 GB | decode 256: 18.2 tok/s, sha 279adff9b1
+[r51_2k] c2k_3 RESULT logits 554252aa5e sha32 93da10d846 sha256 279adff9b1 kv f0294bb61d head 24c0af0a16 | n 2699 C_m 51 C_l 20 | warm tok/s 17.96 (tokens 33-256), all 18.21 | lifetime peak 10.38 GB before the hash | pos 3 | clean peak 10.35 GB (decode 10.35, MLX decode 9.80) | first128 17.17 tok/s | kv cap 3072/2955 head cap 3072/2955 | lpre 554252aa5e
+[r51_2k] c2k_3: time to first token 10.77 s (before decode 10.47, state copy 0.00, first pass 0.30); tokens 1 -> 256 in 13.77 s; prompt wall 24.54 s
+[r51_2k] c2k_4: released 6.00 GB of trunk pools in 0.03 s; footprint now 7.62 GB, MLX active 3.33 GB
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (51, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (33, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (63, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[r51_2k] c2k_4: re-created 6.00 GB of pools in 0.12 s (released 6.00); footprint now 10.11 GB
+[r51_2k] c2k_4: prefill 3241 tokens in 11.17 s = 290 tok/s (s_moe 3241) | MLX peak 4.09 GB, process lifetime peak 10.43 GB, now 10.37 GB | decode 256: 17.3 tok/s, sha a57a307b8b
+[r51_2k] c2k_4 RESULT logits 039bcc1118 sha32 ceb9f37984 sha256 a57a307b8b kv a932d88a93 head 5a4aae52f2 | n 3241 C_m 51 C_l 20 | warm tok/s 17.36 (tokens 33-256), all 17.33 | lifetime peak 10.43 GB before the hash | pos 4 | clean peak 10.41 GB (decode 10.41, MLX decode 9.81) | first128 17.02 tok/s | kv cap 3581/3497 head cap 3584/3497 | lpre 039bcc1118
+[r51_2k] c2k_4: time to first token 11.62 s (before decode 11.33, state copy 0.00, first pass 0.29); tokens 1 -> 256 in 14.49 s; prompt wall 26.11 s
+[r51_2k] c2k_5: released 6.00 GB of trunk pools in 0.04 s; footprint now 7.39 GB, MLX active 3.33 GB
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (59, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[r51_2k] c2k_5: re-created 6.00 GB of pools in 0.13 s (released 6.00); footprint now 10.14 GB
+[r51_2k] c2k_5: prefill 2782 tokens in 10.43 s = 267 tok/s (s_moe 2782) | MLX peak 4.00 GB, process lifetime peak 10.45 GB, now 10.40 GB | decode 256: 17.0 tok/s, sha 8639006eb7
+[r51_2k] c2k_5 RESULT logits 3eeee1d2df sha32 76828a1cb4 sha256 8639006eb7 kv ca9526c694 head 52d94c4166 | n 2782 C_m 51 C_l 20 | warm tok/s 16.84 (tokens 33-256), all 17.00 | lifetime peak 10.45 GB before the hash | pos 5 | clean peak 10.44 GB (decode 10.44, MLX decode 9.80) | first128 15.85 tok/s | kv cap 3070/3038 head cap 3072/3038 | lpre 3eeee1d2df
+[r51_2k] c2k_5: time to first token 10.89 s (before decode 10.59, state copy 0.00, first pass 0.29); tokens 1 -> 256 in 14.77 s; prompt wall 25.66 s
+[r51_2k] c2k_1: released 6.00 GB of trunk pools in 0.03 s; footprint now 7.82 GB, MLX active 3.33 GB
+[r51_2k] c2k_1: re-created 6.00 GB of pools in 0.13 s (released 6.00); footprint now 10.16 GB
+[r51_2k] c2k_1: prefill 2591 tokens in 10.12 s = 256 tok/s (s_moe 2591) | MLX peak 3.96 GB, process lifetime peak 10.48 GB, now 10.34 GB | decode 256: 15.5 tok/s, sha 0959f510e1
+[r51_2k] c2k_1 RESULT logits 337b429dbc sha32 1962a901fc sha256 0959f510e1 kv 7738030cf9 head b00852440d | n 2591 C_m 51 C_l 20 | warm tok/s 15.27 (tokens 33-256), all 15.50 | lifetime peak 10.48 GB before the hash | pos 6 | clean peak 10.46 GB (decode 10.46, MLX decode 9.80) | first128 15.89 tok/s | kv cap 3070/2847 head cap 3070/2847 | lpre 337b429dbc
+[r51_2k] c2k_1: time to first token 10.58 s (before decode 10.28, state copy 0.00, first pass 0.30); tokens 1 -> 256 in 16.23 s; prompt wall 26.81 s
+[r51_2k] phase load: peak footprint 9.67 GB, peak MLX active 9.33 GB (44 samples)
+[r51_2k] phase 1:c2k_1 release: peak footprint 6.20 GB, peak MLX active 3.33 GB (1 samples)
+[r51_2k] phase 1:c2k_1 prefill: peak footprint 4.93 GB, peak MLX active 4.42 GB (329 samples)
+[r51_2k] phase 1:c2k_1 restore: peak footprint 8.72 GB, peak MLX active 8.42 GB (4 samples)
+[r51_2k] phase 1:c2k_1 decode: peak footprint 10.31 GB, peak MLX active 9.79 GB (668 samples)
+[r51_2k] phase 1:c2k_1 hash: peak footprint 10.19 GB, peak MLX active 9.66 GB (5 samples)
+[r51_2k] phase idle: peak footprint 10.17 GB, peak MLX active 9.43 GB (30 samples)
+[r51_2k] phase 2:c2k_2 release: peak footprint 7.69 GB, peak MLX active 3.33 GB (1 samples)
+[r51_2k] phase 2:c2k_2 prefill: peak footprint 4.97 GB, peak MLX active 4.44 GB (340 samples)
+[r51_2k] phase 2:c2k_2 restore: peak footprint 10.03 GB, peak MLX active 9.55 GB (5 samples)
+[r51_2k] phase 2:c2k_2 decode: peak footprint 10.33 GB, peak MLX active 9.80 GB (606 samples)
+[r51_2k] phase 2:c2k_2 hash: peak footprint 10.22 GB, peak MLX active 9.66 GB (5 samples)
+[r51_2k] phase 3:c2k_3 release: peak footprint 7.74 GB, peak MLX active 3.33 GB (1 samples)
+[r51_2k] phase 3:c2k_3 prefill: peak footprint 5.06 GB, peak MLX active 4.46 GB (342 samples)
+[r51_2k] phase 3:c2k_3 restore: peak footprint 8.81 GB, peak MLX active 8.43 GB (4 samples)
+[r51_2k] phase 3:c2k_3 decode: peak footprint 10.35 GB, peak MLX active 9.79 GB (561 samples)
+[r51_2k] phase 3:c2k_3 hash: peak footprint 10.25 GB, peak MLX active 9.66 GB (5 samples)
+[r51_2k] phase 4:c2k_4 release: peak footprint 9.52 GB, peak MLX active 3.42 GB (1 samples)
+[r51_2k] phase 4:c2k_4 prefill: peak footprint 5.19 GB, peak MLX active 4.58 GB (371 samples)
+[r51_2k] phase 4:c2k_4 restore: peak footprint 8.86 GB, peak MLX active 8.32 GB (4 samples)
+[r51_2k] phase 4:c2k_4 decode: peak footprint 10.41 GB, peak MLX active 9.81 GB (592 samples)
+[r51_2k] phase 4:c2k_4 hash: peak footprint 10.30 GB, peak MLX active 9.67 GB (6 samples)
+[r51_2k] phase 5:c2k_5 release: peak footprint 9.22 GB, peak MLX active 3.33 GB (1 samples)
+[r51_2k] phase 5:c2k_5 prefill: peak footprint 5.13 GB, peak MLX active 4.47 GB (345 samples)
+[r51_2k] phase 5:c2k_5 restore: peak footprint 10.01 GB, peak MLX active 9.56 GB (5 samples)
+[r51_2k] phase 5:c2k_5 decode: peak footprint 10.44 GB, peak MLX active 9.80 GB (604 samples)
+[r51_2k] phase 5:c2k_5 hash: peak footprint 10.31 GB, peak MLX active 9.66 GB (4 samples)
+[r51_2k] phase 6:c2k_1 release: peak footprint 9.89 GB, peak MLX active 5.55 GB (1 samples)
+[r51_2k] phase 6:c2k_1 prefill: peak footprint 7.05 GB, peak MLX active 4.42 GB (332 samples)
+[r51_2k] phase 6:c2k_1 restore: peak footprint 8.98 GB, peak MLX active 8.42 GB (4 samples)
+[r51_2k] phase 6:c2k_1 decode: peak footprint 10.46 GB, peak MLX active 9.79 GB (663 samples)
+[r51_2k] phase 6:c2k_1 hash: peak footprint 10.33 GB, peak MLX active 9.65 GB (4 samples)
+[r51_2k] done

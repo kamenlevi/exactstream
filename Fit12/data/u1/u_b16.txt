@@ -1,0 +1,21 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=32.8 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.20 GB pools
+b12: hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.20 GB, active 9.68 GB
+fit12: budget b16: 48 routers
+[u_b16] after load: footprint now 11.06 GB, lifetime peak 11.35 GB, MLX peak 10.80 GB, active 9.68 GB
+[u_b16] code: prefill 326 tokens in 4.88 s
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[u_b16] code k=3: 27.8 tok/s, 3.20 tok/pass, 40 passes | per pass: verify 106.8 ms, draft 8.0 ms, head 0.3 ms, waited 341.0, reads 353.1, pf issued 0.0 used 0.0, SSD 5.4 GB/s 622 MB | peak footprint 11.35 GB | loader per pass: stalled calls 82.4 of 99.0, stall 66.0 ms, io 65.4 ms | sha 0ade4281bc | '```python\nimport re\nimport argparse\nfrom collections import defaultdict\nfrom typing import List, Dict, Tuple, Optional\n\n\n# Regex to match log lines\nLINE = re.compile(\n    r'
+[u_b16] prose: prefill 53 tokens in 2.92 s
+[u_b16] prose k=3: 18.9 tok/s, 2.25 tok/pass, 57 passes | per pass: verify 109.3 ms, draft 9.2 ms, head 0.3 ms, waited 356.1, reads 374.3, pf issued 0.0 used 0.0, SSD 5.4 GB/s 646 MB | peak footprint 11.36 GB | loader per pass: stalled calls 90.4 of 99.0, stall 69.1 ms, io 68.5 ms | sha 2f36a9779f | 'Imagine you are trying to write an essay, and all your reference books are stored in a massive library across town. Every time you need to look up a fact, you have to drive all the way'
+[u_b16] math: prefill 82 tokens in 3.09 s
+[u_b16] math k=3: 25.1 tok/s, 3.12 tok/pass, 41 passes | per pass: verify 115.0 ms, draft 9.2 ms, head 0.3 ms, waited 393.6, reads 412.5, pf issued 0.0 used 0.0, SSD 5.9 GB/s 731 MB | peak footprint 11.43 GB | loader per pass: stalled calls 87.5 of 99.0, stall 75.3 ms, io 74.7 ms | sha 8b009da1ad | "Here is the step-by-step solution to determine how much Janet makes every day:\n\n**Step 1: Determine the total number of eggs laid per day.**\nJanet's ducks lay **1"
+[u_b16] write: prefill 47 tokens in 2.70 s
+[u_b16] write k=3: 19.5 tok/s, 2.21 tok/pass, 58 passes | per pass: verify 105.2 ms, draft 8.0 ms, head 0.3 ms, waited 334.0, reads 346.4, pf issued 0.0 used 0.0, SSD 5.3 GB/s 601 MB | peak footprint 11.43 GB | loader per pass: stalled calls 82.4 of 99.0, stall 64.3 ms, io 63.8 ms | sha 08f2253085 | '*   crafted from durable stainless steel to withstand rugged trails and rocky terrain\n*   double-wall vacuum insulation keeps drinks cold for twenty-four hours or hot for twelve\n*   features a leak-proof lid'
+[u_b16] done

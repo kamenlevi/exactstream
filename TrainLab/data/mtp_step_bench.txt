@@ -1,0 +1,9 @@
+D1 draft-step anatomy: model Model, widened width 10240, K 4, reps 40, lm_head QuantizedLinear bits 4
+drafts seq [71, 2218, 332, 220] | nosync [71, 2218, 332, 220] | equal True
+seq    :   7.89 ms per chain of 3 forwards (2.63 per drafted row; p90 7.98)
+nosync :   7.29 ms per chain (2.43 per row; p90 7.41); x1.08 vs seq
+head (4-bit 248K output layer)    :   1.49 ms (p90 1.59)
+core (MTP layer, no output layer): n/a (AttributeError: 'Model' object has no attribute '_mtp_core')
+output layer re-quantized to 3 bits        :   1.12 ms (p90 1.16)
+output layer re-quantized to 2 bits        :   0.84 ms (p90 0.87)
+peak MLX memory 8.9 GB

@@ -1,0 +1,24 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=20.3 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=191 C_l=64 per layer, 21.14 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.45 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R-57 harness (REF2-T tiers 4433333333, C_l 64): full 125B via load_streamed (C = 160), loaded in 2 s, 26.8 GB active; REF2 + SB; gate rows MAXK 160 (ext build_qom), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 32
+[r57] DENSE-N-RAM: 180 weights native (1531 MB, in place)
+[r57] HC8: 194 mixers 8-bit (1271 -> 675 MB), hc8_fast v4
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 21.9 tok/s; MLX peak prefill 29.4 / decode 29.3 GB, lifetime peak 30.7 -> 30.7 GB
+  warm-up (discarded): gsm8k/708 [gate+t, mtp] 64 tokens, 39.4 tok/s; MLX peak prefill 29.6 / decode 29.3 GB, lifetime peak 30.7 -> 30.7 GB
+  warm-up (discarded): gsm8k/708 [gate+t, d7b] 64 tokens, 45.4 tok/s; MLX peak prefill 29.6 / decode 29.3 GB, lifetime peak 30.7 -> 30.7 GB
+  humaneval/HumanEval/68 [gate+t] [code: dfl]: 32 tokens in 3 checks (kept 13.67), 52.2 tok/s (steady state, checks >= 2: 87.1), median cycle 224.7 ms, check + commit 149.4 ms; per check (medians) 287 misses, demand SSD 66.9 ms, gate service 69.7 ms (82 calls with misses), draft 11.4 ms; per kept token SSD 42.6 MB, 23.1 misses; tokens == REF2 row 32 / 32; drafter D7b (4-bit); FAST QOM: 47 of 47 rows gated, kept 41 vs exact 41; JOINT reads 37; demand bursts 204: after >= 0.25 ms idle 143, >= 1 ms 143; keepalive reads 2837; tier: 44 hits (copied back, no SSD read), 469 copied in, 8 dropped, 84 slabs found purged; filled 1.24 of 7.45 GB (volatile, beside the footprint); QOM: 13515 optional uses, 3830 optional-only misses not read (dropped)
+    mem: MLX peak prefill 30.4 / decode 29.5 GB; at the end active 29.4, cache 0.7, footprint 30.8 GB; lifetime peak after prefill 31.3 -> after decode 31.3 GB
+  gate+t: tok/s 52.2 (steady state 87.1), cycle 224.7 ms, check + commit 149.4 ms, misses 287, demand SSD 66.9 ms per check (medians over valid runs, then prompts)
+  gate+t where the time goes (medians per check): check + commit 149.4 ms, demand SSD busy 66.9 ms (45% of the check), gate service on misses 69.7 ms (the GPU's spin bound; OOO overlaps part of it), draft 11.4 ms (SSD idle)
+  gate+t per kept token (pooled over valid runs): SSD 42.6 MB, misses 23.1 (41 kept tokens; median per prompt 42.6 MB, 23.1 misses)
+  tier flags: TIER_COMBINE True, OOO True (1996 OOO calls); EVICT_PRIOR None; REFTOK : every token equal True
+  K-73 engagement: exact MoE block calls 1996; ref2 att_rope 492, idx_prep 1080, hc_write 1996 (counted at graph build); K-83: hc_gate / hc_read 0, gdn_inproj_x 1504, drafter forms + chain_fused
+  build-day engagement (ref2 counts at graph build): dense_native 5988, dense_native_repack 0, dense_native_unpack 432, hc8_fast 3992, hc_b 0, ooo_1c 1996, ooo_1c_qom 144
+  chat switch: MTP head d22_b5 (md5 pinned) resident, K15, cut t 0.3 with early exit; type rule runs: {'chat': 0, 'code': 1, 'math': 0, 'agent': 0} (chat -> MTP, the rest -> DFlash2)
+  footprint now 30.7 GB, lifetime peak 31.3 GB; 24 s

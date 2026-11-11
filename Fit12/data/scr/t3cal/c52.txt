@@ -1,0 +1,13 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=24.6 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 15M, prefetch on)
+[bigmoe] tier 4433333333: C_m=47 C_l=32 per layer, 6.03 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: engine v3p, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+b12: C_m=47 C_l=32 (9 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.03 GB, active 8.97 GB
+[c52] bt_b12 8db71cc537, engine /Users/kamen/Breakthrough/v3p, C_m 47 C_l 32, cap 256; drafter 0.928 GB (own params), SW 2048; after load: lifetime 10.590 GB, MLX active 9.538; prompts humaneval/HumanEval/156 (n 146), humaneval/HumanEval/42 (n 149), humaneval/HumanEval/68 (n 367), humaneval/HumanEval/91 (n 144), humaneval/HumanEval/16 (n 103), humaneval/HumanEval/6 (n 148), humaneval/HumanEval/79 (n 184), humaneval/HumanEval/19 (n 140), humaneval/HumanEval/161 (n 148), humaneval/HumanEval/17 (n 208), humaneval/HumanEval/56 (n 129), humaneval/HumanEval/141 (n 253), humaneval/HumanEval/101 (n 152), humaneval/HumanEval/63 (n 187), humaneval/HumanEval/114 (n 121), humaneval/HumanEval/77 (n 148)
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+[c52] humaneval/HumanEval/156 g1k3 PHASES draft: 27 runs, 11.7 ms, 0 MB, 0 misses, 0.00 passes per run, 0.00 GB/s | p1: 27 runs, 176.7 ms, 1064 MB, 687 misses, 1.00 passes per run, 6.02 GB/s | commit: 27 runs, 2.5 ms, 0 MB, 0 misses, 0.00 passes per run, 0.00 GB/s | exact: 27 runs, 389.3 ms, 2949 MB, 1488 misses, 2.74 passes per run, 7.58 GB/s
+[c52] humaneval/HumanEval/156 g1k3 theta 1.01 {'p2_all': True} | tok 256 sha 91741e1500 | lsha 0dc4e7ccaf | = ex tokens True (first divergence None) | checks 27, kept 9.48 | pass2 27 exact 0 cfgate 0 skipped 0 | rows pass 1 407 / pass 2 293 in 74 calls, refused 0 | prefill 3.81 s, decode 15.69 s, 16.32 tok/s | lifetime 11.080 GB | per check ms: draft 11.7 pass 1 176.7 pass 2 / exact 389.3 commit 2.5; misses per check pass 1 687 pass 2 1488
+bigmoe: 54 experts > C=47 at layer 0

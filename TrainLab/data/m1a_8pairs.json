@@ -1,0 +1,48 @@
+{
+ "model": "M1a",
+ "recipe": {
+  "lr": 0.0003,
+  "wd": 10.0,
+  "epochs": 5
+ },
+ "trained_on": "/Users/kamen/BigMoE/data/b32/s10b",
+ "training_prompts": [
+  "p00_code0",
+  "p01_code1",
+  "p02_code2",
+  "p03_code3",
+  "p05_prose0",
+  "p06_prose1",
+  "p07_prose2",
+  "p08_prose3",
+  "p10_edit0",
+  "p11_edit1",
+  "p12_edit2",
+  "p13_edit3",
+  "p15_math0",
+  "p16_math1",
+  "p17_math2",
+  "p18_math3"
+ ],
+ "scored_on": "/Users/kamen/BigMoE/data/b33/s10b",
+ "layers": {
+  "2": 4,
+  "8": 10,
+  "14": 16,
+  "20": 22,
+  "26": 28,
+  "32": 34,
+  "38": 40,
+  "44": 46
+ },
+ "hidden": 2560,
+ "experts": 512,
+ "keys": "L{L}_Wf [hidden, experts] f16, L{L}_bf [experts] f32, L{L}_A [experts, experts] f16",
+ "formula": "s_T = x_L @ Wf + bf + A[ids_L].sum(0); x_L = layer L's MoE input (the router's input, raw: the fit's standardization is folded into Wf and bf) per row; ids_L = the experts routed at L for that row; s_T = scores of layer T = L + 2's experts; the A/B pick rule: top-K over all experts by s_T, resident ones skipped",
+ "heldout_shipped_rule_at_4.8_reads": {
+  "folded_f16": 0.5248384039901914,
+  "f32": 0.5248324913110466,
+  "router": 0.33671465082786906
+ },
+ "rows_top16_identical_to_f32": 0.9990190582959642
+}

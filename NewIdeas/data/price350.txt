@@ -1,0 +1,28 @@
+== drafting as measured
+ today's kernels, high (exact dense, other 20)
+   16 rows:  77.5 ms per check (dense 18.0, experts 26.2, drafting 12.5) -> 350 needs 27.1 tokens = L1-20 x2.84, 192% of the lattice oracle, 174% of perfect; L1-20 gives 123 tok/s
+   32 rows: 102.3 ms per check (dense 22.2, experts 43.8, drafting 15.5) -> 350 needs 35.8 tokens = L1-20 x3.41, 177% of the lattice oracle, 117% of perfect; L1-20 gives 103 tok/s
+ today's kernels, low (diet dense by bytes, other 10)
+   16 rows:  60.5 ms per check (dense 11.0, experts 26.2, drafting 12.5) -> 350 needs 21.2 tokens = L1-20 x2.22, 150% of the lattice oracle, 136% of perfect; L1-20 gives 158 tok/s
+   32 rows:  83.7 ms per check (dense 13.5, experts 43.8, drafting 15.5) -> 350 needs 29.3 tokens = L1-20 x2.79, 144% of the lattice oracle, 96% of perfect; L1-20 gives 126 tok/s
+ 90 % kernels (diet dense, experts, other 7)
+   16 rows:  48.1 ms per check (dense  8.3, experts 19.4, drafting 12.5) -> 350 needs 16.8 tokens = L1-20 x1.76, 119% of the lattice oracle, 108% of perfect; L1-20 gives 198 tok/s
+   32 rows:  61.2 ms per check (dense  8.3, experts 29.6, drafting 15.5) -> 350 needs 21.4 tokens = L1-20 x2.04, 106% of the lattice oracle, 70% of perfect; L1-20 gives 172 tok/s
+ every part at its floor (other 5)
+   16 rows:  43.3 ms per check (dense  7.5, experts 17.5, drafting 12.5) -> 350 needs 15.2 tokens = L1-20 x1.59, 107% of the lattice oracle, 97% of perfect; L1-20 gives 220 tok/s
+   32 rows:  55.4 ms per check (dense  7.5, experts 26.6, drafting 15.5) -> 350 needs 19.4 tokens = L1-20 x1.85, 96% of the lattice oracle, 64% of perfect; L1-20 gives 190 tok/s
+== fast drafting (8-bit + fused head)
+ today's kernels, high (exact dense, other 20)
+   16 rows:  69.5 ms per check (dense 18.0, experts 26.2, drafting  4.5) -> 350 needs 24.3 tokens = L1-20 x2.55, 172% of the lattice oracle, 156% of perfect; L1-20 gives 137 tok/s
+   32 rows:  92.3 ms per check (dense 22.2, experts 43.8, drafting  5.5) -> 350 needs 32.3 tokens = L1-20 x3.07, 159% of the lattice oracle, 106% of perfect; L1-20 gives 114 tok/s
+ today's kernels, low (diet dense by bytes, other 10)
+   16 rows:  52.5 ms per check (dense 11.0, experts 26.2, drafting  4.5) -> 350 needs 18.4 tokens = L1-20 x1.92, 130% of the lattice oracle, 118% of perfect; L1-20 gives 182 tok/s
+   32 rows:  73.7 ms per check (dense 13.5, experts 43.8, drafting  5.5) -> 350 needs 25.8 tokens = L1-20 x2.45, 127% of the lattice oracle, 85% of perfect; L1-20 gives 143 tok/s
+ 90 % kernels (diet dense, experts, other 7)
+   16 rows:  40.1 ms per check (dense  8.3, experts 19.4, drafting  4.5) -> 350 needs 14.0 tokens = L1-20 x1.47, 99% of the lattice oracle, 90% of perfect; L1-20 gives 238 tok/s
+   32 rows:  51.2 ms per check (dense  8.3, experts 29.6, drafting  5.5) -> 350 needs 17.9 tokens = L1-20 x1.71, 88% of the lattice oracle, 59% of perfect; L1-20 gives 205 tok/s
+ every part at its floor (other 5)
+   16 rows:  35.3 ms per check (dense  7.5, experts 17.5, drafting  4.5) -> 350 needs 12.4 tokens = L1-20 x1.30, 88% of the lattice oracle, 79% of perfect; L1-20 gives 270 tok/s
+   32 rows:  45.4 ms per check (dense  7.5, experts 26.6, drafting  5.5) -> 350 needs 15.9 tokens = L1-20 x1.51, 78% of the lattice oracle, 52% of perfect; L1-20 gives 231 tok/s
+engine today, exact 4-bit top-10 resident, eager: 154-160 ms per 16-row check + draft -> L1-20 gives 60-62 tok/s; 350 needs 54-56 tokens per check
+engine today, exact 4-bit top-10 resident, overlapped: 142-148 ms per 16-row check + draft -> L1-20 gives 64-67 tok/s; 350 needs 50-52 tokens per check

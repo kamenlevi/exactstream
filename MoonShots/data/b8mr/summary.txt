@@ -1,0 +1,52 @@
+20:07:52 b8mr turn start
+20:08:01 tf1 wait: [b8mr wait] loaded in 1s; DEFER=8 MAXK=80 MR_MIN=2 MR_TEST= [tf1_wait] 32 positions, top-1 sha 380abd1fdf, mr calls 0, defer stats [3072, 2959, 1538, 0] 
+20:08:10 tf1 mr1: [b8mr mr1] loaded in 1s; DEFER=8 MAXK=80 MR_MIN=1 MR_TEST= [tf1_mr1] 32 positions, top-1 sha 380abd1fdf, mr calls 1504, defer stats [3072, 2959, 1538, 0] 
+20:08:18 tfs4 wait: [tfs4_wait] 32 positions, top-1 sha 9dcda6a017, mr calls 0, defer stats [768, 4395, 0, 0] 
+20:08:26 tfs4 mr: [tfs4_mr] 32 positions, top-1 sha 380abd1fdf, mr calls 376, defer stats [768, 2960, 1421, 0] 
+20:08:34 tfs4 force: [tfs4_force] 32 positions, top-1 sha 00880662f7, mr calls 376, defer stats [768, 2960, 1426, 0] 
+20:08:42 tfs4 ref: [tfs4_ref] 32 positions, top-1 sha 00880662f7, mr calls 376, defer stats [768, 2960, 1426, 0] 
+20:08:43 compare (exit 0): tf1_mr1 vs tf1_wait: BIT-IDENTICAL (max |dlogit| 0, positions differing 0 of 32) tfs4_force vs tfs4_ref: BIT-IDENTICAL (max |dlogit| 0, positions differing 0 of 32) KL(tfs4_wait || tfs4_mr): mean 0.10014, max 2.8592; top-1 agreement 0.938 KL(tf1_wait || tfs4_mr): mean 0.06595, max 1.2780; top-1 agreement 1.000 KL(tf1_wait || tfs4_wait): mean 0.03168, max 0.5128; top-1 agreement 0.938 KL(tfs4_wait || tfs4_force): mean 0.10020, max 1.8608; top-1 agreement 0.906 
+20:11:59 kld wait: [kld_wait_e8_S4] tf_gsm 0.01313 (top-1 0.982, 1690 pos) | tf_code 0.00463 (top-1 0.995, 571 pos) | tf_ifeval 0.06326 (top-1 0.893, 1284 pos) | tf_multi 0.04991 (top-1 0.923, 813 pos) | 18 seqs, 195s; mr calls 0 
+20:15:27 kld mr: [kld_mr_e8_S4] tf_gsm 0.01694 (top-1 0.975, 1690 pos) | tf_code 0.00623 (top-1 0.991, 571 pos) | tf_ifeval 0.07399 (top-1 0.893, 1284 pos) | tf_multi 0.05453 (top-1 0.926, 813 pos) | 18 seqs, 206s; mr calls 51277 
+20:15:38 gen code wait f0.05 r1: Traceback (most recent call last): ValueError: [reshape] Cannot reshape array of size 10240 into shape (1,4,10240). 
+20:15:46 gen code mr f0.05 r1: Traceback (most recent call last): ValueError: [reshape] Cannot reshape array of size 20480 into shape (1,4,10240). 
+20:15:51 gen prose wait f0.05 r1: Traceback (most recent call last): ValueError: [reshape] Cannot reshape array of size 10240 into shape (1,4,10240). 
+20:15:56 gen prose mr f0.05 r1: Traceback (most recent call last): ValueError: [reshape] Cannot reshape array of size 10240 into shape (1,4,10240). 
+20:16:04 gen code mr f0.05 r2: Traceback (most recent call last): ValueError: [reshape] Cannot reshape array of size 20480 into shape (1,4,10240). 
+20:16:16 gen code wait f0.05 r2: Traceback (most recent call last): ValueError: [reshape] Cannot reshape array of size 10240 into shape (1,4,10240). 
+20:16:21 gen prose mr f0.05 r2: Traceback (most recent call last): ValueError: [reshape] Cannot reshape array of size 10240 into shape (1,4,10240). 
+20:16:26 gen prose wait f0.05 r2: Traceback (most recent call last): ValueError: [reshape] Cannot reshape array of size 10240 into shape (1,4,10240). 
+20:16:36 gen code wait f0.10 r3: Traceback (most recent call last): ValueError: [reshape] Cannot reshape array of size 10240 into shape (1,4,10240). 
+20:16:44 gen code mr f0.10 r3: Traceback (most recent call last): ValueError: [reshape] Cannot reshape array of size 20480 into shape (1,4,10240). 
+20:16:49 gen prose wait f0.10 r3: Traceback (most recent call last): ValueError: [reshape] Cannot reshape array of size 10240 into shape (1,4,10240). 
+20:16:54 gen prose mr f0.10 r3: Traceback (most recent call last): ValueError: [reshape] Cannot reshape array of size 10240 into shape (1,4,10240). 
+20:16:54 b8mr turn finished
+22:14:15 b8mr turn start (gen only)
+22:14:33 gen code wait f0.05 r1: [code_wait] 20.6 tok/s, 3.25 tok/pass, 59 passes; per pass: S 3.98, verify 146.5 ms, reads 407.4, waited 389.7, late 0.0, io 99.2 ms; mr calls 0 (0 rows); sha 318cfb727a | '```python
+import re
+import argparse
+from collections import defaultdic' 
+22:14:50 gen code mr f0.05 r1: [code_mr] 22.1 tok/s, 3.10 tok/pass, 62 passes; per pass: S 3.98, verify 131.6 ms, reads 463.4, waited 308.2, late 137.6, io 88.4 ms; mr calls 3211 (12776 rows); sha 5fe15c8944 | '```python
+"""
+Log parser module: parses HTTP access logs and reports s' 
+22:15:08 gen prose wait f0.05 r1: [prose_wait] 16.0 tok/s, 2.21 tok/pass, 87 passes; per pass: S 3.94, verify 127.3 ms, reads 460.3, waited 438.5, late 0.7, io 89.3 ms; mr calls 0 (0 rows); sha b1f2bed3a0 | 'Imagine you are building a massive LEGO castle, but all your pieces ar' 
+22:15:25 gen prose mr f0.05 r1: [prose_mr] 16.6 tok/s, 2.31 tok/pass, 83 passes; per pass: S 4.00, verify 129.9 ms, reads 481.4, waited 322.6, late 137.0, io 88.8 ms; mr calls 4368 (17405 rows); sha 671894374b | 'Imagine you are building a massive LEGO castle, but all your pieces ar' 
+22:15:42 gen code mr f0.05 r2: [code_mr] 22.8 tok/s, 3.10 tok/pass, 62 passes; per pass: S 3.98, verify 127.3 ms, reads 463.4, waited 308.2, late 137.6, io 86.2 ms; mr calls 3211 (12776 rows); sha 5fe15c8944 | '```python
+"""
+Log parser module: parses HTTP access logs and reports s' 
+22:15:57 gen code wait f0.05 r2: [code_wait] 27.4 tok/s, 3.25 tok/pass, 59 passes; per pass: S 3.98, verify 110.5 ms, reads 408.7, waited 390.9, late 0.0, io 72.0 ms; mr calls 0 (0 rows); sha 318cfb727a | '```python
+import re
+import argparse
+from collections import defaultdic' 
+22:16:15 gen prose mr f0.05 r2: [prose_mr] 16.6 tok/s, 2.31 tok/pass, 83 passes; per pass: S 4.00, verify 129.8 ms, reads 481.4, waited 322.6, late 137.0, io 88.8 ms; mr calls 4368 (17405 rows); sha 671894374b | 'Imagine you are building a massive LEGO castle, but all your pieces ar' 
+22:16:33 gen prose wait f0.05 r2: [prose_wait] 16.0 tok/s, 2.21 tok/pass, 87 passes; per pass: S 3.94, verify 127.3 ms, reads 460.3, waited 438.5, late 0.7, io 89.2 ms; mr calls 0 (0 rows); sha b1f2bed3a0 | 'Imagine you are building a massive LEGO castle, but all your pieces ar' 
+22:16:47 gen code wait f0.10 r3: [code_wait_f0.1] 32.0 tok/s, 3.31 tok/pass, 58 passes; per pass: S 3.96, verify 94.9 ms, reads 302.2, waited 284.3, late 0.0, io 56.8 ms; mr calls 0 (0 rows); sha 2d54a3889f | '```python
+import re
+import argparse
+from collections import defaultdic' 
+22:17:02 gen code mr f0.10 r3: [code_mr_f0.1] 26.8 tok/s, 3.15 tok/pass, 61 passes; per pass: S 3.95, verify 109.2 ms, reads 347.4, waited 229.8, late 100.3, io 68.3 ms; mr calls 3113 (12437 rows); sha ea978a2b72 | '```python
+"""
+Log parser module: parses HTTP access logs and reports s' 
+22:17:17 gen prose wait f0.10 r3: [prose_wait_f0.1] 22.9 tok/s, 2.46 tok/pass, 78 passes; per pass: S 3.99, verify 97.9 ms, reads 327.3, waited 305.7, late 0.0, io 59.6 ms; mr calls 0 (0 rows); sha 323015d72b | 'Imagine you are doing homework at your desk, but all your textbooks ar' 
+22:17:33 gen prose mr f0.10 r3: [prose_mr_f0.1] 19.7 tok/s, 2.31 tok/pass, 83 passes; per pass: S 3.99, verify 107.5 ms, reads 339.5, waited 229.8, late 88.3, io 66.5 ms; mr calls 4361 (17337 rows); sha 08f808d8e9 | 'Imagine your brain is a super-fast student who can solve math problems' 
+22:17:33 b8mr turn finished

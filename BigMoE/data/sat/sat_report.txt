@@ -1,0 +1,23 @@
+200 STACK, C 224 (data/sat): MATCH g2 pre-check CLEAN; T16 not in; the 12 HumanEval palindrome qall / stack / stackr / stackrm / stackb, then C 256; freeze windows []; passes dropped for a freeze: none
+MBPP12 T16 vs qall (GOAL's line): BETWEEN: median S nan, T 1.088, pairs [('mq-mt', 12, []), ('mqb-mtb', 11, ['mbpp/319'])], K ratio 1.035, tests passed {'mt': 11, 'mtb': 10} vs qall {'mq': 11, 'mqb': 11}
+qall      geo steady   99.1 tok/s over 12; passes stq 98.7, stqm 99.7, stqb 98.7; kept per check 10.45; tokens per task 250; lifetime peak 39.1 GB
+stack     geo steady  132.6 tok/s over 12; passes sts 132.6, stsb 132.6; kept per check 10.48; tokens per task 250; lifetime peak 38.5 GB
+stackr    geo steady  145.3 tok/s over 12; passes str 143.9, strb 146.6; kept per check 11.64; tokens per task 233; lifetime peak 38.7 GB
+stackrm   geo steady  144.6 tok/s over 12; passes srm 146.7, srmb 142.3; kept per check 11.74; tokens per task 235; lifetime peak 38.5 GB
+stackb    geo steady  140.1 tok/s over 12; passes stb 139.8, stbb 140.3; kept per check 11.33; tokens per task 238; lifetime peak 39.4 GB
+stack256  geo steady  136.5 tok/s over 12; passes sh 137.8, shb 135.1; kept per check 10.39; tokens per task 255; lifetime peak 42.7 GB
+winner256 geo steady  144.9 tok/s over 12; passes wh 145.5, whb 144.3; kept per check 11.34; tokens per task 244; lifetime peak 42.8 GB
+noise floor: qall middle pass vs its end passes +1.0 % over 12
+Verdict stacked FAST (pre-registered Fri 08:3x): PASS: code +33.8 % vs qall over 12 (PASS >= +20 %; KILL < +10 %; the chat clause is moot tonight)
+Verdict stackr (pre-registered Fri 08:4x): PASS: +9.5 % vs the stack over 12, vs qall +46.6 % (PASS >= +3 % vs the stack; KILL < -3 %); SPEED ONLY: relaxes code tokens (the C_E form that failed decision 4), never in code_env
+Verdict stackrm (pre-registered NewIdeas Fri 21:4x): PASS: +9.0 % vs the stack over 12, vs qall +45.8 % (PASS >= +3 % vs the stack; KILL < -3 %); SPEED ONLY: relaxes code tokens (the C_E form that failed decision 4), never in code_env
+Verdict stackb (pre-registered NewIdeas Fri 21:5x): PASS: +5.6 % vs the stack over 12, vs qall +41.4 % (PASS >= +2 % vs the stack; KILL < -2 %)
+Verdict C 256 for stack (pre-registered NewIdeas Fri 21:3x): KILL: +2.9 % vs C 224 over 12, lifetime peak 42.7 GB (PASS >= +3 % AND peak <= 45.0 GB)
+Verdict C 256 for stackb (pre-registered NewIdeas Fri 21:3x): PASS: +3.4 % vs C 224 over 12, lifetime peak 42.8 GB (PASS >= +3 % AND peak <= 45.0 GB)
+Verdict never-wait ceiling (pre-registered Fri 09:0x): PASS: median cold16 - warm16 18.5 ms over 58 samples vs S 9.7 ms (PASS >= 0.6 S, KILL < 0.3 S); sample misses 46 vs live 28 per check
+stackr: relaxed accepts 17
+stackrm: relaxed accepts 18; copy: positions 5325, used 3044, changed the draft 417, accepted 2888
+stackb: relaxed accepts 0; copy: positions 5395, used 3044, changed the draft 422, accepted 2888
+lifetime peak phys_footprint per arm (GB): mq_224 38.1, mqb_224 38.1, mt_224 38.1, mtb_224 38.1, pfg_224 38.5, sh_256 42.7, shb_256 42.7, snw_224 38.8, srm_224 38.5, srmb_224 38.5, stb_224 38.5, stbb_224 39.4, stq_224 38.6, stqb_224 38.4, stqm_224 39.1, str_224 38.7, strb_224 38.5, sts_224 38.5, stsb_224 38.4, wh_256 42.8, whb_256 42.5
+FINAL stacked number (quality gate pending: EvalSuite same-scores): winner256 at C 256: 144.9 tok/s geo steady on the 12 HumanEval (lifetime peaks above)
+code_env.txt = stackb; C 256 recorded

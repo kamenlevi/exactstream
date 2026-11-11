@@ -1,0 +1,79 @@
+
+OOO-1C check Wed 15:07:59 (share lock)
+pools built (layers 20, 44; 512 experts each)
+
+OOO-1C check Wed 15:08:08 (share lock)
+pools built (layers 20, 44; 512 experts each)
+  L20 late release: == ref True, == two-phase True, timeouts 0, call 22.9 ms (release at 20.0)
+  L20 late release: == ref True, == two-phase True, timeouts 0, call 22.4 ms (release at 20.0)
+  L44 late release: == ref True, == two-phase True, timeouts 0, call 22.7 ms (release at 20.0)
+  L44 late release: == ref True, == two-phase True, timeouts 0, call 22.4 ms (release at 20.0)
+(1) released before the call: one-call == NAX6 on the final slots == two phases, slots resolved, no timeout: PASS (4 calls)
+(2) late release (20 ms): PASS
+
+OOO-1C check Wed 15:08:15 (share lock)
+pools built (layers 20, 44; 512 experts each)
+  L20 late release: == ref True, == two-phase True, timeouts 0, call 21.6 ms (release at 20.0)
+  L20 late release: == ref True, == two-phase True, timeouts 0, call 21.7 ms (release at 20.0)
+  L44 late release: == ref True, == two-phase True, timeouts 0, call 21.6 ms (release at 20.0)
+  L44 late release: == ref True, == two-phase True, timeouts 0, call 22.1 ms (release at 20.0)
+(1) released before the call: one-call == NAX6 on the final slots == two phases, slots resolved, no timeout: PASS (4 calls)
+(2) late release (20 ms): PASS
+(3) ms per MoE layer call (48-call chains, median of 15): two phases 1.699, one call 1.642 -> +0.056 ms per layer = +2.71 ms per check (48 MoE layers); timeouts 0
+
+OOO-1C check Wed 15:10:46 (share lock)
+pools built (layers 20, 44; 512 experts each)
+  L20 late release: == ref True, == two-phase True, timeouts 0, call 21.7 ms (release at 20.0)
+  L20 late release: == ref True, == two-phase True, timeouts 0, call 21.7 ms (release at 20.0)
+  L44 late release: == ref True, == two-phase True, timeouts 0, call 21.7 ms (release at 20.0)
+  L44 late release: == ref True, == two-phase True, timeouts 0, call 21.6 ms (release at 20.0)
+(1) released before the call: one-call == NAX6 on the final slots == two phases, slots resolved, no timeout: PASS (4 calls)
+(2) late release (20 ms): PASS
+(3) ms per MoE layer call (48-call chains, median of 15): two phases 1.636, one call 1.677 -> -0.041 ms per layer = -1.95 ms per check (48 MoE layers); timeouts 0
+  3c L20 late release: == tier_glu True, == two-phase True, timeouts 0, call 21.5 ms
+  3c L44 late release: == tier_glu True, == two-phase True, timeouts 0, call 21.5 ms
+(1-3c) released before: one-call 3c == tier_glu(scores) == BigMoE's two phases + combine_phase, slots resolved: PASS; (2-3c) late release: PASS
+(3-3c) ms per MoE layer call (48-call chains, median of 15): two phases 1.339, one call 1.346 -> -0.007 ms per layer = -0.33 ms per check; timeouts 0
+
+OOO-1C check Wed 15:11:33 (share lock; resident base / sidecar 0.96 / 0.97, rounds 40)
+pools built (layers 20, 44; 512 experts each)
+  L20 late release: == ref True, == two-phase True, timeouts 0, call 21.0 ms (release at 20.0)
+  L20 late release: == ref True, == two-phase True, timeouts 0, call 21.2 ms (release at 20.0)
+  L44 late release: == ref True, == two-phase True, timeouts 0, call 21.2 ms (release at 20.0)
+  L44 late release: == ref True, == two-phase True, timeouts 0, call 21.0 ms (release at 20.0)
+(1) released before the call: one-call == NAX6 on the final slots == two phases, slots resolved, no timeout: PASS (4 calls)
+(2) late release (20 ms): PASS
+(3) ms per MoE layer call (48-call chains, median of 15): two phases 2.244, one call 2.159 -> +0.085 ms per layer = +4.08 ms per check (48 MoE layers); timeouts 0
+  3c L20 late release: == tier_glu True, == two-phase True, timeouts 0, call 21.1 ms
+  3c L44 late release: == tier_glu True, == two-phase True, timeouts 0, call 21.1 ms
+(1-3c) released before: one-call 3c == tier_glu(scores) == BigMoE's two phases + combine_phase, slots resolved: PASS; (2-3c) late release: PASS
+(3-3c) ms per MoE layer call (48-call chains, median of 15): two phases 1.495, one call 1.429 -> +0.066 ms per layer = +3.17 ms per check; timeouts 0
+
+OOO-1C check Wed 15:17:10 (share lock; resident base / sidecar 0.7 / 0.8, rounds 18)
+pools built (layers 20, 44; 512 experts each)
+  L20 late release: == ref True, == two-phase True, timeouts 0, call 22.3 ms (release at 20.0)
+  L20 late release: == ref True, == two-phase True, timeouts 0, call 21.7 ms (release at 20.0)
+  L44 late release: == ref True, == two-phase True, timeouts 0, call 21.8 ms (release at 20.0)
+  L44 late release: == ref True, == two-phase True, timeouts 0, call 21.8 ms (release at 20.0)
+(1) released before the call: one-call == NAX6 on the final slots == two phases, slots resolved, no timeout: PASS (4 calls)
+(2) late release (20 ms): PASS
+  3c L20 late release: == tier_glu True, == two-phase True, timeouts 0, call 21.6 ms
+  3c L44 late release: == tier_glu True, == two-phase True, timeouts 0, call 21.4 ms
+(1-3c) released before: one-call 3c == tier_glu(scores) == BigMoE's two phases + combine_phase, slots resolved: PASS; (2-3c) late release: PASS
+
+OOO-1C native check Wed 15:23:52
+pools: row-major, bf16 native and native+p11+pad for L20 (512 experts)
+  call 0: native: NAX6-N 1c == NAX6 True, 3c-N 1c == 3c True, slots True; p11: NAX6-N 1c == NAX6 True, 3c-N 1c == 3c True, slots True; timeouts 0
+  call 1: native: NAX6-N 1c == NAX6 True, 3c-N 1c == 3c True, slots True; p11: NAX6-N 1c == NAX6 True, 3c-N 1c == 3c True, slots True; timeouts 0
+  call 2: native: NAX6-N 1c == NAX6 True, 3c-N 1c == 3c True, slots True; p11: NAX6-N 1c == NAX6 True, 3c-N 1c == 3c True, slots True; timeouts 0
+  call 3 (late release, 20 ms): p11: NAX6-N 1c == NAX6 True, 3c-N 1c == 3c True, slots True; timeouts 0
+OOO-1C native forms: PASS
+
+OOO-1C native check Wed 15:24:50
+pools: row-major, bf16 native and native+p11+pad for L20 (512 experts)
+  call 0: native: NAX6-N 1c == NAX6 True, 3c-N 1c == 3c True, slots True; p11: NAX6-N 1c == NAX6 True, 3c-N 1c == 3c True, slots True; timeouts 0
+  call 1: native: NAX6-N 1c == NAX6 True, 3c-N 1c == 3c True, slots True; p11: NAX6-N 1c == NAX6 True, 3c-N 1c == 3c True, slots True; timeouts 0
+  call 2: native: NAX6-N 1c == NAX6 True, 3c-N 1c == 3c True, slots True; p11: NAX6-N 1c == NAX6 True, 3c-N 1c == 3c True, slots True; timeouts 0
+  call 3 (late release, 20 ms): p11: NAX6-N 1c == NAX6 True, 3c-N 1c == 3c True, slots True; timeouts 0
+OOO-1C native forms: PASS
+ref2 on native+p11 records (layout 2): 3c-N one call == 3c True, NAX6-N one call == NAX6 True, 2 one-calls counted True -> PASS

@@ -1,0 +1,11 @@
+N7-10 NAX7-F three dispatches Mon 22:14 (shared lock beside Breakthrough (50 % GPU)); layer 20
+1. bits NAX7-F == NAX6 + combine_phase (4 traces x S 8 / 16 / 32 x 8 passes): 96 / 96
+2. S 16: per call NAX6 1.643 -> NAX7-F 1.719 ms (-4.6 %)
+2. S 8: per call NAX6 0.940 -> NAX7-F 0.917 ms (+2.4 %)
+(the 22:14 run above hung in the S 32 timing after S 16 / 8; stopped by PID at 22:35; cause unknown: bits at S 32 had passed)
+--- QUIET verdict run (quiet lock 22:40), S 16 / 8 timing; bits at S 8 / 16 only
+N7-10 NAX7-F three dispatches Mon 22:41 (quiet lock 22:40); layer 20
+1. bits NAX7-F == NAX6 + combine_phase (4 traces x S 8 / 16 / 32 x 8 passes): 64 / 64
+2. S 16: per call NAX6 0.920 -> NAX7-F 0.909 ms (+1.2 %)
+2. S 8: per call NAX6 0.583 -> NAX7-F 0.550 ms (+5.7 %)
+N7-10 verdict (bits 64 / 64; PASS whole call >= 8 % faster at S 16, KILL < 3 %): KILL (1.2 %)

@@ -1,0 +1,8 @@
+L1-26: fragment-native 4-bit layout vs qmm16c (dense) and experts_nax (routed experts)
+  in_proj_qkv      10240x2560 x36: floor 1.90 ms; qmm16c (2, 2) 2.57 (74%); native best 2.21 (86%) at (1, 2); bitwise = qmm16c at (2, 2): True
+  o_proj+out_proj  2560x6144 x48: floor 1.52 ms; qmm16c (2, 2) 2.82 (54%); native best 1.92 (79%) at (2, 2); bitwise = qmm16c at (2, 2): True
+  in_proj_z        6144x2560 x36: floor 1.14 ms; qmm16c (1, 1) 2.33 (49%); native best 1.48 (77%) at (1, 1); bitwise = qmm16c at (1, 1): True
+  experts: loaded + repacked 4 layers in 24 s
+   4 rows (21 distinct experts): floor 0.207 ms per layer; experts_nax 0.346 (60%); native best 0.323 (64%) at (4, 1) (2, 1); bitwise = experts_nax (4,1)(1,2): True; per 48-layer check: nax 16.6, native 15.5 ms
+   8 rows (34 distinct experts): floor 0.341 ms per layer; experts_nax 0.505 (68%); native best 0.461 (74%) at (4, 1) (2, 1); bitwise = experts_nax (4,1)(1,2): True; per 48-layer check: nax 24.2, native 22.1 ms
+  16 rows (59 distinct experts): floor 0.580 ms per layer; experts_nax 0.762 (76%); native best 0.709 (82%) at (4, 1) (1, 2); bitwise = experts_nax (4,1)(1,2): True; per 48-layer check: nax 36.6, native 34.0 ms

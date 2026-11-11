@@ -1,0 +1,33 @@
+REL1 BUILD (Leap, Mon 2026-11-09 09:57; builder python 3.12; CPU only)
+command: python3.12 release/make_release.py rel1 --commit 0b4df8c --refs release/refs_rel1.json
+refs (release/refs_rel1.json at this build):
+  {
+   "exact-45_ar": "/Users/kamen/BigMoE/data/n45/ar_ref_tokens.json",
+   "exact-32_ar": "/Users/kamen/BigMoE/data/n45/ar_ref_tokens.json",
+   "chat-45_pdz4a": "/Users/kamen/BigMoE/data/r57/pdz4a_256_tokens.json",
+   "chat-32_zs32": "/Users/kamen/BigMoE/data/r57/zs32_160_tokens.json",
+   "lossy-45_rli256": "/Users/kamen/BigMoE/data/r57/rli_256_tokens.json",
+   "lossy-32_rli160": "/Users/kamen/BigMoE/data/r57/rli_160_tokens.json"
+  }
+build output (verbatim, last lines):
+  PACKAGE rel1: 225 files, 6.3 MB; BigMoE 0b4df8c3, EvalSuite 98c6072d; 43 modules in the manifest union, 0 not in this snapshot []; 43 files path-rewritten, 1 scrubbed, 4 quotes redacted
+    leaks 0
+    quote lines left unscrubbed (unsafe to edit) 0
+    other ~/ paths named in code (MANIFEST home_paths_left) 43
+    live research paths left in code (fail loudly under HOME=empty if executed) 0
+    syntax errors 0
+  COMMITTED 242553d /Users/kamen/Leap/release/out/pkg
+check now (10:04): package commit 242553d; files in git 227 = the build's 225 placed files + MANIFEST.json + .gitignore (both written after the count, make_release.py l287 / l304); bytes in git 6.35 MB
+MANIFEST: snapshot rel1 0b4df8c3 evalsuite 98c6072d leap fffde1e1 home_paths_left 43
+diff against the smoke-tested rel0 package (dbe5ea6, from cleanclone/smoke/clone), name-status:
+  M	MANIFEST.json
+  M	README.md
+  A	convert/convert_store.sh
+  M	engine/loop/SNAPSHOT
+  R100	engine/loop/r57_screen_rel0.py	engine/loop/r57_screen_rel1.py
+  M	tools/clean_clone_test.sh
+  R100	verify/chat-45_pdz0.json	verify/chat-45_pdz4a.json
+  A	verify/lossy-32_rli160.json
+  A	verify/lossy-45_rli256.json
+reference md5 (rli_256 == rli_160 == rlr_256): f6076f09a0b35e584b97cfb2d1966a17 f6076f09a0b35e584b97cfb2d1966a17 f6076f09a0b35e584b97cfb2d1966a17; shipped: f6076f09a0b35e584b97cfb2d1966a17 f6076f09a0b35e584b97cfb2d1966a17
+prep (cleanclone/final, share lock 09:58): see cleanclone/final/report.txt -> PREP DONE 09:58:37, install rc 0 in 10 s, six dry runs OK

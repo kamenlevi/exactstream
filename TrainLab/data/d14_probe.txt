@@ -1,0 +1,24 @@
+D-14 probes (DFlash2 L1-20, block 16, 1 step). A: depth-1 hit rate by the 125B's confidence on the token
+(sure p1 >= 0.99 / tie p1 - p2 <= 0.1 / mid), on-path positions only; n = depth-1 trials in that class.
+  code   sure 0.996 (n 505)  mid 0.791 (n 148)  tie 0.500 (n 10)
+  math   sure 0.993 (n 1406)  mid 0.744 (n 594)  tie 0.333 (n 27)
+  ifeval sure 0.899 (n 801)  mid 0.565 (n 1742)  tie 0.292 (n 236)
+  multi  sure 0.622 (n 1312)  mid 0.452 (n 1778)  tie 0.224 (n 156)
+  agent  sure 0.795 (n 298)  mid 0.529 (n 255)  tie 0.333 (n 33)
+
+B: multi per language (24 answers, 3 per language): kept per check, depth-1 rate, the 125B's sure share of the
+completion tokens, depth-1 hit rate on sure tokens
+  arnpz: kept 1.59 (540 checks), depth-1 0.363, 125B sure share 0.34, depth-1 on sure tokens 0.454 (n 205)
+  bgnpz: kept 1.60 (687 checks), depth-1 0.330, 125B sure share 0.45, depth-1 on sure tokens 0.365 (n 312)
+  denpz: kept 2.39 (317 checks), depth-1 0.644, 125B sure share 0.40, depth-1 on sure tokens 0.734 (n 139)
+  esnpz: kept 2.85 (301 checks), depth-1 0.734, 125B sure share 0.42, depth-1 on sure tokens 0.936 (n 140)
+  frnpz: kept 2.74 (319 checks), depth-1 0.712, 125B sure share 0.47, depth-1 on sure tokens 0.824 (n 165)
+  janpz: kept 2.08 (437 checks), depth-1 0.481, 125B sure share 0.29, depth-1 on sure tokens 0.683 (n 104)
+  runpz: kept 2.11 (291 checks), depth-1 0.619, 125B sure share 0.36, depth-1 on sure tokens 0.697 (n 119)
+  zhnpz: kept 2.00 (402 checks), depth-1 0.490, 125B sure share 0.34, depth-1 on sure tokens 0.672 (n 128)
+
+C: agent, is the true 4-gram at the position copyable from the context before it: W = its latest earlier
+occurrence lies inside the drafter's 2048-token window, B = only beyond it, N = nowhere earlier
+  first miss  : n  614  W 0.14  B 0.13  N 0.73
+  depth-1 hit : n  386  W 0.23  B 0.14  N 0.63
+  depth-1 miss: n  239  W 0.05  B 0.14  N 0.81

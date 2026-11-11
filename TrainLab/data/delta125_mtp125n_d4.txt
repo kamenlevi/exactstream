@@ -1,0 +1,13 @@
+mtp125n_d4: 11 trained layers
+fc_embedding                               (2560, 2560)   bfloat16  rms d/w 0.0699  stored as is (bf16 keeps it)  energy r8 0.15 r32 0.33 r128 0.64
+fc_hidden                                  (2560, 2560)   bfloat16  rms d/w 0.0382  stored as is (bf16 keeps it)  energy r8 0.19 r32 0.41 r128 0.65
+layers.0.mlp.gate                          (512, 2560)    8-bit g64 rms d/w 0.0555  |d| > step/2 81.13 %  requant keeps +0.992 of the change (codes moved 83.56 %), at 8 bits +0.992  energy r8 0.22 r32 0.40 r128 0.67
+layers.0.mlp.shared_expert.down_proj       (2560, 640)    4-bit g64 rms d/w 0.0273  |d| > step/2  0.04 %  requant keeps +0.116 of the change (codes moved 43.09 %), at 8 bits +1.000  energy r8 0.43 r32 0.65 r128 0.85
+layers.0.mlp.shared_expert.gate_proj       (640, 2560)    4-bit g64 rms d/w 0.0392  |d| > step/2  1.80 %  requant keeps +0.231 of the change (codes moved 49.09 %), at 8 bits +1.000  energy r8 0.29 r32 0.52 r128 0.77
+layers.0.mlp.shared_expert.up_proj         (640, 2560)    4-bit g64 rms d/w 0.0337  |d| > step/2  0.33 %  requant keeps +0.147 of the change (codes moved 47.61 %), at 8 bits +1.001  energy r8 0.31 r32 0.53 r128 0.78
+layers.0.mlp.shared_expert_gate            (1, 2560)      4-bit g64 rms d/w 0.1452  |d| > step/2 16.68 %  requant keeps +0.707 of the change (codes moved 61.29 %), at 8 bits +1.000  energy 
+layers.0.self_attn.k_proj                  (512, 2560)    4-bit g64 rms d/w 0.0253  |d| > step/2  0.12 %  requant keeps +0.112 of the change (codes moved 38.09 %), at 8 bits +0.998  energy r8 0.31 r32 0.52 r128 0.77
+layers.0.self_attn.o_proj                  (2560, 6144)   4-bit g64 rms d/w 0.0137  |d| > step/2  0.00 %  requant keeps +0.157 of the change (codes moved 34.23 %), at 8 bits +0.987  energy r8 0.29 r32 0.51 r128 0.70
+layers.0.self_attn.q_proj                  (12288, 2560)  4-bit g64 rms d/w 0.0249  |d| > step/2  0.14 %  requant keeps +0.131 of the change (codes moved 43.82 %), at 8 bits +1.003  energy r8 0.27 r32 0.42 r128 0.61
+layers.0.self_attn.v_proj                  (512, 2560)    4-bit g64 rms d/w 0.0149  |d| > step/2  0.00 %  requant keeps +0.125 of the change (codes moved 27.28 %), at 8 bits +0.990  energy r8 0.23 r32 0.44 r128 0.72
+all layers: re-quantization keeps 0.326 of the change energy, at 8 bits 0.999 (bf16 layers count fully)

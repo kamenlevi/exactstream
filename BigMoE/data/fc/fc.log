@@ -1,0 +1,17 @@
+11-07 07:04:15 FIRSTCHK kill test start (pid 17894, NO-SWAP 52.9 GB, C 256); screen md5 70ed7810160ac28763b4ed57a755dabe
+11-07 07:04:56 fcctl rc=0
+11-07 07:05:31 fcrep rc=0
+FIRSTCHK kill test, C 256 (data/fc; v1' = final_env dd7ad0f; 3 HumanEval, CAP 64): wall ms (build + wait) and main-thread CPU ms (build + wait) per check; medians over the prompts
+  fcctl check 0 : wall  325.9 ms (build  292.0, wait  33.9); thread CPU   33.8 ms; misses  131; per prompt wall [332, 322, 326], CPU [35, 34, 32]
+  fcctl check 1 : wall   79.4 ms (build   72.5, wait   6.8); thread CPU   23.3 ms; misses  169; per prompt wall [97, 79, 64], CPU [24, 23, 23]
+  fcctl check 2 : wall   90.1 ms (build   81.9, wait   7.3); thread CPU   23.2 ms; misses  220; per prompt wall [94, 90, 71], CPU [23, 23, 23]
+  fcctl check 3 : wall   83.3 ms (build   77.3, wait   6.9); thread CPU   22.8 ms; misses  196; per prompt wall [83, 92, 78], CPU [23, 23, 23]
+  fcrep copy 1  : wall  311.5 ms (build  288.1, wait  23.4); thread CPU   32.4 ms; misses  133; per prompt wall [312, 296, 315], CPU [34, 32, 32]
+  fcrep check 0 : wall   60.8 ms (build   55.6, wait   4.9); thread CPU   22.0 ms; misses    0; per prompt wall [45, 62, 61], CPU [22, 22, 22]
+  fcrep check 1 : wall   78.8 ms (build   72.0, wait   6.8); thread CPU   22.7 ms; misses  168; per prompt wall [98, 79, 62], CPU [23, 23, 23]
+  fcrep check 2 : wall   90.1 ms (build   82.3, wait   7.6); thread CPU   22.8 ms; misses  225; per prompt wall [92, 90, 71], CPU [24, 23, 23]
+  fcrep check 3 : wall   85.9 ms (build   78.7, wait   7.2); thread CPU   22.6 ms; misses  207; per prompt wall [86, 90, 79], CPU [23, 23, 23]
+Verdict FIRSTCHK (pre-registered, NewIdeas QUEUE db21669): ONE-TIME, GPU (copy 2 61 ms < 200: the excess is paid once per prompt; host CPU in it 10 ms of 221) -> scope a fix with Leap. copy 1 312 ms, copy 2 61 ms, check 2 90 ms; thread CPU copy 1 32 vs check 2 23 ms
+Control (fcctl): check 0 wall 326 ms, thread CPU 34 ms; check 2 wall 90, CPU 23 ms
+11-07 07:05:31 report rc=0 (data/fc/fc_report.txt)
+11-07 07:05:31 FIRSTCHK kill test end

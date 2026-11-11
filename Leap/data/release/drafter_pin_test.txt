@@ -1,0 +1,20 @@
+DRAFTER PIN TEST (Leap, Mon 2026-11-09 00:3x; CPU only, under a share lock; package 63f41fa = rel0 + the pin)
+What: run.py pins the block drafter's base incoai/Qwen3.8-Flash-Next-DFlash2 to revision a22a1744e85c17364dcc54a6a420af7135d4c7f6
+(the drafter loader, third_party/dflash_model_mlx.py load_draft, calls snapshot_download(id, allow_patterns) = the cache's default
+branch). The engine process wraps that module's snapshot_download: revision = the pinned commit, local_files_only = True.
+How: a fake decode-loop script that imports the real dflash_model_mlx from the clone and makes load_draft's exact call, run through
+`run.py --_engine spec.json` (the engine process) and, as the control, as a plain script. HF_HUB_OFFLINE=1 throughout.
+Synthetic cache = HF_HUB_CACHE with only models--incoai--Qwen3.8-Flash-Next-DFlash2/snapshots/<commit>/{config.json,
+model.safetensors} (symlinks to the real blobs; no refs/main, no trees/ listing).
+
+engine process, synthetic cache:  loader's snapshot_download = engine_child.<locals>._drafter.<locals>.snapshot_download
+                                  RESOLVED .../pintest/hfc/models--incoai--Qwen3.8-Flash-Next-DFlash2/snapshots/a22a1744...
+control (plain import), same:     FAILED LocalEntryNotFoundError   (no refs/main: the unpinned call cannot resolve)
+engine process, the real cache:   RESOLVED ~/.cache/huggingface/hub/models--incoai--Qwen3.8-Flash-Next-DFlash2/snapshots/a22a1744...
+                                  (== the snapshot every measured run loaded: the cache's refs/main is a22a1744...)
+run.py drafter_cached(), synthetic cache: the snapshot path; empty cache: None -> run.py stops with
+  .venv/bin/hf download incoai/Qwen3.8-Flash-Next-DFlash2 config.json model.safetensors --revision a22a1744e85c17364dcc54a6a420af7135d4c7f6
+First version (revision only, no local_files_only) FAILED on the synthetic cache with OfflineModeIsEnabled: huggingface_hub 1.33's
+snapshot_download asks the Hub for a commit's file listing (trees/<commit>.json) when the cache has none, even offline; fixed
+(e532d27) before the smoke clone was re-prepped (63f41fa: install rc 0 in 7 s, "drafter base in the Hugging Face cache at the
+pinned revision", 6/6 dry runs).

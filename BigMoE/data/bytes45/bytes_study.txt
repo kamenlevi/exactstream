@@ -1,0 +1,21 @@
+bytes45 study (cap45, exact live loop at C 160, S45's six prompts): expert bytes a 16-row check touches (RAM side; SSD = only the misses of those)
+  gsm8k_708: 32 checks; distinct experts per layer per 16-row check 71.8; GB per check at r=1 1.40, r=2 2.28, r=4 3.85, r=8 6.49, r=12 8.54, r=16 10.07; REF2-T 16 rows 8.06
+  humaneval_HumanEval_68: 17 checks; distinct experts per layer per 16-row check 83.3; GB per check at r=1 1.40, r=2 2.49, r=4 4.39, r=8 7.26, r=12 9.49, r=16 11.67; REF2-T 16 rows 9.36
+  humaneval_HumanEval_91: 32 checks; distinct experts per layer per 16-row check 70.5; GB per check at r=1 1.40, r=2 2.32, r=4 3.76, r=8 6.23, r=12 8.25, r=16 9.88; REF2-T 16 rows 7.92
+  math500_test_algebra_1282: 37 checks; distinct experts per layer per 16-row check 67.7; GB per check at r=1 1.40, r=2 2.24, r=4 3.65, r=8 5.99, r=12 7.88, r=16 9.49; REF2-T 16 rows 7.61
+  math500_test_algebra_694: 33 checks; distinct experts per layer per 16-row check 74.8; GB per check at r=1 1.40, r=2 2.32, r=4 3.85, r=8 6.41, r=12 8.57, r=16 10.49; REF2-T 16 rows 8.39
+  math500_test_prealgebra_1640: 48 checks; distinct experts per layer per 16-row check 68.7; GB per check at r=1 1.40, r=2 2.24, r=4 3.74, r=8 5.99, r=12 8.00, r=16 9.62; REF2-T 16 rows 7.66
+ALL: distinct experts per layer per check 71.6 (of 160 ids); GB per check 4-bit: r=1 1.40 (14%), r=2 2.29 (23%), r=4 3.82 (38%), r=8 6.29 (63%), r=12 8.32 (83%), r=16 10.03 (100%); REF2-T (16 rows) 8.02 GB (-20.0% vs 4-bit)
+
+lever table: GB of expert bytes per KEPT token (lower = better; 350 tok/s at ~280 GB/s needs <= ~0.8)
+  gsm8k_708: 4-bit r2 1.22 r4 1.13 r6 1.16 r8 1.27 r12 1.40 r16 1.64 | REF2-T r2 0.96 r4 0.90 r6 0.92 r8 1.01 r12 1.12 r16 1.31
+  humaneval_HumanEval_68: 4-bit r2 1.24 r4 1.11 r6 0.98 r8 0.89 r12 0.79 r16 0.84 | REF2-T r2 0.98 r4 0.88 r6 0.78 r8 0.71 r12 0.64 r16 0.68
+  humaneval_HumanEval_91: 4-bit r2 1.20 r4 1.08 r6 1.12 r8 1.24 r12 1.42 r16 1.63 | REF2-T r2 0.95 r4 0.86 r6 0.89 r8 0.99 r12 1.13 r16 1.31
+  math500_test_algebra_1282: 4-bit r2 1.21 r4 1.14 r6 1.15 r8 1.21 r12 1.37 r16 1.55 | REF2-T r2 0.96 r4 0.91 r6 0.91 r8 0.97 r12 1.09 r16 1.25
+  math500_test_algebra_694: 4-bit r2 1.18 r4 1.01 r6 0.98 r8 1.03 r12 1.19 r16 1.40 | REF2-T r2 0.93 r4 0.80 r6 0.78 r8 0.82 r12 0.95 r16 1.12
+  math500_test_prealgebra_1640: 4-bit r2 1.17 r4 1.15 r6 1.19 r8 1.30 r12 1.53 r16 1.81 | REF2-T r2 0.92 r4 0.91 r6 0.94 r8 1.03 r12 1.21 r16 1.44
+  ALL: 4-bit r2 1.19 r4 1.10 r6 1.11 r8 1.19 r12 1.35 r16 1.56 | REF2-T r2 0.94 r4 0.88 r6 0.89 r8 0.95 r12 1.08 r16 1.25
+
+scoreboard columns: kept tokens per 16-row check (cap45) and SSD GB per check vs C (Fit12's replay misses x 2.92 MB)
+  kept per check: gsm8k_708 6.16, humaneval_HumanEval_68 14.00, humaneval_HumanEval_91 5.88, math500_test_algebra_1282 6.09, math500_test_algebra_694 7.47, math500_test_prealgebra_1640 5.31; mean 7.48
+  SSD GB per check (4-bit): C 192 1.59 (545 misses), C 224 1.24 (424 misses), C 256 1.01 (345 misses), C 288 0.87 (297 misses), C 320 0.78 (268 misses); SSD GB per kept token at the mean kept: C 192 0.21, C 224 0.17, C 256 0.13, C 288 0.12, C 320 0.10

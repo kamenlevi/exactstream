@@ -1,0 +1,3 @@
+# neutral zsh startup for the sandboxed agent runs (Leap 11-11, orchestrator 04:2x): Claude Code sources $HOME/.zshrc for its
+# shell snapshot; this one only exports the exact PATH of the 11-11 runs (measured on the mock, bashfix_home.out).
+export PATH='/Users/kamen/.bun/bin:/Users/kamen/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/Library/TeX/texbin:/opt/homebrew/bin:/Users/kamen/.cargo/bin:/Users/kamen/.lmstudio/bin'

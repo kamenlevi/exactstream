@@ -1,0 +1,18 @@
+[   0.1s] hash constants from the checkpoint: mult [np.int64(23703573157769), np.int64(20109073645365), np.int64(8052911324071)], 16 heads, sizes 20000003..20000171; = derived (ple_index 0, seed 1234): (True, True, True); eos 248044
+[   3.8s] lm_head dequantized (248320 x 2560, group 64) in 3.7s; embed group 64; table group 32
+[   3.9s] dequantize check lm_head: max |numpy - mlx| / max |mlx| = 0.00e+00
+[   3.9s] dequantize check ngram: max |numpy - mlx| / max |mlx| = 0.00e+00
+[   4.0s] == code: 24 samples, 11095 rows, 6375 completion rows; the 125B's top-1 = the next token on 99.67 % of completion rows
+[   5.9s] 55173 distinct n-gram rows of 177520 gathered + dequantized in 1.9s (row ids 1590..319996675)
+[ 123.6s] code N   : held-out completion rows top-1   5.3 % top-4   8.4 % (dot top-1   5.0) | p >= 0.9 (5925): top-1   5.6 % top-4   8.9 % | p < 0.9: top-1   1.3 % | alpha [10.0, 10.0]
+[ 244.2s] code C   : held-out completion rows top-1   8.7 % top-4  11.7 % (dot top-1   6.7) | p >= 0.9 (5925): top-1   9.3 % top-4  12.4 % | p < 0.9: top-1   1.1 % | alpha [10.0, 10.0]
+[ 538.8s] code N+C : held-out completion rows top-1   9.2 % top-4  13.3 % (dot top-1   7.4) | p >= 0.9 (5925): top-1   9.8 % top-4  14.2 % | p < 0.9: top-1   1.3 % | alpha [10.0, 10.0]
+[ 538.8s] D-03 verdict (code, p >= 0.9 held-out top-1): N 5.6 % vs C 9.3 % (-3.7 points); PASS >= 30 and >= C + 10, KILL < 10 or <= C + 3 -> KILL
+[ 538.8s] code done in 534.9s
+[ 538.8s] == gsm: 29 samples, 9787 rows, 7061 completion rows; the 125B's top-1 = the next token on 99.55 % of completion rows
+[ 550.3s] 65089 distinct n-gram rows of 156592 gathered + dequantized in 11.5s (row ids 5033..320000634)
+[ 677.0s] gsm N   : held-out completion rows top-1  12.9 % top-4  18.1 % (dot top-1  10.9) | p >= 0.9 (6106): top-1  14.3 % top-4  19.9 % | p < 0.9: top-1   4.1 % | alpha [1.0, 10.0]
+[ 799.3s] gsm C   : held-out completion rows top-1  17.2 % top-4  25.0 % (dot top-1  12.6) | p >= 0.9 (6106): top-1  19.2 % top-4  27.7 % | p < 0.9: top-1   4.3 % | alpha [1.0, 1.0]
+[1090.2s] gsm N+C : held-out completion rows top-1  13.8 % top-4  20.4 % (dot top-1   9.9) | p >= 0.9 (6106): top-1  15.4 % top-4  22.7 % | p < 0.9: top-1   3.5 % | alpha [10.0, 10.0]
+[1090.2s] gsm (information): N 14.3 % vs C 19.2 % (-4.9 points) on p >= 0.9 rows
+[1090.2s] gsm done in 551.4s

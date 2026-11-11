@@ -1,0 +1,15 @@
+SWEEP IN THE ENGINE FRAME (24 GB, Cl 0, every store's pool at its slot count; KL(REF2-T || arm), [G] from measured anchors)
+anchors (map frame, C's form + DRAFT17): code 147 0.0061 / 239 0.0040 / 45 GB 0.0037; ifeval 147 0.0386 / 239 0.0232 / 45 GB 0.0206; multi 147 0.0313 / 239 0.0236 / 45 GB 0.0229
+terms: T01 0.0020 / 0.0112 / 0.0128; E29 at 239 0.0011 / 0.0065 / 0.0089; DRAFT17 +0.0004 / +0.0000 / +0.0000
+pool term check, measured KL gap closed at 239 vs the keep proxy g: code 0.89 vs 0.67; ifeval 0.86 vs 0.75; multi 0.92 vs 0.81
+check, MSB-2 at 239 (r 5): model 0.0177 / 0.1004 / 0.1192 vs s7_cal_all 0.0180 / 0.1094 / 0.1465 (implied r: 5.10 / 5.51 / 6.26)
+
+| row | r (MSE vs MSB-3) | slots | in-frame KL code / IFEval / multi | in-frame flips % (VERDICT) | verdicts | strict flips % (independent quantizer vs REF2-T) | strict verdicts | absolute flips % (vs the 4-bit model) | v1 (map frame, guessed terms) |
+|---|---|---|---|---|---|---|---|---|---|
+| 0 today's FAST stack (MSB-3 11-bit, POOLSPLIT, DRAFT17) | 1.0 | 171 | 0.0054 / 0.0339 / 0.0289 | 1.08 / 7.61 / 5.98 | PASS / BETWEEN / KILL | 1.08 / 7.61 / 5.98 | PASS / BETWEEN / KILL | 1.18 / 8.22 / 6.82 | 1.12 / 7.67 / 6.01 |
+| 1 B10 TRL-2 (2.06 b) | 1.854 | 276 | 0.0065 / 0.0364 / 0.0416 | 1.19 / 7.87 / 7.20 | PASS / BETWEEN / KILL | 1.40 / 9.12 / 8.66 | BETWEEN / KILL / KILL | 1.30 / 8.52 / 7.96 | 1.27 / 7.96 / 7.09 |
+| 2a the 2.40 b mix, r 1.62 | 1.62 | 239 | 0.0059 / 0.0341 / 0.0370 | 1.13 / 7.63 / 6.79 | PASS / BETWEEN / KILL | 1.34 / 8.89 / 8.29 | BETWEEN / KILL / KILL | 1.24 / 8.29 / 7.57 | 1.23 / 7.88 / 6.81 |
+| 2b the 2.40 b mix, r 1.87 | 1.87 | 239 | 0.0067 / 0.0386 / 0.0424 | 1.21 / 8.09 / 7.28 | PASS / BETWEEN / KILL | 1.41 / 9.28 / 8.70 | BETWEEN / KILL / KILL | 1.31 / 8.71 / 8.02 | 1.32 / 8.34 / 7.27 |
+| 3 TRL-3 (3INST 3.07 b) | 0.52 | 185 | 0.0036 / 0.0229 / 0.0175 | 0.86 / 6.32 / 4.61 | PASS / BETWEEN / BETWEEN | 1.11 / 7.74 / 6.54 | PASS / BETWEEN / KILL | 0.99 / 7.07 / 5.66 | 0.87 / 6.33 / 4.66 |
+| 4 GPTQ-3 g64 | 0.61 | 171 | 0.0042 / 0.0271 / 0.0207 | 0.94 / 6.85 / 5.03 | PASS / BETWEEN / BETWEEN | 1.17 / 8.16 / 6.83 | PASS / KILL / KILL | 1.06 / 7.53 / 5.99 | 0.96 / 6.87 / 5.09 |
+(E29's window-cluster SE on code is 0.00065 (z 1.8; s7_read.txt): code rows carry about +-0.1 flip points from it; chat terms are z 8-10)

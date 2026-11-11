@@ -1,0 +1,146 @@
+"""Decision map of the 125B (FableGod mission 9): teacher-forced replays with one part of the computation perturbed,
+measuring how often the ARGMAX changes, by domain (code / IFEval / multi) and by the 125B's own confidence class
+(sure p1 >= 0.99 / tie p1 - p2 <= 0.1 / mid). Runs inside the BigMoE venv like ~/TrainLab/sticky/d02a_extract.py.
+
+ADAPT (the only names a runner must check, all taken from ref2.py / d02a_extract.py as read on 2026-11-01):
+  A1 model loading: bigmoe.loader.load_streamed(...) with the 45 GB preset, as d02a_extract.py does (copy its call).
+  A2 forward: FORWARD(model, ids) -> logits [T, V] for a token window, chunked prefill with a fresh cache; d02a_extract's
+     patched _text / mtplx.generation pattern. Replace the body of forward_logits() with that call.
+  A3 layer discovery: model.layers[i] holds Q.GatedDeltaNet or Q.Attention (mixer), Q.GatedResidual (HC read),
+     Q._FusedGateUpSwitchGLU or SL.SwitchGLU (routed experts), and a shared-expert module whose attribute name contains
+     "shared". discover_layers() walks modules by class; fix the names if the walk prints "missing".
+  A4 windows: d02b_walk_{code,d02a_ifeval,d02a_multi}.npz hold names, {s}_ids, {s}_off, {s}_gen (prompt | greedy answer).
+  A5 the routed-experts call signature: __call__(self, x, indices) (ref2.py _switch); the expert weights are per-row
+     top-10 ids in `indices` with gate scores applied inside. Rank cuts are applied by masking indices (see dm_ablations).
+"""
+import os, sys, json, time, types
+import numpy as np
+import mlx.core as mx
+sys.path.insert(0, os.path.expanduser("~/BigMoE"))
+sys.path.insert(0, os.path.expanduser("~/TrainLab/sticky"))
+from mtplx.models import qwen4_exp as Q
+from mlx_lm.models import switch_layers as SL
+
+TD = os.path.expanduser("~/TrainLab/data")
+OUT = os.path.expanduser("~/FableGod/decision_map/out"); os.makedirs(OUT, exist_ok=True)
+SETS = [("code", "d02b_walk_code.npz"), ("ifeval", "d02b_walk_d02a_ifeval.npz"), ("multi", "d02b_walk_d02a_multi.npz")]
+TOPK = 8
+CHUNK = 512
+
+def load_windows(max_per_set=12):
+    """[(domain, name, ids(np.int32), off, gen)] : positions >= gen+1 (the answer) are the measured ones."""
+    W = []
+    for dom, wf in SETS:
+        z = np.load(os.path.join(TD, wf))
+        for s, nm in enumerate(z["names"]):
+            if s >= max_per_set: break
+            W.append((dom, str(nm), z[f"{s}_ids"].astype(np.int32), int(z[f"{s}_off"]), int(z[f"{s}_gen"])))
+    return W
+
+def load_model():
+    # A1: copy d02a_extract.py's load_streamed(...) call here (45 GB preset, C 224, REF2-T tiers). Returns (model, tok).
+    from bigmoe.loader import load_streamed            # noqa
+    raise NotImplementedError("A1: paste d02a_extract.py's load_streamed call")
+
+def forward_logits(model, ids):
+    """A2: teacher-forced logits for every position of ids (prompt + answer), chunked prefill with a fresh cache.
+    Must return an mx.array [T, V] (float32 ok). Mirror d02a_extract.py's _text patch / mtplx.generation loop."""
+    raise NotImplementedError("A2: chunked teacher-forced forward returning [T, V] logits")
+
+def topk_stats(logits, k=TOPK):
+    lp = mx.log(mx.softmax(logits.astype(mx.float32), axis=-1))
+    o = mx.argsort(-lp, axis=-1)[:, :k]
+    v = mx.take_along_axis(lp, o, axis=-1)
+    return np.array(o).astype(np.int64), np.array(v).astype(np.float32)
+
+def classes(lp):
+    p1, p2 = np.exp(lp[:, 0]), np.exp(lp[:, 1])
+    c = np.where(p1 >= 0.99, 0, np.where(p1 - p2 <= 0.1, 1, 2))   # 0 sure, 1 tie, 2 mid
+    return c
+
+# ---- layer discovery and perturbation registry -----------------------------------------------------------------
+LAYERS = {}   # id(module) -> (layer_index, kind)
+ACTIVE = {}   # kind -> callable(layer_index, x_in, y_out, self) -> y_out' ; set by dm_ablations
+PREV = {}     # per (kind, layer) previous-position output for "reuse previous position" perturbations
+
+def discover_layers(model):
+    LAYERS.clear(); missing = []
+    for i, layer in enumerate(model.layers):
+        found = set()
+        for name, mod in layer.named_modules() if hasattr(layer, "named_modules") else _walk(layer):
+            if isinstance(mod, Q.GatedDeltaNet): LAYERS[id(mod)] = (i, "gdn"); found.add("mixer")
+            elif isinstance(mod, Q.Attention): LAYERS[id(mod)] = (i, "att"); found.add("mixer")
+            elif isinstance(mod, Q.GatedResidual): LAYERS[id(mod)] = (i, "hc"); found.add("hc")
+            elif isinstance(mod, (Q._FusedGateUpSwitchGLU, SL.SwitchGLU)): LAYERS[id(mod)] = (i, "moe"); found.add("moe")
+            elif "shared" in name.lower() and hasattr(mod, "__call__") and not isinstance(mod, type):
+                LAYERS[id(mod)] = (i, "shared"); found.add("shared")
+        for k in ("mixer", "hc", "moe", "shared"):
+            if k not in found: missing.append((i, k))
+    if missing: print("discover_layers: missing", missing[:8], "... (A3: fix class / attribute names)", flush=True)
+    return LAYERS
+
+def _walk(mod, prefix=""):
+    for k, v in vars(mod).items():
+        if hasattr(v, "__call__") and not isinstance(v, type):
+            yield (prefix + k, v); yield from _walk(v, prefix + k + ".")
+        elif isinstance(v, (list, tuple)):
+            for j, w in enumerate(v):
+                if hasattr(w, "__call__"): yield (f"{prefix}{k}.{j}", w); yield from _walk(w, f"{prefix}{k}.{j}.")
+
+_ORIG = {}
+def install():
+    """Wrap the class __call__ of each kind once; the wrapper applies ACTIVE[kind] for the layer index of `self`."""
+    def wrap(cls, kind, with_indices=False):
+        if (cls, kind) in _ORIG: return
+        orig = cls.__call__; _ORIG[(cls, kind)] = orig
+        def call(self, *a, **kw):
+            li = LAYERS.get(id(self), (None, None))[0]
+            pre = ACTIVE.get(kind + "_pre")
+            if pre is not None and li is not None: a = pre(li, self, a)
+            y = orig(self, *a, **kw)
+            post = ACTIVE.get(kind)
+            return post(li, self, a, y) if (post is not None and li is not None) else y
+        cls.__call__ = call
+    wrap(Q.GatedDeltaNet, "gdn"); wrap(Q.Attention, "att"); wrap(Q.GatedResidual, "hc")
+    wrap(Q._FusedGateUpSwitchGLU, "moe"); wrap(SL.SwitchGLU, "moe")
+
+def clear(): ACTIVE.clear(); PREV.clear()
+
+def run_window(model, ids):
+    lg = forward_logits(model, ids); mx.eval(lg)
+    return topk_stats(lg)
+
+def measure(model, windows, name, setup):
+    """setup(): registers ACTIVE perturbations (or nothing for the baseline). Writes out/<name>.json with per-position
+    top-8 ids and log-probs for the answer positions, plus flips vs the baseline file if it exists."""
+    clear(); setup()
+    res = {}
+    t0 = time.time()
+    for dom, nm, ids, off, gen in windows:
+        tk, lp = run_window(model, ids)
+        a = gen + 1 - off                                   # first answer position inside ids
+        res[nm] = dict(dom=dom, a=int(a), tk=tk[a:].tolist(), lp=lp[a:].tolist())
+        print(f"{name} {dom} {nm} {len(ids) - a} positions {time.time() - t0:.0f}s", flush=True)
+    json.dump(res, open(os.path.join(OUT, name + ".json"), "w"))
+    clear()
+    return res
+
+def report(base_name="baseline", names=None):
+    base = json.load(open(os.path.join(OUT, base_name + ".json")))
+    names = names or [f[:-5] for f in sorted(os.listdir(OUT)) if f.endswith(".json") and f[:-5] != base_name]
+    rows = ["| perturbation | code sure / tie / mid flip % (n) | ifeval sure / tie / mid | multi sure / tie / mid | mean dmargin |", "|---|---|---|---|---|"]
+    for nm in names:
+        r = json.load(open(os.path.join(OUT, nm + ".json"))); cells = []; dm = []
+        for dom in ("code", "ifeval", "multi"):
+            flips = np.zeros(3); n = np.zeros(3)
+            for w, b in base.items():
+                if b["dom"] != dom or w not in r: continue
+                btk, blp = np.array(b["tk"]), np.array(b["lp"]); rtk, rlp = np.array(r[w]["tk"]), np.array(r[w]["lp"])
+                m = min(len(btk), len(rtk)); btk, blp, rtk, rlp = btk[:m], blp[:m], rtk[:m], rlp[:m]
+                c = classes(blp)
+                f = rtk[:, 0] != btk[:, 0]
+                dm.append(((rlp[:, 0] - rlp[:, 1]) - (blp[:, 0] - blp[:, 1])).mean())
+                for k in range(3): flips[k] += f[c == k].sum(); n[k] += (c == k).sum()
+            cells.append(" / ".join(f"{100 * flips[k] / max(n[k], 1):.2f}" for k in range(3)) + f" ({int(n.sum())})")
+        rows.append(f"| {nm} | " + " | ".join(cells) + f" | {np.mean(dm) if dm else 0:+.3f} |")
+    txt = "\n".join(rows); open(os.path.join(OUT, "report.md"), "w").write(txt + "\n"); print(txt)

@@ -1,0 +1,245 @@
+{
+ "what": "convcache B1 on a stand-in loop (1 QSA + 1 GDN layer, random weights)",
+ "rows": [
+  {
+   "case": "A turn 1",
+   "N": 12302,
+   "mtp": false,
+   "hit": false,
+   "c": 0,
+   "src": "none",
+   "prefilled": 12302,
+   "miss": "no stored prefix",
+   "check": "",
+   "vs_cold": {
+    "last": true,
+    "cap": true,
+    "ctx": true,
+    "dwin": true
+   },
+   "PASS": true,
+   "entries": 1,
+   "gb": 0.203,
+   "edges": [
+    8192,
+    9216,
+    12288
+   ],
+   "s": 4.7
+  },
+  {
+   "case": "A turn 2",
+   "N": 12496,
+   "mtp": false,
+   "hit": true,
+   "c": 12288,
+   "src": "live",
+   "prefilled": 208,
+   "miss": "",
+   "check": "PASS",
+   "vs_cold": {
+    "last": true,
+    "cap": true,
+    "ctx": true,
+    "dwin": true
+   },
+   "PASS": true,
+   "entries": 1,
+   "gb": 0.203,
+   "edges": [
+    8192,
+    9216,
+    12288
+   ],
+   "s": 3.1
+  },
+  {
+   "case": "B turn 1 (new conversation, same system + tools)",
+   "N": 12300,
+   "mtp": false,
+   "hit": true,
+   "c": 9216,
+   "src": "copy",
+   "prefilled": 3084,
+   "miss": "",
+   "check": "PASS",
+   "vs_cold": {
+    "last": true,
+    "cap": true,
+    "ctx": true,
+    "dwin": true
+   },
+   "PASS": true,
+   "entries": 2,
+   "gb": 0.408,
+   "edges": [
+    8192,
+    9216,
+    12288
+   ],
+   "s": 4.3
+  },
+  {
+   "case": "B turn 2 (chat path: MTP head)",
+   "N": 12404,
+   "mtp": true,
+   "hit": false,
+   "c": 0,
+   "src": "none",
+   "prefilled": 12404,
+   "miss": "no stored prefix",
+   "check": "",
+   "vs_cold": {
+    "last": true,
+    "cap": true,
+    "mtp": true
+   },
+   "PASS": true,
+   "entries": 3,
+   "gb": 0.611,
+   "edges": [
+    8192,
+    9216,
+    12288
+   ],
+   "s": 3.2
+  },
+  {
+   "case": "B turn 3 (chat path: MTP head)",
+   "N": 12627,
+   "mtp": true,
+   "hit": true,
+   "c": 12288,
+   "src": "live",
+   "prefilled": 339,
+   "miss": "",
+   "check": "PASS",
+   "vs_cold": {
+    "last": true,
+    "cap": true,
+    "mtp": true
+   },
+   "PASS": true,
+   "entries": 3,
+   "gb": 0.645,
+   "edges": [
+    8192,
+    9216,
+    12288
+   ],
+   "s": 3.2
+  },
+  {
+   "case": "side request (title)",
+   "N": 18,
+   "mtp": false,
+   "hit": false,
+   "c": 0,
+   "src": "none",
+   "prefilled": 18,
+   "miss": "one chunk",
+   "check": "",
+   "vs_cold": {
+    "last": true,
+    "cap": true,
+    "ctx": true,
+    "dwin": true
+   },
+   "PASS": true,
+   "entries": 3,
+   "gb": 0.646,
+   "edges": [],
+   "s": 0.1
+  },
+  {
+   "case": "A turn 3 (back to A)",
+   "N": 12801,
+   "mtp": false,
+   "hit": true,
+   "c": 12288,
+   "src": "live",
+   "prefilled": 513,
+   "miss": "",
+   "check": "PASS",
+   "vs_cold": {
+    "last": true,
+    "cap": true,
+    "ctx": true,
+    "dwin": true
+   },
+   "PASS": true,
+   "entries": 3,
+   "gb": 0.648,
+   "edges": [
+    8192,
+    9216,
+    12288
+   ],
+   "s": 3.4
+  }
+ ],
+ "hits_as_expected": true,
+ "expected": [
+  [
+   false,
+   0
+  ],
+  [
+   true,
+   12288
+  ],
+  [
+   true,
+   9216
+  ],
+  [
+   false,
+   0
+  ],
+  [
+   true,
+   12288
+  ],
+  [
+   false,
+   0
+  ],
+  [
+   true,
+   12288
+  ]
+ ],
+ "got": [
+  [
+   false,
+   0
+  ],
+  [
+   true,
+   12288
+  ],
+  [
+   true,
+   9216
+  ],
+  [
+   false,
+   0
+  ],
+  [
+   true,
+   12288
+  ],
+  [
+   false,
+   0
+  ],
+  [
+   true,
+   12288
+  ]
+ ],
+ "PASS": true,
+ "peak_GB": 5.316,
+ "wall_s": 22.0
+}

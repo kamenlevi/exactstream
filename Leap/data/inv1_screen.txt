@@ -1,0 +1,4 @@
+INV1: 1-row AR (16 steps) vs a 16-row verify, CA's 12-layer slice, 1K context; REF2 + attention padded to 16 rows
+  REF2: 37 records per forward (V16) vs 37 (AR step)
+  REF2: logits rows equal 16 / 16; rows with any differing record 0 / 16
+INV1 verdict: logits equal 16 / 16, every record equal for every row: True -> REF2 is batch-invariant with the attention padding (route b holds)

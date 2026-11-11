@@ -1,0 +1,48 @@
+CHAT150 replays (CPU; chat150_read.txt)
+chat cycle, N45 exact EB 12 IFEval x 2 passes, checks >= 2 (n 1280): median wall 61.0 ms, median rows 3 (mean 2.98), median draft 7.8 ms
+  fit wall = 47.0 + 3.25 x rows + 1.00 x draft ms; draft = 0.43 + 2.59 x rows (NewIdeas: 3.0 / 5.6 / 8.2 / 10.8 ms at 1-4 rows)
+  median wall by rows: 1: 56.2, 2: 56.6, 3: 62.9, 4: 69.3, 5: 75.0, 6: 79.0, 7: 80.4
+answers: ifeval 30, multi 24 (D-24 held-out, head b5)
+
+policy                         | IFEval kept/check  tok/s [P]  rows | multi kept/check  tok/s [P]  rows | ng share
+mtp K15 t 0.3 (shipped)        |   2.34 (1.000x)   36.2 (1.000x)  3.0 |   2.54 (1.000x)   38.3 (1.000x)  3.2 | 0.00 / 0.00
+ng(match >= 1)                 |   1.19 (0.509x)   17.4 (0.482x)  6.6 |   1.11 (0.438x)   16.7 (0.437x)  6.0 | 0.42 / 0.37
+ng(match >= 2)                 |   1.14 (0.487x)   20.8 (0.575x)  2.4 |   1.06 (0.417x)   19.6 (0.511x)  2.2 | 0.10 / 0.08
+ng(match >= 3)                 |   1.11 (0.474x)   21.2 (0.587x)  1.6 |   1.03 (0.406x)   19.9 (0.520x)  1.5 | 0.04 / 0.03
+hyb(match >= 2)                |   2.23 (0.952x)   32.5 (0.899x)  4.6 |   2.39 (0.941x)   34.0 (0.890x)  4.7 | 0.14 / 0.12
+hyb(match >= 3)                |   2.31 (0.983x)   34.8 (0.961x)  3.7 |   2.48 (0.976x)   36.5 (0.955x)  3.8 | 0.07 / 0.05
+hyb(match >= 4)                |   2.33 (0.992x)   35.5 (0.982x)  3.4 |   2.51 (0.987x)   37.3 (0.974x)  3.6 | 0.04 / 0.03
+hyb(match >= 6)                |   2.34 (0.996x)   36.1 (0.996x)  3.1 |   2.53 (0.997x)   38.0 (0.994x)  3.3 | 0.02 / 0.01
+hyb(match >= 2, cap 4)         |   2.18 (0.930x)   34.1 (0.941x)  3.2 |   2.39 (0.940x)   36.1 (0.943x)  3.5 | 0.16 / 0.12
+hyb(match >= 3, cap 4)         |   2.25 (0.960x)   35.2 (0.971x)  3.0 |   2.48 (0.975x)   37.4 (0.977x)  3.3 | 0.09 / 0.05
+hyb(match >= 3, cap 8)         |   2.29 (0.975x)   35.2 (0.972x)  3.3 |   2.48 (0.976x)   37.1 (0.969x)  3.5 | 0.07 / 0.05
+hyb(match >= 4, cap 8)         |   2.31 (0.984x)   35.7 (0.986x)  3.1 |   2.51 (0.987x)   37.6 (0.983x)  3.4 | 0.05 / 0.03
+hybg(match >= 3)               |   2.29 (0.976x)   34.3 (0.947x)  3.9 |   2.45 (0.963x)   35.5 (0.928x)  4.2 | 0.08 / 0.08
+hybg(match >= 4)               |   2.32 (0.991x)   35.5 (0.980x)  3.4 |   2.49 (0.980x)   36.7 (0.959x)  3.8 | 0.04 / 0.04
+orc(match >= 1)                |   2.37 (1.012x)   36.6 (1.012x)  3.1 |   2.55 (1.004x)   38.2 (1.000x)  3.4 | 0.03 / 0.01
+orc(match >= 1, cap 8)         |   2.36 (1.007x)   36.6 (1.011x)  3.1 |   2.56 (1.006x)   38.4 (1.004x)  3.4 | 0.04 / 0.02
+
+CH3, a faster chat head (exact; outputs unchanged): draft ms per step x s, cut t re-tuned on IFEval + multi
+mtp draft x1.0 best t 0.2      |   2.48 (1.058x)   36.7 (1.015x)  3.4 |   2.67 (1.051x)   38.6 (1.009x)  3.7 | 0.00 / 0.00
+mtp draft x0.5 best t 0.15     |   2.57 (1.094x)   39.6 (1.095x)  3.8 |   2.74 (1.078x)   41.4 (1.083x)  4.1 | 0.00 / 0.00
+mtp draft x0.25 best t 0.15    |   2.57 (1.094x)   41.2 (1.138x)  3.8 |   2.74 (1.078x)   43.2 (1.128x)  4.1 | 0.00 / 0.00
+
+Trees (D-24's leaf rows: the head's rank-1 / rank-2 candidates at kept depths whose top-1 p < tau; a tree-aware GDN
+verify is NOT built, priced here at chain-row cost), with today's chat costs; and the head 2x faster:
+leaf t 0.3 tau 0.5 w 1 draft x1.0 |   2.42 (1.033x)   36.8 (1.018x)  0.0 |   2.60 (1.023x)   38.6 (1.008x)  0.0 | 0.00 / 0.00
+leaf t 0.3 tau 0.8 w 1 draft x1.0 |   2.50 (1.068x)   37.1 (1.026x)  0.0 |   2.68 (1.055x)   38.7 (1.011x)  0.0 | 0.00 / 0.00
+leaf t 0.3 tau 0.8 w 2 draft x1.0 |   2.56 (1.092x)   36.5 (1.009x)  0.0 |   2.75 (1.082x)   38.1 (0.996x)  0.0 | 0.00 / 0.00
+leaf t 0.2 tau 0.8 w 1 draft x1.0 |   2.70 (1.151x)   37.8 (1.044x)  0.0 |   2.85 (1.121x)   38.9 (1.017x)  0.0 | 0.00 / 0.00
+leaf t 0.15 tau 0.8 w 2 draft x1.0 |   2.92 (1.247x)   36.9 (1.021x)  0.0 |   3.05 (1.200x)   37.6 (0.983x)  0.0 | 0.00 / 0.00
+leaf t 0.3 tau 0.5 w 1 draft x0.5 |   2.42 (1.033x)   39.1 (1.081x)  0.0 |   2.60 (1.023x)   41.2 (1.076x)  0.0 | 0.00 / 0.00
+leaf t 0.3 tau 0.8 w 1 draft x0.5 |   2.50 (1.068x)   39.4 (1.088x)  0.0 |   2.68 (1.055x)   41.2 (1.076x)  0.0 | 0.00 / 0.00
+leaf t 0.3 tau 0.8 w 2 draft x0.5 |   2.56 (1.092x)   38.7 (1.068x)  0.0 |   2.75 (1.082x)   40.5 (1.058x)  0.0 | 0.00 / 0.00
+leaf t 0.2 tau 0.8 w 1 draft x0.5 |   2.70 (1.151x)   40.3 (1.113x)  0.0 |   2.85 (1.121x)   41.7 (1.089x)  0.0 | 0.00 / 0.00
+leaf t 0.15 tau 0.8 w 2 draft x0.5 |   2.92 (1.247x)   39.4 (1.089x)  0.0 |   3.05 (1.200x)   40.3 (1.053x)  0.0 | 0.00 / 0.00
+
+Ceiling: a PERFECT drafter (every row kept) at r rows, today's chat costs, serial MTP draft vs one parallel pass (5.3 ms):
+   4 rows: serial   56.5 tok/s, parallel   61.2 tok/s (check 65 ms)
+   8 rows: serial   84.9 tok/s, parallel  102.1 tok/s (check 78 ms)
+  16 rows: serial  113.5 tok/s, parallel  153.3 tok/s (check 104 ms)
+
+Reading: kept/check from the replay walk ([K] on stored answers); tok/s [P] = tokens / the fitted chat wall.

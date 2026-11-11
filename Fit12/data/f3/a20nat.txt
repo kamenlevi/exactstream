@@ -1,0 +1,19 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=27.1 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.20 GB pools
+b12: hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.20 GB, active 9.68 GB
+[a20nat] code: prefill 326 tokens in 4.85 s
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[a20nat] code k=3: 21.2 tok/s, 3.37 tok/pass, 38 passes | per pass: verify 150.2 ms, draft 8.1 ms, head 0.4 ms, waited 579.7, reads 591.6, pf issued 0.0 used 0.0, SSD 7.2 GB/s 1138 MB | peak footprint 11.35 GB | loader per pass: stalled calls 84.8 of 99.0, stall 107.3 ms, io 106.6 ms | sha 259e67193e | '```python\nimport re\nimport argparse\nfrom collections import defaultdict\nfrom typing import List, Dict, Tuple, Optional\n\n# Regex to match log lines\nLINE = re.compile(\n    r'
+[a20nat] prose: prefill 53 tokens in 2.96 s
+[a20nat] prose k=3: 11.0 tok/s, 2.17 tok/pass, 59 passes | per pass: verify 185.0 ms, draft 11.2 ms, head 0.3 ms, waited 622.7, reads 639.8, pf issued 0.0 used 0.0, SSD 6.2 GB/s 1213 MB | peak footprint 11.35 GB | loader per pass: stalled calls 92.2 of 99.0, stall 142.6 ms, io 141.8 ms | sha b5cc227c26 | 'Imagine you are doing homework at your desk, but all your reference books are stored in a library across town. Every time you need to look up a fact, you have to drive to the library,'
+[a20nat] math: prefill 82 tokens in 3.15 s
+[a20nat] math k=3: 16.8 tok/s, 3.20 tok/pass, 40 passes | per pass: verify 180.4 ms, draft 9.4 ms, head 0.4 ms, waited 759.0, reads 775.8, pf issued 0.0 used 0.0, SSD 8.0 GB/s 1516 MB | peak footprint 11.43 GB | loader per pass: stalled calls 90.1 of 99.0, stall 137.2 ms, io 136.5 ms | sha 6e3af723f9 | "Here is the step-by-step solution to determine how much Janet makes every day at the farmers' market:\n\n**Step 1: Determine the total number of eggs laid per day.**\nJanet"
+[a20nat] write: prefill 47 tokens in 2.70 s
+[a20nat] write k=3: 14.5 tok/s, 2.46 tok/pass, 52 passes | per pass: verify 160.7 ms, draft 8.5 ms, head 0.3 ms, waited 647.9, reads 661.8, pf issued 0.0 used 0.0, SSD 7.5 GB/s 1265 MB | peak footprint 11.43 GB | loader per pass: stalled calls 91.0 of 99.0, stall 117.7 ms, io 116.9 ms | sha 67746aae84 | '*   crafted from durable stainless steel to withstand rugged trails and rocky terrain\n*   double-wall vacuum insulation keeps drinks cold for twenty-four hours or hot for twelve\n*   leak-proof lid design prevents'
+[a20nat] done

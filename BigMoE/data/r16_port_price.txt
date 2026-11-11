@@ -1,0 +1,25 @@
+R-16 port pricing for the 24 GB engine (BigMoE, Tue 2026-10-27 20:11, paper only, from b28 anatomy + MoonShots'
+data/w24ec.txt). Question: does W24-ec (rANS MSB-3 codes, GPU decode 46.2 GB/s) + 11-bit scales (-11.4 % bytes per token
+in MoonShots' replay) turn into tok/s in the shipped engine, and what must the integration do?
+
+Per MSB read (records3 part 2,162,688 B ~ 1.84 MB of 3-bit codes + 0.31 MB f16 scales/biases): rANS saves ~0.17 MB,
+11-bit scales ~0.10 MB = ~-12 % of the part.
+b28 code pass: span 72.9 ms = gate wait 43.5 + GPU 29.3, SSD busy 67.8; up to ~300 MSB reads per pass (demand 141 +
+prefetch 159; the 71 joint reads are LSB sidecars, unchanged) -> up to ~550 MB of codes per pass -> ~12 ms of GPU decode
+at 46 GB/s. The 141 demand reads (unpredicted 113 + predicted-unissued 29) can only be decoded after they land, right
+before the expert compute that waits for them: ~260 MB, ~5.6 ms.
+
+Three integrations:
+1. Decode in the main queue after each layer's gate, all of that layer's new reads (MoonShots' "one dispatch per
+   layer"): +12 ms GPU per pass on the critical path vs ~-7.7 ms of SSD time (-11.4 % of 67.8). Net ~+4 ms per pass:
+   about -5 % tok/s. NOT worth porting this way.
+2. Decode prefetched experts as they land, before their layer (inside earlier layers' gate waits / on a second Metal
+   queue), and only demand reads after the gate: the critical path gets ~5.6 ms of decode, the SSD saves ~7.7 ms.
+   About break-even (~0 to +3 %).
+3. Decode-while-waiting: the gate's spin kernel decodes each needed expert as its read lands, so decode hides under the
+   remaining reads; only the last read's decode is exposed. The pass stays SSD-bound at ~60 ms (-11.4 % of SSD time):
+   about +10-12 % tok/s. This is the only form that keeps most of the replay's gain, and it is the hardest: the spin
+   gate is a 64-128-thread kernel today, and decode at 46 GB/s needs the whole GPU.
+Bottom line: the byte cut is real, but in an SSD-bound engine the decode must overlap the SSD waits (form 3, or 2 at
+best). Price before building: a 10-min screen of form 3's core (a persistent decode-while-waiting kernel on real
+records, decode rate while other kernels run, and the exposed decode of the last read).

@@ -1,0 +1,43 @@
+1. the module
+  ok   parse_arm: unset / 0 = None, rows, the doctest switch
+  ok   parse_arm rejects an unknown arm
+  ok   rule_ok equals relax_core.rule_ok
+  ok   flag-off identity: inert_k with no open row == the exact rule (2,000 random blocks)
+  ok   inert_k keeps whole rows whatever the argmax and goes on
+  ok   inert_k stops at a mismatch on a row that is not open
+  ok   inert_k: a rule row is kept only when its rule accepts the draft (rule C: p >= 0.1 p1)
+  ok   comment: a row inside the comment is whole; the draft that ends the line and the row after it are exact
+  ok   comment: the line-end guard (the 125B ends the line -> exact)
+  ok   classify feeds a copy (the run's tagger is unchanged)
+  ok   arms: D puts comments on rule C, C16 keeps them whole
+  ok   comment: one that is or could become a tool comment ('# type:') is never open
+  ok   comment: the fence's first two lines are never open
+  ok   comment: a '#' inside a string is not one
+  ok   only a fence that says python / py is open (a C fence's '#include' and an unlabeled fence are not)
+  ok   docstring: a row inside is whole; a draft holding its quote character and the closing quotes are exact
+  ok   docstring: not open while a run of its quote character is pending
+  ok   docstring: the 125B closes it -> exact
+  ok   arm C16 leaves docstrings exact
+  ok   docstring: doctest lines stay exact, before and after the draft (R57_INERT_DOCTEST=0 lifts it)
+  ok   a triple-quoted string that is data (assigned, returned, inside brackets, after a backslash, f-string) is never open
+  ok   a docstring that is a statement of its own is open (raw prefix, module level, a method's)
+  ok   guarded arm: lines 1-2 of a comment block and trailing comments whole, line 3 on the 125B's top-8
+  ok   pre_block: rows in a span are sure in the cut; a 16-row arm leaves the block's length alone
+  ok   pre_block at 32 rows: drafts past the 15th are kept only while they sit in a span (or are used copies)
+  ok   copyrun_extend (BigMoE's CopyGate): a 31-copy block goes on to 63 drafts, its first 31 unchanged, no duel label past the drafter's picks; 32 rows or a broken run: unchanged
+2. the patch
+     r57_screen_rlx.py sha1 4489f8b0cbfa
+  ok   apply_inert.py: all 13 anchors found once
+  ok   the patched copy compiles
+  ok   every inserted block opens behind INERT / iscan / CRUN: INERT, CRUN = None, int(os.environ | assert not (INERT is not None and  | elif CRUN == 64 and R_ == 64:      | if iscan is not None:              | if iscan is not None and dr:       | if iscan is not None:              | inert=dict(ist, arm=INERT["name"])
+  ok   run state with the flag unset: a no-op assert, iscan / ilog None, an unused counter
+  ok   flags unset: the four replaced expressions equal the old ones for R57_ROWS 16 and 32
+  ok   the result and the runs record carry inert (None when unset)
+3. the walk streams
+  ok   fresh HumanEval+ 12: CD16 through the engine path x1.155 (kept 10.44 -> 12.91, length 0.969) vs the lexer replay's x1.17 +- 0.03
+  ok   MBPP 100: CD16 through the engine path x1.614 (kept 5.61 -> 10.69, length 0.951) vs the lexer replay's x1.63 +- 0.03
+  ok   HumanEval+ 24 (doctest guard on): 3231 tokens open to wholesale acceptance, 0 outside Python's own comments / string statements (22 of 24 answers parse); the open tokens cover 91 % of that text
+  ok   HumanEval+ 24 (guard off): 3522 tokens open to wholesale acceptance, 0 outside Python's own comments / string statements (22 of 24 answers parse); the open tokens cover 96 % of that text
+  ok   MBPP 100 (doctest guard on): 5647 tokens open to wholesale acceptance, 0 outside Python's own comments / string statements (94 of 100 answers parse); the open tokens cover 97 % of that text
+  ok   MBPP 100 (guard off): 5647 tokens open to wholesale acceptance, 0 outside Python's own comments / string statements (94 of 100 answers parse); the open tokens cover 97 % of that text
+ALL OK

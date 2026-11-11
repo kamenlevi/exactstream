@@ -1,0 +1,5 @@
+#!/bin/bash
+# evalsuite CLI (see evalsuite/cli.py). CPU side runs on the EvalSuite venv; GPU stages use BigMoE's venv.
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+export PATH="$HOME/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:$PATH"
+exec "$ROOT/.venv/bin/python" -u -c 'import sys; sys.path.insert(0, sys.argv[1]); sys.argv = ["evalsuite"] + sys.argv[2:]; from evalsuite.cli import main; main()' "$ROOT" "$@"

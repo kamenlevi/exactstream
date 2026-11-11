@@ -1,0 +1,26 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=19.4 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+loaded in 2s; 138 own-output sequences, 34457 positions
+06:06:49 plan4422222222 tf screen batch 1/2: 91 seqs, 24297 tokens, 94.6s (257 tok/s overall)
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+06:08:01 plan4422222222 tf screen batch 2/2: 47 seqs, 23191 tokens, 72.1s (285 tok/s overall)
+plan4422222222: pooled KLD 0.02570, agree 0.9570 (167s)
+06:09:37 plan4322222222 tf screen batch 1/2: 91 seqs, 24297 tokens, 96.1s (253 tok/s overall)
+06:10:52 plan4322222222 tf screen batch 2/2: 47 seqs, 23191 tokens, 74.8s (278 tok/s overall)
+plan4322222222: pooled KLD 0.02855, agree 0.9544 (171s)
+06:12:16 plan4222222222 tf screen batch 1/2: 91 seqs, 24297 tokens, 83.2s (292 tok/s overall)
+06:13:17 plan4222222222 tf screen batch 2/2: 47 seqs, 23191 tokens, 61.8s (328 tok/s overall)
+plan4222222222: pooled KLD 0.03927, agree 0.9465 (145s)
+
+per-set mean KLD vs the 4-bit reference (top-1 agreement); targets = 1.10 x ar4 (gate_table.py)
+variant         tf_code               tf_gsm                tf_ifeval             tf_multi              
+floor           0.00037 (0.997)       0.00068 (0.996)       0.00345 (0.977)       0.00220 (0.983)       
+ar4             0.00230 (0.993)       0.00408 (0.989)       0.01856 (0.947)       0.01868 (0.952)       
+plan4433333333  0.00172 (0.995)       0.00275 (0.991)       0.01367 (0.948)       0.01097 (0.963)       
+plan4433332222  0.00267 (0.993)       0.00433 (0.988)       0.02153 (0.937)       0.01862 (0.951)       
+plan4422222222  0.00669 (0.989)       0.01105 (0.981)       0.05002 (0.909)       0.04950 (0.926)       
+plan4322222222  0.00738 (0.990)       0.01234 (0.979)       0.05515 (0.906)       0.05532 (0.919)       
+plan4222222222  0.00981 (0.987)       0.01722 (0.975)       0.07497 (0.889)       0.07680 (0.906)       
+target 1.10x ar40.00253               0.00449               0.02041               0.02055               

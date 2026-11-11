@@ -1,0 +1,64 @@
+windows with routing: 36 Counter({'code': 12, 'ifeval': 12, 'multi': 12}) ; gen of first = 184
+
+### 1. expert records per 16-row block (union over rows per layer, summed over 48 layers), per domain and scheme
+| dom | scheme | blocks | records/block (mean) | MB/block tiers | per kept token at 16 kept (MB) | at today's kept (MB) | at the route's kept (MB) | union/layer at top-10 law 92 |
+|---|---|---|---|---|---|---|---|---|
+| code | exact | 205 | 3679 | 8366 | 523 | 794 | 669 | 76.6 |
+| code | q1_oracle | 205 | 1295 | 3359 | 210 | 319 | 269 | |
+| code | q1_999 | 205 | 2537 | 5967 | 373 | 566 | 477 | |
+| code | q1_99 | 205 | 2032 | 4907 | 307 | 466 | 393 | |
+| code | new1 | 205 | 2026 | 4894 | 306 | 464 | 391 | |
+| code | real1 | 205 | 2197 | 5254 | 328 | 498 | 420 | |
+| code | oracle | 205 | 821 | 2242 | 140 | 213 | 179 | |
+| code | top2_all | 205 | 914 | 2560 | 160 | 243 | 205 | |
+| code | top5_all | 205 | 2035 | 4913 | 307 | 466 | 393 | |
+| code | cert5 | 205 | 2198 | 5255 | 328 | 499 | 420 | |
+| code | cert2 | 205 | 1690 | 4189 | 262 | 397 | 335 | |
+| ifeval | exact | 206 | 3201 | 7327 | 458 | 3609 | 2220 | 66.7 |
+| ifeval | q1_oracle | 206 | 2619 | 6105 | 382 | 3007 | 1850 | |
+| ifeval | q1_999 | 206 | 3028 | 6963 | 435 | 3430 | 2110 | |
+| ifeval | q1_99 | 206 | 2845 | 6580 | 411 | 3241 | 1994 | |
+| ifeval | new1 | 206 | 2776 | 6434 | 402 | 3169 | 1950 | |
+| ifeval | real1 | 206 | 2898 | 6691 | 418 | 3296 | 2027 | |
+| ifeval | oracle | 206 | 1285 | 3233 | 202 | 1593 | 980 | |
+| ifeval | top2_all | 206 | 864 | 2418 | 151 | 1191 | 733 | |
+| ifeval | top5_all | 206 | 1832 | 4451 | 278 | 2193 | 1349 | |
+| ifeval | cert5 | 206 | 2669 | 6209 | 388 | 3059 | 1881 | |
+| ifeval | cert2 | 206 | 2902 | 6699 | 419 | 3300 | 2030 | |
+| multi | exact | 213 | 2800 | 6372 | 398 | 3139 | 1931 | 58.3 |
+| multi | q1_oracle | 213 | 2144 | 4996 | 312 | 2461 | 1514 | |
+| multi | q1_999 | 213 | 2650 | 6057 | 379 | 2984 | 1835 | |
+| multi | q1_99 | 213 | 2530 | 5807 | 363 | 2861 | 1760 | |
+| multi | new1 | 213 | 2466 | 5671 | 354 | 2794 | 1718 | |
+| multi | real1 | 213 | 2562 | 5872 | 367 | 2893 | 1779 | |
+| multi | oracle | 213 | 1094 | 2720 | 170 | 1340 | 824 | |
+| multi | top2_all | 213 | 704 | 1971 | 123 | 971 | 597 | |
+| multi | top5_all | 213 | 1509 | 3663 | 229 | 1804 | 1110 | |
+| multi | cert5 | 213 | 2203 | 5119 | 320 | 2522 | 1551 | |
+| multi | cert2 | 213 | 2605 | 5963 | 373 | 2938 | 1807 | |
+
+### 2. LRU replay per layer (C slots per layer; prompt rows exact and warming; 16-row blocks on answer rows): misses per kept token (at today's kept), MB, SSD cap tok/s = 13000 / MB
+| dom | C | exact | q1_oracle | q1_999 | q1_99 | new1 | real1 | oracle | top2_all | top5_all | cert5 | cert2 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| code | 12 GB (C 51) | 329.7 / 725 MB / 18 | 67.9 / 149 MB / 87 | 190.3 / 419 MB / 31 | 130.9 / 288 MB / 45 | 127.7 / 281 MB / 46 | 146.7 / 323 MB / 40 | 35.0 / 77 MB / 169 | 36.7 / 81 MB / 161 | 121.2 / 267 MB / 49 | 139.6 / 307 MB / 42 | 103.0 / 227 MB / 57 |
+| code | 24 GB (C 160) | 100.5 / 221 MB / 59 | 25.0 / 55 MB / 236 | 64.0 / 141 MB / 92 | 48.4 / 107 MB / 122 | 46.6 / 102 MB / 127 | 52.4 / 115 MB / 113 | 14.1 / 31 MB / 418 | 14.8 / 33 MB / 399 | 41.5 / 91 MB / 142 | 46.8 / 103 MB / 126 | 37.2 / 82 MB / 159 |
+| code | 45 GB (C 256) | 45.5 / 100 MB / 130 | 11.2 / 25 MB / 527 | 28.9 / 63 MB / 205 | 22.1 / 49 MB / 268 | 20.9 / 46 MB / 283 | 23.6 / 52 MB / 250 | 5.7 / 13 MB / 1036 | 5.9 / 13 MB / 1006 | 17.4 / 38 MB / 339 | 20.1 / 44 MB / 295 | 16.9 / 37 MB / 350 |
+| code | 51 GB (C 320) | 23.5 / 52 MB / 252 | 5.7 / 13 MB / 1033 | 15.4 / 34 MB / 384 | 11.8 / 26 MB / 499 | 11.1 / 24 MB / 534 | 12.6 / 28 MB / 471 | 2.7 / 6 MB / 2209 | 2.7 / 6 MB / 2170 | 8.5 / 19 MB / 699 | 10.1 / 22 MB / 585 | 8.9 / 20 MB / 663 |
+| ifeval | 12 GB (C 51) | 1413.1 / 3109 MB / 4 | 1019.8 / 2244 MB / 6 | 1299.3 / 2859 MB / 5 | 1174.0 / 2583 MB / 5 | 1125.2 / 2475 MB / 5 | 1211.6 / 2666 MB / 5 | 323.3 / 711 MB / 18 | 168.3 / 370 MB / 35 | 526.0 / 1157 MB / 11 | 1049.2 / 2308 MB / 6 | 1213.0 / 2669 MB / 5 |
+| ifeval | 24 GB (C 160) | 344.2 / 757 MB / 17 | 235.9 / 519 MB / 25 | 310.8 / 684 MB / 19 | 276.3 / 608 MB / 21 | 260.2 / 573 MB / 23 | 283.6 / 624 MB / 21 | 96.8 / 213 MB / 61 | 56.2 / 124 MB / 105 | 124.5 / 274 MB / 47 | 240.8 / 530 MB / 25 | 282.7 / 622 MB / 21 |
+| ifeval | 45 GB (C 256) | 131.7 / 290 MB / 45 | 95.9 / 211 MB / 62 | 121.7 / 268 MB / 49 | 110.5 / 243 MB / 53 | 104.3 / 229 MB / 57 | 112.4 / 247 MB / 53 | 41.3 / 91 MB / 143 | 21.9 / 48 MB / 269 | 50.8 / 112 MB / 116 | 96.2 / 212 MB / 61 | 111.9 / 246 MB / 53 |
+| ifeval | 51 GB (C 320) | 76.7 / 169 MB / 77 | 56.7 / 125 MB / 104 | 71.8 / 158 MB / 82 | 65.7 / 145 MB / 90 | 61.8 / 136 MB / 96 | 66.7 / 147 MB / 89 | 25.0 / 55 MB / 236 | 13.4 / 29 MB / 441 | 30.9 / 68 MB / 191 | 56.9 / 125 MB / 104 | 66.0 / 145 MB / 90 |
+| multi | 12 GB (C 51) | 1136.0 / 2499 MB / 5 | 718.6 / 1581 MB / 8 | 1033.7 / 2274 MB / 6 | 956.7 / 2105 MB / 6 | 916.8 / 2017 MB / 6 | 976.4 / 2148 MB / 6 | 247.5 / 544 MB / 24 | 123.2 / 271 MB / 48 | 377.2 / 830 MB / 16 | 754.2 / 1659 MB / 8 | 1006.9 / 2215 MB / 6 |
+| multi | 24 GB (C 160) | 318.6 / 701 MB / 19 | 204.3 / 449 MB / 29 | 289.3 / 636 MB / 20 | 267.3 / 588 MB / 22 | 253.5 / 558 MB / 23 | 271.7 / 598 MB / 22 | 86.7 / 191 MB / 68 | 43.7 / 96 MB / 135 | 108.3 / 238 MB / 55 | 206.5 / 454 MB / 29 | 279.9 / 616 MB / 21 |
+| multi | 45 GB (C 256) | 140.8 / 310 MB / 42 | 94.2 / 207 MB / 63 | 130.3 / 287 MB / 45 | 121.6 / 268 MB / 49 | 114.8 / 253 MB / 51 | 123.1 / 271 MB / 48 | 41.0 / 90 MB / 144 | 19.3 / 43 MB / 306 | 48.6 / 107 MB / 122 | 94.2 / 207 MB / 63 | 126.2 / 278 MB / 47 |
+| multi | 51 GB (C 320) | 85.2 / 187 MB / 69 | 58.6 / 129 MB / 101 | 79.6 / 175 MB / 74 | 74.3 / 164 MB / 79 | 70.3 / 155 MB / 84 | 75.1 / 165 MB / 79 | 26.6 / 59 MB / 222 | 14.5 / 32 MB / 409 | 30.9 / 68 MB / 191 | 58.3 / 128 MB / 101 | 76.7 / 169 MB / 77 |
+
+### 3. concentration: share of (row, layer) rank-0/1 slots and of all top-10 slots covered by the N most frequent experts per layer (answer rows)
+- code: N=51: ranks 0-1 71 %, all ranks 52 %; N=102: ranks 0-1 86 %, all ranks 70 %; N=160: ranks 0-1 94 %, all ranks 82 %; N=256: ranks 0-1 99 %, all ranks 93 %; distinct experts touched per layer 455 of 512
+- ifeval: N=51: ranks 0-1 63 %, all ranks 47 %; N=102: ranks 0-1 84 %, all ranks 69 %; N=160: ranks 0-1 94 %, all ranks 83 %; N=256: ranks 0-1 99 %, all ranks 94 %; distinct experts touched per layer 460 of 512
+- multi: N=51: ranks 0-1 69 %, all ranks 53 %; N=102: ranks 0-1 87 %, all ranks 72 %; N=160: ranks 0-1 95 %, all ranks 84 %; N=256: ranks 0-1 100 %, all ranks 95 %; distinct experts touched per layer 455 of 512
+
+### 4. probe: P(125B-sure | the row's top-1 expert equals the previous position's top-1 in >= T of the 48 layers), and coverage
+- code: base 87 %; T>=12: P(sure) 72 % on 24 % of rows; T>=20: P(sure) 63 % on 3 % of rows; T>=28: P(sure) 100 % on 0 % of rows; T>=36: P(sure) 0 % on 0 % of rows; early(0-7)>=4: P(sure) 72 % on 3 %; early(0-7)>=6: P(sure) 75 % on 0 %; early(0-7)>=8: P(sure) 0 % on 0 %; drafter-unsure rows: base P(sure) 64 %, with T>=28 100 % on 0 % of them
+- ifeval: base 32 %; T>=12: P(sure) 26 % on 42 % of rows; T>=20: P(sure) 21 % on 8 % of rows; T>=28: P(sure) 24 % on 1 % of rows; T>=36: P(sure) 0 % on 0 % of rows; early(0-7)>=4: P(sure) 40 % on 6 %; early(0-7)>=6: P(sure) 58 % on 1 %; early(0-7)>=8: P(sure) 0 % on 0 %; drafter-unsure rows: base P(sure) 18 %, with T>=28 26 % on 1 % of them
+- multi: base 41 %; T>=12: P(sure) 35 % on 69 % of rows; T>=20: P(sure) 30 % on 26 % of rows; T>=28: P(sure) 32 % on 3 % of rows; T>=36: P(sure) 50 % on 0 % of rows; early(0-7)>=4: P(sure) 39 % on 14 %; early(0-7)>=6: P(sure) 45 % on 2 %; early(0-7)>=8: P(sure) 100 % on 0 %; drafter-unsure rows: base P(sure) 32 %, with T>=28 25 % on 4 % of them

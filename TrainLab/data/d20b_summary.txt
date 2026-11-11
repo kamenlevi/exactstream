@@ -1,0 +1,16 @@
+D-20b SWITCH45 confirmation (turn58, REF2b exact loop, head b3, 256-token cap): dfl = DFlash2, mtp7 = the MTP chain K7;
+type = NewIdeas' text rule (scripts/type_rule.py), which routed every prompt to its dataset's type
+
+== C 160: 17 prompts with both arms; outputs identical across arms: True
+  code   (4): mean tok/s dfl  25.2 -> mtp7  24.3 ( -3.2 %), geo-mean ratio 0.966, mtp7 faster on 1/4; kept per check 11.59 -> 7.40
+  math   (4): mean tok/s dfl  18.1 -> mtp7  22.1 (+22.2 %), geo-mean ratio 1.226, mtp7 faster on 4/4; kept per check 6.95 -> 5.85
+  chat   (6): mean tok/s dfl  10.2 -> mtp7  13.7 (+33.5 %), geo-mean ratio 1.334, mtp7 faster on 6/6; kept per check 2.91 -> 3.08
+  agent  (3): mean tok/s dfl  11.4 -> mtp7  11.7 ( +2.4 %), geo-mean ratio 0.786, mtp7 faster on 2/3; kept per check 4.53 -> 4.60
+  whole set (3602 tokens): always dfl 13.1 tok/s, always mtp7 14.4, switch (dfl on code) 14.4 = +10.1 % vs always dfl
+
+== C 224: 17 prompts with both arms; outputs identical across arms: True
+  code   (4): mean tok/s dfl  31.6 -> mtp7  27.7 (-12.2 %), geo-mean ratio 0.869, mtp7 faster on 0/4; kept per check 11.59 -> 7.40
+  math   (4): mean tok/s dfl  23.1 -> mtp7  27.3 (+18.3 %), geo-mean ratio 1.190, mtp7 faster on 4/4; kept per check 6.95 -> 5.85
+  chat   (6): mean tok/s dfl  12.9 -> mtp7  16.2 (+26.0 %), geo-mean ratio 1.271, mtp7 faster on 6/6; kept per check 2.91 -> 3.08
+  agent  (3): mean tok/s dfl  14.0 -> mtp7  17.8 (+27.0 %), geo-mean ratio 1.354, mtp7 faster on 3/3; kept per check 4.53 -> 4.60
+  whole set (3602 tokens): always dfl 16.0 tok/s, always mtp7 19.8, switch (dfl on code) 20.3 = +27.3 % vs always dfl

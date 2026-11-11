@@ -1,0 +1,11 @@
+R-40 STEP 3y_fix: full 125B via load_streamed (C = 128), 20.9 GB active; humaneval/HumanEval/68, P 367; BigMoE b8bd33c b47: ram24_probe with the bounce pool = unchanged (23.08 vs 23.11 GB); ext/build +
+  after nothing (prefill determinism): prefill last logits == A: True; records 242 vs 242; differing 0
+  PF1 staging pending after the 16-row check: layers [] (safety-net restages so far: 0)
+  PF1 staging pending after its commit keep 5: layers [2] (safety-net restages so far: 0)
+  after t1 REF2 16-row check + commit keep 5: prefill last logits == A: True; records 242 vs 242; differing 0
+  PF1 staging pending after the 16-row check: layers [] (safety-net restages so far: 0)
+  after t2 stock 16-row check, no commit: prefill last logits == A: True; records 242 vs 242; differing 0
+  PF1 staging pending after t3's commit keep 5: layers [2] (safety-net restages so far: 0)
+  after t3 stock commit keep 5 of t2's check: prefill last logits == A: True; records 242 vs 242; differing 0
+  PF1 staging pending after t4's 1-row step (a gated call: _stage_drop): layers [] (safety-net restages so far: 0)
+  after t4 stock 1-row AR step: prefill last logits == A: True; records 242 vs 242; differing 0

@@ -1,0 +1,27 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=36.3 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[mtplx] verify SDPA head-chunked: q_len=22 heads_per_chunk=1 chunks=24
+tf_samelayer125 C=51 sets=tf_ifeval,tf_multi every=16: 1539 decode calls, 4 seqs, KLD vs reference 0.0028 (exact streaming: numerics floor expected), 148s
+  SAME (pre-attention, lead = attention half) top- 2: recall ranks 0-1 0.773  top-10 0.197  top-10 mass 0.341
+  SAME (pre-attention, lead = attention half) top- 3: recall ranks 0-1 0.885  top-10 0.293  top-10 mass 0.456
+  SAME (pre-attention, lead = attention half) top- 4: recall ranks 0-1 0.930  top-10 0.387  top-10 mass 0.551
+  SAME (pre-attention, lead = attention half) top- 8: recall ranks 0-1 0.976  top-10 0.713  top-10 mass 0.816
+  SAME (pre-attention, lead = attention half) top-10: recall ranks 0-1 0.981  top-10 0.820  top-10 mass 0.888
+  SAME (pre-attention, lead = attention half) top-12: recall ranks 0-1 0.984  top-10 0.877  top-10 mass 0.925
+  SAME (pre-attention, lead = attention half) top-16: recall ranks 0-1 0.988  top-10 0.929  top-10 mass 0.956
+  D1 (BigMoE tap, lead = MoE half + attention) top- 2: recall ranks 0-1 0.567  top-10 0.179  top-10 mass 0.293
+  D1 (BigMoE tap, lead = MoE half + attention) top- 3: recall ranks 0-1 0.688  top-10 0.261  top-10 mass 0.391
+  D1 (BigMoE tap, lead = MoE half + attention) top- 4: recall ranks 0-1 0.761  top-10 0.338  top-10 mass 0.472
+  D1 (BigMoE tap, lead = MoE half + attention) top- 8: recall ranks 0-1 0.879  top-10 0.578  top-10 mass 0.689
+  D1 (BigMoE tap, lead = MoE half + attention) top-10: recall ranks 0-1 0.901  top-10 0.656  top-10 mass 0.751
+  D1 (BigMoE tap, lead = MoE half + attention) top-12: recall ranks 0-1 0.915  top-10 0.714  top-10 mass 0.795
+  D1 (BigMoE tap, lead = MoE half + attention) top-16: recall ranks 0-1 0.933  top-10 0.785  top-10 mass 0.847
+  D1C (tap + MoEPrefetch correction) top- 2: recall ranks 0-1 0.652  top-10 0.192  top-10 mass 0.320
+  D1C (tap + MoEPrefetch correction) top- 3: recall ranks 0-1 0.773  top-10 0.283  top-10 mass 0.427
+  D1C (tap + MoEPrefetch correction) top- 4: recall ranks 0-1 0.839  top-10 0.369  top-10 mass 0.516
+  D1C (tap + MoEPrefetch correction) top- 8: recall ranks 0-1 0.929  top-10 0.642  top-10 mass 0.751
+  D1C (tap + MoEPrefetch correction) top-10: recall ranks 0-1 0.944  top-10 0.729  top-10 mass 0.815
+  D1C (tap + MoEPrefetch correction) top-12: recall ranks 0-1 0.954  top-10 0.785  top-10 mass 0.855
+  D1C (tap + MoEPrefetch correction) top-16: recall ranks 0-1 0.964  top-10 0.851  top-10 mass 0.900

@@ -1,0 +1,18 @@
+Load from ground-truth from /Users/kamen/Library/Caches/evalplus/fe585eb4df8c88d844eeb463ea4d0302.pkl
+evalsuite: t0_mode_T0m8 vs b12llff (as the reference)  (anchors: floor = same weights, accepted = AutoRound int4 experts)
+test                                       variant               floor (same weights)  variant vs reference [90% CI]                 pass
+-----------------------------------------  --------------------  --------------------  --------------------------------------------  ----
+math (n=50)                                80.0% vs ref 86.0%    88.0%                 -6.0 [-11.6, -0.4] pt, McNemar p=0.25 (3/0)   -   
+math final-answer agreement with ref       94.0% (47/50)         98.0% (49/50)                                                       -   
+ifeval (n=100)                             84.0% vs ref 87.0%    88.0%                 -3.0 [-7.9, +1.9] pt, McNemar p=0.51 (6/3)    PASS
+ifeval final-answer agreement with ref     91.0% (91/100)        94.0% (94/100)                                                      -   
+humaneval (n=60)                           80.0% vs ref 91.7%    95.0%                 -11.7 [-18.5, -4.8] pt, McNemar p=0.02 (7/0)  FAIL
+humaneval final-answer agreement with ref  88.3% (53/60)         96.7% (58/60)                                                       -   
+decode answer agreement with ref (n=210)   91.0%                 95.7%                                                               -   
+token-identical outputs (context only)     29/210                53/210                                                              -   
+decode length ratio vs ref                 x1.104                                                                                    FAIL
+hesitation words / 1K tokens               0.50 vs ref 0.26                                                                          PASS
+truncations / loops                        25 / 7 vs ref 14 / 1                                                                      FAIL
+  decode: {'generated_tokens': {'variant': 86098, 'ref': 77974}, 'loops_t0_mode_T0m8': ['gsm8k/709', 'humaneval/HumanEval/157', 'ifeval/1248', 'ifeval/1675', 'ifeval/3223', 'ifeval/3326', 'ifeval/3439'], 'truncated_t0_mode_T0m8': ['humaneval', 'humaneval', 'humaneval', 'humaneval', 'humaneval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'math500', 'math500', 'math500', 'math500', 'math500', 'math500', 'math500', 'math500', 'math500', 'math500'], 'rows_t0_mode_T0m8': 210, 'loops_ref': ['ifeval/3439'], 'truncated_ref': ['humaneval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'math500', 'math500', 'math500', 'math500', 'math500', 'math500', 'math500'], 'rows_ref': 210, 'loops_floor': ['ifeval/3326', 'ifeval/3439'], 'truncated_floor': ['ifeval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'math500', 'math500', 'math500', 'math500', 'math500', 'math500'], 'rows_floor': 210}
+  missing runs: ['t0_mode_T0m8']
+VERDICT: FAIL  (2/5 rules pass; margins: evalsuite/margins.json)

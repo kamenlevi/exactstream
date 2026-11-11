@@ -1,0 +1,24 @@
+MATCH read-out (DFlash2 L1-20, official loop; kept per check by arm; ratios vs the same block without the override)
+  code: base16 9.57, match16 9.93, base32 10.26, match32 12.35, len25 12.03
+    match16: positions with a match 39.7 %, right 93.6 %; changed 618 (override right 381, drafter right 145); rows per check 16.00
+    match32: positions with a match 28.2 %, right 86.2 %; changed 2236 (override right 1664, drafter right 131); rows per check 32.00
+    len25: positions with a match 41.7 %, right 88.7 %; changed 1908 (override right 1456, drafter right 134); rows per check 19.80
+    kept(16) x1.038, kept(32) x1.204
+    2.5 kept per check-ms: len25 49.54 vs match16 46.59 per s -> x1.063 (PASS >= 1.10, KILL < 1.04)
+      (report only, C0 SSD-hidden ms = 36.1 + 2.98 x rows: x1.067; the verdict uses the pre-registered model)
+  mbpp: base16 5.94, match16 5.82, base32 6.00, match32 5.91, len25 5.85
+    match16: positions with a match 5.3 %, right 32.1 %; changed 1391 (override right 114, drafter right 482); rows per check 16.00
+    match32: positions with a match 6.3 %, right 17.1 %; changed 4048 (override right 288, drafter right 612); rows per check 32.00
+    len25: positions with a match 8.8 %, right 20.8 %; changed 2809 (override right 179, drafter right 564); rows per check 16.67
+    kept(16) x0.980, kept(32) x0.985
+    2.5 kept per check-ms: len25 26.79 vs match16 27.31 per s -> x0.981 (PASS >= 1.10, KILL < 1.04)
+      (report only, C0 SSD-hidden ms = 36.1 + 2.98 x rows: x0.982; the verdict uses the pre-registered model)
+  agent: base16 3.01, match16 3.15, base32 3.02, match32 3.19, len25 3.18
+    match16: positions with a match 10.5 %, right 51.3 %; changed 536 (override right 152, drafter right 94); rows per check 16.00
+    match32: positions with a match 10.4 %, right 29.0 %; changed 1412 (override right 247, drafter right 138); rows per check 32.00
+    len25: positions with a match 16.3 %, right 31.6 %; changed 1198 (override right 221, drafter right 136); rows per check 17.35
+    kept(16) x1.047, kept(32) x1.056
+    2.5 kept per check-ms: len25 14.22 vs match16 14.78 per s -> x0.962 (PASS >= 1.10, KILL < 1.04)
+      (report only, C0 SSD-hidden ms = 36.1 + 2.98 x rows: x0.963; the verdict uses the pre-registered model)
+  LINE (HumanEval+: kept(16) >= x1.06 and kept(32) >= x1.25 PASS; kept(16) < x1.03 KILL): x1.038 / x1.204 -> BETWEEN; secondary: mbpp kept(16) x0.980 (< 1.03), agent kept(16) x1.047 (>= 1.03)
+

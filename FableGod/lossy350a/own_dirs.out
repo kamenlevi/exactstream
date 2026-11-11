@@ -1,0 +1,17 @@
+layer 2 done at 2 s
+layer 12 done at 4 s
+layer 24 done at 6 s
+layer 36 done at 8 s
+layer 46 done at 10 s
+
+experts with >= 60 train and >= 20 held-out routed rows: 15; held-out pairs 1683
+energy the layer's 32 directions remove from an expert's own held-out inputs (mean over experts): 0.374
+extra share of the REMAINING energy removed by the expert's own top-j directions (held out): j4 0.026  j16 0.063  j48 0.117
+variant | error x MSB-3 whole
+  MSB3 whole                   |  1.00
+  layer 32 | x32 h32           |  1.19
+  layer 32 + own 4 | x32 h32   |  1.18
+  layer 32 + own 16 | x32 h32  |  1.16
+  layer 32 + own 48 | x32 h32  |  1.11
+per layer, x32 h32 with the layer's 32 directions (x MSB-3 of that layer): L2 1.09  L12 1.47  L24 1.58  L36 1.41  L46 1.11
+per layer MSB-3 whole-expert error: L2 0.0413  L12 0.0572  L24 0.0585  L36 0.0616  L46 0.0683

@@ -1,0 +1,13 @@
+11-07 15:32:35 xsafe p4s start (pid 5562, NO-SWAP 52.2 GB, snapshot 3c962ca): X = B + BIGMOE_PAUSE_EVERY_MS=50,R57_S0CARRY=1,REF2_SB_FIRST=1,REF2_PLE_LATE=1,REF2_COMMIT_SUB=9,R57_DQ1=1 (PLAN 220 (4): Leap's GPU-idle seams a-e + BigMoE #4, ref2 1f85c231)
+11-07 15:33:05 p4se0 rc=0
+11-07 15:33:35 p4se1 rc=0
+11-07 15:35:06 p4sb1 rc=0
+11-07 15:36:36 p4sx1 rc=0
+11-07 15:38:11 p4sx2 rc=0
+11-07 15:39:42 p4sb2 rc=0
+xsafe p4s (snapshot 3c962ca): X = B + BIGMOE_PAUSE_EVERY_MS=50,R57_S0CARRY=1,REF2_SB_FIRST=1,REF2_PLE_LATE=1,REF2_COMMIT_SUB=9,R57_DQ1=1; freeze windows [('02:47:37', '02:48:18'), ('03:05:46', '03:06:47'), ('05:11:06', '05:12:07'), ('06:17:59', '06:19:00')]; passes dropped for a freeze: none
+BITS (exact env, C 224, CAP 64, e1 vs e0): PASS: tokens equal 3 / 3; verify-logits hash equal 43 / 43 checks (e0 has 43); engaged in e1 only: {'sb_first': 27, 'ple_late': 27, 'commit_sub': 104}; peaks 38.2 / 38.3 GB
+B: median cycle 63.88 ms; WHOLE DECODE  175.4; full period  169.8; check 0 68 ms; kept 10.77; peak 42.9 GB
+X: median cycle 63.05 ms; WHOLE DECODE  178.8; full period  173.2; check 0 64 ms; kept 10.67; peak 42.9 GB
+Verdict xsafe p4s (pre-registered, NewIdeas' exact-safe line): PASS: median cycle -1.31 % (-0.84 ms per check) vs B, BITS PASS (PASS = cycle <= -1 % AND BITS; KILL = cycle >= +0.5 %). Beside: whole decode +2.0 %, full period +2.0 % over 12; engaged in X only (ref2 COUNTS, both passes): {'sb_first': 481, 'ple_late': 481, 'commit_sub': 912}
+11-07 15:39:42 report rc=0 (data/xs_p4s/xs_report.txt)

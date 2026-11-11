@@ -1,0 +1,62 @@
+MODE=new (agentcc_tasks5.py); mock serve.py ready in 1 s (pid 89254); CLAUDE_BIN=/Users/kamen/Leap/logs/claude_versions/2.1.321
+tasks.out:
+  08:36:56 t00a: start (timeout 240 s)
+  08:37:01 t00a: claude rc 0, 4 s, check rc 0
+  08:37:01 t00b: start (timeout 240 s)
+  08:37:06 t00b: claude rc 0, 4 s, check rc 0
+  TASKS DONE
+== t00a (init: "claude_code_version":"2.1.321"; transcript is a link: no)
+    WRITE_TASK OK
+    OWN_FOLDER OK
+    GIT OK
+    GIT_COMMIT OK
+    OWN_TMP OK
+    READ_RUN_TASKS DENIED
+    READ_OTHER_TASK DENIED
+    READ_RUNNER_LOG DENIED
+    READ_OWN_TRANSCRIPT DENIED
+    READ_EVAL_LS DENIED
+    READ_EVAL_MANIFEST DENIED
+    WRITE_RUN DENIED
+    LINK_NEXT_TRANSCRIPT DENIED
+    WRITE_HOME DENIED
+    WRITE_OTHER_TMP DENIED
+    LINK_CHECK_NAME OK
+    HEREDOC_OK
+    TMPPREFIX under the task temp: yes
+    RACERS_STARTED
+  result success, turns 2
+  check: check ran CHECK_OK 
+== t00b (init: "claude_code_version":"2.1.321"; transcript is a link: no)
+    WRITE_TASK OK
+    OWN_FOLDER OK
+    GIT OK
+    GIT_COMMIT OK
+    OWN_TMP OK
+    READ_RUN_TASKS DENIED
+    READ_OTHER_TASK DENIED
+    READ_RUNNER_LOG DENIED
+    READ_OWN_TRANSCRIPT DENIED
+    READ_EVAL_LS DENIED
+    READ_EVAL_MANIFEST DENIED
+    WRITE_RUN DENIED
+    LINK_NEXT_TRANSCRIPT DENIED
+    WRITE_HOME DENIED
+    WRITE_OTHER_TMP DENIED
+    LINK_CHECK_NAME OK
+    HEREDOC_OK
+    TMPPREFIX under the task temp: yes
+    RACERS_STARTED
+  result success, turns 2
+  check: check ran CHECK_OK 
+results:
+{"id": "t00a", "claude_rc": 0, "timed_out": false, "wall_s": 3.5, "check_rc": 0}
+{"id": "t00b", "claude_rc": 0, "timed_out": false, "wall_s": 3.6, "check_rc": 0}
+lingering.jsonl:
+{"id": "t00a", "killed": [89322], "left": []}
+{"id": "t00b", "killed": [89391], "left": []}
+t00a: task folder raced1.txt absent, raced1_link absent, raced2.txt PRESENT | check copy raced2.txt absent, check file a plain file yes
+t00b: task folder raced1.txt absent, raced1_link absent, raced2.txt PRESENT | check copy raced2.txt absent, check file a plain file yes
+CANARY now: CANARY ORIGINAL CONTENT  -> UNCHANGED
+per-task profiles kept: 2; links anywhere in the run folder: <run>/tasks/t00b/.agentcc_check.py <run>/tasks/t00a/.agentcc_check.py 
+mock serve.py stopped

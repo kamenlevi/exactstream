@@ -1,0 +1,18 @@
+shared run reserved until 11:31 (about 600% CPU, 20% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done.
+== scale test, MLX with TF32 OFF (port, same weights: t=0 12.343735, t=1 12.331776)
+[ref] evalp mlx_p1.npz only=all (16 tensors) t=0: step-2 batch loss 12.343821 = ce 12.343820 + sce 0.000000 (rows with the true token in the top 16: 0 of 111)
+[ref] evalp mlx_p1.npz only=all (16 tensors) t=0.01: step-2 batch loss 12.343785 = ce 12.343785 + sce 0.000000 (rows with the true token in the top 16: 0 of 111)
+[ref] evalp mlx_p1.npz only=all (16 tensors) t=1: step-2 batch loss 12.332231 = ce 12.332230 + sce 0.000000 (rows with the true token in the top 16: 0 of 111)
+== 5 optimizer steps, MLX with TF32 OFF vs port
+[ref] step 1: loss 12.748735 grad-norm 16.1715 lr 2.000e-07
+[ref] step 2: loss 12.332228 grad-norm 18.3731 lr 6.800e-06
+[ref] step 3: loss 11.793780 grad-norm 18.4765 lr 1.340e-05
+[ref] step 4: loss 11.211055 grad-norm 39.7793 lr 2.000e-05
+[ref] step 5: loss 8.971849 grad-norm 26.3154 lr 1.992e-05
+[port] step 1: loss 12.748799 (mlx 12.748735) grad-norm 16.1695 (mlx 16.1715)
+[port] step 2: loss 12.331774 (mlx 12.332228) grad-norm 18.3706 (mlx 18.3731)
+[port] step 3: loss 11.793807 (mlx 11.793780) grad-norm 18.4751 (mlx 18.4765)
+[port] step 4: loss 11.211951 (mlx 11.211055) grad-norm 39.7713 (mlx 39.7793)
+[port] step 5: loss 8.972967 (mlx 8.971849) grad-norm 26.3536 (mlx 26.3154)
+[port] RESULT losses_port=[12.748799324035645, 12.33177375793457, 11.793807029724121, 11.21195125579834, 8.972967147827148] losses_mlx=[12.748735427856445, 12.33222770690918, 11.793780326843262, 11.211054801940918, 8.97184944152832] gnorms_port=[16.16951942443
+lock released

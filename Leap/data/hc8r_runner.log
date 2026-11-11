@@ -1,0 +1,41 @@
+Wed 14:20:11 run (cap 300 s)
+
+HC8-1P screen Wed 14:20:12 (quiet lock) + timing
+96 mixers loaded and quantized (8-bit g64); hc_norm eps 1e-06
+(1) read() vs emulate(): mixed rel rms max 1.48e-03 (median 1.07e-03), inject max 2.25e-04; written == emulate 96/96, == exact (and eager8) 96/96 -> OK
+(2) deviation vs the exact read (rel rms, median [max] over 96 teacher-forced reads): mixed NP16 6.69e-03 [1.47e-02]; inject NP16 3.48e-03 [4.54e-03]; mixed NP8 6.69e-03 [1.47e-02]; inject NP8 3.48e-03 [4.54e-03]; mixed eager8 6.70e-03 [1.44e-02]; inject eager8 0.00e+00 [0.00e+00]
+(3) ms per 96-read chain (median of 40): S4g 9.44 [9.31-9.65], B 8.50 [8.42-8.80], HC8 NP8 8.37 [8.29-8.58], HC8 NP16 6.13 [6.02-6.35]
+HC8-1P verdict: BETWEEN (best HC8 NP16 6.13 ms per chain; vs S4g +3.30, vs B +2.37; (1) OK)
+lock released
+Wed 14:20:14 exit 0 after 3 s, unlocked
+Wed 14:26:22 run (cap 300 s)
+
+HC8-1P screen Wed 14:26:22 (quiet lock, 16v1,16v2,20v2,40v2) + timing
+96 mixers loaded and quantized (8-bit g64); hc_norm eps 1e-06
+(1) read() vs emulate(): mixed rel rms max 1.48e-03 (median 1.07e-03), inject max 2.25e-04; written == emulate 96/96, == exact (and eager8) 96/96 -> OK
+(2) deviation vs the exact read (rel rms, median [max] over 96 teacher-forced reads): mixed NP16v1 6.69e-03 [1.47e-02]; inject NP16v1 3.48e-03 [4.54e-03]; mixed NP16v2 6.69e-03 [1.47e-02]; inject NP16v2 3.48e-03 [4.54e-03]; mixed NP20v2 6.69e-03 [1.47e-02]; inject NP20v2 3.48e-03 [4.54e-03]; mixed NP40v2 6.69e-03 [1.47e-02]; inject NP40v2 3.48e-03 [4.54e-03]; mixed eager8 6.70e-03 [1.44e-02]; inject eager8 0.00e+00 [0.00e+00]
+(3) ms per 96-read chain (median of 40): S4g 9.67 [9.54-10.00], B 8.73 [8.60-9.00], HC8 NP16v1 6.38 [6.29-6.57], HC8 NP16v2 5.52 [5.38-5.77], HC8 NP20v2 5.22 [5.12-5.59], HC8 NP40v2 5.40 [5.28-5.74]
+HC8-1P verdict: BETWEEN (best HC8 NP20v2 5.22 ms per chain; vs S4g +4.45, vs B +3.50; (1) OK)
+lock released
+Wed 14:26:26 exit 0 after 4 s, unlocked
+Wed 14:27:27 run (cap 300 s)
+
+HC8-1P screen Wed 14:27:28 (quiet lock, 16v1,20v2,40v2) + timing
+96 mixers loaded and quantized (8-bit g64); hc_norm eps 1e-06
+(1) read() vs emulate(): mixed rel rms max 1.48e-03 (median 1.07e-03), inject max 2.25e-04; written == emulate 96/96, == exact (and eager8) 96/96 -> OK
+(2) deviation vs the exact read (rel rms, median [max] over 96 teacher-forced reads): mixed NP16v1 6.69e-03 [1.47e-02]; inject NP16v1 3.48e-03 [4.54e-03]; mixed NP20v2 6.69e-03 [1.47e-02]; inject NP20v2 3.48e-03 [4.54e-03]; mixed NP40v2 6.69e-03 [1.47e-02]; inject NP40v2 3.48e-03 [4.54e-03]; mixed eager8 6.70e-03 [1.44e-02]; inject eager8 0.00e+00 [0.00e+00]
+(3) ms per 96-read chain (median of 40): S4g 9.58 [9.50-9.78], B 8.62 [8.60-8.89], HC8 NP16v1 6.29 [6.23-6.37], HC8 NP20v2 5.40 [5.34-5.52], HC8 NP40v2 5.49 [5.42-5.66]
+HC8-1P verdict: BETWEEN (best HC8 NP20v2 5.40 ms per chain; vs S4g +4.19, vs B +3.23; (1) OK)
+lock released
+Wed 14:27:31 exit 0 after 4 s, unlocked
+Wed 14:52:26 run (cap 300 s)
+
+HC8-1P screen Wed 14:52:27 (quiet lock, 20v2,20v4) + timing
+96 mixers loaded and quantized (8-bit g64); hc_norm eps 1e-06
+(1) read() vs emulate(): mixed rel rms max 1.48e-03 (median 1.07e-03), inject max 2.25e-04; written == emulate 96/96, == exact (and eager8) 96/96 -> OK
+    bitwise vs NP20v2 (mixed, written, inject), of 96: NP20v4 96
+(2) deviation vs the exact read (rel rms, median [max] over 96 teacher-forced reads): mixed NP20v2 6.69e-03 [1.47e-02]; inject NP20v2 3.48e-03 [4.54e-03]; mixed NP20v4 6.69e-03 [1.47e-02]; inject NP20v4 3.48e-03 [4.54e-03]; mixed eager8 6.70e-03 [1.44e-02]; inject eager8 0.00e+00 [0.00e+00]
+(3) ms per 96-read chain (median of 40): S4g 9.77 [9.68-10.03], B 8.64 [8.52-8.91], HC8 NP20v2 5.27 [5.20-5.47], HC8 NP20v4 4.97 [4.88-5.23]
+HC8-1P verdict: PASS (best HC8 NP20v4 4.97 ms per chain; vs S4g +4.80, vs B +3.67; (1) OK)
+lock released
+Wed 14:52:30 exit 0 after 3 s, unlocked

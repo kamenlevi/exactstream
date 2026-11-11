@@ -1,0 +1,30 @@
+== KL terms (mine KL approximation): mean per-row paired difference, SE per row / per window; NewIdeas' in brackets
+  code: trl +0.00061 (0.00024 / 0.00030) [+0.00060]; cal +0.00127 (0.00022 / 0.00047) [+0.00126]; cal_all +0.01397 (0.00105 / 0.00365); E29 +0.00113 (0.00034 / 0.00061) [+0.00114]; T01 +0.00200 (0.00024 / 0.00059)
+  ifeval: trl +0.00292 (0.00064 / 0.00053) [+0.00296]; cal +0.00655 (0.00074 / 0.00048) [+0.00673]; cal_all +0.08439 (0.00268 / 0.00461); E29 +0.00631 (0.00067 / 0.00074) [+0.00649]; T01 +0.01097 (0.00052 / 0.00071)
+  multi: trl +0.00414 (0.00075 / 0.00074) [+0.00419]; cal +0.00696 (0.00083 / 0.00124) [+0.00721]; cal_all +0.12029 (0.00398 / 0.00991); E29 +0.00863 (0.00065 / 0.00086) [+0.00886]; T01 +0.01248 (0.00077 / 0.00164)
+  (1) NewIdeas' formula, r = Fit12's layer means (1.23, 1.68, 1.67), MSB-2 = 5 units: predicted trl - ref, measured / predicted
+    code: predicted +0.00017 [+0.00017], ratio 3.53x +- 1.41 (per-row SE) [3.5x]; weights T01 +0.00200 vs E29 +0.00113
+    ifeval: predicted +0.00157 [+0.00161], ratio 1.86x +- 0.33 (per-row SE) [1.8x]; weights T01 +0.01097 vs E29 +0.00631
+    multi: predicted +0.00170 [+0.00177], ratio 2.43x +- 0.42 (per-row SE) [2.4x]; weights T01 +0.01248 vs E29 +0.00863
+  (2) / (3) with the measured output errors (data/msb2_judge.json, layers ['7', '18', '30', '41']; router-weighted unless noted)
+    code: output-error ratios vs MSB-3, ranks 0-1 / 2-9: MSB-2 5.02 / 5.08 (unweighted 5.02 / 5.09; assumed 5), TRL 1.30 / 1.29 (unweighted 1.28 / 1.30; Fit12's layer mean 1.23)
+      (2) formula with measured ratios: predicted +0.00019, ratio 3.21x; (3) direct: dKL trl / cal = 0.478, dE trl / cal = 0.151 -> KL per unit of output error, trellis / truncation = 3.18x
+    ifeval: output-error ratios vs MSB-3, ranks 0-1 / 2-9: MSB-2 5.00 / 5.05 (unweighted 5.01 / 5.06; assumed 5), TRL 1.82 / 1.79 (unweighted 1.81 / 1.78; Fit12's layer mean 1.68)
+      (2) formula with measured ratios: predicted +0.00175, ratio 1.67x; (3) direct: dKL trl / cal = 0.446, dE trl / cal = 0.270 -> KL per unit of output error, trellis / truncation = 1.65x
+    multi: output-error ratios vs MSB-3, ranks 0-1 / 2-9: MSB-2 5.06 / 5.06 (unweighted 5.03 / 5.06; assumed 5), TRL 1.78 / 1.72 (unweighted 1.78 / 1.71; Fit12's layer mean 1.67)
+      (2) formula with measured ratios: predicted +0.00181, ratio 2.28x; (3) direct: dKL trl / cal = 0.594, dE trl / cal = 0.254 -> KL per unit of output error, trellis / truncation = 2.34x
+== KL terms (theirs KL approximation): mean per-row paired difference, SE per row / per window; NewIdeas' in brackets
+  code: trl +0.00061 (0.00024 / 0.00030) [+0.00060]; cal +0.00127 (0.00022 / 0.00047) [+0.00126]; cal_all +0.01396 (0.00105 / 0.00364); E29 +0.00113 (0.00034 / 0.00061) [+0.00114]; T01 +0.00200 (0.00024 / 0.00058)
+  ifeval: trl +0.00292 (0.00064 / 0.00053) [+0.00296]; cal +0.00655 (0.00074 / 0.00049) [+0.00673]; cal_all +0.08427 (0.00267 / 0.00465); E29 +0.00630 (0.00067 / 0.00075) [+0.00649]; T01 +0.01097 (0.00052 / 0.00071)
+  multi: trl +0.00414 (0.00075 / 0.00074) [+0.00419]; cal +0.00696 (0.00083 / 0.00124) [+0.00721]; cal_all +0.12028 (0.00398 / 0.00991); E29 +0.00863 (0.00065 / 0.00086) [+0.00886]; T01 +0.01248 (0.00077 / 0.00164)
+  (1) NewIdeas' formula, r = Fit12's layer means (1.23, 1.68, 1.67), MSB-2 = 5 units: predicted trl - ref, measured / predicted
+    code: predicted +0.00017 [+0.00017], ratio 3.53x +- 1.41 (per-row SE) [3.5x]; weights T01 +0.00200 vs E29 +0.00113
+    ifeval: predicted +0.00157 [+0.00161], ratio 1.86x +- 0.33 (per-row SE) [1.8x]; weights T01 +0.01097 vs E29 +0.00630
+    multi: predicted +0.00170 [+0.00177], ratio 2.43x +- 0.42 (per-row SE) [2.4x]; weights T01 +0.01248 vs E29 +0.00863
+  (2) / (3) with the measured output errors (data/msb2_judge.json, layers ['7', '18', '30', '41']; router-weighted unless noted)
+    code: output-error ratios vs MSB-3, ranks 0-1 / 2-9: MSB-2 5.02 / 5.08 (unweighted 5.02 / 5.09; assumed 5), TRL 1.30 / 1.29 (unweighted 1.28 / 1.30; Fit12's layer mean 1.23)
+      (2) formula with measured ratios: predicted +0.00019, ratio 3.21x; (3) direct: dKL trl / cal = 0.478, dE trl / cal = 0.151 -> KL per unit of output error, trellis / truncation = 3.18x
+    ifeval: output-error ratios vs MSB-3, ranks 0-1 / 2-9: MSB-2 5.00 / 5.05 (unweighted 5.01 / 5.06; assumed 5), TRL 1.82 / 1.79 (unweighted 1.81 / 1.78; Fit12's layer mean 1.68)
+      (2) formula with measured ratios: predicted +0.00175, ratio 1.67x; (3) direct: dKL trl / cal = 0.446, dE trl / cal = 0.270 -> KL per unit of output error, trellis / truncation = 1.65x
+    multi: output-error ratios vs MSB-3, ranks 0-1 / 2-9: MSB-2 5.06 / 5.06 (unweighted 5.03 / 5.06; assumed 5), TRL 1.78 / 1.72 (unweighted 1.78 / 1.71; Fit12's layer mean 1.67)
+      (2) formula with measured ratios: predicted +0.00181, ratio 2.28x; (3) direct: dKL trl / cal = 0.594, dE trl / cal = 0.254 -> KL per unit of output error, trellis / truncation = 2.34x

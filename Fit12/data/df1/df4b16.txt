@@ -1,0 +1,17 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=39.4 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.00 GB pools
+b12: hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.00 GB, active 9.29 GB
+fit12: budget b16: 48 routers
+fit12: DFlash2 8-bit, window 2048, verify width 4, KC 20, active 10.05 GB
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[df4b16] tfc0: 30.6 tok/s, 4.00 tok/pass, 40 passes | per pass: verify 122.2 ms, draft 8.7 ms, waited 461.6, reads 461.6, stall 78.3 ms, SSD 1662 MB | refused 0 | accepted hist [0, 0, 0, 40] | peak footprint 11.31 GB | sha cbc69d4843
+[df4b16] tfc1: 29.1 tok/s, 4.00 tok/pass, 40 passes | per pass: verify 128.7 ms, draft 8.6 ms, waited 493.7, reads 493.7, stall 84.5 ms, SSD 1700 MB | refused 0 | accepted hist [0, 0, 0, 40] | peak footprint 11.31 GB | sha 06ad11d962
+[df4b16] tfc2: 28.3 tok/s, 4.00 tok/pass, 40 passes | per pass: verify 132.3 ms, draft 8.8 ms, waited 510.6, reads 510.6, stall 86.3 ms, SSD 1904 MB | refused 0 | accepted hist [0, 0, 0, 40] | peak footprint 11.38 GB | sha 9d9427df9e
+[df4b16] tfg0: 20.6 tok/s, 1.90 tok/pass, 84 passes | per pass: verify 84.1 ms, draft 8.4 ms, waited 228.7, reads 229.3, stall 41.2 ms, SSD 733 MB | refused 0 | accepted hist [56, 3, 2, 23] | peak footprint 11.56 GB | sha 3529398458
+[df4b16] tfg1: 26.3 tok/s, 3.48 tok/pass, 46 passes | per pass: verify 123.3 ms, draft 8.7 ms, waited 445.7, reads 445.7, stall 78.1 ms, SSD 1424 MB | refused 0 | accepted hist [4, 4, 4, 34] | peak footprint 11.56 GB | sha 14653c0333
+[df4b16] tfg2: 27.1 tok/s, 3.56 tok/pass, 45 passes | per pass: verify 122.7 ms, draft 8.5 ms, waited 436.0, reads 439.9, stall 78.2 ms, SSD 1279 MB | refused 0 | accepted hist [4, 3, 2, 36] | peak footprint 11.56 GB | sha 989a4b5d1d
+[df4b16] ALL: 26.6 tok/s, 3.25 tok/pass over 6 items

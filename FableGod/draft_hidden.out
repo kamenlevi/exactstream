@@ -1,0 +1,49 @@
+## 1. Outcomes and anchor coverage (ANCHORCOV's N=3 by first-miss probability: code 0.782, math 0.672, ifeval 0.799, multi 0.804 [K])
+  code: 666 checks; all accepted 0.294; anchors cover N=2 0.740, N=3 0.826 (used 0.782), N=4 0.887; the drafter's depth-15 accuracy (the bonus guess at the all-accepted anchor) 0.858
+  math: 2046 checks; all accepted 0.109; anchors cover N=2 0.638, N=3 0.747 (used 0.672), N=4 0.829; the drafter's depth-15 accuracy (the bonus guess at the all-accepted anchor) 0.791
+  ifeval: 2850 checks; all accepted 0.010; anchors cover N=2 0.796, N=3 0.885 (used 0.799), N=4 0.935; the drafter's depth-15 accuracy (the bonus guess at the all-accepted anchor) 0.667
+  multi: 3294 checks; all accepted 0.005; anchors cover N=2 0.804, N=3 0.893 (used 0.804), N=4 0.939; the drafter's depth-15 accuracy (the bonus guess at the all-accepted anchor) 0.667 (no check reaches row 14: ifeval's rate used as the chat proxy)
+
+## 2. Usable coverage, the exposed draft and the cycle per design [P on K; G for the second-choice rate]
+  | set | design | candidates | usable coverage | exposed draft ms (expected / bound) | cycle ms today -> design (bound) | tok/s today -> design (gain, bound, halved) |
+  |---|---|---|---|---|---|---|
+  | code | A  ANE-3 anchors (cloud's, first-miss-probability anchors) + D | 3 | 0.51 | 3.2 / 3.4 | 44.3 -> 39.4 (40.1) | 238 -> 267 (+12.4 %, +10.6, halved +6.2 %) |
+  | code | A4 ANE-4 anchors + D | 4 | 0.57 | 2.9 / 3.1 | 44.3 -> 39.1 (39.7) | 238 -> 270 (+13.4 %, +11.5, halved +6.7 %) |
+  | code | A5 ANE-5: 3 anchors, #2 and #3 at the two miss anchors + D | 5 | 0.59 | 2.8 / 2.9 | 44.3 -> 38.9 (39.6) | 238 -> 271 (+13.8 %, +11.9, halved +6.9 %) |
+  | code | A7 ANE-7: 4 anchors, #2 and #3 at the three miss anchors + D | 7 | 0.66 | 2.3 / 2.5 | 44.3 -> 38.5 (39.2) | 238 -> 274 (+15.1 %, +13.1, halved +7.6 %) |
+  | code | L  ANE-3 + a bonus guess at 0.6 at the miss anchors (a lens or a better second choice) [G] + D | 3 | 0.55 | 3.0 / 3.2 | 44.3 -> 39.2 (39.9) | 238 -> 269 (+13.0 %, +11.2, halved +6.5 %) |
+  | code | L  ANE-3 + a bonus guess at 0.8 at the miss anchors (a lens or a better second choice) [G] + D | 3 | 0.64 | 2.4 / 2.6 | 44.3 -> 38.6 (39.3) | 238 -> 273 (+14.8 %, +12.7, halved +7.4 %) |
+  | code | D  the commit hidden behind the serial draft (no ANE) | 0 | 0.00 | 6.3 / 6.3 | 44.3 -> 41.8 (42.3) | 238 -> 252 (+6.0 %, +4.7, halved +3.0 %) |
+  | code | B  the MTP head's depth-1 after the check, hidden behind the pipelined commit (0.5 exposed) + the serial draft | 0 | 0.00 | 6.8 / 7.8 | 44.3 -> 42.3 (43.8) | 238 -> 249 (+4.7 %, +1.1, halved +2.4 %) |
+  | math | A  ANE-3 anchors (cloud's, first-miss-probability anchors) + D | 3 | 0.37 | 4.1 / 4.2 | 38.3 -> 34.1 (34.7) | 173 -> 194 (+12.2 %, +10.3, halved +6.1 %) |
+  | math | A4 ANE-4 anchors + D | 4 | 0.45 | 3.6 / 3.7 | 38.3 -> 33.7 (34.3) | 173 -> 196 (+13.8 %, +11.7, halved +6.9 %) |
+  | math | A5 ANE-5: 3 anchors, #2 and #3 at the two miss anchors + D | 5 | 0.45 | 3.6 / 3.8 | 38.3 -> 33.7 (34.3) | 173 -> 196 (+13.8 %, +11.7, halved +6.9 %) |
+  | math | A7 ANE-7: 4 anchors, #2 and #3 at the three miss anchors + D | 7 | 0.55 | 3.0 / 3.2 | 38.3 -> 33.1 (33.7) | 173 -> 200 (+15.9 %, +13.6, halved +7.9 %) |
+  | math | L  ANE-3 + a bonus guess at 0.6 at the miss anchors (a lens or a better second choice) [G] + D | 3 | 0.42 | 3.8 / 3.9 | 38.3 -> 33.8 (34.4) | 173 -> 196 (+13.3 %, +11.3, halved +6.7 %) |
+  | math | L  ANE-3 + a bonus guess at 0.8 at the miss anchors (a lens or a better second choice) [G] + D | 3 | 0.54 | 3.1 / 3.2 | 38.3 -> 33.1 (33.8) | 173 -> 200 (+15.6 %, +13.4, halved +7.8 %) |
+  | math | D  the commit hidden behind the serial draft (no ANE) | 0 | 0.00 | 6.3 / 6.3 | 38.3 -> 35.8 (36.3) | 173 -> 185 (+7.0 %, +5.5, halved +3.5 %) |
+  | math | B  the MTP head's depth-1 after the check, hidden behind the pipelined commit (0.5 exposed) + the serial draft | 0 | 0.00 | 6.8 / 7.8 | 38.3 -> 36.3 (37.8) | 173 -> 182 (+5.5 %, +1.3, halved +2.8 %) |
+  | ifeval | A  ANE-3 anchors (cloud's, first-miss-probability anchors) + D | 3 | 0.22 | 5.0 / 5.1 | 32.3 -> 28.9 (29.5) | 63 -> 70 (+11.7 %, +9.5, halved +5.8 %) |
+  | ifeval | A4 ANE-4 anchors + D | 4 | 0.25 | 4.8 / 4.9 | 32.3 -> 28.7 (29.3) | 63 -> 71 (+12.5 %, +10.3, halved +6.3 %) |
+  | ifeval | A5 ANE-5: 3 anchors, #2 and #3 at the two miss anchors + D | 5 | 0.32 | 4.4 / 4.5 | 32.3 -> 28.3 (28.9) | 63 -> 72 (+14.2 %, +11.8, halved +7.1 %) |
+  | ifeval | A7 ANE-7: 4 anchors, #2 and #3 at the three miss anchors + D | 7 | 0.38 | 4.0 / 4.2 | 32.3 -> 28.0 (28.6) | 63 -> 73 (+15.5 %, +13.0, halved +7.7 %) |
+  | ifeval | L  ANE-3 + a bonus guess at 0.6 at the miss anchors (a lens or a better second choice) [G] + D | 3 | 0.48 | 3.4 / 3.6 | 32.3 -> 27.3 (28.0) | 63 -> 74 (+18.1 %, +15.4, halved +9.1 %) |
+  | ifeval | L  ANE-3 + a bonus guess at 0.8 at the miss anchors (a lens or a better second choice) [G] + D | 3 | 0.64 | 2.5 / 2.7 | 32.3 -> 26.4 (27.1) | 63 -> 77 (+22.4 %, +19.3, halved +11.2 %) |
+  | ifeval | D  the commit hidden behind the serial draft (no ANE) | 0 | 0.00 | 6.3 / 6.3 | 32.3 -> 29.8 (30.3) | 63 -> 68 (+8.4 %, +6.6, halved +4.2 %) |
+  | ifeval | B  the MTP head's depth-1 after the check, hidden behind the pipelined commit (0.5 exposed) + the serial draft | 0 | 0.00 | 6.8 / 7.8 | 32.3 -> 30.3 (31.8) | 63 -> 67 (+6.6 %, +1.6, halved +3.3 %) |
+  | multi | A  ANE-3 anchors (cloud's, first-miss-probability anchors) + D | 3 | 0.15 | 5.4 / 5.5 | 32.3 -> 29.3 (29.9) | 63 -> 69 (+10.1 %, +8.1, halved +5.1 %) |
+  | multi | A4 ANE-4 anchors + D | 4 | 0.17 | 5.3 / 5.3 | 32.3 -> 29.2 (29.7) | 63 -> 70 (+10.7 %, +8.6, halved +5.3 %) |
+  | multi | A5 ANE-5: 3 anchors, #2 and #3 at the two miss anchors + D | 5 | 0.22 | 5.0 / 5.0 | 32.3 -> 28.9 (29.4) | 63 -> 70 (+11.8 %, +9.7, halved +5.9 %) |
+  | multi | A7 ANE-7: 4 anchors, #2 and #3 at the three miss anchors + D | 7 | 0.26 | 4.7 / 4.8 | 32.3 -> 28.7 (29.2) | 63 -> 71 (+12.7 %, +10.5, halved +6.4 %) |
+  | multi | L  ANE-3 + a bonus guess at 0.6 at the miss anchors (a lens or a better second choice) [G] + D | 3 | 0.48 | 3.4 / 3.5 | 32.3 -> 27.3 (28.0) | 63 -> 74 (+18.2 %, +15.5, halved +9.1 %) |
+  | multi | L  ANE-3 + a bonus guess at 0.8 at the miss anchors (a lens or a better second choice) [G] + D | 3 | 0.64 | 2.4 / 2.6 | 32.3 -> 26.4 (27.1) | 63 -> 77 (+22.5 %, +19.4, halved +11.3 %) |
+  | multi | D  the commit hidden behind the serial draft (no ANE) | 0 | 0.00 | 6.3 / 6.3 | 32.3 -> 29.8 (30.3) | 63 -> 68 (+8.4 %, +6.6, halved +4.2 %) |
+  | multi | B  the MTP head's depth-1 after the check, hidden behind the pipelined commit (0.5 exposed) + the serial draft | 0 | 0.00 | 6.8 / 7.8 | 32.3 -> 30.3 (31.8) | 63 -> 67 (+6.6 %, +1.6, halved +3.3 %) |
+
+## 3. Sensitivity of A5 + D to the top-3 rescue rate at the miss rows (measured: code 0.69, math 0.64, ifeval 0.40, multi 0.28) (exposed draft ms, averaged over outcomes)
+  code: top-3 rescue 0.3: usable 0.40, exposed 3.9 ms; top-3 rescue 0.45: usable 0.47, exposed 3.5 ms; top-3 rescue 0.6: usable 0.55, exposed 3.0 ms; top-3 rescue 0.8: usable 0.64, exposed 2.4 ms; top-3 rescue 0.95: usable 0.72, exposed 2.0 ms; 
+  math: top-3 rescue 0.3: usable 0.26, exposed 4.8 ms; top-3 rescue 0.45: usable 0.34, exposed 4.3 ms; top-3 rescue 0.6: usable 0.42, exposed 3.8 ms; top-3 rescue 0.8: usable 0.54, exposed 3.1 ms; top-3 rescue 0.95: usable 0.62, exposed 2.6 ms; 
+  ifeval: top-3 rescue 0.3: usable 0.24, exposed 4.8 ms; top-3 rescue 0.45: usable 0.36, exposed 4.1 ms; top-3 rescue 0.6: usable 0.48, exposed 3.4 ms; top-3 rescue 0.8: usable 0.64, exposed 2.5 ms; top-3 rescue 0.95: usable 0.76, exposed 1.8 ms; 
+  multi: top-3 rescue 0.3: usable 0.24, exposed 4.8 ms; top-3 rescue 0.45: usable 0.36, exposed 4.1 ms; top-3 rescue 0.6: usable 0.48, exposed 3.4 ms; top-3 rescue 0.8: usable 0.64, exposed 2.4 ms; top-3 rescue 0.95: usable 0.76, exposed 1.7 ms; 
+
+## 4. What <= 1 ms of average exposed draft needs: usable >= (6.3 - 1.0) / (6.3 - 0.3) = 0.88 of outcomes, or a fallback draft <= 1.0 + (1 - u) ... i.e. at u 0.57 a fallback of <= 1.5 ms

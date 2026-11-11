@@ -1,0 +1,10 @@
+D1-A0 HC read stages Mon 23:02 (shared lock, GPU ~50 % free)
+96 mixers; up GEMM M 16 x N 10240 x K 320; hc_norm eps 1e-06
+  ms per 96-read chain (median of 20): full 9.87, no norm 7.15, no s4 4.97, no b 5.98
+  in-place cost per 96 reads: norm 2.73 ms (28.4 us per read), s4 4.90 ms (51.0 us per read), b 3.89 ms (40.6 us per read)
+--- rerun with the norm-latency chain 23:08
+D1-A0 HC read stages Mon 23:08 (shared lock beside ojox-e8 (80 % GPU))
+96 mixers; up GEMM M 16 x N 10240 x K 320; hc_norm eps 1e-06
+  ms per 96-read chain (median of 20): full 9.60, no norm 6.87, no s4 4.82, no b 5.88
+  in-place cost per 96 reads: norm 2.74 ms (28.5 us per read), s4 4.78 ms (49.8 us per read), b 3.72 ms (38.8 us per read)
+  norm kernel alone, dependent chain: 9.8 us per call; a same-size elementwise add chain 7.6 us per call (the boundary + launch floor)

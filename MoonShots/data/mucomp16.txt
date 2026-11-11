@@ -1,0 +1,32 @@
+M-09b MUCOMP: dropped experts -> w x mean output; layers [2, 12, 24, 36, 46]; mu from tokens 0-2047; windows of 16, in sample (1024, 2048), out of sample (6144, 8192); shared GPU, rough
+  layer  2 done (9 s)
+  layer 12 done (14 s)
+  layer 24 done (19 s)
+  layer 36 done (25 s)
+  layer 46 done (31 s)
+== in of sample: natural window union 76.3; per-row top-8: union 63.6, block error 0.0259
+  window budget by router mass, block error at B:        16      24      32      40      48      56      64      72
+    renorm                                          0.4440  0.2161  0.1141  0.0598  0.0302  0.0148  0.0067  0.0025
+    drop                                            0.1435  0.0781  0.0453  0.0256  0.0136  0.0069  0.0032  0.0013
+    mu                                              0.1113  0.0609  0.0355  0.0201  0.0107  0.0055  0.0025  0.0011
+  experts per window at top-8's error: renorm 50.0, drop 39.8, mu 37.0 (mu = 0.74x renorm, -51.6 % vs natural; drop = 1.08x mu)
+  per-row top-k (union per window / block error), renormalized vs + mu for ranks k+1..10:
+    k 4: union  36.4 (-52.4 %); topk 0.3328 (12.87x top-8's); topk+mu 0.0836 (3.23x top-8's)
+    k 5: union  43.5 (-43.0 %); topk 0.1819 (7.04x top-8's); topk+mu 0.0556 (2.15x top-8's)
+    k 6: union  50.5 (-33.9 %); topk 0.0994 (3.85x top-8's); topk+mu 0.0369 (1.43x top-8's)
+    k 7: union  57.2 (-25.1 %); topk 0.0529 (2.05x top-8's); topk+mu 0.0238 (0.92x top-8's)
+    k 8: union  63.6 (-16.7 %); topk 0.0259 (1.00x top-8's); topk+mu 0.0143 (0.55x top-8's)
+== out of sample: natural window union 73.0; per-row top-8: union 61.0, block error 0.0259
+  window budget by router mass, block error at B:        16      24      32      40      48      56      64      72
+    renorm                                          0.4920  0.2532  0.1314  0.0636  0.0301  0.0151  0.0070  0.0025
+    drop                                            0.1602  0.0885  0.0495  0.0265  0.0138  0.0072  0.0033  0.0012
+    mu                                              0.1554  0.0867  0.0492  0.0269  0.0143  0.0076  0.0036  0.0013
+  experts per window at top-8's error: renorm 49.7, drop 40.3, mu 40.5 (mu = 0.82x renorm, -44.5 % vs natural; drop = 0.99x mu)
+  per-row top-k (union per window / block error), renormalized vs + mu for ranks k+1..10:
+    k 4: union  34.9 (-52.2 %); topk 0.3058 (11.82x top-8's); topk+mu 0.0947 (3.66x top-8's)
+    k 5: union  41.7 (-42.9 %); topk 0.1715 (6.63x top-8's); topk+mu 0.0662 (2.56x top-8's)
+    k 6: union  48.4 (-33.8 %); topk 0.0968 (3.74x top-8's); topk+mu 0.0460 (1.78x top-8's)
+    k 7: union  54.9 (-24.9 %); topk 0.0525 (2.03x top-8's); topk+mu 0.0304 (1.18x top-8's)
+    k 8: union  61.0 (-16.4 %); topk 0.0259 (1.00x top-8's); topk+mu 0.0183 (0.71x top-8's)
+Lines (out of sample): mu/renorm 0.82 (PASS <= 0.80, KILL >= 0.90); drop/mu 0.99 (KILL <= 1.10); per-row top-7 / top-6 + mu vs top-8's error 1.18x / 1.78x (PASS needs <= 1.00x for one) -> KILL
+(31 s)

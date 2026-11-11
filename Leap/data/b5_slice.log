@@ -1,0 +1,10 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=auto source=default table=29.8 GiB free=27.6 GiB reserved=0.0 GiB margin=6.0 GiB budget=21.6 GiB order=small_maps_first
+[mtplx] n-gram table pre-read 21.6 GiB in 2.0 s (10.9 GiB/s)
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+B5 slice (time): 12 layers resident, types GGGAGGGAGGGA, 18.5 GB active, loaded in 4 s
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  A: build 5.04 ms, eval 32.22 ms, wall 37.18 ms [min 34.20] per 12-layer check -> x4 148.7 ms per 48-layer check
+  B: build 17.35 ms, eval 15.44 ms, wall 32.80 ms [min 31.01] per 12-layer check -> x4 131.2 ms per 48-layer check; logits vs A: max |diff| 0 (bitwise)
+  C: build 1.22 ms, eval 32.05 ms, wall 33.28 ms [min 31.36] per 12-layer check -> x4 133.1 ms per 48-layer check; logits vs A: max |diff| 0 (bitwise)

@@ -1,0 +1,7 @@
+R-40 STEP 4c: full 125B via load_streamed (C = 144), loaded in 1 s, 23.0 GB active; EvalSuite's PF1 True (full scratch True): on for prefills, off for checks / commits
+  self-test: {'qmm16c 6144x2560': True, 'MLX 16-row 512x2560': True, 'experts split == fused': True, 'experts rows alone': True, 'bf16 Linear': True}
+  math500/test/geometry/702.json [SDPA classes on] P 520: 256 tokens in 52 checks (kept 5.12), 14.9 tok/s, median cycle 317.4 ms; tokens == EvalSuite's REF2 row 118 / 256; logits rows bitwise vs AR 160 / 160; slot calls per check 48.4, SDPA splits per check 0.00
+  humaneval/HumanEval/68 [SDPA classes on] P 367: 256 tokens in 17 checks (kept 15.41), 27.0 tok/s, median cycle 547.6 ms; tokens == EvalSuite's REF2 row 256 / 256; logits rows bitwise vs AR 220 / 220; slot calls per check 48.2, SDPA splits per check 0.71
+  math500/test/geometry/702.json [SDPA classes on] P 520: 256 tokens in 54 checks (kept 4.74), 14.1 tok/s, median cycle 301.1 ms; tokens == EvalSuite's REF2 row 118 / 256; logits rows bitwise vs AR 2 / 160; slot calls per check 48.2, SDPA splits per check 0.00
+  key-bucket counts: {'kb_pad': 3732, 'kb_split': 192}
+R-40 STEP 4c verdict (PASS: live loop bit-exact vs the key-bucket AR past 512 keys and the control breaks): PASS (Part L exact True over 2 prompt(s); control broke True; 169 s running, 247 s wall)

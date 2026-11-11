@@ -1,0 +1,22 @@
+[smoke] env BIGMOE_PKD1=None BIGMOE_SCOUT_BUNDLE=None; Leap dense3.py sha256 ec71be4478bc606f
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=21.2 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[dm] loaded in 1s (C 51)
+[dm] discover_layers: 48 layers, {'gdn': 36, 'hc': 96, 'moe': 48, 'att': 12}; missing []
+[dm] MoE block: top_k 10, norm_topk_prob True
+[smoke] window tf_code_HumanEval_135.npz: 282 ids; model loaded in 1s
+qom_0_live_bq_c147_t3 code tf_code_HumanEval_135.npz 144 positions 9s; k 10:5
+[smoke] C qom_0_live_bq_c147_t3: 9.4s, MLX peak 12.5 GB, flips vs baseline 0.00 % (144 rows)
+[smoke] C REGRESSION: tk equal True, lp bit-equal True
+qom_0_live_ball_c147_t3 code tf_code_HumanEval_135.npz 144 positions 9s; k 
+[smoke] 6a qom_0_live_ball_c147_t3: 9.3s, MLX peak 12.6 GB, flips vs baseline 0.00 % (144 rows)
+[dm] dense3: 228 modules at MSB-3 (1509 MB of 4-bit weights rewritten)
+qom_0_live_ball_c147_t3+dense3 code tf_code_HumanEval_135.npz 144 positions 9s; k 
+[smoke] D qom_0_live_ball_c147_t3+dense3: 9.1s, MLX peak 13.9 GB, flips vs baseline 0.00 % (144 rows)
+qom_0_live_ball_c147_t3 code tf_code_HumanEval_135.npz 144 positions 10s; k 
+[smoke] 6b qom_0_live_ball_c147_t3: 9.8s, MLX peak 12.6 GB, flips vs baseline 0.00 % (144 rows)
+[smoke] RESTORE: screen 6 after the dense3 run == before: tk True, lp bit-equal True
+[smoke] dense3 vs screen 6: rows with identical top-8 ids + log-probs 0/144 (not INVALID: the rewrite reached the forward); top-1 flips 0, mean |dlp1| 0.0069
+[smoke] total 38s; max RSS 12.2 GB

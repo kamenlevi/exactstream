@@ -1,0 +1,18 @@
+D-05 like-with-like: native MTP chain (k = 3) vs DFlash2 L1-20 (block 16, official loop), same prompts, same region
+(completion positions 1..L, L = the answer's first end token, capped at the MTP decode's 300 tokens; conditional
+per-depth acceptance, hits / trials):
+MTP side: data/d05_mtp_exact.json (BIGMOE_TIER=4444444444, MTP_STREAM=1)
+  code   (8 prompts, 2039 positions)
+    MTP chain  depth 1 / 2 / 3 = 0.972 / 0.981 / 0.947   (515/530, 511/521, 482/509);  tokens per check at width 3: 3.83
+    DFlash2    depth 1 / 2 / 3 = 0.969 / 0.941 / 0.943   (188/194, 175/186, 164/174);  tokens per check at width 3: 3.74
+    DFlash2    depths 4-15: 0.98 0.96 0.97 0.96 0.92 0.91 0.87 0.90 0.90 0.94 0.92 0.86;  kept per block-16 check (accepted + 1, D-02b's measure) 10.55 (194 checks)
+    same text: 2047 known MTP-decode positions compared with dfl2d's ids, 83 differ (first: [('tf_code/HumanEval/118', 206)])
+  gsm    (8 prompts, 1572 positions)
+    MTP chain  depth 1 / 2 / 3 = 0.918 / 0.898 / 0.874   (416/453, 377/420, 327/374);  tokens per check at width 3: 3.46
+    DFlash2    depth 1 / 2 / 3 = 0.904 / 0.885 / 0.858   (208/230, 184/208, 157/183);  tokens per check at width 3: 3.39
+    DFlash2    depths 4-15: 0.87 0.91 0.86 0.87 0.89 0.89 0.81 0.75 0.77 0.79 0.68 0.76;  kept per block-16 check (accepted + 1, D-02b's measure) 6.87 (230 checks)
+    same text: 1580 known MTP-decode positions compared with dfl2d's ids, 680 differ (first: [('tf_gsm/600', 0), ('tf_gsm/608', 6), ('tf_gsm/632', 16)])
+drafting cost (spec125 timers, decode only; draft = t_draft + t_head per pass):
+  d05_mtp_exact.json (k = 3, MTP_STREAM=1, 16 prompts): draft 8.26 ms per pass (t_draft 7.90, t_head 0.36), verify 148.9 ms, 2.74 tokens per pass, 57.4 ms per token
+  d05_mtp_cost_k3.json (k = 3, MTP_STREAM=None, 4 prompts): draft 4.48 ms per pass (t_draft 4.09, t_head 0.39), verify 161.9 ms, 3.76 tokens per pass, 44.3 ms per token
+  d05_mtp_cost_k1.json (k = 1, MTP_STREAM=None, 4 prompts): draft 1.95 ms per pass (t_draft 1.59, t_head 0.36), verify 105.6 ms, 1.97 tokens per pass, 54.6 ms per token

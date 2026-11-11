@@ -1,0 +1,21 @@
+L1-23: dense layers of a 16-row check, random weights at the 125B's shapes and counts (cold), ms per check
+shape                        N x K   n | floor | MLX 1 | MLX 16 | MLX exact today | qmm16c best (ks, nt) | 16-row padding-independent: MLX / qmm16c | best exact
+in_proj_qkv           10240 x 2560  36 |  1.90 |  2.04 |   3.31 |   9.23 (c12) |   2.53 (2, 2) | yes / yes |   2.53; max|err| vs fp32 MLX 0.0078 / qmm16c 0.00783
+o_proj+out_proj        2560 x 6144  48 |  1.52 |  1.75 |   7.51 |   6.87 (c12) |   2.39 (2, 2) | yes / yes |   2.39; max|err| vs fp32 MLX 0.0229 / qmm16c 0.00999
+lm_head              248320 x 2560   1 |  1.28 |  1.47 |   2.21 |   5.69 (c12) |   1.53 (4, 1) | yes / yes |   1.53; max|err| vs fp32 MLX 0.00779 / qmm16c 0.00878
+in_proj_z              6144 x 2560  36 |  1.14 |  1.36 |   5.65 |   5.18 (c12) |   1.79 (1, 1) | yes / yes |   1.79; max|err| vs fp32 MLX 0.00959 / qmm16c 0.00718
+q_proj                12288 x 2560  12 |  0.76 |  0.97 |   1.44 |   3.45 (c12) |   1.29 (2, 2) | yes / yes |   1.29; max|err| vs fp32 MLX 0.00715 / qmm16c 0.00848
+shared gate/up          640 x 2560  96 |  0.32 |  0.69 |   1.82 |   1.84 (c16) |   2.03 (2, 2) | yes / yes |   1.82; max|err| vs fp32 MLX 0.00551 / qmm16c 0.00551
+shared down            2560 x  640  48 |  0.16 |  0.48 |   1.39 |   1.41 (c16) |   1.12 (1, 2) | yes / yes |   1.12; max|err| vs fp32 MLX 0.00417 / qmm16c 0.00417
+k/v_proj                512 x 2560  24 |  0.06 |  0.27 |   0.64 |   0.64 (c16) |   0.60 (2, 1) | yes / yes |   0.60; max|err| vs fp32 MLX 0.00542 / qmm16c 0.00542
+in_proj_a/b              48 x 2560  72 |  0.02 |  0.37 |   0.52 |   0.54 (c16) |   0.63 (2, 1) | yes / yes |   0.52; max|err| vs fp32 MLX 0.00466 / qmm16c 0.00466
+shared_expert_gate        1 x 2560  48 |  0.00 |  0.34 |   0.37 |   0.38 (c16) |   0.49 (4, 1) | yes / yes |   0.37; max|err| vs fp32 MLX 0.0029 / qmm16c 0.0029
+HC mix up             10240 x  320  97 |  2.27 |  2.48 |   2.85 |   9.64 (c5) |      -        | yes / -   |   2.85
+HC mix down             320 x10240  97 |  2.27 |  2.45 |   5.83 |   6.73 (c15) |      -        | yes / -   |   5.83
+ple key               10240 x 2560   1 |  0.19 |  0.35 |   0.45 |   0.90 (c5) |      -        | yes / -   |   0.45
+ple value              2560 x 2560   1 |  0.05 |  0.19 |   0.22 |   0.27 (c5) |      -        | yes / -   |   0.22
+block_inject              4 x10240  96 |  0.03 |  0.33 |   4.06 |   4.07 (c16) |      -        | yes / -   |   4.06
+q4 subtotal: floor 7.1 ms; MLX 1-row 9.8; exact today 35.2; best batch-invariant 14.0
+bf16 subtotal: floor 4.8 ms; MLX 1-row 5.8; exact today 21.6; best batch-invariant 13.4
+(8-bit router / indexer, ~1.7 ms today, not in this set.) L1-23 lines: kill if the 4-bit best > 25 ms, pass <= 15 ms
+TOTAL per 16-row check: floor 11.9 ms; MLX 1-row decode 15.6; exact today (chunked) 56.8; best batch-invariant 27.4

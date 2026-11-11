@@ -1,0 +1,33 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=32.0 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[d22] loaded ckpt d22_b5
+MTPSCREEN 11-04 15:30: the MTP-assisted pick (head b5, teacher-forced) with the MTP's head over full / a (FR-Spec top-32K + session) / b (DFlash2's 16 candidates + session) / b0 (the 16 alone), at the TOP16 walk's HPD-0 anchors (24 code windows)
+  window 1/24 tf_code_HumanEval_10: 35 anchors, 2 s
+  window 24/24 tf_code_HumanEval_99: 55 anchors, 28 s
+  666 checks; DFlash2 alone 9.57 kept per check (the walk: 9.57; E1: 9.54); MTP alone (full) 9.97 (E1 10.13); union oracle 11.35 (E1 12.73)
+    head full: pick 10.51 (x1.098); best threshold delta +0.0: 10.51 (x1.098); union oracle 11.35; MTP top-1 = full's on 100.0 % of depths
+    head a   : pick 10.51 (x1.098); best threshold delta +0.0: 10.51 (x1.098); union oracle 11.35; MTP top-1 = full's on 99.7 % of depths
+    head b   : pick 10.53 (x1.101); best threshold delta +0.0: 10.53 (x1.101); union oracle 11.30; MTP top-1 = full's on 95.1 % of depths
+    head b0  : pick 10.40 (x1.087); best threshold delta +0.0: 10.40 (x1.087); union oracle 11.07; MTP top-1 = full's on 87.7 % of depths
+  max RSS 5.7 GB, 28 s
+  MTP step at 1 row (mtp_forward + argmax / softmax max + one sync, 40 steps on a 400-pair cache, median): full head 2.571 ms, screened 32K 1.353 ms, 16-column stand-in (layer + mixer) 1.280 ms
+       30.19 real        50.56 user         5.95 sys
+          6188662784  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              471572  page reclaims
+                 169  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                1884  voluntary context switches
+               51108  involuntary context switches
+       1207400497549  instructions retired
+        192000829409  cycles elapsed
+         10142766600  peak memory footprint

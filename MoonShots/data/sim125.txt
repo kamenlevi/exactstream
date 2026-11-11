@@ -1,0 +1,18 @@
+125B real verify passes: 121 passes, 48 layers x 512 experts, 50 % resident (stall per pass, x48/48)
+  no prefetch                         : stalled layers  15.9, stall  13.7 ms/pass
+  look-ahead (v1, LRU-end)            : stalled layers  12.3, stall  20.9 ms/pass
+  + runahead                          : stalled layers  11.2, stall  21.8 ms/pass
+  + runahead + FDP throttle           : stalled layers   9.4, stall   6.9 ms/pass
+  + runahead + criticality order      : stalled layers   5.6, stall   3.2 ms/pass
+  + runahead, SRRIP insert (RRPV 2)   : stalled layers  17.6, stall  29.7 ms/pass
+  + runahead, SRRIP cache             : stalled layers  13.3, stall  24.2 ms/pass
+  runahead only (no look-ahead)       : stalled layers  11.1, stall   9.0 ms/pass
+35B proxy (code, S=3): 600 passes, 40 layers x 256 experts, 50 % resident (stall per pass, x48/40)
+  no prefetch                         : stalled layers  32.9, stall  31.2 ms/pass
+  look-ahead (v1, LRU-end)            : stalled layers  31.5, stall  40.9 ms/pass
+  + runahead                          : stalled layers  28.7, stall  44.3 ms/pass
+  + runahead + FDP throttle           : stalled layers  24.1, stall  21.2 ms/pass
+  + runahead + criticality order      : stalled layers  15.7, stall  11.1 ms/pass
+  + runahead, SRRIP insert (RRPV 2)   : stalled layers  38.1, stall  60.5 ms/pass
+  + runahead, SRRIP cache             : stalled layers  35.4, stall  54.5 ms/pass
+  runahead only (no look-ahead)       : stalled layers  24.4, stall  21.2 ms/pass

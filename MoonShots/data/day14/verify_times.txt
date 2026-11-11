@@ -1,0 +1,24 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=27.2 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'duprow': True, 'compiled_hc': 96, 'frspec': True, 'scout_bundle': {'sc2_sharedfirst': True, 'sc3b_vreadchunk_classes': 1, 'sc3_glue': {'qsa_rope': True, 'qsa_rope_idx': True}}}
+resident bytes per layer (MB): attention side gdn 47.7 / qsa 43.0, MoE side 17.4
+non-layer resident MB: embed_tokens 358, hyper_connection_mixer 13, lm_head 358
+GDN recurrent state per layer: 3.15 MB (fp32)
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+code: 2040 loader events, 2075 gated (pass, layer) calls, 120 draft steps
+math: 1581 loader events, 1610 gated (pass, layer) calls, 93 draft steps
+/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/numpy/_core/fromnumeric.py:3862: RuntimeWarning: Mean of empty slice
+  return _methods._mean(a, axis=axis, dtype=dtype,
+/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/numpy/_core/_methods.py:142: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+
+0 consecutive pass pairs (C=128, committed MTP depth 3, greedy)
+pass wall (gate to gate) nan ms: loader stalls nan ms (nan%), inter-pass block nan ms (nan%)
+component                         count  ms/each  ms/pass  MB/each   GB/s   % of 318
+MoE(L) + GDN attention(L+1)         35      nan      nan      nan      nan    nan%
+MoE(L) + QSA attention(L+1)         12      nan      nan      nan      nan    nan%
+inter-pass block (head, sampling, drafts)  1      nan
+loader stalls (48 gates)                  48      nan      nan

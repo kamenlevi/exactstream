@@ -1,0 +1,19 @@
+CHAT ROUTE: QOM cf 0.5 + the bonus row gated at 0.5 (1(c)'s rule), 24 GB, 11-bit parts; SSD MB per kept token in decode [P]
+| Cl (LSB slots) | Cm (MSB slots) | 4-bit sure rows: code / IFEval / multi | 3b sure rows: code / IFEval / multi | EXACT (REF2-T reads) |
+|---|---|---|---|---|
+| 0 | 171 | 92.8 / 140.8 / 141.6 | 45.3 / 84.3 / 97.9 | 204.2 / 213.0 / 199.3 |
+| 23 | 163 | 72.1 / 99.4 / 92.2 | 44.5 / 73.0 / 75.9 | 190.6 / 178.5 / 155.1 |
+| 46 | 155 | 65.5 / 90.5 / 87.3 | 46.2 / 73.7 / 76.8 | 191.5 / 176.8 / 155.5 |
+| 69 | 147 | 62.8 / 87.9 / 87.2 | 48.6 / 77.2 / 80.4 | 196.9 / 182.0 / 161.1 |
+| 92 | 139 | 61.8 / 88.9 / 90.0 | 51.3 / 82.4 / 85.8 | 204.8 / 191.1 / 169.8 |
+| 138 | 122 | 64.3 / 99.9 / 102.4 | 58.4 / 97.1 / 100.6 | 228.3 / 222.3 / 196.1 |
+best split, 4-bit sure rows: code 61.8 MB (Cl 92); ifeval 87.9 MB (Cl 69); multi 87.2 MB (Cl 69)
+best split, 3b sure rows: code 44.5 MB (Cl 23); ifeval 73.0 MB (Cl 23); multi 75.9 MB (Cl 23)
+this replay's cf 0 FAST stack (QOM cf 0 + 3b + every last row gated, Cl 0 / Cm 171), for scale: 19.5 / 14.3 / 10.6 (trellis_draft17.txt: 19.5 / 14.3 / 10.6)
+
+QUALITY [G], verdict frame (vs REF2-T), additive KL from measured map arms; the pool term is the 164-slot arm's
+| form | KL code / IFEval / multi | flips % | verdicts |
+|---|---|---|---|
+| 4-bit sure rows at ~164 slots | 0.0021 / 0.0101 / 0.0070 | 0.65 / 4.34 / 2.85 | PASS / PASS / PASS |
+| 3b sure rows at ~164 slots | 0.0041 / 0.0173 / 0.0156 | 0.92 / 5.56 / 4.35 | PASS / BETWEEN / BETWEEN |
+(terms: pool at 164 slots +0.0011 / +0.0043 / +0.0031; t3 +0.0019 / +0.0073 / +0.0086; 19 s)

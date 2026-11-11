@@ -1,0 +1,990 @@
+# What It Takes to Run a 125B LLM Fast on a 64 GB Mac, and How to Go Faster
+
+*How batch-invariant speculative checks, SSD-streamed experts and a certified lossy layer build on each other within a
+45 GB memory line, and what each piece adds.*
+
+Kamen Levi
+
+Independent researcher
+
+---
+
+## 0. Draft status (delete before release)
+
+- **v3-draft, Sun 8 Nov 2026, 19:5x (Mon 9 Nov 00:4x: chat as shipped with PF-D; Strata's file; DFlash2's source;
+  09:5x: the number check's first pass applied, 22 items; gates end 16:00; 10:3x: lossy rows re-based on CERT / L /
+  L + COH, the shipped L + COH passed its card gate; 11:5x: frozen for the 12:00 full draft, open items in Appendix A).
+  Dates: `MONDAY.md`** (full draft Mon 12:00; number check and related-work check
+  12:00-16:00; finals 18:00; the release happens only on the project owner's word). Since v2: every open item of
+  sections 4-8 is filled or turned into a stated limit (Appendix A), section 12 is re-opened, and the abstract's ratios
+  are like for like. Sections 9-10 aligned with STYLE.md (Sun 20:3x); Appendix F is a summary; its full form is [KERNELS] 4.4 and 6.3-6.5. v1.1 is
+  kept as `MAIN_v1.1_2026-11-06.md`.
+- **The set.** This paper is [MAIN]. The companions are [SMALL-RAM], [KERNELS], [EVAL], [DRAFTER] and [RELEASE]; their
+  shared words and metrics are in `STYLE.md`. Kernels, the certification method, the 32 / 24 / 12 GB lines and the drafter
+  are told in full there and summarised here.
+- **Marks.** [K] measured, [P] priced, [G] judgement; the mark travels with the number. `[[TBD-n]]` = not measured yet.
+- **Speeds** are the STYLE.md triple: whole decode, whole request, first token, plus the lifetime peak, pooled over the
+  named prompt set. The engine's run reports quote a geometric mean over prompts ("geo"), 0-8 % higher; both are in
+  Appendix E (`MoonShots/papers/main_table.txt`, re-derived from the raw run records by `papers/main_table.py`).
+- **Checked for this version:** every number in sections 6-7 was re-read from the file named beside it on Sun 8 Nov
+  (16:5x-19:5x), and the headings were checked for WITHDRAWN / CORRECTED. Section 8's rows and section 12's identifiers
+  were re-opened on Sun 8 Nov (`MoonShots/research/relwork`, passes 1 and 2a); pass 2 (the companions' references,
+  issue figures, community posts) runs Mon 12:00-16:00. Competitor numbers are self-reported unless we reproduced them.
+
+### Outline (v2)
+- Abstract.
+- 1 Introduction: the setting, contributions, what we do not claim, the companion papers.
+- 2 Definitions and how we measure: exact (to which reference), lossy with same scores (on which benchmarks), gate open;
+  the speed triple; pooled aggregation; the four 12-prompt sets; marks and sources.
+- 3 Exactness (short; [KERNELS] has the kernels): the definition, the references REF2 -> NAX6-N, the audits (36 prompts;
+  E5 96 / 96; chat and math 24 / 24; chat after the coherent-read fix 12 / 12), changing a reference.
+- 4 The 45 GB system: model, store and SSD; cache and loader; the check loop; the exact default and its levers (new: cache
+  keep, wired limit, the exact-safe bundle, coherent reads, the 1-row check); prefill (layer-major, exact); the memory line
+  and where it is exceeded (agent prompts, 45.1 GB).
+- 5 The lossy configuration and its certificate (short; [EVAL] has the method): its parts; CERT (same scores on
+  HumanEval+, MBPP, math and IFEval, both orders); chat is lossy, not exact; the chat lever M1-B and its open gate.
+- 6 Results: the 45 GB tables (exact, lossy-certified, chat gate open), prefill, and where a request's time goes.
+- 7 Same machine, same prompts: Strata (decode, whole request, first token; equal memory; break-even; caveats).
+- 8 Published runs and related work (re-checked Sun 8 and Mon 9 Nov; every row self-reported unless we reproduced it).
+- 9 Methods that carry to other models (the SSD wake penalty and keepalive; 3-bit kept experts on drafted rows; relaxed
+  acceptance restricted to code comments).
+- 10 Negative results and corrected headlines (the steady metric; 157.9 and 40.8 withdrawn; larger prefill chunks change
+  logits; never-wait; split; CD16; trellis; ...).
+- 11 What we left on the table.
+- 12 References. Appendices: A open items, B figures, C how the results were produced and the code release (GPL-3, MLX
+  0.32.2 + pad to 64), D ledger keys, E every row (pooled and geo, per pass).
+
+---
+
+## Abstract
+
+We run a 125B-parameter mixture-of-experts model (Qwen3.8-Flash-Next: 48 layers, 512 routed experts per layer, 10 per
+token) on one MacBook Pro (M5 Pro, 18-core CPU, 20-core GPU, 64 GB, 2 TB SSD), with the routed experts streamed from the internal SSD at about 3.2
+bits per weight and the process's lifetime peak at most 45 GB (plus a 7.45 GB expert tier that macOS may reclaim). The
+pieces are mostly published; this paper is about how they depend
+on each other and what each adds. Speculative decoding pays one pass of the large model for up to 16 drafted tokens, but
+it is exact only if that pass computes the same bits as one-token decoding. Batch-invariant kernels on the GPU and its
+matrix units make it so, and we audit it on every run (96 of 96 code runs, 24 of 24 chat and 24 of 24 math runs
+token-identical to one-token greedy decoding). Exactness then turns every later optimisation into a test of token
+equality that takes minutes: the levers of the streamed engine, such as per-layer expert pools and expert reads
+hidden behind the GPU's work, were each adopted that way. On top of the exact engine, a lossy layer
+lets drafted rows of code answers skip cold experts and run 3-bit parts, and ships only if it scores the same as the
+exact reference on the model's benchmarks.
+
+The exact configuration decodes 101.4 tok/s on 12 HumanEval prompts, 70.4 on 12 MBPP, 77.9 on 12 math and 37.1 on 12
+chat (IFEval) prompts, at a lifetime peak of 41.7-42.5 GB [K]. The lossy configuration we ship scores the same as the
+exact reference on the model card's IFBench, GPQA Diamond and LiveCodeBench v6 in both prompt orders, and decodes 164.0,
+112.7, 78.9 and 45.2 tok/s on the same sets at 42.4-43.2 GB [K]. Our first token is slow, a median of 2.7-4.6 s on these
+short prompts: on the same machine and prompts the open engine Strata's takes 0.54-1.01 s, and Strata wins or ties every
+whole request of up to 256 tokens, although our lossy decode is 2.5-3.5x its decode on code [K]. None of the methods is
+specific to this model's layers; we tested one model on one machine. Section 12 describes each finding that, to our
+knowledge, has not been published before, with its evidence, what it gives and its limits, including one idea that did
+not pay off. We also report negative results, including three
+headline numbers we corrected or withdrew.
+
+---
+
+## 1. Introduction
+
+### 1.1 The setting
+
+- **The model.** Qwen3.8-Flash-Next (arXiv 2608.30320) is an open-weight mixture-of-experts model with a hybrid trunk: 36
+  linear-attention (Gated DeltaNet, "GDN") layers and 12 full-attention layers, four residual streams joined by low-rank
+  hyper-connection (HC) mixers, one shared expert and 512 routed experts per layer with 10 routed per token, and a
+  multi-token-prediction (MTP) head. It has about 125B parameters in total (section 4.1).
+- **The machine.** One MacBook Pro, M5 Pro, 64 GB of unified memory, internal SSD. All numbers are for one user, greedy
+  decoding.
+- **The problem.** At MLX 4-bit the routed experts alone are 67.9 GB [K, BM:FINDINGS.md section 1], so they cannot all
+  stay in memory. A token reads about 2.46 GB of dense weights and 1.33 GB of routed experts [K, same]. Decoding one token
+  at a time pays a full pass over the dense trunk per token.
+- **Speculative decoding** pays that pass once per check: a small drafter proposes a block of tokens and one pass of the
+  large model verifies up to 16 of them.
+- **Why exactness is not free.** A verify pass computes 16 positions in one batched call; one-token decoding computes each
+  in a 1-row call. On stock kernels those are different programs with different rounding: in our first screen all 16
+  rows differed from one-token decoding at layer 0 (section 3). A greedy decoder then drifts at near-ties, and
+  "speculative decoding is lossless" stops being true.
+
+### 1.2 The idea: known pieces that need each other
+
+The pieces build on published work; section 8 credits each one and says which part is ours, and the prior art is in
+Appendix I. Section 12 describes the findings of this work that, to our
+knowledge, have not been published before. What this paper adds is the order in which they depend on each other, and that they still work, exactly,
+when combined. Section 7 gives each step's measured effect, and says where a step was never measured alone.
+
+1. **Exact checks.** Speculative decoding verifies up to 16 drafted tokens in one pass, but greedy decoding is unchanged
+   only if that pass computes the same bits as 16 one-token steps. Batch-invariant kernels make it so (section 3;
+   [KERNELS]).
+2. **Optimisation by token equality.** With an exact reference, a change to the engine is accepted when every token
+   equals the reference on a handful of prompts, in minutes, with no quality argument (section 3.3). Every lever of the
+   45 GB engine was adopted that way (section 4.4).
+3. **A store that fits.** The routed experts (120.8B parameters) live on the SSD as aligned records with a 3-bit part and
+   a 4th-bit sidecar; each layer keeps a pool of them in memory, and a token's two top-ranked experts read both parts
+   while the other eight read the 3-bit part (sections 4.1-4.2). The check loop is what makes streaming affordable: a
+   check pays the SSD reads for the union of its rows' experts once, and every token it keeps shares them.
+4. **Hiding the reads.** Expert ids stay on the GPU, and resident experts compute while missed ones load (section 4.4).
+   The experts' outputs are still summed in a fixed order, so both changes keep every token equal and were accepted as
+   in step 2.
+5. **A certified lossy layer.** On drafted rows of code answers the engine skips cold lower-ranked experts and runs the
+   3-bit part of the rest, and a few reads are made at lower precision everywhere (section 5). The check loop says which
+   rows are drafted; the layer ships only if it scores the same as the exact reference of step 1 on the model's
+   benchmarks.
+6. **Prefill from the same store.** A short prompt can build its experts from the copies already in memory and read only
+   what is missing (PF-D, shipped for chat); a long prompt can run each layer over the whole prompt, so that each expert
+   is read about once (built, not shipped; section 4.5).
+
+### 1.3 What carries to other models
+
+None of the methods depends on this model's linear-attention or hyper-connection layers (section 8). The exact check needs
+batch-invariant kernels for the model's operations; the store, the loader and the lossy row rules need a mixture of
+experts with a drafter. The design is meant as an engine for such models in general, but we tested one model on one
+machine, and that is the limit of what this paper shows.
+
+### 1.4 Contributions
+
+1. **Exact speculative checks at 125B on Apple silicon (section 3; kernels in [KERNELS]).** A 16-row check that equals 16
+   one-token steps bit for bit, audited on every measured run, and a rule for changing the reference.
+2. **An engine built by token equality (sections 4 and 7).** An SSD-streamed store, cache and loader within a 45 GB
+   memory line, each lever accepted by token equality, and an account of what each piece adds on top of the others and
+   which steps were never measured alone.
+3. **A lossy configuration certified on the model's benchmarks (section 5; method in [EVAL]).** The same scores as the
+   exact reference on HumanEval+, MBPP, math and IFEval, and, for the configuration we ship, on the model card's
+   IFBench, GPQA Diamond and LiveCodeBench v6, in both prompt orders.
+4. **Methods that carry to other MoE models (section 8), a short comparison with other engines (section 9), and negative
+   results (section 10) and the path to more speed (section 11).**
+5. **New findings (section 12).** Findings that, to our knowledge, have not been published before, each with its
+   evidence, what it gives, what is measured and what is still a hypothesis, and how it could be improved.
+
+### 1.5 What we do not claim
+
+- **Not the fastest engine for this model.** Our first token is 2.7-7.0x slower than Strata's on the same machine, and
+  engines with lower-bit files or on larger Macs report a faster decode or prefill (self-reported; section 9). Our decode
+  leads on code and math, slightly on chat in the lossy mode, and by a wide margin only in the lossy mode on code.
+- **Not new pieces.** Every lever in the measured configurations builds on published work, credited in section 8 and
+  Appendix I; the findings that are, to our knowledge, new are in section 12. What we add is making them work together, exactly, at this
+  size on this hardware, and measuring what each adds. To our knowledge no published engine for this model combines all
+  of them; Strata and Sushi combine several (section 9).
+- **Not exact to the original 4-bit weights.** "Exact" always names a reference (section 2); ours runs ranks 0-1 of each
+  token's experts at 4 bits and ranks 2-9 at 3 bits.
+
+### 1.6 The companion papers
+
+[KERNELS] has the batch-invariant kernels and the MLX findings; [EVAL] the certification method and its pitfalls;
+[DRAFTER] the drafter work, including what failed; [RELEASE] the engine package (GPL-3). The 32, 24 and 12 GB lines are
+the subject of a forthcoming companion paper ([SMALL-RAM], by 11 November 2026); no number in this paper depends on it.
+This paper states each companion's results in one sentence where it needs them.
+
+## 2. Definitions and how we measure
+
+- **Exact (to R).** The output tokens, and the logits row behind every kept token, are bit-identical to one-token greedy
+  decoding under reference R, a fixed set of weights, kernels and call shapes. Changing a kernel changes rounding and
+  makes a new reference, which is accepted once on task scores (section 3.4). Our 45 GB reference is NAX6-N.
+- **Lossy, same scores on <sets>.** A configuration that changes which computation a row runs, accepted only after its
+  pre-registered same-scores gate against its exact reference on the named known benchmarks, in two prompt orders. Never
+  "same quality".
+- **Lossy, gate open** (a gate is running or undecided) and **lossy, ungated** (no gate). Every configuration in this paper
+  carries one of these labels.
+- **Speed** comes as a triple for a named prompt set:
+  - whole decode = generated tokens / decode wall time (prefill excluded, every check included);
+  - whole request = generated tokens / (first token time + decode wall time);
+  - first token = request start to the first generated token, including prefill and setup (median and range);
+  - plus the lifetime peak memory footprint of the process (ri_lifetime_max_phys_footprint, which counts the GPU's buffers),
+    in GB of 10^9 bytes; the 45 GB line is 41.9 GiB [K, ES:evalsuite/decode.py, footprint_peak_gb];
+  - not counted in it: a 7.45 GB volatile expert tier (64 / 32 slots per base / sidecar pool), purgeable memory that
+    macOS reclaims before it compresses or swaps; every run log behind Table 6.1 states it [K, e.g.
+    BM:data/rel/rli_160.txt line 7].
+- **Aggregation.** Pooled over prompts and passes (total tokens / total time). The engine's run reports quote a geometric
+  mean over prompts ("geo"), 0-8 % higher on our sets; both are in Appendix E.
+- **Workloads.** 12 HumanEval and 12 MBPP prompts (the same ids in every run), 12 IFEval prompts as our chat set and 12 math
+  (MATH-500) prompts; greedy, at most 256 new tokens, EOS stop. HumanEval flatters: 67.8 % of the generated tokens on our 12
+  HumanEval prompts copy the prompt's own signature and docstring [K, F:lossy350-thinking-hour], which drafting accepts
+  cheaply. We never quote HumanEval without MBPP or chat beside it.
+- **The machine during runs.** Other jobs were stopped through a GPU lock ("quiet"); a run's report lists pauses for heat
+  and drops any request that overlaps one.
+- **Marks.** [K] measured, [P] priced (arithmetic or a CPU replay on measured data), [G] judgement. Every number names its
+  source (a run record, report or result file); Appendix C maps the keys to paths.
+- **The memory line.** "45 GB" means the run's lifetime peak is at most 45.0 GB. It is the engine's own footprint on a 64
+  GB machine, not a limit the operating system enforces.
+
+## 3. Exactness (details in [KERNELS])
+
+### 3.1 References
+
+| reference | what it is | status |
+|---|---|---|
+| REF2 | batch-invariant kernel set: every matmul, HC read and attention call padded to 16 rows, routed experts on one 16-row tile kernel, a load-time self-test | adopted 28 Oct (T1210) |
+| REF2b | REF2 + attention key buckets past 512 keys, attention classes below 128 keys, the commit phase and slot call | adopted 31 Oct (T1219) |
+| REF2-T | REF2b on rank-tiered experts: ranks 0-1 at 4 bits, ranks 2-9 at 3 bits | 1 Nov (T1214, T307) |
+| NAX6-N | REF2-T with the routed experts on a matrix-unit kernel over records in the kernel's native layout | certified 5 Nov; the 45 GB exact reference (EV:RESULT_nax6_2026-11-05) |
+
+The first screen compared 16 one-token steps with one 16-row verify on identical caches, layer by layer: with the shipped
+kernels all 16 rows diverged at layer 0, because the framework picks a different matmul kernel by row count; attention,
+long context (past 512 keys) and short context (below 128 keys) broke next [K, LT:'R-40 REF2'; T1225; T1208; T1218]. The
+fixes and the kernels are [KERNELS]'s subject.
+
+### 3.2 The audits
+
+Each audit decodes every prompt twice, with the speculative loop and one token at a time, and compares every kept row.
+
+| reference and arm | prompts | result | source |
+|---|---|---|---|
+| REF2b | 36 full-length (12 code, 12 math, 12 IFEval) | 16,305 / 16,305 kept rows bitwise; 15 / 15 prompts past 512 keys, 6 / 6 past 1,024 | EV:RESULT_r56b_2026-10-31 |
+| NAX6-N + out-of-order experts | same 36 | 15,690 / 15,690 kept rows bitwise; out-of-order path engaged on every tier call | EV:RESULT_nax6_2026-11-05, Part 2 |
+| the exact default (E, EB) on code | 12 HumanEval + 12 MBPP, 2 arms x 2 passes | 96 / 96 runs token-identical to one-token decoding | F:2026-11-07_1735 |
+| EB on chat and math | 12 IFEval + 12 math, 2 passes | 24 / 24 and 24 / 24 | F:2026-11-07_2330 |
+| E + coherent reads (+ the 1-row check) on chat | 12 IFEval | 12 / 12 in two runs (37.8 / 37.9 tok/s) and 12 / 12 (38.3); without coherent reads 3 / 12 | F:2026-11-08_0750 |
+| layer-major prefill | 3 agent prompts, 1.6K-7.9K tokens | decode tokens equal; logits hash equal on 8 / 8, 28 / 28, 22 / 22 checks | F:2026-11-08_0800 |
+
+- **The chat failure and its fix.** A one-call path for chat checks made exact chat nondeterministic (3 of 12 prompts
+  equal). Coherent reads in the expert kernel restored 12 of 12 at no cost (F:2026-11-08_0750); [KERNELS] has the
+  mechanism.
+- **The audit is part of every run.** Each exact row of section 6 carries its own token-identity count. It is how two bugs
+  were caught that speed numbers alone hide: a fast path that never engaged (T18) and a kernel that was silently bypassed
+  (F:flat2, caveat).
+
+### 3.3 What exactness buys
+
+Once a reference exists, an optimisation is accepted by token equality on a handful of prompts, in minutes, with no
+quality argument. Every lever of section 4.4 was accepted this way. It has a price: the batch-invariant one-token path
+ran at x0.75 of stock kernels (11.65 vs 15.50 tok/s over 210 rows, row time with prefill included; information only)
+[K, EV:RESULT_ref2_2026-10-28; [KERNELS] R31].
+
+### 3.4 Changing the reference: certified once, on scores
+
+A new reference moves bits, so it is judged on tasks, once, by a rule fixed in advance ("decision 4"): on each of three
+sets (math, n 50; IFEval, n 100, strict prompt level; HumanEval+, n 60, pass@1) the paired score difference must be above
+-5 points and the exact McNemar p at least 0.05.
+
+| new reference vs old | math | IFEval | HumanEval+ | verdict | source |
+|---|---|---|---|---|---|
+| REF2 vs the previous reference | +8.0 | -3.0 | 0.0 | PASS | EV:RESULT_ref2_2026-10-28 |
+| REF2b vs the previous reference | +6.0 | -3.0 | 0.0 | PASS | T1219 |
+| REF2-T vs REF2b | 0.0 | +3.0 | +3.3 | PASS | T307 |
+| NAX6 vs REF2-T | 0.0 | -3.0 (p 0.375) | -3.3 (p 0.50) | PASS | EV:RESULT_nax6_2026-11-05 |
+
+These are same-score tests on 210 items, not proofs of equal quality: pooled over the NAX6 sets, NAX6 alone is right on 2
+items and REF2-T alone on 7 (two-sided p 0.18). A further kernel bundle (REF2c-T) failed the rule on IFEval (-5.0) and was
+not adopted. The gaps chain: the certified lossy config of section 5 is -8.33 points on the HumanEval+ core set against REF2-T, two
+references back (forward order, p 0.0625), which no gate of its own measured [K, F:2026-11-08_0455; information].
+
+## 4. The 45 GB system
+
+### 4.1 Model, store and hardware
+
+| part | parameters | notes |
+|---|---|---|
+| routed experts | 120.8 B | 48 layers x 512 experts, top-10; one expert = gate/up [1280 x 2560] + down [2560 x 640] |
+| linear attention (GDN) | 2.09 B | 36 of 48 layers |
+| full attention + indexer | 0.62 B | 12 layers, 24 query heads, 2 key/value heads, head dim 256 |
+| hyper-connections | 0.64 B | 4 residual streams, low-rank mixers |
+| embedding / output head / shared expert / router | 0.64 / 0.64 / 0.24 / 0.06 B | one shared expert per layer |
+| MTP head | 2.61 B | one layer with its own 512 experts |
+| n-gram tables | 51.2 B | layer 1 only; 16 rows read per token, from the SSD |
+
+Source: BM:FINDINGS.md section 1 (config and safetensors headers). **Active per token [P, arithmetic on this table]:**
+10 of 512 routed experts in each of 48 layers (480 x 4.92 M = 2.36 B), attention 2.71 B, hyper-connections 0.64 B, the
+shared expert and router 0.30 B: 6.0 B, or 6.65 B with the output head. The 125.7 B total counts the rows above except
+the MTP head, the vision tower and the n-gram tables (16 rows of 160 values read per token); with them the checkpoint
+stores 180 B, the size some engines quote for this model (Kapitsa, Mference; Appendix H). Our engine runs this architecture
+through the model code of MTPLX by Youssof Altoukhi (Apache-2.0; github.com/youssofal/mtplx); the store, the kernels and
+the check loop are ours.
+
+- **Records.** Each expert is one contiguous, 16 KB-aligned record, read with one call that bypasses the page cache
+  (F_NOCACHE): an MSB part (the 3 most significant bits of every weight with scales and biases) and an LSB sidecar (the 4th
+  bit). The 4-bit weights are rebuilt bit-exactly from the two parts; the store is 68.5 GB on disk (48 layer files; 2.79 MB per expert record) [K, BM:models/bare/records3, the converter's output; not in the public snapshot]. For the
+  matrix-unit kernel the records are stored in the kernel's own fragment order, with scales packed to 11 bits (bitwise;
+  T527, T334).
+- **Rank tiers.** A token's two highest-scoring experts (ranks 0-1) run at 4 bits and read both parts; ranks 2-9 run from
+  the MSB part alone. Expert bytes fall about 20 % (T307).
+- **The SSD.** Cold 2.77 MB reads reach 14.0 GB/s at queue depth 16 [K, BM:FINDINGS.md section 2]. In the engine the SSD
+  time per check follows 10-16 ms plus 0.15-0.17 ms per missed expert [K, T288].
+
+### 4.2 Expert cache and loader
+
+- Each layer has a pool of expert slots in GPU memory; C 256 means 256 slots per layer on average, with per-layer sizes
+  at equal memory (-17.2 % SSD bytes per kept token and +8.3 % tok/s, exact; T12, adapted from AdapMoE). Eviction is LRU.
+- All misses of a layer load in parallel, aligned, straight into slot memory (T7; M-29). Part of the pool is a volatile
+  tier the operating system may reclaim (T1088).
+- **The wired limit.** MLX's wired-memory collector unwired the expert pools during prefill, and each prompt's first check
+  re-wired about 31.8 GB, blocking for about 250 ms. One call after load (mx.set_wired_limit, published practice in
+  mlx-lm) removes it, bitwise in the exact mode: +25.1 % whole decode, pooled, on the lossy config (144.1 -> 180.1 tok/s,
+  12 HumanEval, two passes each; the notes give geo means, 142.2 -> 181.2) [K, BM:data/r57/s6{b,w}{1,2}_256_runs.json;
+  F:2026-11-07_0900, F:2026-11-07_0945].
+
+### 4.3 The check loop
+
+1. **Draft.** A block drafter (our fine-tune of DFlash2 by Inco AI, Apache-2.0; [DRAFTER], Appendix I) proposes up to 16 positions in
+one pass; chat uses the model's own MTP head,
+   chosen by task (T782). Drafts are kept while the running product of the drafter's confidences stays at or
+   above 0.3 (T309).
+2. **Verify.** One padded 16-row pass of the 125B model checks the drafts; they are accepted up to the first mismatch, and
+   the row after the last accepted draft gives one more token (the bonus row).
+3. **Commit.** The recurrent and attention states advance by the kept rows only.
+
+Tokens kept per check decide the speed and depend on the workload: 10.7 per check on HumanEval, 6.0-6.1 on MBPP, 6.5 on
+math and 2.5 on chat (kept tokens over checks, pooled) [K, F:2026-11-07_1735; F:2026-11-07_2355]. Chat checks are short because the drafter is unsure, and
+their cost is the low-row check's fixed cost (about 51 ms exact, 40 ms lossy at 1-2 rows, against a memory floor near
+15-20 ms) [K, F:2026-11-07_2355].
+
+### 4.4 The exact default and its levers
+
+Every lever was adopted on "every token equal to the reference" plus a speed line written before the run. The first
+five rows give each lever's effect as measured then, in its own run's metric (often a geo mean or the steady rate,
+before the 7 Nov correction in section 10); they do not compare with Table 6.1.
+
+| lever | what it does | measured effect | source |
+|---|---|---|---|
+| sync-free expert gate | expert ids stay GPU data; the GPU waits on slots the loader publishes, no CPU-GPU sync per layer | warm check + commit 232.6 -> 117.3 ms; +35 % | T489, T476 |
+| confidence cut at 0.3 | section 4.3 | +19 % | T309 |
+| out-of-order experts | resident experts compute first, missed ones as their reads land, in a fixed bitwise order | +13 to +18.7 % | T14, T490 |
+| per-layer pool sizes | section 4.2 | +8.3 % | M-17 |
+| drafter by task | MTP head on chat | chat +24.5 % (time-weighted) on 19 fresh chat prompts | T782 |
+| SSD keepalive | section 8.1 | about -3 ms per check | BM:docs/NIGHT_1104.md:37 |
+| matrix-unit experts on native records (NAX6-N) | section 3.1 | +6.2 % whole decode, pooled (44.74 vs 42.12 tok/s, 13 prompts, C 192; +6.7 % on the steady rate, information only) | LP:data/natfri/natfri_pooled.txt; LL, 'NATIVE-FRI run 2' |
+| cache keep | the loop no longer clears the kernels' per-weight caches before every check | -7.2 to -8.0 ms per check; x1.06 whole decode on the lossy config, pooled (x1.10 on the steady rate, information only); tokens equal | F:2026-11-07_0144; BM:data/r57/sc{b,k}{1,2}_256_runs.json |
+| wired limit | section 4.2 | removes a ~250 ms first-check stall per prompt | F:2026-11-07_0900 |
+| the exact-safe bundle (EB) | a bundle of kernel changes (seams a-e, DQ1; [KERNELS]), bitwise | +3.7 % HumanEval, +2.9 % MBPP (pooled) | F:2026-11-07_1735; Appendix E |
+| coherent reads | GPU reads of loader-written memory made coherent | exact chat 3 / 12 -> 12 / 12, no cost | F:2026-11-08_0750 |
+| the 1-row check | a 1-row form of the check | bitwise (676 / 676 logits hashes); +1 % exact chat, +4.2 % lossy chat | F:2026-11-08_0750 |
+
+### 4.5 Prefill
+
+Today's prefill runs the prompt in 1,024-row chunks and streams each chunk's experts from the SSD, so a long prompt reads
+the expert store several times (430 GB for a 7.9K-token prompt). Layer-major prefill runs each layer over the whole
+prompt and reads each expert about once (68 GB), exactly: 1.9-3.4x faster at 1.6K-7.9K tokens (section 6.2) [K,
+F:2026-11-08_0800]. On short prompts the first token is still 2.7-4.6 s (section 6.3), except on chat with PF-D.
+
+PF-D builds a short prompt's routed experts from the copies already in memory and reads only the missing parts from the
+SSD, instead of re-reading every routed expert (20.4 -> 7.5-9.6 GB per chat prompt [K]); its version 4 also reads the
+next layer's missing experts during the current layer. Both follow Strata's prompt-path design (read only what memory
+lacks; read the next layer's misses during this layer); no Strata code is included ([RELEASE] section 7). PF-D is
+exact: on the shipped chat configuration its tokens (12 / 12) and logits hashes (721 / 721) equal the same configuration
+without it, and a check arm on the exact configuration (16 tokens per prompt) found all 87,912 staged rows equal to the
+reference rebuild and its tokens equal to one-token decoding on 12 / 12 prompts [K, BM:data/pfd/pfd_report_0009.txt].
+It ships on for chat at 45 GB only (Table 6.1c); every other row of section 6 was measured without it, and it was not
+run at 32 GB.
+
+## 5. The lossy configuration and its certificate (method in [EVAL])
+
+### 5.1 What it changes
+
+The certified configuration (snapshot d8eb2e4; its full switch list is `BM:data/stack/cert_env.txt`) keeps the check loop
+and changes what some rows compute. Grouped by effect:
+
+- **Lossy on code sets only (HumanEval, MBPP):** QOM-KEEP: on a drafted row, ranks 0-1 always run; a rank 2-9 expert runs
+  only if the check loads it anyway or it is already resident, and otherwise drops out at weight 0, with no rerouting; the
+  kept experts of drafted rows run from the 3-bit part (U3). Section 8.2 has the evidence.
+- **Lossy everywhere (bits change on every set):** 8-bit hyper-connection mixers read in one pass on the matrix units
+  (HC8); a split of K for narrow dense matrix-vector calls (DN-KS, rounding-level); single-call attention; small weights in
+  the native layout; the matrix-unit expert form of the above. Single-call attention is bitwise below 512 keys.
+- **Acceptance:** exact everywhere, except inside '#' comments of code answers, where a draft ranked first or second with at
+  least a quarter of the top token's probability is kept (section 8.3).
+- **Drafting:** one extra draft position so that the bonus row is gated too (DRAFT17); 17-32-row drafter projections on the
+  matrix units; a drafter head over a reduced vocabulary; a copy check that continues a verbatim copy of the prompt in the
+  draft (2,888 copied tokens accepted on 12 HumanEval prompts; F:2026-11-07_0025). It only drafts: the longest 8-16-token
+  match in the committed context replaces drafts while a per-session duel says the copy wins at least 60 % of its
+  disagreements with the drafter; the check still decides every token; a row whose draft the copy changed never counts as
+  sure for the lossy row rules; it is off on math [K, code read: BM:scripts/r57_screen.py, R57_COPY=g2].
+- **Exact plumbing:** lazy GDN commit, submitting work every two layers, the cache keep and the wired limit.
+
+### 5.2 The certificate [K]
+
+Against NAX6-N, forward and reverse prompt order (EV:RESULT_cert, 2cfed64; results/cert/CERT_VERDICT.txt):
+
+| set | items | forward | reverse |
+|---|---|---|---|
+| HumanEval+ | 164 | 90.2 vs 92.7 % (-2.44, p 0.125) | 92.7 vs 92.7 % (0.00) |
+| math | 100 | 86.0 vs 86.0 % | 84.0 vs 86.0 % (-2.00, p 0.625) |
+| MBPP | 100 | 76.0 vs 79.0 % (-3.00, p 0.375) | 81.0 vs 79.0 % (+2.00) |
+| IFEval (chat) | 100 | 86.0 vs 87.0 % (-1.00) | 85.0 vs 87.0 % (-2.00, p 0.754) |
+| pooled: HumanEval+, math, MBPP (728 pairs; IFEval not pooled) | | -0.96 points, p 0.265: PASS (bar: above -2 points and p >= 0.05) | |
+| long code answers | 41 rows, 55,966 tokens | 0 blunders: PASS | |
+
+- Every bar was registered before any row ran (PREREG_cert and amendments 2-3).
+- **What it does not cover.** Multilingual benchmarks were not part of it; the claim is "same scores on these four
+  English sets". It covers this configuration (CERT) only. L, which adds the exact-safe bundle (Table 6.1c), was never gated by
+  itself; the configuration we ship, L + coherent reads, passed its own gate on the model card's benchmarks on 9 Nov
+  (Table 6.1b).
+- **Chat is lossy in this configuration,** although chat uses exact acceptance: only 1 of 12 IFEval rows (CERT; L: 6 of
+  24, N45) equal one-token decoding, because the "lossy everywhere" parts change bits on every set [K, F:2026-11-08_0455;
+  F:2026-11-07_2330]. A bisect on chat, one part at a time on the exact base, found two besides the 8-bit
+  hyper-connection read (lossy by design): the one-call expert path (3 and 4 of 12 equal; nondeterministic until coherent
+  reads) and the native layout for small weights (3 of 12); every other part kept 12 of 12 [K, BM:data/chs/chs3_report.txt].
+
+### 5.3 The chat lever and its card gate
+
+M1-B extends QOM's keep rule to the MTP head's chat drafts. With coherent reads it decodes 49.8 tok/s on chat, +13 % over L's chat runs
+(Table 6.1c; 44.2 tok/s in CHS4, an earlier run; expert misses per check about 92 -> 25) [K, Appendix E;
+BM:data/chs/chs4_report.txt; F:2026-11-08_0750]. Its IFEval gate passed
+(86 vs 87 forward, 83 vs 87 reverse; EV:RESULT_chat_m1b_2026-11-08). On a multilingual chat set it produced 334
+low-probability tokens per 10,000 (a token-level line, information only) [K, same]. Its release gate is the card gate: the model card's
+benchmarks (IFBench, GPQA Diamond, LiveCodeBench v6) against the exact reference in both orders. It passed on 9 November
+(card arm m1b, 6 of 6 lines): M1-B + COH is "lossy, same scores on IFEval, IFBench, GPQA Diamond and LiveCodeBench v6 (both
+orders)" [K, EV:RESULT_card_m1b_2026-11-09; [EVAL] section 4.5].
+
+---
+
+## 6. Results
+
+### 6.1 The 45 GB line: whole decode, whole request, first token
+
+Setup for every row: 12 prompts per set (HumanEval and MBPP: the S5 ids; IFEval, our chat set, and math (MATH-500): the
+N45 ids), greedy, at most 256 new tokens, EOS stop, expert cache C 256, quiet machine (GPU lock), two passes unless noted.
+Whole decode and whole request are pooled over prompts and passes; first token is the median over prompts and passes
+(min-max) and includes prefill and setup. Every row is re-derived from the raw run records (`BM:data/r57/<tag>_256_runs.json`)
+by `MS:papers/main_table.py`; Appendix E lists the run reports' geometric means beside it.
+
+**Table 6.1a. EXACT: token-identical to one-token greedy decoding under NAX6-N [K].**
+
+| set | config (run, tags) | whole decode tok/s | whole request tok/s | first token s | lifetime peak GB | runs == one-token decoding | source |
+|---|---|---|---|---|---|---|---|
+| 12 HumanEval | EB = exact default + the exact-safe bundle (E5; e5hb1-2) | 101.4 | 32.6 | 4.41 (3.85-6.23) | 42.2 (per set) | 24 / 24 | F:2026-11-07_1735; BM:data/r57/e5hb{1,2} |
+| 12 HumanEval | E = exact default (E5; e5h1-2) | 97.8 | 31.7 | 4.59 (3.72-6.26) | 42.2 (per set) | 24 / 24 | same; e5h{1,2} |
+| 12 MBPP | EB (E5; e5mb1-2) | 70.4 | 21.7 | 3.80 (3.32-4.85) | 41.9 (per set) | 24 / 24 | same; e5mb{1,2} |
+| 12 MBPP | E (E5; e5m1-2) | 68.4 | 21.8 | 3.73 (3.26-5.60) | 41.9 (per set) | 24 / 24 | same; e5m{1,2} |
+| 12 IFEval (chat) | EB (N45; nie1-2) | 37.1 | 20.8 | 2.89 (2.23-3.88) | 41.7 | 24 / 24 | F:2026-11-07_2330; BM:data/n45/n45_report.txt |
+| 12 IFEval (chat) | E + coherent reads + 1-row check (CHS4; yes1, one pass) | 38.3 | 21.3 | 2.82 (2.34-3.71) | 41.7 | 12 / 12 | F:2026-11-08_0750; BM:data/chs/chs4_report.txt |
+| 12 math | EB (N45; nme1-2) | 77.9 | 38.9 | 2.73 (2.52-6.75) | 42.5 | 24 / 24 | F:2026-11-07_2330 |
+
+- E = NAX6-N kernels + the exact levers (section 4) + cache keep + the wired limit; EB adds a bundle of kernel changes that
+  are bitwise in this mode. "Exact" is to NAX6-N, whose experts run ranks 0-1 at 4 bits and ranks 2-9 at 3 bits.
+- E5 prints the lifetime peak per set (both arms together), not per arm.
+- Exact chat needed one fix: without coherent reads the one-call path matched one-token decoding on 3 of 12 prompts; with
+  them 12 / 12 in two runs, at no cost (37.8 / 37.9 tok/s) [K, F:2026-11-08_0750].
+
+S5's run records carry no first-token field, so Table 6.1b takes whole request and first token for the certified flags
+from S5' (same flags, a later snapshot, same sets).
+
+**The three lossy configurations at 45 GB.** CERT is the certified configuration "v1' + wired" (BM:data/stack/cert_env.txt;
+section 5). L adds the exact-safe bundle, six switches that are bitwise in the exact mode (BM:data/stack/s5p_env.txt).
+L + COH adds coherent reads (BM:data/stack/lcoh_env.txt); it is the package's lossy configuration ([RELEASE] section 2).
+A gate covers only the configuration it tested, so each carries its own label.
+
+**Table 6.1b. LOSSY with a passed gate [K]: the configuration we ship (L + COH) and the certified one (CERT).**
+
+| set | config, run (tags) | whole decode | whole request | first token s | lifetime peak GB | gate | source |
+|---|---|---|---|---|---|---|---|
+| 12 HumanEval | L + COH as shipped, snapshot rel1 (rlh, one pass) | 164.0 | 36.2 | 4.60 (3.78-6.07) | 42.9 | same scores as NAX6-N on IFBench, GPQA Diamond and LiveCodeBench v6, both orders (card arm lcoh) | BM:data/rel/rel_rows_report.txt (53dfff5); BM:data/r57/rlh_256_runs.json |
+| 12 MBPP | L + COH (rlm, one pass) | 112.7 | 25.3 | 3.72 (3.35-4.88) | 42.6 | same | same; rlm |
+| 12 IFEval (chat) | L + COH (rli, rlr: two processes) | 45.2 | 22.4 | 3.01 (2.41-3.81) | 42.4 | same | same; rli, rlr |
+| 12 math | L + COH (rlt, one pass) | 78.9 | 37.9 | 3.20 (2.71-6.80) | 43.2 | same | same; rlt |
+| 12 HumanEval | CERT: S5, the certified build d8eb2e4 (s5v1-2) | 175.3 | not recorded (see S5') | not recorded | 42.9 | same scores as NAX6-N on HumanEval+, MBPP, math and IFEval, both orders (the certificate) | F:2026-11-07_1430; BM:data/r57/s5v{1,2} |
+| 12 HumanEval | CERT: S5', same flags, snapshot 6db4c24 (spb1-2) | 171.0 | 36.0 | 4.56 (4.01-6.40) | 42.9 | same | BM:data/s5p/s5p_report.txt; spb{1,2} |
+| 12 MBPP | CERT: S5 (s5mv1-2) | 111.1 | not recorded (see S5') | not recorded | 42.6 | same | F:2026-11-07_1430 |
+| 12 MBPP | CERT: S5' (spmb1-2) | 114.5 | 25.8 | 3.79 (3.43-4.95) | 42.6 | same | BM:data/s5p/s5p_report.txt |
+
+- **The card gate (L + COH)** [K, EV:RESULT_card_lcoh_2026-11-09]: the model card's IFBench (150 keys), GPQA Diamond
+  (100) and LiveCodeBench v6 (131) against NAX6-N in forward and reverse order: deltas -3.33 / -3.33, +3.00 / +3.00 and
+  -1.53 / -3.05 points, exact McNemar p 0.29-0.69; the rule is the certificate's ([EVAL] section 4.5). These are not the
+  four sets of the speed rows.
+- **The certificate (CERT)** (details in [EVAL]): HumanEval+ (164), math (100), MBPP (100) and IFEval (100), forward and
+  reverse order, each set within -5 points with exact McNemar p >= 0.05, and HumanEval+, math and MBPP pooled over 728
+  pairs -0.96 points (p 0.265); 0 blunders in 41 long code answers (55,966 tokens) [K, EV:RESULT_cert (2cfed64);
+  results/cert/CERT_VERDICT.txt; F:2026-11-08_0455]. Multilingual known benchmarks were not part of it.
+- **CERT's speed rows are code only.** The IFEval and math rows this table carried until 9 Nov (N45), and the chat runs we
+  compared M1-B with (CHS4), ran L, not CERT [K, BM:scripts/n45.sh l30-31; BM:scripts/chsb.sh l34]; they are in Table
+  6.1c now.
+- **L + COH against L** (Table 6.1c; other runs, not an A/B): whole decode -9.5 % on HumanEval, -5.9 % on MBPP and -9.2 %
+  on math, +4.1 % on IFEval; the cause was not measured [K]. Coherent reads fix the one-call path's stale-slot reads
+  (Table 6.1a's note); without them, chat outputs differ from run to run [K, F:2026-11-08_0750].
+- Lossy runs need not repeat token for token: the two S5' passes (CERT) give the same tokens on 8 of 12 HumanEval prompts,
+  because several lossy parts depend on the cache state [K, spb1 / spb2 token files]; this is why the gates use two prompt
+  orders. L + COH repeated its IFEval run token for token (12 / 12, separate processes) and equals one-token decoding on
+  5 / 12 HumanEval, 5 / 12 MBPP, 2 / 12 IFEval and 5 / 12 math prompts [K, BM:data/rel/rel_rows_report.txt]. We call
+  both "lossy, same scores", never exact.
+
+**Table 6.1c. LOSSY: L by itself (not gated) and the chat configurations (status per row) [K].**
+
+| set | config (run, tags) | whole decode | whole request | first token s | lifetime peak GB | status | source |
+|---|---|---|---|---|---|---|---|
+| 12 HumanEval | L = CERT + the exact-safe bundle (S5'; spx1-2) | 181.3 | 36.6 | 4.51 (3.96-6.25) | 42.9 | not gated by itself: the certificate covers CERT and the card gate L + COH; the bundle is bitwise in the exact mode | BM:data/s5p/s5p_report.txt |
+| 12 MBPP | L (spmx1-2) | 119.8 | 25.3 | 3.76 (3.37-5.40) | 42.6 | same | same |
+| 12 IFEval (chat) | L (N45; nil1-2) | 43.4 | 21.1 | 3.00 (2.43-3.93) | 42.4 | same | F:2026-11-07_2330; BM:scripts/n45.sh l30-31 |
+| 12 math | L (N45; nml1-2) | 86.9 | 39.6 | 2.96 (2.71-6.98) | 43.1 | same | same |
+| 12 IFEval (chat) | M1-B + coherent reads (CHS5; z0, z0b) | 49.8 | 24.4 | 2.92 (2.34-3.81) | 42.4 | same scores on IFEval (86 vs 87 forward, 83 vs 87 reverse) and on the card's IFBench, GPQA Diamond and LCB v6, both orders (arm m1b, EV:RESULT_card_m1b_2026-11-09) | F:2026-11-08_0750; EV:RESULT_chat_m1b_2026-11-08; BM:data/chs/chat_ttft.txt |
+| 12 IFEval (chat) | + the 1-row check (CHS5; zs, one pass) | 51.9 | 24.8 | 2.98 (2.51-3.65) | 42.4 | as M1-B + COH; its tokens equal the first chat row's (z0) on 12 / 12 | BM:data/chs/chs5_report.txt; BM:data/r57/{zs,z0}_256_tokens.json |
+| 12 IFEval (chat) | chat as shipped: zs + PF-D v4 + read-ahead (section 4.5; pdz4a, one pass) | 50.7 | 28.8 | 2.26 (1.55-2.59) | 43.7 | as zs (M1-B + COH); PF-D is exact: tokens 12 / 12 and logits hashes 721 / 721 equal its control without PF-D (pdz0, same prompts: 50.3 / 24.6 / 2.91 (2.34-3.74), 42.4 GB) | BM:data/pfd/pfd_report_0009.txt (snapshot 36ee120); pdz0: BM:data/pfd/pfd_report_2355.txt (366c452); records BM:data/r57/pdz{4a,0}_256_runs.json |
+| 12 IFEval (chat) | + bundle / HC8_G + rank cut 8 + R1 (CHS5; zsgcr, one pass) | 56.0 | 24.6 | 2.94 (2.55-3.74) | 42.4 | ungated | same |
+
+- L is lossy on chat and math too: 6 of 24 IFEval and 7 of 24 math runs equal one-token decoding, although those sets
+  use exact acceptance [K, F:2026-11-07_2330].
+- The PF-D rows are one pass each, from two runs a quarter of an hour apart. Without the read-ahead (PF-D v3) the median
+  first token was 2.25-2.41 s in three arms over the two runs, so the read-ahead's own share is within the run-to-run
+  spread; it reads more (9.6 against 7.5 GB per prompt) because 19-31 % of what it stages goes unused [K, same reports].
+  A lossy form (experts whose 4th-bit part is not in memory run at 3 bits) reaches 1.83 s and 30.5 tok/s whole request
+  but changes tokens on 10 of 12 prompts; it is ungated and ships off [K, pdzfa in the same report].
+
+**The memory line has two known exceptions [K].** On three long agent prompts (1.6K-7.9K tokens) the certified lossy
+config peaks at 45.1 GB and the exact config at 44.5 GB (F:2026-11-07_2330, FLAG 2); the layer-major exact prefill of
+section 6.2 peaks at 45.10 GB (F:2026-11-08_0800). Both need a trim (a smaller C or an earlier scratch release) before they
+count at 45 GB. No trimmed run was made before the release: on such prompts the engine exceeds the 45 GB line by up to
+0.1 GB [K]. Every row of Tables 6.1a-c is at or under 43.7 GB (the PF-D row; every other row at or under 43.2 GB).
+
+### 6.2 Prefill on long prompts (exact)
+
+| prompt (agent set) | today's prefill, 1,024-row chunks: first token (prefill tok/s) | layer-major prefill (exact): first token (tok/s) | SSD read per prompt |
+|---|---|---|---|
+| 1,565 tokens | 15.9 s (98) [N45]; 15.2 s (103) [PFX] | 8.0 s (195) | 109 -> 64 GB |
+| 4,730 tokens | 40.1 s (118); 37.3 s (127) | 12.9 s (368) | 265 -> 67 GB |
+| 7,932 tokens | 64.1 s (124); 61.9 s (128) | 18.0 s (441) | 430 -> 68 GB |
+
+- Layer-major prefill runs each layer over the whole prompt and reads each expert about once; its decode tokens and logits
+  hashes equal today's on every check (8 / 8, 28 / 28, 22 / 22) [K, F:2026-11-08_0800; BM:data/pfx/pfx_report.txt]. Peak:
+  45.10 GB (see above).
+- The certified lossy config prefills like the exact one (16.3 / 41.2 / 66.6 s) [K, N45].
+- Larger chunks alone (2,048-8,192 rows) change the logits and are out (section 10). A faster prefill form (PF-B: one MoE call per
+  layer, with read-ahead) is exact since its gate fix: tokens and logits hashes equal the layer-major prefill's (8 / 8,
+  28 / 28, 22 / 22) at x1.12-1.21 its speed (500 tok/s at 7.9K), but it peaks at 45.8-46.2 GB, over the line, so it
+  does not ship [K, BM:data/pfd/pfd.log part B; [KERNELS] section 5.2].
+
+### 6.3 Where a request's time goes
+
+- On the four 12-prompt sets the first token takes 43-80 % of a whole request's wall time [P on K: Table 6.1, e.g.
+  HumanEval lossy as shipped 218 tokens per task at 164.0 tok/s = 1.33 s of decode against 6.03 s per request; exact chat 3.79 of 6.77
+  s is decode]. Decode is no longer the bottleneck at these answer lengths; the first token is.
+- Why it is slow on short prompts: a chat prompt's prefill reads about 20 GB of experts, because every prompt token routes
+  10 experts in each of 48 layers, and it re-reads experts that are already resident; first token = 0.32 s + GB / 7.33 GB/s
+  [P: a least-squares fit on the 12 CT1 rows of BM:data/pfb/pfb_report.txt; section 11].
+- PF-D (section 4.5) cuts the shipped chat configuration's read from 20.4 to 9.6 GB per prompt and its first token from
+  2.91 to 2.26 s; whole request rises from 24.6 to 28.8 tok/s and decode is unchanged (50.3 / 50.7) [K, Table 6.1c]. The
+  fit above gives 1.63 s for 9.6 GB, so with PF-D the reads alone no longer set the first token [P on K].
+- What it costs a user is section 9: against an engine with a 0.5-1.0 s first token, a decode up to 3.5x faster (on code)
+  does not pay back within 256 tokens.
+
+## 7. How the pieces build on each other
+
+Steps 1-5 are in the order in which each needs the ones before it; steps 6 and 7 apply to any configuration. Each effect
+was measured when its piece was adopted, on the engine of that day and in that run's own metric (section 4.4), so the
+effects do not add up to Table 6.1, and we give no waterfall. No run removes one piece at a time from the final
+configuration.
+
+| step | piece | what it does | what later steps need from it | measured effect | source |
+|---|---|---|---|---|---|
+| 1 | batch-invariant kernels (REF2 to NAX6-N; section 3) | a 16-row check computes the same bits as 16 one-token steps | a reference against which any later change is a token-equality test | exactness, audited on every run (section 3.2); the one-token path ran at x0.75 of stock kernels (information only) | EV:RESULT_ref2_2026-10-28; EV:RESULT_nax6_2026-11-05 |
+| 2 | the check loop: a block drafter cut at confidence 0.3, the MTP head on chat (section 4.3) | one pass of the 125B model keeps 2.5-10.7 tokens per check, by task | a pass whose dense and SSD costs every kept token shares; drafted rows that step 5 can treat differently | confidence cut +19 %; MTP head on chat +24.5 % (time-weighted, 19 chat prompts); no A/B against one-token decoding on the final engine | T309; T782; F:2026-11-07_1735; F:2026-11-07_2355 |
+| 3 | the streamed store: aligned records, per-layer pools, rank tiers (sections 4.1-4.2) | the experts fit a 45 GB line; a check reads each missing expert once for all its rows | a loader whose reads can overlap the GPU's work | per-layer pool sizes -17.2 % SSD bytes per kept token, +8.3 % tok/s, exact; rank tiers about -20 % expert bytes (a new reference, certified on scores) | T12; T307 |
+| 4 | hiding the reads: the sync-free expert gate, out-of-order experts in a fixed order (section 4.4) | the GPU computes resident experts while missed ones land, with no CPU-GPU sync per layer | a loop whose per-check fixed costs then show (step 6) | warm check + commit 232.6 -> 117.3 ms (+35 %); out-of-order +13 to +18.7 %; both exact | T489, T476; T14, T490 |
+| 5 | the lossy layer (CERT; section 5) | drafted rows of code answers skip cold lower-ranked experts and run 3-bit parts; some reads at lower precision everywhere | - | CERT 171-175 tok/s on HumanEval and 111-114 on MBPP, against 101.4 and 70.4 for the exact default; the two differ in more than the lossy parts (section 5.1), so this is not an A/B of the layer | Tables 6.1a and 6.1b; Appendix E |
+| 6 | per-check fixed costs: cache keep, wired limit, matrix-unit experts, the exact-safe bundle, coherent reads, the 1-row check (section 4.4) | removes per-check clears and a ~250 ms first-check stall; faster kernels; coherent reads make exact chat deterministic | - | cache keep -7.2 to -8.0 ms per check; wired limit +25.1 % whole decode (lossy configuration); matrix-unit experts on native records (NAX6-N, later the reference) +6.2 %; the bundle +3.7 % and +2.9 % on code; coherent reads 3 / 12 -> 12 / 12 exact chat prompts; the 1-row check +1 % exact chat, +4.2 % lossy chat | section 4.4 |
+| 7 | prefill from the same store (section 4.5) | PF-D builds a short prompt's experts from the copies in memory; layer-major prefill reads each expert about once | - | PF-D: chat as shipped, first token 2.91 -> 2.26 s, exact; layer-major 1.9-3.4x at 1.6K-7.9K tokens, exact (built, not shipped) | BM:data/pfd/pfd_report_0009.txt; F:2026-11-08_0800 |
+
+- **Why exactness comes first.** The levers of steps 2-4 and 6 were each accepted by token equality, in minutes; rank
+  tiers, which change bits on purpose, were certified once as a new reference. Without the reference of step 1, each
+  lever would have needed a benchmark gate, as the lossy layer does (sections 3.3-3.4).
+- **Why the check loop makes the store affordable.** A check's SSD time follows 10-16 ms plus 0.15-0.17 ms per missed
+  expert [K, T288], paid once per check and shared by the tokens it keeps: 10.7 per check on HumanEval, 6.0-6.1 on MBPP,
+  6.5 on math and 2.5 on chat [K, F:2026-11-07_1735; F:2026-11-07_2355]. Chat keeps few tokens per check, so its cost
+  is the check's fixed cost (about 51 ms exact at 1-2 rows) [K, F:2026-11-07_2355], which is why the per-check costs of
+  step 6 matter most on chat.
+- **Why the lossy layer needs the others.** It decides per drafted row (step 2), reads the 3-bit part that the store
+  already keeps separately (step 3), and is certified against the exact reference (step 1). It pays most on code, where
+  its expert rules apply: the lossy configuration we ship decodes 164.0 tok/s on HumanEval and 112.7 on MBPP against
+  101.4 and 70.4 for the exact default, 78.9 against 77.9 on math, where those rules are off, and 45.2 against 37.1 on
+  chat [K, Tables 6.1a and 6.1b].
+- **Where pieces do not compose.** Exact pieces compose by construction, and the combination is audited on every run
+  (section 3.2). Lossy pieces need not: on chat, relaxed acceptance alone scored IFEval 87 and 8-bit hyper-connection
+  mixers alone 89, both together 84, against 90 for the reference (section 10.6). This is why the lossy layer is gated
+  as one configuration, not part by part.
+
+## 8. Methods that carry to other models
+
+The engine is not tied to this model. We tested one model, on one machine, so whether the methods below
+carry is a property of the design, not a measurement.
+
+The second column names the published work each method builds on, with our part where it matters. "Carries":
+MD = any MoE with a drafter, SD = any speculative-decoding LLM, MAC = Apple's SSD or Macs, AGPU = MoE on Apple's GPU.
+None of these is specific to this model's GDN or HC layers (INV).
+
+| method | builds on | status here | carries | evidence |
+|---|---|---|---|---|
+| batch-invariant 16-row kernel set + key buckets | batch invariance (He and Thinking Machines Lab, 2025); ours: the 16-row form on Apple's GPU and matrix units, with key buckets | live, exact | SD, AGPU | section 3; [KERNELS] |
+| SSD wake penalty + keepalive | NVMe idle power states; keeping drives awake with periodic I/O; ours: the penalty on Apple's internal SSD at sub-millisecond gaps and the read spacing that removes it (section 12.1) | live, exact | MAC | section 8.1 |
+| wake-ahead ping | waking a device ahead of predicted I/O (HotOS '15, "Software Engagement with Sleeping CPUs"); ours: one 4 KB read about 200 us before a burst, timed on this SSD | passed in microbenchmarks, not live | MAC | T47, T98 |
+| aligned zero-copy reads into GPU slots | direct I/O into device-visible buffers (F_NOCACHE / O_DIRECT; GPUDirect Storage); ours: the measurements into Metal slots on this SSD | live in the store | MAC | NOV, M-29 |
+| loader-to-GPU handoff by a coherent spin | MLX's polling-based fast CPU-GPU synchronization fence (MLX pull request #1773, 2025); ours: fresh lines per pass, per-layer events and residency published a pass ahead, between the SSD loader and the expert kernel | live, exact | MAC, AGPU | T76 |
+| OS-reclaimable (volatile) expert tier | macOS purgeable memory; ours: holding part of the expert pool in it | live, exact | MAC | T1088 |
+| rank-tiered records (4 bits for ranks 0-1, 3 for 2-9) | mixed precision across experts (HOBBIT; MC-MoE); ours: one record split into a 3-bit part and a 4th-bit sidecar, read by rank | live, own reference | MD | T307 |
+| out-of-order expert execution in a fixed bitwise order | overlapping expert compute with expert loading (Pre-gated MoE; MoE-Infinity); ours: a fixed summation order that keeps it bit-exact | live, exact | MD | T14 |
+| cold ranks half a layer late | KTransformers (used as published) | live at 12 GB | MD | T29 |
+| QOM: drafted rows skip the cold experts that would miss | cache-aware expert skipping (Mixture of Cache-Conditional Experts; MoE-Spec); ours: only on drafted rows, only the experts that would miss, no rerouting | certified config | MD | NOV |
+| 3-bit kept experts on drafted rows (U3; "drafter-sure rows" in its tested form) | lower precision for experts on demand (SliceMoE); ours: choosing it by drafted rows | certified config (code sets) | MD | section 8.2 |
+| union rule keyed on drafter certainty (Q1-UNION) | OEA; PSR; ours: the union keyed on drafter certainty | RELAX B | MD | T103, T993 |
+| relaxed acceptance only inside code comments | relaxed acceptance (Appendix I); ours: restricting it to code comments | certified config (code answers) | SD | section 8.3 |
+| copy gate: rows inside a verbatim copy of the prompt count as sure | SAM-Decoding; ours: rows inside the copy count as sure for the lossy row rules | RELAX B | SD, MD | EV:PREREG_relax_2026-11-02 |
+| one extra draft position for the bonus row | the bonus token of speculative decoding (Leviathan et al.); ours: gating it with the next segment's first draft | certified config | MD | F:draft17 |
+| per-shape K split for narrow matrix-vector calls (DN-KS) | split-K (standard GEMM practice); ours: the per-shape choice on the M5 | certified config | AGPU | [KERNELS] |
+| the request's own prompt footprint as the "cold" table | cache-aware expert skipping (as for QOM); ours: the request's own prompt routing as the table | passed on code, not live | MD | NOV; T312 |
+| matrix-unit kernels for padded expert tiles | padded expert GEMMs for few rows (MonoMoE; ONNX Runtime's MoE kernels); ours: the form on the M5's matrix units, bit-exact | live | AGPU | NOV |
+
+One idea, reusing the previous position's MoE output, was killed on bytes (section 12.3).
+
+### 8.1 The SSD wake penalty and the keepalive
+
+- **Builds on.** An NVMe drive enters an idle power state after an idle time and pays a published exit latency on the
+  next request (Microsoft's NVMe power-management guidance for StorNVMe); keeping a drive awake with periodic I/O is
+  old practice (for example Torpid, which writes a small file every 2.5 s); waking a device ahead of predicted I/O is
+  published (HotOS '15). What we found on this MacBook Pro is in section 12.1.
+- **Why it works [G].** The penalty depends on the idle gap and not on CPU load (below), so it sits in the SSD path,
+  consistent with an idle timer in the drive or its link. A read every 270 us or sooner keeps that timer from expiring;
+  a single read about 200 us before a burst pays the wake early, off the critical path.
+- **Finding.** On this machine's internal SSD, the first read after an idle gap is slower. After gaps of 0.25-1 ms it
+  costs +50-65 us per burst; after 20 ms, +100-120 us [K, T93]. A streamed MoE produces exactly such gaps: one burst
+  of expert reads per layer, with GPU work between bursts. If every layer pays, that is about 3 ms per check at 45 GB
+  [P, T93].
+- **A per-call decomposition** puts the fixed cost of one loader call at 187 us of the engine's 283 us: first byte
+  about 119 us, wake 44, dispatch 8, and about 96 us outside the I/O path [K, T97].
+- **Fix.** A trickle of 4 KB reads keeps the drive awake. A real spacing of at most 270 us removes the whole +44 us;
+  400 us or more leaves half [K, T44]. A busy CPU core does nothing, so the effect is in the SSD path [K, T93].
+- **In the engine:** a 50 us keepalive, about -3 ms per check on clean prompts [K, BM:docs/NIGHT_1104.md:37], adopted
+  in the exact default as part of the +12.1 % bundle (T10). No isolated A/B of the keepalive exists on the final
+  engine (the engine's owner, 6 Nov), so its share of the bundle is known only from that figure.
+- **A cheaper form** is a single 4 KB read about 200 us before a predicted burst. It removes 97.5 % of the penalty in
+  microbenchmarks (100 us ahead is too late, 400 us too early), and 87-94 % at the engine's real gaps [K, T47, T98].
+  It is not live.
+- **What does not work:** pinging the record's own first block to pre-warm it (+0.6 to +3.2 us, T202); splitting one
+  record into parallel reads (each piece pays its own request latency, T199); the page cache (+49 us per call, T201).
+
+### 8.2 Three-bit top-ranked experts on rows the drafter is sure of (as shipped: on every drafted row)
+
+- **Background.** Ranks 0-1 at 4 bits are load-bearing: all ranks at 3 bits fails both the divergence gate and the
+  same-scores test (`TRIED_SHORT.md`; EV:RESULT_relax_2026-11-05, T3ALL: HumanEval+ 88.3 vs 95.0).
+- **The signal.** On rows that verify a draft the drafter was confident about, the LSB sidecar is not read for
+  experts that only such rows use. The rationale [G]: on those rows the large model's top token rarely depends on
+  the 4th bit of its top experts. The evidence is the flip rates below.
+- **Evidence [K, decision map].** With the union rule at certainty 0.9: 1.19 / 5.06 / 3.24 % flips on full 16-row
+  checks, under the lines (T103). On the QOM form at certainty 0.5: 0.65 / 4.42 / 3.49 %, PASS on all three; at
+  certainty 0 (the shipped setting): 0.71 / 4.45 / 4.14 %, so code and IFEval pass and multilingual chat is BETWEEN
+  (T106). SSD megabytes per kept token: -46.3 % against -34.9 % for the union rule alone [P, T103].
+- **As shipped.** The certainty threshold is 0, so every drafted row counts as sure and every kept expert of a
+  drafted row runs at 3 bits; the bonus row stays exact unless it has a draft. The drafter's certainty enters only
+  through the cut that decides which rows are drafted at all (section 4.3). The "certainty 0" numbers above are the
+  shipped setting's.
+- **Status.** Part of the certified configuration on the code sets (section 5): same scores as NAX6-N on HumanEval+ and
+  MBPP in both orders [K, F:2026-11-08_0455].
+- **Prior art (as recorded).** Per-token mixed precision exists keyed on the router's rank, and per-expert bit widths
+  keyed on importance; none found keys precision on the drafter's certainty (NOV, row "3-bit records on drafter-sure
+  rows").
+
+### 8.3 Relaxed acceptance restricted to code comments, and its failure when widened
+
+- **The observation.** In code answers, comment text is a small share of positions and a large share of the
+  drafter's misses: 13.5 % of positions and 44.7 % of misses on one walk (T1350); on another, comments carry 52 % of
+  the first misses in a check [P on K, L350 section 1]. A wrong comment word does not change what the code does.
+- **The rule** (EV:PREREG_relax_2026-11-02). On a row whose draft sits inside a '#' comment, the draft is kept if it
+  ranks first or second on its row and has at least a quarter of the top token's probability. Everywhere else
+  acceptance is exact.
+  - Only inside the answer's code fence; never in its first two lines; never in docstrings, strings or code.
+  - Never on a comment that is or could become a tool directive (type comments, linter pragmas, an encoding line, a
+    shebang).
+  - The row must already be inside the comment before its draft, and a draft that starts with a newline stays exact.
+  - The span is found by an incremental scan of the answer's text, token by token, so it needs no lookahead.
+- **In the engine it is safe so far, and small.** As part of RELAX B it passed decision 4 and the blunder bar on
+  code (0 blunders in 25,656 new HumanEval+ tokens), but it adds only 1.8 % to tokens kept per check on HumanEval+
+  [K, EV:RESULT_relax_2026-11-05]. A replay had promised x1.07 to x1.16 (T1350). The live confidence cut explains the
+  gap: checks that would have continued through a comment are already cut short [P, L350 section 8.2]. In the certified configuration the rule (rank 1-2,
+  at least a quarter of the top probability) is on, and it fired 0 times on the 12 HumanEval prompts of the stack's run
+  [K, F:2026-11-07_0025].
+- **Widened, it fails.** "CD16" keeps the drafter's whole comment and docstring text without checking it, and checks
+  only code. On 12 MBPP tasks it kept x1.45 tokens per check and ran +23.7 % faster, and the tasks' tests passed on
+  8 of 12 against 11 of 12 without it, in both passes: 3 flips against a line of 2 [K, T855; F:45gb-fast-stack]. The
+  answers show comment loops and code that drifts after the drafter's own comments. HumanEval did not show it,
+  because its docstrings copy the prompt. CD16 was dropped the same day, with the headline number that contained it
+  (section 10.3).
+- **The lesson for others:** text that "does not matter" still conditions everything after it. Relaxing the choice
+  among the model's own near-top candidates is a different operation from accepting text the model never scored.
+- **Tag.** Relaxed and lossy verification is published; the comment-only span was found in neither of two web
+  checks (NOV; INV section 1): adapted.
+
+---
+
+## 9. Comparison with other engines and prior work
+
+Appendix G has our runs of Strata on this machine, Appendix H the published runs on this model, and the prior art is in
+Appendix I.
+
+- **Same machine, same prompts [K; Appendix G].** Strata 0.1.58-metal (MIT; github.com/Niko1221/Strata), with its 3-bit
+  IQ3_XXS file, experts streamed from the SSD and its MTP layer, decodes 40.6-47.1 tok/s at a lifetime peak of 40.8-41.2
+  GB, with its first token in 0.54-1.01 s. Against Strata's arm of the same kind, our lossy decode is x2.5-3.5 its
+  decode on code, x1.7 on math and x1.08 on chat; our exact decode is x1.6-2.2 on code and x1.7 on math, and behind on
+  chat (37.1-38.3 vs 40.6). Our first token is 2.7-7.0x slower, so Strata wins or ties every whole request of up to 256
+  tokens; ours passes it at about 245-260 tokens on code and math, and at about 340 on chat as shipped [P].
+- **Published runs [self-reported; Appendix H].** On our machine class, Splash reports 95 tok/s decode and a 1,312 tok/s
+  prefill with a 2.4-bit file. On a larger Mac (M5 Max, 128 GB) with every weight resident, Sushi reports 138-169 tok/s
+  decode with 2.75-bit weights, and MTPLX 79-126 with 4-bit weights. None of them used our prompts.
+- **Prior art [Appendix I].** Every piece of section 7 has published roots: batch invariance (Thinking Machines Lab;
+  vLLM and SGLang, on CUDA), drafters and verification, SSD-streamed MoE inference, expert caching and prefetch, mixed
+  precision for experts, fewer experts under speculation, and relaxed or lossy verification. To our knowledge no
+  published engine for this model combines exact speculative checks, an SSD-streamed rank-tiered store and a certified
+  lossy layer; Strata and Sushi combine several of the pieces.
+
+## 10. Negative results that teach something
+
+### 10.0 Headlines we corrected or withdrew
+
+| headline as first written | what it was | correction | source |
+|---|---|---|---|
+| "45 GB FAST v1: 180.3 tok/s" (and 144.9 for the stack before it) | the registered "steady" metric: it timed part of each check and skipped each prompt's first check (~300 ms) and 2.35-4.7 ms of host work per check | 142.8 tok/s whole decode, pooled (the note's 142.1 is a geo mean); steady / whole = 1.09-1.27, growing as checks get faster. Since 7 Nov every headline is whole decode | F:2026-11-07_0500; BM:data/r57/s1n{1,2}_256_runs.json |
+| "45 GB FAST stack: 157.9 tok/s" | included CD16, which accepted the drafter's comments unchecked and failed MBPP | withdrawn (section 10.3) | F:2026-11-06_1550 (WITHDRAWN) |
+| "12 GB exact: 40.8 tok/s in 11.35 GB" | the measured arm was a lossy mode; the verified loop runs about 18 tok/s | withdrawn (section 10.5) | F:2026-11-04_1439 (corrected) |
+| "chat runs exact in the lossy config" | the lossy parts that change bits run on every set | chat is lossy, same scores (section 5.2) | F:2026-11-07_2330 |
+| our first Strata comparison (whole request, bit tiers) | mixed aggregations; "our exact mode reads 4 bits" | pooled from raw rows; both our modes use the same tiers | F:2026-11-08_1630 (corrected the same day) |
+
+### 10.0b Recent negative results
+
+- **Larger prefill chunks are not exact.** 2,048-8,192-row chunks change the logits (hash equal on 0 of N checks), change
+  decode tokens at 4.7K and 7.9K tokens, and peak at 46.5-53.8 GB [K, F:2026-11-08_0800]. Part of that run was also hit by
+  an MLX bug (sorted gather_qmm past 32,767 rows when M is not a multiple of 64; MLX #4632; [KERNELS]); the 2,048-row arm
+  was not hit and still changes the logits.
+- **One MoE call per layer in prefill (PF-B) was not exact at first** (0 of 7-28 logits hashes equal, +15-22 %) [K,
+  BM:data/pfb/pfb_report.txt]: the shared expert's one-output gate splits its sums by row count ([KERNELS] section 5.2).
+  Kept per chunk, that gate makes PF-B exact (8 / 8, 28 / 28, 22 / 22 logits hashes, x1.12-1.21), but it peaks at
+  45.8-46.2 GB, over the line, and does not ship [K, BM:data/pfd/pfd.log part B].
+- **Never waiting for cold experts, third form:** +6.2 % whole decode, pooled (141.4 -> 150.2 tok/s), against a +8 %
+  line: BETWEEN, not adopted [K, BM:data/r57/s1b{b,n}{1,2}_256_runs.json; F:2026-11-07_0550].
+- **Gaps chain across references.** Each step passed its own gate (NAX6 -3.3 points against REF2-T, the lossy config -3.3
+  against NAX6 on 60 HumanEval+ tasks), and the lossy config ends -8.33 points against REF2-T on the HumanEval+ core set
+  [K, F:2026-11-07_0550, F:2026-11-08_0455]. Gates against the immediate predecessor do not bound drift over several steps.
+- **Lossy runs are not reproducible token for token** (8 of 12 prompts equal between two passes; section 6.1); a lossy
+  configuration has to be certified under two prompt orders.
+
+
+### 10.1 Never waiting for the SSD: passes the quality screen, loses in the engine
+
+- **Idea.** A missing top-2 expert is read in the background and its term is added one layer late, so the GPU never
+  waits (the deferral family, here for the 45 GB FAST mode).
+- **Quality screen: PASS.** Code flips 0.68 % against 0.74 % for its twin at a 208-slot pool (T50).
+- **Engine: KILL of the first form.** -2.8 % (153.5 vs 157.9 tok/s in the same run, on the steady metric then
+  registered: section 10.0), although kept tokens rose 4.6 %.
+  The check grew from 68.8 to 75.3 ms (T209).
+- **Why.** The form did not cut the wait: the gate service went from 14.0 to 15.6 ms per check, and about 6.5 ms of
+  late work was added in the per-layer pipeline (T209c; the engine's owner, 6 Nov). Its own calls still waited on the
+  loader's release for cold optional experts and cold sidecars (LL, 'NEVER-WAIT v3').
+- **Why the price was wrong.** The prediction (+10-15 %) treated 13.5-15 ms of gate service per check as removable
+  waiting. It is a spin bound that out-of-order execution already overlaps with compute.
+- **Status.** A revised form that drops the cold optional reads is built and bit-checked. It needs its own quality
+  arm before a speed test, so the family is not closed.
+- **Note.** Both arms ran on a stack that still contained CD16 (section 10.3). The
+  comparison is within one run.
+
+### 10.2 Fewer expert groups on sure rows ("split"): the tile price was 2-3x too high
+
+- **Idea.** On rows the drafter is sure of, compute only ranks 0-1 plus experts the check loads anyway.
+- **Quality screen.** PASS on code (0.92 % and 1.31 % flips at certainty 0.99 and 0.9, line 1.34 %), KILL on chat
+  (T553, T552).
+- **Engine.** Computed expert groups fell to x0.63 and x0.49, yet check + commit fell only 6 and 5 %, and kept tokens
+  fell 4.2 and 1.7 %: net about 0 to +1.5 % against a priced +11-19 % (T610; F:flat2). On the matrix-unit kernel:
+  -1.3 %, with kept tokens -5.7 % (T744).
+- **Lesson.** On this GPU the expert time is mostly per-row work, not per-group reads (11.1 ms at 2 rows, 57.0 at 16,
+  all resident). Counting tiles, groups or bytes overpredicted the gain two to three times. A lossy cut also lowers
+  acceptance, and that loss must be in the price.
+
+### 10.3 Wholesale acceptance of comments (CD16), and a withdrawn 157.9 tok/s
+
+- The stack measured 157.9 tok/s on 12 HumanEval prompts (passes 157.2 / 158.1) and was written up as a headline.
+  It included CD16. CD16 then failed quality on MBPP (section 8.3), and the number was withdrawn before publication
+  (F:45gb-fast-stack, WITHDRAWN).
+- **Lesson.** A lever must be gated on a workload that can expose it. HumanEval could not: its docstrings are copies
+  of the prompt, so accepting them unchecked changes nothing. A guarded form (T16) scored BETWEEN on 12 MBPP prompts (one flipped task) and was not
+  adopted [K, F:2026-11-07_0025].
+
+### 10.4 The 12 GB FAST mode failed same-scores
+
+- **The mode.** A cheap first pass with only the top-2 experts certifies a token when its top probability is at
+  least theta; other rows are recomputed with the full computation.
+- **Result.** At theta 0.8 on code and 0.95 on chat: HumanEval+ 80.0 vs 91.7 (0 / 7, p 0.02) and IFEval 84.0 vs 90.0
+  FAIL; math passes; memory passes (at most 10.84 GB) (EV:RESULT_t0_2026-11-05). Truncations and loops rose from
+  13 / 2 to 23 / 7.
+- **What it teaches.**
+  - The decision map had predicted it: the same setting flips 1.63 % of code rows, over the 1.34 % line (T54).
+  - The certificate itself is token-accurate (0-1 divergences in about 3,400 tokens at every theta). The damage comes
+    through the context: the cheap pass also writes the attention and recurrent state that later tokens read (T1265).
+    A certificate on the token says nothing about the state it leaves behind.
+- **Status.** Since then theta 0.8 and its theta 0.9 fallback failed HumanEval+ in both prompt orders (83.3 and 86.7
+  vs 95.0 %; EV:RESULT_t80ck1u_2026-11-07). The code-valid point (theta 0.95, map 1.22 %), modelled at 35.9 tok/s [P, a
+  calibrated replay], measured 27.9 tok/s whole decode, pooled, on 12 HumanEval + 12 MBPP [K, F12R:tab12f]. The mode is
+  labelled "lossy, failed its gate".
+
+### 10.5 A withdrawn "12 GB exact at 40.8 tok/s"
+
+- A public note claimed 40.8 tok/s, bit-exact, in 11.35 GB. A re-check found that the measured arm was a FAST mode:
+  it commits rows certified by the cheap pass without the full check. It matched the verified loop on 5 of 16
+  prompts, and the quality screen scores its certificate (top-2 experts, theta 0.8) a code KILL at 1.63 %. The
+  verified loop runs 18.3 tok/s whole decode, pooled, on 12 HumanEval + 12 MBPP (whole request 13.1, first token 4.29 s,
+  lifetime peak 11.14 GB) [K, F12R:tab12e]. The note now carries a dated correction (F:12gb-exact-40tps; F12).
+- The same week showed that the verified loop itself is not bit-identical to one-token decoding [K, F12 'What the 12 GB exact loop (arm ex) is exact to']. The
+  word "exact" had been used for three different properties: bit-identical to one-token decoding, verified by the
+  full model, and reproducible.
+- **Lesson.** An arm's name is not its definition. The exactness check had been run on 4 of the 16 prompts. An audit
+  over every prompt, as in section 3.2, would likely have caught it before the note went out [G].
+
+### 10.6 Agent turns, and two lossy parts that compound on chat
+
+- **Agent turns.** Plain FAST wrote 85 low-probability tokens in 19,749 on 17 long agent turns (about 43 per
+  10,000); 75 of them are inside the written file content. Short edits are clean; long file writes carry the failure
+  (EV:RESULT_agentfast_2026-11-06).
+- **Cause.** With QOM-KEEP off, blunders fall from 21 to 4 (forward order) and 18 to 0 (reverse): the cache-dependent
+  keep carries them. Other parts do not move the count (EV:RESULT_agentbisect_2026-11-06).
+- **Run-to-run dependence is wider than one lever.** With QOM-KEEP off, the two prompt orders still differ within
+  the first tokens. The check logs show the drafted row counts differing about 27 tokens before the committed tokens
+  do, so the drafts carry history. If any FAST kernel's bits depend on a check's row count, even exact acceptance
+  then depends on the drafts (same source, addendum). The exact base must be identical in both orders.
+  It is: every exact run equals one-token decoding, in any order (section 3.2).
+- **Chat.** Relaxed acceptance alone scores IFEval 87, 8-bit HC mixers alone 89, both together 84 against 90 for the
+  reference: a failure neither shows alone (EV:RESULT_relax_drift_2026-11-06, section 3).
+
+### 10.7 A data-aware 2.4-bit trellis store did 1.6-2.5x the damage its error predicted
+
+- Priced from its weight-error ratio against 3-bit truncation, the store measured much worse on the decision map:
+  1.45 / 9.54 / 10.44 % flips against lines of 1.34 / 5.42 / 3.69 (F:trellis_mse_miss).
+- Two independent derivations agree that these errors cost about 1.7-3.5x more KL divergence per unit of
+  expert-output error than truncation errors do. The mechanism is open.
+- **Lesson.** For this model, weight or output error cannot rank a data-aware code against plain truncation without
+  a divergence screen on real prompts.
+
+### 10.8 A fixed cost that did not fall, and a timing method that was wrong
+
+- With every lossy lever of 6 Nov morning on, the fixed cost per check was still 53.7 ms, against a KILL line of 36 ms
+  ([KERNELS] 6.5). 350 tok/s on code at 12 kept
+  tokens would need about 25 ms [P, F:flat2].
+- An earlier fit had put a dependent dispatch at 12-20 us, which pointed at fewer, fused kernels. The direct
+  measurement is 1.6 us ([KERNELS] 6.3); the loss was in narrow kernels. Two rebuilt kernels from that programme (a
+  row-parallel GDN step and a replacement HC kernel) were bit-correct and slower than what they replaced (LL,
+  'GDN-CHUNK', 'HC-K2C').
+- A split that was thought live was inert for a night because another fast path bypassed it (F:flat2, caveat). The
+  engaged-path counters of section 3.2 exist for this reason.
+
+### 10.9 From the ledger: ideas an outside reader would likely propose
+
+One line each; numbers and sources in `TR:TRIED_SHORT.md` and the full ledger.
+
+- **Look-ahead expert prefetch:** pays at 24 GB (+9-10 %), KILL at 45 GB (wrong guesses evict).
+- **mmap or the page cache instead of direct reads:** KILL (mmap about 5x slower).
+- **Cache-aware routing or substituting resident experts:** KILL; not exact, and small. Expert independence
+  (Appendix F.6) explains why.
+- **Fewer experts per token (top-8):** KILL at the strict gate, with or without renormalisation.
+- **All experts at 3 bits; any 2-bit tier:** KILL.
+- **Draft trees:** KILL; the best tree is -10 to +2 % against the best chain at equal cost.
+- **Wider (32-row) checks:** KILL at today's per-row cost (-1.3 %); they pay only below about 0.9 ms per row (KP).
+- **Self-speculation, layer skip, early exit:** KILL; exiting after layer 40 agrees with the full model on 5.7 % of
+  code positions.
+- **Exact speculative sampling instead of greedy matching:** KILL; acceptance +0.003 to +0.014.
+- **Drafter retrains:** on-policy data +0.13 kept per doubling; 2x capacity +0.18; one reseed alone moves code by
+  0.16. Only the data slope is above noise (KP).
+- **Reusing the previous position's MoE output:** the one fully new idea; KILL on bytes (union only x0.91) (NOV).
+- **Matrix units for experts at short checks:** KILL at the 1 Nov operating point (+1.8 %); adopted later, once
+  checks were longer and the records were in the kernel's native layout (T675, T527).
+- **Compiling the verify graph:** KILL (-0.7 ms; the graph build was not the cost then).
+- **Several streams in one pass:** aggregate throughput only; per stream it is slower than solo (F:union-law).
+
+### 10.10 How far ahead can a forecast help the expert cache? (CPU replays; measurements, no method claim)
+
+A forecast made 8 checks ahead of the experts each layer will need could steer the expert cache. We measured its
+ceilings on recorded traces: 176 checks of six prompts, replayed on the CPU through the engine's cache at the 45 GB line
+(K 266 slots per layer) and the 24 GB line (K 147) [K, FAR:far_ceiling.txt; F:2026-11-04_2210_far-ahead-foresight]. No
+forecaster was built into the engine, and the GPU test that would score a real far draft did not run.
+- **The kept path is not enough.** A perfect forecast of only the rows the checks keep cuts misses by 20.3 % against LRU
+  at K 266 (26.3 % at K 147), at recall 0.68 (0.76): the rows the checks reject hold the other 32 % of the reuse [K,
+  FAR:far_ceiling.txt].
+- **Misses are not stalls.** Perfect foresight of every row of the next 8 checks cuts misses by 33.7 % but the layers
+  that wait on the SSD by only 5.4 % (Belady's optimum: 55.3 % and 19.3 %) [K, same file].
+- **Tokens do not predict deep-layer routes; states do better.** From the token alone, per-row recall@10 of a row's
+  experts is 0.24-0.28 in layers 8-47 (a table built from the other prompts; about 0.40 from the same token's previous
+  occurrence), and the best honest token map cuts misses by 6.0 % [K, same file]. A ridge map from the 125B's own
+  layer-1 MoE inputs of the future rows, standing in for a far drafter's states, reaches recall 0.70 / precision 0.64
+  and 14.6 % fewer misses at K 266 (stalled layers -1.4 %), and 11.9 % at K 147 [K, FAR:far_ridge.txt]. Both are the best
+  of 16 settings, each fitted leave-one-prompt-out but picked on the same replay; the 16 span 7.9-14.6 % and 6.2-11.9 %.
+- **Prior art.** Draft-fed expert forecasts in the literature look ahead one round (SP-MoE, 2510.10302) or at most 32
+  tokens (Specter, 2511.14102). The state-to-route map itself is adapted from SP-MoE and DraftExpert (2607.24434).
+
+---
+
+## 11. The path to more speed
+
+Everything we tried is in the public ledger (FableGod/TRIED): one line per attempt, with its verdict, its source and the
+wall it hit. Below: the gain of each change outside the shipped configuration (11.1), the walls (11.2), and the path
+for chat and code per memory line (11.3). **Sure** means measured [K] on this engine, in a run that had the change in
+it; a lossy change is sure as speed, and its quality only once its gate passes. **Bet** means priced [P] from measured
+parts, or a judgement [G]. Gains multiply only where they were measured in one run.
+
+Today, as shipped at 45 GB (whole decode, 12 prompts per set): HumanEval 164.0, MBPP 112.7, math 78.9 and chat 50.7
+tok/s, against 101.4 / 70.4 / 77.9 / 37.1 for the exact default [K, Tables 6.1a-6.1c].
+
+### 11.1 If this is done, this is the gain
+
+| change | line, workload | gain (whole decode unless noted) | mark | state |
+|---|---|---|---|---|
+| L by itself (CERT + the exact-safe bundle, without COH) | 45 GB, HumanEval / MBPP | +6.0 % / +4.7 % over CERT, pooled, one series (181.3 / 119.8); the shipped 164.0 / 112.7 is another snapshot | [K, BM:data/s5p/s5p_report.txt] | built; not gated by itself |
+| the chat stack (zs + bundle / HC8_G + rank cut 8 + R1) | 45 GB, 12 IFEval | 56.0, +12.8 % over the run's first arm; cycle 44.1 ms | [K, BM:data/chs/chs5_report.txt] | built; not gated |
+| zs32 (M1-B + COH + SB1) | 32 GB, 12 IFEval | 51.3, against 33.8 for the exact e32 and 39.0 for the shipped lossy-32 | [K, BM:data/chs/c32_report.txt; BM:data/rel/rel_rows_report.txt] | built; not gated |
+| never waiting for cold experts | 45 GB, HumanEval | +6.2 % pooled, under its +8 % line (BETWEEN) | [K, BM:data/r57/s1b{b,n}{1,2}_256_runs.json] | built; not shipped |
+| PF-D beyond chat; a better next-layer predictor | 45 GB, first token | chat 2.91 -> 2.26 s exact (shipped); lossy form 1.83 s; reading only the missing experts ~1.6 s; 19-31 % of what v4 stages goes unused | [K, Table 6.1c]; 1.6 s [P, BM:data/pfb/pfb_report.txt] | built for chat; not run on other configurations or at 32 GB |
+| exact layer-major prefill | 45 GB, 1.6K-7.9K-token prompts | prefill 1.9-3.4x | [K, F:2026-11-08_0800] | built; needs a 0.1 GB memory trim |
+| one MoE call per layer in prefill (PF-B) | same | a further 12-21 %, exact; peaks 45.8-46.2 GB | [K, BM:data/pfd/pfd.log part B] | over the line |
+| prefill reads overlapped with compute | same | ~590 / 750 tok/s prefill at 4.7K / 7.9K | [P, F:2026-11-08_0800] | needs building |
+| two-row verify calls on chat (C2c) | 12 GB, 12 IFEval | priced x1.10-1.15 over P2'; measured x1.053 pooled (14.46 vs 13.73, share lock); code x0.881 against A' of an earlier run | [P, F12C]; [K, F12L:chw19_run.log] | screened: chat marginal, code killed |
+| less Python on the critical path | 12 GB | at most x1.09 | [P, F12P] | test designed, not run |
+| the prompt pass at verify-call bandwidth | 12 GB, first token | 2.906 s for 63 tokens (21,986 MB at 7.6 GB/s) -> ~1.8 s at ~12 GB/s | [K, F12H]; [P] | needs building |
+
+### 11.2 The limits
+
+Per wall: today's limit; the size of its ledger section (FableGod/TRIED/TRIED.md, one wall per line, read on 9 Nov
+2026) and the best result; what breaking it unlocks, and which wall then binds; what could break it.
+
+| wall | today's limit | ledger lines; best result | unlocks; then binds | what could break it |
+|---|---|---|---|---|
+| fixed cost of a check | chat ~51 ms exact / ~40 ms lossy at 1-2 rows, against a memory floor of ~15-20 ms [K; floor P; F:2026-11-07_2355]; the fixed part is ~75-85 % of a chat check [P, [DRAFTER] App. C row 23] | 315; warm check + commit 232.6 -> 117.3 ms (T489, T476); chat cycle 48.5 -> 44.1 ms (CHS5) [K] | ~2x in the low-row check alone [P]; then kept tokens per check | low-row kernels at bandwidth rather than latency; fewer dependent kernels per layer ([KERNELS]) [G] |
+| kept tokens per check | chat 2.5, math 6.5, HumanEval 10.7 per check [K, section 4.3] | 218; 41 of [DRAFTER]'s 83 items killed; best: the MTP head on chat, +24.5 % [K] | a drafter that never missed: ~105-115 tok/s of chat at today's check cost [P, [DRAFTER]]; then the fixed cost | a chat head trained on ~1.3M tokens of the model's own answers (8 % of that gave x1.014, under its x1.03 line [K, [DRAFTER] 3.1]); Strata's MTP layer accepts 87 % of its drafts [K, F:2026-11-08_1630] |
+| SSD bytes per kept token | 45 GB code: 18.5 ms cold-minus-warm per 16-row check [K, F:2026-11-07_0025]; chat misses ~4 ms at 1-2 rows [K, F:2026-11-07_2355]; 12 GB chat 449-491 MB per kept token [K, F12L:chw19_run.log] | 303 SSD + 168 bytes; per-layer pools -17.2 % bytes, +8.3 % tok/s, exact; rank tiers about -20 % expert bytes [K, section 7] | at 45 GB code, at most the 18.5 ms per check; then the fixed cost | eviction nearer the offline optimum (OPT: 55.3 % fewer misses and 19.3 % fewer stalled layers than LRU at K 266, 45 GB; section 10.10) [K]; next-layer read-ahead (31-40 ms loader-idle per 12 GB call [P, F12P]) |
+| the memory line | rows at 41.7-43.7 GB, at least 1.3 GB under; C 224 -> C 256 +0.1 % [K, F:2026-11-07_0500] | 101 | little decode at 45 GB; PF-B, 0.8-1.2 GB over the line [K]; at 32 / 24 / 12 GB memory sets the cache, so bytes per kept token bind | trimming PF-B's peak; lossy routes that pass their gates [G] |
+| first token and prefill | chat as shipped 2.26 s, reading 9.6 GB per prompt with PF-D [K, BM:data/pfd/pfd_report_0009.txt]; without it a 37-101-token prompt reads 20.4 GB, though 65.5 % of the routed 3-bit parts are in memory [K, BM:data/pfb/pfb_report.txt]; long prompts compute-bound, SSD at 3.8-5.2 of 14 GB/s [K, F:2026-11-08_0800] | 41; PF-D 2.91 -> 2.26 s exact; layer-major 1.9-3.4x [K] | ~1.6 s [P]; Strata's 0.54-1.01 s on the same prompts shows more is reachable here [K, section 9] | PF-D everywhere, a better predictor, reads overlapped with compute [P] |
+| quality gates | lossy parts need not compose: relaxed acceptance (IFEval 87) and 8-bit mixers (89) together scored 84, against 90 [K, section 10.6]; CD16 failed MBPP; the 12 GB FAST mode failed same-scores [K, sections 10.3-10.4] | 74 quality + 74 exactness | the ungated rows of 11.1; at 12 GB the FAST mode's 44.34 on HumanEval only [K, F12R:c1u16] | lossy rules that pass the gates, gated together [G] |
+
+### 11.3 The path
+
+Today, then 11.1, then each wall. Measured steps are sure; priced steps are bets.
+
+- **45 GB, code (HumanEval / MBPP).** Today 164.0 / 112.7 [K]. Measured, not gated: L by itself, 181.3 / 119.8 [K]. A
+  bet: never waiting for cold experts, +6.2 % on an older configuration (BETWEEN) [K], never run with L. Past that, the
+  SSD wall's room is 18.5 ms per check [K]; nothing further is priced.
+- **45 GB, chat.** Today 50.7 [K]. Measured, not gated: the chat stack, 56.0 [K]. Bets: the check at its floor, about
+  2x in the check alone [P]; a drafter that never missed, ~105-115 tok/s at today's check cost [P]. 150 tok/s needs
+  both walls at once: a ~25 ms cycle and ~3.75 kept per check [P, F:2026-11-07_2355]. First token: 2.26 s today [K],
+  1.83 s with the lossy form [K], ~1.6 s priced [P].
+- **32 GB, chat.** Today 33.8 exact and 39.0 lossy as shipped [K]. Measured, not gated: zs32, 51.3 [K].
+- **24 and 12 GB.** The 24 GB line's rows and its lossy chat route are in the forthcoming [SMALL-RAM]. At 12 GB, code
+  today is 18.34 tok/s verified [K, F12R:tab12e]; the FAST mode's 44.34 (HumanEval only) failed its gate [K,
+  F12R:c1u16], so it is a bet until a lossy rule passes. Chat today is 12.76 verified, 13.97 with P2' (not gated) [K,
+  F12R:chat12, chw14c2]; two-row calls measured x1.053 over P2' (priced x1.10-1.15). Bets, not multiplied: less Python,
+  at most x1.09 [P]; the prompt pass, 2.9 -> ~1.8 s [P]; eviction, bounded by OPT [P].
+
+**What is sure and what is a bet.** Sure: the shipped rows, and the ungated rows of 11.1 as speed. Every step past a
+wall is a bet: no wall in 11.2 has been broken in a run, and on chat two must fall together for 150 tok/s. Effort so
+far: 315 ledger lines on the fixed cost, 471 on SSD bytes, 41 on prefill.
+
+**Not measured at all.** Concurrent requests (Splash reports 171 tok/s aggregate with 4 concurrent requests on this
+machine class, self-reported), answers longer than 256 tokens, and prompts longer than 7.9K tokens.
+
+## 12. What is new in this work
+
+To our knowledge, none of these findings has been published before. For each we give what we found, how we found it,
+the evidence, why it happens (what is measured [K] and what is still a hypothesis [G]), what it gives, how it could
+be improved, and where else it could apply. One of the four is an idea that did not pay off (12.3).
+
+### 12.1 The SSD's wake penalty at sub-millisecond idle gaps
+
+**What we found.** On this MacBook Pro's internal SSD, the first read after an idle gap of 0.25 ms or more is slower. A streamed
+MoE runs into this on every layer, because its expert reads come in one burst per layer with GPU work in between. Reads
+spaced closely enough keep the drive awake and remove the penalty.
+
+**How we found it.** We timed single reads after controlled idle gaps in micro-benchmarks that load no model, and split
+the engine's loader cost per call into its parts (section 8.1).
+
+**Evidence.** After 0.10 ms of idle there is no penalty, and from 0.25 ms on the full one [K, MS:data/ssdmicro.txt]. It
+costs +50-65 us per burst after 0.25-1 ms gaps and +100-120 us after 20 ms, and a CPU core kept busy changes nothing
+[K, T93]. A trickle of 4 KB reads at a real spacing of at most 270 us removes the whole +44 us; 400 us or more leaves
+half [K, T44]. In the engine, a 50 us keepalive saves about 3 ms per check [K, BM:docs/NIGHT_1104.md:37]; it is part of
+the exact default's +12.1 % bundle, and no A/B isolates it on the final engine.
+
+**Why it happens.** Measured: the penalty depends on the idle gap and not on CPU load, and reads that end 0.25 ms or
+more before the next demand read let the drive doze again [K, MS:data/ssdmicro3.txt
+
+Summarize the main findings of the document above in five bullet points.

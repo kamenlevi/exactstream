@@ -1,0 +1,24 @@
+#!/bin/bash
+# Decision map, night 1 (one GPU slot, ~2.5-3 h at ~120 tok/s teacher-forced prefill; 36 windows x ~1.5K tokens =
+# ~54K tokens per run, ~7.5 min each; memory = the 45 GB preset as D-02a ran it). Order = information per minute.
+# Positions measured: the answer tokens of 12 code + 12 IFEval + 12 multilingual windows (~6K positions).
+set -e; cd ~/FableGod/decision_map
+P="python run_map.py"
+$P baseline                 # 0. must reproduce D-02a's stored top-1 (sanity: >= 99.9 % equal)
+$P hc_static                # 1. is the learned HC read a decision-maker? (drafter input / D2 trunk cost)
+$P topk2                    # 2. ranks 3-10: D2 at top-2, and PFC on sure rows within the twin's noise?
+$P topk5                    # 3.
+$P shared_zero              # 4. the always-on expert
+$P att_reuse_prev           # 5. P-frame test, attention layers
+$P gdn_reuse_prev           # 6. P-frame test, GDN layers
+$P moe_reuse_prev_g0        # 7-10. P-frame test, routed experts by 12-layer group
+$P moe_reuse_prev_g1
+$P moe_reuse_prev_g2
+$P moe_reuse_prev_g3
+$P hc_q4                    # 11. HC precision (HC4 at 12 GB flipped 6 %: confirm on this line)
+$P gdn_q4                   # 12. GDN output precision
+$P att_q4                   # 13. attention output precision
+$P ctx2048                  # 14. context: does the model decide from the last 2K? (drafter window, D2 attention cost)
+$P ctx512                   # 15.
+# night 2: moe_reuse_prev_L00..L47 (48 runs, ~6 h) for the per-layer map; gdn_state_bf16 needs the cache patch (A3).
+$P report

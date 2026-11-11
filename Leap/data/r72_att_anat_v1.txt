@@ -1,0 +1,9 @@
+layer 3: 19 tensors; indexer True; heads 24/2 x 256
+T0 700: kernels per 16-row call: ref2t 142, single 75, rope 51, rope0 107; bits rope0 == ref2t True, rope == single True; single vs ref2t differ 0.003
+  ref2t: Multiply 24, Matmul 24, AsType 16, Concatenate 12, Select 12, Softmax 12, Add 6, SliceUpdate 5, Arange 4, Full 3, RMSNorm 3, Negative 3, QuantizedMatmul 3, RandomBits 2, CustomKernel 2, Cos 2, Sin 2, LessEqual 1, Subtract 1, Divide 1, Minimum 1, ErfInv 1, Sum 1, CompiledAsTypeAsTypeSigmoidMultiply 1
+  rope: AsType 7, Concatenate 6, Multiply 6, SliceUpdate 5, Arange 3, Full 3, CustomKernel 3, RMSNorm 3, QuantizedMatmul 3, Add 2, Matmul 2, LessEqual 1, Sum 1, Cos 1, Negative 1, Sin 1, Select 1, Softmax 1, CompiledAsTypeAsTypeSigmoidMultiply 1
+T0 383: kernels per 16-row call: ref2t 136, single 69, rope 45, rope0 101; bits rope0 == ref2t True, rope == single True; single vs ref2t differ 0.000
+T0 1100: kernels per 16-row call: ref2t 142, single 75, rope 51, rope0 107; bits rope0 == ref2t True, rope == single True; single vs ref2t differ 0.000
+T0 2600: kernels per 16-row call: ref2t 182, single 115, rope 91, rope0 147; bits rope0 == ref2t True, rope == single True; single vs ref2t differ 0.001
+RoPE fusion bits: PASS
+ms per 16-row attention call at T0 700 (shared GPU, rough; graph built per call): ref2t 0.743, single 0.457, rope 0.436, rope0 0.653

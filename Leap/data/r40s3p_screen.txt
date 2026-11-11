@@ -1,0 +1,10 @@
+R-40 STEP 3p: full 125B via load_streamed (C = 144), loaded in 1 s, 23.0 GB active; EvalSuite's PF1 True (full scratch True): on for prefills, off for checks / commits
+  self-test: {'qmm16c 6144x2560': True, 'MLX 16-row 512x2560': True, 'experts split == fused': True, 'experts rows alone': True, 'bf16 Linear': True}
+  math500/test/algebra/694.json, P 98: REF2 AR 64 steps, 194 records per step, digests at every position
+  Loop A (live drafter): 8 checks, kept [6, 12, 14, 1, 7, 2, 4, 4]; kept rows == AR 14 / 50
+    first check whose START state differs: #2 at relative 18: [(36, 'gdn', [1]), (37, 'gdn', [0, 1]), (38, 'gdn', [0, 1]), (39, 'qsa', [0, 1, 2, 3]), (40, 'gdn', [0, 1]), (41, 'gdn', [0, 1]), (42, 'gdn', [0, 1]), (43, 'qsa', [0, 1, 2, 3])]
+    first check with a differing kept row: #1 at relative 6 (kept 12, rows [8, 9, 10, 11]); its row 8's earliest differing record: record 142 (attn, ~layer 35)
+  Loop B (synthetic drafts): 11 checks, kept [4, 1, 7, 2, 10, 3, 5, 1, 6, 2, 8]; kept rows == AR 49 / 49
+    first check whose START state differs: none
+    first check with a differing kept row: none
+R-40 STEP 3p done in 39 s

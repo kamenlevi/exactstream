@@ -1,0 +1,12 @@
+PREFILL BUG CHECK (/Users/kamen/Fit12/data/scr/pf13): F = pf13f (shipped grid + audit + Leap's pad), K = pf13k (keep grid, s_moe 3072: <= 30,720 rows per call)
+  prompt          | n    | arm | PFR (P, s_moe) | sorted calls  max rows  exposed  padded | prefill s  tok/s  SSD GB  TTFT s  life GB
+  agent/edit10    | 1565 | F   | [(1564, 2048, 6.03, 0.03, 0.12)] |         1140      4672        0       0 |      8.16  191.6    63.8    8.48   10.587
+  agent/edit10    | 1565 | K   | [(1564, 3072, 6.03, 0.03, 0.13)] |         1140      4672        0       0 |      8.35  187.3    63.3    8.68   10.618
+  agent/write13   | 4730 | F   | [(4729, 5120, 6.03, 0.03, 0.12)] |          474     10496        0       0 |     12.66  373.4    66.8   13.17   10.773
+  agent/write13   | 4730 | K   | [(4729, 3072, 6.03, 0.03, 0.13)] |         1870      6080        0       0 |     18.23  259.4   122.3   18.74   10.759
+  agent/write11   | 7932 | F   | [(7931, 8192, 6.03, 0.03, 0.13)] |          396     15872        0       0 |     17.27  459.4    68.9   17.57   10.949
+  agent/write11   | 7932 | K   | [(7931, 3072, 6.03, 0.03, 0.13)] |         2538      6400        0       0 |     29.08  272.7   180.5   29.41   10.918
+BITWISE: F = K lsha 3 / 3, tokens 3 / 3; F tokens = pf12a = pf12b 3 / 3; exposed sorted calls (F + K) 0
+  agent/edit10: pf12a 190.6 tok/s, TTFT 8.53 s -> F 191.6 tok/s, TTFT 8.48 s (x1.005)
+  agent/write13: pf12a 377.7 tok/s, TTFT 13.03 s -> F 373.4 tok/s, TTFT 13.17 s (x0.989)
+  agent/write11: pf12a 461.3 tok/s, TTFT 17.50 s -> F 459.4 tok/s, TTFT 17.57 s (x0.996)

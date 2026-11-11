@@ -1,0 +1,14 @@
+PF-B MOE-BLOCK INVARIANCE Sun 16:45:57: MLX 0.32.2; block = mlx_lm Qwen3NextSparseMoeBlock (router q8 g64 N 512, top-10, SwitchGLU q4 g64 2560->640->2560, shared q4 g64, shared_expert_gate q4 g64 N 1) + qwen4_exp._hyper_residual_write (hc 4); opdiet resid False
+  T  1565 TOK  1024 (groups of [1, 1] chunks): ALL ==
+  T  1565 TOK  4096 (groups of [2] chunks): DIFF rows: seg 304, shared_y 64, out 64, write 64; first: seg
+  T  1565 TOK  8192 (groups of [2] chunks): DIFF rows: seg 304, shared_y 64, out 64, write 64; first: seg
+    routing skew at T 1565: rows per expert max 1239, median 0, unused 278
+  T  4730 TOK  1024 (groups of [1, 1, 1, 1, 1] chunks): ALL ==
+  T  4730 TOK  4096 (groups of [4, 1] chunks): DIFF rows: seg 2326, shared_y 449, out 449, write 449; first: seg
+  T  4730 TOK  8192 (groups of [5] chunks): DIFF rows: seg 2339, shared_y 409, out 409, write 409; first: seg
+    routing skew at T 4730: rows per expert max 3712, median 1, unused 234
+  T  7932 TOK  1024 (groups of [1, 1, 1, 1, 1, 1, 1, 1] chunks): ALL ==
+  T  7932 TOK  4096 (groups of [4, 4] chunks): DIFF rows: seg 4451, shared_y 850, out 850, write 850; first: seg
+  T  7932 TOK  8192 (groups of [8] chunks): DIFF rows: seg 3980, shared_y 736, out 736, write 736; first: seg
+    routing skew at T 7932: rows per expert max 6216, median 2, unused 203
+PF-B MOE-BLOCK verdict (pre-registered): first differing op(s): ['seg']; peak 5.03 GB

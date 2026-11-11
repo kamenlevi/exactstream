@@ -1,0 +1,453 @@
+--- /Users/kamen/Breakthrough/scripts/bt_b12.py	2026-10-22 04:54:13
++++ d1i/bt_b12_d1i.py	2026-10-22 04:37:08
+@@ -28,7 +28,7 @@
+ API (Eval suite): load_b12(frac=0.10) -> (rt, st).   CLI: bt_b12.py FRAC speed (PROMPT code|prose, BT_N) | check | gsmN"""
+ import glob, hashlib, json, os, re, sys, time
+ 
+-V3F = os.path.expanduser("~/Breakthrough/v3f")
++V3F = os.path.expanduser("~/TrainLab/d1i/v3f")             # D1i (TrainLab): a copy of Breakthrough's v3f with the D1i patch
+ K, KC = 10, 20
+ STASH, PENDH = {}, {}
+ CFG = {}
+@@ -262,149 +262,19 @@
+     Q.SparseMoeBlock.__call__ = block
+     if CFG["late1"] or CFG["l3"]:
+         Q.DecoderLayer.__call__ = layer_call
+-
+-
+-# ---- D1i (TrainLab, adopted 04:35 Thu): the decoupled prefill as an API for the Eval suite and other harnesses.
+-# Prefill ids (all prompt tokens but the last) into a fresh model.make_cache(); attention in s_attn-token query
+-# chunks, the MoE once per s_moe tokens. Not bitwise vs plain chunked prefill (gather kernel shapes per group).
+-def b12_prefill(model, ids, cache, s_attn=512, s_moe=4096, keep=False):
+-    """D1i (3), TrainLab: per layer, the attention part (PLE, HC read, attention, HC write-into-read) in query chunks of
+-    s_attn tokens, then the MoE ONCE over the whole s_moe chunk (its experts read once per layer per s_moe tokens),
+-    then the HC residual write per query chunk. Same ops on the same shapes as a chunk-s_attn prefill except the MoE
+-    block, whose per-token outputs do not depend on the batch (grouped / sorted gather per pair, per-token combine),
+-    so it should equal B12_PREFILL_CHUNK=s_attn bit for bit while reading experts like chunk s_moe."""
+-    import mlx.core as mx
+-    import mtplx.models.qwen4_exp as Q
+-    from contextlib import nullcontext
+-    assert not STASH and not PENDH, "decoupled prefill: no pending late writes (B8 writes them from decode rows only)"
+-    tm = model.language_model.model
+-    P = ids.shape[1]
+-    scope = Q._rope_table_scope() if Q.qwen4_opdiet_enabled("rope") else nullcontext()
+-    st = lambda c: [a for a in (c.state if hasattr(c, "state") else []) if isinstance(a, mx.array)]
+-    SPLIT = os.environ.get("D1I_SPLIT", "1") == "1"
+-
+-    def moe_split(blk, xs_):
+-        """mlx_lm Qwen3NextSparseMoeBlock.__call__ (the prefill path of the tier layers: bt_b12's block -> v3's tier
+-        block -> MTPLX SparseMoeBlock -> super) with router, shared expert and combine per query chunk (the
+-        matmul shapes of a chunk-s_attn prefill) and the routed experts ONCE over all chunks (grouped, per-pair)."""
+-        k, parts = blk.top_k, []
+-        for x in xs_:
+-            gates = mx.softmax(blk.gate(x), axis=-1, precise=True)
+-            inds = mx.argpartition(gates, kth=-k, axis=-1)[..., -k:]
+-            scores = mx.take_along_axis(gates, inds, axis=-1)
+-            if blk.norm_topk_prob:
+-                scores = scores / scores.sum(axis=-1, keepdims=True)
+-            parts.append((inds, scores))
+-        y = blk.switch_mlp(mx.concatenate(xs_, axis=1) if len(xs_) > 1 else xs_[0],
+-                           mx.concatenate([p_[0] for p_ in parts], axis=1) if len(xs_) > 1 else parts[0][0])
+-        outs, off = [], 0
+-        for x, (inds, scores) in zip(xs_, parts):
+-            n_ = x.shape[1]
+-            yi = (y[:, off:off + n_] * scores[..., None]).sum(axis=-2)
+-            shared_y = blk.shared_expert(x)
+-            shared_y = mx.sigmoid(blk.shared_expert_gate(x)) * shared_y
+-            outs.append(yi + shared_y); off += n_
+-        return outs
+-
+-    kept = []
+-    with scope:
+-        for m0 in range(0, P, s_moe):
+-            m1 = min(m0 + s_moe, P)
+-            xs = [ids[:, a:min(a + s_attn, m1)] for a in range(m0, m1, s_attn)]
+-            hs = [mx.tile(tm.embed_tokens(x), (1, 1, tm.args.hc_count)) for x in xs]
+-            masks = [Q.create_ssm_mask(h, cache[tm.ssm_idx]) for h in hs]
+-            for L, (layer, c) in enumerate(zip(tm.layers, cache)):
+-                mixed, hyper, inject = [], [], []
+-                for i, x in enumerate(xs):
+-                    if L == tm._ple_stage_idx and Q._COMPILED_VERIFY_PLE.get() is None:
+-                        layer.ple.ple_embedding.stage(x, c, layer.ple.NGRAM_IDX)
+-                    h = hs[i]
+-                    if "ple" in layer:
+-                        h = h + layer.ple(h, x, c)
+-                    mx_, hy, inj = layer.attn_hyper_connection(h)
+-                    bo = layer.linear_attn(mx_, masks[i], c) if layer.is_linear else layer.self_attn(mx_, c)
+-                    mx_, hy, inj = layer.mlp_hyper_connection(hy, pending=(bo, inj))
+-                    mx.eval(mx_, hy, inj, *st(c))
+-                    mixed.append(mx_); hyper.append(hy); inject.append(inj)
+-                if SPLIT:                                  # dense MoE parts per query chunk: exact vs chunk s_attn
+-                    bos = moe_split(layer.mlp, mixed)
+-                else:
+-                    bo = layer.mlp(mx.concatenate(mixed, axis=1) if len(mixed) > 1 else mixed[0])
+-                    bos, off = [], 0
+-                    for x in xs:
+-                        bos.append(bo[:, off:off + x.shape[1]]); off += x.shape[1]
+-                for i in range(len(xs)):
+-                    hs[i] = Q._hyper_residual_write(hyper[i], bos[i], inject[i])
+-                mx.eval(*hs)
+-                del mixed, hyper, inject, bos
+-            tm._last_widened = hs[-1]
+-            if keep:                                               # (span, final widened stream) per query chunk
+-                kept += [((a, a + x.shape[1]), h) for a, x, h in zip(range(m0, m1, s_attn), xs, hs)]
+-            del hs
+-            mx.clear_cache()
+-    return kept
+-
+-
+-def b12_prefill_state(model, prompt_ids, s_attn=512, s_moe=4096):
+-    """spec125-compatible prefilled state (spec125.prefill_state's keys: cache, mtp_cache, logits, h) from the
+-    decoupled trunk prefill; the MTP head's history is appended per query chunk as spec125._prefill does per
+-    prefill chunk (draft logits for the last row only). Pass as spec125.generate(..., prefilled=state)."""
+-    import mlx.core as mx
+-    if os.path.expanduser("~/SpecDecode") not in sys.path:
+-        sys.path.insert(1, os.path.expanduser("~/SpecDecode"))
+-    import spec125
+-    cache = model.make_cache()
+-    ids = mx.array([list(prompt_ids)[:-1]])
+-    kept = b12_prefill(model, ids, cache, s_attn, s_moe, keep=True)
+-    head = spec125._MTPHead(model)
+-    for (a, b), h in kept:
+-        head.append(h, [int(v) for v in prompt_ids[a + 1:b + 1]])
+-        mx.eval(head.logits)
+-    del kept
+-    mx.clear_cache()
+-    return {"cache": cache, "mtp_cache": head.cache, "logits": head.logits, "h": head.h}
+ 
+ 
+-def b12_generate(model, prompt_ids, max_tokens, prefill="decoupled", s_attn=512, s_moe=4096, chunk=512, stop_ids=None):
+-    """Greedy eager decode as this CLI's generate() runs it, for other harnesses' paired checks (e.g. decoupled vs
+-    chunked prefill on long prompts): the prompt minus its last token is prefilled either decoupled (prefill=
+-    "decoupled": attention in s_attn query chunks, the MoE once per s_moe tokens) or in cache-only chunks of `chunk`
+-    tokens (prefill="chunked"); then the last prompt token and each new one go through B12's one-row frugal decode.
+-    Returns the new token ids, through the first id in stop_ids."""
+-    import mlx.core as mx
+-    from bigmoe_v3f.fuse import reset_generation_state
+-    assert prefill in ("decoupled", "chunked"), prefill
+-    reset_generation_state(model); STASH.clear(); PENDH.clear()
+-    cache = model.make_cache()
+-    ids = mx.array([[int(t) for t in prompt_ids][:-1]])
+-    if prefill == "decoupled":
+-        b12_prefill(model, ids, cache, s_attn, s_moe)
+-    else:
+-        for i in range(0, ids.shape[1], chunk):
+-            model(ids[:, i:i + chunk], cache=cache, emit_logits=False)
+-            mx.eval([c.state for c in cache if hasattr(c, "state")])
+-    out, y = [], int(prompt_ids[-1])
+-    while len(out) < max_tokens:
+-        lg = model(mx.array([[y]]), cache=cache)
+-        y = int(mx.argmax((lg[0] if isinstance(lg, tuple) else lg)[0, -1]).item())
+-        out.append(y)
+-        if stop_ids and y in stop_ids:
+-            break
+-    return out
+-
+-
+ if __name__ == "__main__":
+     for _k, _v in (("BIGMOE_COMPILE_HC", "1"), ("BIGMOE_HC_VREAD", "1"), ("BIGMOE_ASYNC_EVERY", "1")):
+         os.environ.setdefault(_k, _v)                                 # speed flags for the CLI only (the suite refuses them)
+     frac, TASK = float(sys.argv[1]), sys.argv[2]
+     SPEC = TASK.startswith("spec")                                    # spec3:3:0 = MTP k:max_draft:lookup (spec125)
+-    MTPGSM = TASK.startswith("gsm") and bool(os.environ.get("B12_GSM_MTP"))   # GSM8K through spec125 (B12_GSM_MTP=3:3:0)
+-    if SPEC or MTPGSM:
++    if SPEC:
+         for _k, _v in (("BIGMOE_MTP_STREAM", "1"), ("BIGMOE_MTP_C", "64"), ("BIGMOE_MAXK", "80"), ("BIGMOE_FRSPEC", "1"),
+                        ("MTPLX_FAMILY_CAPTURE_COMMIT", "1"), ("MTPLX_DROP_EVENTS", "1"), ("MTPLX_LAZY_MTP_HISTORY_APPEND", "1"),
+                        ("MTPLX_DEFER_REPAIR_EVAL", "1")):
+             os.environ.setdefault(_k, _v)
+-    rt, st = load_b12(frac, mtp=SPEC or MTPGSM)
++    rt, st = load_b12(frac, mtp=SPEC)
+     import mlx.core as mx
+     from bigmoe_v3f.gated import ext
+     model, tok = rt.model, rt.tokenizer
+@@ -424,14 +294,127 @@
+         ids = tok.apply_chat_template([{"role": "user", "content": text}], add_generation_prompt=True, enable_thinking=False)
+         return list(ids if isinstance(ids[0], int) else ids["input_ids"])
+ 
+-    def prefill_decoupled(ids, cache, s_attn, s_moe, keep=False):        # module-level b12_prefill on this model
+-        return b12_prefill(model, ids, cache, s_attn, s_moe, keep)
++    def prefill_decoupled(ids, cache, s_attn, s_moe, keep=False):
++        """D1i (3), TrainLab: per layer, the attention part (PLE, HC read, attention, HC write-into-read) in query chunks of
++        s_attn tokens, then the MoE ONCE over the whole s_moe chunk (its experts read once per layer per s_moe tokens),
++        then the HC residual write per query chunk. Same ops on the same shapes as a chunk-s_attn prefill except the MoE
++        block, whose per-token outputs do not depend on the batch (grouped / sorted gather per pair, per-token combine),
++        so it should equal B12_PREFILL_CHUNK=s_attn bit for bit while reading experts like chunk s_moe."""
++        import mtplx.models.qwen4_exp as Q
++        from contextlib import nullcontext
++        from bigmoe_v3f import tier as _T
++        # B8's late writes (B12_LATE3 / B12_LATE1: bt_b12's layer_call) come only from decode rows (the frugal block takes
++        # S <= SMAX); prefill rows take v3's exact paths, so the late queues stay empty and MTPLX's own layer pieces apply
++        assert not STASH and not PENDH, "decoupled prefill: late writes pending"
++        tm = model.language_model.model
++        P = ids.shape[1]
++        scope = Q._rope_table_scope() if Q.qwen4_opdiet_enabled("rope") else nullcontext()
++        st = lambda c: [a for a in (c.state if hasattr(c, "state") else []) if isinstance(a, mx.array)]
++        SPLIT = os.environ.get("D1I_SPLIT", "0") == "1"
+ 
++        def moe_split(blk, xs_):
++            """mlx_lm Qwen3NextSparseMoeBlock.__call__ (the prefill path of the tier layers: bt_b12's block -> v3's tier
++            block -> MTPLX SparseMoeBlock -> super) with router, shared expert and combine per query chunk (the
++            matmul shapes of a chunk-s_attn prefill) and the routed experts ONCE over all chunks (grouped, per-pair)."""
++            k, parts = blk.top_k, []
++            for x in xs_:
++                gates = mx.softmax(blk.gate(x), axis=-1, precise=True)
++                inds = mx.argpartition(gates, kth=-k, axis=-1)[..., -k:]
++                scores = mx.take_along_axis(gates, inds, axis=-1)
++                if blk.norm_topk_prob:
++                    scores = scores / scores.sum(axis=-1, keepdims=True)
++                parts.append((inds, scores))
++            y = blk.switch_mlp(mx.concatenate(xs_, axis=1) if len(xs_) > 1 else xs_[0],
++                               mx.concatenate([p_[0] for p_ in parts], axis=1) if len(xs_) > 1 else parts[0][0])
++            outs, off = [], 0
++            for x, (inds, scores) in zip(xs_, parts):
++                n_ = x.shape[1]
++                yi = (y[:, off:off + n_] * scores[..., None]).sum(axis=-2)
++                shared_y = blk.shared_expert(x)
++                shared_y = mx.sigmoid(blk.shared_expert_gate(x)) * shared_y
++                outs.append(yi + shared_y); off += n_
++            return outs
++
++        kept = []
++        with scope:
++            for m0 in range(0, P, s_moe):
++                m1 = min(m0 + s_moe, P)
++                # D1I_STREAM=1: fixed-order streaming of every layer's experts (tier.start_stream), for MoE chunks of
++                # >= D1I_STREAM_MIN tokens; reads are pumped between the attention launches below
++                SM = os.environ.get("D1I_STREAM", "0")
++                stream = None
++                if SM in ("1", "2", "3") and m1 - m0 >= int(os.environ.get("D1I_STREAM_MIN", "1024")):
++                    bms_ = [l.mlp.switch_mlp._bm for l in tm.layers]
++                    R_ = int(os.environ.get("D1I_RING", "4"))
++                    th_ = int(os.environ.get("D1I_THREADS", "8" if SM == "2" else "16"))
++                    stream = (_T.start_stream2(bms_, R=R_, threads=th_) if SM == "2" else
++                              _T.start_stream3(bms_, R=R_, threads=th_) if SM == "3" else _T.start_stream(bms_, R=R_))
++                xs = [ids[:, a:min(a + s_attn, m1)] for a in range(m0, m1, s_attn)]
++                hs = [mx.tile(tm.embed_tokens(x), (1, 1, tm.args.hc_count)) for x in xs]
++                masks = [Q.create_ssm_mask(h, cache[tm.ssm_idx]) for h in hs]
++                for L, (layer, c) in enumerate(zip(tm.layers, cache)):
++                    _ta = time.perf_counter()
++                    mixed, hyper, inject = [], [], []
++                    for i, x in enumerate(xs):
++                        if L == tm._ple_stage_idx and Q._COMPILED_VERIFY_PLE.get() is None:
++                            layer.ple.ple_embedding.stage(x, c, layer.ple.NGRAM_IDX)
++                        h = hs[i]
++                        if "ple" in layer:
++                            h = h + layer.ple(h, x, c)
++                        mx_, hy, inj = layer.attn_hyper_connection(h)
++                        bo = layer.linear_attn(mx_, masks[i], c) if layer.is_linear else layer.self_attn(mx_, c)
++                        mx_, hy, inj = layer.mlp_hyper_connection(hy, pending=(bo, inj))
++                        if stream is not None:
++                            mx.async_eval(mx_, hy, inj, *st(c))
++                            stream.pump(1) if SM == "1" else None  # v1: a group read while the GPU runs attention
++                                                                   # (v2 reads in its own threads)
++                        else:
++                            mx.eval(mx_, hy, inj, *st(c))
++                        mixed.append(mx_); hyper.append(hy); inject.append(inj)
++                    _tb = time.perf_counter()
++                    _T.PF["t_attn_build"] = _T.PF.get("t_attn_build", 0.0) + (_tb - _ta)
++                    if SPLIT:                                  # dense MoE parts per query chunk: exact vs chunk s_attn
++                        bos = moe_split(layer.mlp, mixed)
++                    else:
++                        bo = layer.mlp(mx.concatenate(mixed, axis=1) if len(mixed) > 1 else mixed[0])
++                        bos, off = [], 0
++                        for x in xs:
++                            bos.append(bo[:, off:off + x.shape[1]]); off += x.shape[1]
++                    _tc = time.perf_counter()
++                    for i in range(len(xs)):
++                        hs[i] = Q._hyper_residual_write(hyper[i], bos[i], inject[i])
++                    mx.eval(*hs)
++                    _T.PF["t_post"] = _T.PF.get("t_post", 0.0) + (time.perf_counter() - _tc)
++                    _T.PF["t_mlp_call"] = _T.PF.get("t_mlp_call", 0.0) + (_tc - _tb)
++                    del mixed, hyper, inject, bos
++                if stream is not None:
++                    for k_, v_ in _T.stop_stream().items():
++                        _T.PF["s_" + k_] = round(_T.PF.get("s_" + k_, 0) + v_, 2)
++                tm._last_widened = hs[-1]
++                if keep:                                               # (span, final widened stream) per query chunk
++                    kept += [((a, a + x.shape[1]), h) for a, x, h in zip(range(m0, m1, s_attn), xs, hs)]
++                del hs
++                mx.clear_cache()
++        return kept
++
+     def d1i_prefill_state(prompt_ids, s_attn, s_moe):
++        """spec125-compatible prefilled state (spec125.prefill_state's keys: cache, mtp_cache, logits, h) from the
++        decoupled trunk prefill; the MTP head's history is appended per query chunk as spec125._prefill does per
++        prefill chunk (draft logits for the last row only). Pass as spec125.generate(..., prefilled=state)."""
++        sys.path.insert(1, os.path.expanduser("~/SpecDecode"))
++        import spec125
++        cache = model.make_cache()
++        ids = mx.array([list(prompt_ids)[:-1]])
+         tp = time.perf_counter()
+-        state = b12_prefill_state(model, prompt_ids, s_attn, s_moe)
+-        PREF.update(n=len(prompt_ids) - 1, t=time.perf_counter() - tp)
+-        return state
++        kept = prefill_decoupled(ids, cache, s_attn, s_moe, keep=True)
++        head = spec125._MTPHead(model)
++        for (a, b), h in kept:
++            head.append(h, [int(v) for v in prompt_ids[a + 1:b + 1]])
++            mx.eval(head.logits)
++        del kept
++        mx.clear_cache()
++        PREF.update(n=ids.shape[1], t=time.perf_counter() - tp)
++        return {"cache": cache, "mtp_cache": head.cache, "logits": head.logits, "h": head.h}
+ 
+     def generate(prompt_ids, n, stop_eos=False, per_tok=None):
+         from bigmoe_v3f.fuse import reset_generation_state
+@@ -441,7 +424,7 @@
+         out, cache = [], model.make_cache()
+         ids = mx.array([list(prompt_ids)[:-1]])
+         PFC = int(os.environ.get("B12_PREFILL_CHUNK", "2048"))      # smaller chunks: smaller exact-prefill scratch
+-        NOLOG = os.environ.get("D1I_NOLOGITS", "1") == "1"          # D1i: prefill chunks skip the vocab head (unused; default on)
++        NOLOG = os.environ.get("D1I_NOLOGITS") == "1"               # D1i: prefill chunks skip the vocab head (unused)
+         tp = time.perf_counter()
+         S_ATTN = int(os.environ.get("D1I_ATTN", "0") or 0)            # D1i (3): decoupled attention / MoE chunks
+         for i in (range(0, ids.shape[1], PFC) if not S_ATTN else []):
+@@ -485,20 +468,13 @@
+             return float("nan")
+         return ru.u28 / 1e9
+ 
+-    def footprint_now():
+-        ru = _RU()
+-        return ru.u7 / 1e9 if ctypes.CDLL(None).proc_pid_rusage(os.getpid(), 4, ctypes.byref(ru)) == 0 else float("nan")
+-
+-    LOADED = mx.get_active_memory() / 1e9
+-
+     mem = lambda: (f"peak active {mx.get_peak_memory() / 1e9:.1f} GB, cache {mx.get_cache_memory() / 1e9:.1f} GB, "
+                    f"max RSS {resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e9:.1f} GB, "
+                    f"PEAK FOOTPRINT {footprint_peak():.1f} GB")
+     PREF = {}
+-    # long-context prompts: fixed snapshots (04:40 Thu) of the old "scripts/*.py[:115000]" recipe, so the text no longer
+-    # moves with the scripts; ctx64k = the same recipe at 200,000 characters
+-    PROMPTS = {"ctx32k": lambda: open(os.path.expanduser("~/Breakthrough/data/prompts/ctx32k.txt")).read(),
+-               "ctx64k": lambda: open(os.path.expanduser("~/Breakthrough/data/prompts/ctx64k.txt")).read(),
++    PROMPTS = {"ctx32k": lambda: ("Here are several Python scripts from one repository. List what each does in one line.\n\n"
++                                 + "".join(f"### {os.path.basename(f)}\n" + open(f).read() for f in
++                                           sorted(glob.glob(os.path.expanduser("~/Breakthrough/scripts/*.py"))))[:115000]),
+                "long": lambda: ("Here is a Python script. Summarise what it does, section by section.\n\n```python\n"
+                                + open(os.path.expanduser("~/Breakthrough/scripts/tf_frugal_var.py")).read()[:7600] + "\n```"),
+                "code": lambda: open(os.path.expanduser("~/BigMoE/data/prompt_code.txt")).read(),
+@@ -515,13 +491,16 @@
+         P = os.environ.get("PROMPT", "long")
+         ids = chat_ids(PROMPTS[P]())
+         N = int(os.environ.get("BT_N", "64"))
+-        tag2 = (f"chunk {os.environ.get('B12_PREFILL_CHUNK', '2048')} attn/moe {os.environ.get('D1I_ATTN', '-')}/{os.environ.get('D1I_MOE', '-')} split {os.environ.get('D1I_SPLIT', '1')} "
+-                f"gpu {os.environ.get('BIGMOE_TIER_PF_GPU', '0')} nologits {os.environ.get('D1I_NOLOGITS', '1')} group"
++        tag2 = (f"chunk {os.environ.get('B12_PREFILL_CHUNK', '2048')} attn/moe {os.environ.get('D1I_ATTN', '-')}/{os.environ.get('D1I_MOE', '-')} split {os.environ.get('D1I_SPLIT', '0')} stream {os.environ.get('D1I_STREAM', '0')} "
++                f"gpu {os.environ.get('BIGMOE_TIER_PF_GPU', '0')} nologits {os.environ.get('D1I_NOLOGITS', '0')} group "
+                 f"{os.environ.get('BIGMOE_TIER_PF_GROUP', '0')} warm {os.environ.get('BIGMOE_TIER_WARM', '0')}")
+         for run in ("cold", "repeat")[:int(os.environ.get("D1I_RUNS", "2"))]:
+             for k_ in ("grouped", "single", "fallback", "groups", "warm_base", "warm_side"):
+                 _T.PF[k_] = 0
++            for k_ in [k for k in _T.PF if k.startswith("s_") or k.startswith("t_")]:
++                del _T.PF[k_]
+             _T.PF["t_read"] = _T.PF["t_warm"] = 0.0
++            _T.PF["t_read"] = _T.PF["t_warm"] = 0.0
+             waits = []
+             out, s = generate(ids, N, per_tok=waits)
+             w = np.diff([0] + waits)
+@@ -543,8 +522,8 @@
+               f"{mx.get_peak_memory() / 1e9:.1f} GB, active {mx.get_active_memory() / 1e9:.1f} GB, {mem()}, sha {sha(out)} | "
+               f"{tok.decode(out)[:70]!r}", flush=True)
+         print(f"[{P}] prefill {PREF.get('n', 0)} tokens in {PREF.get('t', 0):.2f} s ({PREF.get('n', 0) / max(PREF.get('t', 1e-9), 1e-9):.0f} tok/s, "
+-              f"{('decoupled ' + os.environ['D1I_ATTN'] + '/' + os.environ.get('D1I_MOE', '4096')) if os.environ.get('D1I_ATTN') else 'chunk ' + os.environ.get('B12_PREFILL_CHUNK', '2048')})", flush=True)
+-    elif SPEC:                                                      # MTP speed: verify passes take the multi-row path
++              f"chunk {os.environ.get('B12_PREFILL_CHUNK', '2048')})", flush=True)
++    elif SPEC:                                                       # MTP speed: verify passes take the multi-row path
+         sys.path.insert(1, os.path.expanduser("~/SpecDecode"))
+         import spec125
+         from bigmoe_v3f.fuse import reset_generation_state
+@@ -559,9 +538,7 @@
+ 
+             def cb(tk):
+                 if not first:
+-                    first.update(t=time.perf_counter(), m=ext.stats()["misses"], st=ext.stats(), d=ext.defer_stats(),
+-                                 act=mx.get_active_memory() / 1e9, pk=mx.get_peak_memory() / 1e9, fp=footprint_now())
+-                    mx.reset_peak_memory()                    # from here: the decode (draft + verify) peak alone
++                    first.update(t=time.perf_counter(), m=ext.stats()["misses"], st=ext.stats(), d=ext.defer_stats())
+                 out.append(int(tk))
+             pre = PRESTATE.get("s")                                   # D1i: one decoupled prefill shared by the runs
+             spec125.generate(model, ids, n, k_mtp=k, max_draft=md_, lookup=lk, stats=s, on_token=cb,
+@@ -571,35 +548,14 @@
+             cnt = {k: e1[k] - first["st"][k] for k in ("pf_issued", "pf_used", "pf_ontime", "pf_late")}
+             cnt["waited"] = d1[1] - first["d"][1]
+             s["cnt"] = cnt
+-            s["memck"] = (f"memory: loaded {LOADED:.1f} GB active; at the first token active {first['act']:.1f}, prefill "
+-                          f"peak {first['pk']:.1f}, footprint {first['fp']:.1f}; decode-phase peak active "
+-                          f"{mx.get_peak_memory() / 1e9:.1f} GB, footprint now {footprint_now():.1f}")
+             return out, s, time.perf_counter() - first["t"], ext.stats()["misses"] - first["m"]
+         PRESTATE = {}
+-        if os.environ.get("D1I_ATTN") and os.environ.get("D1I_FRESH") == "1":
+-            # the server's footprint: each generate runs the decoupled prefill itself (spec125's _prefill swapped for
+-            # b12_prefill_state), so no shared state is held and deep-copied beside the live cache
+-            S_A, S_M = int(os.environ["D1I_ATTN"]), int(os.environ.get("D1I_MOE", "4096"))
+-
+-            def _fresh_prefill(model_, prompt_ids, with_head, prefill_chunk=2048):
+-                tp = time.perf_counter()
+-                s_ = b12_prefill_state(model_, prompt_ids, S_A, S_M)
+-                PREF.update(n=len(prompt_ids) - 1, t=time.perf_counter() - tp)
+-                head = spec125._MTPHead(model_) if with_head else None
+-                if head is not None:
+-                    head.cache, head.logits, head.h = s_["mtp_cache"], s_["logits"], s_["h"]
+-                return s_["cache"], head
+-            spec125._prefill = _fresh_prefill
+-        elif os.environ.get("D1I_ATTN"):
++        if os.environ.get("D1I_ATTN"):
+             PRESTATE["s"] = d1i_prefill_state(ids, int(os.environ["D1I_ATTN"]), int(os.environ.get("D1I_MOE", "4096")))
+             print(f"[{P}] d1i prefilled state: {PREF['n']} tokens in {PREF['t']:.2f} s ({PREF['n'] / PREF['t']:.0f} tok/s), "
+                   f"{mem()}", flush=True)
+-        if os.environ.get("B12_SPEC_WARM", "1") == "1":
+-            run(16)                                                   # warm-up (B12_SPEC_WARM=0: skip, e.g. at 32K+)
++        run(16)                                                       # warm-up
+         out, s, tsec, rd = run(N)
+-        if os.environ.get("D1I_FRESH") == "1" and PREF:
+-            print(f"[{P}] d1i fresh prefill (no state copy): {PREF['n']} tokens in {PREF['t']:.2f} s "
+-                  f"({PREF['n'] / PREF['t']:.0f} tok/s)", flush=True)
+         nt = max(1, len(out) - 1)                                     # decode from the first token on
+         c, npass = s["cnt"], max(1, s.get("passes", 1))
+         print(f"[{P}] {tag} spec {TASK[4:]}: {nt / tsec:.1f} tok/s, {s.get('tok_per_pass', float('nan')):.2f} tok/pass, "
+@@ -607,7 +563,6 @@
+               f"prefetch issued {c['pf_issued'] / npass:.1f} used {c['pf_used'] / npass:.1f} (on time {c['pf_ontime'] / npass:.1f}, "
+               f"late {c['pf_late'] / npass:.1f}); {mem()}, sha {sha(out)} | "
+               f"{tok.decode(out)[:70]!r}", flush=True)
+-        print(f"[{P}] {s['memck']}", flush=True)
+     elif TASK.startswith("gsm"):
+         N = int(TASK[3:]); OFF = int(os.environ.get("OFFSET", "0"))
+         G8 = [json.loads(l) for l in open(os.path.expanduser("~/MoEPrefetch/data/gsm8k/test.jsonl"))][OFF:OFF + N]
+@@ -615,28 +570,8 @@
+         okn, same = 0, 0
+         ref = json.load(open(os.path.expanduser("~/MoEPrefetch/data/w125_gsm_eager.json")))["answers"]
+         nt = tt = 0
+-        if MTPGSM:                                                    # the MTP decode the release would ship (spec125)
+-            sys.path.insert(1, os.path.expanduser("~/SpecDecode"))
+-            import spec125
+-            from bigmoe_v3f.fuse import reset_generation_state
+-            kk, mdd, lkk = (int(v) for v in os.environ["B12_GSM_MTP"].split(":")[:3])
+-
+-            def spec_gen(prompt_ids, n):
+-                reset_generation_state(model); STASH.clear(); PENDH.clear()
+-                pre = (b12_prefill_state(model, prompt_ids, int(os.environ["D1I_ATTN"]), int(os.environ.get("D1I_MOE", "4096")))
+-                       if os.environ.get("D1I_ATTN") else None)
+-                o, s_ = [], {}
+-                t_ = time.perf_counter()
+-                spec125.generate(model, prompt_ids, n, k_mtp=kk, max_draft=mdd, lookup=lkk, stats=s_,
+-                                 on_token=lambda tk: o.append(int(tk)), prefilled=pre, stop_ids=EOS,
+-                                 prefill_chunk=int(os.environ.get("B12_PREFILL_CHUNK", "2048")))
+-                st.gate.check()
+-                e = next((i for i, x in enumerate(o) if x in EOS), None)
+-                o = o[:e] if e is not None else o
+-                return o, dict(t=time.perf_counter() - t_ - s_.get("t_prefill", 0.0), n=len(o))
+         for j, p in enumerate(G8):
+-            q = chat_ids(INSTR + p["question"])
+-            out, s = spec_gen(q, 600) if MTPGSM else generate(q, 600, stop_eos=True)
++            out, s = generate(chat_ids(INSTR + p["question"]), 600, stop_eos=True)
+             text = tok.decode(out)
+             m = re.findall(r"Answer:\s*\**\s*\$?\s*(-?[\d,]*\.?\d+)", text) or re.findall(r"(-?[\d,]*\.?\d+)", text)
+             gold = p["answer"].split("####")[-1].strip().replace(",", "")
+@@ -647,5 +582,5 @@
+                 pass
+             same += int(OFF + j < len(ref) and ref[OFF + j] == a)
+             nt += s["n"]; tt += s["t"]
+-        print(f"125B {tag}{' MTP ' + os.environ['B12_GSM_MTP'] if MTPGSM else ''}: GSM8K {okn}/{len(G8)} (offset {OFF}), answers equal to exact eager {same}, "
++        print(f"125B {tag}: GSM8K {okn}/{len(G8)} (offset {OFF}), answers equal to exact eager {same}, "
+               f"{nt / max(tt, 1e-9):.1f} tok/s decode", flush=True)

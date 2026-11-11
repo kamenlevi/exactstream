@@ -1,0 +1,21 @@
+L6 (32 experts): (a) b == bf16(b3 - s3/4) in 30.353 % of groups; residual in bf16 steps +0: 30.35 %, +1: 21.23 %, -1: 21.20 %, +2: 9.80 %; H = 2.570 b (11-bit today)
+  gate/up: s3 bits order0 7.847, left 8.901, up 8.902, MED 9.052 | b3 (sign 1.000 + |b3| vs s3) order0 8.366, left 10.327, up 10.337, MED 10.518
+  down: s3 bits order0 8.019, left 9.040, up 9.074, MED 9.197 | b3 (sign 1.000 + |b3| vs s3) order0 8.399, left 10.365, up 10.439, MED 10.566
+  L6 best: s3 7.905 + b3 8.377 = 16.282 b per group (22 today); b 2.570 (11 today)
+L24 (32 experts): (a) b == bf16(b3 - s3/4) in 29.975 % of groups; residual in bf16 steps +0: 29.98 %, +1: 21.02 %, -1: 20.95 %, +2: 9.93 %; H = 2.597 b (11-bit today)
+  gate/up: s3 bits order0 7.820, left 8.877, up 8.875, MED 9.023 | b3 (sign 1.000 + |b3| vs s3) order0 8.331, left 10.297, up 10.302, MED 10.482
+  down: s3 bits order0 7.947, left 8.977, up 9.006, MED 9.126 | b3 (sign 1.000 + |b3| vs s3) order0 8.366, left 10.333, up 10.388, MED 10.522
+  L24 best: s3 7.862 + b3 8.342 = 16.204 b per group (22 today); b 2.597 (11 today)
+L42 (32 experts): (a) b == bf16(b3 - s3/4) in 30.572 % of groups; residual in bf16 steps +0: 30.57 %, -1: 21.32 %, +1: 21.31 %, -2: 9.72 %; H = 2.557 b (11-bit today)
+  gate/up: s3 bits order0 7.902, left 8.945, up 8.955, MED 9.098 | b3 (sign 1.000 + |b3| vs s3) order0 8.367, left 10.326, up 10.357, MED 10.527
+  down: s3 bits order0 7.938, left 8.977, up 8.999, MED 9.127 | b3 (sign 1.000 + |b3| vs s3) order0 8.392, left 10.349, up 10.396, MED 10.540
+  L42 best: s3 7.914 + b3 8.376 = 16.289 b per group (22 today); b 2.557 (11 today)
+bits per group over layers [6, 24, 42]: s3 + b3 mean 16.258 / worst 16.289; b mean 2.575 / worst 2.597
+24 GB exact stack (C_m 159 / C_l 44, W24-ec + 11-bit, MSB 1,900,544 / LSB 720,896): 94.4 MB / token
+  mean layer, (a) b from the MSB part only: MSB miss 1,900,544 / LSB miss 655,360 B -> 93.2 MB / token (-1.31 %)
+  mean layer, (b) s3 / b3 context-coded only: MSB miss 1,835,008 / LSB miss 720,896 B -> 91.7 MB / token (-2.95 %)
+  mean layer, (a) + (b): MSB miss 1,835,008 / LSB miss 655,360 B -> 90.4 MB / token (-4.26 %)
+  worst layer, (a) b from the MSB part only: MSB miss 1,900,544 / LSB miss 655,360 B -> 93.2 MB / token (-1.31 %)
+  worst layer, (b) s3 / b3 context-coded only: MSB miss 1,835,008 / LSB miss 720,896 B -> 91.7 MB / token (-2.95 %)
+  worst layer, (a) + (b): MSB miss 1,835,008 / LSB miss 655,360 B -> 90.4 MB / token (-4.26 %)
+(22 s)

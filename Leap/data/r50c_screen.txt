@@ -1,0 +1,6 @@
+R-50c: full 125B via load_streamed (C = 192), loaded in 3 s, 29.4 GB active; REF2 + SB, slot call True, commit phase True; humaneval/HumanEval/68
+  bare sync latency 0.256 ms; MoE layer-calls per check 48; misses per check 44; warm checks 24 (windows 2..13, 2 passes)
+  per check (medians, ms): wall 185.1 = check 181.5 + commit 3.6
+    inside the check: id syncs (GPU up to each router + latency) 64.6; MoE kernels + sync 77.7; ensure (CPU + SSD) 22.7; slot map + MoE graph build 1.9; between layers (Python builds the dense graph) 10.2; after the last MoE layer to the return 0.1; head eval 2.6
+  GPU busy ~120.2 ms; CPU-side bubble (GPU idle: ensure + build + between + tail + 97 sync latencies) ~59.7 ms; commit 3.6 ms; unexplained in the check 1.6 ms
+R-50c verdict (PASS: bubble >= 80 ms per check; KILL: < 40 ms): BETWEEN; 26 s

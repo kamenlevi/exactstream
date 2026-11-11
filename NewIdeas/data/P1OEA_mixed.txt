@@ -1,0 +1,11 @@
+P1-OEA mixed runs (two-pass end to end); flips vs the baseline argmax
+| run (certificate) | domain | certified share | two-pass certified-row flips [95 %] | uncertified (exact) rows through the context | all rows | windows with a flip |
+|---|---|---|---|---|---|---|
+| p1c_top_k2_p08 (p1_top_k2 p1 >= 0.8) | code | 89.7 % | 0.23 % (7/3019) [0.11-0.48] | 17.00 % (59/347) | 1.96 % | 10/12 |
+| p1c_top_k2_p08 (p1_top_k2 p1 >= 0.8) | ifeval | 42.0 % | 1.40 % (20/1427) [0.91-2.15] | 14.26 % (281/1970) | 8.86 % | 12/12 |
+| p1c_top_k2_p08 (p1_top_k2 p1 >= 0.8) | multi | 40.0 % | 3.45 % (49/1420) [2.62-4.53] | 9.47 % (202/2133) | 7.06 % | 12/12 |
+| p1c_oea_k1_p08 (p1_oea_k1 p1 >= 0.8) | code | 89.0 % | 0.23 % (7/2997) [0.11-0.48] | 11.92 % (44/369) | 1.52 % | 9/12 |
+| p1c_oea_k1_p08 (p1_oea_k1 p1 >= 0.8) | ifeval | 37.6 % | 2.43 % (31/1276) [1.72-3.43] | 13.72 % (291/2121) | 9.48 % | 12/12 |
+| p1c_oea_k1_p08 (p1_oea_k1 p1 >= 0.8) | multi | 36.7 % | 4.22 % (55/1304) [3.25-5.45] | 8.71 % (196/2249) | 7.06 % | 12/12 |
+
+## Verdict (pre-registered in QUEUE before the runs; code, theta 0.8): P1-K1 two-pass certified-row flips 0.23 % vs the control's upper bound 0.48 % -> PASS (PASS: <= 1 % and <= the control's upper bound; KILL: > 5 % or > 2x the bound)

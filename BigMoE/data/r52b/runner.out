@@ -1,0 +1,11 @@
+scripts/r52b_runner.sh: line 60: 54312 Terminated: 15          ( seen=0; while sleep 5; do
+    S=$(swap_gb); if awk -v s="$S" -v s0="$S0" 'BEGIN { exit !(s - s0 > 2) }'; then
+        say "SWAP GUARD: swap $S GB (start $S0): stopping the screen"; P=$(pgrep -P $$ -f "scripts/r52b_screen.py" | head -1); [ -n "$P" ] && kill -TERM -- -"$P"; break;
+    fi; if pgrep -P $$ -f "scripts/r52b_screen.py" > /dev/null; then
+        seen=1;
+    else
+        if [ $seen = 1 ]; then
+            break;
+        fi;
+    fi;
+done )

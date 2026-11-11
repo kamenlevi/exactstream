@@ -1,0 +1,49 @@
+RELAX report (control, A, B, E, F, C, G, T3ALL; tag smoke)
+
+== speed and bytes (G's logs; tok/s on unpaused prompts; paired = tok/s ratio vs the control on shared keys)
+arm     set          n  checks   kept  exact   gain      cf    copy   union   exact    SSD   tok/s   GB/s  paired
+control humaneval    2       9  13.67  13.67  1.000    0.0%    0.0%    8.76    8.76   1.71    49.6     50       -
+control ifeval       1      22   1.91   1.91  1.000    0.0%    0.0%    6.81    6.81   0.74    12.2     88       -
+A       humaneval    1       6  10.00  10.00  1.000   76.0%    0.0%    4.06    8.07   0.63    56.3     58  x1.266
+A       math         1      32   6.66   6.66  1.000   51.6%    0.4%    5.96    8.50   0.84    40.5     73       -
+B       humaneval    1      13  10.77  10.77  1.000   72.1%    1.0%    4.39    8.24   0.68    66.0     57       -
+B       math         1      29   7.21   7.21  1.000   53.4%    0.4%    5.84    8.50   0.88    42.9     66       -
+E       ifeval       2      58   2.84   2.45  1.162    0.0%    0.0%    7.45    7.45   0.66    19.1     91  x0.916
+F       ifeval       2     159   6.38   5.50  1.159    0.0%    0.0%    8.35    8.35   0.51    47.6    107  x1.254
+C       humaneval    1       9  13.22  12.56  1.053   80.6%    1.4%    3.94    8.47   0.73    81.0     53       -
+C       math         1      21   7.95   7.48  1.064   57.7%    0.0%    5.75    8.60   0.98    45.4     66       -
+G       ifeval       2      58   2.84   2.47  1.154    1.2%    0.0%    7.41    7.45   0.65    19.6     95  x0.940
+T3ALL   humaneval    1       5  12.00  12.00  1.000    0.0%    0.0%    7.96    7.96   2.56    40.0     43  x0.899
+T3ALL   ifeval       1      21   1.81   1.81  1.000    0.0%    0.0%    6.39    6.39   0.95    10.7     92  x0.882
+
+== AT14, the agent-turn read-out (no line; answers cap at the items' 128 tokens, real agent answers run longer)
+arm     turn             prompt prefill s 1st chk ms decode s answer turn tok/s prefill %
+
+== quality (REF2-T replay along G's prefix)
+arm     set          n  tokens      dev  rule  cmnt    cf  copy other blund   /10K long   KLD q1       q4  drift  dev q1      q4
+control humaneval    2     121   0.00 %     0     0     0     0     0     0   0.00    0  0.00000  0.00000      -  0.00 %  0.00 %
+control ifeval       1      41   0.00 %     0     0     0     0     0     0   0.00    0  0.00000  0.00000      -  0.00 %  0.00 %
+A       humaneval    1      59   0.00 %     0     0     0     0     0     0   0.00    0  0.00000  0.00000      -  0.00 %  0.00 %
+A       math         1     212   2.36 %     0     0     1     0     4     0   0.00    0  0.00000  0.00000      -  0.00 %  0.00 %
+B       humaneval    1     139   1.44 %     0     0     0     0     2     0   0.00    0  0.00000  0.00000      -  0.00 %  0.00 %
+B       math         1     208   2.40 %     0     0     1     0     4     0   0.00    0  0.00000  0.00000      -  0.00 %  0.00 %
+E       ifeval       2     163   4.29 %     7     0     0     0     0     0   0.00    0  0.00000  0.00000      -  0.00 %  0.00 %
+F       ifeval       2    1013   4.34 %    44     0     0     0     0     0   0.00    1  0.00000  0.00000      -  7.88 %  2.07 %
+T3ALL   humaneval    1      59   0.00 %     0     0     0     0     0     0   0.00    0  0.00000  0.00000      -  0.00 %  0.00 %
+T3ALL   ifeval       1      38  13.16 %     0     0     0     0     5     0   0.00    0  0.00000  0.00000      -  0.00 %  0.00 %
+
+== blunders (E's p of the committed token < 0.01)
+
+== must-fix deviations (numbers; any token in code / agent answers), information
+control humaneval: 0 of 0 deviations
+control ifeval: 0 of 0 deviations
+A humaneval: 0 of 0 deviations
+A math: 0 of 5 deviations
+B humaneval: 2 of 2 deviations
+  humaneval/HumanEval/26 @114 (context): ' appear' for E's ' occur'
+  humaneval/HumanEval/26 @124 (context): 'x' for E's 'n'
+B math: 0 of 5 deviations
+E ifeval: 0 of 7 deviations
+F ifeval: 0 of 44 deviations
+T3ALL humaneval: 0 of 0 deviations
+T3ALL ifeval: 0 of 5 deviations

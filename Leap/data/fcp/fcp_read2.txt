@@ -1,0 +1,139 @@
+== fcpa (NOCLEAR False): 24 windows, 6 prompts (run 0..2 = warm-ups if 6 runs)
+  measured runs [3, 4, 5]; per check: median over them
+  metric                   chk0       chk1       chk2       chk3   c0 - med(1-3)
+  wall                    345.2       86.9       99.7       91.9       +253.3
+  build                   311.1       73.1       85.5       78.8       +232.3
+  wait                     44.1       13.7       14.4       13.1        +30.4
+  main                     41.4       30.7       30.6       30.2        +10.9
+  other                   713.4       92.9      104.7      102.3       +611.1
+  mtl                       0.0        0.0        0.0        0.0         +0.0
+  mtl_n                     0.0        0.0        0.0        0.0         +0.0
+  ev.msg_sent            1891.0     1418.0     1413.0     1405.0       +478.0
+  ev.sys_mach             940.0      801.0      807.0      804.0       +136.0
+  ev.sys_unix            6806.0     3983.0     4022.0     3976.0      +2823.0
+  ev.csw                 5757.0     2379.0     2545.0     2422.0      +3335.0
+  ev.faults             16831.0    18206.0    26371.0    22158.0      -5327.0
+  vm.zero_fill           8857.0        0.0        0.0        0.0      +8857.0
+  vm.faults             16932.0        0.0        0.0        0.0     +16932.0
+  vm.pageins                3.0        0.0        0.0        0.0         +3.0
+  vm.decompressions      1501.0        0.0        0.0        0.0      +1501.0
+  vm.purges                 0.0        0.0        0.0        0.0         +0.0
+  vm.wire_mb            31828.6        0.0        0.0        0.0     +31828.6
+  mlx_cache0_mb           249.7      332.7      351.4      352.0       -101.6
+  mlx_act0_mb           40635.1    40769.1    40767.1    40767.4       -132.3
+  threads (CPU ms, mean per prompt: check 0 | mean of checks 1-3): 6178664672 301.4 | 57.8; 482769252576 132.8 | 2.6; 482857398496 112.7 | 3.0; 67526717664 100.5 | 3.4; 8282955616 41.9 | 30.7; 6179238112 22.1 | 4.9
+  calls (per prompt mean: n, wall ms, CPU ms) check 0 vs mean of checks 1-3:
+    mx.async_eval        build chk0 n   23.0 wall    294.2 cpu    17.5   | chk1-3 n   23.0 wall     66.1 cpu    11.3
+    mx.eval              wait  chk0 n    1.0 wall     33.4 cpu     1.1   | chk1-3 n    1.0 wall      6.7 cpu     0.7
+    tier.prefill_done    build chk0 n   48.0 wall      0.0 cpu     0.0   | chk1-3 n   48.0 wall      0.0 cpu     0.0
+    Gate.new_pass        build chk0 n    1.0 wall      0.0 cpu     0.0   | chk1-3 n    1.0 wall      0.0 cpu     0.0
+  longest single calls in check 0: mx.eval 37.6 ms (cpu 1.3) at r57_screen_fcp.py:1273 [wait]; mx.eval 36.4 ms (cpu 1.1) at r57_screen_fcp.py:1273 [wait]; mx.eval 26.3 ms (cpu 1.0) at r57_screen_fcp.py:1273 [wait]; mx.async_eval 24.7 ms (cpu 0.8) at qwen4_exp.py:6491 [build]; mx.async_eval 24.5 ms (cpu 0.8) at qwen4_exp.py:6491 [build]; mx.async_eval 22.5 ms (cpu 1.1) at qwen4_exp.py:6491 [build]
+  sampler build: main-thread wall by line, check 0 minus mean(1-3) per prompt (ms): +231.4 fcprobe.py:126:w < qwen4_exp.py:6491:_forward; +1.5 threading.py:355:wait < _base.py:451:result; +0.5 <frozen genericpath>:19:exists < gated.py:130:new_pass
+  sampler wait: main-thread wall by line, check 0 minus mean(1-3) per prompt (ms): +26.9 fcprobe.py:126:w < r57_screen_fcp.py:1273:run; +0.5 r57_screen_fcp.py:1276:run < r57_screen_fcp.py:1542:<module>
+
+== fcpw (NOCLEAR False): 24 windows, 6 prompts (run 0..2 = warm-ups if 6 runs)
+  measured runs [3, 4, 5]; per check: median over them
+  metric                   chk0       chk1       chk2       chk3   c0 - med(1-3)
+  wall                     89.6       85.5       99.2       90.2         -0.7
+  build                    74.2       71.7       85.4       77.5         -3.3
+  wait                     15.4       13.8       14.0       12.7         +1.6
+  main                     38.7       30.4       29.8       29.8         +8.9
+  other                    92.5       98.5       99.5      103.4         -6.9
+  mtl                       0.0        0.0        0.0        0.0         +0.0
+  mtl_n                     0.0        0.0        0.0        0.0         +0.0
+  ev.msg_sent            2060.0     1416.0     1401.0     1408.0       +652.0
+  ev.sys_mach            1501.0      817.0      811.0      807.0       +690.0
+  ev.sys_unix            4030.0     3855.0     4049.0     4010.0        +20.0
+  ev.csw                 2346.0     2280.0     2608.0     2433.0        -87.0
+  ev.faults             16713.0    17818.0    27516.0    21943.0      -5230.0
+  vm.zero_fill          12719.0        0.0        0.0        0.0     +12719.0
+  vm.faults             16729.0        0.0        0.0        0.0     +16729.0
+  vm.pageins                0.0        0.0        0.0        0.0         +0.0
+  vm.decompressions         6.0        0.0        0.0        0.0         +6.0
+  vm.purges                 0.0        0.0        0.0        0.0         +0.0
+  vm.wire_mb              209.2        0.0        0.0        0.0       +209.2
+  mlx_cache0_mb           248.2      335.4      347.6      349.9        -99.4
+  mlx_act0_mb           40635.2    40769.2    40767.2    40767.5       -132.3
+  threads (CPU ms, mean per prompt: check 0 | mean of checks 1-3): 6207779040 59.4 | 57.6; 8282955616 39.1 | 29.9; 481339076832 6.6 | 3.9; 6208352480 5.0 | 4.7; 482634232032 3.4 | 2.8; 481531523296 3.3 | 2.0
+  calls (per prompt mean: n, wall ms, CPU ms) check 0 vs mean of checks 1-3:
+    mx.async_eval        build chk0 n   23.0 wall     68.9 cpu    17.0   | chk1-3 n   23.0 wall     64.5 cpu    10.9
+    mx.eval              wait  chk0 n    1.0 wall      9.3 cpu     1.7   | chk1-3 n    1.0 wall      6.7 cpu     0.7
+    tier.prefill_done    build chk0 n   48.0 wall      0.0 cpu     0.0   | chk1-3 n   48.0 wall      0.0 cpu     0.0
+    Gate.new_pass        build chk0 n    1.0 wall      0.0 cpu     0.0   | chk1-3 n    1.0 wall      0.0 cpu     0.0
+  longest single calls in check 0: mx.eval 12.7 ms (cpu 1.7) at r57_screen_fcp.py:1273 [wait]; mx.eval 7.8 ms (cpu 1.8) at r57_screen_fcp.py:1273 [wait]; mx.eval 7.3 ms (cpu 1.6) at r57_screen_fcp.py:1273 [wait]; mx.async_eval 5.4 ms (cpu 0.7) at qwen4_exp.py:6491 [build]; mx.async_eval 5.4 ms (cpu 0.8) at qwen4_exp.py:6491 [build]; mx.async_eval 5.2 ms (cpu 0.6) at qwen4_exp.py:6491 [build]
+  sampler build: main-thread wall by line, check 0 minus mean(1-3) per prompt (ms): +5.5 fcprobe.py:127:w < qwen4_exp.py:6491:_forward; +0.5 memmap.py:359:__getitem__ < qwen4_exp.py:5566:_rows_matrices; +0.1 _arraysetops_impl.py:382:_unique1d < _arraysetops_impl.py:296:unique
+  sampler wait: main-thread wall by line, check 0 minus mean(1-3) per prompt (ms): +3.1 fcprobe.py:127:w < r57_screen_fcp.py:1273:run; +0.4 r57_screen_fcp.py:1276:run < r57_screen_fcp.py:1542:<module>
+
+== fcpx0 (NOCLEAR False): 20 windows, 5 prompts (run 0..2 = warm-ups if 6 runs)
+  measured runs [2, 3, 4]; per check: median over them
+  metric                   chk0       chk1       chk2       chk3   c0 - med(1-3)
+  wall                    287.5      159.4      213.9      191.1        +96.4
+  build                   256.4      137.4      185.3      163.6        +92.9
+  wait                     50.5       30.4       25.8       25.2        +24.7
+  main                     46.7       39.6       42.0       43.9         +4.7
+  other                   734.7      349.5      561.5      649.9       +173.2
+  mtl                       0.0        0.0        0.0        0.0         +0.0
+  mtl_n                     0.0        0.0        0.0        0.0         +0.0
+  ev.msg_sent            2421.0     1859.0     1895.0     1881.0       +540.0
+  ev.sys_mach            1171.0     1012.0     1023.0     1003.0       +159.0
+  ev.sys_unix            8257.0     7167.0     8555.0     7660.0       +597.0
+  ev.csw                 8084.0     5659.0     7262.0     6406.0      +1678.0
+  ev.faults             52954.0    48652.0    74407.0    62488.0      -9534.0
+  vm.zero_fill          26226.0    20074.0        0.0        0.0     +26226.0
+  vm.faults             52956.0    48658.0        0.0        0.0     +52956.0
+  vm.pageins                0.0        0.0        0.0        0.0         +0.0
+  vm.decompressions         0.0        0.0        0.0        0.0         +0.0
+  vm.purges                 0.0        0.0        0.0        0.0         +0.0
+  vm.wire_mb            30900.2        0.1        0.0        0.0     +30900.2
+  mlx_cache0_mb           199.0      252.3      255.2      274.2        -56.2
+  mlx_act0_mb           36052.4    36173.6    36172.4    36173.6       -121.2
+  threads (CPU ms, mean per prompt: check 0 | mean of checks 1-3): 6201585888 160.8 | 84.6; 64675459296 146.7 | 16.6; 8282955616 46.8 | 42.2; 64625979616 22.0 | 18.3; 63887585504 17.1 | 13.9; 64251343072 17.0 | 13.3
+  calls (per prompt mean: n, wall ms, CPU ms) check 0 vs mean of checks 1-3:
+    mx.async_eval        build chk0 n    7.3 wall    181.7 cpu    15.7   | chk1-3 n    9.8 wall    129.2 cpu    18.0
+    mx.eval              wait  chk0 n    1.0 wall     86.5 cpu    10.7   | chk1-3 n    1.0 wall     26.1 cpu     4.0
+    tier.prefill_done    build chk0 n   48.0 wall      0.0 cpu     0.0   | chk1-3 n   48.0 wall      0.0 cpu     0.0
+    Gate.new_pass        build chk0 n    1.0 wall      0.0 cpu     0.0   | chk1-3 n    1.0 wall      0.0 cpu     0.0
+  longest single calls in check 0: mx.eval 193.2 ms (cpu 27.1) at r57_screen_fcp.py:1270 [wait]; mx.eval 42.9 ms (cpu 2.1) at r57_screen_fcp.py:1273 [wait]; mx.async_eval 32.5 ms (cpu 1.9) at qwen4_exp.py:6491 [build]; mx.async_eval 30.7 ms (cpu 1.8) at qwen4_exp.py:6491 [build]; mx.async_eval 29.1 ms (cpu 1.7) at qwen4_exp.py:6491 [build]; mx.async_eval 28.8 ms (cpu 2.2) at qwen4_exp.py:6491 [build]
+  sampler build: main-thread wall by line, check 0 minus mean(1-3) per prompt (ms): +49.3 fcprobe.py:127:w < qwen4_exp.py:6491:_forward; +3.2 threading.py:355:wait < _base.py:451:result; +1.4 gated_delta.py:197:gated_delta_kernel < gated_delta.py:283:gated_delta_update; +0.5 memmap.py:359:__getitem__ < qwen4_exp.py:5566:_rows_matrices
+  sampler wait: main-thread wall by line, check 0 minus mean(1-3) per prompt (ms): +51.6 fcprobe.py:127:w < r57_screen_fcp.py:1270:run; +8.7 fcprobe.py:127:w < r57_screen_fcp.py:1273:run; +0.6 r57_screen_fcp.py:1276:run < r57_screen_fcp.py:1542:<module>
+
+== fcpx1 (NOCLEAR False): 20 windows, 5 prompts (run 0..2 = warm-ups if 6 runs)
+  measured runs [2, 3, 4]; per check: median over them
+  metric                   chk0       chk1       chk2       chk3   c0 - med(1-3)
+  wall                    178.0      153.8      207.4      186.1         -8.2
+  build                   147.8      130.9      178.8      158.5        -10.7
+  wait                     50.4       30.4       25.8       25.8        +24.6
+  main                     45.3       39.1       42.4       44.1         +3.0
+  other                   350.1      318.1      516.5      585.9       -166.5
+  mtl                       0.0        0.0        0.0        0.0         +0.0
+  mtl_n                     0.0        0.0        0.0        0.0         +0.0
+  ev.msg_sent            2487.0     1861.0     1896.0     1870.0       +617.0
+  ev.sys_mach            1749.0     1018.0     1025.0     1012.0       +731.0
+  ev.sys_unix            7490.0     7158.0     8793.0     7894.0       -404.0
+  ev.csw                 5545.0     5615.0     7202.0     6395.0       -850.0
+  ev.faults             52943.0    48664.0    72645.0    53673.0       -730.0
+  vm.zero_fill          21501.0     9715.0    28665.0        0.0     +11786.0
+  vm.faults             52949.0    48666.0    72650.0        0.0      +4283.0
+  vm.pageins                0.0        0.0        0.0        0.0         +0.0
+  vm.decompressions         0.0        0.0        0.0        0.0         +0.0
+  vm.purges                 0.0        0.0        0.0        0.0         +0.0
+  vm.wire_mb              192.7        1.3        0.8        0.0       +191.9
+  mlx_cache0_mb           199.0      251.5      254.2      270.1        -55.3
+  mlx_act0_mb           36052.4    36173.6    36172.4    36173.6       -121.2
+  threads (CPU ms, mean per prompt: check 0 | mean of checks 1-3): 6242627808 86.7 | 72.3; 8282955616 47.1 | 42.3; 64631845088 10.6 | 17.8; 65574990048 10.0 | 10.5; 64696332512 9.1 | 14.4; 63957905632 8.9 | 11.1
+  calls (per prompt mean: n, wall ms, CPU ms) check 0 vs mean of checks 1-3:
+    mx.async_eval        build chk0 n    7.3 wall    144.5 cpu    15.9   | chk1-3 n    9.8 wall    122.1 cpu    18.3
+    mx.eval              wait  chk0 n    1.0 wall     49.1 cpu    11.3   | chk1-3 n    1.0 wall     24.2 cpu     3.9
+    tier.prefill_done    build chk0 n   48.0 wall      0.0 cpu     0.0   | chk1-3 n   48.0 wall      0.0 cpu     0.0
+    Gate.new_pass        build chk0 n    1.0 wall      0.0 cpu     0.0   | chk1-3 n    1.0 wall      0.0 cpu     0.0
+  longest single calls in check 0: mx.eval 81.8 ms (cpu 28.2) at r57_screen_fcp.py:1270 [wait]; mx.eval 42.9 ms (cpu 2.5) at r57_screen_fcp.py:1273 [wait]; mx.async_eval 32.7 ms (cpu 1.8) at qwen4_exp.py:6491 [build]; mx.async_eval 30.6 ms (cpu 1.8) at qwen4_exp.py:6491 [build]; mx.async_eval 29.2 ms (cpu 1.8) at qwen4_exp.py:6491 [build]; mx.async_eval 28.5 ms (cpu 1.8) at qwen4_exp.py:6491 [build]
+  sampler build: main-thread wall by line, check 0 minus mean(1-3) per prompt (ms): +18.3 fcprobe.py:127:w < qwen4_exp.py:6491:_forward; +3.3 threading.py:355:wait < _base.py:451:result; +1.6 tierglu_nax6.py:382:gpu_grp_phase < ref2.py:1046:_ooo_nax6; -0.4 <frozen genericpath>:19:exists < gated.py:130:new_pass
+  sampler wait: main-thread wall by line, check 0 minus mean(1-3) per prompt (ms): +16.3 fcprobe.py:127:w < r57_screen_fcp.py:1270:run; +8.3 fcprobe.py:127:w < r57_screen_fcp.py:1273:run; +0.4 r57_screen_fcp.py:1276:run < r57_screen_fcp.py:1542:<module>
+
+LINES (pre-registered in fcp_run.sh's commit): NAME = one line / call holds >= 60 % of check 0's build excess; class by counters (COMPILE: MTLCompilerService CPU >= 50 % of the excess; VM: zero fills + decompressions + pageins >= 1 GB more than checks 1-3; THREAD: other threads' CPU >= 50 % of it). fcpb: PASS if check 0's wall drops >= 100 ms vs fcpa with every check's logits hash equal; KILL < 30 ms; else BETWEEN.
+fcpa: gate+t: tok/s 96.0 (steady state 156.9), cycle 106.4 ms, check + commit 98.7 ms, misses 195, demand SSD 43.4 ms per check (medians over valid runs, th | footprint now 41.8 GB, lifetime peak 43.0 GB; 40 s
+fcpw: gate+t: tok/s 159.5 (steady state 158.4), cycle 99.7 ms, check + commit 94.2 ms, misses 198, demand SSD 38.4 ms per check (medians over valid runs, th | footprint now 41.8 GB, lifetime peak 43.0 GB; 31 s
+fcpx0: gate+t: tok/s 57.4 (steady state 69.5), cycle 226.4 ms, check + commit 212.0 ms, misses 856, demand SSD 135.4 ms per check (medians over valid runs, t | footprint now 37.0 GB, lifetime peak 38.2 GB; 27 s
+fcpx1: gate+t: tok/s 58.4 (steady state 72.8), cycle 192.1 ms, check + commit 185.9 ms, misses 856, demand SSD 123.9 ms per check (medians over valid runs, t | footprint now 37.1 GB, lifetime peak 38.2 GB; 27 s
+pair fcpa vs fcpw: logits hash equal on every check in 0 of 3 prompts (12 checks); tokens equal in 3 of 3
+pair fcpx0 vs fcpx1: logits hash equal on every check in 3 of 3 prompts (43 checks); tokens equal in 3 of 3

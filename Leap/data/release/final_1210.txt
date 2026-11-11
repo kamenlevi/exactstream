@@ -1,0 +1,69 @@
+ENGINE PACKAGE: clean-clone FINAL, Mon 9 Nov 2026 12:10 (RELEASE.md section 4, TBD-9; runner release/smoke_runner.sh, unchanged)
+
+PACKAGE TESTED: 242553d "Engine package from snapshot rel1 (BigMoE 0b4df8c3, EvalSuite 98c6072d)", 225 files
+(rel1_build.txt). Clone release/cleanclone/final prepped Mon 09:58 (share lock): install.sh rc 0 in 10 s, venv mlx 0.32.2 /
+mlx-metal 0.32.2 / mlx-lm 0.31.3 / mtplx 2.12.2, extension built in the clone, drafter base found in the Hugging Face cache at
+the pinned revision a22a1744, 6/6 dry runs "Powered by MTPLX".
+REFERENCES (the package's verify/, from release/refs_rel1.json):
+  exact-45_ar, exact-32_ar = BM:data/n45/ar_ref_tokens.json (one-token decoding; prefix check)
+  lossy-45_rli256 = BM:data/r57/rli_256_tokens.json, lossy-32_rli160 = BM:data/r57/rli_160_tokens.json (L + COH on rel1,
+    REPEAT 12/12: hard checks, history rule; lossy_precheck.txt)
+  chat-45_pdz4a = BM:data/r57/pdz4a_256_tokens.json, chat-32_zs32 = BM:data/r57/zs32_160_tokens.json (history rule)
+RUN: quiet ticket queued 12:05:29 (#1), granted 12:10:13 at EvalSuite m1b's process boundary (NO-SWAP 55 GB, swap 6.56 GB);
+CLEAN-CLONE PASS 12:13:47 (rc 0, 216 s); lock released 12:13:49; swap 5.44 GB at the end. HOME = an empty directory;
+HF_HUB_OFFLINE=1; per config one process: 2 IFEval prompts (ifeval/1220, ifeval/3280) at cap 256 after the loop's discarded
+warm-ups; then one free-text prompt (chat-45). Configs one at a time.
+Raw output (copied before any re-prep; diff -rq clone out/ vs archive: equal):
+  final_1210/report.txt (prep + run, md5 1740ec53a01c56a80d9e41a6ec65b5e0)
+  final_1210/runner_final.log (md5 68cd8b2bc95cc3bc6ef9ecb1cc90f51a)
+  final_1210/out/<config>/cli_*_{tokens,runs,spec,modules}.json + .log, out/<config>_check.txt, out/<config>_closure.txt
+
+RESULTS [K] (report.txt)
+  config    tokens (check, rc 0 each)                                       closure: modules / outside; files opened / outside
+  exact-45  2/2 keys prefix-equal vs exact-45_ar (153, 256 tokens)            834 / 0; 3269 / 0
+  exact-32  2/2 keys prefix-equal vs exact-32_ar (153, 256)                   834 / 0; 3268 / 0
+  lossy-45  2/2 prefix-equal with the reference's history (154, 139 = the reference's full length)   848 / 0; 3303 / 0
+  lossy-32  2/2 prefix-equal with the reference's history (154, 139 = full length)                   848 / 0; 3302 / 0
+  chat-45   2/2 prefix-equal with the reference's history (192, 235 = full length)                   849 / 0; 3353 / 0
+  chat-32   2/2 prefix-equal with the reference's history (184, 256 = full length)                   848 / 0; 3302 / 0
+  text      chat-45, multi/cli_1109_121325: 87 tokens, a complete answer ("A refrigerator works by circulating a
+            refrigerant ..."), the same text as smoke3's 07:31 prompt
+  VERDICT: CLEAN-CLONE PASS (0 failures).
+
+SPEED LINES (the CLI's line per process: 2 prompts, cap 256; information only, NOT paper numbers)
+  config    whole decode | whole request | first token (range) | lifetime peak | tokens | process wall (load + warm-up incl.)
+  exact-45  32.3 tok/s | 23.5 tok/s | 2.38 s (2.24-2.51) | 41.48 GB | 409 | 33 s
+  exact-32  30.4 | 22.4 | 2.39 s (2.23-2.55) | 30.38 GB | 409 | 30 s
+  lossy-45  36.5 | 21.9 | 2.68 s (2.59-2.77) | 42.18 GB | 293 | 30 s
+  lossy-32  32.5 | 20.4 | 2.69 s (2.57-2.82) | 31.07 GB | 293 | 31 s
+  chat-45   46.6 | 30.8 | 2.35 s (2.33-2.38) | 43.67 GB | 427 | 30 s
+  chat-32   46.0 | 29.7 | 2.63 s (2.48-2.77) | 31.07 GB | 440 | 31 s
+  text      42.5 | 22.4 | 1.85 s | 43.70 GB | 87 | 21 s
+  (smoke3 07:28 on rel0, same prompts and order: exact-45 32.1 / 23.0 / 2.54 s; exact-32 30.3 / 22.3 / 2.41; lossy-45
+  33.5 / 20.5 / 2.78; lossy-32 32.5 / 20.5 / 2.66; chat-45 46.3 / 30.6 / 2.37; chat-32 46.0 / 29.9 / 2.58; text 42.7 / 22.8 /
+  1.78. Same tokens; lossy-45's decode differs by 9 % between the two runs: two prompts per process, information only.)
+
+CROSS-CHECKS (CPU, builder python -I, Mon 12:14-12:16; no new runs)
+1. Tokens vs the shipped references, read directly (not through check_tokens): 12/12 prompt runs prefix-equal to the
+   reference's run of that key (first difference: none); exact ifeval/3280 is the first 256 of the reference's 265 tokens
+   (the cap); every lossy and chat prompt equals the reference to its full length.
+2. Tokens vs smoke3 (rel0 dbe5ea6, 07:28; data/release/smoke3_0728/out): 12/12 identical; the free-text prompt's 87 tokens
+   identical. Token files: exact-45 == exact-32 (md5 efbd6270), lossy-45 == lossy-32 (412853d5); chat-45 aff48740,
+   chat-32 a52a2d78.
+3. Same work, same pace as the engine's own runs of these prompts (the package's runs.json vs BM:data/r57/<tag>_runs.json,
+   keys ifeval/1220 + ifeval/3280; tps = tokens / decode wall per prompt, r57_screen_rel1.py l1590; pooled over the two):
+   identical checks and tokens kept per check on every prompt (lossy 80 / 55 checks, chat-45 90 / 101, chat-32 104 / 88), and
+     config (engine run)   whole decode pkg vs engine   whole request pkg vs engine   first token pkg vs engine
+     lossy-45 (rli_256)    36.48 vs 35.96 (x1.014)      21.88 vs 21.83 (x1.002)       2.68 vs 2.64 s
+     lossy-32 (rli_160)    32.55 vs 32.16 (x1.012)      20.37 vs 20.46 (x0.996)       2.69 vs 2.61 s
+     chat-45 (pdz4a_256)   46.60 vs 45.68 (x1.020)      30.78 vs 30.60 (x1.006)       2.35 vs 2.30 s
+     chat-32 (zs32_160)    46.03 vs 46.22 (x0.996)      29.71 vs 29.36 (x1.012)       2.63 vs 2.73 s
+   First token = the median of the two prompts' prefill walls (pfs): differences +0.044 / +0.085 / +0.050 / -0.107 s,
+   per prompt at most 0.119 s (lossy-32 ifeval/3280) -> "median first token within 0.11 s" (CORRECTED 12:5x after
+   NewIdeas' 12:47 check; it said "within 0.1 s", which the rounded 2.63 vs 2.73 hid).
+   Peak at these two prompts 42.18 vs 42.24, 31.07 vs 31.12, 43.67 vs 43.69, 31.07 vs 31.07 GB (the engine runs went on to
+   more prompts, so theirs is not a process lifetime peak). The exact configs' references are one-token decoding, so there
+   is no engine run of the same speculative config on these prompts to compare with.
+
+WHAT THIS DOES NOT SHOW: two prompts per config on one Mac (this one); the package's quality labels come from the engine's
+gates (RELEASE section 2), not from this run; a different Mac, macOS or MLX build is untested.

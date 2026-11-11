@@ -1,0 +1,10 @@
+# Sun 01:2x, Leap 01:19 (ref2 8f5933c7, 1df2afd): M1-B + the exact-safe bundle + Leap's FAST low-row (HC8 GEMV, NGEMV, G2 at <= 2 rows); IFEval gate
+yblf|humaneval,mbpp,ifeval,multi|@L,R57_QOM_MTP=2,REF2_PAD_IN=1,REF2_HC8_K1M=1,R57_GDNB=1,REF2_EPREP=1,REF2_GDN_TG=1,REF2_HC8_G=2,REF2_NGEMV_ROWS=2,REF2_G2_ROWS=2
+# Sun 01:2x, Leap 01:26 (ref2 11fa14ff): C4's one-call nondeterminism, hypothesis (b) stale slot lines: E + OOO_1C + NAX_1CQ +- REF2_NAX_COH=1 (coherent(system) pool reads), two runs each, interleaved. Read: == AR and same first diffs across the two runs
+ycoc|humaneval,mbpp|@E,REF2_OOO_1C=1,REF2_NAX_1CQ=1
+ycoh|humaneval,mbpp|@E,REF2_OOO_1C=1,REF2_NAX_1CQ=1,REF2_NAX_COH=1
+ycoc2|humaneval,mbpp|@E,REF2_OOO_1C=1,REF2_NAX_1CQ=1
+ycoh2|humaneval,mbpp|@E,REF2_OOO_1C=1,REF2_NAX_1CQ=1,REF2_NAX_COH=1
+# Sun 07:1x, NewIdeas 05:21 (QUEUE 1ROW, pre-registered): R57_SB1=1 (SB's mid-loop eval from 1 row; schedule only, exact). PASS = ybs1 >= +3 % vs mean(yb, ybb) AND 1-row median <= 40 ms AND yes1 == AR 12/12
+ybs1|humaneval,mbpp,ifeval,multi|@L,R57_QOM_MTP=2,R57_SB1=1
+yes1|humaneval,mbpp|@E,R57_SB1=1

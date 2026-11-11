@@ -1,0 +1,20 @@
+Map screen: q1u_0_live vs qom_0_live_c51 (paired); all-row flips vs the baseline argmax, live checks
+  q1u_0_live: 36 windows, 0 with row-count warnings; qom_0_live_c51: 36 windows, 0 with row-count warnings
+| arm | code | ifeval | multi |
+|---|---|---|---|
+| qom_0_live_c51 | 1.16 % (39/3366) | 8.80 % (299/3397) | 5.26 % (187/3553) |
+| qom_0_live_c51, non-tie rows | 0.54 % (18/3316) | 4.96 % (154/3107) | 2.66 % (88/3304) |
+| qom_0_live_c51, tie rows | 42.0 % (21/50) | 50.0 % (145/290) | 39.8 % (99/249) |
+| q1u_0_live | 1.96 % (66/3366) | 15.72 % (534/3397) | 11.15 % (396/3553) |
+| q1u_0_live, non-tie rows | 1.36 % (45/3316) | 12.13 % (377/3107) | 8.02 % (265/3304) |
+| q1u_0_live, tie rows | 42.0 % (21/50) | 54.1 % (157/290) | 52.6 % (131/249) |
+| Q1 at 0.99 (pre-registered level) | 1.34 % | 5.42 % | 3.69 % |
+| gate_top2_cf099 (recomputed, information) | 1.34 % | 5.42 % | 3.69 % |
+| non-tie level (gate_top2_cf099's non-tie flips) | 0.87 % | 2.22 % | 1.63 % |
+| gate_top2_cf099, non-tie rows (recomputed, information) | 0.87 % | 2.22 % | 1.63 % |
+VERDICT q1u_0_live: code BETWEEN 1.96 % (level 1.34, x1.5 2.01) / ifeval KILL 15.72 % (level 5.42, x1.5 8.13) / multi KILL 11.15 % (level 3.69, x1.5 5.54)
+  McNemar vs qom_0_live_c51 (only-q1u_0_live / only-qom_0_live_c51 flips): code 39 / 12, z +3.78; ifeval 301 / 66, z +12.27; multi 252 / 43, z +12.17
+NON-TIE q1u_0_live: code OVER 1.36 % (level 0.87) / ifeval OVER 12.13 % (level 2.22) / multi OVER 8.02 % (level 1.63)
+  McNemar vs qom_0_live_c51 on non-tie rows: code 30 / 3, z +4.70; ifeval 257 / 34, z +13.07; multi 200 / 23, z +11.85
+VERDICT2 q1u_0_live (all-row PASS and non-tie PASS): code FAIL / ifeval FAIL / multi FAIL
+  McNemar vs q1u_0.9_live (1.25 % / 6.45 % / 3.77 %; only-q1u_0_live / only-q1u_0.9_live flips): code 40 / 16, z +3.21; ifeval 385 / 70, z +14.77; multi 319 / 57, z +13.51

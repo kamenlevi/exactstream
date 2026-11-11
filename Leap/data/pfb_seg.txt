@@ -1,0 +1,21 @@
+PF-B MOE-BLOCK + SEG-PER-CHUNK (pfb_seg.py) Sun 16:46:50: MLX 0.32.2; block = mlx_lm Qwen3NextSparseMoeBlock (router q8 g64 N 512, top-10, SwitchGLU q4 g64 2560->640->2560, shared q4 g64, shared_expert_gate q4 g64 N 1) + qwen4_exp._hyper_residual_write (hc 4); opdiet resid False
+  T  1565 TOK  4096 (groups of [2] chunks): ALL ==
+  T  1565 TOK  8192 (groups of [2] chunks): ALL ==
+    routing skew at T 1565: rows per expert max 1239, median 0, unused 278
+  T  4730 TOK  4096 (groups of [4, 1] chunks): ALL ==
+  T  4730 TOK  8192 (groups of [5] chunks): ALL ==
+    routing skew at T 4730: rows per expert max 3712, median 1, unused 234
+  T  7932 TOK  4096 (groups of [4, 4] chunks): ALL ==
+  T  7932 TOK  8192 (groups of [8] chunks): ALL ==
+    routing skew at T 7932: rows per expert max 6216, median 2, unused 203
+SEG-PER-CHUNK verdict (pre-registered): ALL == (the MoE block + write are invariant: the break is elsewhere); peak 5.03 GB
+  seg probe: M   541 one call vs 1,024-row calls: 0 rows differ
+  seg probe: M  1024 one call vs 1,024-row calls: 0 rows differ
+  seg probe: M  1025 one call vs 1,024-row calls: 0 rows differ
+  seg probe: M  1100 one call vs 1,024-row calls: 41 rows differ (rows 1025..1096)
+  seg probe: M  1565 one call vs 1,024-row calls: 310 rows differ (rows 1029..1564)
+  seg probe: M  2048 one call vs 1,024-row calls: 1261 rows differ (rows 0..2047)
+  seg probe: M  4096 one call vs 1,024-row calls: 2299 rows differ (rows 0..4095)
+  seg probe: M  8192 one call vs 1,024-row calls: 4068 rows differ (rows 3..8191)
+  control (shared gate_proj N 640) M 1565: 0 rows differ
+  control (shared gate_proj N 640) M 4096: 0 rows differ

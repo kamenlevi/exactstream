@@ -1,0 +1,7 @@
+R-09: 96 mixers loaded (stored as ['mlx.core.bfloat16'], run in bf16), eps 1e-06
+  merged down + inject (K 10,240, N 324) at 16 rows, bitwise equal to: the same rows of a 32-row GEMM True; of a batch of two True; two 8-row calls False
+  up (K 320, N 10,240) at 16 rows, bitwise equal to: the same rows of a 32-row GEMM True; of a batch of two True; two 8-row calls False
+  X5 rebuilt with knockout hooks, nothing knocked out: bitwise = r09's X5 True
+  E 24.62 ms, X5 14.81 ms per 96 reads; in-chain cost of each stage (X5 minus X5 without it):
+    norm 3.01, gemm1 9.87, gate 9.98, gemm2 4.01, tail 4.25 ms (sum 31.13)
+R-09b step 1: merged GEMM in-chain 9.87 ms; a same-order GEMM at its bytes floor saves <= 7.37 ms more, so R-09b's best = 17.04 ms saved vs E (lines: PASS >= 15, KILL < 11): build it

@@ -1,0 +1,224 @@
+{
+ "what": "B0: conversation-cache state sizes + restore mechanics (1 QSA + 1 GDN layer, random weights)",
+ "mlx": "0.32.2",
+ "layers": {
+  "qsa": 12,
+  "gdn": 36
+ },
+ "chunk": 1024,
+ "replay": [
+  {
+   "case": "turn 2 on the live cache, restored at the prompt-end edge",
+   "N": 12496,
+   "restored_at": 12288,
+   "prefilled": 208,
+   "chunks_compared": 1,
+   "chunks_differ": [],
+   "states_compared": 9,
+   "states_differ": [],
+   "PASS": true
+  },
+  {
+   "case": "new conversation on the same live cache, restored at the stable edge",
+   "N": 12300,
+   "restored_at": 9216,
+   "prefilled": 3084,
+   "chunks_compared": 4,
+   "chunks_differ": [],
+   "states_compared": 9,
+   "states_differ": [],
+   "PASS": true
+  },
+  {
+   "case": "control: stable-edge checkpoint restored again (it must be unchanged by the reuse above)",
+   "N": 12300,
+   "restored_at": 9216,
+   "prefilled": 3084,
+   "chunks_compared": 4,
+   "chunks_differ": [],
+   "states_compared": 9,
+   "states_differ": [],
+   "PASS": true
+  },
+  {
+   "case": "negative control: wrong checkpoint (must differ)",
+   "N": 12496,
+   "restored_at": 12288,
+   "prefilled": 208,
+   "chunks_compared": 1,
+   "chunks_differ": [
+    12288
+   ],
+   "states_compared": 9,
+   "states_differ": [
+    "gdn[1]"
+   ],
+   "PASS": true
+  }
+ ],
+ "costs": {
+  "gdn_checkpoint_MB": 115.46,
+  "gdn_clone_ms_median": 1.24,
+  "gdn_restore_ms_median": 1.21,
+  "taps_tail_MB": 52.4,
+  "taps_tail_clone_ms": 14.22,
+  "taps_full_B_per_token_during_prefill": 25600,
+  "hash_chain_ms_61440": 0.159
+ },
+ "sizes": [
+  {
+   "N": 2048,
+   "prefill_s_1attn_1gdn": 0.22,
+   "per_qsa_layer": {
+    "kv_alloc": 4194304,
+    "kv_logical": 4194304,
+    "kv_rows_alloc": 2048,
+    "index_alloc": 917504,
+    "index_logical": 917504,
+    "raw_rows_alloc": 2048,
+    "pooled_blocks_alloc": 512
+   },
+   "per_gdn_layer": {
+    "bytes": 3207168,
+    "shapes": [
+     [
+      1,
+      3,
+      10240,
+      "mlx.core.bfloat16"
+     ],
+     [
+      1,
+      48,
+      128,
+      128,
+      "mlx.core.float32"
+     ]
+    ]
+   },
+   "model": {
+    "kv_logical_B_per_token": 24576.0,
+    "index_logical_B_per_token": 5376.0,
+    "qsa_alloc_GB": 0.061,
+    "qsa_logical_GB": 0.061,
+    "gdn_MB_per_checkpoint": 115.46
+   }
+  },
+  {
+   "N": 12302,
+   "prefill_s_1attn_1gdn": 1.46,
+   "per_qsa_layer": {
+    "kv_alloc": 25690112,
+    "kv_logical": 25194496,
+    "kv_rows_alloc": 12544,
+    "index_alloc": 7340032,
+    "index_logical": 5510912,
+    "raw_rows_alloc": 16384,
+    "pooled_blocks_alloc": 4096
+   },
+   "per_gdn_layer": {
+    "bytes": 3207168,
+    "shapes": [
+     [
+      1,
+      3,
+      10240,
+      "mlx.core.bfloat16"
+     ],
+     [
+      1,
+      48,
+      128,
+      128,
+      "mlx.core.float32"
+     ]
+    ]
+   },
+   "model": {
+    "kv_logical_B_per_token": 24576.0,
+    "index_logical_B_per_token": 5375.6,
+    "qsa_alloc_GB": 0.396,
+    "qsa_logical_GB": 0.368,
+    "gdn_MB_per_checkpoint": 115.46
+   }
+  },
+  {
+   "N": 20480,
+   "prefill_s_1attn_1gdn": 5.01,
+   "per_qsa_layer": {
+    "kv_alloc": 41943040,
+    "kv_logical": 41943040,
+    "kv_rows_alloc": 20480,
+    "index_alloc": 14680064,
+    "index_logical": 9175040,
+    "raw_rows_alloc": 32768,
+    "pooled_blocks_alloc": 8192
+   },
+   "per_gdn_layer": {
+    "bytes": 3207168,
+    "shapes": [
+     [
+      1,
+      3,
+      10240,
+      "mlx.core.bfloat16"
+     ],
+     [
+      1,
+      48,
+      128,
+      128,
+      "mlx.core.float32"
+     ]
+    ]
+   },
+   "model": {
+    "kv_logical_B_per_token": 24576.0,
+    "index_logical_B_per_token": 5376.0,
+    "qsa_alloc_GB": 0.679,
+    "qsa_logical_GB": 0.613,
+    "gdn_MB_per_checkpoint": 115.46
+   }
+  },
+  {
+   "N": 61440,
+   "prefill_s_1attn_1gdn": 20.51,
+   "per_qsa_layer": {
+    "kv_alloc": 125829120,
+    "kv_logical": 125829120,
+    "kv_rows_alloc": 61440,
+    "index_alloc": 29360128,
+    "index_logical": 27525120,
+    "raw_rows_alloc": 65536,
+    "pooled_blocks_alloc": 16384
+   },
+   "per_gdn_layer": {
+    "bytes": 3207168,
+    "shapes": [
+     [
+      1,
+      3,
+      10240,
+      "mlx.core.bfloat16"
+     ],
+     [
+      1,
+      48,
+      128,
+      128,
+      "mlx.core.float32"
+     ]
+    ]
+   },
+   "model": {
+    "kv_logical_B_per_token": 24576.0,
+    "index_logical_B_per_token": 5376.0,
+    "qsa_alloc_GB": 1.862,
+    "qsa_logical_GB": 1.84,
+    "gdn_MB_per_checkpoint": 115.46
+   }
+  }
+ ],
+ "peak_GB": 4.577,
+ "wall_s": 41.8
+}

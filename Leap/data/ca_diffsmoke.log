@@ -1,0 +1,10 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=17.3 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+CA diffsmoke: 12 layers resident (GGGAGGGAGGGA), 18.5 GB active, loaded in 5 s, pid 48906
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  ctx  1024, 16 rows (12 layers; commits landed True): A 36.45, M 36.14, D 37.52 ms (CPU build 31.51), L0 5.96, all 9.02; commit 2.53, flush 0.33, PLE stage 2.45
+    D - D-class (ms): dense_gdn 0.13, dense_qsa -3.73, dense_moe -2.33, experts 14.90, gather 0.46, hc 7.14, gdn_rec 1.05, attn -2.93, ple -2.44, head 0.66, all 28.50
+    disjoint classes sum 16.64 vs D - D-all 28.50 (additivity -11.86 ms)

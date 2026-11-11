@@ -1,0 +1,33 @@
+t80ck1u MEASURED, alone in its process (/Users/kamen/Fit12/data/scr/wab/wabw.txt; tag wabw); metrics: the orchestrator's since 05:0x (whole decode headline)
+Settings as printed by the engine:
+  [bigmoe] tier 4433333333: C_m=47 C_l=32 per layer, 6.03 GB pools
+  b12: hc (0, 0.0, 0.0)
+  b12: engine v3p, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+  b12: C_m=47 C_l=32 (9 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.03 GB, active 8.96 GB
+  [wabw] bt_b12 8db71cc537, engine /Users/kamen/Breakthrough/v3p, C_m 47 C_l 32, cap 256; drafter 0.928 GB (own params), SW 2048; after load: lifetime 10.581 GB, MLX active 9.529; prompts humaneval/HumanEval/156 (n 146), humaneval/HumanEval/42 (n 149), humaneval/HumanEval/68 (n 367), humaneval/HumanEv
+Per prompt (16 counted of 16):
+  key                     | prompt | tokens | prefill s | decode s | WHOLE tok/s | full-period | e2e tok/s | checks | kept | modes pass2/exact/cfgate | first check + setup ms | = ex16 tokens
+  humaneval/HumanEval/156 |    146 |    256 |      3.71 |     5.30 |       48.33 |       47.30 |     28.41 |     30 | 8.53 |   6 /   4 /   4          |                    226 | differs from token 190
+  humaneval/HumanEval/42  |    149 |    132 |      3.62 |     2.32 |       56.94 |       79.14 |     22.22 |     10 | 13.20 |   1 /   0 /   0          |                    854 | SAME
+  humaneval/HumanEval/68  |    367 |    256 |      5.06 |     2.95 |       86.91 |       88.25 |     31.96 |     18 | 14.22 |   0 /   0 /   0          |                    208 | SAME
+  humaneval/HumanEval/91  |    144 |    256 |      3.71 |     8.56 |       29.90 |       31.28 |     20.86 |     31 | 8.26 |  12 /  11 /  11          |                    887 | differs from token 125
+  humaneval/HumanEval/16  |    103 |     81 |      3.42 |     2.01 |       40.21 |       58.28 |     14.92 |      6 | 13.50 |   2 /   0 /   0          |                    895 | SAME
+  humaneval/HumanEval/6   |    148 |    208 |      3.68 |     3.53 |       58.85 |       58.37 |     28.85 |     18 | 11.56 |   3 /   0 /   0          |                    189 | differs from token 117
+  humaneval/HumanEval/79  |    184 |    225 |      3.87 |     4.69 |       47.96 |       46.35 |     26.29 |     21 | 10.71 |   6 /   0 /   0          |                    181 | differs from token 168
+  humaneval/HumanEval/19  |    140 |    256 |      3.46 |     5.60 |       45.74 |       44.83 |     28.26 |     31 | 8.26 |   9 /   7 /   7          |                    202 | differs from token 237
+  humaneval/HumanEval/161 |    148 |    248 |      3.73 |     6.16 |       40.27 |       44.12 |     25.08 |     24 | 10.33 |  10 /   4 /   4          |                    902 | differs from token 151
+  humaneval/HumanEval/17  |    208 |    256 |      4.01 |     7.68 |       33.34 |       34.75 |     21.90 |     35 | 7.31 |  12 /   9 /   9          |                    630 | differs from token 178
+  humaneval/HumanEval/56  |    129 |    157 |      3.41 |     3.16 |       49.70 |       61.54 |     23.90 |     13 | 12.08 |   5 /   0 /   0          |                    869 | differs from token 105
+  humaneval/HumanEval/141 |    253 |    256 |      4.27 |     4.07 |       62.92 |       61.76 |     30.70 |     22 | 11.64 |   2 /   3 /   3          |                    184 | SAME
+  humaneval/HumanEval/101 |    152 |    146 |      3.62 |     2.69 |       54.29 |       52.07 |     23.14 |     14 | 10.43 |   5 /   1 /   1          |                    193 | differs from token 125
+  humaneval/HumanEval/63  |    187 |    256 |      4.08 |     5.71 |       44.81 |       49.01 |     26.15 |     25 | 10.24 |   7 /   4 /   4          |                    813 | differs from token 252
+  humaneval/HumanEval/114 |    121 |    170 |      3.45 |     4.53 |       37.55 |       35.45 |     21.30 |     22 | 7.73 |   8 /   3 /   3          |                    186 | differs from token 104
+  humaneval/HumanEval/77  |    148 |    256 |      3.77 |     8.06 |       31.75 |       30.44 |     21.64 |     37 | 6.92 |  13 /  14 /  14          |                    176 | differs from token 117
+WHOLE DECODE (n / decode wall, prefill excluded) over 16 prompts: GEOMETRIC MEAN 46.34; pooled 44.34 (3415 tokens in 77.02 s); min 29.90, max 86.91
+FULL-PERIOD STEADY (tokens after each prompt's first check / wall time after it, 16 prompts): geometric mean 49.18; pooled 45.68
+END TO END (n / (prefill + decode)): geometric mean 24.33; pooled 24.77
+Per check (357 checks, 9.57 tokens kept): ms draft 11.2, pass 1 106.3, pass 2 / exact 83.8, commit 11.4; modes (checks) pass2 101, exact 60, cfgate 60; first check + setup 475 ms per prompt (mean)
+Tokens identical to the verified-greedy loop (ex16 ex, information): 4 / 16 prompts; first divergences: 156 @190, 91 @125, 6 @117, 79 @168, 19 @237, 161 @151, 17 @178, 56 @105, 101 @125, 63 @252, 114 @104, 77 @117
+Lifetime peak phys_footprint of this process (RUSAGE_INFO_V4): 11.242 GB = 10.470 GiB
+PAUSE: [wabw] PAUSE summary: intervals [] s from the start; re-run []; excluded []; void runs: none
+Harness's own total: [wabw] TOTAL t80ck1u: 16 prompts, 3415 tokens in 77.02 s = 44.34 tok/s | 357 checks, kept 9.57 | pass2 101 exact 60 | per check ms: draft 11.2 pass 1 106.2 pass 2 / exact 83.8 commit 11.4; misses per check pass 1 296 pass 2 335

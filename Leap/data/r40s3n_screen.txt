@@ -1,0 +1,21 @@
+R-40 STEP 3n: full 125B via load_streamed (C = 144), loaded in 1 s, 23.0 GB active; EvalSuite's PF1 True (full scratch True): on for prefills, off for checks / commits
+  self-test: {'qmm16c 6144x2560': True, 'MLX 16-row 512x2560': True, 'experts split == fused': True, 'experts rows alone': True, 'bf16 Linear': True}
+  math500/test/algebra/694.json, P 98: AR to relative 14 (absolute 112); layer-35 SDPA calls captured: 12
+  check #0: start relative 0, kept 6
+  check #1: start relative 6, kept 12
+  check #1 starts at relative 6; row 8 = relative 14; layer-35 SDPA calls captured: 12
+    chunk 0: q (1, 2, 16, 256) vs (1, 2, 16, 256), keys N 120 vs 128; row q equal True; keys 0..112 equal True; values equal True; row output equal True; mask array (1, 1, 16, 120)
+    chunk 1: q (1, 2, 16, 256) vs (1, 2, 16, 256), keys N 120 vs 128; row q equal True; keys 0..112 equal True; values equal True; row output equal True; mask array (1, 1, 16, 120)
+    chunk 2: q (1, 2, 16, 256) vs (1, 2, 16, 256), keys N 120 vs 128; row q equal True; keys 0..112 equal True; values equal True; row output equal True; mask array (1, 1, 16, 120)
+    chunk 3: q (1, 2, 16, 256) vs (1, 2, 16, 256), keys N 120 vs 128; row q equal True; keys 0..112 equal True; values equal True; row output equal True; mask array (1, 1, 16, 120)
+    chunk 4: q (1, 2, 16, 256) vs (1, 2, 16, 256), keys N 120 vs 128; row q equal True; keys 0..112 equal True; values equal True; row output equal True; mask array (1, 1, 16, 120)
+    chunk 5: q (1, 2, 16, 256) vs (1, 2, 16, 256), keys N 120 vs 128; row q equal True; keys 0..112 equal True; values equal True; row output equal False; mask array (1, 1, 16, 120)
+    chunk 6: q (1, 2, 16, 256) vs (1, 2, 16, 256), keys N 120 vs 128; row q equal True; keys 0..112 equal True; values equal True; row output equal True; mask array (1, 1, 16, 120)
+    chunk 7: q (1, 2, 16, 256) vs (1, 2, 16, 256), keys N 120 vs 128; row q equal True; keys 0..112 equal True; values equal True; row output equal True; mask array (1, 1, 16, 120)
+    chunk 8: q (1, 2, 16, 256) vs (1, 2, 16, 256), keys N 120 vs 128; row q equal True; keys 0..112 equal True; values equal True; row output equal True; mask array (1, 1, 16, 120)
+    chunk 9: q (1, 2, 16, 256) vs (1, 2, 16, 256), keys N 120 vs 128; row q equal True; keys 0..112 equal True; values equal True; row output equal True; mask array (1, 1, 16, 120)
+    chunk 10: q (1, 2, 16, 256) vs (1, 2, 16, 256), keys N 120 vs 128; row q equal True; keys 0..112 equal True; values equal True; row output equal True; mask array (1, 1, 16, 120)
+    chunk 11: q (1, 2, 16, 256) vs (1, 2, 16, 256), keys N 120 vs 128; row q equal True; keys 0..112 equal True; values equal True; row output equal True; mask array (1, 1, 16, 120)
+    attention_gate call 0: shapes (1, 16, 6144) vs (1, 16, 6144); row SDPA-out equal False; row gate equal True; row gated equal False
+    attention module output (o_proj): (1, 16, 2560) vs (1, 1, 2560); row equal False
+R-40 STEP 3n done in 15 s

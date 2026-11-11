@@ -1,0 +1,71 @@
+Sub-1-bit copies in the 21 Oct RD sim: C = 51, 2926 tokens x 48 layers; line KLD 0.0096 -> E* = 0.00328
+
+SELF-CHECK vs data/gmass/rd_sim_c51*.txt (MB/token to 0.1, E to 0.0001, reads per token to 0.1):
+  A lam 1e-03: PASS  got 361.8 0.0017 drop 6.8 msb2 135.2 msb3 46.2 full 19.8
+  A lam 2e-03: PASS  got 282.8 0.0041 drop 41.8 msb2 141.5 msb3 5.0 full 19.7
+  B lam 1e-03: PASS  got 282.7 0.0019 drop 1.4 msb2 0.0 msb3 3.4 full 19.8 tr2 153.6 tr1 29.8
+  B lam 2e-03: PASS  got 225.4 0.0037 drop 9.4 msb2 0.0 msb3 0.1 full 19.7 tr2 75.8 tr1 103.1
+
+BASELINES at the line:
+| mix | MB/token at the line | lam | E (KLD) | reads per token by option | extra SSD GB |
+|---|---|---|---|---|---|
+| A: drop / MSB-2 / MSB-3 / 4-bit | 305.0 | 1.70e-03 | 0.00329 (0.0096) | drop 29.0 msb2 150.1 msb3 9.2 full 19.7 | 0.0 |
+| B: A + trellis tr2 / tr1 (the 245 baseline) | 235.6 | 1.80e-03 | 0.00329 (0.0096) | drop 7.1 msb3 0.1 full 19.7 tr2 89.7 tr1 91.4 | 49.2 |
+B at the line 235.6 MB vs 245 +- 5 %: PASS
+SELF-CHECK PASS
+
+C: A + q05 (0.5-bit copy, 0.39 MB), by q05's NMSE:
+| mix | MB/token at the line | lam | E (KLD) | reads per token by option | extra SSD GB |
+|---|---|---|---|---|---|
+| C q05 NMSE 1.00 | 305.0 | 1.70e-03 | 0.00329 (0.0096) | drop 29.0 msb2 150.1 msb3 9.2 full 19.7 | 0.0 |
+| C q05 NMSE 0.80 | 305.0 | 1.70e-03 | 0.00329 (0.0096) | drop 29.0 msb2 150.1 msb3 9.2 full 19.7 | 0.0 |
+| C q05 NMSE 0.70 | 303.6 | 1.67e-03 | 0.00329 (0.0096) | drop 13.5 msb2 142.3 msb3 10.1 full 19.7 q05 22.6 | 9.6 |
+| C q05 NMSE 0.61 | 298.9 | 1.57e-03 | 0.00328 (0.0096) | drop 5.3 msb2 131.0 msb3 12.9 full 19.7 q05 39.0 | 9.6 |
+| C q05 NMSE 0.54 | 293.2 | 1.45e-03 | 0.00328 (0.0096) | drop 2.7 msb2 119.7 msb3 16.5 full 19.7 q05 49.3 | 9.6 |
+| C q05 NMSE 0.50 | 289.1 | 1.38e-03 | 0.00329 (0.0096) | drop 1.9 msb2 111.6 msb3 19.2 full 19.7 q05 55.7 | 9.6 |
+| C q05 NMSE 0.40 | 274.0 | 1.20e-03 | 0.00329 (0.0096) | drop 0.8 msb2 83.7 msb3 28.5 full 19.7 q05 75.4 | 9.6 |
+| C q05 NMSE 0.30 | 245.6 | 1.02e-03 | 0.00329 (0.0096) | drop 0.4 msb2 35.7 msb3 43.5 full 19.8 q05 108.7 | 9.6 |
+| C q05 NMSE 0.20 | 184.7 | 1.16e-03 | 0.00328 (0.0096) | drop 0.2 msb3 32.2 full 19.9 q05 155.7 | 9.6 |
+| C q05 NMSE 0.10 | 118.6 | 6.09e-03 | 0.00329 (0.0096) | drop 24.2 full 19.7 q05 164.1 | 9.6 |
+| C q05 NMSE 0.00 | 105.8 | 1.01e-02 | 0.00328 (0.0096) | drop 56.8 full 19.7 q05 131.5 | 9.6 |
+
+D: B + q05 (the full ladder), by q05's NMSE:
+| mix | MB/token at the line | lam | E (KLD) | reads per token by option | extra SSD GB |
+|---|---|---|---|---|---|
+| D q05 NMSE 1.00 | 235.6 | 1.80e-03 | 0.00329 (0.0096) | drop 7.1 msb3 0.1 full 19.7 tr2 89.7 tr1 91.4 | 49.2 |
+| D q05 NMSE 0.80 | 235.6 | 1.80e-03 | 0.00329 (0.0096) | drop 7.1 msb3 0.1 full 19.7 tr2 89.7 tr1 91.4 | 49.2 |
+| D q05 NMSE 0.70 | 235.6 | 1.80e-03 | 0.00329 (0.0096) | drop 7.1 msb3 0.1 full 19.7 tr2 89.7 tr1 91.4 | 49.2 |
+| D q05 NMSE 0.61 | 235.6 | 1.80e-03 | 0.00329 (0.0096) | drop 7.1 msb3 0.1 full 19.7 tr2 89.7 tr1 91.4 | 49.2 |
+| D q05 NMSE 0.54 | 235.4 | 1.79e-03 | 0.00328 (0.0096) | drop 4.9 msb3 0.1 full 19.7 tr2 90.8 tr1 85.9 q05 6.6 | 58.7 |
+| D q05 NMSE 0.50 | 235.0 | 1.77e-03 | 0.00328 (0.0096) | drop 3.8 msb3 0.1 full 19.7 tr2 92.1 tr1 78.9 q05 13.5 | 58.7 |
+| D q05 NMSE 0.40 | 230.8 | 1.63e-03 | 0.00328 (0.0096) | drop 1.8 msb3 0.2 full 19.7 tr2 103.4 tr1 29.4 q05 53.6 | 58.7 |
+| D q05 NMSE 0.30 | 212.9 | 1.34e-03 | 0.00329 (0.0096) | drop 0.7 msb3 0.7 full 19.7 tr2 91.9 q05 95.0 | 41.5 |
+| D q05 NMSE 0.20 | 174.7 | 1.06e-03 | 0.00328 (0.0096) | drop 0.3 msb3 2.6 full 19.8 tr2 46.5 q05 138.9 | 41.5 |
+| D q05 NMSE 0.10 | 118.6 | 6.09e-03 | 0.00329 (0.0096) | drop 24.2 full 19.7 q05 164.1 | 9.6 |
+| D q05 NMSE 0.00 | 105.8 | 1.01e-02 | 0.00328 (0.0096) | drop 56.8 full 19.7 q05 131.5 | 9.6 |
+
+E: A + q05 + the 1.0-bit tier (0.70 MB), one quality factor k: NMSE = min(1, k 2^(-2R)) (k 1.08 = tr1's 0.27):
+| mix | MB/token at the line | lam | E (KLD) | reads per token by option | extra SSD GB |
+|---|---|---|---|---|---|
+| E k 1.00 (q05 0.50, q10 0.25) | 260.3 | 1.16e-03 | 0.00328 (0.0096) | drop 1.2 msb2 35.1 msb3 31.9 full 19.8 q05 3.1 q10 117.1 | 26.8 |
+| E k 1.08 (q05 0.54, q10 0.27) | 268.0 | 1.20e-03 | 0.00328 (0.0096) | drop 1.6 msb2 49.7 msb3 28.8 full 19.7 q05 2.2 q10 106.0 | 26.8 |
+| E k 1.22 (q05 0.61, q10 0.30) | 278.3 | 1.28e-03 | 0.00329 (0.0096) | drop 3.1 msb2 71.1 msb3 23.9 full 19.7 q05 0.1 q10 90.1 | 26.8 |
+| E k 1.60 (q05 0.80, q10 0.40) | 294.9 | 1.49e-03 | 0.00328 (0.0096) | drop 7.2 msb2 109.8 msb3 15.0 full 19.7 q10 56.4 | 17.2 |
+| E k 2.00 (q05 1.00, q10 0.50) | 302.9 | 1.66e-03 | 0.00328 (0.0096) | drop 16.0 msb2 134.7 msb3 10.4 full 19.7 q10 27.3 | 17.2 |
+
+Sensitivities at the plausible edge (q05 NMSE 0.54 and 0.50):
+| mix | MB/token at the line | lam | E (KLD) | reads per token by option | extra SSD GB |
+|---|---|---|---|---|---|
+| D, q05 at 0.31 MB (no scales), NMSE 0.54 | 234.4 | 1.75e-03 | 0.00329 (0.0096) | drop 2.4 msb3 0.1 full 19.7 tr2 93.9 tr1 74.3 q05 17.5 | 56.8 |
+| F: D with ranks 0-1 open too, NMSE 0.54 | 366.2 | 1.12e-03 | 0.00328 (0.0096) | drop 1.5 msb3 16.8 full 6.0 tr2 216.6 tr1 44.5 q05 2.0 | 58.7 |
+| D, q05 at 0.31 MB (no scales), NMSE 0.50 | 233.4 | 1.71e-03 | 0.00329 (0.0096) | drop 1.8 msb3 0.2 full 19.7 tr2 97.1 tr1 62.8 q05 26.5 | 56.8 |
+| F: D with ranks 0-1 open too, NMSE 0.50 | 365.6 | 1.12e-03 | 0.00329 (0.0096) | drop 1.2 msb3 16.8 full 6.0 tr2 216.6 tr1 42.6 q05 4.2 | 58.7 |
+
+Best plausible mix (q05 NMSE >= 0.50, q05 at 0.39 MB): D q05 NMSE 0.50: 235.0 MB/token (-0.2% vs B's 235.6; -4.1% vs the 245 of 21 Oct), extra SSD 58.7 GB
+Best case (q05 at 0.31 MB, no scales): D, q05 at 0.31 MB (no scales), NMSE 0.50: 233.4 MB/token
+C: q05 NMSE needed for <= 196 MB/token: 0.22
+C: q05 NMSE needed for <= 150 MB/token: 0.15
+D: q05 NMSE needed for <= 196 MB/token: 0.26
+D: q05 NMSE needed for <= 150 MB/token: 0.16
+VERDICT (pre-registered lines: PASS <= 150 MB at q05 NMSE >= 0.50; KILL if nothing <= 196 MB): KILL
+413 passes, 51 s

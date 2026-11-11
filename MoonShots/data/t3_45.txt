@@ -1,0 +1,16 @@
+experts per 16-row check, exact 4-bit top-10: 8.77 GB (byte floor 31.3 ms at 280 GB/s)
+TRL-3 at x0.72 experts' bytes, experts' time proportional to bytes (decode free):
+  today (CA: check 143 + drafting 12.5; experts 58.7)        cycle  155.5 ->  139.1 ms: +11.8 % tok/s
+  all levers (cycle 55), experts at 90 % of floor (34.8 ms)  cycle   55.0 ->   45.3 ms: +21.5 % tok/s
+  all levers (cycle 55), experts at 100 % of floor (31.3 ms) cycle   55.0 ->   46.2 ms: +19.0 % tok/s
+  all levers (cycle 60), experts at 90 % of floor (34.8 ms)  cycle   60.0 ->   50.3 ms: +19.4 % tok/s
+  all levers (cycle 60), experts at 100 % of floor (31.3 ms) cycle   60.0 ->   51.2 ms: +17.1 % tok/s
+TRL-3 at x0.68 experts' bytes, experts' time proportional to bytes (decode free):
+  today (CA: check 143 + drafting 12.5; experts 58.7)        cycle  155.5 ->  136.7 ms: +13.7 % tok/s
+  all levers (cycle 55), experts at 90 % of floor (34.8 ms)  cycle   55.0 ->   43.9 ms: +25.4 % tok/s
+  all levers (cycle 55), experts at 100 % of floor (31.3 ms) cycle   55.0 ->   45.0 ms: +22.3 % tok/s
+  all levers (cycle 60), experts at 90 % of floor (34.8 ms)  cycle   60.0 ->   48.9 ms: +22.8 % tok/s
+  all levers (cycle 60), experts at 100 % of floor (31.3 ms) cycle   60.0 ->   50.0 ms: +20.1 % tok/s
+measured kernels at S = 16 (B10(b)): 3c 4-bit 1.24 ms / layer, 3c 3-bit 0.914 (0.74x for 0.74x bytes: 3c is read-bound), 3INST trellis k = 2 base 1.257 (1.01x of 4-bit at 0.45x the bytes: decode-bound)
+  today, TRL-3 kernel = B10's trellis time (1.01x 4-bit)     cycle  155.5 ->  156.3 ms:  -0.5 % tok/s
+  all levers, cycle 55, TRL-3 kernel = B10's trellis time (1.01x 4-bit) cycle   55.0 ->   55.5 ms:  -0.9 % tok/s

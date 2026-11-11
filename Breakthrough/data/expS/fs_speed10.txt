@@ -1,0 +1,14 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=31.5 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'compiled_hc': 96, 'frspec': True}
+bt_frugal_spec: C=51 of 512 (10 %), loaded in 1s, active 11.0 GB, MAXK 80, SMAX 8
+[code] ar2 C=51:   26.5 tok/s, waited misses/tok 25.5, sha d431fa7133 | "Here's the refactored module with type hints, p50/p95 latency, path no"
+[mtplx] verify SDPA head-chunked: q_len=3 heads_per_chunk=10 chunks=4
+[code] spec 2:2:0 C=51:   36.8 tok/s, 2.51 tok/pass, lookup 0/51, waited misses/tok 30.4, draft 0.19s verify 3.35s, refused 0, frugal calls 2608 (2.87 rows) exact 49, sha 259e67193e differs from ar2 at 0
+[code] spec 3:3:0 C=51:   39.8 tok/s, 3.20 tok/pass, lookup 0/40, waited misses/tok 33.0, draft 0.21s verify 3.08s, refused 0, frugal calls 2095 (3.72 rows) exact 49, sha 77efe24761 differs from ar2 at 0
+[code] spec 3:3:1 C=51:   38.7 tok/s, 2.98 tok/pass, lookup 15/43, waited misses/tok 29.9, draft 0.22s verify 3.17s, refused 0, frugal calls 2246 (3.61 rows) exact 49, sha 7a0ea9126b differs from ar2 at 0
+[code] spec 3:5:1 C=51:   39.0 tok/s, 3.20 tok/pass, lookup 12/40, waited misses/tok 29.8, draft 0.20s verify 3.16s, refused 0, frugal calls 2090 (3.88 rows) exact 49, sha 7a0ea9126b differs from ar2 at 0
+peak 14.3 GB

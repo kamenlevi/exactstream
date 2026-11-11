@@ -1,0 +1,25 @@
+343 passes, 1013 (pass, row) predictions, rows/pass [0, 5, 0, 1, 337]
+
+recall@10 of the actual top-10 (MTP head | previous position's top-10 as baseline), by layer group:
+  row 0: L 0-11 0.09 | 0.27   L12-23 0.15 | 0.36   L24-35 0.13 | 0.40   L36-47 0.24 | 0.40
+  row 1: L 0-11 0.09 | 0.30   L12-23 0.15 | 0.37   L24-35 0.14 | 0.40   L36-47 0.24 | 0.41
+  row 2: L 0-11 0.09 | 0.29   L12-23 0.15 | 0.36   L24-35 0.14 | 0.39   L36-47 0.23 | 0.41
+
+recall@20 of the actual top-10 (MTP head | previous position's top-10 as baseline), by layer group:
+  row 0: L 0-11 0.15 | 0.27   L12-23 0.23 | 0.36   L24-35 0.21 | 0.40   L36-47 0.35 | 0.40
+  row 1: L 0-11 0.15 | 0.30   L12-23 0.24 | 0.37   L24-35 0.22 | 0.40   L36-47 0.35 | 0.41
+  row 2: L 0-11 0.15 | 0.29   L12-23 0.24 | 0.36   L24-35 0.22 | 0.39   L36-47 0.34 | 0.41
+
+C=128 (17 GB), MTP top-10 per predicted row: misses per pass, share covered by the prediction (loadable during drafting), wasted prefetch reads per pass:
+  L 0-11: misses   92.7, covered 9%, wasted  174.5
+  L12-23: misses   62.3, covered 13%, wasted  141.0
+  L24-35: misses   49.2, covered 11%, wasted  147.7
+  L36-47: misses   46.8, covered 18%, wasted  115.1
+  all   : misses  251.0, covered 12%, wasted  578.3
+
+C=128 (17 GB), MTP top-20 per predicted row: misses per pass, share covered by the prediction (loadable during drafting), wasted prefetch reads per pass:
+  L 0-11: misses   92.7, covered 16%, wasted  348.2
+  L12-23: misses   62.3, covered 22%, wasted  293.7
+  L24-35: misses   49.2, covered 19%, wasted  304.0
+  L36-47: misses   46.8, covered 29%, wasted  253.3
+  all   : misses  251.0, covered 21%, wasted 1199.2

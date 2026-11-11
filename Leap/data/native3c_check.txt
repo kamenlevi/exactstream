@@ -1,0 +1,7 @@
+N3C check Tue 15:42
+layer 20 (285 experts): pairs 24 / 24, split 24 / 24, ref2 tier_glu 24 / 24, ref2 tier_glu+scores 24 / 24, ref2 ooo 24 / 24 -> PASS
+layer 44 (263 experts): pairs 24 / 24, split 24 / 24, ref2 tier_glu 24 / 24, ref2 tier_glu+scores 24 / 24, ref2 ooo 24 / 24 -> PASS
+COUNTS native_3c after the switched calls: 144 (expected > 0)
+d. switch off -> BigMoE's own 3c: True; guards raise (native_3c + tier_nax4, native_3c + tier_nax_ooo w/o nax_native): [True, True]
+e. ref2.self_test with the switch off: PASS {'qmm16c 6144x2560': True, 'MLX 16-row 512x2560': True, 'experts split == fused': True, 'experts rows alone': True, 'bf16 Linear': True}
+N3C check: PASS

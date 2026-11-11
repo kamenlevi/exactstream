@@ -1,0 +1,11 @@
+--- agentcc_tasks2.py	2026-11-11 08:13:34
++++ agentcc_tasks3.py	2026-11-11 08:22:38
+@@ -46,7 +46,7 @@
+                 '(deny file-read-data ' + ' '.join(f'(subpath "{d}")' for d in DENY) + f' (subpath "{RUN}"))\n'
+                 f'(allow file-read-data (subpath "{T}") (subpath "{cch}") (subpath "{os.path.join(RUN, "cctmp")}")'
+                 f' (subpath "{os.path.join(RUN, "home")}"))\n')
+-    env = dict(os.environ, CLAUDE_CONFIG_DIR=cch, EXACTSTREAM_PORT=PORT, CLAUDE_BIN="/Users/kamen/.local/bin/claude",
++    env = dict(os.environ, CLAUDE_CONFIG_DIR=cch, EXACTSTREAM_PORT=PORT, CLAUDE_BIN=os.environ.get("CLAUDE_BIN", "/Users/kamen/.local/bin/claude"),
+                TMPPREFIX=os.path.join(RUN, "cctmp", "zsh"))
+     cmd = ["sandbox-exec", "-f", tsb, LAUNCH, "-p", t["prompt"], "--output-format", "stream-json", "--verbose",
+            "--max-turns", "25", "--allowedTools", "Bash", "Edit", "Glob", "Grep", "Read", "Write"]

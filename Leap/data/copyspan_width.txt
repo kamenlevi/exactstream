@@ -1,0 +1,16 @@
+80 sessions, 5.43 M value/text tokens, copy spans >= 16: 28.6%; cost model: 8.8 + 3.15 x union(rows) ms (T1 40, T6 123, T9 161, T17 250, T33 397 ms)
+policy           | copy spans: tok/pass rows/pass ms/tok (vs fixed 5) | all tokens: tok/pass rows/pass ms/tok (vs fixed 5)
+fixed 5          |  4.10   5.6   28.5 (1.000) |  1.74   4.2   53.1 (1.000)   <= 9 rows: runs on today's engine
+fixed 8          |  5.26   8.3   28.5 (1.001) |  1.81   5.9   63.5 (1.196)   <= 9 rows: runs on today's engine
+adaptive 5->8    |  4.80   7.0   27.8 (0.977) |  1.78   4.3   53.3 (1.003)   <= 9 rows: runs on today's engine
+fixed 16         |  7.29  14.9   30.5 (1.072) |  1.87  10.7   89.1 (1.677)
+adaptive 5->16   |  5.76   9.6   28.1 (0.986) |  1.81   4.7   54.2 (1.021)
+fixed 32         |  9.08  27.8   37.3 (1.308) |  1.90  20.1  133.2 (2.506)
+adaptive 5->32   |  6.46  13.9   30.9 (1.084) |  1.83   5.3   56.5 (1.064)
+L fixed 5        |  4.46   5.7   26.5 (0.928) |  1.77   4.2   52.7 (0.993)   <= 9 rows: runs on today's engine
+L fixed 8        |  5.77   8.4   26.4 (0.926) |  1.83   6.0   63.3 (1.192)   <= 9 rows: runs on today's engine
+L adaptive 5->8  |  5.41   7.2   25.4 (0.891) |  1.80   4.4   52.8 (0.994)   <= 9 rows: runs on today's engine
+L fixed 16       |  7.94  15.3   28.7 (1.008) |  1.89  10.8   89.4 (1.682)
+L adaptive 5->16 |  6.70  10.1   25.0 (0.878) |  1.84   4.7   53.6 (1.008)
+L fixed 32       |  9.74  28.9   36.0 (1.264) |  1.92  20.5  134.2 (2.527)
+L adaptive 5->32 |  7.57  14.4   27.1 (0.952) |  1.86   5.3   55.7 (1.048)

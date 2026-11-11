@@ -1,0 +1,10 @@
+20:54
+3 real 125B MoE layers; 2.76 MB per expert; xk2 RSG_A 4 RSG_B 4 SGTG 2
+exactness: ALL bit-identical (SwitchGLU output, S=1..6 x 4 routings)
+S=1: distinct 10.0  MLX 0.178 ms/layer ( 155 GB/s distinct)  xk2 0.173 ms/layer ( 160 GB/s)  -> 1.03x, x48 layers +0.2 ms/pass
+S=2: distinct 15.7  MLX 0.268 ms/layer ( 162 GB/s distinct)  xk2 0.259 ms/layer ( 167 GB/s)  -> 1.03x, x48 layers +0.4 ms/pass
+S=3: distinct 22.0  MLX 0.360 ms/layer ( 169 GB/s distinct)  xk2 0.356 ms/layer ( 171 GB/s)  -> 1.01x, x48 layers +0.2 ms/pass
+S=4: distinct 27.3  MLX 0.440 ms/layer ( 172 GB/s distinct)  xk2 0.473 ms/layer ( 160 GB/s)  -> 0.93x, x48 layers -1.6 ms/pass
+S=6: distinct 39.3  MLX 0.609 ms/layer ( 178 GB/s distinct)  xk2 0.791 ms/layer ( 138 GB/s)  -> 0.77x, x48 layers -8.7 ms/pass
+one MLX qmv over 41 MB (22 experts' gate+up as one matrix), 20 back to back: 0.143 ms each -> 284 GB/s
+20:54

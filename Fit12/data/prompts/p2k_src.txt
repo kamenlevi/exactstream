@@ -1,0 +1,108 @@
+"""Where does frugal routing's KLD come from? (Breakthrough, 2026-10-20 evening.) The Eval suite measured teacher-forced
+step KLD 0.057 for frugal at 10 % (ref step noise 0.0018; accepted ar4 0.0096), 0.115 on ifeval and 0.092 on multilingual.
+This runs the Eval suite's own one-token-per-call scorer (evalsuite.stages.step_forward + engine.var_head against its
+cached reference, read-only import) on a subset of its own-output sequences, for frugal variants on fork125bt:
+  VAR  nw  kc  renorm   meaning
+  base  2  20  yes      today's frugal (bt_frugal.py): missing ranks 2-9 replaced by resident ranks 10-19, renormalised
+  nosub 2  10  yes      missing ranks 2-9 dropped, renormalised over the used
+  noren 2  10  no       dropped, NOT renormalised (weights stay p_r / sum of the top-10)
+  subnr 2  20  no       substitutes at their own router weight, no renormalisation
+  w4    4  20  yes      wait for ranks 0-3
+  sere  2  80  no       SERE-style similar-resident substitute at the missing expert's weight (serer: renormalised)
+  mNN   *  20  yes      wait for the ranks covering NN % of the top-10 gate mass (at least rank 0)
+  exact 10 10  yes      every top-10 waited (harness check: should sit near the step noise)
+usage: tf_frugal_var.py VAR FRAC SETS EVERY   e.g. base 0.10 tf_ifeval,tf_multi 3   -> data/tfvar/<VAR>_<FRAC>.txt line
+Env as the suite's frugal runs (EVALSUITE_FRUGAL=1: plain exact streamer flags, no speed fusions)."""
+import json, os, sys, time
+os.environ["EVALSUITE_FRUGAL"] = "1"
+os.environ["BIGMOE_SPARE"] = "0"
+os.environ["BIGMOE_PF_NOPUBLISH"] = "1"
+for k in ("MTPLX_NGRAM_PREWARM",):
+    os.environ.setdefault(k, "off")
+for k in ("MTPLX_COMPILED_VERIFY", "MTPLX_QWEN4EXP_COMPILE", "MTPLX_COMPILE_AR_FORWARD", "MTPLX_COMPILED_TARGET_PREFIX"):
+    os.environ.setdefault(k, "0")
+sys.path.insert(0, os.path.expanduser("~/Breakthrough/fork125bt"))
+sys.path.insert(1, os.path.expanduser("~/MoEPrefetch/scripts"))
+import numpy as np
+import mlx.core as mx
+from bigmoe.loader import load_streamed            # fork125bt (imported before evalsuite puts ~/BigMoE on sys.path)
+from fused_route import topk_probs
+from bigmoe.gated import ext
+sys.path.insert(0, os.path.expanduser("~/EvalSuite"))
+from evalsuite import stages as SG, engine as EN
+
+VAR, frac, SETS, EVERY = sys.argv[1], float(sys.argv[2]), sys.argv[3].split(","), int(sys.argv[4])
+CFG = {"base": (2, 20, True), "nosub": (2, 10, True), "noren": (2, 10, False), "subnr": (2, 20, False),
+       "w4": (4, 20, True), "w3": (3, 20, True), "exact": (10, 10, True)}
+# VAR = head[_mod...]: head in CFG | mNN (wait for the ranks covering NN % of the top-10 mass) | bNN (base selection,
+# partial renormalisation beta = NN/100: w = p / ((1 - beta) * P10 + beta * P_used)) | sere (SERE-style: missing rank ->
+# most output-similar resident expert among the router's top-80, data/simtab D/N tables, only if D[u, v] < N[u], at u's
+# own gate weight) | serer (= sere_r). Mods: nr (no renorm), r (renorm), mNN (wait by mass, for sere).
+parts = VAR.split("_")
+head = "sere" if parts[0] == "serer" else parts[0]
+if parts[0] == "serer":
+    parts.append("r")
+NW, KC, RENORM, THETA, BETA, SERE = 2, 20, True, None, None, False
+BILD_TAU = None
+DENSE = []                # dense-diet modifiers (hc8 / hc4 / lm3), applied after load
+ADA = None                # adaptive theta (head 'ada'); LAST holds the previous step's next-token entropy
+LAST = {"ent": 99.0}
+MODE = {"exact": False}   # set while a BiLD re-run recomputes a token with every top-10 expert
+TAILBITS = None    # tK: waited rank >= 2 experts that were not resident are computed from their MSB-K planes
+BAND = None        # (a, b): apply the variant only in layers a..b-1; every other layer waits for its whole top-10 (exact)
+PRE = None         # pre2 (TrainLab's pre-routed frugal, 2026-10-21): in layers [a, b) (BT_PRE_BAND, default 8,40) the two
+PREPICK = {}       # waited experts are layer L's router (+ MoEPrefetch's correction) on layer L-1's MoE input, top-2; the
+                   # rest = the true router's best outside them, resident only (frugal substitution); weights = the TRUE
+                   # router's probabilities over the chosen 10, renormalised; other layers plain frugal
+LATE = None        # lAtB: ranks A..B-1 are read; those cold before the call add their output half a layer late (written
+STASH = {}         # into the HC streams after layer L+1's attention, NewIdeas' dh semantics); l1t2 = frugal waiting for
+                   # rank 0 only (a cold rank 1 lands late); l2t4 at 5 % = frugal + cold ranks 2-3 late, not dropped
+if head in CFG:
+    NW, KC, RENORM = CFG[head]
+elif head.startswith("m"):
+    NW, THETA = 0, int(head[1:]) / 100
+elif head.startswith("b") and head[1:].isdigit():
+    BETA, RENORM = int(head[1:]) / 100, False
+elif head == "sere":
+    SERE, NW, KC, RENORM = True, 2, 80, False
+    SIM = {}
+elif head == "ada":                # wait by mass with theta = lo if the previous step's entropy <= tau else hi
+    NW, KC, RENORM, THETA = 0, 20, False, 0.5
+    ADA = {"lo": 0.5, "hi": 0.9, "tau": 0.1}
+elif head == "bild":               # BiLD-style fallback: frugal (drop, no renorm) step; if its next-token entropy > tau,
+    NW, KC, RENORM = 2, 10, False  # roll the token back and recompute it with the whole top-10 waited (mod eNN: tau = NN/100)
+    BILD_TAU = 0.10
+else:
+    raise SystemExit(f"unknown variant {VAR}")
+for p in parts[1:]:
+    if p == "nr": RENORM = False
+    elif p == "r": RENORM = True
+    elif p.startswith("m"): NW, THETA = 0, int(p[1:]) / 100
+    elif p.startswith("t"): TAILBITS = int(p[1:])
+    elif p.startswith("L") and "T" in p: BAND = tuple(int(v) for v in p[1:].split("T"))   # LaTb: variant only in layers a..b-1
+    elif p.startswith("e") and BILD_TAU is not None: BILD_TAU = int(p[1:]) / 100
+    elif ADA is not None and p.startswith("lo"): ADA["lo"] = int(p[2:]) / 100
+    elif ADA is not None and p.startswith("hi"): ADA["hi"] = int(p[2:]) / 100
+    elif ADA is not None and p.startswith("e"): ADA["tau"] = int(p[1:]) / 100
+    elif p.startswith("S"): SETS = [{"g": "tf_gsm", "c": "tf_code", "i": "tf_ifeval", "m": "tf_multi"}[ch] for ch in p[1:]]
+    elif p in ("hc8", "hc4", "lm3"): DENSE.append(p)   # dense diet (TASKS.md): HC mixers 8 / 4-bit, lm_head 3-bit
+    elif p.startswith("l") and "t" in p and p[1:].replace("t", "").isdigit(): LATE = tuple(int(v) for v in p[1:].split("t"))
+    elif p == "pre2": PRE = tuple(int(v) for v in os.environ.get("BT_PRE_BAND", "8,40").split(","))
+MD = os.path.expanduser("~/BigMoE/models/bare")
+cfg = json.load(open(os.path.join(MD, "config.json"))); cfg = cfg.get("text_config", cfg)
+E, K, NLAY = cfg["num_experts"], cfg["num_experts_per_tok"], cfg["num_hidden_layers"]
+C = max(16, round(frac * E))
+rt, st = load_streamed(MD, C, mtp=False)
+MEM0 = mx.get_active_memory() / 1e9
+if DENSE:
+    import mlx.nn as nn
+    from mlx.utils import tree_flatten
+    if "hc8" in DENSE or "hc4" in DENSE:   # MoonShots' patches/hc8 (read-only import): GatedResidual mixers + PLE K/V
+        sys.path.insert(0, os.path.expanduser("~/MoonShots/patches/hc8"))
+        import hc8 as _hc8
+        print("dense: hc", _hc8.install(rt.model, bits=8 if "hc8" in DENSE else 4), flush=True)
+    if "lm3" in DENSE:                     # lm_head 4-bit -> 3-bit (affine, group 64) from its dequantised weights
+        TM = getattr(rt.model, "language_model", rt.model)
+        for name, mod in TM.named_modules():
+            if name.endswith("lm_head") and isinstance(mod, nn.QuantizedLinear):
+                W = mx.dequantize(mod.weight, mod.scales, mod.biases, mod.group

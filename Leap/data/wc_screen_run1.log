@@ -1,0 +1,57 @@
+
+WHOLE-CHIP screen Tue 17:18 (share lock, GPU otherwise idle, Kamen on PowerPoint); phases 4 s; units ['bw4', 'q4', 'a4', 'a8', 'bw2', 'q4', 'a4', 'bw1']
+  alone bw1: gbps 68.516 (5 s)
+  alone bw2: gbps 129.788 (5 s)
+  alone bw4: gbps 220.642 (5 s)
+  alone q4: exp_per_ms 22.258 (5 s), 61.5 GB/s of 4-bit expert bytes
+  alone sgemm1: exp_per_ms 2.242 (5 s), 352 GFLOP/s, fp32 weights 44.1 GB/s
+  alone sgemm4: exp_per_ms 5.218 (5 s), 821 GFLOP/s, fp32 weights 102.6 GB/s
+  alone a8: exp_per_ms 14.351 (5 s)
+  alone a4: exp_per_ms 26.197 (5 s)
+  phase none : GPU 0.684 ms per call (mean over windows)
+  phase bw4  : GPU 0.854 ms per call (mean over windows); bw4 gbps 106.423 (3 s)
+  phase none : GPU 0.704 ms per call (mean over windows)
+  phase q4   : GPU 0.744 ms per call (mean over windows); q4 exp_per_ms 16.710 (4 s)
+  phase none : GPU 0.714 ms per call (mean over windows)
+  phase a4   : GPU 0.772 ms per call (mean over windows); a4 exp_per_ms 24.843 (4 s)
+  phase none : GPU 0.732 ms per call (mean over windows)
+  phase a8   : GPU 0.780 ms per call (mean over windows); a8 exp_per_ms 13.803 (4 s)
+  phase none : GPU 0.753 ms per call (mean over windows)
+  phase bw2  : GPU 0.803 ms per call (mean over windows); bw2 gbps 71.920 (3 s)
+  phase none : GPU 0.794 ms per call (mean over windows)
+  phase q4   : GPU 0.808 ms per call (mean over windows); q4 exp_per_ms 13.934 (4 s)
+  phase none : GPU 0.808 ms per call (mean over windows)
+  phase a4   : GPU 0.833 ms per call (mean over windows); a4 exp_per_ms 20.555 (4 s)
+  phase none : GPU 0.818 ms per call (mean over windows)
+  phase bw1  : GPU 0.836 ms per call (mean over windows); bw1 gbps 42.613 (3 s)
+  phase none : GPU 0.837 ms per call (mean over windows)
+  GPU alone: 0.761 ms per call, 81.1 experts/ms, 190 GB/s of tier bytes (unique experts per window 62.1)
+  bw4  : GPU slowed +22.8 %; 106.4 GB/s beside (alone 220.6); bound gain +37.5 %
+  q4   : GPU slowed +4.9 %; 16.71 experts/ms beside (alone 22.26); gain +16.0 %
+  a4   : GPU slowed +6.4 %; 24.84 experts/ms beside (alone 26.20); gain +24.7 %
+  a8   : GPU slowed +4.6 %; 13.80 experts/ms beside (alone 14.35); gain +12.6 %
+  bw2  : GPU slowed +3.7 %; 71.9 GB/s beside (alone 129.8); bound gain +34.3 %
+  q4   : GPU slowed +0.7 %; 13.93 experts/ms beside (alone 22.26); gain +16.5 %
+  a4   : GPU slowed +2.4 %; 20.56 experts/ms beside (alone 26.20); gain +23.0 %
+  bw1  : GPU slowed +0.9 %; 42.6 GB/s beside (alone 68.5); bound gain +21.5 %
+  per unit (mean of its phases): bw4 s +22.8 % gain +37.5 %; q4 s +2.8 % gain +16.3 %; a4 s +4.4 % gain +23.8 %; a8 s +4.6 % gain +12.6 %; bw2 s +3.7 % gain +34.3 %; bw1 s +0.9 % gain +21.5 %
+  WHOLE-CHIP verdict: PASS ['a4'] (swap -0.02 GB)
+      136.25 real       181.73 user        12.18 sys
+          3488317440  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             1018197  page reclaims
+              125900  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                  16  signals received
+                2429  voluntary context switches
+              788307  involuntary context switches
+        116196258490  instructions retired
+         65644229206  cycles elapsed
+          2063534120  peak memory footprint
+exit 0

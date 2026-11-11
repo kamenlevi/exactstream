@@ -1,0 +1,15 @@
+R-44 REPACK24 rough hours (BigMoE, Wed 2026-10-28 ~16:45, before starting; NewIdeas asked for hours if > 1 day)
+(b) M-03 POM behind a switch (MoonShots' hand-off 16:4x: 2 of 3 code planes on misses at best rank >= R2, upgrade reads):
+  1. Converter records3 -> plane-separated records (top-2 planes + scales / biases | plane 3 | LSB), ~67 GB new on the
+     SSD (313 GB free -> ~245), bitwise round-trip check per layer: 3-4 h (CPU <= 4 cores, ~1 h of conversion).
+  2. Expert kernel: read plane-layout codes (a tier-2 path; full-plane slots must stay bitwise = today's 3c kernel). A
+     2-plane slot is exactly a 3-bit slot with plane 3 = 1 and the bias shifted by -s/2 (s(2 m2 + 1/2) + b), so the
+     alternative is no kernel change, only slot preparation at read time: 4-6 h either way incl. bitwise tests.
+  3. Ext: per-miss plane choice from the check's best rank, partial reads, per-slot plane state, upgrade reads (plane 3
+     + bias restore) on a later rank < R2 use, JIT prefetch / JOINT interplay: 6-10 h.
+  4. Validation + A/B (switch off = every sha equal; bytes / tok and tok/s at R2 4 / 6; EvalSuite hand-off): 3-4 h.
+  => ~16-24 h of work, ~2-3 days at this pacing. Risks: the loader's per-read CPU work (plane expand) on the critical
+     path; upgrade reads adding misses; gate-row plumbing for the per-expert rank.
+(a) M-01 exact scale / bias re-pack (fixed-width fields, unpack at load): the same converter writes it; the loader
+  unpacks into the slot's f16 scales / biases (C++, exact by escape); every sha must match: ~6-8 h on top (shares 1.).
+Total ~3-4 days. Order suggestion: (a) first (exact, small, -2.5 % line), then (b) on the same converter.

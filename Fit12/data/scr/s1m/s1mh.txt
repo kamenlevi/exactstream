@@ -1,0 +1,20 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=36.5 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 15M, prefetch on)
+[bigmoe] tier 4433333333: C_m=51 C_l=32 per layer, 6.44 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: engine v3p, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=32 (10 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.44 GB, active 9.38 GB
+[s1mh] PR1 installed: keep-1 commits replay the PLE layer on 2 rows
+[s1mh] bt_b12 8db71cc537, engine /Users/kamen/Breakthrough/v3p, C_m 51 C_l 32, cap item; drafter 0.928 GB (own params), SW 2048; after load: lifetime 11.009 GB, MLX active 9.953; prompts mbpp/228 (n 126)
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+[s1mh] mbpp/228 q0r PHASES draft: 74 runs, 10.7 ms, 0 MB, 0 misses, 0.00 passes per run, 0.00 GB/s | p1: 74 runs, 191.5 ms, 941 MB, 651 misses, 1.00 passes per run, 4.91 GB/s | commit: 74 runs, 4.5 ms, 18 MB, 0 misses, 0.00 passes per run, 3.87 GB/s
+[s1mh] mbpp/228 q0r theta 0.0  | tok 348 sha e80a7ce9a9 | lsha 9aa2c126b5 | = ex tokens n/a (first divergence n/a) | checks 74, kept 4.70 | pass2 0 exact 0 cfgate 0 skipped 0 | rows pass 1 1184 / pass 2 0 in 0 calls, refused 0 | prefill 3.38 s, decode 15.48 s, 22.48 tok/s | lifetime 11.383 GB | per check ms: draft 10.7 pass 1 191.5 pass 2 / exact 0.0 commit 4.5; misses per check pass 1 651 pass 2 0 | K1U: 7.561 experts per row-layer, 0.0000 of row-layers over KU (56832 row-layers) | QOM0: 15.98 resident ranks 2-9 added per layer-call, 743 dropped for room, probe misreads 0 (3552 layer-calls)
+[s1mh] mbpp/228 q0r PREFILL n 126 smoe 4096 | 3.379 s, 37.0 tok/s, SSD 27423 MB | lifetime 11.383 GB | pfr [] | gq {'calls': 0, 'sorted': 0, 'maxm': 0, 'exposed': 0, 'padded': 0}
+[s1mh] PAIR mbpp/228: SSD per arm (C) q0r 50->50 | PAUSE 0.0 s inside -> ok
+[s1mh] PAUSE summary: intervals [] s from the start; re-run []; excluded []
+[s1mh] TOTAL q0r: 1 prompts, 348 tokens in 15.48 s = 22.48 tok/s | 74 checks, kept 4.70 | pass2 0 exact 0 | per check ms: draft 10.7 pass 1 191.5 pass 2 / exact 0.0 commit 4.5; misses per check pass 1 651 pass 2 0
+[s1mh] IDS: 1 keys -> /Users/kamen/Fit12/data/scr/s1m/s1mh_ids.json
+[s1mh] PR1: 13 keep-1 commits replayed on 2 rows
+[s1mh] done; lifetime 11.383 GB

@@ -1,0 +1,24 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=32.0 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=26 C_l=10 per layer, 3.05 GB pools
+b12: C_m=26 C_l=10 (5 %), HC bf16, late rank 1 off, late MSB-3 ranks (2, 4), pools 3.05 GB, active 6.96 GB
+[b8mr wait] loaded in 1s; DEFER=8 MAXK=80 MR_MIN=2 MR_TEST=
+[denseinv] q4 10240x2560 x36 (language_model.model.layers.46.linear_attn.in_proj_qkv): dup-row band 2..12; ==M1 rows at M [1]; ==M2 at M [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; us/call 1:58 2:54 4:59 5:68 8:116 12:199 16:90 16c12:248
+[denseinv] q4 2560x6144 x48 (language_model.model.layers.47.self_attn.o_proj): dup-row band 2..12; ==M1 rows at M [1]; ==M2 at M [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; us/call 1:36 2:35 4:39 5:45 8:76 12:114 16:154 16c12:144
+[denseinv] q4 248320x2560 x1 (language_model.lm_head): dup-row band 2..12; ==M1 rows at M [1]; ==M2 at M [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; us/call 1:1096 2:1008 4:1649 5:1919 8:4280 12:7172 16:2201 16c12:7758
+[denseinv] q4 6144x2560 x36 (language_model.model.layers.46.linear_attn.in_proj_z): dup-row band 2..12; ==M1 rows at M [1]; ==M2 at M [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; us/call 1:36 2:34 4:38 5:44 8:73 12:114 16:161 16c12:147
+[denseinv] q4 12288x2560 x12 (language_model.model.layers.47.self_attn.q_proj): dup-row band 2..12; ==M1 rows at M [1]; ==M2 at M [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; us/call 1:66 2:63 4:71 5:85 8:148 12:260 16:112 16c12:319
+[denseinv] bf16 10240x320 x97 (language_model.model.hyper_connection_mixer.input_mix_weight_up): dup-row band 2..5; ==M1 rows at M [1, 2, 3, 4, 5]; ==M2 at M [1, 2, 3, 4, 5]; us/call 1:27 2:26 4:26 5:27 8:29 8c5:45 12:40 12c5:64 16:34 16c5:87
+[denseinv] bf16 320x10240 x97 (language_model.model.hyper_connection_mixer.input_mix_weight_down): dup-row band 2..15; ==M1 rows at M [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]; ==M2 at M [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]; us/call 1:28 2:26 4:27 5:27 8:33 12:42 16:72 16c15:43
+[denseinv] q4 640x2560 x96 (language_model.model.layers.47.mlp.shared_expert.up_proj): dup-row band 2..16; ==M1 rows at M [1]; ==M2 at M [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]; us/call 1:9 2:9 4:10 5:11 8:14 12:18 16:20
+[denseinv] q4 2560x640 x48 (language_model.model.layers.47.mlp.shared_expert.down_proj): dup-row band 2..16; ==M1 rows at M [1]; ==M2 at M [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]; us/call 1:8 2:10 4:12 5:13 8:17 12:24 16:31
+[denseinv] q8 512x2560 x48 (language_model.model.layers.47.mlp.gate): dup-row band 2..16; ==M1 rows at M [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; ==M2 at M [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]; us/call 1:10 2:11 4:11 5:11 8:13 12:16 16:30
+[denseinv] q4 512x2560 x24 (language_model.model.layers.47.self_attn.v_proj): dup-row band 2..16; ==M1 rows at M [1]; ==M2 at M [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]; us/call 1:7 2:7 4:8 5:9 8:11 12:14 16:27
+[denseinv] bf16 10240x2560 x1 (language_model.model.layers.1.ple.key_proj): dup-row band 2..5; ==M1 rows at M [1]; ==M2 at M [2, 3, 4, 5]; us/call 1:177 2:176 4:180 5:177 8:184 8c5:244 12:194 12c5:409 16:229 16c5:648
+[denseinv] q8 640x2560 x12 (language_model.model.layers.47.self_attn.indexer.index_qk_proj): dup-row band 2..16; ==M1 rows at M [1, 2, 3, 4]; ==M2 at M [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]; us/call 1:9 2:9 4:10 5:10 8:14 12:18 16:24
+[denseinv] q4 48x2560 x72 (language_model.model.layers.46.linear_attn.in_proj_a): dup-row band 2..16; ==M1 rows at M [1]; ==M2 at M [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]; us/call 1:8 2:6 4:6 5:6 8:6 12:6 16:7
+[denseinv] bf16 2560x2560 x1 (language_model.model.layers.1.ple.value_proj): dup-row band 2..5; ==M1 rows at M [1]; ==M2 at M [2, 3, 4, 5]; us/call 1:30 2:30 4:31 5:31 8:31 8c5:56 12:42 12c5:83 16:26 16c5:111
+[denseinv] bf16 4x10240 x96 (language_model.model.layers.47.mlp_hyper_connection.block_inject_weight): dup-row band 2..16; ==M1 rows at M [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]; ==M2 at M [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]; us/call 1:7 2:5 4:5 5:5 8:5 12:5 16:43
+[denseinv] q4 1x2560 x48 (language_model.model.layers.47.mlp.shared_expert_gate): dup-row band 2..16; ==M1 rows at M [1]; ==M2 at M [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]; us/call 1:6 2:6 4:6 5:5 8:6 12:6 16:5

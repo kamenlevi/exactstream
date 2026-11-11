@@ -1,0 +1,51 @@
+FAR CEILING (Wed 2026-11-04 21:44): cap45, 176 live checks over 6 prompts (5, 48, 25, 32, 34, 32), chained (M-38's frame); K 266 / 147; H 8
+tables built: ALL 323 tokens; LOPO coverage of the held-out prompts' kept-row tokens: 0.54, 0.58, 0.38, 0.64, 0.64, 0.69 (1 s)
+token determinism of the route (kept rows): per-row recall@10 of the row's true top-10 from the token's PREVIOUS occurrence in the prompt (644 pairs) / from the LOPO table's top-10 (663 rows):
+  layers  0- 0: prev-occurrence recall 0.747 (Jaccard 0.634), LOPO top-10 recall 0.678
+  layers  1- 1: prev-occurrence recall 0.503 (Jaccard 0.373), LOPO top-10 recall 0.443
+  layers  2- 3: prev-occurrence recall 0.497 (Jaccard 0.366), LOPO top-10 recall 0.386
+  layers  4- 7: prev-occurrence recall 0.484 (Jaccard 0.358), LOPO top-10 recall 0.357
+  layers  8-15: prev-occurrence recall 0.399 (Jaccard 0.281), LOPO top-10 recall 0.238
+  layers 16-31: prev-occurrence recall 0.411 (Jaccard 0.291), LOPO top-10 recall 0.251
+  layers 32-47: prev-occurrence recall 0.397 (Jaccard 0.282), LOPO top-10 recall 0.283
+K 266 (45 GB EXACT):
+  K 266 LRU                     :   42.9 misses / kept token [  92.8 MB], stalled layers / check  42.9 (1 s)
+  K 266 OPT (Belady)            :   19.2 misses / kept token [  41.5 MB], stalled layers / check  34.6,  55.3 % fewer misses than LRU, stalls  19.3 % fewer (2 s)
+  K 266 PERFECT-ALL (M-38)      :   28.4 misses / kept token [  61.5 MB], stalled layers / check  40.6,  33.7 % fewer misses than LRU, stalls   5.4 % fewer | recall 1.00, precision 1.00 (base 0.47, forecast-positive 0.47) (2 s)
+  K 266 PERFECT-KEPT rows       :   34.2 misses / kept token [  73.9 MB], stalled layers / check  42.1,  20.3 % fewer misses than LRU, stalls   1.7 % fewer | recall 0.68, precision 1.00 (base 0.46, forecast-positive 0.31) (2 s)
+  K 266 ALL-5                   :   39.7 misses / kept token [  85.9 MB], stalled layers / check  42.6,   7.4 % fewer misses than LRU, stalls   0.5 % fewer | recall 0.31, precision 0.87 (base 0.45, forecast-positive 0.16) (2 s)
+  K 266 ALL-10                  :   37.2 misses / kept token [  80.5 MB], stalled layers / check  42.4,  13.3 % fewer misses than LRU, stalls   1.0 % fewer | recall 0.53, precision 0.80 (base 0.45, forecast-positive 0.30) (2 s)
+  K 266 ALL-20                  :   35.3 misses / kept token [  76.3 MB], stalled layers / check  42.1,  17.8 % fewer misses than LRU, stalls   1.8 % fewer | recall 0.73, precision 0.69 (base 0.46, forecast-positive 0.48) (3 s)
+  K 266 LOPO-5 (+pop 5)         :   41.6 misses / kept token [  90.1 MB], stalled layers / check  42.8,   2.9 % fewer misses than LRU, stalls   0.1 % fewer | recall 0.19, precision 0.70 (base 0.45, forecast-positive 0.12) (3 s)
+  K 266 LOPO-5 only             :   41.7 misses / kept token [  90.1 MB], stalled layers / check  42.8,   2.9 % fewer misses than LRU, stalls   0.1 % fewer | recall 0.19, precision 0.70 (base 0.45, forecast-positive 0.12) (3 s)
+  K 266 LOPO-10 (+pop 10)       :   40.9 misses / kept token [  88.5 MB], stalled layers / check  42.8,   4.6 % fewer misses than LRU, stalls   0.2 % fewer | recall 0.34, precision 0.65 (base 0.45, forecast-positive 0.23) (4 s)
+  K 266 LOPO-10 only            :   41.0 misses / kept token [  88.6 MB], stalled layers / check  42.8,   4.5 % fewer misses than LRU, stalls   0.2 % fewer | recall 0.33, precision 0.65 (base 0.45, forecast-positive 0.23) (4 s)
+  K 266 LOPO-20 (+pop 20)       :   40.7 misses / kept token [  87.9 MB], stalled layers / check  42.8,   5.2 % fewer misses than LRU, stalls   0.2 % fewer | recall 0.51, precision 0.59 (base 0.45, forecast-positive 0.39) (4 s)
+  K 266 LOPO-20 only            :   40.7 misses / kept token [  88.0 MB], stalled layers / check  42.8,   5.1 % fewer misses than LRU, stalls   0.2 % fewer | recall 0.50, precision 0.59 (base 0.45, forecast-positive 0.38) (5 s)
+  K 266 POP-20 only             :   42.8 misses / kept token [  92.5 MB], stalled layers / check  42.8,   0.3 % fewer misses than LRU, stalls   0.1 % fewer | recall 0.06, precision 0.71 (base 0.45, forecast-positive 0.04) (5 s)
+  K 266 MEMO-1 (+LOPO-10 +pop)  :   40.5 misses / kept token [  87.7 MB], stalled layers / check  42.8,   5.5 % fewer misses than LRU, stalls   0.2 % fewer | recall 0.42, precision 0.70 (base 0.45, forecast-positive 0.27) (5 s)
+  K 266 MEMO-2 (+LOPO-10 +pop)  :   40.4 misses / kept token [  87.3 MB], stalled layers / check  42.8,   5.9 % fewer misses than LRU, stalls   0.2 % fewer | recall 0.49, precision 0.68 (base 0.45, forecast-positive 0.32) (6 s)
+  K 266 MEMO-4 (+LOPO-10 +pop)  :   40.3 misses / kept token [  87.2 MB], stalled layers / check  42.8,   6.0 % fewer misses than LRU, stalls   0.2 % fewer | recall 0.53, precision 0.66 (base 0.45, forecast-positive 0.36) (6 s)
+  K 266 MEMO-2 only             :   41.8 misses / kept token [  90.3 MB], stalled layers / check  42.8,   2.6 % fewer misses than LRU, stalls   0.1 % fewer | recall 0.38, precision 0.71 (base 0.45, forecast-positive 0.24) (6 s)
+  K 266 MEMO-4 (+ALL-10)        :   37.7 misses / kept token [  81.5 MB], stalled layers / check  42.5,  12.1 % fewer misses than LRU, stalls   0.9 % fewer | recall 0.63, precision 0.71 (base 0.45, forecast-positive 0.40) (7 s)
+K 147 (24 GB):
+  K 147 LRU                     :  123.1 misses / kept token [ 266.2 MB], stalled layers / check  47.4 (7 s)
+  K 147 OPT (Belady)            :   69.5 misses / kept token [ 150.2 MB], stalled layers / check  45.1,  43.6 % fewer misses than LRU, stalls   4.7 % fewer (7 s)
+  K 147 PERFECT-ALL (M-38)      :   73.6 misses / kept token [ 159.3 MB], stalled layers / check  46.4,  40.2 % fewer misses than LRU, stalls   2.1 % fewer | recall 1.00, precision 1.00 (base 0.66, forecast-positive 0.66) (7 s)
+  K 147 PERFECT-KEPT rows       :   90.7 misses / kept token [ 196.2 MB], stalled layers / check  47.0,  26.3 % fewer misses than LRU, stalls   0.7 % fewer | recall 0.76, precision 1.00 (base 0.62, forecast-positive 0.48) (7 s)
+  K 147 ALL-5                   :  110.7 misses / kept token [ 239.4 MB], stalled layers / check  47.3,  10.0 % fewer misses than LRU, stalls   0.1 % fewer | recall 0.40, precision 0.88 (base 0.58, forecast-positive 0.27) (8 s)
+  K 147 ALL-10                  :  104.2 misses / kept token [ 225.3 MB], stalled layers / check  47.2,  15.4 % fewer misses than LRU, stalls   0.2 % fewer | recall 0.65, precision 0.82 (base 0.59, forecast-positive 0.47) (8 s)
+  K 147 ALL-20                  :  103.3 misses / kept token [ 223.3 MB], stalled layers / check  47.2,  16.1 % fewer misses than LRU, stalls   0.4 % fewer | recall 0.83, precision 0.73 (base 0.59, forecast-positive 0.68) (8 s)
+  K 147 LOPO-5 (+pop 5)         :  119.3 misses / kept token [ 258.0 MB], stalled layers / check  47.3,   3.1 % fewer misses than LRU, stalls   0.0 % fewer | recall 0.27, precision 0.73 (base 0.57, forecast-positive 0.21) (8 s)
+  K 147 LOPO-5 only             :  119.4 misses / kept token [ 258.3 MB], stalled layers / check  47.3,   2.9 % fewer misses than LRU, stalls   0.0 % fewer | recall 0.26, precision 0.73 (base 0.57, forecast-positive 0.20) (9 s)
+  K 147 LOPO-10 (+pop 10)       :  119.1 misses / kept token [ 257.6 MB], stalled layers / check  47.3,   3.2 % fewer misses than LRU, stalls   0.1 % fewer | recall 0.45, precision 0.68 (base 0.56, forecast-positive 0.37) (9 s)
+  K 147 LOPO-10 only            :  119.3 misses / kept token [ 258.1 MB], stalled layers / check  47.3,   3.0 % fewer misses than LRU, stalls   0.1 % fewer | recall 0.44, precision 0.68 (base 0.56, forecast-positive 0.36) (9 s)
+  K 147 LOPO-20 (+pop 20)       :  121.9 misses / kept token [ 263.7 MB], stalled layers / check  47.4,   0.9 % fewer misses than LRU, stalls  -0.1 % fewer | recall 0.64, precision 0.63 (base 0.56, forecast-positive 0.57) (10 s)
+  K 147 LOPO-20 only            :  122.7 misses / kept token [ 265.4 MB], stalled layers / check  47.4,   0.3 % fewer misses than LRU, stalls  -0.1 % fewer | recall 0.63, precision 0.63 (base 0.56, forecast-positive 0.56) (10 s)
+  K 147 POP-20 only             :  122.1 misses / kept token [ 264.1 MB], stalled layers / check  47.4,   0.8 % fewer misses than LRU, stalls  -0.0 % fewer | recall 0.11, precision 0.70 (base 0.56, forecast-positive 0.09) (10 s)
+  K 147 MEMO-1 (+LOPO-10 +pop)  :  115.7 misses / kept token [ 250.2 MB], stalled layers / check  47.4,   6.0 % fewer misses than LRU, stalls   0.0 % fewer | recall 0.55, precision 0.73 (base 0.57, forecast-positive 0.43) (10 s)
+  K 147 MEMO-2 (+LOPO-10 +pop)  :  115.8 misses / kept token [ 250.4 MB], stalled layers / check  47.4,   5.9 % fewer misses than LRU, stalls  -0.0 % fewer | recall 0.62, precision 0.70 (base 0.57, forecast-positive 0.51) (11 s)
+  K 147 MEMO-4 (+LOPO-10 +pop)  :  116.0 misses / kept token [ 250.8 MB], stalled layers / check  47.4,   5.8 % fewer misses than LRU, stalls  -0.0 % fewer | recall 0.66, precision 0.69 (base 0.57, forecast-positive 0.54) (11 s)
+  K 147 MEMO-2 only             :  117.5 misses / kept token [ 254.2 MB], stalled layers / check  47.4,   4.5 % fewer misses than LRU, stalls   0.0 % fewer | recall 0.49, precision 0.72 (base 0.57, forecast-positive 0.39) (12 s)
+  K 147 MEMO-4 (+ALL-10)        :  107.5 misses / kept token [ 232.4 MB], stalled layers / check  47.3,  12.7 % fewer misses than LRU, stalls   0.2 % fewer | recall 0.75, precision 0.74 (base 0.58, forecast-positive 0.60) (12 s)
+(12 s)

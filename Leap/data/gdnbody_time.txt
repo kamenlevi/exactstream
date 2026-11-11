@@ -1,0 +1,35 @@
+GDNB timing Mon 19:11 (ROUGH: shared GPU beside MTP Head's training)
+  bits f8: y == REF2-T chain True, recurrent state True
+  bits f16: y == REF2-T chain True, recurrent state True
+  bits f32: y == REF2-T chain True, recurrent state True
+  bits f8_gout: y == REF2-T chain True, recurrent state True
+  S 16: body per layer (ms, 36 chained): ref 0.1337 [0.0930-0.1594]; f8 0.1418 [0.0980-0.1731] (+0.0080); f16 0.1538 [0.1047-0.1682] (+0.0200); f32 0.1378 [0.0848-0.1465] (+0.0040); f8_gout 0.1710 [0.1088-0.1755] (+0.0373)
+  S 16: whole layer (ms, 36 chained): ref 0.6885 [0.3977-0.9456]; f8 0.6712 [0.6290-0.6787] (-0.0173); f16 0.6703 [0.4147-0.6919] (-0.0182); f32 0.6681 [0.3619-0.6809] (-0.0204); f8_gout 0.6853 [0.3748-0.6882] (-0.0033)
+  S 16: best fused f32: +0.73 ms per check (36 GDN layers, whole-layer chain); body 0.1378 ms per layer (line <= 0.2, kill > 0.25)
+  S 1: body per layer (ms, 36 chained): ref 0.0715 [0.0693-0.0766]; f8 0.0683 [0.0643-0.0762] (-0.0033); f16 0.0717 [0.0487-0.0773] (+0.0002); f32 0.0779 [0.0678-0.0826] (+0.0064); f8_gout 0.0708 [0.0602-0.0760] (-0.0007)
+  S 1: whole layer (ms, 36 chained): ref 0.7074 [0.7065-0.7085]; f8 0.6920 [0.6707-0.7071] (-0.0154); f16 0.7038 [0.6647-0.7095] (-0.0036); f32 0.7099 [0.6726-0.7361] (+0.0025); f8_gout 0.6714 [0.6487-0.6902] (-0.0359)
+  S 1: best fused f8_gout: +1.29 ms per check (36 GDN layers, whole-layer chain); body 0.0708 ms per layer (line <= 0.2, kill > 0.25)
+GDNB timing Mon 19:13 (quiet lock)
+  bits f8: y == REF2-T chain True, recurrent state True
+  bits f16: y == REF2-T chain True, recurrent state True
+  bits f32: y == REF2-T chain True, recurrent state True
+  bits f8_gout: y == REF2-T chain True, recurrent state True
+  S 16: body per layer (ms, 36 chained): ref 0.0821 [0.0812-0.0850]; f8 0.0861 [0.0853-0.0866] (+0.0040); f16 0.0788 [0.0779-0.0793] (-0.0033); f32 0.0784 [0.0773-0.0827] (-0.0037); f8_gout 0.0888 [0.0857-0.0927] (+0.0067)
+  S 16: whole layer (ms, 36 chained): ref 0.3376 [0.3372-0.3536]; f8 0.3261 [0.3234-0.3414] (-0.0115); f16 0.3210 [0.3186-0.3639] (-0.0166); f32 0.3351 [0.3158-0.3637] (-0.0025); f8_gout 0.3401 [0.3285-0.3878] (+0.0025)
+  S 16: best fused f16: +0.60 ms per check (36 GDN layers, whole-layer chain); body 0.0788 ms per layer (line <= 0.2, kill > 0.25)
+  S 1: body per layer (ms, 36 chained): ref 0.0425 [0.0418-0.0466]; f8 0.0443 [0.0421-0.0466] (+0.0018); f16 0.0451 [0.0436-0.0477] (+0.0026); f32 0.0438 [0.0423-0.0447] (+0.0013); f8_gout 0.0456 [0.0430-0.0514] (+0.0031)
+  S 1: whole layer (ms, 36 chained): ref 0.3585 [0.3341-0.3634]; f8 0.3619 [0.3505-0.3823] (+0.0035); f16 0.3747 [0.3676-0.3809] (+0.0162); f32 0.3681 [0.3593-0.3754] (+0.0096); f8_gout 0.3410 [0.3375-0.3579] (-0.0175)
+  S 1: best fused f8_gout: +0.63 ms per check (36 GDN layers, whole-layer chain); body 0.0456 ms per layer (line <= 0.2, kill > 0.25)
+--- G3 timing (rough, shared lock beside Fit12's engine build at ~80 % GPU) 22:43
+GDNB timing Mon 22:43 (shared lock beside ojox-e8 (80 % GPU), rough)
+  bits f8: y == REF2-T chain True, recurrent state True
+  bits f8_g3: y == REF2-T chain True, recurrent state True
+  bits f16: y == REF2-T chain True, recurrent state True
+  bits f16_g3: y == REF2-T chain True, recurrent state True
+  bits f32_g3: y == REF2-T chain True, recurrent state True
+  S 16: body per layer (ms, 36 chained): ref 0.1361 [0.1175-0.1538]; f8 0.1186 [0.1138-0.1363] (-0.0175); f8_g3 0.1152 [0.0894-0.1188] (-0.0209); f16 0.1104 [0.1049-0.1191] (-0.0257); f16_g3 0.1020 [0.0843-0.1161] (-0.0341); f32_g3 0.0980 [0.0843-0.1106] (-0.0381)
+  S 16: whole layer (ms, 36 chained): ref 0.5006 [0.4397-0.5404]; f8 0.4874 [0.4099-0.5057] (-0.0132); f8_g3 0.4862 [0.4070-0.4995] (-0.0144); f16 0.4550 [0.4042-0.4953] (-0.0457); f16_g3 0.4408 [0.3880-0.4735] (-0.0599); f32_g3 0.4478 [0.3847-0.4947] (-0.0529)
+  S 16: best fused f16_g3: +2.16 ms per check (36 GDN layers, whole-layer chain); body 0.1020 ms per layer (line <= 0.2, kill > 0.25)
+  S 1: body per layer (ms, 36 chained): ref 0.0514 [0.0479-0.0664]; f8 0.0497 [0.0490-0.0499] (-0.0016); f8_g3 0.0492 [0.0485-0.0505] (-0.0021); f16 0.0514 [0.0464-0.0568] (+0.0001); f16_g3 0.0478 [0.0461-0.0511] (-0.0036); f32_g3 0.0497 [0.0479-0.0562] (-0.0016)
+  S 1: whole layer (ms, 36 chained): ref 0.3842 [0.3814-0.3877]; f8 0.3857 [0.3844-0.3918] (+0.0016); f8_g3 0.3857 [0.3811-0.3933] (+0.0015); f16 0.3907 [0.3863-0.3928] (+0.0065); f16_g3 0.3868 [0.3851-0.4089] (+0.0026); f32_g3 0.3888 [0.3815-0.4248] (+0.0046)
+  S 1: best fused f8_g3: -0.05 ms per check (36 GDN layers, whole-layer chain); body 0.0492 ms per layer (line <= 0.2, kill > 0.25)

@@ -1,0 +1,21 @@
+share read 287 GB/s (steady); full layer 200.9 MB (0.700 ms); models K 4 / 8 / 12 / 16
+  A gpu-only per layer: wall   781.4 us (p90   821.6), GPU   770.9 us, predict inside    0.0 us
+  E1 gpu-event per layer: wall   140.7 us (p90   154.8), GPU   137.9 us, predict inside    0.0 us
+  E2 flag per layer: wall   134.9 us (p90   148.2), GPU   132.0 us, predict inside    0.0 us
+  C4 handoff per layer: wall   334.3 us (p90   335.7), GPU   331.7 us, predict inside  231.1 us
+  B4 split per layer: wall   766.3 us (p90   783.6), GPU   762.6 us, predict inside  266.4 us
+  D4 alone per layer: wall   243.3 us (p90   279.5), GPU     0.0 us, predict inside    0.0 us
+  C8 handoff per layer: wall   509.6 us (p90   552.2), GPU   499.8 us, predict inside  405.9 us
+  B8 split per layer: wall   730.1 us (p90   734.8), GPU   726.3 us, predict inside  449.2 us
+  D8 alone per layer: wall   425.9 us (p90   442.2), GPU     0.0 us, predict inside    0.0 us
+  C12 handoff per layer: wall   664.3 us (p90   739.0), GPU   660.6 us, predict inside  553.2 us
+  B12 split per layer: wall   766.1 us (p90   793.6), GPU   762.5 us, predict inside  567.5 us
+  D12 alone per layer: wall   573.9 us (p90   581.9), GPU     0.0 us, predict inside    0.0 us
+  C16 handoff per layer: wall   807.4 us (p90   859.8), GPU   795.2 us, predict inside  670.0 us
+  B16 split per layer: wall   748.0 us (p90   758.8), GPU   743.9 us, predict inside  644.8 us
+  D16 alone per layer: wall   650.2 us (p90   652.6), GPU     0.0 us, predict inside    0.0 us
+K 4: overhead per layer C - predict-inside 103.2 us (C - D 91.0 us) = 4.96 ms per check; split B / A = 0.981 (766.3 vs 781.4 us)
+K 8: overhead per layer C - predict-inside 103.7 us (C - D 83.7 us) = 4.98 ms per check; split B / A = 0.934 (730.1 vs 781.4 us)
+K 12: overhead per layer C - predict-inside 111.0 us (C - D 90.4 us) = 5.33 ms per check; split B / A = 0.980 (766.1 vs 781.4 us)
+K 16: overhead per layer C - predict-inside 137.4 us (C - D 157.2 us) = 6.59 ms per check; split B / A = 0.957 (748.0 vs 781.4 us)
+round trip alone: E1 GPU-signalled event 140.7 us, E2 post + spin + CPU-signalled wait 134.9 us per layer

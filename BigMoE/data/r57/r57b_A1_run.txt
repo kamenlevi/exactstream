@@ -1,0 +1,15 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=16.5 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+R-57 harness: full 125B via load_streamed (C = 176), loaded in 1 s, 27.3 GB active; REF2 + SB; gate rows MAXK 160 (ext build_next), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 256
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  warm-up (discarded): gsm8k/708 [gate] 64 tokens, 18.1 tok/s
+  humaneval/HumanEval/68 [gate]: 256 tokens in 17 checks (kept 15.41), 44.0 tok/s (steady state, checks >= 2: 46.5), median cycle 339.6 ms, check + commit 310.1 ms; per check (medians) 853 misses, demand SSD 207.6 ms; tokens == REF2 row 256 / 256
+  math500/test/prealgebra/1640.json [gate]: 256 tokens in 48 checks (kept 5.31), 19.9 tok/s (steady state, checks >= 2: 22.5), median cycle 231.7 ms, check + commit 222.0 ms; per check (medians) 469 misses, demand SSD 124.6 ms; tokens == REF2 row 256 / 256
+  humaneval/HumanEval/91 [gate]: 256 tokens in 32 checks (kept 8.09), 28.9 tok/s (steady state, checks >= 2: 28.4), median cycle 250.2 ms, check + commit 239.8 ms; per check (medians) 534 misses, demand SSD 141.5 ms; tokens == REF2 row 256 / 256
+  math500/test/algebra/694.json [gate]: 256 tokens in 33 checks (kept 7.73), 25.9 tok/s (steady state, checks >= 2: 25.7), median cycle 299.6 ms, check + commit 287.6 ms; per check (medians) 768 misses, demand SSD 187.4 ms; tokens == REF2 row 256 / 256
+  math500/test/algebra/1282.json [gate]: 256 tokens in 37 checks (kept 6.89), 27.7 tok/s (steady state, checks >= 2: 28.1), median cycle 239.5 ms, check + commit 232.5 ms; per check (medians) 519 misses, demand SSD 132.8 ms; tokens == REF2 row 256 / 256
+  gsm8k/708 [gate]: 197 tokens in 32 checks (kept 6.16), 23.5 tok/s (steady state, checks >= 2: 24.9), median cycle 261.9 ms, check + commit 246.1 ms; per check (medians) 596 misses, demand SSD 149.4 ms; tokens == REF2 row 197 / 197
+  gate: tok/s 26.8 (steady state 26.9), cycle 256.0 ms, check + commit 243.0 ms, misses 565, demand SSD 145.4 ms per check (medians over valid runs, then prompts)
+  footprint now 29.9 GB, lifetime peak 34.6 GB; 95 s

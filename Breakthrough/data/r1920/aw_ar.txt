@@ -1,0 +1,41 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=26.0 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.00 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: engine v3l, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.00 GB, active 8.93 GB
+[aw_ar] engine v3l, AR path, C_m 51 C_l 20, late3 (2, 10), B12_PFR 1, 256 tokens per run, warm = tokens 33-256
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (64, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (60, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (46, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[aw_ar] RESULT n 2600 s1 | prefill 9.3 s | warm 13.82 tok/s, steps 2-256 13.60 tok/s | logits 815b6fed29 sha32 e092c45c20 sha256 6a520d5ca4 | ALLWAIT layer calls 0
+[aw_ar] RESULT n 2600 a1 | prefill 9.1 s | warm 14.38 tok/s, steps 2-256 14.05 tok/s | logits db5e9ee717 sha32 9b491ea973 sha256 d9f43ab77f | ALLWAIT layer calls 12032
+[aw_ar] RESULT n 2600 a2 | prefill 9.2 s | warm 14.47 tok/s, steps 2-256 14.12 tok/s | logits db5e9ee717 sha32 9b491ea973 sha256 d9f43ab77f | ALLWAIT layer calls 12032
+[aw_ar] RESULT n 2600 s2 | prefill 9.7 s | warm 13.97 tok/s, steps 2-256 13.74 tok/s | logits 815b6fed29 sha32 e092c45c20 sha256 6a520d5ca4 | ALLWAIT layer calls 0
+[aw_ar] SUMMARY n 2600: warm shipped 13.89 (13.82 / 13.97), ALLWAIT 14.42 (14.38 / 14.47) tok/s -> ALLWAIT +3.8 % | s1 = s2 True, a1 = a2 True | tokens a = s: sha256 False, sha32 False, first-step logits False | ALLWAIT layer calls s [0, 0] a [12032, 12032]
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (43, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (55, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (49, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (44, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (24, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (35, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (16, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (53, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (56, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (37, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (45, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (28, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (27, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (41, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (38, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (34, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (32, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (19, 640, 320), True, True, 'SwiGLU', 'wide'): its first call equals the stock sorted gather bit for bit
+[aw_ar] RESULT n 8474 s1 | prefill 19.4 s | warm 13.48 tok/s, steps 2-256 13.36 tok/s | logits c57fe16fd1 sha32 142abd5d7e sha256 656e1e44c0 | ALLWAIT layer calls 0
+[aw_ar] RESULT n 8474 a1 | prefill 19.1 s | warm 13.02 tok/s, steps 2-256 12.94 tok/s | logits 59557a6a08 sha32 71b286e206 sha256 3ec5f41050 | ALLWAIT layer calls 12032
+[aw_ar] RESULT n 8474 a2 | prefill 19.4 s | warm 13.06 tok/s, steps 2-256 12.98 tok/s | logits 59557a6a08 sha32 71b286e206 sha256 3ec5f41050 | ALLWAIT layer calls 12032
+[aw_ar] RESULT n 8474 s2 | prefill 19.1 s | warm 13.57 tok/s, steps 2-256 13.45 tok/s | logits c57fe16fd1 sha32 142abd5d7e sha256 656e1e44c0 | ALLWAIT layer calls 0
+[aw_ar] SUMMARY n 8474: warm shipped 13.52 (13.48 / 13.57), ALLWAIT 13.04 (13.02 / 13.06) tok/s -> ALLWAIT -3.6 % | s1 = s2 True, a1 = a2 True | tokens a = s: sha256 False, sha32 False, first-step logits False | ALLWAIT layer calls s [0, 0] a [12032, 12032]
+[aw_ar] done

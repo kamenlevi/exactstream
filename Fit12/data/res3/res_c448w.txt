@@ -1,0 +1,35 @@
+[fit12] mx.set_wired_limit(49 GB), previous 0.0 GB
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=3.3 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=448 C_l=48 per layer, 48.21 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: engine v3g, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+b12: C_m=448 C_l=48 (88 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 48.21 GB, active 51.34 GB
+[res_c448w] after load: footprint now 51.68 GB, lifetime peak 51.68 GB, MLX peak 51.34 GB, active 51.34 GB
+[res_c448w] code: prefill 326 tokens in 5.30 s
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[res_c448w] code k=3: 32.2 tok/s, 3.05 tok/pass, 42 passes | per pass: verify 85.3 ms, draft 8.7 ms, head 0.5 ms, waited 232.1, reads 243.2, pf issued 0.0 used 67.6, SSD 4.7 GB/s 445 MB | peak footprint 52.42 GB | loader per pass: stalled calls 70.5 of 99.0, stall 50.0 ms, io 48.2 ms | sha fb1e61e413 | '```python\nimport re\nimport argparse\nfrom collections import defaultdict\nfrom typing import List, Dict, Tuple, Optional\n\n# Regex to match log lines\nLINE = re.compile(\n    r'
+[res_c448w] code k=3 tau=0.7: 2.17 draft tokens verified per pass
+[res_c448w] prose: prefill 53 tokens in 3.21 s
+[res_c448w] prose k=3: 30.5 tok/s, 2.10 tok/pass, 61 passes | per pass: verify 58.4 ms, draft 10.0 ms, head 0.5 ms, waited 99.3, reads 114.8, pf issued 0.0 used 51.6, SSD 2.8 GB/s 195 MB | peak footprint 52.85 GB | loader per pass: stalled calls 53.3 of 99.0, stall 27.7 ms, io 24.0 ms | sha 42eef85996 | 'Imagine you are building a massive LEGO castle. You have two places to store your pieces: a huge warehouse across town (your computer’s main memory, or RAM) and a small, organized box right'
+[res_c448w] prose k=3 tau=0.7: 1.56 draft tokens verified per pass
+[res_c448w] math: prefill 82 tokens in 3.79 s
+[res_c448w] math k=3: 40.8 tok/s, 3.12 tok/pass, 41 passes | per pass: verify 65.4 ms, draft 10.7 ms, head 0.5 ms, waited 118.1, reads 135.0, pf issued 0.0 used 66.6, SSD 2.9 GB/s 219 MB | peak footprint 53.24 GB | loader per pass: stalled calls 58.5 of 99.0, stall 30.7 ms, io 26.1 ms | sha 6e3af723f9 | "Here is the step-by-step solution to determine how much Janet makes every day at the farmers' market:\n\n**Step 1: Determine the total number of eggs laid per day.**\nJanet"
+[res_c448w] math k=3 tau=0.7: 2.46 draft tokens verified per pass
+[res_c448w] write: prefill 47 tokens in 2.91 s
+[res_c448w] write k=3: 34.8 tok/s, 2.06 tok/pass, 62 passes | per pass: verify 50.4 ms, draft 8.5 ms, head 0.4 ms, waited 60.1, reads 70.4, pf issued 0.0 used 41.0, SSD 1.8 GB/s 107 MB | peak footprint 53.24 GB | loader per pass: stalled calls 38.5 of 99.0, stall 17.4 ms, io 12.1 ms | sha 92b930c6cc | '*   crafted from durable stainless steel to withstand rugged trails and rocky terrain\n*   double-wall vacuum insulation keeps drinks cold for twenty-four hours or hot for twelve\n*   leak-proof lid design prevents'
+[res_c448w] write k=3 tau=0.7: 1.71 draft tokens verified per pass
+[res_c448w] code k=3: 53.5 tok/s, 3.05 tok/pass, 42 passes | per pass: verify 47.8 ms, draft 8.7 ms, head 0.4 ms, waited 66.5, reads 77.6, pf issued 0.0 used 65.3, SSD 1.6 GB/s 89 MB | peak footprint 53.24 GB | loader per pass: stalled calls 34.4 of 99.0, stall 15.0 ms, io 4.3 ms | sha fb1e61e413 | '```python\nimport re\nimport argparse\nfrom collections import defaultdict\nfrom typing import List, Dict, Tuple, Optional\n\n# Regex to match log lines\nLINE = re.compile(\n    r'
+[res_c448w] code k=3 tau=0.7: 2.17 draft tokens verified per pass
+[res_c448w] prose k=3: 39.5 tok/s, 2.10 tok/pass, 61 passes | per pass: verify 43.0 ms, draft 9.8 ms, head 0.4 ms, waited 52.3, reads 67.8, pf issued 0.0 used 51.6, SSD 1.7 GB/s 91 MB | peak footprint 53.28 GB | loader per pass: stalled calls 30.4 of 99.0, stall 13.6 ms, io 5.2 ms | sha 42eef85996 | 'Imagine you are building a massive LEGO castle. You have two places to store your pieces: a huge warehouse across town (your computer’s main memory, or RAM) and a small, organized box right'
+[res_c448w] prose k=3 tau=0.7: 1.56 draft tokens verified per pass
+[res_c448w] math k=3: 52.5 tok/s, 3.12 tok/pass, 41 passes | per pass: verify 48.7 ms, draft 10.4 ms, head 0.4 ms, waited 67.9, reads 84.8, pf issued 0.0 used 66.6, SSD 1.8 GB/s 109 MB | peak footprint 53.28 GB | loader per pass: stalled calls 34.4 of 99.0, stall 16.1 ms, io 5.9 ms | sha 6e3af723f9 | "Here is the step-by-step solution to determine how much Janet makes every day at the farmers' market:\n\n**Step 1: Determine the total number of eggs laid per day.**\nJanet"
+[res_c448w] math k=3 tau=0.7: 2.46 draft tokens verified per pass
+[res_c448w] write k=3: 39.9 tok/s, 2.06 tok/pass, 62 passes | per pass: verify 43.1 ms, draft 8.3 ms, head 0.4 ms, waited 41.5, reads 51.8, pf issued 0.0 used 41.0, SSD 1.3 GB/s 66 MB | peak footprint 53.28 GB | loader per pass: stalled calls 26.4 of 99.0, stall 11.3 ms, io 3.7 ms | sha 92b930c6cc | '*   crafted from durable stainless steel to withstand rugged trails and rocky terrain\n*   double-wall vacuum insulation keeps drinks cold for twenty-four hours or hot for twelve\n*   leak-proof lid design prevents'
+[res_c448w] write k=3 tau=0.7: 1.71 draft tokens verified per pass
+[res_c448w] PR1: 96 keep-1 commits replayed on 2 rows
+[res_c448w] done

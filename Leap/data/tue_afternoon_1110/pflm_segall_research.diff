@@ -1,0 +1,29 @@
+--- a/engine/loop/pflm.py (package 1.1.0 candidate)
++++ b/engine/loop/pflm.py (research: R57_PFLM_SEGALL)
+@@ -191,15 +191,23 @@
+         for g in groups:
+             M = pend[g[0]][0] if len(g) == 1 else mx.concatenate([pend[k][0] for k in g], axis=1)
+             fix = len(g) > 1 and seg                     # R57_PFLM_SEG (default 1): the shared expert's gate per chunk slice
+-            if fix:
+-                mlp_ = layer.mlp
++            segall = fix and os.environ.get("R57_PFLM_SEGALL") == "1"   # RESEARCH (Leap Tue 14:2x, not in the package): the
++            if fix:                                      # router and the shared expert per chunk slice too: the kernel check found
++                mlp_ = layer.mlp                         # both differ on a short final chunk computed inside a group (292 rows)
++                sizes_ = [pend[k][0].shape[1] for k in g]
+                 seg0 = mlp_.shared_expert_gate
+-                mlp_.shared_expert_gate = _SegPerChunk(seg0, [pend[k][0].shape[1] for k in g])
++                mlp_.shared_expert_gate = _SegPerChunk(seg0, sizes_)
++                if segall:
++                    gate0, se0 = mlp_.gate, mlp_.shared_expert
++                    mlp_.gate = _SegPerChunk(gate0, sizes_)
++                    mlp_.shared_expert = _SegPerChunk(se0, sizes_)
+             try:
+                 Y = layer.mlp(M)                         # router + shared expert + the padded SwitchGLU (tier wrapper)
+             finally:
+                 if fix:
+                     mlp_.shared_expert_gate = seg0
++                    if segall:
++                        mlp_.gate, mlp_.shared_expert = gate0, se0
+             off = 0
+             for k in g:
+                 n_ = pend[k][0].shape[1]

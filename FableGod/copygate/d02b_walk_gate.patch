@@ -1,0 +1,80 @@
+--- /Users/kamen/TrainLab/sticky/d02b_walk_match.py	2026-11-02 17:39:13
++++ d02b_walk_gate.py	2026-11-02 18:23:49
+@@ -1,4 +1,7 @@
+-"""MATCH copy (MTP Head, Mon 11-02; REPORT 'MATCH'; Fable DRAFTER_WALL 2.1 / 2.5): d02b_walk.py + TL_WALK_MATCH=1, the session
++"""COPYGATE (FableGod ~/FableGod/copygate/GATE.md, Mon 11-02): a copy of sticky/d02b_walk_match.py + TL_WALK_GATE=
++all|prompt|pduel|copygate (implies TL_WALK_MATCH): the override through ~/FableGod/copygate/copygate.py (all = the MATCH
++override itself, a bit-for-bit check), plus the override's stats at reached positions (p <= k). Else unchanged.
++MATCH copy (MTP Head, Mon 11-02; REPORT 'MATCH'; Fable DRAFTER_WALL 2.1 / 2.5): d02b_walk.py + TL_WALK_MATCH=1, the session
+ match override on the CPU after the drafter's block (longest k-gram 8-16 of the committed window -> its next token replaces
+ the draft), TL_WALK_BS (16 / 32 rows), TL_WALK_LEN25=1 (at 32: 32 rows if >= 24 drafted positions carry a match, else
+ 16), TL_WALK_MAXN (first N files of a set). Loads DLOG capture files (h, ids from 0) too. Without them it is d02b_walk.py.
+@@ -226,10 +229,15 @@
+ CF = bool(os.environ.get("TL_WALK_CF"))             # HPD: also save every check's picks and cf (own and teacher-forced)
+ KH = CF and bool(os.environ.get("TL_WALK_KH"))      # k-head (11-02): + the drafter's hidden and pick stats per check
+ 
+-MATCH = bool(os.environ.get("TL_WALK_MATCH"))       # MATCH: the session match override
++GATE = os.environ.get("TL_WALK_GATE", "")           # COPYGATE: all | prompt | pduel | copygate (~/FableGod/copygate)
++MATCH = bool(os.environ.get("TL_WALK_MATCH")) or bool(GATE)   # MATCH: the session match override
+ BSZ = int(os.environ.get("TL_WALK_BS", "16"))        # MATCH: rows per check (block size)
+ LEN25 = bool(os.environ.get("TL_WALK_LEN25"))        # MATCH 2.5: 32 rows only when >= 24 drafted positions carry a match
+-MSTAT = {"pos": 0, "ovr": 0, "ovr_ok": 0, "chg": 0, "chg_ok": 0, "drf_ok_at_chg": 0, "rows": 0, "checks": 0}
++MSTAT = {"pos": 0, "ovr": 0, "ovr_ok": 0, "chg": 0, "chg_ok": 0, "drf_ok_at_chg": 0, "rows": 0, "checks": 0,
++         "rpos": 0, "rhit": 0, "rhit_ok": 0, "rused": 0, "rused_ok": 0}   # COPYGATE: at reached positions (p <= k)
++if GATE:
++    sys.path.insert(0, os.path.expanduser("~/FableGod/copygate"))
++    import copygate
+ 
+ class Matcher:
+     """every k-gram (k 8-16) of the committed window (ids[0 .. r], r = the check's root) -> the index of the token after its
+@@ -271,7 +279,7 @@
+     for c in cache:
+         c.offset = start
+     fed, a, out, n = start, gen, [], len(ids)
+-    mt = Matcher(ids) if MATCH else None
++    mt = (copygate.CopyGate(ids, gen - off, GATE) if GATE else Matcher(ids)) if MATCH else None
+     todo = None if anchors is None else [int(x) for x in anchors]
+     if todo is not None:
+         a = todo.pop(0)
+@@ -293,9 +301,14 @@
+             dr = np.array(fn(blk, ctx, cache)[0]).tolist()
+             if MATCH:                                    # MATCH: the CPU override after the block
+                 d0 = dr
+-                dr, hit = mt.override(dr, a - off)
++                if GATE:                                 # COPYGATE: the gated override (hit = used)
++                    dr, hit, info = mt.propose(dr, a - off)
++                else:
++                    dr, hit = mt.override(dr, a - off)
+                 if LEN25 and sum(hit) < 24:              # 2.5: a 16-row check outside long copies
+                     dr, hit, d0 = dr[:15], hit[:15], d0[:15]
++                    if GATE:
++                        info = info[:15]
+                 for p_ in range(min(len(dr), len(true))):
+                     MSTAT["pos"] += 1
+                     if hit[p_]:
+@@ -309,6 +322,14 @@
+         while k < mm and dr[k] == true[k]:
+             k += 1
+         out.append((k, mm, a))                               # accepted drafts, drafts that could be checked here
++        if GATE and not CF:                              # COPYGATE: the check labels the duel; reached-position stats
++            mt.learn(d0, info, true, k)
++            for p_ in range(min(k + 1, mm)):
++                MSTAT["rpos"] += 1
++                if info[p_] is not None:
++                    MSTAT["rhit"] += 1; MSTAT["rhit_ok"] += int(info[p_][0] == true[p_])
++                    if hit[p_]:
++                        MSTAT["rused"] += 1; MSTAT["rused_ok"] += int(dr[p_] == true[p_])
+         if (trim := cache[0].offset - a) > 0:
+             DF._trim_recent_cache(cache, trim)
+         if todo is not None:
+@@ -385,6 +406,10 @@
+         f"{MSTAT['rows'] / max(MSTAT['checks'], 1):.2f}; drafted positions reached {MSTAT['pos']}, with a match {MSTAT['ovr']} "
+         f"({100 * MSTAT['ovr'] / max(MSTAT['pos'], 1):.1f} %, right {100 * MSTAT['ovr_ok'] / max(MSTAT['ovr'], 1):.1f} %); changed the draft "
+         f"{MSTAT['chg']} (override right {MSTAT['chg_ok']}, drafter right {MSTAT['drf_ok_at_chg']})")
++    if GATE:
++        say(f"    COPYGATE {GATE}: reached positions {MSTAT['rpos']}, a match at {100 * MSTAT['rhit'] / max(MSTAT['rpos'], 1):.1f} % "
++            f"(right {100 * MSTAT['rhit_ok'] / max(MSTAT['rhit'], 1):.1f} %), the override used at "
++            f"{100 * MSTAT['rused'] / max(MSTAT['rpos'], 1):.1f} % (right {100 * MSTAT['rused_ok'] / max(MSTAT['rused'], 1):.1f} %)")
+     return kept, rate, per
+ 
+ d, own = load(0)

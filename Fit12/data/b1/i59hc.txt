@@ -1,0 +1,22 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+fit12 trim: hc8 applied before the loader's eval: 196 modules, 1337 -> 710 MB
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=28.8 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=59 C_l=20 per layer, 7.02 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: C_m=59 C_l=20 (12 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 7.02 GB, active 10.50 GB
+[i59hc] after load: footprint now 10.84 GB, lifetime peak 10.84 GB, MLX peak 10.50 GB, active 10.50 GB
+[i59hc] code: prefill 326 tokens in 4.81 s
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+Traceback (most recent call last):
+  File "/Users/kamen/Fit12/scripts/fit_b12.py", line 197, in <module>
+    run(P, k, 16)                                                    # warm-up (pools, compiled shapes)
+    ^^^^^^^^^^^^^
+  File "/Users/kamen/Fit12/scripts/fit_b12.py", line 178, in run
+    st.gate.check()
+  File "/Users/kamen/Breakthrough/v3f/bigmoe_v3f/gated.py", line 169, in check
+    raise RuntimeError(f"bigmoe: {bad} spin gate(s) timed out -- results of that pass are invalid")
+RuntimeError: bigmoe: 47 spin gate(s) timed out -- results of that pass are invalid

@@ -1,0 +1,6 @@
+L1-31: 125B GDN core per 16-row check, 36 layers (bytes floor 0.97 ms)
+  prework (concat, conv1d, silu, split, l2norm)  1.51 ms
+  recurrence gated_delta_update T 16             2.58 ms   (T 1: 1.33; replay T 10: 2.10)
+  gated norm (rms_norm + fp32 sigmoid gate)      0.61 ms
+  all three in one eval                          4.07 ms; + replay 6.17 ms
+  MTPLX fused conv+norm rows at S 16             1.09 ms (max |diff| vs stock 0.00781)

@@ -1,0 +1,9 @@
+R-11: 12-layer slice (GGGAGGGAGGGA) + DFlash2 drafter (L1-20, block 16); 16-row checks, keep fixed at 10; context features 12800 wide; 20.5 GB active
+  5 rounds x 8 cycles per arm kept (0 dropped), 8 s; commits landed True; context now 2754 tokens, drafter cache 1840
+  per-cycle wall (median of rounds; 12 layers + the drafter): S 52.92 ms [min 51.07], SB 51.46 ms [min 51.33], G1 52.48 ms [min 51.22], O 51.44 ms [min 49.44]
+  paired: S - SB 1.36, S - G1 0.24, S - O 1.63, G1 - O 1.03 ms per cycle
+  S components (ms, medians): draft build 0.45, draft eval + read 13.19, PLE + check build 4.68 (PLE 3.38), check eval + read 33.79, accept + commit build 0.61; cycle 52.59
+  PLE staging per check (ms, medians): S 3.38, SB 3.64, G1 3.35, O 2.89  (O >> S: a hidden sync in PLE staging)
+  S idle, direct (CPU spans with nothing queued): 5.75 ms per cycle at 12 layers (S - O measured 1.63)
+  48 layers: idle ~11.49 ms per cycle = after the acceptance read 2.90 (draft build + 4 x commit build: a GPU-side accept removes it) + after the draft read 8.59 (PLE + 4 x check build: needs the draft tokens on the CPU while PLE stages on the CPU)
+R-11 verdict (lever if the 48-layer idle >= 8 ms per cycle; KILL < 3 ms): LEVER (11.49 ms)

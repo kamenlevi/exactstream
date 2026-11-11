@@ -1,0 +1,7 @@
+R-09b build: 96 mixers loaded; merged projection M 16 x N 324 x K 10240; MLX's split: 3 partitions of 4096, here 11 column tiles of 32
+  projections bitwise = MLX's (of 96): S1 96, S2 96, S4 96, S8 96, F4 96, F8 96
+  X5 bitwise = E (96 reads): True
+  chains bitwise = X5 (all 96 reads): S1 True, S2 True, S4 True, S8 True, F4 True, F8 True
+  per 96 reads (ms, median of 20): E 24.51, X5 14.70, S1 12.28, S2 10.22, S4 9.82, S8 15.09, F4 15.93, F8 25.69
+  saved vs E: X5 9.81, S1 12.22, S2 14.28, S4 14.68, S8 9.41, F4 8.57, F8 -1.18
+R-09b build verdict (PASS >= 15 ms saved per check vs E AND bitwise; KILL < 11): BETWEEN (best bitwise arm S4: 14.68 ms saved; X5 alone 9.81)

@@ -1,0 +1,51 @@
+
+### code: H1 expert reuse (overlap of the top-10 set, top-1 equal, top-2 set equal; % by layer group)
+| relation | 0-7 | 8-35 | 36-47 | all |
+|---|---|---|---|---|
+| copy>=8 | 66 / 65 / 49 (n 2103) | 33 / 24 / 9 (n 2103) | 27 / 20 / 6 (n 2103) | 37 / 30 / 15 (n 2103) |
+| match4-7 | 71 / 70 / 52 (n 132) | 54 / 42 / 24 (n 132) | 48 / 39 / 22 (n 132) | 55 / 46 / 28 (n 132) |
+| same token, match<4 | 50 / 42 / 26 (n 771) | 40 / 27 / 12 (n 771) | 38 / 26 / 13 (n 771) | 41 / 29 / 15 (n 771) |
+| consecutive | 20 / 10 / 3 (n 3366) | 28 / 16 / 5 (n 3366) | 31 / 19 / 7 (n 3366) | 27 / 16 / 5 (n 3366) |
+H4 working set (code): unique experts per layer: prompt 253, answer 292, first 100 answer rows 206; coverage of answer slots: first 100 answer rows cover rows 100+ [ranks 0-1] 87.4 %; first 100 answer rows cover rows 100+ [ranks 2-9] 81.5 %; prompt + first 100 cover rows 100+ [ranks 0-1] 95.3 %; prompt + first 100 cover rows 100+ [ranks 2-9] 91.5 %; prompt covers answer [ranks 0-1] 91.1 %; prompt covers answer [ranks 2-9] 84.0 %
+H2 sure runs (code): n 213, mean 13.7, median 2, p90 17, max 398; P(sure | inside copy >= 8) 99.7 % (n 2103) vs outside 65.4 % (n 1263)
+  target kind at the row that ends a sure run vs all rows: whitespace 16 % vs 19 %; punct 27 % vs 21 %; word+space 55 % vs 43 %; word-cont 0 % vs 6 %; number 1 % vs 8 %; other 1 % vs 2 %
+
+### ifeval: H1 expert reuse (overlap of the top-10 set, top-1 equal, top-2 set equal; % by layer group)
+| relation | 0-7 | 8-35 | 36-47 | all |
+|---|---|---|---|---|
+| copy>=8 | 71 / 66 / 52 (n 20) | 49 / 33 / 17 (n 20) | 36 / 22 / 8 (n 20) | 49 / 36 / 21 (n 20) |
+| match4-7 | 71 / 71 / 56 (n 104) | 47 / 34 / 20 (n 104) | 48 / 34 / 24 (n 104) | 51 / 40 / 27 (n 104) |
+| same token, match<4 | 57 / 46 / 32 (n 1521) | 43 / 27 / 13 (n 1521) | 47 / 30 / 16 (n 1521) | 46 / 31 / 17 (n 1521) |
+| consecutive | 22 / 12 / 4 (n 3397) | 40 / 25 / 10 (n 3397) | 42 / 25 / 12 (n 3397) | 38 / 22 / 9 (n 3397) |
+H4 working set (ifeval): unique experts per layer: prompt 154, answer 207, first 100 answer rows 149; coverage of answer slots: first 100 answer rows cover rows 100+ [ranks 0-1] 92.6 %; first 100 answer rows cover rows 100+ [ranks 2-9] 86.2 %; prompt + first 100 cover rows 100+ [ranks 0-1] 95.8 %; prompt + first 100 cover rows 100+ [ranks 2-9] 90.4 %; prompt covers answer [ranks 0-1] 71.8 %; prompt covers answer [ranks 2-9] 62.7 %
+H2 sure runs (ifeval): n 573, mean 1.9, median 1, p90 4, max 16; P(sure | inside copy >= 8) 75.0 % (n 20) vs outside 31.4 % (n 3377)
+  target kind at the row that ends a sure run vs all rows: whitespace 4 % vs 5 %; punct 21 % vs 18 %; word+space 64 % vs 65 %; word-cont 9 % vs 9 %; number 1 % vs 2 %; other 0 % vs 1 %
+
+### multi: H1 expert reuse (overlap of the top-10 set, top-1 equal, top-2 set equal; % by layer group)
+| relation | 0-7 | 8-35 | 36-47 | all |
+|---|---|---|---|---|
+| copy>=8 | 79 / 79 / 62 (n 23) | 53 / 41 / 22 (n 23) | 63 / 45 / 28 (n 23) | 60 / 48 / 30 (n 23) |
+| match4-7 | 74 / 75 / 60 (n 106) | 56 / 42 / 25 (n 106) | 65 / 50 / 33 (n 106) | 61 / 49 / 33 (n 106) |
+| same token, match<4 | 56 / 42 / 28 (n 1342) | 43 / 27 / 13 (n 1342) | 59 / 41 / 27 (n 1342) | 49 / 33 / 19 (n 1342) |
+| consecutive | 31 / 18 / 8 (n 3553) | 47 / 31 / 14 (n 3553) | 61 / 42 / 26 (n 3553) | 48 / 32 / 16 (n 3553) |
+H4 working set (multi): unique experts per layer: prompt 96, answer 219, first 100 answer rows 151; coverage of answer slots: first 100 answer rows cover rows 100+ [ranks 0-1] 93.2 %; first 100 answer rows cover rows 100+ [ranks 2-9] 86.3 %; prompt + first 100 cover rows 100+ [ranks 0-1] 94.3 %; prompt + first 100 cover rows 100+ [ranks 2-9] 88.3 %; prompt covers answer [ranks 0-1] 70.4 %; prompt covers answer [ranks 2-9] 58.3 %
+H2 sure runs (multi): n 793, mean 1.8, median 1, p90 4, max 15; P(sure | inside copy >= 8) 52.2 % (n 23) vs outside 40.4 % (n 3530)
+  target kind at the row that ends a sure run vs all rows: whitespace 2 % vs 4 %; punct 17 % vs 14 %; word+space 25 % vs 20 %; word-cont 6 % vs 11 %; number 1 % vs 1 %; other 48 % vs 50 %
+
+### H5 token kinds: flip % under top-2 / top-5 / reuse 12-35 by the target token's kind; drafter-unsure rows (cf < 0.99) under top-2; and 125B-mid rows under top-2
+| code: kind | rows | top-2 | top-5 | reuse 12-35 | drafter-unsure rows: top-2 (n) | 125B-mid rows: top-2 (n) |
+|---|---|---|---|---|---|---|
+| word+space | 1432 | 6.63 | 2.72 | 9.01 | 15.0 (622) | 27.5 (258) |
+| punct | 714 | 3.36 | 1.54 | 5.32 | 8.6 (244) | 23.2 (82) |
+| whitespace | 642 | 2.02 | 0.62 | 2.18 | 7.1 (156) | 16.7 (42) |
+| number | 286 | 0.70 | 0.00 | 0.70 | 3.1 (65) | 66.7 (3) |
+| word-cont | 210 | 0.48 | 0.00 | 1.43 | 2.3 (44) | 0.0 (3) |
+| other | 82 | 3.66 | 0.00 | 8.54 | 12.5 (24) | 33.3 (6) |
+| all: kind | rows | top-2 | top-5 | reuse 12-35 | drafter-unsure rows: top-2 (n) | 125B-mid rows: top-2 (n) |
+|---|---|---|---|---|---|---|
+| word+space | 4327 | 26.72 | 11.21 | 27.02 | 35.4 (3240) | 39.5 (2292) |
+| other | 1924 | 32.17 | 12.01 | 21.57 | 35.4 (1733) | 45.7 (970) |
+| punct | 1822 | 8.23 | 3.57 | 10.98 | 15.1 (946) | 20.2 (620) |
+| whitespace | 956 | 3.66 | 1.36 | 4.08 | 11.2 (285) | 18.9 (127) |
+| word-cont | 896 | 16.96 | 6.14 | 13.28 | 26.9 (551) | 46.1 (254) |
+| number | 391 | 2.05 | 0.77 | 3.07 | 7.0 (114) | 25.9 (27) |

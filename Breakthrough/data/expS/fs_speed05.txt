@@ -1,0 +1,14 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=34.5 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'compiled_hc': 96, 'frspec': True}
+bt_frugal_spec: C=26 of 512 (5 %), loaded in 1s, active 7.6 GB, MAXK 80, SMAX 8
+[code] ar2 C=26:   25.1 tok/s, waited misses/tok 30.3, sha 4f1bddc26a | 'Here is the refactored code with the requested changes, followed by th'
+[mtplx] verify SDPA head-chunked: q_len=3 heads_per_chunk=10 chunks=4
+[code] spec 2:2:0 C=26:   32.5 tok/s, 2.37 tok/pass, lookup 0/54, waited misses/tok 40.2, draft 0.20s verify 3.79s, refused 0, frugal calls 2762 (2.86 rows) exact 49, sha ea0d1c5880 differs from ar2 at 0 | "I'll refactor this module with the requested improvements. Let me star"
+[code] spec 3:3:0 C=26:   34.4 tok/s, 2.98 tok/pass, lookup 0/43, waited misses/tok 42.8, draft 0.22s verify 3.57s, refused 0, frugal calls 2251 (3.76 rows) exact 49, sha 88d49f5750 differs from ar2 at 0 | '```python\nimport re\nimport argparse\nfrom collections import defaultdic'
+[code] spec 3:3:1 C=26:   32.8 tok/s, 2.84 tok/pass, lookup 16/45, waited misses/tok 46.7, draft 0.24s verify 3.74s, refused 0, frugal calls 2356 (3.61 rows) exact 49, sha 635ebd8b81 differs from ar2 at 0 | '```python\nimport re\nimport argparse\nfrom collections import defaultdic'
+[code] spec 3:5:1 C=26:   33.3 tok/s, 2.98 tok/pass, lookup 11/43, waited misses/tok 46.4, draft 0.23s verify 3.69s, refused 0, frugal calls 2247 (3.87 rows) exact 49, sha 49db00c718 differs from ar2 at 0 | '```python\nimport re\nimport argparse\nfrom collections import defaultdic'
+peak 10.9 GB

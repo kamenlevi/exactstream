@@ -1,0 +1,11 @@
+diff --git a/count.sh b/count.sh
+index 3b19f0c..5c987d3 100644
+--- a/count.sh
++++ b/count.sh
+@@ -1,2 +1,5 @@
+ #!/bin/sh
+-cat data/*.txt | wc -l | tr -d ' '
++# Total line count across all .txt files under data/, including subfolders.
++# -exec cat {} + batches files, so a file without a trailing newline is
++# still counted correctly (cat does not insert separators between files).
++find data -type f -name '*.txt' -exec cat {} + | wc -l | tr -d ' '

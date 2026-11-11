@@ -1,0 +1,180 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=26.8 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] fusions: {'duprow': True, 'compiled_hc': 96}
+loaded C=128/512 (25%) in 1s; pools 17.0 GB; active 20.9 GB; prompt 327 tok
+   sync-path calls during run: 48 (15648 rows); gated calls 2979
+ar2   C=128: decode   19.7 tok/s (63 tok), prefill+first    6.3s | per gen token: misses  85.2 stalled layers  21.9 io  15.9 ms slow calls 35.5 x 604 us, fast hits 16.7 | peak 23.4 GB | tokens 64 sha c09a8163f9 | '```python\nimport re\nimport argparse\nfrom collections import '
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+Traceback (most recent call last):
+  File "/Users/kamen/BigMoE/scripts/bench.py", line 24, in <module>
+    rt, st = load_streamed(MD, C, mtp=not os.environ.get("BIGMOE_NOMTP"))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/bigmoe/loader.py", line 29, in load_streamed
+    rt = load(model_dir, mtp=mtp)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/runtime.py", line 719, in load
+    model, tokenizer = _load_base_model(path, config)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/runtime.py", line 1248, in _load_base_model
+    model, _loaded_config = load_model(path, **load_kwargs)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/bigmoe/loader.py", line 22, in lazy_load_model
+    streamer.install(model)
+  File "/Users/kamen/BigMoE/bigmoe/stream.py", line 378, in install
+    ext.set_records(L, os.path.join(self._rec_dir, r["file"]), r["recsz"])
+TypeError: set_records(): incompatible function arguments. The following argument types are supported:
+    1. set_records(arg0: int, arg1: std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, arg2: int, /) -> None
+
+Invoked with types: int, str, int
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=26.7 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] fusions: {'duprow': True, 'compiled_hc': 96}
+loaded C=128/512 (25%) in 1s; pools 17.0 GB; active 20.9 GB; prompt 327 tok
+   sync-path calls during run: 48 (15648 rows); gated calls 2979
+ar2   C=128: decode   19.5 tok/s (63 tok), prefill+first    6.3s | per gen token: misses  85.2 stalled layers  21.9 io  16.0 ms slow calls 35.5 x 607 us, fast hits 16.6 | peak 23.4 GB | tokens 64 sha c09a8163f9 | '```python\nimport re\nimport argparse\nfrom collections import '
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+Traceback (most recent call last):
+  File "/Users/kamen/BigMoE/scripts/bench.py", line 24, in <module>
+    rt, st = load_streamed(MD, C, mtp=not os.environ.get("BIGMOE_NOMTP"))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/bigmoe/loader.py", line 29, in load_streamed
+    rt = load(model_dir, mtp=mtp)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/runtime.py", line 719, in load
+    model, tokenizer = _load_base_model(path, config)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/runtime.py", line 1248, in _load_base_model
+    model, _loaded_config = load_model(path, **load_kwargs)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/bigmoe/loader.py", line 22, in lazy_load_model
+    streamer.install(model)
+  File "/Users/kamen/BigMoE/bigmoe/stream.py", line 378, in install
+    ext.set_records(L, os.path.join(self._rec_dir, r["file"]), r["recsz"])
+TypeError: set_records(): incompatible function arguments. The following argument types are supported:
+    1. set_records(arg0: int, arg1: std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, arg2: int, /) -> None
+
+Invoked with types: int, str, int
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+Traceback (most recent call last):
+  File "/Users/kamen/SpecDecode/scripts/test_spec125.py", line 46, in <module>
+    rt, st = load_streamed(MD, C, mtp=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/bigmoe/loader.py", line 29, in load_streamed
+    rt = load(model_dir, mtp=mtp)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/runtime.py", line 719, in load
+    model, tokenizer = _load_base_model(path, config)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/runtime.py", line 1248, in _load_base_model
+    model, _loaded_config = load_model(path, **load_kwargs)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/bigmoe/loader.py", line 22, in lazy_load_model
+    streamer.install(model)
+  File "/Users/kamen/BigMoE/bigmoe/stream.py", line 378, in install
+    ext.set_records(L, os.path.join(self._rec_dir, r["file"]), r["recsz"])
+TypeError: set_records(): incompatible function arguments. The following argument types are supported:
+    1. set_records(arg0: int, arg1: std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, arg2: int, /) -> None
+
+Invoked with types: int, str, int
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=12.8 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] fusions: {'duprow': True, 'compiled_hc': 96}
+loaded C=256/512 (50%) in 1s; pools 34.0 GB; active 37.9 GB; prompt 327 tok
+   sync-path calls during run: 48 (15648 rows); gated calls 2978
+ar2   C=256: decode   27.7 tok/s (63 tok), prefill+first    7.8s | per gen token: misses  33.4 stalled layers  10.7 io   6.6 ms slow calls 20.6 x 395 us, fast hits 31.1 | peak 40.4 GB | tokens 64 sha c09a8163f9 | '```python\nimport re\nimport argparse\nfrom collections import '
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+Traceback (most recent call last):
+  File "/Users/kamen/BigMoE/scripts/bench.py", line 24, in <module>
+    rt, st = load_streamed(MD, C, mtp=not os.environ.get("BIGMOE_NOMTP"))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/bigmoe/loader.py", line 29, in load_streamed
+    rt = load(model_dir, mtp=mtp)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/runtime.py", line 719, in load
+    model, tokenizer = _load_base_model(path, config)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/runtime.py", line 1248, in _load_base_model
+    model, _loaded_config = load_model(path, **load_kwargs)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/bigmoe/loader.py", line 22, in lazy_load_model
+    streamer.install(model)
+  File "/Users/kamen/BigMoE/bigmoe/stream.py", line 378, in install
+    ext.set_records(L, os.path.join(self._rec_dir, r["file"]), r["recsz"])
+TypeError: set_records(): incompatible function arguments. The following argument types are supported:
+    1. set_records(arg0: int, arg1: std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, arg2: int, /) -> None
+
+Invoked with types: int, str, int
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=12.3 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] fusions: {'duprow': True, 'compiled_hc': 96}
+loaded C=256/512 (50%) in 1s; pools 34.0 GB; active 37.9 GB; prompt 327 tok
+   sync-path calls during run: 48 (15648 rows); gated calls 2978
+ar2   C=256: decode   27.5 tok/s (63 tok), prefill+first    6.9s | per gen token: misses  33.4 stalled layers  10.7 io   6.8 ms slow calls 20.6 x 404 us, fast hits 30.7 | peak 40.4 GB | tokens 64 sha c09a8163f9 | '```python\nimport re\nimport argparse\nfrom collections import '
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+Traceback (most recent call last):
+  File "/Users/kamen/BigMoE/scripts/bench.py", line 24, in <module>
+    rt, st = load_streamed(MD, C, mtp=not os.environ.get("BIGMOE_NOMTP"))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/bigmoe/loader.py", line 29, in load_streamed
+    rt = load(model_dir, mtp=mtp)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/runtime.py", line 719, in load
+    model, tokenizer = _load_base_model(path, config)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/runtime.py", line 1248, in _load_base_model
+    model, _loaded_config = load_model(path, **load_kwargs)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/bigmoe/loader.py", line 22, in lazy_load_model
+    streamer.install(model)
+  File "/Users/kamen/BigMoE/bigmoe/stream.py", line 378, in install
+    ext.set_records(L, os.path.join(self._rec_dir, r["file"]), r["recsz"])
+TypeError: set_records(): incompatible function arguments. The following argument types are supported:
+    1. set_records(arg0: int, arg1: std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, arg2: int, /) -> None
+
+Invoked with types: int, str, int
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+Traceback (most recent call last):
+  File "/Users/kamen/SpecDecode/scripts/test_spec125.py", line 46, in <module>
+    rt, st = load_streamed(MD, C, mtp=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/bigmoe/loader.py", line 29, in load_streamed
+    rt = load(model_dir, mtp=mtp)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/runtime.py", line 719, in load
+    model, tokenizer = _load_base_model(path, config)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/runtime.py", line 1248, in _load_base_model
+    model, _loaded_config = load_model(path, **load_kwargs)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/bigmoe/loader.py", line 22, in lazy_load_model
+    streamer.install(model)
+  File "/Users/kamen/BigMoE/bigmoe/stream.py", line 378, in install
+    ext.set_records(L, os.path.join(self._rec_dir, r["file"]), r["recsz"])
+TypeError: set_records(): incompatible function arguments. The following argument types are supported:
+    1. set_records(arg0: int, arg1: std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, arg2: int, /) -> None
+
+Invoked with types: int, str, int
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=26.7 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] fusions: {'duprow': True, 'compiled_hc': 96}
+loaded C=128/512 (25%) in 1s; pools 17.0 GB; active 20.9 GB; prompt 327 tok
+   sync-path calls during run: 48 (15648 rows); gated calls 2979
+ar2   C=128: decode   19.8 tok/s (63 tok), prefill+first    6.3s | per gen token: misses  85.2 stalled layers  21.9 io  15.7 ms slow calls 35.5 x 593 us, fast hits 17.1 | peak 23.4 GB | tokens 64 sha c09a8163f9 | '```python\nimport re\nimport argparse\nfrom collections import '
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=26.1 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] fusions: {'duprow': True, 'compiled_hc': 96}
+loaded C=128/512 (25%) in 1s; pools 17.0 GB; active 20.9 GB; prompt 327 tok
+   sync-path calls during run: 48 (15648 rows); gated calls 2979
+ar2   C=128: decode   13.2 tok/s (63 tok), prefill+first    6.2s | per gen token: misses  85.1 stalled layers  22.3 io  29.2 ms slow calls 35.5 x 1323 us, fast hits 14.7 | peak 23.4 GB | tokens 64 sha c09a8163f9 | '```python\nimport re\nimport argparse\nfrom collections import '

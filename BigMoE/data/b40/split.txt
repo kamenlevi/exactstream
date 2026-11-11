@@ -1,0 +1,16 @@
+b40 (Tue 2026-10-27 23:22-23:24, shipped 24 GB v3, one traced run of scripts/s10_anatomy.py 0.25 256 on code / prose /
+edit; data/b40/anatomy.json now holds spec125's timers per prompt). DECODE time per token (spec125 'time' excludes the
+prefill; the GPU-side split is the trace's verify spans, since the host graph build runs in lockstep with the GPU
+through async_eval backpressure and so cannot be split by host timers):
+
+                 decode   gate wait   verify GPU   outside verify (MTP draft / commit / MTP head / Python+other)   tok/s
+  code            29.1      15.3        10.5         3.3  (1.6 / 0.1 / 0.1 / ~1.5)                                    34.4
+  prose           41.5      21.1        15.3         5.1  (2.3 / 0.3 / 0.2 / ~2.3)                                    24.1
+  edit            31.8      21.1         7.3         3.4  (0.5 / 2.0 / 0.1 / ~0.8)                                    31.5
+  all three       34.1      19.2 (56 %)  10.9 (32 %)  ~4.0 (12 %: 1.5 / 0.8 / 0.1 / ~1.6)
+
+The "~51 ms per token" from b38 / b39 included the prefill (4 prompts) and the S10b trace's overhead; in decode the
+gate wait is about half, the verify GPU a third. Per verify pass (code): span 76.8 ms = gate wait 45.6 + GPU 31.1,
+SSD busy 69.6 (so GPU work can only shorten the pass by the ~7 ms the SSD is idle, unless it also moves demand reads
+earlier). Reading for the next 24 GB screen: the SSD (gate wait) is still the largest share; verify GPU is second
+(Leap's kernels are 16-row, AdaptiveWidth verifies 2-7 rows); drafting + commit + Python are ~4 ms per token (~12 %).

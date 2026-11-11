@@ -1,0 +1,11 @@
+R-40 STEP 4b: full 125B via load_streamed (C = 144), loaded in 2 s; layer 35, row 2
+  AR step 2 call: q (1, 24, 16, 256), k (1, 2, 538, 256), mask ((1, 1, 16, 538), mlx.core.bool)
+  check call:  q (1, 24, 16, 256), k (1, 2, 536, 256), mask ((1, 1, 16, 536), mlx.core.bool)
+  row 2: q equal True; keys 0..522 equal True; values equal True; output equal False
+  a. replays reproduce: AR True; check True
+  b. check row 2 at key length N' = 536..1100 (the AR's own call has N = 538): 536-537: check; 538-541: AR; 542-549: check; 550-551: AR; 552-555: check; 556-557: AR; 558-561: check; 562-565: AR; 566-569: check; 570-575: AR; 576-577: check; 578-579: AR; 580-581: check; 582-583: AR; 584-595: check; 596-599: AR; 600-601: check; 602-603: AR; 604-617: check; 618-619: AR; 620-625: check; 626-629: AR; 630-631: check; 632-643: AR; 644-645: check; 646-653: AR; 654-655: check; 656-657: AR; 658-659: check; 660-661: AR; 662-663: check; 664-671: AR; 672-673: check; 674-687: AR; 688-691: check; 692-717: AR; 718-719: check; 720-735: AR; 736-741: check; 742-745: AR ...
+     distinct runs 52; N' giving the AR's bits: 455 of 565
+  c. AR call with the real row at q index 2 (its mask row moved with it): equals the AR's row True
+  d. both padded to N' = 1024: check row 2 == AR row: True
+  d. both padded to N' = 1536: check row 2 == AR row: True
+R-40 STEP 4b done in 16 s

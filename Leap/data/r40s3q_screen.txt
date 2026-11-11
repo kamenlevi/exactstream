@@ -1,0 +1,9 @@
+R-40 STEP 3q: full 125B via load_streamed (C = 144), loaded in 1 s, 23.0 GB active; EvalSuite's PF1 True (full scratch True): on for prefills, off for checks / commits
+  self-test: {'qmm16c 6144x2560': True, 'MLX 16-row 512x2560': True, 'experts split == fused': True, 'experts rows alone': True, 'bf16 Linear': True}
+  humaneval/HumanEval/68 [commit phase on] P 367: 256 tokens in 17 checks (kept 15.41), 28.3 tok/s, median cycle 504.9 ms; tokens == EvalSuite's REF2 row 256 / 256; logits rows bitwise vs AR 48 / 48; slot calls per check 48.2
+  math500/test/prealgebra/1640.json [commit phase on] P 62: 256 tokens in 47 checks (kept 5.43), 13.9 tok/s, median cycle 367.9 ms; tokens == EvalSuite's REF2 row 256 / 256; logits rows bitwise vs AR 48 / 48; slot calls per check 48.4
+  humaneval/HumanEval/91 [commit phase on] P 144: 256 tokens in 32 checks (kept 8.09), 18.5 tok/s, median cycle 368.4 ms; tokens == EvalSuite's REF2 row 256 / 256; logits rows bitwise vs AR 48 / 48; slot calls per check 48.3
+  math500/test/algebra/694.json [commit phase on] P 98: 256 tokens in 35 checks (kept 7.34), 15.4 tok/s, median cycle 460.4 ms; tokens == EvalSuite's REF2 row 216 / 256; logits rows bitwise vs AR 14 / 48; slot calls per check 48.5
+  Part D (synthetic loop on math500/test/prealgebra/1640.json): start states == the AR's at 11 check starts: True
+  math500/test/prealgebra/1640.json [commit phase OFF (control)] P 62: 256 tokens in 52 checks (kept 4.92), 13.6 tok/s, median cycle 345.7 ms; tokens == EvalSuite's REF2 row 55 / 256; logits rows bitwise vs AR 40 / 48; slot calls per check 48.4
+R-40 STEP 3q verdict (PASS: live loop + states bit-exact vs REF2's AR and the control breaks): FAIL (Part L exact False over 4 prompt(s); Part D True; control broke True; 178 s)

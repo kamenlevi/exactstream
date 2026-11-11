@@ -1,0 +1,8 @@
+L1-24 screen: routed experts, real 4-bit weights of layers (12, 20, 28, 36) (512 experts, 0.005 MB each incl. scales / biases), loaded in 1 s
+   4 rows (40 routed, 25 distinct experts per layer): floor 0.000 ms per layer; unsorted 0.423 ms (0% of floor); sorted 0.393 ms (0% of floor); bigmoe 0.396 ms (0% of floor)  -> per 48-layer check: floor 0.0 ms, best 18.9 ms
+   8 rows (80 routed, 42 distinct experts per layer): floor 0.001 ms per layer; unsorted 0.776 ms (0% of floor); sorted 0.697 ms (0% of floor); bigmoe 0.695 ms (0% of floor)  -> per 48-layer check: floor 0.0 ms, best 33.3 ms
+  16 rows (160 routed, 72 distinct experts per layer): floor 0.001 ms per layer; unsorted 1.514 ms (0% of floor); sorted 1.264 ms (0% of floor); bigmoe 1.266 ms (0% of floor)  -> per 48-layer check: floor 0.1 ms, best 60.7 ms
+  unsorted rows alone vs inside the 16-row call (bitwise): 1:= 2:= 4:= 7:= 8:= 12:=
+  sorted   rows alone vs inside the 16-row call (bitwise): 1:= 2:= 4:= 7:= 8:= 12:=
+  bigmoe   rows alone vs inside the 16-row call (bitwise): 1:= 2:= 4:= 7:= 8:= 12:=
+  across paths at 16 rows (bitwise): unsorted = sorted True, sorted = bigmoe True, unsorted = bigmoe True

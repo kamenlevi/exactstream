@@ -1,0 +1,22 @@
+T1   PASS  BigMoE HEAD 4a9a4f1; working tree == HEAD; git apply --check OK
+T2   PASS  patch -p1 on HEAD's file rc 0; the result compiles True; the stored patched/r57_screen.py is the same file
+T3   PASS  2 gated blocks; the rest of the AST == the unpatched file's (207 top-level nodes); R57_FASTTAX outside the blocks: 0; module-level names the blocks bind: ['_c', '_ft']
+T3b  PASS  the unpatched code never reads _c / _ft before binding it again in the same top-level statement
+T4a  PASS  8 arms without R57_FASTTAX: ref2.CFG identical and nothing printed
+       FAST all-in + R57_FASTTAX=1 (DNR on)                 -> {'att_single': True} | [r57] FAST-TAX: gdn_inproj skipped under R57_DNR=1 (K-83's gdn_inproj_x stays)
+       FAST all-in + R57_FASTTAX=att                        -> {'att_single': True} | [r57] FAST-TAX: att on (ref2 att_single True, gdn_inproj False, fatt_verify False)
+       FAST all-in without DNR + R57_FASTTAX=1              -> {'att_single': True, 'gdn_inproj': True} | [r57] FAST-TAX: att + inproj on (ref2 att_single True, gdn_inproj True, fatt_verify False)
+       FAST all-in without DNR + R57_FASTTAX=att+inproj     -> {'att_single': True, 'gdn_inproj': True} | [r57] FAST-TAX: att + inproj on (ref2 att_single True, gdn_inproj True, fatt_verify False)
+       FAST all-in without DNR + R57_FASTTAX=inproj         -> {'gdn_inproj': True} | [r57] FAST-TAX: inproj on (ref2 att_single False, gdn_inproj True, fatt_verify False)
+       FAST U3C len + R57_FASTTAX=1                         -> {'att_single': True, 'gdn_inproj': True} | [r57] FAST-TAX: att + inproj on (ref2 att_single True, gdn_inproj True, fatt_verify False)
+T4b  PASS  6 FAST arms with R57_FASTTAX: only the intended ref2 switches move
+       exact default + R57_FASTTAX=1                              -> AssertionError: R57_FASTTAX is FAST-only (tokens differ from REF2-T past 512 keys): set R57_FAST=<arm> and
+       exact default, no REFTOK, + R57_FASTTAX=1                  -> AssertionError: R57_FASTTAX is FAST-only (tokens differ from REF2-T past 512 keys): set R57_FAST=<arm> and
+       FAST all-in that still carries R57_REFTOK + R57_FASTTAX=1  -> AssertionError: R57_FASTTAX is FAST-only (tokens differ from REF2-T past 512 keys): set R57_FAST=<arm> and
+       FAST all-in + R57_FASTTAX=inproj under R57_DNR=1           -> AssertionError: R57_FASTTAX=inproj cannot run with R57_DNR=1 (ref2's _InProjPad is not DENSE-N-RAM-aware)
+       FAST all-in + R57_FASTTAX=fatt (unknown piece)             -> AssertionError: R57_FASTTAX=fatt: the pieces are att, inproj (or 1)
+T4c  PASS  5 misuse cases stop on an assert before any switch moves
+T5   PASS  Leap HEAD 0405421: CFG att_single False, gdn_inproj False by default; _sdpa_one True; _InProjPad True, DENSE-N-RAM-aware: False (so inproj is skipped under R57_DNR=1)
+T6   PASS  fasttax_aba.sh's all-in arm == BigMoE's fri_night.sh QA (12 switches) and the arm T4 tested
+
+ALL PASS

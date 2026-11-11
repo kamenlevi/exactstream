@@ -1,0 +1,22 @@
+diff --git a/report.py b/report.py
+index f3dccca..903d5d0 100644
+--- a/report.py
++++ b/report.py
+@@ -1,10 +1,14 @@
++def format_money(amount):
++    return f'{amount:,.2f}'
++
++
+ def line_item(name, amount):
+-    return f'{name}: ${amount:,.2f}'
++    return f'{name}: ${format_money(amount)}'
+ 
+ 
+ def total_line(amount):
+-    return f'Total: ${amount:,.2f}'
++    return f'Total: ${format_money(amount)}'
+ 
+ 
+ def tax_line(amount, rate):
+-    return f'Tax: ${amount * rate:,.2f}'
++    return f'Tax: ${format_money(amount * rate)}'

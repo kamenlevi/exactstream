@@ -1,0 +1,12 @@
+fused in_proj (N 12352, K 2048), error vs fp32-exact, relative to RMS(result):
+  MLX M=1 (qmv)                        RMS 1.66e-03   max 1.63e-02
+  MLX M=16                             RMS 2.21e-03   max 1.63e-02
+  qmm16 KS 2                           RMS 2.21e-03   max 1.63e-02
+  qmm16c KS 2                          RMS 1.66e-03   max 1.63e-02
+  fp32-exact rounded to bf16 (floor)   RMS 1.66e-03   max 1.63e-02
+out_proj (N 2048, K 4096), error vs fp32-exact, relative to RMS(result):
+  MLX M=1 (qmv)                        RMS 1.66e-03   max 1.21e-02
+  MLX M=16                             RMS 1.66e-03   max 1.21e-02
+  qmm16 KS 2                           RMS 2.21e-03   max 1.56e-02
+  qmm16c KS 2                          RMS 1.66e-03   max 1.21e-02
+  fp32-exact rounded to bf16 (floor)   RMS 1.66e-03   max 1.21e-02

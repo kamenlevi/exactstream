@@ -1,0 +1,20 @@
+b46 bounce pool fix: shas vs b45 A, and phys_footprint now across idle gaps (GB)
+NEW: shas 4633d70e77 5f2c200e62 8f02448059 2ae4ee95ae == b45 A: True; lifetime peak 23.894 GB
+    gap -1: before 23.0189  after gap 23.0189  after gen 23.0346  lifetime 23.8941  sha 697b780955  bounce [32, 87883776]
+    gap  0: before 23.0346  after gap 22.9632  after gen 23.1219  lifetime 23.8941  sha 697b780955  bounce [32, 88604672]
+    gap  1: before 23.1219  after gap 23.0507  after gen 23.1216  lifetime 23.8941  sha 697b780955  bounce [32, 88604672]
+    gap  2: before 23.1216  after gap 23.0504  after gen 23.2165  lifetime 23.8941  sha 697b780955  bounce [32, 88604672]
+    gap  3: before 23.2165  after gap 23.1452  after gen 23.3111  lifetime 23.8941  sha 697b780955  bounce [32, 88604672]
+    after-gen footprint, last gap - warm: +276.5 MB over 4 gaps (+69.1 MB / gap)
+OLD: shas 4633d70e77 5f2c200e62 8f02448059 2ae4ee95ae == b45 A: True; lifetime peak 24.192 GB
+    gap -1: before 23.2887  after gap 23.2887  after gen 23.3160  lifetime 24.1924  sha 697b780955  bounce None
+    gap  0: before 23.3160  after gap 23.2446  after gen 23.4510  lifetime 24.1924  sha 697b780955  bounce None
+    gap  1: before 23.4510  after gap 23.3796  after gen 23.5900  lifetime 24.1924  sha 697b780955  bounce None
+    gap  2: before 23.5900  after gap 23.5187  after gen 23.7333  lifetime 24.2914  sha 697b780955  bounce None
+    gap  3: before 23.7333  after gap 23.6620  after gen 23.3047  lifetime 24.2914  sha 697b780955  bounce None
+    after-gen footprint, last gap - warm: -11.3 MB over 4 gaps (-2.8 MB / gap)
+t3m.txt | PASS
+t3.txt | PASS
+t3p.txt | PASS
+gap_tl.txt | footprint after the last cycle - after the first: +273.1 MB over 4 gaps (+68.3 MB per gap); re-read experts bitwise equal: True
+gap_bp.txt | footprint after the last cycle - after the first: +157.2 MB over 4 gaps (+39.3 MB per gap); re-read experts bitwise equal: True

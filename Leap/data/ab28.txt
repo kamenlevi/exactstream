@@ -1,0 +1,6 @@
+Fair A/B at equal (ks, nt), interleaved, 12 rounds x median of 7
+  in_proj_qkv 10240x2560 x36 at (2, 2): qmm16c 2.571 ms (74% of floor; x1.00 vs qmm16c, IQR 1.00-1.00); native 2.244 ms (84% of floor; x1.15 vs qmm16c, IQR 1.14-1.15); int4 3.114 ms (61% of floor; x0.82 vs qmm16c, IQR 0.82-0.83)
+  o_proj+out_proj 2560x6144 x48 at (2, 2): qmm16c 2.364 ms (64% of floor; x1.00 vs qmm16c, IQR 1.00-1.00); native 1.949 ms (78% of floor; x1.22 vs qmm16c, IQR 1.21-1.23); int4 3.484 ms (44% of floor; x0.68 vs qmm16c, IQR 0.67-0.69)
+  in_proj_z 6144x2560 x36 at (1, 1): qmm16c 1.798 ms (63% of floor; x1.00 vs qmm16c, IQR 1.00-1.00); native 1.505 ms (76% of floor; x1.20 vs qmm16c, IQR 1.19-1.20); int4 2.074 ms (55% of floor; x0.87 vs qmm16c, IQR 0.86-0.87)
+  experts 8 rows (36 distinct, 4 layers): nax 2.060 ms (68% of floor; x1.00 vs nax, IQR 1.00-1.00); native 1.925 ms (73% of floor; x1.06 vs nax, IQR 1.06-1.08); int4 2.570 ms (55% of floor; x0.80 vs nax, IQR 0.79-0.81)
+  experts 16 rows (56 distinct, 4 layers): nax 2.990 ms (74% of floor; x1.00 vs nax, IQR 1.00-1.00); native 2.751 ms (81% of floor; x1.08 vs nax, IQR 1.08-1.09); int4 3.950 ms (56% of floor; x0.77 vs nax, IQR 0.75-0.77)

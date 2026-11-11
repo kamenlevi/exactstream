@@ -1,0 +1,19 @@
+CONVERSION DRIVER TEST (convert/convert_store.sh, Mon 9 Nov 2026 07:39-07:41; CPU + SSD, share lock; /bin/bash 3.2.57)
+What: a new driver that builds the expert store one layer at a time with the three shipped steps (repack_records.py ->
+make_records3.py --no-mlx -> convert_records_p11.py --pad), keeping each layer (convert/test_layers.sh deletes it after the
+compare), merging index.json, skipping finished layers, stopping at the first failing step. Run from the prepared smoke clone
+(its venv and @ROOT@-rewritten convert/ scripts), model ~/BigMoE/models/bare, output in the scratchpad.
+Run 1 (v1, report inside the store folder): L0's p11 step REFUSED: "files of the directory are open" (the driver's own report,
+open as the converter's stdout). convert_records_p11.py refuses to rewrite while any file in the store folder is open.
+Fix: the report and the 4-bit pieces live in <out>.work beside the store.
+Run 2 (v2): layers 0 and 47 converted: L0 repack 2 s, split + verify 6 s, p11 12 s; L47 2 s, 8 s, 11 s; 41 s in all.
+  L00.bin and L47.bin == ~/BigMoE/models/bare/records3 byte for byte (1,426,063,360 B each); index entries L0 and L47 == the
+  reference's; the new index holds both layers (merged across the two layer runs).
+Resume: the same command again -> both layers "already native+p11+pad, skipped", rc 0.
+Default layers: the detection one-liner on the real model's model.safetensors.index.json -> 48 layers.
+Failure: a fake model folder (index naming layer 5, no safetensors) -> default detection found layer 5; make_records3 FAILED
+  (repack_records.py exits 0 when the layer has no tensors; make_records3 catches it); the driver stopped, rc 1.
+Disk: free 53 GB before, 50 GB at the peak, 53 GB after cleanup. Verdict: PASS (v2).
+Estimate for a full store (48 layers): per-layer step time 19-39 s across this test and the 8 Nov conversion test
+(D:release/pfd_convert_report.txt) -> about 15-31 min [P]; extra disk at a time: one layer's 4-bit pieces (1.42 GB) + its
+row-major rewrite (1.50 GB) -> about 3-4.4 GB beside the growing 68.5 GB store [P].

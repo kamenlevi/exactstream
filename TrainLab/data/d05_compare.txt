@@ -1,0 +1,19 @@
+D-05 like-with-like: native MTP chain (k = 3) vs DFlash2 L1-20 (block 16, official loop), same prompts, same region
+(completion positions 1..L, L = the answer's first end token, capped at the MTP decode's 300 tokens; conditional
+per-depth acceptance, hits / trials):
+  code   (8 prompts, 2047 positions)
+    MTP chain  depth 1 / 2 / 3 = 0.972 / 0.977 / 0.955   (517/532, 511/523, 486/509);  tokens per check at width 3: 3.83
+    DFlash2    depth 1 / 2 / 3 = 0.969 / 0.941 / 0.943   (189/195, 176/187, 165/175);  tokens per check at width 3: 3.74
+    DFlash2    depths 4-15: 0.98 0.96 0.97 0.96 0.92 0.91 0.87 0.90 0.90 0.94 0.92 0.86;  kept per block-16 check (accepted + 1, D-02b's measure) 10.54 (195 checks)
+    same text: 1572 known MTP-decode positions compared with dfl2d's ids, 86 differ (first: [('tf_code/HumanEval/118', 187)])
+  gsm    (8 prompts, 1511 positions)
+    MTP chain  depth 1 / 2 / 3 = 0.924 / 0.875 / 0.893   (403/436, 357/408, 316/354);  tokens per check at width 3: 3.46
+    DFlash2    depth 1 / 2 / 3 = 0.902 / 0.881 / 0.854   (202/224, 178/202, 152/178);  tokens per check at width 3: 3.38
+    DFlash2    depths 4-15: 0.87 0.91 0.86 0.87 0.89 0.88 0.80 0.74 0.77 0.77 0.73 0.75;  kept per block-16 check (accepted + 1, D-02b's measure) 6.78 (224 checks)
+    same text: 1206 known MTP-decode positions compared with dfl2d's ids, 869 differ (first: [('tf_gsm/600', 0), ('tf_gsm/608', 1), ('tf_gsm/616', 0)])
+  ifeval (8 prompts, 1332 positions)
+    MTP chain  depth 1 / 2 / 3 = 0.637 / 0.550 / 0.540   (389/611, 216/393, 116/215);  tokens per check at width 3: 2.18
+    DFlash2    no features for these prompts yet (D-02a)
+  multi  (8 prompts, 1965 positions)
+    MTP chain  depth 1 / 2 / 3 = 0.464 / 0.464 / 0.504   (509/1098, 238/513, 119/236);  tokens per check at width 3: 1.79
+    DFlash2    no features for these prompts yet (D-02a)

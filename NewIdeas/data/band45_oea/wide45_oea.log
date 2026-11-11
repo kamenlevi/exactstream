@@ -1,0 +1,41 @@
+M-18c WIDE-Q1 on Breakthrough's capture: 12 code windows; MATCH code rates base16 (15 depths, mean 0.918), match32 (31 depths, mean 0.956)
+  check: '16 always' reproduces the real (uncut) walk's checks (anchor, rows, kept): 373 / 391
+  seed 0 done: 1056 replays, 10 s
+  seed 1 done: 2112 replays, 20 s
+
+  arm        | rule              | kept / check | rows / check | SSD MB / kept | union GB / check | modeled ms / check (today / NAX6) | tok/s (today / NAX6)
+  16 cut     | EXACT             |   8.00 |  10.61 |   46.5 |  6.13 |   92.8 /   74.0 |   86.3 /  108.2
+  16 cut     | Q1 0.9            |   8.00 |  10.61 |   24.6 |  3.22 |   61.5 /   51.6 |  130.2 /  155.2
+  16 cut     | Q1 0.9 3b         |   8.00 |  10.61 |   17.2 |  2.88 |   54.6 /   45.7 |  146.6 /  175.0
+  16 cut     | HYB 0.9 u8        |   8.00 |  10.61 |   21.4 |  2.86 |   57.2 /   48.4 |  139.9 /  165.2
+  16 cut     | HYB 0.9 u8 3b     |   8.00 |  10.61 |   14.0 |  2.53 |   50.4 /   42.6 |  158.9 /  187.9
+  32 cut     | EXACT             |   9.09 |  14.33 |   45.6 |  7.07 |  105.9 /   84.1 |   85.9 /  108.1
+  32 cut     | Q1 0.9            |   9.09 |  14.33 |   23.8 |  3.79 |   70.5 /   58.9 |  128.9 /  154.4
+  32 cut     | Q1 0.9 3b         |   9.09 |  14.33 |   16.5 |  3.39 |   62.6 /   52.2 |  145.1 /  174.0
+  32 cut     | HYB 0.9 u8        |   9.09 |  14.33 |   20.8 |  3.38 |   65.9 /   55.5 |  138.0 /  163.9
+  32 cut     | HYB 0.9 u8 3b     |   9.09 |  14.33 |   13.4 |  2.98 |   58.0 /   48.8 |  156.8 /  186.2
+  32 cut     | HYB 0.9 u8 3b deep sure |   9.09 |  14.33 |   11.7 |  2.70 |   55.1 /   46.8 |  164.9 /  194.1
+
+  32 rows vs 16 rows, same rule, pooled code (tok/s ratio today / NAX6):
+    EXACT             32 cut    vs 16 cut    (EXACT): -0.4 % / -0.2 %
+    Q1 0.9            32 cut    vs 16 cut    (Q1 0.9): -1.0 % / -0.5 %
+    Q1 0.9 3b         32 cut    vs 16 cut    (Q1 0.9 3b): -1.0 % / -0.5 %
+    HYB 0.9 u8        32 cut    vs 16 cut    (HYB 0.9 u8): -1.3 % / -0.8 %
+    HYB 0.9 u8 3b     32 cut    vs 16 cut    (HYB 0.9 u8 3b): -1.3 % / -0.9 %
+    HYB 0.9 u8 3b deep sure 32 cut    vs 16 cut    (HYB 0.9 u8 3b): +3.8 % / +3.3 %
+
+  per window, HYB 0.9 u8 3b, '32 cut' vs '16 cut' (kept 16 -> 32, tok/s ratio today / NAX6); 'deep sure' NAX6 last:
+    tf_code_HumanEval_10     kept  7.38 ->  8.15:   -3.6 % /   -3.5 % ; deep sure   +1.6 %
+    tf_code_HumanEval_103    kept 10.52 -> 12.74:   +5.2 % /   +5.2 % ; deep sure   +9.4 %
+    tf_code_HumanEval_109    kept  9.07 ->  9.73:   -6.4 % /   -5.2 % ; deep sure   -1.4 %
+    tf_code_HumanEval_118    kept  6.48 ->  7.10:   -2.3 % /   -2.2 % ; deep sure   +0.4 %
+    tf_code_HumanEval_121    kept 12.42 -> 14.90:   -8.6 % /   -7.1 % ; deep sure   +2.8 %
+    tf_code_HumanEval_124    kept  9.07 -> 11.40:   +1.4 % /   +2.0 % ; deep sure   +8.6 %
+    tf_code_HumanEval_129    kept 11.08 -> 12.47:   -7.2 % /   -6.0 % ; deep sure   -0.6 %
+    tf_code_HumanEval_132    kept  3.87 ->  3.99:   -2.8 % /   -3.5 % ; deep sure   -2.4 %
+    tf_code_HumanEval_135    kept 12.08 -> 16.11:   +3.8 % /   +4.7 % ; deep sure  +14.0 %
+    tf_code_HumanEval_136    kept 13.25 -> 21.20:  +18.3 % /  +19.1 % ; deep sure  +26.1 %
+    tf_code_HumanEval_146    kept  9.73 -> 12.05:   +5.8 % /   +6.1 % ; deep sure   +9.3 %
+    tf_code_HumanEval_151    kept  9.13 -> 11.05:   +1.6 % /   +2.3 % ; deep sure   +7.4 %
+    median over windows: -0.5 % / -0.1 % ; deep sure +5.1 %
+  total 20 s

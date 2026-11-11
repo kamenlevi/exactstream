@@ -1,0 +1,17 @@
+R-40 STEP 3w: full 125B via load_streamed (C = 176), loaded in 4 s; layers: 35 GDN, 1 PLE (zero-based 1), 12 QSA
+  math500/test/prealgebra/1640.json, P 62: REF2 AR 17 steps; tokens == EvalSuite's REF2 row for 18 / 18 (in order up to 18)
+  arm A commit as STEP 3z (outside the verify scopes):
+    k  2: prefill == the AR's True; check rows == AR 16 / 16; commit landed; layers whose state differs from the AR's after 2 steps: 0; probe step logits == AR: True
+    k  5: prefill == the AR's True; check rows == AR 16 / 16; commit landed; layers whose state differs from the AR's after 5 steps: 0; probe step logits == AR: True
+    k  8: prefill == the AR's True; check rows == AR 16 / 16; commit landed; layers whose state differs from the AR's after 8 steps: 0; probe step logits == AR: True
+    k 12: prefill == the AR's True; check rows == AR 16 / 16; commit landed; layers whose state differs from the AR's after 12 steps: 0; probe step logits == AR: True
+    k 15: prefill == the AR's True; check rows == AR 16 / 16; commit landed; layers whose state differs from the AR's after 15 steps: 0; probe step logits == AR: True
+    k 16: prefill == the AR's True; check rows == AR 16 / 16; commit landed; layers whose state differs from the AR's after 16 steps: 0; probe step logits == AR: True
+  arm B commit inside attention_phase('decode_verify'):
+    k  2: prefill == the AR's True; check rows == AR 16 / 16; commit landed; layers whose state differs from the AR's after 2 steps: 0; probe step logits == AR: True
+    k  5: prefill == the AR's True; check rows == AR 16 / 16; commit landed; layers whose state differs from the AR's after 5 steps: 0; probe step logits == AR: True
+    k  8: prefill == the AR's True; check rows == AR 16 / 16; commit landed; layers whose state differs from the AR's after 8 steps: 0; probe step logits == AR: True
+    k 12: prefill == the AR's True; check rows == AR 16 / 16; commit landed; layers whose state differs from the AR's after 12 steps: 0; probe step logits == AR: True
+    k 15: prefill == the AR's True; check rows == AR 16 / 16; commit landed; layers whose state differs from the AR's after 15 steps: 0; probe step logits == AR: True
+    k 16: prefill == the AR's True; check rows == AR 16 / 16; commit landed; layers whose state differs from the AR's after 16 steps: 0; probe step logits == AR: True
+R-40 STEP 3w done in 87 s

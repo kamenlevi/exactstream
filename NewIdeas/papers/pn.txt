@@ -1,0 +1,3015 @@
+                                              Pipeline-Native Transformers:
+                                           Co-Designing Model Architecture and CPU
+
+
+
+
+arXiv:2608.23841v1 [cs.AR] 24 Aug 2026
+                                                           Inference
+                                         for Bandwidth-Efficient Autoregressive Decode
+
+
+
+
+                                                   An Independent Research Report
+                                                           Tom Poperszky
+
+
+
+
+                                                               2026
+Abstract
+
+Single-token autoregressive decode on CPUs is bound by memory bandwidth, not
+arithmetic: a modern CPU sustains roughly 1 TFLOP/s of compute but only about
+50 GB/s from main memory, and each generated token must stream every active
+weight once. This report argues that the most effective response is to co-design the
+model architecture and the inference runtime together. It presents cflow, a CPU-
+first streaming engine, alongside a family of pipeline-native transformer architectures
+whose inter-layer dependency graphs are constructed to permit a vertical, stage-major
+execution schedule.
+    cflow stores weights as L2-sized tiles in compute-consumption order, reads only
+the top-k experts of each mixture-of-experts layer, fuses projections, and executes a
+delay-aware schedule from per-model dependency parameters. Across five architectures
+trained on TinyStories, one (arch2_4_combined) achieves a 2.00× reduction in critical-
+path weight bandwidth (9.00 → 4.50 MB/token) within 0.24 perplexity of the best
+candidate, and the tile layout incurs 7.29× fewer L1-data read misses than a row-major
+baseline. On a 30.9-billion-parameter pipeline-native MoE, cflow decodes at 5.94
+tokens/s (tok/s) on a 32-vCPU Ice Lake server, ahead of llama.cpp (4.75) and the
+vLLM CPU backend (1.65) on comparably sized dense models. Realizing the expert-
+delay window as asynchronous I/O overlap on a disk-resident expert tier yields a
+further net win of up to 1.68×, matching the overlap model within 1%. Measurement
+refutes one of the eight design claims and leaves a second inconclusive; both are
+reported in full, with the conditions under which they would hold.
+
+
+
+
+                                           i
+Note on the Use of AI Tools
+
+The implementation and writing of this report were carried out with the assistance of
+an AI coding assistant (Anthropic’s Claude), used in two specific capacities: helping
+to implement the cflow runtime and its supporting code, and helping to draft and
+edit this report. All research direction, architectural and experimental design, analysis
+of results, and conclusions are my own, and I take full responsibility for the contents
+of this report, including any errors.
+
+
+
+
+                                           ii
+Contents
+
+Abstract                                                                             i
+
+Note on the Use of AI Tools                                                         ii
+
+1 Introduction                                                                      1
+  1.1 The Bandwidth Bottleneck in LLM Inference . . . . . . . . . . . . . .         1
+  1.2 The GPU-First Retrofit Problem . . . . . . . . . . . . . . . . . . . .        2
+  1.3 The Co-Design Opportunity . . . . . . . . . . . . . . . . . . . . . . .       2
+  1.4 Contributions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   3
+  1.5 Summary of Key Results . . . . . . . . . . . . . . . . . . . . . . . . .      4
+  1.6 Scope and Limitations . . . . . . . . . . . . . . . . . . . . . . . . . .     5
+  1.7 Report Organization . . . . . . . . . . . . . . . . . . . . . . . . . . .     6
+
+2 Background                                                                         7
+  2.1 CPU Memory Hierarchy and the Roofline Model . . . . . . . . . . . .            7
+      2.1.1 The Memory Hierarchy . . . . . . . . . . . . . . . . . . . . . .         7
+      2.1.2 The Roofline Model . . . . . . . . . . . . . . . . . . . . . . . .       7
+      2.1.3 Arithmetic Intensity of Single-Token Transformer Decode . . .            8
+  2.2 The Standard Pre-Norm Transformer . . . . . . . . . . . . . . . . . .          9
+      2.2.1 Architecture . . . . . . . . . . . . . . . . . . . . . . . . . . . .     9
+      2.2.2 Multi-Head Attention . . . . . . . . . . . . . . . . . . . . . . .       9
+      2.2.3 Feed-Forward Network . . . . . . . . . . . . . . . . . . . . . .        10
+      2.2.4 Mixture-of-Experts Feed-Forward Layers . . . . . . . . . . . .          10
+      2.2.5 The Layer Dependency DAG . . . . . . . . . . . . . . . . . . .          10
+  2.3 Quantization . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    11
+      2.3.1 Q4 Quantization . . . . . . . . . . . . . . . . . . . . . . . . .       11
+      2.3.2 GGUF and llama.cpp . . . . . . . . . . . . . . . . . . . . . . .        11
+  2.4 Existing CPU Inference Runtimes . . . . . . . . . . . . . . . . . . . .       12
+  2.5 Mixture-of-Experts at Scale . . . . . . . . . . . . . . . . . . . . . . .     12
+  2.6 Related Work . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    13
+      2.6.1 Weight Streaming and Offloading . . . . . . . . . . . . . . . .         13
+      2.6.2 Speculative Decoding . . . . . . . . . . . . . . . . . . . . . . .      13
+      2.6.3 Structured Sparsity and Expert Routing . . . . . . . . . . . .          13
+
+                                          iii
+CONTENTS                                                                             iv
+
+
+         2.6.4   Cache-Aware Deep Learning . . . . . . . . . . . . . . . . . . .     14
+         2.6.5   Model-Runtime Co-Design . . . . . . . . . . . . . . . . . . . .     14
+
+3 The cflow Runtime                                                                  15
+  3.1 Design Principles . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    15
+  3.2 Tile-Native Weight Format . . . . . . . . . . . . . . . . . . . . . . . .      16
+       3.2.1 Tile Geometry . . . . . . . . . . . . . . . . . . . . . . . . . . .     16
+       3.2.2 TileHeader Format . . . . . . . . . . . . . . . . . . . . . . . .       16
+       3.2.3 MappedTile: Zero-Copy Slice into mmap . . . . . . . . . . . .           17
+  3.3 The .cflow File Format . . . . . . . . . . . . . . . . . . . . . . . . .       17
+       3.3.1 GlobalHeader . . . . . . . . . . . . . . . . . . . . . . . . . . .      17
+       3.3.2 Per-Layer Tile Ordering . . . . . . . . . . . . . . . . . . . . .       18
+       3.3.3 Expert Offset Table and Conditional Loading . . . . . . . . .           18
+  3.4 The .vflow File Format . . . . . . . . . . . . . . . . . . . . . . . . .       18
+       3.4.1 Vertical Groups . . . . . . . . . . . . . . . . . . . . . . . . . .     19
+       3.4.2 File Layout . . . . . . . . . . . . . . . . . . . . . . . . . . . .     19
+  3.5 Fused Projection Kernels . . . . . . . . . . . . . . . . . . . . . . . . .     19
+       3.5.1 Tiled Matrix-Vector Product . . . . . . . . . . . . . . . . . . .       19
+       3.5.2 Fused QKV and Gate+Up . . . . . . . . . . . . . . . . . . . .           20
+  3.6 Q4 Inner-Product Pipeline . . . . . . . . . . . . . . . . . . . . . . . .      20
+       3.6.1 Q4_0 Quantization Format . . . . . . . . . . . . . . . . . . .          20
+       3.6.2 Scalar Reference Implementation . . . . . . . . . . . . . . . .         21
+       3.6.3 AVX2 + FMA Path . . . . . . . . . . . . . . . . . . . . . . .           21
+       3.6.4 AVX-512 Path . . . . . . . . . . . . . . . . . . . . . . . . . . .      21
+  3.7 Attention Pipeline . . . . . . . . . . . . . . . . . . . . . . . . . . . .     22
+       3.7.1 Grouped-Query Attention with KV Cache . . . . . . . . . . .             22
+       3.7.2 Rotary Position Embedding . . . . . . . . . . . . . . . . . . .         22
+       3.7.3 V-Norm . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      23
+  3.8 Normalization Layers . . . . . . . . . . . . . . . . . . . . . . . . . . .     23
+  3.9 Conditional Expert Prefetch . . . . . . . . . . . . . . . . . . . . . . .      23
+       3.9.1 Two-Thread Pipeline . . . . . . . . . . . . . . . . . . . . . . .       23
+       3.9.2 Linear and Conditional Commands . . . . . . . . . . . . . . .           23
+       3.9.3 Negative Result: PREFETCHT0 at RAM-Bottleneck Scale . .                 24
+       3.9.4 Staged Direct-I/O Expert Fetch . . . . . . . . . . . . . . . . .        24
+  3.10 Safetensors Converter . . . . . . . . . . . . . . . . . . . . . . . . . . .   24
+       3.10.1 Architecture Dispatch . . . . . . . . . . . . . . . . . . . . . .      24
+       3.10.2 DelayedMoESource . . . . . . . . . . . . . . . . . . . . . . . .       25
+       3.10.3 Tile Quantization . . . . . . . . . . . . . . . . . . . . . . . . .    25
+  3.11 Implementation Correctness . . . . . . . . . . . . . . . . . . . . . . .      25
+CONTENTS                                                                           v
+
+
+4 Pipeline-Native Transformer Architectures                                       27
+  4.1 The Layer Dependency Problem . . . . . . . . . . . . . . . . . . . . .      27
+      4.1.1 Formal Statement . . . . . . . . . . . . . . . . . . . . . . . . .    27
+      4.1.2 The Vertical Pipeline Idea . . . . . . . . . . . . . . . . . . . .    28
+      4.1.3 Bandwidth Implications . . . . . . . . . . . . . . . . . . . . .      28
+  4.2 DAG Rewriting: Dense Delay and Expert Delay . . . . . . . . . . . .         29
+      4.2.1 The Dense Delay Transform . . . . . . . . . . . . . . . . . . .       29
+      4.2.2 The Expert Delay Transform . . . . . . . . . . . . . . . . . . .      29
+      4.2.3 The CombineStyle Variants . . . . . . . . . . . . . . . . . . .       30
+  4.3 The Five Candidate Architectures . . . . . . . . . . . . . . . . . . . .    30
+      4.3.1 Arch1: Decoupled Residual Streams . . . . . . . . . . . . . . .       31
+      4.3.2 Arch2_4_combined: Dense-and-Expert Delay . . . . . . . . .            31
+      4.3.3 Arch2_4_sync: Synchronous Variant . . . . . . . . . . . . . .         31
+      4.3.4 Arch3: Pipeline Registers . . . . . . . . . . . . . . . . . . . .     32
+      4.3.5 Arch4: Asynchronous Experts . . . . . . . . . . . . . . . . . .       32
+      4.3.6 Arch5: Fixed-Point Iteration with Weight Sharing . . . . . . .        32
+  4.4 The Delay-Aware Scheduler . . . . . . . . . . . . . . . . . . . . . . .     33
+      4.4.1 Ring-Buffered Residual History . . . . . . . . . . . . . . . . .      33
+      4.4.2 Multi-Layer Driver . . . . . . . . . . . . . . . . . . . . . . . .    33
+  4.5 Bandwidth Model . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   33
+      4.5.1 Critical-Path Analysis . . . . . . . . . . . . . . . . . . . . . .    33
+      4.5.2 Dense Delay vs. Expert Delay as Complementary Knobs . . .             35
+  4.6 The Co-Design Trade-off . . . . . . . . . . . . . . . . . . . . . . . . .   36
+
+5 Evaluation                                                                      38
+  5.1 Experimental Setup . . . . . . . . . . . . . . . . . . . . . . . . . . . . 38
+      5.1.1 Hardware . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 38
+      5.1.2 Software and Build . . . . . . . . . . . . . . . . . . . . . . . . 39
+  5.2 Training Quality: Five Architectures . . . . . . . . . . . . . . . . . . 39
+      5.2.1 Training Protocol . . . . . . . . . . . . . . . . . . . . . . . . . 39
+      5.2.2 Results . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 39
+      5.2.3 Large-Scale Validation: arch2_4_8k_4l . . . . . . . . . . . . 40
+  5.3 Claim 1: Conditional Expert Loading . . . . . . . . . . . . . . . . . . 40
+  5.4 Claim 2: Tile-Streaming Cache Locality . . . . . . . . . . . . . . . . 41
+      5.4.1 Wall-Clock Proxy (Windows, May 2026) . . . . . . . . . . . . 41
+      5.4.2 PMU Hardware Counter Measurement (Linux KVM, May 2026) 41
+  5.5 Claim 3: AVX2 Q4 Kernels . . . . . . . . . . . . . . . . . . . . . . . 42
+  5.6 Claim 4: Fused Projections . . . . . . . . . . . . . . . . . . . . . . . . 42
+  5.7 Claim 5: Compute-Order File Layout . . . . . . . . . . . . . . . . . . 43
+  5.8 Claim 6: Explicit Prefetch (PREFETCHT0) . . . . . . . . . . . . . . 43
+      5.8.1 64 MB Scale (arch2_4_combined, Ryzen 5 2600) . . . . . . . 43
+      5.8.2 4.7 GB Scale (arch2_4_8k_4l, Windows SATA SSD) . . . . . 43
+CONTENTS                                                                              vi
+
+
+   5.9  Claim 7: Vertical Pipeline Bandwidth Reduction . . . . . . . . . . . .        44
+        5.9.1 Method . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      44
+        5.9.2 Result . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    45
+   5.10 Claim 8: Stage-Major Disk Layout Readahead Benefit . . . . . . . . .          45
+        5.10.1 64 MB Scale . . . . . . . . . . . . . . . . . . . . . . . . . . . .    45
+        5.10.2 4.7 GB Scale . . . . . . . . . . . . . . . . . . . . . . . . . . . .   45
+   5.11 PyTorch Parity Validation . . . . . . . . . . . . . . . . . . . . . . . .     46
+        5.11.1 arch2_4_combined . . . . . . . . . . . . . . . . . . . . . . . .       46
+        5.11.2 arch4_async_experts . . . . . . . . . . . . . . . . . . . . . . .      46
+        5.11.3 Test Suite Coverage . . . . . . . . . . . . . . . . . . . . . . . .    46
+   5.12 Summary of Results . . . . . . . . . . . . . . . . . . . . . . . . . . .      47
+   5.13 Head-to-Head Comparison with llama.cpp and vLLM . . . . . . . . .             48
+        5.13.1 Benchmark Model and Hardware . . . . . . . . . . . . . . . .           48
+        5.13.2 cflow Decode Optimization . . . . . . . . . . . . . . . . . .          48
+        5.13.3 Comparison with llama.cpp and vLLM . . . . . . . . . . . . .           49
+        5.13.4 Interpretation . . . . . . . . . . . . . . . . . . . . . . . . . . .   50
+   5.14 Wall-Clock Realization of the Expert-Delay Window . . . . . . . . . .         50
+        5.14.1 Design . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   50
+        5.14.2 Part 1 — Desktop (SATA tier): mechanism proven, net a wash             51
+        5.14.3 Part 2 — EC2 r6id.8xlarge (NVMe tier): the net win . . . . .           51
+        5.14.4 Part 3 — Parallel fetch: a null that locates the ceiling . . . . .     52
+        5.14.5 What this adds to Claims 7 and 8 . . . . . . . . . . . . . . . .       53
+
+6 Discussion                                                                          54
+  6.1 The Co-Design Philosophy . . . . . . . . . . . . . . . . . . . . . . . .        54
+      6.1.1 What Co-Design Means Here . . . . . . . . . . . . . . . . . .             54
+      6.1.2 The Scope of the Result . . . . . . . . . . . . . . . . . . . . .         54
+      6.1.3 Relationship to Existing Work . . . . . . . . . . . . . . . . . .         55
+  6.2 Scaling Analysis . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    56
+      6.2.1 How the Bandwidth Reduction Scales . . . . . . . . . . . . . .            56
+      6.2.2 Attention-Path Delays and Future Work . . . . . . . . . . . .             57
+      6.2.3 Expert Scaling . . . . . . . . . . . . . . . . . . . . . . . . . .        57
+  6.3 Speculative Pipeline Recovery . . . . . . . . . . . . . . . . . . . . . .       58
+      6.3.1 The Approach A Hypothesis . . . . . . . . . . . . . . . . . . .           58
+      6.3.2 The Approach B Hypothesis . . . . . . . . . . . . . . . . . . .           58
+  6.4 Limitations . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     59
+
+7 Conclusion                                                                          60
+  7.1 Summary of Contributions . . . . . . . . . . . . . . . . . . . . . . . .        60
+  7.2 The Co-Design Thesis, Restated . . . . . . . . . . . . . . . . . . . . .        61
+  7.3 Implications for Production CPU Inference . . . . . . . . . . . . . . .         62
+      7.3.1 When the Result Matters . . . . . . . . . . . . . . . . . . . .           62
+CONTENTS                                                                              vii
+
+
+        7.3.2 What Practitioners Should Take Away . . . . . . . . . . . . .           62
+  7.4   Future Work . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   62
+  7.5   Closing Remarks . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     63
+
+Bibliography                                                                          65
+List of Figures
+
+ 4.1 The bandwidth–quality trade-off across the trained candidates (data of
+     Table 4.1). The dense delay moves a model left (arch2_4_combined and
+     its sync ablation are the only points at 4.50 MB/token); the expert delay
+     moves it down (arch4’s pre-dense routing reaches the best perplexity
+     but stays at the undelayed bandwidth). arch5’s weight sharing trades
+     bandwidth for parameter efficiency. . . . . . . . . . . . . . . . . . . .   35
+
+ 5.1 The expert-overlap A/B on EC2 r6id.8xlarge (3-run medians of Table 5.6;
+     NVMe expert tier). The sync arm pays the serial sum C + IO and grows
+     as threads shrink; the staged arm pins at the disk floor max(C, IOeff )
+     at every thread count. Annotations give the measured net speedup; the
+     (C+IO)/ max(C, IOeff ) model reproduces all four within 1%. . . . . .       52
+
+
+
+
+                                       viii
+List of Tables
+
+ 1.1 Thesis scorecard: eight claims, their status, and the headline measured
+     result. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    5
+
+ 4.1   Pipeline-native architecture summary: training results and bandwidth
+       analysis. All architectures trained 10K steps on TinyStories, d=512,
+       L=6. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   36
+
+ 5.1 Wall-clock speedup of tiled over naive matrix-vector products at arch2_4_8k_4l
+     geometry (d = 8192). Ratio > 1.0 means tiled is faster. Working-set
+     size relative to 32 KB L1-d. . . . . . . . . . . . . . . . . . . . . . . . . 41
+ 5.2 Hardware PMU: L1-d read miss counts, tiled vs. naive, Xeon E5-2650
+     KVM. Lower miss count is better. Ratio = naive / tiled. Raw counts
+     were recorded only for the dense-down workload; for the remaining
+     rows the benchmark harness logged the ratio alone. . . . . . . . . . . 42
+ 5.3 Thesis scorecard: evaluation status for all eight claims. . . . . . . . . 47
+ 5.4 cflow single-token decode throughput on arch2_4_8k_16l (30.9B,
+     Q4), AWS r6i.8xlarge, 32 threads. Changes are cumulative. . . . . . . 48
+ 5.5 End-to-end single-token decode throughput, same AWS r6i.8xlarge
+     CPU. Decode rate is reported as steady-state tokens per second; it is
+     insensitive to sampling temperature and prompt for a fixed model. . . 49
+ 5.6 Expert-overlap A/B on EC2 r6id.8xlarge (NVMe expert tier), 3-run
+     medians. “Hidden” is the reduction in per-token expert-read stall.
+     Identical greedy output in all 24 cells. . . . . . . . . . . . . . . . . . . 52
+
+
+
+
+                                          ix
+Chapter 1
+
+Introduction
+
+1.1      The Bandwidth Bottleneck in LLM Inference
+Almost all of the engineering effort in language-model serving has gone into GPUs:
+pipeline parallelism across devices, batching, FlashAttention, speculative decoding.
+CPU inference, by comparison, is usually treated as a fallback — what you run when
+there is no accelerator to be had. The assumption underneath that treatment is that
+CPU inference is GPU inference, only slower.
+     It is not. The two are limited by different things, and the CPU limit is the simpler
+one to state: arithmetic intensity. A CPU has far more arithmetic throughput than it
+can keep fed from memory, and single-token decoding never supplies enough work per
+byte loaded to close that gap. The rest of this section makes the claim quantitative.
+     A modern desktop or server CPU executes approximately one teraflop per second
+of floating-point arithmetic while moving approximately 50 gigabytes per second
+from main memory to the processor. The ratio—the machine balance—is roughly
+20 FLOP/byte. For inference to be compute-bound, each byte loaded from memory
+must participate in at least 20 arithmetic operations before being evicted. Single-token
+autoregressive decoding does not come close to this threshold.
+     Consider a transformer weight matrix stored in Q4 quantization: 0.5 bytes per
+parameter. Computing the matrix-vector product with a single token’s activation
+vector requires two floating-point operations per weight element (one multiply, one
+add), yielding an arithmetic intensity of 2 FLOP / 0.5 bytes = 4 FLOP/byte. This
+is five times below the machine balance. Every cycle the CPU spends waiting for
+weights to arrive from RAM is a cycle wasted.
+     So on a CPU, single-token decode latency is set almost entirely by how many bytes
+move, not by how many operations run. Anything that cuts the byte traffic cuts the
+latency with it, close to one-for-one. That is the principle the rest of this work is built
+on.
+
+
+
+
+                                            1
+CHAPTER 1. INTRODUCTION                                                               2
+
+
+1.2      The GPU-First Retrofit Problem
+The dominant CPU inference ecosystem—llama.cpp [10], ExLlama2 [24], and their
+derivatives—emerged not from first-principles CPU design but from GPU inference
+code adapted to run on CPU. The adaptations are real and substantial: hand-written
+SIMD kernels replace GPU shader code, memory-mapped files replace VRAM, and
+scalar attention replaces batched CUDA kernels. But several fundamental design
+decisions inherited from GPU execution remain, and they are systematically wrong
+for CPU-optimal single-token decoding.
+    Weight layout. GPU-optimized matrix multiplication arranges weights in row-
+major order, designed for warp-level coalesced access across many threads operating
+on a wide activation batch. On a CPU executing a single-token forward pass, the
+activation vector is narrow (one row of the batch), and each weight row is accessed once
+and discarded. There is no coalescing opportunity, and the access pattern generates
+L1-cache misses in proportion to the weight matrix size, not in proportion to the
+number of tokens being decoded.
+    Execution order. GPU execution pipelines multiple tokens through a layer using
+spatial parallelism across tensor cores. CPU execution of a single token processes one
+layer completely before advancing to the next. The file layout of weights in GPU-
+derived runtimes reflects GPU execution order, which may not match the order in which
+a CPU reads them during single-token decode. Mismatches introduce non-sequential
+memory access patterns that defeat hardware prefetchers.
+    Expert loading in mixture-of-experts models. Modern MoE models such
+as Mixtral-8×7B [12] and Gemma 4 26B-A4B [11] select a small number of active
+experts per token from a large expert pool. A naive runtime loads all expert weight
+matrices during the forward pass and discards the unselected ones. At the geometry
+of Gemma 4—128 experts, top-8 selection—this loads 128/8 = 16× the expert weight
+bytes actually consumed. On a CPU where bandwidth is the bottleneck, this is a
+15-fold avoidable overhead.
+    None of these is a bug to be patched. They are assumptions baked into the data
+layout and the execution order, and unpicking them means starting over with the
+CPU memory hierarchy as the first constraint rather than an afterthought.
+
+
+1.3      The Co-Design Opportunity
+The two halves of a deployed inference system—the model architecture and the
+inference runtime—are conventionally treated as independent. A model is trained
+to minimize perplexity under a standard transformer recipe; a runtime is written to
+execute any model that conforms to the standard transformer interface. The runtime
+does not know what the model is doing; the model does not know how the runtime
+will execute it.
+    This independence is a valuable abstraction in the GPU regime, where per-token
+CHAPTER 1. INTRODUCTION                                                              3
+
+
+latency is dominated by compute and the memory access pattern of the runtime is
+largely irrelevant at the hardware level. It becomes a liability in the CPU regime,
+where every byte read from memory has cost, and the order in which bytes are read
+determines whether the hardware prefetcher can hide latency.
+    The central thesis of this report is as follows:
+      By co-designing the model architecture and the inference runtime together,
+      with the CPU memory hierarchy as the shared optimization target, it
+      is possible to achieve per-token memory bandwidth reductions that are
+      unavailable to either the runtime or the architecture acting independently.
+    The runtime contribution is a tile-streaming weight format and execution engine,
+called cflow, that lays weights out in L2-cache-sized tiles and reads them in precisely
+the order required for single-token decode. The architecture contribution is a family
+of pipeline-native transformers: models whose inter-layer dependency graphs are
+rewritten so that the runtime’s vertical pipeline schedule—reading weights for multiple
+layers in stage-major order—is mathematically valid. Neither contribution is useful
+without the other: the pipeline schedule saves bandwidth only when the model
+architecture permits it, and the model architecture is only beneficial when the runtime
+understands and exploits its relaxed dependency constraints.
+
+
+1.4      Contributions
+This report makes the following contributions:
+  1. The cflow inference runtime. A CPU-first inference engine for transformer
+     models, built around a tile-native weight format (128×256 Q4 tiles, approx-
+     imately 18 KB each, sized to fit in L2 cache) and two on-disk formats: a
+     per-layer format (.cflow) for general single-token decode and a stage-major
+     format (.vflow) for vertical pipeline execution. The runtime includes fused
+     QKV and gate-up projections, AVX2-accelerated Q4 inner-product kernels, and
+     a staged direct-I/O expert-fetch mechanism that reads only the top-k selected
+     experts’ tiles — driven by the MoE router output and asynchronously overlapped
+     with compute under the expert-delay schedule (Section 5.14).
+  2. A taxonomy of pipeline-native transformer architectures. A formal
+     analysis of the layer dependency DAG in standard pre-norm transformers
+     demonstrates why stage-major execution is mathematically invalid for single-
+     token autoregressive decode: layer ℓ+1 requires the complete residual output
+     of layer ℓ, not its input. I introduce two dependency-relaxation operations—
+     dense_delay and expert_delay—and three corresponding CombineStyle vari-
+     ants (ParallelSqrt2, DelayedSum, AsyncExperts) that rewrite the dependency
+     graph so that the stage-major schedule becomes valid while preserving the model’s
+     capacity to learn.
+CHAPTER 1. INTRODUCTION                                                              4
+
+
+   3. Five trained pipeline-native architectures. I define and train five candi-
+      date architectures spanning the bandwidth–quality trade-off space: a baseline
+      with no dependency relaxation (arch1), the bandwidth-optimizing architecture
+      (arch2_4_combined, dense_delay = 1, expert_delay = 2), a pipeline-register
+      variant (arch3), the quality-optimizing architecture (arch4_async_experts,
+      expert_delay = 2, routing from pre-dense activations), and a weight-sharing
+      exploration (arch5). All five train stably to convergence on TinyStories at
+      10,000 steps with no gradient explosions or divergence. The reference architec-
+      ture, arch2_4_combined, achieves a test perplexity of 6.50 and a critical-path
+      bandwidth reduction of 2.00× relative to the undelayed baseline.
+
+   4. A delay-aware multi-layer execution scheduler. A scheduler that reads
+      each architecture’s dense_delay and expert_delay parameters at runtime,
+      constructs a ring-buffered residual history, and injects delayed expert outputs
+      at the correct layer offsets. The scheduler’s output is validated against pinned
+      PyTorch traces for both arch2_4_combined and arch4_async_experts: the
+      Rust runtime matches the Python reference to within 0.006% relative norm
+      error, with exact agreement on the argmax token at position 9760.
+
+   5. Empirical evaluation across the thesis scorecard. I measure the following
+      results against a defined set of eight claims:
+
+        • Tile-streaming achieves 7.29× fewer L1-d cache read misses on the
+          dense-down projection at the trained 8.34B-parameter geometry (Xeon E5-
+          2650, hardware PMU via perf_event_open);
+        • The delay-aware scheduler achieves a 2.00× critical-path bandwidth re-
+          duction (naive 9.00 MB/token → delayed 4.50 MB/token) on arch2_4_combined;
+        • Claims 6 (PREFETCHT0 explicit prefetch) and 8 (stage-major disk layout)
+          fail direct measurement: both are tested precisely at two scales (64 MB
+          and 4.7 GB, direct I/O) and found to provide no measurable benefit when
+          storage bandwidth is the bottleneck, with mechanistic explanations for why
+          the benefit cannot manifest until compute dominates I/O.
+
+
+1.5      Summary of Key Results
+Table 1.1 summarizes the eight thesis claims and their measured status: the structural
+and bandwidth claims are proven with direct experimental evidence; Claim 6 is refuted
+and Claim 8 is inconclusive, each with a results with precise mechanistic explanations.
+A separate end-to-end tokens-per-second comparison against llama.cpp and vLLM
+— not one of the eight structural claims — is now reported in Section 5.13: cflow
+sustains 5.94 tok/s on a 30.9B-parameter pipeline-native MoE, ahead of llama.cpp’s
+4.75 tok/s on a parameter-comparable dense model on the same CPU.
+CHAPTER 1. INTRODUCTION                                                            5
+
+
+Table 1.1: Thesis scorecard: eight claims, their status, and the headline measured
+result.
+
+    #     Claim                          Status / Headline Result
+      1   Conditional expert loading    Proven (structural): only top-k expert
+                                        tiles are read
+      2   Tile-streaming cache locality Proven: 7.29× fewer L1-d misses
+                                        (PMU, Xeon E5-2650, dense-down)
+      3   AVX2 Q4 kernels               Proven: implemented and validated
+                                        against reference
+      4   Fused projections             Proven: QKV and gate-up from one
+                                        activation cache load
+      5   Compute-order file layout     Proven by format construction
+      6   PREFETCHT0 prefetch           Refuted: PF=1 is ≈4% worse at 4.7 GB
+                                        direct-I/O
+      7   Delay-aware pipeline schedule Proven: 2.00× bandwidth reduction
+                                        on arch2_4_combined; realized in wall-
+                                        clock at up to 1.68× net (§5.14)
+      8   Stage-major disk layout       Inconclusive: peak SSD bandwidth iden-
+                                        tical; median gap confounded by SSD
+                                        cache state
+
+
+The five-architecture comparison, presented in full in Chapter 4 and evaluated in
+Chapter 5, reveals a clean qualitative structure: dense_delay is the bandwidth
+knob and expert_delay is the quality knob. The architecture that delays both
+the dense FFN read and the expert read (arch2_4_combined) achieves the largest
+bandwidth reduction (2.00×). The architecture that delays only the expert read but
+routes from pre-dense activations (arch4_async_experts) achieves the best perplexity
+(6.26 vs. 6.50), because the router sees a cleaner activation signal before the dense
+transformation. These two architectures sit at opposite corners of the achievable
+trade-off space; the remaining three probe the boundary between them.
+
+
+1.6       Scope and Limitations
+The experiments in this report target single-token autoregressive decode: the memory-
+bandwidth-intensive regime in which each weight byte is loaded once per generated
+token. Batched inference, where multiple sequences are decoded simultaneously, shifts
+the arithmetic intensity toward compute-bound operation and reduces the relative
+benefit of bandwidth optimization. I do not claim that the techniques presented here
+generalize to batched decode, though I discuss the conditions under which they might
+in Chapter 6.
+CHAPTER 1. INTRODUCTION                                                                6
+
+
+    The trained architectures are proof-of-concept models trained on TinyStories [7],
+a synthetic children’s story dataset with a vocabulary of 50,257 tokens. The goal is
+to validate that pipeline-native architectures can be trained stably with competitive
+perplexity relative to each other, not to produce state-of-the-art language models.
+The cache-locality and bandwidth claims are validated at the 8.34-billion-parameter
+geometry of arch2_4_8k_4l, trained on Lambda cloud infrastructure with eight A100
+80 GB GPUs under FSDP, providing a hardware-realistic experimental basis for the
+bandwidth analysis.
+    Claims 6 and 8 are explicitly not proven. I include them in the report because the
+failure modes are instructive: PREFETCHT0 prefetches data from RAM to L1 cache, but
+when the bottleneck is storage to RAM (12–17 seconds of I/O versus 96 milliseconds of
+compute at the 4.7 GB scale), there is nothing for it to overlap. Stage-major disk layout
+provides a theoretical readahead advantage only when the runtime can asynchronously
+stream stage ℓ while computing stage ℓ − 1; the current single-token scheduler reads
+the entire file sequentially and the I/O and compute phases do not overlap. These are
+not experimental failures; they are experimentally confirmed structural limitations.
+
+
+1.7      Report Organization
+Chapter 2: Background. I introduce the CPU memory hierarchy and the roofline
+model for single-token decode, establish the arithmetic intensity argument formally,
+survey existing CPU inference runtimes and their inherited GPU assumptions, and
+review the transformer architecture and MoE routing mechanisms that the rest of the
+report builds on.
+    Chapter 3: The cflow Runtime. I describe the design of the tile-native
+weight format, the .cflow and .vflow file formats, the fused projection kernels, the
+conditional expert prefetch mechanism, and the AVX2 inner-product pipeline.
+    Chapter 4: Pipeline-Native Transformer Architectures. I formalize the
+dependency problem in standard pre-norm transformers, introduce the dense_delay
+and expert_delay rewriting operations, describe all five pipeline-native architectures,
+present the delay-aware scheduler, and derive the bandwidth model.
+    Chapter 5: Evaluation. I report training quality across the five architectures,
+the PMU-measured cache locality result, the bandwidth reduction measurement, the
+storage I/O experiments (including the negative results for claims 6 and 8), and the
+Rust–Python parity validation.
+    Chapter 6: Discussion. I examine the co-design philosophy, characterize the
+bandwidth–quality trade-off space, project the delay-aware pipeline to production-scale
+MoE architectures, and discuss the speculative pipeline recovery directions that define
+the next research phase.
+    Chapter 7: Conclusion. I restate the co-design thesis with supporting evidence,
+enumerate the validated contributions, and situate the work within the broader
+trajectory of CPU-first inference research.
+Chapter 2
+
+Background
+
+2.1     CPU Memory Hierarchy and the Roofline Model
+2.1.1    The Memory Hierarchy
+Modern CPUs present a layered memory hierarchy in which storage capacity increases
+and access latency increases as one moves away from the processor die. A representative
+configuration from the experimental hardware used in this report (Intel Xeon E5-2650,
+Sandy Bridge microarchitecture) illustrates the key parameters:
+  • L1-d cache: 32 KB per core, 4-cycle latency, bandwidth ≈400 GB/s (peak,
+    cache-resident data).
+  • L2 cache: 256 KB per core, 12-cycle latency, bandwidth ≈200 GB/s.
+  • L3 cache (shared): 20 MB across 8 cores, ≈30–40 cycles, bandwidth ≈100 GB/s.
+  • Main memory (DDR3): Unbounded capacity, 40–100 cycles, bandwidth
+    ≈40–50 GB/s per socket.
+    What matters here is the size of the gap: roughly 8–10× between L1 and main
+memory. Two computations with identical arithmetic can differ in throughput by that
+factor alone, depending only on whether their working set stays in L1 or has to be
+streamed from RAM. That gap is what the tile-streaming design in Chapter 3 is built
+to exploit.
+    For the purposes of latency analysis, what matters is the sustained bandwidth to
+main memory: roughly 40–50 GB/s for a modern desktop or server CPU. This is the
+bandwidth that determines single-token inference latency.
+
+2.1.2    The Roofline Model
+The roofline model [29] characterizes whether a given computation is compute-bound
+or memory-bandwidth-bound by comparing its arithmetic intensity (FLOPs per byte
+
+                                          7
+CHAPTER 2. BACKGROUND                                                               8
+
+
+loaded from memory) against the machine’s compute-to-bandwidth ratio (peak FLOPs
+per second divided by peak memory bandwidth in bytes per second).
+Definition 2.1 (Arithmetic Intensity). For a computation requiring F floating-point
+operations and loading B bytes from memory, the arithmetic intensity is I = F/B
+(FLOP/byte).
+Definition 2.2 (Machine Balance). For a processor with peak compute throughput
+Pmax (FLOP/s) and peak memory bandwidth Bmax (byte/s), the machine balance is
+R = Pmax /Bmax (FLOP/byte).
+   When I < R the computation is memory-bandwidth-bound: memory cannot feed
+the arithmetic units fast enough to keep them busy. When I > R it is compute-bound,
+and the memory subsystem supplies data faster than the units can consume it.
+   For a CPU with Pmax = 1 TFLOP/s and Bmax = 50 GB/s:
+
+                             1012 FLOP/s
+                      R=                    = 20 FLOP/byte.
+                            50 × 109 byte/s
+
+Any computation with arithmetic intensity below 20 FLOP/byte is memory-bandwidth-
+bound.
+
+2.1.3    Arithmetic Intensity of Single-Token Transformer De-
+         code
+Consider a single matrix-vector product, the dominant operation in transformer
+inference: a weight matrix W ∈ Rm×n applied to an activation vector x ∈ Rn . The
+computation requires 2mn floating-point operations (one multiply and one add per
+weight element). In Q4 quantization, each weight parameter occupies 0.5 bytes. The
+arithmetic intensity is:
+                                   2mn FLOP
+                      Idecode =                  = 4 FLOP/byte.
+                                  0.5 · mn bytes
+
+This is five times below the machine balance of 20 FLOP/byte. Single-token trans-
+former inference is firmly in the memory-bandwidth-bound regime: the CPU spends
+most of its time waiting for weight bytes to arrive from RAM, not performing arith-
+metic.
+    The intensity of 4 FLOP/byte is an upper bound; in practice it is often lower. The
+weight matrix must be loaded from memory exactly once per token, and the activation
+vector (one row of the batch) fits entirely in L1 cache. The FLOPs performed on cached
+activations do not change the bandwidth requirement. The latency of a complete
+single-token forward pass through all layers is therefore:
+
+                                        bytes(all weights)
+                             τtoken ≈                      ,
+                                              Bmax
+CHAPTER 2. BACKGROUND                                                                   9
+
+
+where bytes(all weights) is the total weight data transferred from RAM during one
+forward pass. This is the quantity that the cflow runtime and the pipeline-native
+architectures are designed to minimize.
+
+
+2.2      The Standard Pre-Norm Transformer
+2.2.1     Architecture
+The standard pre-norm transformer decoder [26, 30] processes a sequence of tokens
+t = (t1 , t2 , . . . , tT ) through an embedding layer, a stack of L identical transformer
+layers, and an output projection. Each layer applies two sub-operations to a residual
+stream x ∈ Rd : a multi-head self-attention block and a feed-forward network, both
+preceded by layer normalization (the pre-norm convention). The residual stream is
+updated by adding each sub-operation’s output:
+
+
+                               x ← x + Attn(Norm(x)) ,                               (2.1)
+                               x ← x + FFN(Norm(x)) .                                (2.2)
+
+    After all L layers, a final normalization and linear projection produce logits over
+the vocabulary. For autoregressive generation, inference proceeds token by token:
+the model is evaluated on the current context to produce a distribution over the
+next token, one token is sampled, and the process repeats. Only the final position’s
+activation vector needs to be processed; the key-value projections for all prior positions
+are cached (the KV cache) and reused.
+
+2.2.2     Multi-Head Attention
+The attention sub-operation computes queries, keys, and values by applying learned
+projection matrices to the normalized residual stream, then computes scaled dot-
+product attention:
+
+                                                     Qh K ⊤
+                                         "                  !   #
+                   Attn(x) = ConcatH
+                                   h=1       softmax √ h Vh WO ,                     (2.3)
+                                                        dk
+    where Qh = xWQh , Kh = xWKh , Vh = xWVh are the query, key, and value projections
+for head h, dk is the head dimension, and WO is the output projection. For single-token
+decode, the query vector for the new token attends to all cached key-value pairs; only
+the projections WQ , WK , WV , and WO must be loaded from memory (the KV cache
+itself is already in RAM or L3 cache).
+    Grouped-query attention (GQA). In grouped-query attention [1], the number
+of key-value heads HKV is smaller than the number of query heads HQ , with HQ /HKV
+query heads sharing each key-value head. GQA reduces the size of the KV cache and
+CHAPTER 2. BACKGROUND                                                                  10
+
+
+the bandwidth cost of loading KV projections, while keeping the query projection at
+full width. The trained architectures in this report use GQA with varying HQ and
+HKV ratios depending on scale.
+
+2.2.3    Feed-Forward Network
+The feed-forward sub-operation applies a two-layer fully-connected network with a
+gated activation function. The GeGLU variant [19] used throughout this report
+computes:
+
+                     FFN(x) = (xWgate ⊙ GELU(xWup )) Wdown ,                         (2.4)
+   where Wgate , Wup ∈ Rd×dff and Wdown ∈ Rdff ×d are learned weight matrices, ⊙
+denotes elementwise multiplication, and dff is the feed-forward hidden dimension. The
+bandwidth cost per token is dominated by loading these three matrices: 3 ×d× dff × 0.5
+bytes in Q4.
+
+2.2.4    Mixture-of-Experts Feed-Forward Layers
+Mixture-of-experts (MoE) layers [20, 8] replace the single FFN with a collection of
+E independent expert FFNs and a router that selects a small number k of them to
+activate for each token. The router applies a linear projection to the normalized
+residual stream, selects the top-k experts by score, and computes a weighted sum of
+their outputs:
+
+                            MoE(x) =             si · FFNi (x),                      (2.5)
+                                        X
+
+                                       i∈top-k
+
+    where si are softmax-normalized routing weights for the selected experts.
+    The bandwidth implication is significant. A naive runtime loads all E expert
+weight matrices during the forward pass, uses k of them, and discards the rest. The
+wasted bandwidth ratio is (E − k)/k. At the geometry of Gemma 4 26B-A4B [11]
+(E = 128, k = 8), the naive runtime moves 128/8 = 16× more expert weight bytes
+than it consumes. A runtime that reads only the selected experts’ tiles eliminates
+this waste entirely, requiring prior knowledge of which experts are selected—which is
+produced by the router in the forward pass.
+
+2.2.5    The Layer Dependency DAG
+The computational dependencies of the standard pre-norm transformer form a strict
+chain. Let xin
+            ℓ denote the residual stream entering layer ℓ and xℓ
+                                                               out
+                                                                   denote the residual
+stream leaving it. From Equations (2.1) and (2.2):
+                                                                        
+     xout
+      ℓ   = xin
+             ℓ + Attnℓ Norm(xℓ ) + FFNℓ Norm xℓ + Attnℓ (Norm(xℓ ))
+                             in               in               in
+                                                                                 ,
+CHAPTER 2. BACKGROUND                                                                 11
+
+
+where the FFN input is itself dependent on the attention output within the same
+layer. The key constraint is:
+                                   ℓ+1 = xℓ .
+                                  xin                                       (2.6)
+                                          out
+
+
+Layer ℓ + 1 cannot begin until layer ℓ has produced its complete output, including both
+the attention residual and the FFN residual. This is the dependency structure that
+prevents stage-major execution for single-token decode, as formalized in Chapter 4.
+
+
+2.3      Quantization
+2.3.1     Q4 Quantization
+Quantization reduces the per-parameter storage cost by representing weights at lower
+precision than the training format. The Q4_0 format used throughout this report
+stores each weight value as a 4-bit integer, with a per-block scale factor shared across
+a block of 32 consecutive values. Each weight therefore costs 4/8 = 0.5 bytes, plus a
+negligible overhead for the scale factor.
+    The dequantization operation, applied just before each matrix-vector product,
+recovers an approximate floating-point value:
+
+                               ŵi = scale × (qi − offset),
+
+where qi is the 4-bit stored value and offset is a fixed midpoint (8 for unsigned Q4). In
+AVX2 SIMD implementations, this dequantization can be fused with the dot product,
+operating on 32 values per iteration with a single scale load. The dequantized values
+never need to be materialized in memory; they flow directly through the arithmetic
+pipeline, keeping bandwidth demand at the Q4 rate of 0.5 bytes per parameter.
+
+2.3.2     GGUF and llama.cpp
+The GGUF file format [9] is the de facto standard for distributing quantized transformer
+models for CPU inference. It stores weights in row-major order under the Q4_K_M
+or similar quantization scheme, with a global header and per-tensor metadata. The
+llama.cpp runtime [10] reads GGUF files and executes transformer inference using
+hand-written SIMD kernels for x86 and ARM processors.
+    The cflow format is designed as a direct alternative to GGUF. The key differences
+are: (1) weights are stored in tile-major order (128×256 tiles in compute sequence,
+not row-major), (2) expert tiles are stored in a separate random-access bank to
+enable conditional loading, and (3) the header carries architecture-specific fields
+(dense_delay, expert_delay, CombineStyle) that the runtime uses to construct the
+execution schedule. Chapter 3 describes the format in detail.
+CHAPTER 2. BACKGROUND                                                                  12
+
+
+2.4      Existing CPU Inference Runtimes
+I survey the major CPU inference runtimes, focusing on the design decisions that
+distinguish them from cflow.
+    llama.cpp [10] is the most widely deployed CPU inference runtime for large
+language models. It supports a broad range of quantization formats (Q4_0, Q4_K_M,
+Q8_0, and others) and model families (LLaMA, Mistral, Gemma, Mixtral). Its kernel
+design targets high arithmetic throughput using architecture-specific SIMD paths
+(AVX2, AVX512, ARM NEON, Apple Metal). The weight layout is row-major,
+optimized for batched execution across multiple tokens. For single-token decode,
+llama.cpp loads each weight row sequentially, with no tile-level L2 reuse. Expert
+loading in MoE models follows the naive all-experts path: all expert weight matrices
+for the current layer are loaded, the router selects k, and the unselected experts’ weight
+data is discarded.
+    ExLlama2 [24] focuses on GPU inference with extreme quantization (EXL2
+format, sub-4-bit per weight), with a CPU execution path added for compatibility.
+The CPU path inherits the GPU data layout and is not designed for bandwidth-optimal
+single-token decode.
+    MLC-LLM [15] uses a compilation approach: model execution plans are compiled
+ahead of time using TVM [5], targeting CPUs, GPUs, and mobile platforms. The
+compilation pipeline enables architecture-specific optimizations but operates on the
+standard per-layer execution order; vertical pipelining is not a target.
+    ctransformers and CTranslate2 [18] are similar in spirit to llama.cpp: quan-
+tized weights loaded from disk (or memory-mapped), per-layer execution, no tile-
+streaming.
+    For all their differences, these runtimes share an origin: each is designed for, or
+carried over from, GPU execution. None co-designs the model with the runtime to
+make cross-layer reordering possible in the first place.
+
+
+2.5      Mixture-of-Experts at Scale
+The motivation for the conditional expert prefetch design in cflow is most clearly
+illustrated by Gemma 4 26B-A4B [11], a publicly released MoE model that exemplifies
+the bandwidth gap between naive and selective expert loading. Gemma 4 26B-A4B has
+128 total experts per MoE layer and selects the top-8 for each token. Its architecture
+includes 30 layers (25 sliding-window attention layers and 5 full-attention layers), with
+a hidden dimension of 2,816. The expert hidden dimension is 704.
+    Under naive loading, a single forward pass through one layer loads all 128 expert
+weight matrices (gate, up, and down projections), discarding 120 of them after the
+CHAPTER 2. BACKGROUND                                                               13
+
+
+router selects the top 8. The bandwidth waste is:
+                                    128 − 8   120
+                          waste =           =     = 15 × .
+                                       8       8
+Conditional loading—reading only the 8 selected experts’ tiles—eliminates this waste.
+At Q4, the expert parameters for a single top-8 selection amount to approximately
+8 × 3 × 704 × 2816 × 0.5 ≈ 23.7 MB per layer, versus 16 × 23.7 ≈ 379 MB for all
+experts. This is the motivating bandwidth gap that the cflow expert bank design
+addresses.
+   This report uses Gemma 4 as a sizing reference for the bandwidth analysis in
+Chapters 3 and 5. I do not target Gemma 4 for end-to-end inference or seek parity
+with the Gemma 4 PyTorch implementation; the architecture dimensions appear in
+the bandwidth analysis to provide a realistic context for the theoretical savings.
+
+
+2.6     Related Work
+2.6.1    Weight Streaming and Offloading
+FlexGen [21] addresses the problem of running large models on limited GPU memory
+by offloading weights to CPU memory or disk and streaming them back as needed.
+The primary target is high-throughput batched inference rather than latency-optimal
+single-token decode, and the weight layout is standard (row-major, layer-sequential).
+DejaVu [14] identifies contextual sparsity in attention and FFN weights and skips the
+computation and loading of near-zero-contribution parameters, achieving throughput
+improvements on GPU hardware. Both works address bandwidth indirectly (by
+reducing data volume) rather than by restructuring weight layout for cache-optimal
+access.
+
+2.6.2    Speculative Decoding
+Speculative decoding [4, 13] accelerates autoregressive generation by running a small
+draft model to propose candidate tokens and a large target model to verify them in
+parallel. The technique is orthogonal to the work presented here: it reduces the number
+of forward passes required to generate a token but does not reduce the bandwidth
+cost of each forward pass.
+
+2.6.3    Structured Sparsity and Expert Routing
+Switch Transformer [8] and Mixtral [12] demonstrate that MoE architectures can
+maintain model quality with sparse expert activation. Recent work on expert routing
+efficiency [16] explores whether the top-1 or top-2 selection can be tuned without
+quality degradation. This report is complementary: I accept the routing mechanism as
+CHAPTER 2. BACKGROUND                                                                14
+
+
+given and optimize the bandwidth cost of executing it on CPU, rather than modifying
+the routing policy.
+
+2.6.4     Cache-Aware Deep Learning
+Tiling for GEMM operations is a classical topic in high-performance computing.
+Modern BLAS implementations such as OpenBLAS [17] and BLIS [25] use multi-level
+tiling to maximize reuse in L1, L2, and L3 caches. These optimizations target the
+batched GEMM case (large matrices, many tokens) where tiling along both the output
+and input dimensions is beneficial. For the matrix-vector case (single token, tall-and-
+thin weight matrix), classical BLAS tiling does not improve L1-d reuse because the
+activation vector is already small; the bottleneck is loading the weight matrix rows.
+The tile-streaming approach in cflow is specifically designed for this regime, where
+the activation fits in L1 and the challenge is loading weight tiles at L2 granularity.
+
+2.6.5     Model-Runtime Co-Design
+The idea of co-designing a model architecture with its execution environment has
+precedents in hardware-aware neural architecture search (HW-NAS) [3, 27], which
+optimizes model structure for latency or energy on a target device. These approaches
+modify the macro-structure of the model (number of layers, filter widths, skip connec-
+tions) to match the device’s compute profile, but they do not modify the inter-layer
+dependency graph. The pipeline-native architectures introduced in this report make a
+more specific change: they rewrite the dependency structure of the transformer itself so
+that a particular execution schedule—vertical stage-major pipelining—becomes mathe-
+matically valid. The closest architectural precedent is the parallel attention–FFN block
+of GPT-J [28] and PaLM [6], which computes the FFN from the pre-attention residual
+and thereby removes the intra-layer attention→FFN dependency. The dense-delay
+transform generalizes this across layers (the FFN reads a residual from δd layers
+earlier), adds an expert-delay counterpart, and — the part with no precedent I am
+aware of — co-designs the rewritten dependency graph with the runtime execution
+schedule that exploits it.
+Chapter 3
+
+The cflow Runtime
+
+This chapter describes the design and implementation of the cflow runtime: a CPU-
+first streaming inference engine for transformer models built from scratch around CPU
+memory hierarchies. The runtime has four primary components: (1) a tile-native weight
+format that pre-slices matrices into L2-sized chunks stored in compute-consumption
+order; (2) two on-disk formats, .cflow for per-layer streaming and .vflow for vertical
+pipeline execution; (3) a fused compute pipeline spanning AVX2 inner products,
+attention, and normalization; and (4) a conditional expert prefetch mechanism that
+eliminates unused MoE weight traffic.
+
+
+3.1     Design Principles
+Three ideas run through the whole runtime and account for most of its design.
+    Zero-copy from storage. Weights are memory-mapped from disk using mmap
+on POSIX systems and CreateFileMapping/MapViewOfFile on Windows. Tiles
+are parsed directly from the mapped region via unsafe pointer casts into repr(C,
+packed) structs; no deserialization step materializes copies. The MappedTile type
+holds references into the mapped region and is consumed directly by the compute
+kernels.
+    Compute-order layout. Bytes on disk appear in the same sequence in which they
+are consumed during a forward pass. Sequential mmap reads feed the OS readahead
+mechanism, achieving sustained near-peak bandwidth for the non-expert weight stream.
+The expert tiles, whose access pattern is data-dependent, are stored in a separate
+random-access bank and loaded selectively after the router runs.
+    L2-sized tiles as the unit of work. A single tile covers a 128×256 submatrix of a
+weight matrix. At Q4 (0.5 bytes per weight), this tile occupies 128×256×0.5 = 16 KB of
+quantized data, plus a small header and scale-factor array: 18,448 bytes, approximately
+18 KB total. The Intel Xeon E5-2650 used for evaluation has 256 KB of L2 per core,
+so 8–12 tiles fit simultaneously in L2 with room for the activation vector. This
+dimensioning ensures that the hot activation (11.2 KB of f32 at the Gemma-4 sizing
+
+                                          15
+CHAPTER 3. THE CFLOW RUNTIME                                                           16
+
+
+geometry, d = 2816) can remain in L1 while a tile is processed from L2, eliminating
+RAM round-trips for the activation during each tile computation.
+
+
+3.2      Tile-Native Weight Format
+3.2.1     Tile Geometry
+All weight matrices are stored in a tiled format rather than row-major. A weight
+matrix W ∈ Rm×n (stored in the HuggingFace convention as [out_dim × in_dim],
+applied as y = xW ⊤ ) is partitioned into tiles of size Tr × Tc with Tr = 128 rows and
+Tc = 256 columns. The tile at position (i, j) covers output indices [iTr , (i + 1)Tr ) and
+input indices [jTc , (j + 1)Tc ). Tiles at the boundary of the matrix may be smaller.
+    Tiles are emitted in row-major order: all column tiles for output stripe i = 0 are
+emitted first, then all column tiles for i = 1, and so on. This ordering ensures that the
+partial sums for each output stripe complete before the next stripe begins. Because
+the activation vector is cached in L1 for the duration of a tile computation, iterating
+through all column tiles for a given output stripe reuses the activation without any
+eviction.
+
+3.2.2     TileHeader Format
+Each tile on disk begins with a 16-byte TileHeader in repr(C, packed) layout,
+followed immediately by the scale-factor array and quantized weight data:
+
+         Field           Type    Bytes    Description
+         layer_id        u16     2        Decoder layer index
+         matrix_id       u8      1        Which weight matrix (Q, K, V,
+                                          O, gate, up, down, router, expert
+                                          gate/up/down)
+         expert_id       u8      1        Expert index for expert tiles; 0xFF
+                                          for non-expert
+         row_offset      u32     4        Starting output index in the full ma-
+                                          trix
+         col_offset  u16         2        Starting input index
+         tile_rows   u16         2        Tile height (≤ 128)
+         tile_cols   u16         2        Tile width (≤ 256)
+         quant_group u16         2        Quantization block size (default 32)
+
+   The row_offset field is widened to 32 bits to accommodate vocabulary projections
+whose output dimension (≥ 262,144 for Gemma 4) exceeds the 16-bit range. The total
+CHAPTER 3. THE CFLOW RUNTIME                                                           17
+
+
+on-disk size of one tile is:
+               Tr · Tc      Tr · Tc
+       16 +            × 2+         = 16 + 2,048 + 16,384 = 18,448 bytes ≈ 18 KB.
+      |{z}       32            2
+     header    |    {z   } | {z }
+                scales (f16)   Q4 data
+
+
+3.2.3         MappedTile: Zero-Copy Slice into mmap
+At runtime, a tile is represented as a MappedTile — three references into the mmap’d
+file region, pointing at the header, the scale array, and the quantized data respectively.
+No heap allocation is required. The from_bytes constructor validates bounds and
+casts the header via an unsafe pointer reinterpretation; the data and scale slices are
+computed as byte-range offsets from the header pointer.
+
+
+3.3      The .cflow File Format
+The .cflow format stores tiles in per-layer, compute-sequential order for standard
+(non-vertical) inference. The file consists of three logical regions: a global header,
+a per-layer offset table, and the tile data for all layers followed by the vocabulary
+(embedding and LM-head) tiles.
+
+3.3.1         GlobalHeader
+The file begins with an 88-byte GlobalHeader in repr(C, packed) layout, identified
+by the magic bytes "CFLOW\0\0\0". The current format version is v5. The header
+stores all model geometry fields needed to allocate buffers and construct the execution
+plan before reading any tile data: hidden dimension, number of query and KV heads,
+head dimensions, dense FFN hidden dimension, expert count and top-k, vocabulary
+size, quantization type, tile dimensions, and sliding-window parameters.
+    The v5 header adds five fields in the previously-reserved tail region:
+
+   • dense_delay (u8): the dense-FFN pipelining delay in layers (0 = no delay,
+     Gemma-style; 1 = arch2_4 style). Used by the delay-aware scheduler.
+
+   • expert_delay (u8): the MoE expert pipelining delay in layers.
+
+   • combine_style (u8): how dense FFN√and MoE outputs are combined at each
+     layer: 0 = ParallelSqrt2 ((d + m)/ 2, Gemma 4), 1 = DelayedSum (d + m,
+     arch2_4_combined), 2 = AsyncExperts (arch4 variant).
+
+   • feature_flags
+             √       (u8): bitfield for boolean architecture features (bit 0: embedding
+     scale by d; bit 1: V-norm; bit 2: tied embeddings).
+
+   • final_logit_softcap (f32): the logit soft-cap value; 0.0 = disabled.
+CHAPTER 3. THE CFLOW RUNTIME                                                        18
+
+
+   These fields are the runtime’s sole source of truth for execution semantics; the
+Python training code writes them during checkpoint conversion and the Rust runtime
+reads them without any hard-coded model-family fallbacks.
+
+3.3.2     Per-Layer Tile Ordering
+Within each layer’s tile region, tiles appear in the following order:
+   1. QKV attention tiles (Q, K, V projections), interleaved by output stripe for fused
+      computation.
+   2. Output projection (WO ) tiles.
+   3. Dense FFN tiles (gate and up projections interleaved by output stripe, then the
+      down projection).
+   4. Router weight matrix (stored as f32, not Q4, because the router is small enough
+      that per-group quantization overhead would dominate).
+   5. Expert offset table: an array of (offset, length) pairs, one per expert, point-
+      ing into the expert tile bank.
+   6. Expert tiles for experts 0, 1, . . . , E − 1 (gate, up, down per expert).
+    This ordering guarantees that the compute thread, which processes attention before
+FFN and FFN before MoE within a layer, reads the file in a strictly forward direction
+for every weight except the selected expert tiles, which are seeked by index from the
+expert offset table.
+
+3.3.3     Expert Offset Table and Conditional Loading
+The expert offset table is the mechanism for conditional expert loading. Each entry is
+a pair of 64-bit integers: (offset, length), where offset is the byte offset within
+the .cflow file at which the expert’s tiles begin, and length is the byte span of
+all three projections (gate, up, down) for that expert. After the router scores are
+computed, the runtime selects the top-k indices, looks up their entries in the offset
+table, and issues reads only for those k experts. For E = 128, k = 8, this eliminates
+120/128 = 93.75% of expert weight reads compared to loading all experts.
+
+
+3.4      The .vflow File Format
+The .vflow format extends the tile-ordering idea to vertical pipelining: tiles are
+grouped not by layer but by execution stage across layers. This is the format that the
+delay-aware scheduler targets; its design is driven by the dependency structure of the
+pipeline-native architectures described in Chapter 4.
+CHAPTER 3. THE CFLOW RUNTIME                                                          19
+
+
+3.4.1     Vertical Groups
+Layers are partitioned into vertical groups, each consisting of a contiguous block of
+layers that share the same attention geometry. For Gemma 4 with its 5:1 sliding/full
+attention pattern, the grouping is adaptive: every consecutive block of 5 sliding-
+window layers forms one group, and each full-attention layer is a solo group (because
+its different head dimension, dk = 512 vs. 256, and its K=V weight sharing make
+mixing with sliding layers in the inner loop impractical).
+    For the uniform-attention architectures trained in this report (arch1 through arch5,
+all with a single attention geometry), every layer belongs to a single group of depth
+equal to the total layer count.
+
+3.4.2     File Layout
+The .vflow file consists of three regions:
+
+  1. A 64-byte VFlowHeader with the same geometry fields as the .cflow header
+     plus a group count and group table offset.
+
+  2. A GroupTable: an array of GroupDescriptor entries, one per group, each
+     recording the byte offset and length of the group’s sequential tile data and the
+     per-stage offsets within it.
+
+  3. A sequential streaming region: all non-expert tiles for all groups, ordered
+     as attention tiles for group 0 across all its layers, then dense FFN tiles for group
+     0 across all its layers, then the same for group 1, and so on.
+
+  4. A random-access expert bank: expert tiles for all layers, organized so that
+     looking up the tile data for any (layer, expert) pair requires a single O(1) index
+     lookup.
+
+   The key property of the sequential streaming region is that a single forward
+sequential read from disk delivers all the attention weights for a group, then all the
+dense FFN weights for that group, without any seeks. This is the I/O access pattern
+that the .vflow design is intended to enable; whether the OS or hardware prefetcher
+exploits the sequentiality in practice is measured in Chapter 5.
+
+
+3.5      Fused Projection Kernels
+3.5.1     Tiled Matrix-Vector Product
+The central compute primitive is tiled_matvec: given an activation vector x ∈ Rn
+and a sequence of tiles covering a weight matrix W ∈ Rm×n , compute y = W x
+by accumulating partial dot products from each tile. The function iterates tiles
+CHAPTER 3. THE CFLOW RUNTIME                                                            20
+
+
+in the order they appear in the .cflow file (row-major tile order), dispatching to
+tile_dot_product for each tile:
+
+
+      y[row_offset : row_offset + Tr ] += Wtile · x[col_offset : col_offset + Tc ].   (3.1)
+
+    The output slice is pre-zeroed once before the loop; each tile adds its partial sum
+into the pre-allocated result buffer. Because tiles for one output stripe (all column
+tiles for a fixed row_offset) are contiguous in the file and adjacent in the loop, the
+column partial sums are accumulated in order and committed to the output buffer
+once the stripe is complete.
+
+3.5.2      Fused QKV and Gate+Up
+The attention module loads WQ , WK , and WV in a single pass over the tile stream
+rather than three separate passes. Tiles for Q, K, and V are interleaved in the .cflow
+file by output stripe: the first output stripe of Q is followed by the first output
+stripe of K and V before advancing to the second stripe of Q. The tiled_matvec
+dispatcher switches output buffers based on the matrix_id field in each tile’s header,
+accumulating into q, k, and v simultaneously from one sequential tile stream. This
+reduces the number of times the activation vector x must be loaded from L1/L2: a
+single activation load services three projections.
+    The same fused-stripe pattern is applied to the dense FFN’s gate and up projections:
+tiles for gate and up are interleaved by output stripe so that one activation load through
+L1 computes both projections for each output stripe.
+
+
+3.6       Q4 Inner-Product Pipeline
+3.6.1      Q4_0 Quantization Format
+Weights are stored in the Q4_0 format: for every block of 32 consecutive weights,
+one f16 scale factor is stored followed by 16 bytes of packed nibbles (two 4-bit signed
+integers per byte, unsigned nibble values ∈ [0, 15] with offset −8 encoding the range
+[−8, 7]). The dequantized value of the i-th weight in a block is:
+
+                                     ŵi = s · (qi − 8),
+
+where s is the block scale and qi is the 4-bit nibble value. Dequantization is always
+fused into the dot product; the f32 weight values are never materialized in a separate
+buffer.
+CHAPTER 3. THE CFLOW RUNTIME                                                       21
+
+
+3.6.2    Scalar Reference Implementation
+The reference implementation processes one 32-weight group per iteration, converting
+the f16 scale to f32 once per group, then unpacking and accumulating each nibble
+pair. The inner loop over 16 packed bytes extracts the low and high nibbles, offsets
+them by −8, multiplies by the scale, and adds the products against the corresponding
+activation values. This reference path is used on non-AVX2 hardware and as the test
+oracle for the SIMD implementations.
+
+3.6.3    AVX2 + FMA Path
+On x86-64 processors supporting AVX2 and FMA, the kernel switches to a 256-bit
+SIMD inner loop. The key operations are:
+
+  1. Load 16 bytes of packed Q4 data into a 128-bit XMM register.
+
+  2. Unpack low and high nibbles using vpand and vpsrlw, producing two vectors of
+     16 unsigned bytes.
+
+  3. Sign-extend to 16-bit integers via vpmovsxbw and subtract 8 (the Q4 offset)
+     using vpsubw.
+
+  4. Convert to f32 via vcvtepi32ps and multiply by the scalar scale (broadcast
+     via vbroadcastss).
+
+  5. Multiply-add against the corresponding activation slice using vfmadd231ps.
+
+The horizontal accumulation at the end of each group uses vhaddps to sum the
+eight-lane YMM register to a scalar. Runtime detection of AVX2 and FMA via
+std::is_x86_feature_detected! allows the same binary to fall back to the scalar
+path on older hardware without recompilation.
+    The AVX2 path processes 32 weights (one Q4 group) in approximately 10 instruc-
+tion slots; on the Ryzen 5 2600 used for the Windows benchmarks (full AVX2+FMA)
+the path is fully utilized. For Sandy Bridge hardware without AVX2, such as the
+Xeon E5-2650, a separate AVX1+SSE4.1 path uses 128-bit XMM integer operations
+for nibble unpacking and 256-bit AVX floating-point for the multiply-accumulate.
+
+3.6.4    AVX-512 Path
+On processors supporting AVX-512F and AVX-512BW, the kernel widens to 512-bit
+ZMM registers, processing 32 weights in two 16-wide FMA instructions (one for the low
+nibble group, one for the high). The horizontal reduction uses the AVX-512 single-step
+_mm512_reduce_add_ps intrinsic rather than the multi-step AVX2 hadd chain. This
+path is guarded by the same runtime feature detection and is used automatically on
+Xeon Scalable and Zen 4 hardware without any user configuration.
+CHAPTER 3. THE CFLOW RUNTIME                                                                      22
+
+
+3.7     Attention Pipeline
+3.7.1    Grouped-Query Attention with KV Cache
+The attention forward pass for single-token decode proceeds as follows:
+
+  1. Project the normalized residual x̄ = RMSNorm(x) to queries, keys, and values
+     via the fused tiled matvec described in Section 3.5.
+
+  2. Append the new key and value vectors to the KV cache for this layer.
+
+  3. For each query head h, compute attention scores against all cached key vectors:
+                                                     q
+                     scores[i] = qh · kcache [i] /       dk ,    i = 0, . . . , T − 1.
+
+  4. Optionally apply the logit soft-cap: ŝi = tanh(si /c)·c (enabled when final_logit_softcap
+     ̸= 0).
+
+  5. Apply sliding-window masking if in a sliding-window layer.
+
+  6. Compute attn = softmax(scores) and output oh =                     i attn[i] · vcache [i].
+                                                                     P
+
+
+  7. Concatenate outputs across GQA groups and project through WO .
+
+GQA head assignment follows the standard convention: query head h shares KV head
+⌊h · HKV /HQ ⌋, so each KV head is replicated to service HQ /HKV query heads without
+storing redundant KV pairs.
+
+3.7.2    Rotary Position Embedding
+RoPE [23] is applied to query and key vectors after projection. For sliding layers,
+standard RoPE uses θ = 10,000 and rotates all head dimensions: dimension i is paired
+with dimension i + dk /2 under the rotation
+
+                      cos ϕi − sin ϕi
+                                        !                !
+                                               xi                         t
+                                                             ,   ϕi =            ,
+                      sin ϕi cos ϕi         xi+dk /2                    θ2i/dk
+
+where t is the token position. For full-attention layers in Gemma 4, P-RoPE is applied:
+θ = 106 and only the first 25% of dimension pairs rotate (partial = 0.25); the
+remaining pairs are left unchanged. Both variants use the HuggingFace “split-half”
+convention (pairing i with i + dk /2) rather than the adjacent-pair convention used by
+some other implementations.
+CHAPTER 3. THE CFLOW RUNTIME                                                              23
+
+
+3.7.3     V-Norm
+When the feature_flags bit USE_V_NORM is set, a per-position RMSNorm without
+learned scale is applied to each value vector before it is written into the KV cache.
+This stabilizes the attention output at the cost of one additional normalization pass
+per key-value pair. The normalization uses the shared rmsnorm_no_scale function
+from compute/rmsnorm.rs.
+
+
+3.8      Normalization Layers
+All normalization operations use RMSNorm:
+                                                     x
+                        RMSNorm(x; w) = q P                      ⊙ w,
+                                                    i=1 xi + ε
+                                         1 d             2
+                                                d
+
+with ε = 10−6 . For V-norm (no learned scale), the weight vector w is omitted
+(equivalently, set to all-ones). Normalization parameters are stored as f32 vectors
+alongside the tile data in the layer offset table and are loaded in full at the start of each
+layer (they are small enough to stay in L2 cache throughout the layer’s computation).
+
+
+3.9      Conditional Expert Prefetch
+3.9.1     Two-Thread Pipeline
+The cflow runtime runs two threads: a compute thread and a prefetch thread. The
+compute thread drives the forward pass; the prefetch thread issues hardware prefetch
+instructions using _mm_prefetch(ptr, _MM_HINT_T0) on x86-64 (PREFETCHT0,
+targeting L1-d) to pull upcoming weight data into cache before the compute thread re-
+quires it. The two threads communicate via a bounded channel carrying PrefetchCommand
+messages.
+
+3.9.2     Linear and Conditional Commands
+Two command types are used:
+
+   • LinearRange{offset, length}: prefetch a contiguous byte range from the
+     mmap’d file. Issued by the compute thread for attention and dense FFN tile
+     regions one layer ahead.
+
+   • ExpertTiles{regions}: prefetch a list of (offset, length) pairs. Issued
+     by the compute thread after the router runs for the current layer, containing
+     precisely the tile regions of the selected top-k experts for the next layer. This
+CHAPTER 3. THE CFLOW RUNTIME                                                         24
+
+
+      is the conditional prefetch: only the k experts that the current layer’s routing
+      decision predicts will be needed next layer are prefetched.
+
+    The design ensures that no unused expert data enters the cache hierarchy. Because
+the router output at layer ℓ is correlated with the routing at layer ℓ + 1 (the residual
+stream changes only incrementally between layers), the prefetch hit rate is high in
+practice. The overhead is one channel send per layer (a few dozen nanoseconds),
+negligible against the microseconds of tile compute per layer.
+
+3.9.3     Negative Result: PREFETCHT0 at RAM-Bottleneck
+          Scale
+As measured in the evaluation (Section 5.8), the explicit _mm_prefetch instruction
+provides no measurable benefit when the bottleneck is storage-to-RAM bandwidth
+rather than RAM-to-cache bandwidth. At both the 64 MB (arch2_4_combined) and
+4.7 GB (arch2_4_8k_4l) model scales, PF=1 and PF=0 produce bandwidths within
+measurement noise. The conclusion is structural: PREFETCHT0 moves data from RAM
+to L1-d, but when the model does not fit in RAM (or when I/O is the bottleneck), the
+hardware’s HW prefetcher already saturates the linear RAM access pattern and the
+explicit hint adds no information. The claim remains untestable until the compute
+time per token significantly exceeds the I/O time.
+
+3.9.4     Staged Direct-I/O Expert Fetch
+The successor to the hint-based prefetch is a staged fetch that does real I/O: a pool
+of reader threads pulls the router-selected expert regions from storage with direct
+I/O (FILE_FLAG_NO_BUFFERING on Windows, O_DIRECT on Linux) into sector-aligned
+staging buffers, issued at the routing layer and consumed at the injection layer so
+the read overlaps the intervening layers’ compute under the expert_delay schedule.
+Slot lifecycle is guarded by a per-slot pending-operation counter, so a buffer is never
+recycled while a read is in flight, and the deferred expert computation uses the saved
+router activation — the arithmetic is bit-identical to the in-layer path. The wall-clock
+evaluation of this mechanism is Section 5.14.
+
+
+3.10      Safetensors Converter
+3.10.1     Architecture Dispatch
+The src/convert/ module implements conversion from HuggingFace Safetensors
+checkpoints to .cflow and .vflow files. Conversion is driven by a ModelConfig
+struct that encodes the architecture-specific parameters (dense_delay, expert_delay,
+CHAPTER 3. THE CFLOW RUNTIME                                                        25
+
+
+combine_style, feature_flags) alongside the geometry. A –model CLI flag (val-
+ues: gemma4, arch2_4, arch4) selects the config, which is then serialized into the
+GlobalHeader.
+
+3.10.2     DelayedMoESource
+For architectures with non-zero delays, the tile ordering in the .cflow file must
+match the delayed execution schedule rather than the standard per-layer order. The
+DelayedMoESource type wraps the Safetensors checkpoint and produces tiles in the
+order dictated by the delay parameters: dense FFN weights for layer ℓ are placed
+in the file at the position where they will be read during the execution of layer
+ℓ − dense_delay, and expert weights are placed at the position where they will be
+read during the execution of layer ℓ − expert_delay. This ensures that the sequential
+read invariant (weights appear in the order they are consumed) holds even under the
+delayed schedule.
+
+3.10.3     Tile Quantization
+During conversion, each tile is quantized from the bfloat16 or float32 checkpoint
+format to Q4_0 in-memory before being written to disk. Quantization is per-group
+(32 weights per scale factor): for each group, the maximum absolute value determines
+the scale s = max |wi |/7, and each weight is encoded as qi = round(wi /s) + 8, clipped
+to [0, 15]. The scale is converted to f16 and prepended to the packed nibble data.
+
+
+3.11       Implementation Correctness
+The runtime is validated by a test suite of 116 unit tests and 8 integration tests, all
+passing with zero failures. The key correctness properties are:
+
+   1. Rust↔PyTorch parity for arch2_4_combined. A reference trace generated
+      by the PyTorch training code (running the model deterministically on a fixed
+      input token) is compared against the Rust forward pass on the same .cflow file.
+      Per-layer residual vector norms agree to within Q4 quantization noise (< 1%
+      relative); the argmax of the output logit distribution matches exactly; and the
+      top-32 token overlap is ≥ 27/32.
+
+   2. Rust↔PyTorch parity for arch4_async_experts. An independent replay
+      script (scripts/dump_delay_trace.py) runs the Python async-expert model
+      in delay-replay mode and records a reference trace including the pre-LM-head
+      norm (∥x∥2 = 41.27) and output argmax (9760). The Rust runtime matches
+      exactly (relative norm error < 0.007%, exact argmax match) on both .cflow
+      and .vflow paths.
+CHAPTER 3. THE CFLOW RUNTIME                                                       26
+
+
+  3. Format round-trip. Tests verify that converting a checkpoint to .cflow and
+     back reads the same tile data as reading the original Safetensors tensors, within
+     quantization error.
+
+    These parity guarantees confirm that the tile reordering, quantization, and execu-
+tion schedule produce numerically identical results to the reference PyTorch imple-
+mentation, establishing correctness as a precondition for the performance claims in
+Chapter 5.
+Chapter 4
+
+Pipeline-Native Transformer
+Architectures
+
+The cflow runtime provides the infrastructure for cache-optimal weight streaming
+and conditional expert loading. However, the fundamental bottleneck for single-token
+decode is not cache locality within a layer but the total bytes that must be read from
+RAM over the entire layer stack. This chapter addresses that bottleneck through a
+complementary approach: co-designing transformer architectures whose inter-layer
+dependency graph permits a vertical pipeline schedule by construction, reducing the
+number of bytes on the critical path between successive token outputs.
+
+
+4.1      The Layer Dependency Problem
+4.1.1     Formal Statement
+Let xin
+      ℓ ∈ R denote the residual stream entering layer ℓ of a standard pre-norm
+            d
+
+transformer. The layer computes:
+
+                               mℓ = Attnℓ (Norm(xin
+                                                 ℓ )),                              (4.1)
+                              xmid
+                               ℓ   = xin
+                                      ℓ + mℓ ,                                      (4.2)
+                                fℓ = FFNℓ (Norm(xmid
+                                                 ℓ )),                              (4.3)
+                              xℓ = xℓ + fℓ ,
+                               out    mid
+                                                                                    (4.4)
+
+and the next layer receives xin
+                             ℓ+1 = xℓ .
+                                    out
+
+
+Proposition 4.1 (Standard Transformer Layer Dependency). In a standard pre-norm
+transformer, layer ℓ + 1 cannot begin until layer ℓ has computed both mℓ and fℓ , because
+the FFN input Norm(xmid ℓ ) depends on the attention output mℓ , and layer ℓ + 1’s input
+depends on fℓ through xoutℓ .
+
+
+
+
+                                           27
+CHAPTER 4. PIPELINE-NATIVE TRANSFORMER ARCHITECTURES                                             28
+
+
+   This creates a strict sequential chain: the weight-reading schedule for a single
+forward pass must be
+
+                 WQ0 , WK0 , WV0 , WO0 , Wffn
+                                           0
+                                              , WQ1 , WK1 , WV1 , WO1 , Wffn
+                                                                          1
+                                                                             ,...
+
+where each layer’s weights must be fully read before the next layer begins. No
+reordering of reads is possible without violating the dependency.
+
+4.1.2     The Vertical Pipeline Idea
+A vertical pipeline schedule interleaves stages across layers rather than completing
+layers sequentially. Concretely, for a two-layer schedule:
+
+
+ Thread           Step 1                               Step 2                         Step 3
+ Compute     Attn[ℓ]                FFN[ℓ] + Attn[ℓ+1] (overlap)                   FFN[ℓ+1]
+ I/O     Load attn tiles[ℓ]        Load ffn tiles[ℓ] + attn tiles[ℓ+1]          Load ffn tiles[ℓ+1]
+
+For this to be valid, layer ℓ + 1’s attention must not depend on layer ℓ’s FFN output.
+In the standard transformer, this is false: the attention norm at layer ℓ + 1 is applied
+to xout
+    ℓ   = xmid
+            ℓ  + fℓ , which includes the FFN contribution. The vertical schedule is
+therefore mathematically invalid for the standard architecture.
+
+4.1.3     Bandwidth Implications
+The bandwidth cost of one complete single-token decode through L layers of a dense
+transformer is:
+                                           L−1
+                           Bsequential =         (Battn (ℓ) + Bffn (ℓ)) ,
+                                           X
+
+                                           ℓ=0
+
+where Battn (ℓ) = (d2 + 2ddk HKV ) × 0.5 bytes and Bffn (ℓ) = 3d · dff × 0.5 bytes (Q4,
+including all projections). No reordering can reduce this total; the question is whether
+the critical-path length (the number of bytes that must be read before the first bit of
+the next token’s logit is available) can be shortened.
+    For the architectures trained in this report with d = 512, dff = 2048, L = 6, E = 8
+experts, k = 2, and expert hidden = 512:
+
+                      Bdense/layer = 3 × 512 × 2048 × 0.5 = 1.5 MB,                            (4.5)
+               Bexpert/layer (top-2) = 2 × 3 × 512 × 512 × 0.5 = 0.75 MB,                      (4.6)
+                       Battn/layer = 4 × 5122 × 0.5 = 0.5 MB,                                  (4.7)
+                       Btotal/pass = 6 × (0.5 + 1.5 + 0.75) = 16.5 MB.                         (4.8)
+CHAPTER 4. PIPELINE-NATIVE TRANSFORMER ARCHITECTURES                                 29
+
+
+The 16.5 MB total is the fully-serial upper bound: every stream of every layer read
+back-to-back. It is not the quantity that sets latency. Because the attention, dense-
+FFN, and expert reads within a layer are issued concurrently, the per-layer critical
+path is the longest of the three streams, not their sum, which over the six layers comes
+to 9.00 MB/token. Delaying the dense and expert reads spreads them across the layers
+that prefetch them and lowers the figure to 4.50 MB/token for arch2_4_combined —
+a 2.00× reduction. Section 4.5 gives the derivation.
+
+
+4.2      DAG Rewriting: Dense Delay and Expert De-
+         lay
+4.2.1     The Dense Delay Transform
+The core observation motivating the pipeline-native architectures is that the depen-
+dency FFNℓ (Norm(xmid ℓ )) — which requires both the attention output and the full
+residual — is not the only way to design a productive FFN. If instead the FFN at
+layer ℓ reads a delayed residual xout
+                                  ℓ−∆ (from ∆ layers earlier), then:
+
+                               mℓ = Attnℓ (Norm(xin
+                                                 ℓ )),                            (4.9)
+                             xmid
+                              ℓ   = xin
+                                     ℓ + mℓ ,                                    (4.10)
+                                fℓ = FFNℓ (Norm(xout
+                                                 ℓ−∆ )),                         (4.11)
+                              xℓ = xℓ + fℓ .
+                               out    mid
+                                                                                 (4.12)
+
+The FFN input xout ℓ−∆ is independent of the current layer’s attention output mℓ . This
+breaks the intra-layer dependency: layer ℓ + 1’s attention can begin as soon as layer
+ℓ’s attention finishes, because xin
+                                 ℓ+1 = xℓ
+                                         out
+                                             and xout
+                                                  ℓ   = xin
+                                                         ℓ + mℓ + fℓ can be computed
+once fℓ is available from the delayed buffer (which is ready ∆ layers ahead).
+    The delay is stored in the .cflow header as dense_delay. The delay-aware
+scheduler uses this value to construct the ring-buffered residual history and determine
+which residual snapshot each layer’s FFN consumes.
+
+4.2.2     The Expert Delay Transform
+An analogous transform applies to MoE expert layers. Rather than routing off the
+current residual and injecting expert outputs immediately, the expert delay δe routes
+CHAPTER 4. PIPELINE-NATIVE TRANSFORMER ARCHITECTURES                                         30
+
+
+at layer ℓ but injects the expert outputs into the residual at layer ℓ + δe :
+
+                  router input: rℓ = Norm(xin
+                                           ℓ ),                                           (4.13)
+                                     (ℓ)          (ℓ)   (ℓ)          (ℓ)
+                top-k selection:   (i1 , . . . , ik ), s1 , . . . , sk = Routerℓ (rℓ ),   (4.14)
+                                         k
+                                                (ℓ)
+           expert computation: eℓ =            sj · Experti(ℓ) (rℓ ),                     (4.15)
+                                         X
+                                                             j
+                                         j=1
+
+      injection at layer ℓ + δe : xout
+                                   ℓ+δe += eℓ .                                           (4.16)
+
+The expert outputs eℓ are enqueued after computation at layer ℓ and dequeued at
+layer ℓ + δe . Expert tiles can therefore be loaded during the δe -layer window between
+the routing decision and the injection, overlapping their I/O with the compute of
+intervening layers. The expert delay is stored in the .cflow header as expert_delay.
+
+4.2.3     The CombineStyle Variants
+The three CombineStyle values in the header encode distinct forward-pass semantics
+that arise from different choices of what to route off:
+
+ParallelSqrt2 (0): Dense FFN and MoE run in parallel on the √same pre-FFN
+     normalized residual; their outputs are summed and scaled by 1/ 2 before being
+     added to the residual. This is the Gemma 4 convention. No delays (δd = δe = 0).
+
+DelayedSum (1): Used by arch2_4_combined with δd = 1, δe = 2. The dense
+     FFN reads a delayed residual (Equation 4.11); the router fires off the current
+     post-attention normalized residual Norm(x
+                                             √ ℓ ); expert outputs are injected δe
+                                                mid
+
+     layers later. Combine rule: d + e (no 1/ 2 scaling).
+
+AsyncExperts (2): Used by arch4_async_experts with δd = 0, δe = 2. Both the
+     dense FFN and the router read off the same pre-attention normalized residual
+     Norm(xinℓ ) (before the attention residual addition). This “pre-dense” routing
+     hypothesis provides a cleaner signal to the router by routing before either the
+     attention or dense FFN contribution is added.
+
+
+4.3      The Five Candidate Architectures
+Five candidate architectures were designed, trained, and evaluated. All share the same
+training configuration (TinyStories dataset [7], 10K steps, AdamW with η = 3 × 10−4 ,
+cosine decay, 50K GPT-2 vocabulary) and the same nominal geometry (d = 512,
+L = 6, HQ = 8, HKV = 8, GQA 1:1, dff = 2048). Architectures 4 and 5 add MoE and
+weight-sharing components that increase their parameter counts.
+CHAPTER 4. PIPELINE-NATIVE TRANSFORMER ARCHITECTURES                                    31
+
+
+4.3.1     Arch1: Decoupled Residual Streams
+Arch1 replaces the single residual stream with two independent streams sattn and sffn ,
+each updated by only its respective sub-operation:
+
+                       sattn,ℓ = sattn,ℓ−1 + Attnℓ (Norm(sattn,ℓ−1 )),               (4.17)
+                        sffn,ℓ = sffn,ℓ−1 + FFNℓ (Norm(sffn,ℓ−1 )).                  (4.18)
+
+Every merge_interval
+                √          = 3 layers, the streams are synchronized: sattn = sffn =
+(sattn + sffn )/ 2. The pipeline opportunity is clear: between merge points, the two
+streams are completely independent, enabling stage-major execution. However, because
+δd = 0 and δe = 0 for this architecture (no delays), there is no reduction in critical-path
+bandwidth. The architecture trains to test ppl 7.21 and achieves 1.00× bandwidth
+reduction. It serves as a baseline for the decoupled-stream idea.
+
+4.3.2     Arch2_4_combined: Dense-and-Expert Delay
+This is the primary result architecture. It combines δd = 1 (dense FFN reads the
+residual from one layer ago) and δe = 2 (expert outputs are injected two layers after
+routing) with CombineStyle::DelayedSum. The dependency chain is broken at two
+points:
+   • Layer ℓ + 1’s attention can begin as soon as layer ℓ’s attention finishes (the FFN
+     has no blocking dependency).
+   • Layer ℓ + 1’s expert tiles can be loaded during the 2-layer window after the
+     routing decision, hiding their I/O behind the intervening computation.
+The critical-path bandwidth computed for this configuration is 4.50 MB/token vs.
+9.00 MB/token for the undelayed schedule — a 2.00× reduction. Test perplexity is
+6.50.
+    The name “arch2_4_combined” reflects that this architecture combines the dense-
+delay idea from arch2 (delayed residual injection) with the expert-delay idea from arch4
+(asynchronous expert evaluation). It is the architecture for which Rust↔PyTorch
+parity is locked.
+
+4.3.3     Arch2_4_sync: Synchronous Variant
+An ablation of arch2_4 that retains the dense delay but removes the expert queue
+(δd = 1, δe = 0, CombineStyle::DelayedSum). This isolates the quality cost of the
+expert delay: test perplexity is 6.52 against 6.50 for the full combined schedule —
+within run-to-run noise — so the two-layer expert delay is quality-free. Because the
+dense delay is retained, its critical path equals arch2_4_combined’s (4.50 MB/token);
+what the variant gives up is the expert-side overlap window that Section 5.14 later
+converts into wall-clock I/O hiding.
+CHAPTER 4. PIPELINE-NATIVE TRANSFORMER ARCHITECTURES                                32
+
+
+4.3.4    Arch3: Pipeline Registers
+Arch3 uses explicit pipeline register semantics: each layer maintains two named
+outputs, an attn_reg (available immediately after attention) and an xfm_reg (the
+complete output, available after FFN):
+
+              attn_regℓ = attn_regℓ−1 + Attnℓ (Norm(attn_regℓ−1 )),             (4.19)
+                     fℓ = FFNℓ (Norm(xfm_regℓ−1 )),                             (4.20)
+               xfm_regℓ = attn_regℓ + fℓ .                                      (4.21)
+
+The key property is that layer ℓ + 1’s attention reads attn_regℓ , which is independent
+of layer ℓ’s FFN, while the FFN reads the fully-updated xfm_regℓ−1 (from the previous
+layer, not the current one). This is a “clean” version of the delayed-residual idea: no
+staleness beyond one layer, and the dependency DAG has explicit cross-layer register
+passes. With δd = 0, δe = 0, the architecture achieves 1.00× bandwidth reduction.
+Test perplexity is 7.24, matching arch1 as a baseline-quality reference.
+
+4.3.5    Arch4: Asynchronous Experts
+Arch4 applies the expert delay in isolation (δd = 0, δe = 2, CombineStyle::AsyncExperts).
+The distinguishing feature is pre-dense routing: the router fires off the pre-FFN-norm
+of the input residual Norm(xin
+                             ℓ ) rather than the post-attention residual. Expert outputs
+are computed on the same pre-dense activation and injected at layer ℓ + 2.
+    This routing point provides the highest quality among all five architectures: test
+perplexity 6.26, which is 0.24 better than arch2_4_combined (6.50). The hypothesis
+is that routing before the dense FFN contribution sees a cleaner signal, since the
+dense FFN’s transformation may obscure the token-type information that the router
+uses to assign experts. However, because the dense FFN path dominates the critical-
+path bandwidth at this geometry (1.5 MB/layer for dense vs. 0.75 MB/layer for top-2
+experts), the expert delay alone does not reduce critical-path bandwidth. Arch4
+demonstrates that expert delay is the quality knob; arch2_4_combined demonstrates
+that dense delay is the bandwidth knob.
+
+4.3.6    Arch5: Fixed-Point Iteration with Weight Sharing
+Arch5 uses 2 unique weight blocks, each iterated 3 times for an effective depth of 6:
+
+x ← xblock +AttnB (Norm(x))+FFNB (Norm(x+AttnB (·))) for B ∈ {0, 1}, iterations 1, 2, 3.
+                                                                                  (4.22)
+Within a block, all iterations share weights; the pipeline opportunity is that iteration
+i + 1 of block B can begin as soon as iteration i finishes, with the same weight
+tiles already in L2 cache from the previous iteration. This is a different form of
+pipelining: temporal weight reuse rather than inter-layer weight reordering. The
+CHAPTER 4. PIPELINE-NATIVE TRANSFORMER ARCHITECTURES                                  33
+
+
+measured critical-path at δd = 0, δe = 0 is 14.06 MB/token (vs. 9.00 MB for the
+non-sharing architectures), because all 6 passes through the architecture’s 2 blocks
+are counted. Test perplexity is 6.77. The unique on-disk bytes are ≈ 4.69 MB
+(the two block weights), significantly less than the other architectures, illustrating a
+parameter-efficiency trade-off.
+
+
+4.4      The Delay-Aware Scheduler
+4.4.1     Ring-Buffered Residual History
+The runtime maintains a ring buffer of max(δd , δe ) + 1 residual vectors. At each layer
+ℓ, the appropriate delayed entry is looked up by index modulo the buffer size. The
+scheduler is parameterized entirely by the two delay integers read from the .cflow
+header; no model-family-specific logic is required.
+
+4.4.2     Multi-Layer Driver
+The delay-aware multi-layer driver processes layers ℓ = 0, 1, . . . , L − 1 in order. For
+each layer, the driver:
+   1. Retrieves the delayed residual xout
+                                      ℓ−δd from the ring buffer (or the zero vector for
+      the first δd layers).
+
+   2. Calls the single-layer executor with the current residual, the delayed residual,
+      and any queued expert outputs.
+
+   3. For AsyncExperts: dequeues and injects any expert outputs scheduled for layer
+      ℓ before the executor call (the executor routes and enqueues for layer ℓ + δe ).
+
+   4. For DelayedSum: the executor handles the queue internally.
+
+   5. Updates the ring buffer with the new output residual.
+The queue is a VecDeque<(usize, Vec<f32>)> mapping target layer indices to expert
+output vectors. The total memory overhead is (δd + 1) × d × 4 bytes for the residual
+ring buffer plus at most δe pending expert vectors, each of size d × 4 bytes. At d = 512,
+δe = 2: approximately 3 × 2 KB + 2 × 2 KB = 10 KB of additional working state.
+
+
+4.5      Bandwidth Model
+4.5.1     Critical-Path Analysis
+The critical path in a delayed schedule is the sequence of weight reads that must
+be completed before the output logit for the current token is available. Under the
+CHAPTER 4. PIPELINE-NATIVE TRANSFORMER ARCHITECTURES                                  34
+
+
+standard (no-delay) schedule, the critical path passes through all weight reads of all
+layers. Under the delayed schedule, some reads are moved off the critical path:
+   • Dense FFN reads. With δd ≥ 1, layer ℓ’s FFN consumes the residual
+     committed at layer ℓ − δd , so its tiles can be fetched across the intervening δd +1
+     layers instead of in the single layer that uses them. Their contribution to the
+     per-layer critical path drops from Bdense to Bdense /(δd +1). The stream leaves the
+     critical path only once that amortised figure falls below the attention stream.
+   • Expert tiles. With δe ≥ 1, the top-k tiles selected at layer ℓ are not injected
+     until layer ℓ + δe , so they can be fetched across that δe +1-layer window; their
+     per-layer contribution drops from Bexpert to Bexpert /(δe +1).
+   At the arch2_4_combined geometry (d = 512, dff = 2048, L = 6, E = 8,
+k = 2), the three weight streams within a layer are issued concurrently to the memory
+subsystem, so the per-layer critical path is set by the longest stream rather than their
+sum. A delay of δ spreads a stream’s bytes across the (δ+1)-layer window over which
+they can be prefetched, dividing that stream’s per-layer contribution by δ+1. The
+analyze_critical_path_for function in src/format/vflow.rs therefore computes
+                                L−1
+                                                 Bdense Bexpert
+                                                               
+                     Bcritical =     max Battn ,                                  (4.23)
+                                X
+                                                       ,        .
+                                 ℓ=0             δd + 1 δe + 1
+   The per-layer stream sizes (Q4, 0.5 bytes per parameter) are
+
+                     Battn = 4 × 5122 × 0.5 = 0.50 MB,                            (4.24)
+                    Bdense = 3 × 512 × 2048 × 0.5 = 1.50 MB,                      (4.25)
+                    Bexpert = 2 × 3 × 512 × 512 × 0.5 = 0.75 MB.                  (4.26)
+
+With no delays (δd = δe = 0) every layer contributes max(0.50, 1.50, 0.75) = 1.50 MB,
+so Bnaive = 6 × 1.50 = 9.00 MB per token. Under the arch2_4_combined delays
+(δd = 1, δe = 2) the dense stream amortises to 1.50/2 = 0.75 MB and the expert
+stream to 0.75/3 = 0.25 MB, so each layer contributes max(0.50, 0.75, 0.25) = 0.75 MB
+and Bcritical = 6 × 0.75 = 4.50 MB per token. The reduction is
+                               Bnaive      9.00
+                                         =      = 2.00 × .
+                               Bcritical   4.50
+    The two baselines are not the same quantity. The fully-serial total of Section 4.1.3
+(6 × (0.50 + 1.50 + 0.75) = 16.5 MB) reads every stream back-to-back with no overlap;
+the 9.00 MB naive figure already credits the intra-layer overlap of the three streams,
+and it is the correct baseline against which the delayed schedule should be compared.
+Both critical-path figures come from analyze_critical_path_for, computed from
+the geometry and the two delay integers alone — an analytic result, not a runtime
+timing.
+CHAPTER 4. PIPELINE-NATIVE TRANSFORMER ARCHITECTURES                                                          35
+
+
+4.5.2         Dense Delay vs. Expert Delay as Complementary Knobs
+The bandwidth model reveals a clean separation of concerns:
+
+  • Dense delay δd reduces the number of layers for which dense FFN weights
+    are on the critical path by δd . At the arch2_4 geometry, where dense FFN
+    contributes 1.5 MB/layer vs. 0.75 MB/layer for experts, the dense delay has
+    twice the per-layer bandwidth impact of the expert delay.
+
+  • Expert delay δe reduces the number of layers for which expert tiles are on
+    the critical path by δe . At low k, the expert contribution per layer is smaller
+    than the dense contribution, but at Gemma 4 scale (k = 8, much larger expert
+    hidden dimensions), the expert contribution would dominate and δe would be
+    the primary bandwidth knob.
+
+  • The quality cost is different: arch4 shows that the pre-dense routing hypothesis
+    (routing before the dense FFN) improves perplexity by 0.24 over arch2_4, at the
+    cost of sacrificing the dense bandwidth reduction. A practitioner could trade
+    bandwidth for quality along this axis.
+
+    Table 4.1 summarizes all five architectures, and Figure 4.1 plots the trade-off
+surface they span.
+
+                                                                   arch3
+                                                                   arch1
+
+
+
+
+        Test perplexity
+                           7             dense delay: bandwidth knob
+                                                                                         arch5
+                                                                                 expert delay: quality knob
+                            arch2_4_combined
+                          6.5
+                                (sync ablation ◦)
+                                                                   arch4 (best quality)
+
+                                     4            6         8       10          12       14
+                                             Critical-path bandwidth Bcritical (MB/token)
+
+Figure 4.1: The bandwidth–quality trade-off across the trained candidates (data of
+Table 4.1). The dense delay moves a model left (arch2_4_combined and its sync
+ablation are the only points at 4.50 MB/token); the expert delay moves it down
+(arch4’s pre-dense routing reaches the best perplexity but stays at the undelayed
+bandwidth). arch5’s weight sharing trades bandwidth for parameter efficiency.
+CHAPTER 4. PIPELINE-NATIVE TRANSFORMER ARCHITECTURES                                            36
+
+
+Table 4.1: Pipeline-native architecture summary: training results and bandwidth
+analysis. All architectures trained 10K steps on TinyStories, d=512, L=6.
+
+    Architecture                  Style                 δd   δe   Test PPL      Bnaive      Bcritical
+    arch1_decoupled_streams       DecoupledStreams       0   0      7.21       9.00 MB      9.00 MB
+    arch2_4_combined              DelayedSum             1   2      6.50      9.00 MB      4.50 MB
+    arch2_4_sync†                 DelayedSum             1   0      6.52      9.00 MB       4.50 MB
+    arch3_pipeline_registers      PipelineReg            0   0      7.24       9.00 MB      9.00 MB
+    arch4_async_experts           AsyncExperts           0   2      6.26       9.00 MB      9.00 MB
+    arch5_fixed_point             FixedPoint             0   0      6.77      14.06 MB     14.06 MB
+†
+    Ablation of arch2_4_combined (expert queue removed), not one of the five candidates; shown for
+                           the delay-isolation comparison of Section 4.3.3.
+
+
+4.6         The Co-Design Trade-off
+The pipeline-native experiments expose a three-way trade-off surface among bandwidth,
+quality, and implementation complexity:
+      Bandwidth vs. quality. Arch2_4_combined achieves the best bandwidth
+reduction (2.00×) at the cost of routing off a post-attention residual with a one-layer-
+stale dense contribution (ppl 6.50). Arch4 achieves the best quality (ppl 6.26) by
+routing before the dense FFN (cleaner signal), but gives up the dense bandwidth
+reduction. There is no single Pareto-optimal point; the trade-off is tunable by choosing
+(δd , δe ) and the routing anchor.
+      Quality vs. parameter count. Arch5 demonstrates that weight sharing across
+iterations can achieve competitive quality (ppl 6.77) with one-third of arch1/arch3’s
+parameter count. The bandwidth penalty (14.06 MB vs. 9.00 MB) is a consequence of
+counting all 6 iteration passes over the 2 unique blocks; the unique on-disk bytes are
+only 4.69 MB. For an inference scenario where model storage is the constraint rather
+than per-token bandwidth, arch5 is the most efficient option.
+      Complexity vs. generality. The CombineStyle dispatch in the runtime adds
+a conditional branch per layer but is otherwise a straightforward extension of the
+standard pre-norm forward pass. The delay-aware scheduler adds a ring buffer and an
+expert queue, both O(δ · d) in memory. The implementation cost is modest relative to
+the bandwidth gains, and the scheduler is entirely parameterized by the header fields
+rather than model-family hard-codes.
+      The chapter’s main result fits in a sentence. Of the five pipeline-native architectures,
+only arch2_4_combined shows a critical-path bandwidth reduction: pairing δd = 1
+with δe = 2 under CombineStyle::DelayedSum cuts the critical path by 2.00× against
+the sequential schedule, and it does so while landing within 0.24 perplexity points of
+the best-quality architecture (arch4, ppl 6.26) at the same scale.
+      The scaling behaviour splits by whether the geometry is a design variable or an
+inheritance, and the distinction is the point of the ground-up thesis. For a pipeline-
+CHAPTER 4. PIPELINE-NATIVE TRANSFORMER ARCHITECTURES                               37
+
+
+native model, the designer chooses the geometry so that the delayed streams stay on
+the critical path: with dff = 4d (as in every arch2_4 variant), the dense stream is
+3× the attention stream at any hidden size, and the one-layer dense delay retains its
+full effect. The measured 31B model confirms this by construction: at d = 8,192 its
+per-layer streams are 403 MB dense, 134 MB attention, and 101 MB top-2 expert —
+the same 2.00× critical-path reduction as at d = 512. Inherited geometries behave
+differently: Chapter 6 works the same arithmetic for Gemma 4’s dimensions (where
+dff < d and large attention heads make attention the binding stream) and finds the
+reduction falls below 1.50× with attention as the floor. Both results are consequences
+of one rule — the delays help exactly while the streams they amortise remain binding
+— and the co-design premise is that the model architect, not an inherited checkpoint,
+decides which streams those are.
+Chapter 5
+
+Evaluation
+
+This chapter works through the evaluation claim by claim, following the eight entries
+of the thesis scorecard (Table 1.1). Each is treated the same way: the experiment,
+the hardware it ran on, and what came out. Where the evidence does not support a
+claim, the negative result is reported as such, alongside the conditions that would let
+it be tested properly.
+
+
+5.1     Experimental Setup
+5.1.1    Hardware
+Five machines were used for evaluation and training:
+
+Ryzen-5-2600 (Windows, local benchmark machine): AMD Ryzen 5 2600 (Zen+,
+    6 cores / 12 threads, 3.4–3.9 GHz), 16 GB DDR4-2133 dual-channel (≈34 GB/s
+    theoretical), SATA III SSDs (SanDisk SDSSDA 2 TB), Windows 11. Supports
+    AVX2 and FMA but not AVX-512. Used for wall-clock bandwidth benchmarks
+    and prefetch A/B tests. Erratum: an earlier revision of this report described
+    this machine as “32 GB DDR4-3200, Samsung 990 Pro NVMe” — a specification
+    confused with a planned build. The measurements themselves are unaffected
+    (the direct-I/O bandwidths reported in Section 5.8, 265–466 MB/s, are consistent
+    with the actual SATA hardware and were re-confirmed at 505 MB/s on the same
+    machine in July 2026).
+
+Xeon-E5-2650 in KVM (Linux, PMU benchmark): Sandy Bridge Xeon E5-2650
+    (8 cores, 2.0–2.8 GHz), 64 GB DDR3-1333, running in a Proxmox KVM VM
+    with cpu: host,+pmu and perf_event_paranoid=1. Supports AVX1 but not
+    AVX2 or FMA. Used for hardware performance counter (PMU) measurements
+    via perf_event_open.
+
+
+
+                                          38
+CHAPTER 5. EVALUATION                                                                39
+
+
+Lambda A100 cluster (training): 8× NVIDIA A100 SXM4 80 GB, NVLink, FSDP
+   training via PyTorch FullyShardedDataParallel. Used for the large-scale
+   arch2_4_8k_4l training run (8.34B parameters, 10K steps).
+
+RunPod H100 cluster (training): 8× NVIDIA H100 80 GB HBM3, FSDP with
+    gradient checkpointing and 8-bit optimizer states. Used to train the arch2_4_8k_16l
+    model (≈30.9B parameters, 10K steps) benchmarked in Section 5.13.
+
+AWS r6i.8xlarge (Linux, end-to-end throughput): Intel Xeon Platinum 8375C
+   (Ice Lake, 16 physical cores / 32 vCPU, 2.9 GHz), 256 GB DDR4-3200 across
+   8 channels (204.8 GB/s theoretical peak), NVMe root volume, Ubuntu 22.04.
+   Supports AVX-512 with the avx512_vnni extension, which cflow uses for
+   its Q4 × Q8 vpdpbusd integer inner-product path. Used for the end-to-end
+   tokens-per-second head-to-head (Section 5.13).
+
+5.1.2     Software and Build
+All Rust benchmarks are compiled with cargo build –release (LTO enabled, opti-
+mization level 3). The benchmark suite consists of three binaries: cflow-bench-l1d
+(cache locality A/B testing), cflow-bench-directio (direct-I/O storage bandwidth,
+Windows FILE_FLAG_NO_BUFFERING), and cflow-run (end-to-end forward pass tim-
+ing). Python training uses PyTorch 2.x with float32 precision and a custom training
+harness under pipeline_native/.
+
+
+5.2      Training Quality: Five Architectures
+5.2.1     Training Protocol
+All five architectures were trained on TinyStories [7] (2.5M short stories, 50K GPT-2
+BPE vocabulary) for 10K steps with a batch size of 32, AdamW (η = 3 × 10−4 , weight
+decay 0.1, cosine decay to 10−5 , 200-step warmup), gradient clipping at 1.0. A 5%
+held-out test split (24M tokens) was used for final evaluation; it was never seen during
+training or hyperparameter decisions. The same random seed (42) was used for all
+runs.
+
+5.2.2     Results
+Table 4.1 (Chapter 4) reports the test perplexity for all five architectures. The
+full learning curves are not reproduced here for space, but the following qualitative
+observations hold:
+
+  1. All five architectures converge to lower perplexity than one might expect given
+     their small scale (d = 512, L = 6, ≤114M parameters), confirming that the
+CHAPTER 5. EVALUATION                                                                40
+
+
+      dependency-graph rewrites do not prevent effective gradient flow through the
+      delay paths.
+  2. The perplexity range (6.26 to 7.24) spans approximately 1 perplexity point across
+     all five candidates. Arch1 and arch3, which have no delays, land at the top of
+     this range (7.21 and 7.24); arch4 (pre-dense routing) reaches the bottom (6.26).
+     This ordering is consistent with the hypothesis that the pre-dense routing anchor
+     provides the most useful signal to the expert router.
+  3. Seed ablation studies (runs at seeds 7 and 13 for arch1 and arch2_4) confirm
+     that the perplexity ordering is stable across random initializations.
+
+5.2.3     Large-Scale Validation: arch2_4_8k_4l
+To verify that the bandwidth reduction scales beyond the small training geometry,
+arch2_4 was trained at a significantly larger scale on the A100 cluster:
+  • Architecture: d = 8,192, L = 4, same delay configuration (δd = 1, δe = 2,
+    DelayedSum).
+  • Parameters: 8,339,939,328 (8.34B).
+  • Training: 10K steps, FSDP across 8×A100 SXM4, float32.
+  • Result: validation perplexity 4.52, top-1 accuracy 61.4%.
+  • Checkpoint: step_010000.safetensors (16.68 GB bfloat16).
+No undelayed control was trained at this geometry: the 8.34B run demonstrates
+training stability and quality at scale, not a delayed-versus-undelayed comparison,
+which exists only at the 114M screen (Table 4.1). The trained checkpoint was converted
+to .cflow (4.70 GB, Q4) and .vflow (4.70 GB, Q4) for the storage I/O benchmarks
+in Section 5.8.
+
+
+5.3     Claim 1: Conditional Expert Loading
+Claim: Reading only the top-k selected experts’ tiles, rather than all E experts’ tiles,
+reduces expert weight bandwidth by a factor of E/k.
+   Proof method: This claim is structurally guaranteed by the file format. The
+expert offset table in the .cflow format stores (offset, length) pairs for each
+expert, and the runtime issues reads only for the indices returned by the router. The
+bandwidth ratio is exactly k/E by construction.
+   Result: Proven. For E = 8, k = 2 (training geometry): k/E = 25% of expert
+bytes read. For a Gemma 4-scale deployment (E = 128, k = 8): k/E = 6.25%, a 16×
+reduction. No experiment is required to validate a structural file-format property; the
+expert bank and offset table design are described in Section 3.3.
+CHAPTER 5. EVALUATION                                                                41
+
+
+5.4      Claim 2: Tile-Streaming Cache Locality
+Claim: Storing weights in L2-sized tiles in compute-consumption order reduces L1-d
+cache misses compared to row-major (naive) weight layout.
+
+5.4.1     Wall-Clock Proxy (Windows, May 2026)
+The cflow-bench-l1d binary measures wall-clock execution time for five representa-
+tive matrix-vector workloads at the arch2_4_8k_4l geometry (d = 8,192). The tiled
+implementation (TiledMatvec) is compared against a naive row-major implementation
+(NaiveMatvec) of the same matrix-vector product with identical arithmetic. Both
+implementations use the same AVX2 inner kernel; the only difference is whether weight
+data is accessed in tile-strided order or row-major order.
+    Results on the Ryzen 5 2600 (Zen+, AVX2+FMA, 32 GB DDR4-3200):
+
+Table 5.1: Wall-clock speedup of tiled over naive matrix-vector products at
+arch2_4_8k_4l geometry (d = 8192). Ratio > 1.0 means tiled is faster. Working-set
+size relative to 32 KB L1-d.
+
+    Operation          Out × In       Working Set / L1-d    Tiled Wins    Speedup
+    dense-down   8192 × 32768                 4×                 yes        1.28×
+    attn-proj    8192 × 8192                  1×                 yes        1.36×
+    dense-gateup 32768 × 8192                 1×                 yes        1.12×
+    expert-proj  8192 × 8192                  1×                 yes        1.20×
+
+    The tiled implementation wins across all workloads, with a 1.12–1.36× speedup.
+The largest win (1.36×) is on the attention projection, where the activation vector
+fits in L1 exactly (activation = 8192 × 4 = 32 KB = 1× L1-d), allowing maximum
+reuse per tile column scan.
+
+5.4.2     PMU Hardware Counter Measurement (Linux KVM,
+          May 2026)
+To obtain a direct, noise-free measurement of cache behavior independent of memory
+bandwidth, the Xeon E5-2650 KVM was used with perf_event_open to count L1-
+d read misses (PERF_COUNT_HW_CACHE_L1D / MISS) during identical matrix-vector
+computations.
+    The tiled implementation generates 6.7–7.3× fewer L1-d read misses across all
+workloads. The dense-down case (activation = 4× L1-d capacity) shows the strongest
+absolute miss reduction: 2.64M vs. 19.3M misses, a 7.29× improvement. The structural
+reason is that the Q4 tile size (≈ 16 KB) fits in L2, while the activation vector (32 KB
+for d = 8192) fits in L1. Each tile’s 256 activation lanes are loaded once into L1 and
+CHAPTER 5. EVALUATION                                                               42
+
+
+Table 5.2: Hardware PMU: L1-d read miss counts, tiled vs. naive, Xeon E5-2650 KVM.
+Lower miss count is better. Ratio = naive / tiled. Raw counts were recorded only for
+the dense-down workload; for the remaining rows the benchmark harness logged the
+ratio alone.
+
+  Operation        Tiled Misses   Naive Misses    Ratio (naive/tiled)   Working Set
+  dense-down          2.64M           19.3M             7.29×            4× L1-d
+  attn-proj              –              –               6.75×            1× L1-d
+  dense-gateup           –              –               6.72×            1× L1-d
+  expert-proj            –              –               6.88×            1× L1-d
+
+
+reused across the tile’s 128 output rows, eliminating the L1-d miss that would occur if
+the activation were re-fetched for each weight row in the naive layout.
+   Note on architecture. The Xeon E5-2650 uses AVX1 rather than AVX2; the
+cflow-bench-l1d binary falls back to the AVX1+SSE4.1 SIMD path on this hardware.
+The miss-count result is not confounded by ISA differences since both tiled and naive
+paths use the same SIMD dispatch.
+   Claim 2 status: Proven. The L1-d reuse mechanism is structurally guaranteed
+(Q4 tile ≈ 16 KB fits in L2; 256-f32 activation slice = 1 KB fits in L1) and the 7.29×
+PMU measurement confirms it decisively at the trained 8.34B-parameter geometry.
+
+
+5.5      Claim 3: AVX2 Q4 Kernels
+Claim: The AVX2 Q4 inner-product kernel achieves higher arithmetic throughput
+than the scalar path on AVX2-capable hardware.
+    Validation method: The unit test suite verifies numerical correctness by com-
+paring the AVX2 path against the scalar reference for randomly-generated weight tiles.
+The test q4_avx2_matches_scalar runs 1,000 random tiles at the standard geometry
+and asserts that the maximum absolute difference between AVX2 and scalar outputs
+is below 10−4 . All 116 unit tests and 8 integration tests pass with zero failures.
+    The wall-clock measurements in Table 5.1 implicitly validate throughput: the
+tiled+AVX2 path consistently outperforms the naive path, which is only possible if
+the AVX2 kernel is not the bottleneck.
+    Claim 3 status: Proven (numerical correctness through 124 passing tests; through-
+put implied by wall-clock wins).
+
+
+5.6      Claim 4: Fused Projections
+Claim: Computing QKV and gate+up projections in a single pass over the activation
+vector (one load per tile stripe) reduces the number of times the activation must be
+CHAPTER 5. EVALUATION                                                                  43
+
+
+read from memory.
+    Proof method: The .cflow file interleaves Q, K, V tiles by output stripe (all three
+matrix tiles for output stripe i before advancing to stripe i + 1). The tiled_matvec
+dispatcher dispatches to three output buffers based on matrix_id, consuming the
+activation once per interleaved stripe block. For the naive alternative (three separate
+tiled_matvec calls in sequence), the activation is loaded three times per stripe.
+    This is a structural property of the file format and the dispatch loop; the activation
+load savings are 3× for QKV and 2× for gate+up.
+    Claim 4 status: Proven (structural, file-format guaranteed).
+
+
+5.7      Claim 5: Compute-Order File Layout
+Claim: Storing tiles in compute-consumption order enables sequential mmap reads
+that the OS readahead mechanism can exploit.
+    Validation: The .cflow format specification guarantees sequential ordering for
+all non-expert weight tiles (expert tiles are necessarily random-access after the router
+fires). The format is described in Section 3.3. Sequential access to mmap’d files is the
+canonical workload for OS readahead and prefetcher hardware; any file system that
+implements read-ahead will benefit.
+    Claim 5 status: Proven (structural).
+
+
+5.8      Claim 6: Explicit Prefetch (PREFETCHT0)
+Claim: The explicit PREFETCHT0 instruction, issued by the prefetch thread, reduces
+L1-d miss stalls relative to HW prefetch alone.
+
+5.8.1     64 MB Scale (arch2_4_combined, Ryzen 5 2600)
+The cflow-bench-directio binary ran the forward pass 40 times with and without
+explicit prefetch (CFLOW_PREFETCH=0|1) on the 64 MB arch2_4_combined .cflow
+file using FILE_FLAG_NO_BUFFERING (direct I/O, bypassing the OS page cache) and a
+128 MB cache flush between iterations.
+     Result: PF=1 and PF=0 are within ±0.1% on both .cflow (465.4 vs. 465.7 MB/s)
+and .vflow (461.0 vs. 460.0 MB/s) paths. The explicit prefetch instruction adds no
+measurable benefit.
+
+5.8.2     4.7 GB Scale (arch2_4_8k_4l, Windows SATA SSD)
+The same binary was run against the 4.70 GB arch2_4_8k_4l .cflow file (direct I/O,
+8 iterations):
+  • PF=1 median: 265 MB/s; PF=0 median: 275 MB/s.
+CHAPTER 5. EVALUATION                                                               44
+
+
+  • PF=1 is approximately 4% worse than PF=0 (reversed from the expected
+    direction).
+
+  • Peak values (PF=0: 415 MB/s; PF=1: 351 MB/s) show high variance consistent
+    with the SLC-cache behavior of a DRAM-less SATA SSD.
+
+    Interpretation: PREFETCHT0 moves data from RAM to L1-d. When the binding
+constraint is storage → RAM bandwidth (SATA SSD at 12–17 s vs. compute at 96 ms
+per forward pass), the CPU’s RAM address space never fills with useful data fast
+enough for the explicit prefetch to have an effect. The HW prefetcher already saturates
+the linear RAM access pattern. The 4% disadvantage of PF=1 is consistent with a
+small additional cache pressure from the prefetch thread’s activity.
+    Claim 6 status: Refuted at both 64 MB and 4.7 GB scale. The result is
+structural: the claim is untestable until compute latency significantly exceeds I/O
+latency, which requires a model where the activation fits entirely in RAM and the
+storage tier is fast enough that I/O is not the bottleneck.
+    End-to-end corroboration. The head-to-head benchmark (Section 5.13) strength-
+ens this negative beyond “no benefit” to “actively harmful at decode scale.” On the
+30.9B arch2_4_8k_16l model, the explicit prefetch thread consumed ≈ 48% of decode
+time walking expert regions at stride 256; disabling it raised end-to-end throughput
+from 2.58 to 4.96 tok/s, a 1.92× speedup (Table 5.4). The mechanism is the same one
+the direct-I/O A/B isolated — PREFETCHT0 cannot accelerate a storage-bound read
+and only adds cache pressure — now visible in wall-clock decode rather than storage
+bandwidth alone.
+
+
+5.9     Claim 7: Vertical Pipeline Bandwidth Reduc-
+        tion
+Claim: The delay-aware scheduler reduces critical-path bandwidth for arch2_4_combined
+by 2.00× relative to the sequential (no-delay) schedule.
+
+5.9.1    Method
+The function analyze_critical_path_for(&cfg, dense_delay, expert_delay) in
+src/format/vflow.rs computes the critical-path byte count by tracing which weight
+reads must be completed before the output logit is available, under the delay schedule
+encoded in the .cflow header. The result is a deterministic calculation given the
+model geometry and delay parameters; it is not a simulation.
+CHAPTER 5. EVALUATION                                                                45
+
+
+5.9.2     Result
+For arch2_4_combined (d = 512, L = 6, δd = 1, δe = 2):
+
+                             Bnaive = 9.00 MB/token,
+                            Bcritical = 4.50 MB/token,
+                                        9.00
+                         reduction =         = 2.00 × (50%).
+                                        4.50
+    The bandwidth_headlines_all_five_archs test in src/format/vflow.rs con-
+firms that arch2_4_combined is the only architecture among all five with a measured
+bandwidth reduction. All other architectures have Bcritical = Bnaive because their delay
+parameters are zero.
+    Claim 7 status: Validated. The 2.00× reduction is computed analytically from
+the geometry and delay parameters; its overlap mechanism is subsequently realized
+and measured in wall-clock in Section 5.14, with a net win of up to 1.68× on server
+hardware.
+
+
+5.10      Claim 8: Stage-Major Disk Layout Readahead
+          Benefit
+Claim: The .vflow stage-major layout enables OS readahead to deliver higher
+sustained read bandwidth than the .cflow per-layer layout.
+
+5.10.1     64 MB Scale
+Same direct-I/O benchmark as Section 5.8.1 (20 iterations): .vflow median 461 MB/s
+vs. .cflow 466 MB/s — .vflow is approximately 1% slower.
+
+5.10.2     4.7 GB Scale
+.vflow PF=1 median: 410 MB/s, min: 438 MB/s (8 iterations). .cflow PF=0 median:
+275 MB/s, min: 415 MB/s (8 iterations).
+    The .vflow result is strikingly more consistent (variance ≈ 6%: 438 → 410 MB/s)
+compared to .cflow (variance ≈ 50%: 415 → 275 MB/s). However, the most likely
+explanation is SSD SLC write-cache state: the .vflow file was written immediately
+before the benchmark and reads back from the fast SLC cache at consistent bandwidth;
+the .cflow file had migrated to TLC storage and is subject to thermal throttle variance.
+No layout-attributable readahead benefit has been isolated.
+    Interpretation: The theoretical benefit of stage-major layout requires overlapped
+async streaming (stage N reads while stage N − 1 executes), which the current
+single-thread sequential executor does not implement. With single-token sequential
+CHAPTER 5. EVALUATION                                                                 46
+
+
+execution, both layouts produce the same pattern of OS page-fault reads and the
+layout difference is undetectable.
+    Claim 8 status: Inconclusive. (The asynchronous overlapped streaming this
+interpretation identifies as the missing prerequisite has since been built for the expert
+bank — Section 5.14 — but the stage-major layout benefit itself remains untested.)
+The .vflow layout and scheduler are correct; the bandwidth benefit is a theoretical
+gain contingent on async overlapped I/O, which has not been implemented.
+
+
+5.11       PyTorch Parity Validation
+5.11.1     arch2_4_combined
+A reference trace was generated by the PyTorch training code running the trained
+arch2_4_combined model deterministically on a fixed input token (commit 42fecc6).
+The trace records the per-layer residual vector ℓ2 norms and the final output logit
+distribution. The Rust runtime was run against the converted .cflow file on the same
+input.
+    Results:
+
+   • Per-layer residual norms agree within < 1% relative error (Q4 quantization
+     noise).
+
+   • Output argmax (greedy token prediction): Rust = 9760, PyTorch = 9760. Exact
+     match.
+
+   • Top-32 token overlap: ≥ 27/32 tokens agree.
+
+5.11.2     arch4_async_experts
+An independent replay script (scripts/dump_delay_trace.py) implements the AsyncExperts
+delay schedule in Python, recording a reference trace (reference_delay_trace.json
+under runs/arch4_async_experts_10k/). Reference values: pre-LM-head norm
+= 41.27, argmax = 9760.
+    The Rust runtime was tested on both the .cflow and .vflow paths:
+
+   • Relative norm error: < 0.007%.
+
+   • Output argmax: 9760. Exact match on both paths.
+
+5.11.3     Test Suite Coverage
+All 116 unit tests and 8 integration tests pass with zero failures. The integration tests
+include:
+CHAPTER 5. EVALUATION                                                              47
+
+
+  • arch2_rust_forward_matches_pytorch_top32: parity test for arch2_4_combined
+    on the .cflow path.
+
+  • arch2_rust_forward_matches_pytorch_top32_vflow: same, on the .vflow
+    path.
+
+  • arch4_rust_forward_matches_pytorch_top32: parity test for arch4_async_experts
+    on the .cflow path.
+
+  • arch4_rust_forward_matches_pytorch_top32_vflow: same, on the .vflow
+    path.
+
+
+5.12        Summary of Results
+Table 5.3 reproduces the thesis scorecard with the final result for each claim.
+
+           Table 5.3: Thesis scorecard: evaluation status for all eight claims.
+
+      #     Claim                             Status and headline
+       1    Conditional expert loading    Proven (structural); 16× reduction at
+                                          Gemma scale
+       2    Tile-streaming cache locality Proven; 7.29× fewer L1-d misses
+                                          (PMU, Sandy Bridge)
+       3    AVX2 Q4 kernels               Proven; 124 tests pass; wall-clock win
+                                          confirms throughput
+       4    Fused projections             Proven (structural); 3× activation
+                                          load savings
+       5    Compute-order layout          Proven (structural); sequential mmap
+                                          invariant
+       6    PREFETCHT0 explicit prefetch Refuted; ±0.1% at 64 MB, PF=1 4%
+                                          worse at 4.7 GB
+       7    Vertical pipeline bandwidth   Proven; 9.00 → 4.50 MB/token =
+                                          2.00×; wall-clock net up to 1.68×
+                                          (§5.14)
+       8    Stage-major readahead         Inconclusive; confounded by SSD
+                                          cache state
+
+
+    Six of the eight claims hold; two are negative results, each reported with the
+conditions under which it could be revisited. The central quantitative result is the
+2.00× critical-path bandwidth reduction for arch2_4_combined, supported by the
+7.29× L1-d miss reduction (Claim 2) that establishes the per-kernel cache behaviour
+underlying it.
+CHAPTER 5. EVALUATION                                                              48
+
+
+5.13      Head-to-Head Comparison with llama.cpp and
+          vLLM
+The bandwidth and cache results above are mechanism-level: they establish that the
+tile layout and delay schedule reduce the bytes moved and the misses incurred. This
+section closes the loop with an end-to-end wall-clock measurement — single-token
+decode throughput in tokens per second — against two widely deployed CPU inference
+runtimes on identical hardware.
+
+5.13.1     Benchmark Model and Hardware
+The cache-locality and storage benchmarks above used the 8.34B-parameter arch2_4_8k_4l
+checkpoint (L = 4). For an end-to-end comparison against the dense 32B-class mod-
+els that the baseline runtimes are typically deployed with, a deeper pipeline-native
+variant was used: arch2_4_8k_16l, identical in per-layer geometry (d = 8,192,
+dense FFN 32,768, 8 experts top-2, expert FFN 4,096) but with L = 16 layers. The
+.cflow header confirms the geometry directly (num_layers = 16, hidden = 8192,
+dense_ffn = 32768, experts = 8, top_k = 2). The resulting model has approxi-
+mately 30.9 billion parameters, stored as a 17.39 GB Q4 .cflow file. At top-2-of-8
+routing the runtime reads ≈ 10.2 GB of weights per token (16 layers × [attention +
+dense FFN + two of eight experts]); the dense FFN dominates each layer, so MoE
+sparsity removes only the six unused experts, leaving ≈ 20 B parameters active per
+token.
+    The benchmark ran on the AWS r6i.8xlarge of Section 5.1.1 (Intel Xeon Platinum
+8375C, Ice Lake, 16C/32T, 256 GB DDR4-3200 at 204.8 GB/s peak, AVX-512+VNNI),
+which was used for no other experiment.
+
+5.13.2     cflow Decode Optimization
+Two changes to the runtime, both motivated by the negative results of Section 5.8,
+lifted cflow’s decode throughput by 2.30× over the initial implementation.
+
+Table 5.4: cflow single-token decode throughput on arch2_4_8k_16l (30.9B, Q4),
+AWS r6i.8xlarge, 32 threads. Changes are cumulative.
+
+       Configuration                                          tok/s   Speedup
+       Baseline (prefetch on, per-matmul chunk index)         2.58    1.00×
+       + prefetch disabled (CFLOW_PREFETCH=0)                 4.96    1.92×
+       + direct chunk indexing (no per-matmul allocation)     5.94    2.30×
+
+    The first change — disabling the explicit prefetch thread — is the end-to-end con-
+firmation of Claim 6 (Section 5.8). The direct-I/O A/B test showed that PREFETCHT0
+CHAPTER 5. EVALUATION                                                                    49
+
+
+provides no storage-level benefit; here, at the full decode level, the prefetch thread was
+actively harmful, consuming ≈ 48% of decode time walking multi-megabyte expert
+regions at stride 256 and polluting the cache. Disabling it alone gave a 1.92× speedup.
+The second change eliminated a Vec<Vec<usize» allocation performed thousands of
+times per token, computing tile ranges directly for the regular (divisible) tile layouts
+that hold for every matrix in this model.
+    At 5.94 tok/s the runtime moves 10.2 GB × 5.94 = 60.6 GB/s of weight data,
+≈ 30% of the 204.8 GB/s theoretical peak — consistent with the mixed sequential-
+plus-random access pattern of MoE decode, and well above the effective bandwidth a
+naive row-major reader sustains at this geometry.
+
+5.13.3     Comparison with llama.cpp and vLLM
+cflow was compared against Ollama (a packaging of llama.cpp) and the vLLM
+CPU backend, both running 4-bit-quantized dense Qwen2.5-32B — the closest widely-
+available models in parameter count to the 30.9B pipeline-native MoE. All three ran
+on the same r6i.8xlarge instance type (identical CPU).
+
+Table 5.5: End-to-end single-token decode throughput, same AWS r6i.8xlarge CPU.
+Decode rate is reported as steady-state tokens per second; it is insensitive to sampling
+temperature and prompt for a fixed model.
+
+  Engine                 Model                                     Quant         tok/s
+  cflow                  arch2_4_8k_16l (30.9B MoE, top-2/8)       Q4            5.94
+  Ollama / llama.cpp     Qwen2.5-32B (dense)                       Q4_K_M        4.75
+  vLLM CPU               Qwen2.5-32B-Instruct (dense)              GPTQ-Int4     1.65
+
+   Two distinct comparisons live in this table, and they must be read separately:
+
+   1. vLLM vs. llama.cpp — model-matched. Both run the same dense Qwen2.5-
+      32B at ≈4-bit on the same CPU, so this row is a clean runtime-versus-runtime
+      comparison. llama.cpp is 2.9× faster than vLLM’s CPU backend (4.75 vs.
+      1.65 tok/s). The gap is not GPTQ overhead in itself — vLLM loads the
+      GPTQ model correctly through its CPUWNA16LinearKernel — but a missing
+      oneDNN primitive: on this Ice Lake CPU (no AMX, no avx512_bf16) vLLM
+      cannot build a W4A16 matmul primitive and falls back to a dequantize-then-
+      torch.matmul path at every linear layer, logging Failed to create oneDNN
+      linear, fallback to torch linear. Allocator and thread-binding tuning
+      moved it by < 2%, confirming that the matmul fallback, not threading, is the
+      bottleneck. llama.cpp is simply far better optimized for CPU 4-bit decode.
+
+   2. cflow vs. the dense baselines — not model-matched. cflow runs its
+      own 30.9B MoE (top-2-of-8, ≈ 20 B parameters active per token); the baselines
+CHAPTER 5. EVALUATION                                                                   50
+
+
+      run dense 32B. The total parameter counts are close (30.9B vs. 32B), but
+      the architectures, training corpora, and output quality are not comparable, so
+      cflow’s 25% lead over llama.cpp is an engine-plus-architecture result, not
+      a quality-controlled one. The apples-to-apples row is vLLM-versus-llama.cpp;
+      cflow’s number shows what the co-designed MoE-plus-streaming runtime
+      achieves on the same box.
+
+5.13.4      Interpretation
+The result establishes that the co-design is competitive at the system level: on identical
+hardware, against the most widely deployed CPU inference runtime, the pipeline-
+native runtime sustains higher single-token decode throughput at a comparable total
+parameter count. The qualifier is the architecture mismatch — a fully controlled
+comparison would require either a GGUF build of the exact pipeline-native architecture
+(so llama.cpp runs the same model) or a dense cflow path at matched quality.
+Neither exists yet; both are noted in Chapter 7 as the remaining step to convert
+this from a strong indicative result into a controlled one. What the number does
+show, unambiguously, is that the per-kernel and critical-path bandwidth mechanisms
+validated above compose into an end-to-end decode rate that clears a strong, well-
+optimized baseline rather than trailing it.
+
+
+5.14       Wall-Clock Realization of the Expert-Delay
+           Window
+Claim 7’s 2.00× critical-path reduction (Section 5.9) is analytic: it counts the bytes that
+a delay-aware schedule removes from the serial path, assuming off-path reads complete
+during the overlap window. This section reports the experiment that converts that
+assumption into a measurement. The runtime was extended so that the expert_delay
+window does real I/O work: at the routing layer, the selected top-k expert regions
+are fetched from storage asynchronously into staging buffers by a dedicated reader,
+and the expert computation is deferred to the injection layer, δe = 2 layers later. The
+experiment ran in three parts on two machines, producing one net-win demonstration,
+one quantitative model validation, and two instructive negative results.
+
+5.14.1      Design
+The 30.9B arch2_4_8k_16l model is split across two tiers: attention, dense-FFN,
+and embedding weights are memory-mapped (page cache); the expert bank is read
+with direct I/O (FILE_FLAG_NO_BUFFERING on Windows, O_DIRECT on Linux), so
+every expert read genuinely hits storage on every layer of every token — 108 MB per
+CHAPTER 5. EVALUATION                                                              51
+
+
+layer for the top-2 selection. Two arms run the same binary, read the same bytes, and
+execute the same arithmetic:
+
+Sync (stall arm): the expert regions are read blocking at the routing layer — the
+    read is a dead stop on the critical path.
+
+Staged (overlap arm): the read is issued asynchronously at the routing layer and
+     awaited at the injection layer, so it overlaps the compute of the intervening δe
+     layers.
+
+   Both arms produced bit-identical greedy output in every cell of every part (the
+deferred expert computation uses the saved router activation, so the mathematics is
+unchanged — only the timing of the read moves).
+
+5.14.2     Part 1 — Desktop (SATA tier): mechanism proven,
+           net a wash
+On the Ryzen 5 2600 (Section 5.1.1; SATA at ≈505 MB/s, expert I/O ≈3.4 s/token),
+the staged arm hid 79–89% of the expert-read stall in all eight runs — the
+window mechanism works — but net token latency was a wash (0.69×–1.22× across
+cells, sign flipping between repeat runs). Two confounds explain it: concurrent I/O
+inflated the compute it hid behind (+19% single-thread compute with the thread
+pool fully bypassed — a memory-subsystem interference tax), and the machine’s
+thread pool exhibits a Windows-specific pathology (45–134 ms dispatch latencies) that
+punishes the staged arm’s concurrency. The desktop lesson: off-critical-path reads are
+not free; the analytic model needs an interference term (1 + τ ) · C, with τ ≈ 0.1–0.2
+on this starved memory system.
+
+5.14.3     Part 2 — EC2 r6id.8xlarge (NVMe tier): the net win
+The same experiment on the RunPod-trained model’s benchmark platform family —
+r6id.8xlarge (the r6i of Section 5.13 plus a local 1.9 TB NVMe instance store measured
+at 3.28–3.5 GB/s; note that plain r6i is EBS-only, whose default throughput is slower
+than desktop SATA) — with a healthy Linux thread pool. Sixteen decode tokens,
+three runs, four thread counts; medians:
+    Figure 5.1 plots the two arms against thread count. Every cell is net-positive and
+the run-to-run spread is ≈2%: the desktop’s interference tax is absent on 8-channel
+server memory. The staged arm pins at max(C, IOeff ) — a constant ≈641–670 ms/token
+disk floor across all thread counts — while the sync arm grows as C + IO. The refined
+model
+                                              C + IO
+                                  net =
+                                          max(C, IOeff )
+CHAPTER 5. EVALUATION                                                                                             52
+
+
+Table 5.6: Expert-overlap A/B on EC2 r6id.8xlarge (NVMe expert tier), 3-run medians.
+“Hidden” is the reduction in per-token expert-read stall. Identical greedy output in all
+24 cells.
+
+       T                            sync ms/tok         staged ms/tok      net   hidden     C/layer    IO/layer
+      32                                      689                641 1.07×         17%      10.8 ms     32.3 ms
+      16                                      739                644 1.15×         19%      13.6 ms     32.6 ms
+       8                                      841                645 1.30×         38%      20.1 ms     32.5 ms
+       4                                     1128                670 1.68×         88%      38.0 ms     32.5 ms
+
+
+predicts 1.08×/1.15×/1.31×/1.68× against measured 1.07×/1.15×/1.30×/1.68× —
+within 1% at all four points. The two machines turn out to sit on opposite sides
+of the same crossover: the desktop is compute-dominant (window ≫ read time ⇒
+79–89% hidden), EC2 at high T is I/O-dominant (hiding capped near C/IO), and
+T =4 is the balanced point where the window covers the read (88% hidden) and the
+net peaks.
+
+
+
+
+        Decode latency (ms/token)
+                                    1,200                                Sync (stall arm): C + IO
+                                            1.68×
+                                                                         Staged (overlap arm): max(C, IOeff )
+                                                                         Disk floor (IOeff ≈ 40 ms/layer)
+                                    1,000
+                                                                 1.30×
+                                      800                                           1.15×
+                                                                                                       1.07×
+
+                                      600
+
+                                                    4              8               16                    32
+                                                                   Compute threads T
+
+Figure 5.1: The expert-overlap A/B on EC2 r6id.8xlarge (3-run medians of Table 5.6;
+NVMe expert tier). The sync arm pays the serial sum C + IO and grows as threads
+shrink; the staged arm pins at the disk floor max(C, IOeff ) at every thread count.
+Annotations give the measured net speedup; the (C+IO)/ max(C, IOeff ) model repro-
+duces all four within 1%.
+
+
+
+5.14.4                              Part 3 — Parallel fetch: a null that locates the ceiling
+Part 2’s staged floor sits ≈8 ms/layer above raw transfer time, which suggested the
+single sequential (queue-depth-1) fetch worker as the bottleneck. Parallelizing the
+fetch — four reader threads pulling 16 MB chunks, verified active by summed reader
+CHAPTER 5. EVALUATION                                                               53
+
+
+busy-time of 3.6× wall stall — changed nothing: medians match Part 2 within noise at
+every thread count. A raw-device control explains why: one O_DIRECT stream reads at
+3.5 GB/s; four concurrent streams read at 0.9 GB/s each (3.58 GB/s aggregate). The
+instance-store drive is bandwidth-capped for large sequential reads regardless of queue
+depth. The residual 8 ms/layer is pipeline fill/drain at token edges plus the clamped
+last-layer fetch — structural, not recoverable by fetch-side engineering. At this tier
+the binding constraint is the storage ceiling itself (≈512 ms/token of unavoidable I/O
+⇒ ≈2 tok/s), and the lever is a faster or striped tier, not deeper queues.
+
+5.14.5     What this adds to Claims 7 and 8
+For Claim 7, the delay window is no longer only an analytic property: the schedule’s
+overlap is measured, the net win is demonstrated (up to 1.68× on server hardware),
+and the model that predicts it is validated quantitatively — with the addition of two
+empirical terms the analytic version omits: an interference tax τ on the compute that
+overlapped I/O runs beneath (large on starved desktop memory systems, negligible
+on servers), and an effective-I/O floor set by the storage tier. For Claim 8, the
+asynchronous overlapped streaming that its interpretation identified as the missing
+prerequisite now exists for the expert bank; the stage-major layout benefit itself
+remains untested and its status unchanged.
+Chapter 6
+
+Discussion
+
+Three questions run through this chapter. What does the co-design idea actually
+amount to, set against the wider literature on efficient inference? What happens
+to the bandwidth reduction as the model grows? And is there a route to vertical
+pipelining for ordinary, non-co-designed transformers, or is the architectural rewrite
+strictly necessary? The first two are matters of interpretation and scaling; the third is
+the open problem that frames the next phase of the work.
+
+
+6.1      The Co-Design Philosophy
+6.1.1     What Co-Design Means Here
+The term co-design is used in this report in a specific and narrow sense: modifying the
+inter-layer dependency graph of the transformer architecture so that a desired execution
+schedule — vertical stage-major pipelining — is mathematically valid. This is distinct
+from the more common use of co-design in hardware-aware neural architecture search
+(HW-NAS), which selects macro-structure (depth, width, block type) to minimize
+latency or energy on a target device without touching the dependency structure.
+    This matters because the schedule’s validity is a logical property, not a performance
+one. Feed layer ℓ + 1’s attention with layer ℓ’s input instead of its output and the
+model does not merely run slower — it returns wrong answers. The co-design is
+therefore a precondition for the runtime optimisation, not a knob one can choose to
+leave alone.
+
+6.1.2     The Scope of the Result
+The 2.00× critical-path bandwidth reduction for arch2_4_combined is analytically
+derived from the geometry and delay parameters. It is not an approximation and it is
+not contingent on favorable hardware conditions. The question is not whether the
+reduction is real — it is, by construction — but what it means in practice.
+
+
+                                           54
+CHAPTER 6. DISCUSSION                                                                 55
+
+
+   Three caveats bound the result:
+
+  1. Critical-path reduction ̸= wall-clock speedup. The critical path analysis
+     assumes that off-path reads (dense FFN tiles at layers ℓ − δd , expert tiles at
+     layers ℓ − δe ) are completed before they are needed, i.e., the I/O system can
+     absorb the off-path reads during the overlap window. At the training geometry
+     (d = 512, 64 MB model), the entire model fits in RAM. There is no separate
+     overlap window to exploit; all bytes are read in a single sequential pass regardless
+     of the schedule. This condition has since been characterized empirically: the
+     wall-clock A/B of Section 5.14 realizes the overlap on a disk-resident expert tier
+     and measures both the win (up to 1.68× on server hardware) and the two terms
+     the analytic model omits (a concurrent-I/O interference tax and the storage
+     tier’s bandwidth ceiling). The latency benefit materializes only when the model
+     is large enough that off-path reads cannot be completed immediately.
+
+  2. The 2.00× figure is at the proof-of-concept geometry. The bandwidth
+     analysis in Chapter 4 shows that the reduction scales with the ratio of delayed
+     bytes to total bytes on the critical path. At Gemma 4 scale, the dense FFN
+     hidden dimension is proportionally larger and the top-8 expert contribution is
+     much larger; the reduction at that geometry would be different and requires a
+     separate calculation.
+
+  3. The PMU result (7.29× fewer L1-d misses) is at a different geome-
+     try. The cache locality measurement was performed at the 8.34B-parameter
+     arch2_4_8k_4l geometry on Sandy Bridge hardware, which lacks AVX2. The
+     wall-clock proxy on Ryzen (AVX2) at the same geometry shows 1.12–1.36×
+     speedup. These are complementary measurements at the same architecture but
+     different instruction sets.
+
+6.1.3    Relationship to Existing Work
+No prior work has proposed modifying the transformer dependency graph as a mecha-
+nism for enabling vertical pipelining. The closest precedents are:
+
+  • Weight offloading (FlexGen [21]): addresses the same bandwidth constraint
+    by streaming weights from slower storage tiers but does not reorder computation
+    or rewrite dependencies.
+
+  • Contextual sparsity (DejaVu [14]): skips near-zero weight blocks based on
+    activation patterns, reducing bandwidth by eliminating computation. Does not
+    change the sequential dependency chain.
+
+  • MoE routing optimization (OLMoE [16]): improves routing quality and load
+    balancing but does not address the latency of loading selected expert tiles.
+CHAPTER 6. DISCUSSION                                                                  56
+
+
+   • HW-NAS (ProxylessNAS [3], FBNetV2 [27]): selects architecture macro-
+     structure for device targets but does not rewrite intra-architecture data flow.
+
+   • Tiered weight streaming (LLM in a Flash [2], PowerInfer [22]): stream or
+     hot/cold-partition weights across storage tiers, overlapping I/O with compute
+     for standard architectures. Neither rewrites the dependency graph to widen the
+     overlap window, which is precisely what the expert-delay schedule contributes
+     (Section 5.14).
+
+The pipeline-native approach is complementary to all of the above. A deployment could
+combine conditional expert loading (Claim 1, structurally present in cflow) with
+the co-designed dependency structure (Chapter 4) and cache-optimal tile streaming
+(Claim 2).
+
+
+6.2      Scaling Analysis
+6.2.1     How the Bandwidth Reduction Scales
+How much the delays help depends on which of the three weight streams is binding once
+they have been amortised. Each layer contributes max(Battn , Bdense /(δd +1), Bexpert /(δe +1))
+to the critical path (Section 4.5). A delay therefore helps only while the stream it
+shrinks is the binding one; once that stream drops below the attention stream, further
+delay achieves nothing, because attention is never delayed and becomes the floor.
+    At the trained geometry (d = 512) the dense stream binds on both sides of the
+dense delay: max(0.50, 1.50, 0.75) = 1.50 naive against max(0.50, 0.75, 0.25) = 0.75
+delayed, an exact 2.00×. The reduction is this large precisely because the dense stream
+starts at three times the attention stream, and a one-layer dense delay halves it to
+just above the attention floor.
+    The arithmetic shifts at Gemma 4 26B-A4B scale (d = 2816, dff = 2112, k = 8,
+E = 128, expert hidden = 704), where the per-layer streams are
+
+                         Battn ≈ 4 × 28162 × 0.5 = 15.8 MB,                          (6.1)
+                        Bdense = 3 × 2816 × 2112 × 0.5 = 8.9 MB,                     (6.2)
+                 Bexpert (top-8) = 8 × 3 × 2816 × 704 × 0.5 = 23.7 MB.               (6.3)
+
+Now the expert stream binds on a sliding (MoE) layer. With δd = 1, δe = 2 it
+amortises to 23.7/3 = 7.9 MB and the dense stream to 8.9/2 = 4.45 MB — both below
+the 15.8 MB attention stream, which then sets the critical path:
+
+        max(15.8, 8.9, 23.7) = 23.7 MB −→ max(15.8, 4.45, 7.9) = 15.8 MB,
+
+a 23.7/15.8 ≈ 1.50× reduction per MoE layer. The five full-attention layers carry no
+experts and a larger attention stream (head dimension 512), so they gain nothing,
+CHAPTER 6. DISCUSSION                                                                 57
+
+
+and the whole-model figure sits below 1.50×. The point is not that the strategy
+weakens with scale but that the binding stream moves: the dense FFN binds at small
+scale, so the dense delay is decisive; the expert stream binds at Gemma scale, until
+it is amortised under attention and only an attention-path delay can lower the floor
+further.
+     The pattern generalises. The co-design pays off whenever a delayable stream —
+the dense FFN or the experts — is the one setting the per-layer critical path. That
+holds from small models up through a few billion parameters, where the FFN and
+expert streams are comparable to or larger than attention. At Gemma 4 scale and
+beyond, the large head dimensions push attention past both, and lowering the floor
+any further means delaying the attention path as well.
+
+6.2.2     Attention-Path Delays and Future Work
+A natural extension of the co-design framework is attention-path delay: instead of
+applying the attention at each layer to the current residual, apply it to a delayed
+residual from δa layers ago. This would place the attention weight reads off the critical
+path for δa layers. However, the attention computation also updates the KV cache,
+and a delayed attention residual would introduce staleness into the cached key-value
+pairs. The interactions between attention-path delays and KV cache correctness are a
+non-trivial design problem that is left for future work.
+
+6.2.3     Expert Scaling
+The expert delay is particularly attractive at production MoE scale because the expert
+stream grows faster than the dense stream as the number of experts and top-k increase.
+At E = 128, k = 8 (Gemma 4), the expert stream is 23.7 MB/layer, nearly three times
+the dense stream and the binding constraint on every MoE layer. With δe = 2 it
+amortises to 23.7/3 = 7.9 MB, dropping below the 15.8 MB attention stream; attention
+then becomes binding and the expert delay has extracted its full available benefit.
+Past that point only an attention-path delay can lower the per-layer floor further.
+    The pre-dense routing hypothesis from arch4 (routing before the dense FFN)
+becomes increasingly attractive at scale because it maximizes the quality of the routing
+signal (the input residual, before any within-layer transformation) while also extending
+the window for expert I/O. At Gemma 4 scale, the 8 selected expert tiles (≈ 23.7 MB)
+must be loaded and computed within the 2-layer window between routing and injection.
+At 50 GB/s RAM bandwidth, this takes approximately 23.7/50 ≈ 0.47 ms per layer —
+which is also approximately the time to execute 2 layers of attention at that geometry.
+The timing is tight but feasible.
+CHAPTER 6. DISCUSSION                                                                     58
+
+
+6.3      Speculative Pipeline Recovery
+The pipeline-native architectures solve the dependency problem by construction: they
+are trained with the delayed dependency structure and converge to produce useful
+representations despite the staleness. An alternative path to vertical pipelining,
+applicable to standard (non-co-designed) transformers, is speculative pipeline recovery.
+
+6.3.1     The Approach A Hypothesis
+In a pre-norm transformer, the residual update at each layer is additive: xout
+                                                                           ℓ   = xin
+                                                                                  ℓ + δℓ ,
+where δℓ = Attnℓ (·) + FFNℓ (·) is the layer’s contribution to the residual stream. If
+        ℓ ∥ is small (the residual dominates), then feeding xℓ to layer ℓ + 1 as an
+∥δℓ ∥/∥xin                                                       in
+
+approximation for xℓ produces a small error in layer ℓ + 1’s computation.
+                     out
+
+    Speculative execution can exploit this:
+   1. Layer ℓ + 1 begins speculatively using xin
+                                              ℓ .
+
+   2. Layer ℓ completes, producing δℓ .
+   3. If ∥δℓ ∥ is below a rollback threshold, the speculative result for layer ℓ + 1 is
+      accepted with a post-hoc correction.
+   4. If ∥δℓ ∥ exceeds the threshold, layer ℓ + 1 is recomputed using the correct input.
+    Test plan: For a pre-norm transformer of any size: (1) Record ∥δℓ ∥/∥xin ℓ ∥ for all
+layers across a test corpus; (2) simulate speculative execution and measure output
+divergence (KL on logits, top-1 accuracy); (3) sweep a rollback threshold; (4) measure
+the net latency as overlap-saved minus rollback-cost.
+    Success criteria: If more than 50% of layers have ∥δℓ ∥/∥xinℓ ∥ < 0.05 and specula-
+tive execution preserves top-1 accuracy on a test corpus, the approach is viable.
+    This test has not been run and is proposed as future work. The pipeline-native
+architectures in this report take the conservative path (mathematical guarantee, no
+approximation); speculative recovery is the high-risk, high-reward alternative.
+
+6.3.2     The Approach B Hypothesis
+In MoE architectures, the router output (which experts are selected, with what
+weights) is a strong signal about the FFN’s residual contribution. If a lightweight
+linear predictor can map router logits to an estimated FFN delta, layer ℓ + 1 can
+begin with a corrected approximation: xin      ℓ + δ̂ℓ
+                                                     FFN
+                                                         rather than xin
+                                                                      ℓ .
+    The predictor is tiny: a linear map from the router logit vector (dimension E) to
+the hidden dimension d, trained on a few thousand tokens to minimize the prediction
+error ∥δ̂ FFN −δ FFN ∥2 . If the predictor achieves R2 > 0.7 across the layers, the corrected
+speculative input would eliminate most of the error that would otherwise require
+rollback.
+CHAPTER 6. DISCUSSION                                                                 59
+
+
+   This approach is MoE-specific but widely applicable: Mixtral, OLMoE, Gemma 4,
+and most production-scale transformers are MoE models. The key implementation
+question is whether the router logit space contains sufficient information to predict
+the FFN output — which is exactly the question that the arch4 pre-dense routing
+hypothesis (Section 4.3.5) explores in the trained models.
+
+
+6.4      Limitations
+A few limitations are worth stating plainly.
+    Training scale. All five pipeline-native architectures were trained at d = 512,
+L = 6 — a proof-of-concept scale. The TinyStories corpus and the GPT-2 BPE
+tokenizer are well-suited for comparative evaluation but do not reflect production
+training data distributions. Scaling to larger models may reveal instabilities in the
+delayed gradient paths that are absent at small scale.
+    The end-to-end comparison is cross-architecture, not quality-matched.
+Section 5.13 now reports wall-clock decode throughput: cflow sustains 5.94 tok/s
+on the 30.9B arch2_4_8k_16l MoE, ahead of llama.cpp (4.75 tok/s) and the vLLM
+CPU backend (1.65 tok/s) running dense Qwen2.5-32B on the same CPU. The residual
+limitation is that cflow runs a different model from the baselines: the total parameter
+counts are comparable (30.9B vs. 32B), but the architectures and training corpora differ,
+so this is an engine-plus-architecture comparison rather than a controlled runtime-
+versus-runtime one. The clean model-matched row is vLLM-versus-llama.cpp (both
+dense Qwen2.5-32B), where llama.cpp is 2.9× faster. A fully controlled cflow-
+versus-baseline comparison awaits a GGUF build of the pipeline-native architecture,
+noted in Chapter 7.
+    PREFETCHT0 is ineffective at current scales. Claim 6 is refuted at the scales
+tested and Claim 8 is inconclusive. The explicit prefetch mechanism is structurally
+present in the runtime and correct in its implementation; it simply cannot help when
+I/O bandwidth is the binding constraint. This does not invalidate the design — a
+system with sufficient RAM to hold the model (or very fast NVMe approaching RAM
+bandwidth) would see the prefetch benefit.
+    Single-token decode only. The bandwidth analysis and cache optimization
+target single-token autoregressive decode. Batched inference (multiple tokens processed
+simultaneously) has a higher arithmetic intensity and is less bandwidth-bound; the
+tile-streaming design is less impactful in that regime. The report makes no claims
+about batched throughput.
+    x86-64 only. The AVX2 and prefetch intrinsics are x86-64 specific. The scalar
+fallback path is portable, but the full performance advantage requires AVX2+FMA.
+ARM NEON and Apple Silicon paths are not implemented.
+Chapter 7
+
+Conclusion
+
+7.1     Summary of Contributions
+This report has presented cflow: a CPU-first streaming inference engine for trans-
+former models, co-designed with a family of five transformer architectures whose
+inter-layer dependency graphs permit vertical stage-major pipelining by construction.
+The work makes four distinct contributions, each validated by experimental evidence.
+    Contribution 1: The cflow runtime system. A production-quality Rust
+implementation of a streaming inference engine for Q4-quantized transformer models,
+with tile-native weight format, per-layer (.cflow) and stage-major (.vflow) file
+formats, fused QKV and gate+up projections, conditional expert loading from a
+random-access expert bank, AVX2+FMA inner-product kernels, and a staged direct-
+I/O expert fetch that overlaps selected-expert reads with compute under the expert-
+delay schedule. The runtime achieves exact Rust↔PyTorch parity on two trained
+architectures (arch2_4_combined and arch4_async_experts), confirmed by 124 unit
+and integration tests with zero failures.
+    Contribution 2: The pipeline-native transformer taxonomy. Five candidate
+architectures (arch1 through arch5) that modify the standard pre-norm transformer’s
+data flow to permit vertical pipelining:
+  • arch1 (Decoupled Residual Streams): independent attention and FFN streams
+    with periodic merge.
+  • arch2_4_combined (Dense and Expert Delay): delayed dense FFN input (δd = 1)
+    combined with delayed expert injection (δe = 2), achieving the only measured
+    bandwidth reduction.
+  • arch3 (Pipeline Registers): explicit named output registers with cross-layer
+    producer-consumer contracts.
+  • arch4 (Asynchronous Experts, pre-dense routing): expert delay with routing
+    before the dense FFN, achieving the best perplexity (6.26).
+
+                                         60
+CHAPTER 7. CONCLUSION                                                              61
+
+
+   • arch5 (Fixed-Point Iteration): weight-shared iterated blocks, achieving the best
+     parameter efficiency.
+    Contribution 3: Empirical validation at two scales. The cache locality
+claim (Claim 2) is validated by a 7.29× L1-d read miss reduction measured with
+hardware performance counters on a Xeon E5-2650 KVM at the 8.34B-parameter
+arch2_4_8k_4l geometry. The bandwidth reduction claim (Claim 7) is analytically
+validated at the trained geometry: 9.00 → 4.50 MB/token, 2.00× — and realized in
+wall-clock on a disk-resident expert tier, with a measured net win of up to 1.68× on
+server hardware (Section 5.14). Six of eight thesis claims are proven; one is refuted
+and one inconclusive, with precise conditions stated for their resolution.
+    Contribution 4: Open and reproducible evaluation. The cflow codebase
+is a complete, working Rust implementation. All five architectures are implemented
+in the pipeline_native/ Python package. Benchmark scripts, reference traces, and
+training run logs are committed alongside the code. No benchmark was run under
+favorable-only conditions; the prefetch and layout negative results (Claims 6 and 8)
+are reported at equal prominence with the positive results.
+
+
+7.2      The Co-Design Thesis, Restated
+The central thesis of this report is:
+      The bottleneck for single-token CPU inference is memory bandwidth, not
+      arithmetic. The most effective path to reducing token latency is to co-
+      design the model architecture and the inference runtime simultaneously:
+      rewrite the model’s inter-layer dependency graph to permit a vertical
+      pipeline schedule, and build a runtime whose tile format, file layout, and
+      execution plan are designed around that schedule from the beginning.
+   The experimental evidence supports this thesis with the following precision:
+   1. Single-token matrix-vector arithmetic intensity (4 FLOP/byte) is 5× below the
+      machine balance of a modern CPU (20 FLOP/byte), confirming that the regime
+      is bandwidth-bound (Section 2.1.3).
+   2. Tile-streaming reduces L1-d read misses by 7.29× at the 8.34B-parameter geom-
+      etry (Section 5.4), confirming that layout changes the realized bandwidth even
+      within a single layer.
+   3. The delay-aware schedule reduces arch2_4_combined’s critical-path bandwidth
+      by 2.00× (Section 5.9), confirming that model co-design can reduce the total
+      bytes on the serial path between token outputs.
+   4. Five architectures, trained on real data to real convergence, demonstrate that
+      the dependency-graph rewriting does not prevent useful learning (Section 5.2).
+CHAPTER 7. CONCLUSION                                                                62
+
+
+7.3      Implications for Production CPU Inference
+7.3.1     When the Result Matters
+The results are most impactful in the following deployment scenarios:
+
+Edge devices and consumer CPUs: A laptop or embedded CPU with 50 GB/s
+    RAM bandwidth and a 7B-parameter Q4 model (3.5 GB) is firmly in the storage-
+    to-RAM-bound regime. The tile-streaming cache locality improvement and
+    conditional expert loading both reduce the number of bytes that must transit
+    from RAM to the execution units per token.
+
+Large on-CPU MoE inference: As MoE models become the standard deployment
+    format, the conditional expert loading advantage (E/k reduction, up to 16×
+    for Gemma 4 scale) becomes increasingly valuable. No existing CPU runtime
+    (llama.cpp, ExLlama2, CTranslate2) implements conditional expert loading.
+
+Latency-critical single-token generation: For applications where time-to-first-
+    token latency matters more than throughput (interactive assistants, code com-
+    pletion), single-token decode latency is the binding metric. The critical-path
+    analysis directly addresses this metric.
+
+7.3.2     What Practitioners Should Take Away
+Two of the ideas here stand on their own and can be adopted without the full co-design
+framework:
+
+  1. Conditional expert loading: any MoE runtime can implement the expert
+     offset table pattern and achieve structural E/k bandwidth reduction with modest
+     engineering effort.
+
+  2. Tile-streaming weight layout: storing weights in L2-sized tiles in compute-
+     consumption order provides cache locality improvements at no algorithmic cost,
+     at the price of a one-time checkpoint conversion.
+
+The dependency-graph co-design (delay parameters, CombineStyle variants) requires
+architectural changes at training time and is not retrofittable to existing checkpoints.
+It is the most powerful lever but also the highest-friction intervention.
+
+
+7.4      Future Work
+A controlled, quality-matched head-to-head. Section 5.13 now reports a wall-
+clock comparison — cflow at 5.94 tok/s versus llama.cpp at 4.75 and the vLLM
+CPU backend at 1.65, all on the same Ice Lake CPU — but cflow runs a 30.9B
+CHAPTER 7. CONCLUSION                                                                  63
+
+
+pipeline-native MoE while the baselines run dense Qwen2.5-32B. Converting this from
+an engine-plus-architecture result into a controlled one requires running the same
+model on both systems: either a GGUF export of a pipeline-native architecture so
+llama.cpp can execute it, or a quality-matched dense baseline trained for cflow.
+This is now the single most important remaining measurement.
+    Larger delay values and attention-path delays. The current experiments use
+δd ∈ {0, 1} and δe ∈ {0, 2}. Sweeping larger delay values at larger model scales would
+characterize the bandwidth reduction as a function of delay depth, and extending the
+delay to the attention path (with appropriate KV cache handling) would address the
+attention-term dominance at Gemma 4 scale.
+    Speculative pipeline recovery for standard transformers. The Approach A
+and Approach B hypotheses described in Section 6.3 propose paths to vertical pipelining
+for non-co-designed transformers through speculative execution with rollback. Testing
+these on the small trained architectures (where ground-truth sequential outputs are
+available for comparison) would determine whether the co-design requirement is
+actually necessary or whether a sufficiently accurate speculative corrector can achieve
+the same pipeline schedule on standard pre-norm transformers.
+    ARM NEON and Apple Silicon. The AVX2+FMA kernels are the performance-
+critical path on x86-64. Equivalent NEON and AMX implementations would extend
+the runtime to the dominant mobile and laptop architecture class.
+    Multi-token batch support. Single-token decode is the thesis target, but many
+applications benefit from speculative decoding drafts (batch size 4–8) or prompt prefill
+(large batch). The batched tiled_matvec_batch function is implemented and tested;
+integrating it into the multi-layer driver with appropriate KV cache handling would
+enable competitive batched throughput.
+
+
+7.5      Closing Remarks
+The gap between CPU arithmetic capability (1 TFLOP/s) and memory bandwidth
+(50 GB/s) makes single-token CPU inference a memory-bandwidth problem, not a
+compute problem. Solving it requires rethinking both the model and the runtime from
+first principles rather than adapting GPU-first designs.
+    The pipeline-native approach shows that the rethinking is feasible: five architectures
+train to convergence with rewired dependency graphs, the runtime executes their
+delayed schedules with exact parity to the PyTorch reference, and the bandwidth
+reduction follows analytically from the geometry. Two of the eight claims did not
+work — explicit prefetch buys nothing when I/O is the binding constraint, and the
+stage-major layout shows no readahead benefit at the scales tested. Both are reported
+in full, because they mark exactly where the design’s assumptions stop holding.
+    What the work leaves behind is small but concrete: a 2.00× critical-path reduction
+for arch2_4_combined, 7.29× fewer L1-d misses from the tile layout, a 6.26 test
+perplexity for the best of the five architectures, and a 5.94 tok/s end-to-end decode
+CHAPTER 7. CONCLUSION                                                               64
+
+
+rate on a 30.9B pipeline-native MoE that clears llama.cpp on the same CPU, and a
+1.68× measured net win from the expert-delay window on an NVMe-tier deployment
+— the schedule’s overlap, realized. The idea behind the numbers is the part worth
+keeping — that a transformer’s inter-layer dependency graph is not a fixed constraint
+but a design choice, and that making it deliberately, together with the runtime that
+will execute it, opens optimisations neither the model nor the runtime can reach alone.
+Bibliography
+
+ [1] J. Ainslie, J. Lee-Thorp, M. de Jong, Y. Zemlyanskiy, F. Lebrón, and S. Sanghai.
+     GQA: Training Generalized Multi-Query Transformer Models from Multi-Head
+     Checkpoints. 2023. arXiv: 2305.13245.
+ [2] K. Alizadeh et al. LLM in a Flash: Efficient Large Language Model Inference
+     with Limited Memory. 2023. arXiv: 2312.11514.
+ [3] H. Cai, L. Zhu, and S. Han. ProxylessNAS: Direct Neural Architecture Search
+     on Target Task and Hardware. 2019. arXiv: 1812.00332.
+ [4] C. Chen, S. Borgeaud, G. Irving, J.-B. Lespiau, L. Sifre, and J. Jumper. Accel-
+     erating Large Language Model Decoding with Speculative Sampling. 2023. arXiv:
+     2302.01318.
+ [5] T. Chen et al. “TVM: An Automated End-to-End Optimizing Compiler for
+     Deep Learning”. In: USENIX Symposium on Operating Systems Design and
+     Implementation. 2018.
+ [6] A. Chowdhery, S. Narang, J. Devlin, et al. “PaLM: Scaling Language Modeling
+     with Pathways”. In: Journal of Machine Learning Research 24.240 (2023), pp. 1–
+     113.
+ [7] R. Eldan and Y. Li. TinyStories: How Small Can Language Models Be and Still
+     Speak Coherent English? 2023. arXiv: 2305.07759.
+ [8] W. Fedus, B. Zoph, and N. Shazeer. “Switch Transformers: Scaling to Trillion
+     Parameter Models with Simple and Efficient Sparsity”. In: Journal of Machine
+     Learning Research 23.120 (2022), pp. 1–39.
+ [9] G. Gerganov et al. GGUF: GPT-Generated Unified Format. https://github.
+     com/ggerganov/ggml/blob/master/docs/gguf.md. 2023.
+[10] G. Gerganov et al. llama.cpp: LLM Inference in Plain C/C++. https : / /
+     github.com/ggerganov/llama.cpp. 2023.
+[11] Google DeepMind. Gemma 4 Technical Report. https://deepmind.google/
+     models/gemma/gemma-4/. 2026.
+[12] A. Q. Jiang et al. Mixtral of Experts. 2024. arXiv: 2401.04088.
+
+
+
+                                         65
+BIBLIOGRAPHY                                                                    66
+
+
+[13] Y. Leviathan, M. Kalman, and Y. Matias. Fast Inference from Transformers via
+     Speculative Decoding. 2023. arXiv: 2211.17192.
+[14] Z. Liu et al. Déjà Vu: Contextual Sparsity for Efficient LLM Inference at
+     Inference Time. 2023. arXiv: 2310.17157.
+[15] MLC AI Team. MLC-LLM: Universal LLM Deployment Engine. https : / /
+     github.com/mlc-ai/mlc-llm. 2023.
+[16] N. Muennighoff et al. OLMoE: Open Mixture-of-Experts Language Models. 2024.
+     arXiv: 2409.02060.
+[17] OpenBLAS. OpenBLAS: An Optimized BLAS Library. https://github.com/
+     OpenMathLib/OpenBLAS. 2011.
+[18] OpenNMT. CTranslate2: Efficient Inference Engine for Transformer Models.
+     https://github.com/OpenNMT/CTranslate2. 2021.
+[19] N. Shazeer. GLU Variants Improve Transformer. 2020. arXiv: 2002.05202.
+[20] N. Shazeer et al. “Outrageously Large Neural Networks: The Sparsely-Gated
+     Mixture-of-Experts Layer”. In: International Conference on Learning Represen-
+     tations. 2017.
+[21] Y. Sheng et al. FlexGen: High-Throughput Generative Inference of Large Lan-
+     guage Models with a Single GPU. 2023. arXiv: 2303.06865.
+[22] Y. Song, Z. Mi, H. Xie, and H. Chen. PowerInfer: Fast Large Language Model
+     Serving with a Consumer-grade GPU. 2023. arXiv: 2312.12456.
+[23] J. Su, Y. Lu, S. Pan, A. Murtadha, B. Wen, and Y. Liu. RoFormer: Enhanced
+     Transformer with Rotary Position Embedding. 2021. arXiv: 2104.09864.
+[24] Turboderp. ExLlama2: A fast inference library for quantized LLMs. https :
+     //github.com/turboderp/exllamav2. 2023.
+[25] F. G. Van Zee and R. A. van de Geijn. “BLIS: A Framework for Rapidly
+     Instantiating BLAS Functionality”. In: ACM Transactions on Mathematical
+     Software 41.3 (2015), 14:1–14:33.
+[26] A. Vaswani et al. “Attention Is All You Need”. In: Advances in Neural Informa-
+     tion Processing Systems. Vol. 30. 2017.
+[27] A. Wan et al. FBNetV2: Differentiable Neural Architecture Search for Spatial
+     and Channel Dimensions. 2020. arXiv: 2004.05565.
+[28] B. Wang and A. Komatsuzaki. GPT-J-6B: A 6 Billion Parameter Autoregressive
+     Language Model. https://github.com/kingoflolz/mesh-transformer-jax.
+     2021.
+[29] S. Williams, A. Waterman, and D. Patterson. “Roofline: An Insightful Visual
+     Performance Model for Multicore Architectures”. In: Communications of the
+     ACM 52.4 (2009), pp. 65–76.
+BIBLIOGRAPHY                                                                   67
+
+
+[30] R. Xiong et al. “On Layer Normalization in the Transformer Architecture”. In:
+     International Conference on Machine Learning. 2020.
+

@@ -1,0 +1,33 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=29.0 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 15M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'frspec': True}
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.20 GB pools
+b12: hc (0, 0.0, 0.0)
+b12: engine v3p, trims embed 4-bit g64 hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks (2, 10), pools 6.20 GB, active 9.33 GB
+[s1] bt_b12 8db71cc537, engine /Users/kamen/Breakthrough/v3p, C_m 51 C_l 20, cap 128; prompts humaneval/HumanEval/156 (n 146), humaneval/HumanEval/42 (n 149), ifeval/1220 (n 43), math500/test/number_theory/459.json (n 95), math500/test/algebra/509.json (n 78)
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[s1] humaneval/HumanEval/156 ref theta spec | tok 128 sha 5e8fe529fd | lsha - | = ref tokens True (first divergence None) | checks 33, with pass 2 0, rows pass 1 0 / pass 2 0, refused 0 | 3.88 tok / check | skipped 0 | 6.19 s, 20.67 tok/s
+[s1] humaneval/HumanEval/156 t80 theta 0.8 | tok 128 sha b6e3b6b3ad | lsha c352e6d139 | = ref tokens False (first divergence 118) | checks 34, with pass 2 2, rows pass 1 133 / pass 2 6, refused 0 | 3.76 tok / check | skipped 0 | 3.15 s, 40.62 tok/s
+[s1] humaneval/HumanEval/156 t80s theta 0.8s | tok 128 sha b6e3b6b3ad | lsha 5cb336a48d | = ref tokens False (first divergence 118) | checks 34, with pass 2 2, rows pass 1 124 / pass 2 15, refused 0 | 3.76 tok / check | skipped 3 | 3.23 s, 39.65 tok/s
+[s1] humaneval/HumanEval/156 t95s theta 0.95s | tok 128 sha b6e3b6b3ad | lsha 5cb336a48d | = ref tokens False (first divergence 118) | checks 34, with pass 2 2, rows pass 1 124 / pass 2 15, refused 0 | 3.76 tok / check | skipped 3 | 3.31 s, 38.64 tok/s
+[s1] humaneval/HumanEval/42 ref theta spec | tok 128 sha 4d59f7acd6 | lsha - | = ref tokens True (first divergence None) | checks 33, with pass 2 0, rows pass 1 0 / pass 2 0, refused 0 | 3.88 tok / check | skipped 0 | 6.07 s, 21.10 tok/s
+[s1] humaneval/HumanEval/42 t80 theta 0.8 | tok 128 sha 4d59f7acd6 | lsha 4113ede819 | = ref tokens True (first divergence None) | checks 33, with pass 2 1, rows pass 1 129 / pass 2 2, refused 0 | 3.88 tok / check | skipped 0 | 2.99 s, 42.76 tok/s
+[s1] humaneval/HumanEval/42 t80s theta 0.8s | tok 128 sha 4d59f7acd6 | lsha 4113ede819 | = ref tokens True (first divergence None) | checks 33, with pass 2 1, rows pass 1 129 / pass 2 2, refused 0 | 3.88 tok / check | skipped 0 | 5.63 s, 22.73 tok/s
+[s1] humaneval/HumanEval/42 t95s theta 0.95s | tok 128 sha 4d59f7acd6 | lsha b347fb5efd | = ref tokens True (first divergence None) | checks 33, with pass 2 2, rows pass 1 129 / pass 2 5, refused 0 | 3.88 tok / check | skipped 0 | 6.00 s, 21.35 tok/s
+[s1] ifeval/1220 ref theta spec | tok 128 sha 8e025ddb6b | lsha - | = ref tokens True (first divergence None) | checks 68, with pass 2 0, rows pass 1 0 / pass 2 0, refused 0 | 1.88 tok / check | skipped 0 | 12.37 s, 10.35 tok/s
+[s1] ifeval/1220 t80 theta 0.8 | tok 128 sha f924c93270 | lsha f091c137c5 | = ref tokens False (first divergence 6) | checks 72, with pass 2 67, rows pass 1 282 / pass 2 242, refused 0 | 1.78 tok / check | skipped 0 | 12.00 s, 10.67 tok/s
+[s1] ifeval/1220 t80s theta 0.8s | tok 128 sha 7570499736 | lsha ad994a9f97 | = ref tokens False (first divergence 18) | checks 64, with pass 2 14, rows pass 1 56 / pass 2 253, refused 0 | 2.00 tok / check | skipped 50 | 9.56 s, 13.38 tok/s
+[s1] ifeval/1220 t95s theta 0.95s | tok 128 sha a08cc2ff95 | lsha 19e3e13bb4 | = ref tokens False (first divergence 18) | checks 63, with pass 2 14, rows pass 1 56 / pass 2 250, refused 0 | 2.03 tok / check | skipped 49 | 9.20 s, 13.91 tok/s
+[s1] math500/test/number_theory/459.json ref theta spec | tok 128 sha 8c6bb18289 | lsha - | = ref tokens True (first divergence None) | checks 36, with pass 2 0, rows pass 1 0 / pass 2 0, refused 0 | 3.56 tok / check | skipped 0 | 6.43 s, 19.92 tok/s
+[s1] math500/test/number_theory/459.json t80 theta 0.8 | tok 128 sha 6d7d4553a9 | lsha 9507d1459d | = ref tokens False (first divergence 60) | checks 37, with pass 2 20, rows pass 1 145 / pass 2 47, refused 0 | 3.46 tok / check | skipped 0 | 5.34 s, 23.97 tok/s
+[s1] math500/test/number_theory/459.json t80s theta 0.8s | tok 128 sha 1fe4131c61 | lsha 347514a6f3 | = ref tokens False (first divergence 60) | checks 36, with pass 2 7, rows pass 1 60 / pass 2 102, refused 0 | 3.56 tok / check | skipped 21 | 5.63 s, 22.72 tok/s
+[s1] math500/test/number_theory/459.json t95s theta 0.95s | tok 128 sha 8be6923650 | lsha 404ee99de9 | = ref tokens False (first divergence 60) | checks 37, with pass 2 9, rows pass 1 56 / pass 2 121, refused 0 | 3.46 tok / check | skipped 23 | 6.19 s, 20.66 tok/s
+[s1] math500/test/algebra/509.json ref theta spec | tok 128 sha 31786a8758 | lsha - | = ref tokens True (first divergence None) | checks 38, with pass 2 0, rows pass 1 0 / pass 2 0, refused 0 | 3.37 tok / check | skipped 0 | 13.03 s, 9.83 tok/s
+[s1] math500/test/algebra/509.json t80 theta 0.8 | tok 128 sha e5c8bd2e52 | lsha 11197c0286 | = ref tokens False (first divergence 10) | checks 40, with pass 2 16, rows pass 1 158 / pass 2 52, refused 0 | 3.20 tok / check | skipped 0 | 5.20 s, 24.63 tok/s
+[s1] math500/test/algebra/509.json t80s theta 0.8s | tok 128 sha 1cf255dc8e | lsha 69311f943c | = ref tokens False (first divergence 10) | checks 38, with pass 2 7, rows pass 1 87 / pass 2 83, refused 0 | 3.37 tok / check | skipped 16 | 5.14 s, 24.89 tok/s
+[s1] math500/test/algebra/509.json t95s theta 0.95s | tok 128 sha fbec49b14b | lsha d2f42a3429 | = ref tokens False (first divergence 22) | checks 38, with pass 2 6, rows pass 1 85 / pass 2 81, refused 0 | 3.37 tok / check | skipped 16 | 5.08 s, 25.18 tok/s
+[s1] done

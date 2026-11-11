@@ -1,0 +1,6 @@
+layer: 20 MB read, 48 layers
+one command buffer, no events         2.41 ms/token
+one command buffer per layer          2.36 ms/token  (+-1.2 us/layer)
+per-layer GPU->CPU->GPU handshake     8.71 ms/token  (+131.2 us/layer vs one buffer)
+GPU-only signal->wait chain            8.51 ms/token  (+127.1 us/layer vs one buffer)
+handshake, CPU busy-polls value        8.77 ms/token  (+132.4 us/layer vs one buffer)

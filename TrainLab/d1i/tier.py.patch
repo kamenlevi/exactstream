@@ -1,0 +1,337 @@
+--- /Users/kamen/Breakthrough/v3f/bigmoe_v3f/tier.py	2026-10-22 04:20:45
++++ d1i/v3f/bigmoe_v3f/tier.py	2026-10-22 04:48:28
+@@ -215,10 +215,16 @@
+     from .stream import PIECES
+     STATS["prefill_calls"] += 1
+     t = bm["tier"]
+-    ids = np.array(indices)
+-    uniq = np.unique(ids)
++    _t0 = _time.perf_counter()
++    ids = np.array(indices)                                      # the per-layer sync: waits for attention + router
++    _t1 = _time.perf_counter()
++    PF["t_sync"] = PF.get("t_sync", 0.0) + (_t1 - _t0)
+     _mem_in()                                                    # D1i: where the prefill peak sits (before / in the MoE)
+     try:
++        if STREAM is not None and bm["L"] in STREAM.L0:            # D1i: fixed-order streamed experts
++            PF["grouped"] += 1
++            return _prefill_streamed(cls, self, x, indices, ids, bm, STREAM)
++        uniq = np.unique(ids)
+         warm = _Warm(bm, ids) if (_WARM and (PF["last"] or _WARM_ALL)) else None   # D1i: warm the pools from the last chunk
+         if _PF_GROUP and len(uniq) > _PF_GROUP and ids.size >= 16 and ids.size >= 4 * len(uniq):
+             y = _prefill_grouped(cls, self, x, indices, ids, uniq, bm, warm, *a, **kw)   # D1i: experts in sub-batches
+@@ -228,6 +234,7 @@
+         return _prefill_single(cls, self, x, indices, ids, uniq, bm, warm, *a, **kw)
+     finally:
+         _mem_out()
++        PF["t_moe"] = PF.get("t_moe", 0.0) + (_time.perf_counter() - _t1)
+ 
+ 
+ def _prefill_single(cls, self, x, indices, ids, uniq, bm, warm, *a, **kw):
+@@ -615,3 +622,307 @@
+         warm.adopt(bm)
+     mx.clear_cache()
+     return y
++
++
++# D1i (NewIdeas 04:03): FIXED-ORDER EXPERT STREAMING for the decoupled prefill. Every tier layer's experts are read in
++# id-range groups of G (all of them: at >= ~2K tokens a layer's prompt touches ~85-90 % of its 512 experts), in layer
++# order, through a ring of R scratch buffers, independent of the routing. The driver pumps reads while the GPU runs a
++# layer's attention (start_stream / pump / stop_stream); the layer's MoE then takes its groups from the ring and pumps
++# the next reads while the GPU computes. read_rebuilt holds the GIL, so the pumps run on the main thread between
++# asynchronous GPU launches. Per-pair outputs as in the grouped path (the scratch is the whole id range).
++STREAM = None
++
++
++class _Stream:
++    def __init__(self, bms, R=4, G=64):
++        t0 = bms[0]["tier"]
++        self.bms, self.G, self.E = bms, G, t0["E"]
++        self.L0 = {bm["L"]: i for i, bm in enumerate(bms)}
++        self.ng = -(-self.E // G)
++        self.bufs = [[mx.zeros((G, *sh), dt) for sh, dt in t0["shapes4"]] for _ in range(R)]
++        mx.eval(*[a for b in self.bufs for a in b])
++        self.free, self.pending, self.ready = list(range(R)), [], {}
++        self.nxt, self.total = 0, len(bms) * self.ng
++        self.stats = {"reads": 0, "t_read": 0.0, "t_wait": 0.0, "groups_used": 0, "groups_empty": 0}
++
++    def _reclaim(self):
++        b, users = self.pending.pop(0)
++        t0 = _time.perf_counter()
++        if users:
++            mx.eval(*users)                                      # the GPU is done with buffer b
++        self.stats["t_wait"] += _time.perf_counter() - t0
++        self.free.append(b)
++
++    def pump(self, n=1, block=False):
++        """read up to n next groups (fixed order) into free buffers; block=True may wait for the GPU to finish the
++        oldest group still reading a buffer (in the MoE), block=False only uses free buffers (during attention)"""
++        while n > 0 and self.nxt < self.total:
++            if not self.free:
++                if not (block and self.pending):
++                    return
++                self._reclaim()
++            b = self.free.pop(0)
++            i, g = divmod(self.nxt, self.ng)
++            t = self.bms[i]["tier"]
++            ids = list(range(g * self.G, min(self.E, (g + 1) * self.G)))
++            t0 = _time.perf_counter()
++            t["ext"].read_rebuilt(t["path"], t["recsz"], t["msb_sz"], t["pers4"], ids, list(range(len(ids))), self.bufs[b])
++            self.stats["t_read"] += _time.perf_counter() - t0; self.stats["reads"] += 1
++            self.ready[(i, g)] = b
++            self.nxt += 1; n -= 1
++
++    def get(self, L, g):
++        """buffer holding layer L's group g, reading (and waiting for the GPU) as needed"""
++        key = (self.L0[L], g)
++        while key not in self.ready:
++            if not self.free:
++                self._reclaim()
++            self.pump(1)
++        return self.ready.pop(key)
++
++    def release(self, b, users):
++        self.pending.append((b, users))
++
++
++def start_stream(bms, R=4, G=64):
++    global STREAM
++    STREAM = _Stream(bms, R, G)
++    return STREAM
++
++
++def stop_stream():
++    global STREAM
++    s, STREAM = STREAM, None
++    if s is not None:
++        while s.pending:
++            s._reclaim()
++        for b, futs, n in getattr(s, "inflight", {}).values():   # reads submitted past the last layer: let them land
++            for f in futs:
++                f.result()
++        if hasattr(s, "pool"):
++            s.pool.shutdown(wait=True)
++        del s.bufs
++    mx.clear_cache()
++    return s.stats if s is not None else {}
++
++
++def _prefill_streamed(cls, self, x, indices, ids, bm, st):
++    from .stream import PIECES
++    k = ids.shape[-1]
++    lead = x.shape[:-1]
++    flat = ids.reshape(-1)
++    x2 = x.reshape(-1, x.shape[-1])
++    G, E = st.G, st.E
++    saved = [getattr(getattr(self, proj), field) for proj, field in PIECES]
++    outs, poss = [], []
++    try:
++        for g in range(st.ng):
++            lo, hi = g * G, min(E, (g + 1) * G)
++            b = st.get(bm["L"], g)
++            pos = np.nonzero((flat >= lo) & (flat < hi))[0]
++            if len(pos) == 0:
++                st.release(b, []); st.stats["groups_empty"] += 1
++                continue
++            st.stats["groups_used"] += 1
++            if hasattr(st, "scratch"):                           # v3: raw records3 -> exact 4-bit on the GPU
++                scr = st.scratch(bm, b, hi - lo)
++            else:
++                scr = st.bufs[b] if hi - lo == G else [arr[:hi - lo] for arr in st.bufs[b]]
++            for (proj, field), arr in zip(PIECES, scr):
++                setattr(getattr(self, proj), field, arr)
++            xp = mx.take(x2, mx.array((pos // k).astype(np.int32)), axis=0)
++            cpn = (flat[pos] - lo).astype(np.int32)
++            pad = (-len(pos)) % 64
++            if pad:
++                xp = mx.concatenate([xp, mx.zeros((pad, xp.shape[-1]), xp.dtype)])
++                cpn = np.concatenate([cpn, np.zeros(pad, np.int32)])
++            cp = mx.array(cpn).reshape(-1, 1).astype(indices.dtype)
++            y = cls.__call__(self, xp, cp).reshape(len(cpn), -1)[:len(pos)]
++            mx.async_eval(y)
++            st.release(b, [y])
++            if isinstance(st, (_Stream2, _Stream3)):
++                if not st.free and len(st.pending) > 1:
++                    st._reclaim()                                # the oldest group is done by now: its buffer reads on
++                st.pump()
++            else:
++                st.pump(1, block=True)                           # the SSD keeps reading while the GPU computes
++            outs.append(y); poss.append(pos)
++    finally:
++        for (proj, field), arr in zip(PIECES, saved):
++            setattr(getattr(self, proj), field, arr)
++    order = np.argsort(np.concatenate(poss), kind="stable").astype(np.int32)
++    y = mx.take(mx.concatenate(outs, axis=0), mx.array(order), axis=0).reshape(*lead, k, -1)
++    mx.eval(y)
++    while st.pending:                                            # every group's output is computed: buffers free
++        st._reclaim()
++    if isinstance(st, (_Stream2, _Stream3)):
++        st.pump()                                                # the next layer's groups read during its attention
++    return y
++
++
++# D1i stream v2 (D1I_STREAM=2 in the driver): the same fixed-order groups, read from the model's own safetensors (the
++# exact 4-bit experts, stacked per piece: a group of consecutive experts is ONE contiguous range per piece, 9 preads per
++# group) by a thread pool with the GIL released (os.preadv), straight into the ring's scratch: no rebuild, reads run
++# while the main thread builds and the GPU computes. Same bytes as read_rebuilt's rebuild (records3's converter checked
++# rebuild == the original 4-bit words), so the same outputs.
++_HDRS = {}
++
++
++class _Stream2(_Stream):
++    def __init__(self, bms, R=4, G=64, threads=8):
++        super().__init__(bms, R, G)
++        from .stream import read_headers, PIECES
++        md = os.path.dirname(os.path.dirname(bms[0]["tier"]["path"]))
++        if md not in _HDRS:
++            _HDRS[md] = read_headers(md)
++        hdr = _HDRS[md]
++        self.src = []                                            # per layer: [(fd, offset, bytes per expert)] x 9
++        for bm in bms:
++            pre = f"language_model.model.layers.{bm['L']}.mlp.switch_mlp"
++            row = []
++            for (proj, field), (sh, dt) in zip(PIECES, bm["tier"]["shapes4"]):
++                path, off, _, shape = hdr[f"{pre}.{proj}.{field}"]
++                row.append((_fd(path), off, int(np.prod(shape[1:])) * (4 if dt == mx.uint32 else 2)))
++            self.src.append(row)
++        self.pool = _TPE(max_workers=threads)
++        self.inflight = {}                                       # (i, g) -> (buffer, futures)
++
++    def pump(self, n=99, block=False):
++        """submit reads for the next groups into free buffers (returns at once)"""
++        while n > 0 and self.nxt < self.total:
++            if not self.free:
++                if not (block and self.pending):
++                    return
++                self._reclaim()
++            b = self.free.pop(0)
++            i, g = divmod(self.nxt, self.ng)
++            lo, hi = g * self.G, min(self.E, (g + 1) * self.G)
++            futs = []
++            for (fd, off, per), arr in zip(self.src[i], self.bufs[b]):
++                mv = memoryview(arr).cast("B")[:(hi - lo) * per]
++                futs.append(self.pool.submit(os.preadv, fd, [mv], off + lo * per))
++            self.inflight[(i, g)] = (b, futs, (hi - lo))
++            self.stats["reads"] += 1
++            self.nxt += 1; n -= 1
++
++    def get(self, L, g):
++        key = (self.L0[L], g)
++        while key not in self.inflight:
++            if not self.free:
++                self._reclaim()
++            self.pump(1)
++        b, futs, n = self.inflight.pop(key)
++        t0 = _time.perf_counter()
++        for f, (fd, off, per) in zip(futs, self.src[key[0]]):
++            if f.result() != n * per:
++                raise IOError("short safetensors read")
++        self.stats["t_read"] += _time.perf_counter() - t0          # time spent WAITING for reads
++        return b
++
++
++def start_stream2(bms, R=4, G=64, threads=8):
++    global STREAM
++    STREAM = _Stream2(bms, R, G, threads)
++    STREAM.pump()                                                # the first R groups start reading now
++    return STREAM
++
++
++# D1i stream v3 (D1I_STREAM=3): the fixed-order groups read as RAW records3 records (both parts, one pread per expert,
++# GIL-free thread pool, F_NOCACHE) into the ring, then rebuilt to the exact 4-bit pieces on the GPU (rebuild4) as each
++# group runs. Never touches the model's safetensors (v2 read those, and decode afterwards ran ~17 % slower).
++class _Stream3(_Stream):
++    def __init__(self, bms, R=4, G=64, threads=16):
++        self.bms, self.G, self.E = bms, G, bms[0]["tier"]["E"]
++        self.L0 = {bm["L"]: i for i, bm in enumerate(bms)}
++        self.ng = -(-self.E // G)
++        rs = bms[0]["tier"]["recsz"]
++        self.bufs = [mx.zeros((G, rs // 4), mx.uint32) if _RB2 else mx.zeros((G, rs), mx.uint8) for _ in range(R)]
++        mx.eval(*self.bufs)
++        self.free, self.pending, self.ready = list(range(R)), [], {}
++        self.nxt, self.total = 0, len(bms) * self.ng
++        self.stats = {"reads": 0, "t_read": 0.0, "t_wait": 0.0, "groups_used": 0, "groups_empty": 0}
++        self.pool = _TPE(max_workers=threads)
++        self.inflight = {}
++
++    def pump(self, n=99, block=False):
++        while n > 0 and self.nxt < self.total:
++            if not self.free:
++                if not (block and self.pending):
++                    return
++                self._reclaim()
++            b = self.free.pop(0)
++            i, g = divmod(self.nxt, self.ng)
++            t = self.bms[i]["tier"]
++            fd, rs = _fd(t["path"]), t["recsz"]
++            lo, hi = g * self.G, min(self.E, (g + 1) * self.G)
++            mv = memoryview(self.bufs[b]).cast("B")
++            futs = [self.pool.submit(os.preadv, fd, [mv[k * rs:(k + 1) * rs]], e * rs) for k, e in enumerate(range(lo, hi))]
++            self.inflight[(i, g)] = (b, futs, hi - lo)
++            self.stats["reads"] += 1
++            self.nxt += 1; n -= 1
++
++    def get(self, L, g):
++        key = (self.L0[L], g)
++        while key not in self.inflight:
++            if not self.free:
++                self._reclaim()
++            self.pump(1)
++        b, futs, n = self.inflight.pop(key)
++        t0 = _time.perf_counter()
++        rs = self.bms[key[0]]["tier"]["recsz"]
++        for f in futs:
++            if f.result() != rs:
++                raise IOError("short records3 read")
++        self.stats["t_read"] += _time.perf_counter() - t0
++        return b
++
++    def scratch(self, bm, b, n):
++        return _rebuild_gpu2(bm["tier"], self.bufs[b], n) if _RB2 else _rebuild_gpu(bm["tier"], self.bufs[b], n)
++
++
++def start_stream3(bms, R=4, G=64, threads=16):
++    global STREAM
++    STREAM = _Stream3(bms, R, G, threads)
++    STREAM.pump()
++    return STREAM
++
++
++# D1i (05:00): the v3 stream's rebuild straight from the raw records (D1I_RB2=1). _rebuild_gpu sliced each piece out of
++# the [G, recsz] byte buffer (a strided byte copy of ~177 MB per group) before rebuild4; this kernel reads the 3-bit and
++# 1-bit words in place (record stride and piece offsets as template constants) with rebuild4's bit math, per expert.
++_RB2_SRC = r"""
++uint j = thread_position_in_grid.x;
++uint e = j / WPE, jj = j - e * WPE;
++const device uint* w3 = raw + e * RS4 + W3OFF;
++const device uint* l1 = raw + e * RS4 + L1OFF;
++uint bit = jj * 24u, w = bit >> 5, sh = bit & 31u;
++uint x = w3[w] >> sh;
++if (sh > 8u) x |= w3[w + 1] << (32u - sh);
++x &= 0xFFFFFFu;
++uint l = (l1[jj >> 2] >> ((jj & 3u) * 8u)) & 0xFFu;
++uint a = (x & 0xFFFu) | ((x & 0xFFF000u) << 4);
++a = (a & 0x003F003Fu) | ((a & 0x0FC00FC0u) << 2);
++a = (a & 0x07070707u) | ((a & 0x38383838u) << 1);
++uint y = l; y = (y | (y << 12)) & 0x000F000Fu; y = (y | (y << 6)) & 0x03030303u; y = (y | (y << 3)) & 0x11111111u;
++out[j] = (a << 1) | y;
++"""
++_rb2 = mx.fast.metal_kernel(name="d1i_rebuild4_strided", input_names=["raw"], output_names=["out"], source=_RB2_SRC)
++_RB2 = os.environ.get("D1I_RB2") == "1"
++
++
++def _rebuild_gpu2(t, raw32, n):
++    """[n] raw records3 records in a [G, recsz/4] uint32 buffer -> the 9 exact 4-bit pieces (PIECES order)"""
++    r = t["r"]
++    mo, ms, lo, ls = r["msb_piece_off"], r["msb_piece_size"], r["lsb_piece_off"], r["lsb_piece_size"]
++    rs4 = t["recsz"] // 4
++    rows = raw32[:n]
++    out = []
++    for p in range(3):
++        (wsh, _), (ssh, _), (bsh, _) = t["shapes4"][3 * p:3 * p + 3]
++        wpe = int(np.prod(wsh))                                 # 4-bit words per expert of this projection
++        w4 = _rb2(inputs=[raw32], template=[("RS4", rs4), ("W3OFF", mo[3 * p] // 4), ("L1OFF", lo[2 * p] // 4), ("WPE", wpe)],
++                  output_shapes=[(n * wpe,)], output_dtypes=[mx.uint32], grid=(n * wpe, 1, 1), threadgroup=(256, 1, 1))[0]
++        s3 = rows[:, mo[3 * p + 1] // 4:(mo[3 * p + 1] + ms[3 * p + 1]) // 4].view(mx.bfloat16).reshape(n, *ssh)
++        b = rows[:, lo[2 * p + 1] // 4:(lo[2 * p + 1] + ls[2 * p + 1]) // 4].view(mx.bfloat16).reshape(n, *bsh)
++        out += [w4.reshape(n, *wsh), s3 * _HALF, b]
++    return out

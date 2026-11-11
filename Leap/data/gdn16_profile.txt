@@ -1,0 +1,140 @@
+L1-15 step 1: tf_code/HumanEval/103, context 235 tokens, 30 GDN layers; per layer: in_proj_qkv (8192, 256), z (4096, 256), b/a (32, 256), out_proj (2048, 512) (packed uint32), conv (8192, 4, 1) mlx.core.bfloat16, state (1, 32, 128, 128) mlx.core.float32
+  weight bytes per layer: in_proj_qkv 9.44 MB, in_proj_z 4.72 MB, in_proj_b + a 0.07 MB, out_proj 4.72 MB; mixer total 19.01 MB -> 30-layer floor 2.04 ms at 280 GB/s
+
+Timing: ms for all 30 GDN layers (median of 15), and % of the bytes floor at 280 GB/s
+S =  1:
+  in_proj_qkv                                  1.223 ms   floor  1.01 ms ( 83%)
+  in_proj_z                                    0.791 ms   floor  0.51 ms ( 64%)
+  in_proj_b + a                                0.326 ms   floor  0.01 ms (  2%)
+  conv1d + silu (+ concat)                     0.274 ms
+  split + q/k rms_norm + scale                 0.325 ms
+  beta + g                                     0.244 ms
+  recurrence (gated_delta kernel)              0.858 ms
+  gated norm                                   0.264 ms
+  out_proj                                     0.804 ms   floor  0.51 ms ( 63%)
+  WHOLE mixer chain                            3.442 ms
+  fused in_proj (qkv|z|b|a, one matmul)        1.701 ms
+  in_proj_qkv as S x 1-row calls (qmv)         1.223 ms
+  sum of the op groups                         5.111 ms
+S =  2:
+  in_proj_qkv                                  1.213 ms   floor  1.01 ms ( 83%)
+  in_proj_z                                    0.795 ms   floor  0.51 ms ( 64%)
+  in_proj_b + a                                0.331 ms   floor  0.01 ms (  2%)
+  conv1d + silu (+ concat)                     0.275 ms
+  split + q/k rms_norm + scale                 0.427 ms
+  beta + g                                     0.248 ms
+  recurrence (gated_delta kernel)              0.926 ms
+  gated norm                                   0.278 ms
+  out_proj                                     0.816 ms   floor  0.51 ms ( 62%)
+  WHOLE mixer chain                            3.683 ms
+  fused in_proj (qkv|z|b|a, one matmul)        1.672 ms
+  in_proj_qkv as S x 1-row calls (qmv)         1.239 ms
+  sum of the op groups                         5.309 ms
+S =  4:
+  in_proj_qkv                                  1.327 ms   floor  1.01 ms ( 76%)
+  in_proj_z                                    0.855 ms   floor  0.51 ms ( 59%)
+  in_proj_b + a                                0.356 ms   floor  0.01 ms (  2%)
+  conv1d + silu (+ concat)                     0.291 ms
+  split + q/k rms_norm + scale                 0.436 ms
+  beta + g                                     0.250 ms
+  recurrence (gated_delta kernel)              0.982 ms
+  gated norm                                   0.285 ms
+  out_proj                                     0.901 ms   floor  0.51 ms ( 56%)
+  WHOLE mixer chain                            4.155 ms
+  fused in_proj (qkv|z|b|a, one matmul)        1.806 ms
+  in_proj_qkv as S x 1-row calls (qmv)         1.332 ms
+  sum of the op groups                         5.681 ms
+S =  8:
+  in_proj_qkv                                  2.334 ms   floor  1.01 ms ( 43%)
+  in_proj_z                                    1.356 ms   floor  0.51 ms ( 37%)
+  in_proj_b + a                                0.355 ms   floor  0.01 ms (  2%)
+  conv1d + silu (+ concat)                     0.303 ms
+  split + q/k rms_norm + scale                 0.488 ms
+  beta + g                                     0.255 ms
+  recurrence (gated_delta kernel)              1.171 ms
+  gated norm                                   0.303 ms
+  out_proj                                     1.361 ms   floor  0.51 ms ( 37%)
+  WHOLE mixer chain                            6.119 ms
+  fused in_proj (qkv|z|b|a, one matmul)        3.363 ms
+  in_proj_qkv as S x 1-row calls (qmv)         2.347 ms
+  sum of the op groups                         7.927 ms
+S = 12:
+  in_proj_qkv                                  3.397 ms   floor  1.01 ms ( 30%)
+  in_proj_z                                    1.823 ms   floor  0.51 ms ( 28%)
+  in_proj_b + a                                0.325 ms   floor  0.01 ms (  2%)
+  conv1d + silu (+ concat)                     0.301 ms
+  split + q/k rms_norm + scale                 0.485 ms
+  beta + g                                     0.236 ms
+  recurrence (gated_delta kernel)              1.282 ms
+  gated norm                                   0.276 ms
+  out_proj                                     1.826 ms   floor  0.51 ms ( 28%)
+  WHOLE mixer chain                            8.385 ms
+  fused in_proj (qkv|z|b|a, one matmul)        5.031 ms
+  in_proj_qkv as S x 1-row calls (qmv)         3.417 ms
+  sum of the op groups                         9.951 ms
+S = 16:
+  in_proj_qkv                                  5.223 ms   floor  1.01 ms ( 19%)
+  in_proj_z                                    2.385 ms   floor  0.51 ms ( 21%)
+  in_proj_b + a                                0.346 ms   floor  0.01 ms (  2%)
+  conv1d + silu (+ concat)                     0.348 ms
+  split + q/k rms_norm + scale                 0.496 ms
+  beta + g                                     0.254 ms
+  recurrence (gated_delta kernel)              1.546 ms
+  gated norm                                   0.323 ms
+  out_proj                                     2.383 ms   floor  0.51 ms ( 21%)
+  WHOLE mixer chain                           11.625 ms
+  fused in_proj (qkv|z|b|a, one matmul)        2.666 ms
+  in_proj_qkv as S x 1-row calls (qmv)         5.237 ms
+  sum of the op groups                        13.303 ms
+
+Batch invariance, all 30 GDN layers (mismatching elements / total; 0 = bitwise equal)
+S = 16:
+  chain vs plain decode: qkv                             1279983 /   3932160
+  chain vs plain decode: z                                   163 /   1966080
+  chain vs plain decode: conv_out                        1182554 /   3932160
+  chain vs plain decode: q                                325061 /    983040
+  chain vs plain decode: k                                282254 /    983040
+  chain vs plain decode: y                                893325 /   1966080
+  chain vs plain decode: out                              628525 /    983040
+  chain vs plain decode: final state                    15566633 /  15728640
+  op in_proj_qkv: S rows vs 1-row (qmv)                  1279983 /   3932160
+  op in_proj_qkv: S rows vs 2-row (band 2-12)            1279994 /   3932160
+  op in_proj_z: S rows vs 1-row (qmv)                        163 /   1966080
+  op in_proj_z: S rows vs 2-row (band 2-12)                    0 /   1966080   EQUAL
+  op in_proj_b: S rows vs 1-row (qmv)                          1 /     15360
+  op in_proj_b: S rows vs 2-row (band 2-12)                    0 /     15360   EQUAL
+  op out_proj: S rows vs 1-row (qmv)                         261 /    983040
+  op out_proj: S rows vs 2-row (band 2-12)                     0 /    983040   EQUAL
+  op in_proj_qkv: (S, 1, K) batched vs 1-row             1279983 /   3932160
+  op fused in_proj vs separate (same S)                   461660 /   5928960
+  op in_proj_qkv: 16-row padded vs 16-row real                 0 /    737280   EQUAL
+  op conv1d + silu: S rows vs sequential 1-row                 0 /   3932160   EQUAL
+  op q/k rms_norm: S rows vs 1-row                             0 /   1966080   EQUAL
+  op recurrence: T = S vs S x T = 1 (outputs)                  0 /   1966080   EQUAL
+  op recurrence: T = S vs S x T = 1 (final state)              0 /  15728640   EQUAL
+  op gated norm: S rows vs 1-row                               0 /   1966080   EQUAL
+S = 8:
+  chain vs plain decode: qkv                                 238 /   1966080
+  chain vs plain decode: z                                    94 /    983040
+  chain vs plain decode: conv_out                             89 /   1966080
+  chain vs plain decode: q                                    14 /    491520
+  chain vs plain decode: k                                    16 /    491520
+  chain vs plain decode: y                                   333 /    983040
+  chain vs plain decode: out                                3751 /    491520
+  chain vs plain decode: final state                      338327 /  15728640
+  op in_proj_qkv: S rows vs 1-row (qmv)                      238 /   1966080
+  op in_proj_qkv: S rows vs 2-row (band 2-12)                  0 /   1966080   EQUAL
+  op in_proj_z: S rows vs 1-row (qmv)                         94 /    983040
+  op in_proj_z: S rows vs 2-row (band 2-12)                    0 /    983040   EQUAL
+  op in_proj_b: S rows vs 1-row (qmv)                          0 /      7680   EQUAL
+  op in_proj_b: S rows vs 2-row (band 2-12)                    0 /      7680   EQUAL
+  op out_proj: S rows vs 1-row (qmv)                         117 /    491520
+  op out_proj: S rows vs 2-row (band 2-12)                     0 /    491520   EQUAL
+  op in_proj_qkv: (S, 1, K) batched vs 1-row                 238 /   1966080
+  op fused in_proj vs separate (same S)                        0 /   2964480   EQUAL
+  op conv1d + silu: S rows vs sequential 1-row                 0 /   1966080   EQUAL
+  op q/k rms_norm: S rows vs 1-row                             0 /    983040   EQUAL
+  op recurrence: T = S vs S x T = 1 (outputs)                  0 /    983040   EQUAL
+  op recurrence: T = S vs S x T = 1 (final state)              0 /  15728640   EQUAL
+  op gated norm: S rows vs 1-row                               0 /    983040   EQUAL
+peak 20.7 GB

@@ -1,0 +1,19 @@
+1. splice: 9 tokens before the user turn's <|im_end|> on all 12 prompts, the rest of each prompt unchanged; the last prompt now ends '\n    """\n```\n\nDo not write comments in the code.<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n'
+2. nocom_report on SYNTHETIC arm files (A = stored REF2-T answers, P = the same with comments removed; checks by rule):
+T-B1 comment-free prompt arm (R57_NOCOM=1) vs qall, C 224, cap 256: passes with data A 12 / 12 prompts, P 12 / 12
+  comment tokens: A 6.9 % of its tokens, P 0.0 % (line <= 2 %); checks that keep only comment tokens: A 24.5 % of its checks, P 0.0 % (FULL's prediction for A inside CAP 256: 15-20 %); the copy run is 63 % of A's tokens
+  P vs A over 12 prompts (pair means per prompt): steady tok/s +22.2 % (geo); kept per check outside the copy run x1.276, over all checks x1.202 (geo); tokens per task x1.000, seconds per task x0.865 (medians)
+  tests not run (nocom_tests.py under EvalSuite's venv writes data/fri/nocom_tests.json)
+Verdict T-B1 (pre-registered): PASS pending the tests; PASS = comment tokens <= 2 % AND kept outside the copy run >= x1.15 AND tok/s >= +8 % AND no new test failure; KILL = kept < x1.05 OR tok/s < +3 % OR >= 2 new failures
+   (stand-in P: 2494 tokens against A's 2637 inside the cap, x0.946)
+3. nocom_tests.py (EvalSuite's venv, 2 finished tasks: ['16', '6']): rc 0; fqall: 2 of 2 pass | fqallp: 2 of 2 pass | wrote /Users/kamen/FableGod/full/build_1105/out/dryfri/t2/nocom_tests.json
+4. the patched fri_night.sh with a STUB runner in a scratch root (arms marked * run on XS, the patched screen):
+   [default] rc 0; XS written True; arms: frx0_224 fu3c_224 fqall_224 fqallp_224* fs99_224 fs90_224 fs90b_224 fs99b_224 fqallpb_224* fqallb_224 fu3cb_224 fexr_224 fcprobe_224*; skipped by 'no switch': []; reports: ['report rc=0 (data/fri/fri_report.txt)', 'nocom report rc=0', 'copy probe report rc=0']
+      fqallp_224:224:BIGMOE_EXT_BUILD=build_qom,R57_REFTOK=,R57_FAST=QOM,R57_D17=1,R57_D7B=code,R57_HC8=1,REF2_HC8_FAST=1,R57_DNR=1,R57_HCB=1,REF2_SMALL_NATIVE=1,R57_D7BNAX=1,REF2_OOO_1C=1,R57_NOCOM=1
+      fcprobe_224:224:BIGMOE_EXT_BUILD=build_qom,R57_REFTOK=,R57_FAST=QOM,R57_D17=1,R57_D7B=code,R57_HC8=1,REF2_HC8_FAST=1,R57_DNR=1,R57_HCB=1,REF2_SMALL_NATIVE=1,R57_D7BNAX=1,REF2_OOO_1C=1,R57_QOM_SPLIT=0.9,R57_COPYPROBE=g+x+s
+   [FRI_FULL=0] rc 0; XS written False; arms: frx0_224 fu3c_224 fqall_224 fs99_224 fs90_224 fs90b_224 fs99b_224 fqallb_224 fu3cb_224 fexr_224; skipped by 'no switch': ['fqallp', 'fqallpb', 'fcprobe']; reports: ['report rc=0 (data/fri/fri_report.txt)']
+   [applier missing] rc 0; XS written False; arms: frx0_224 fu3c_224 fqall_224 fs99_224 fs90_224 fs90b_224 fs99b_224 fqallb_224 fu3cb_224 fexr_224; skipped by 'no switch': ['fqallp', 'fqallpb', 'fcprobe']; reports: ['report rc=0 (data/fri/fri_report.txt)']
+   [FRI_CPROBE_T=1, no split] rc 0; XS written True; arms: frx0_224 fu3c_224 fqall_224 fqallp_224* fqallpb_224* fqallb_224 fu3cb_224 fexr_224 fcprobe_224* fcprobet_224*; skipped by 'no switch': ['fs99', 'fs90', 'fs90b', 'fs99b']; reports: ['report rc=0 (data/fri/fri_report.txt)', 'nocom report rc=0', 'copy probe report rc=0']
+      fqallp_224:224:BIGMOE_EXT_BUILD=build_qom,R57_REFTOK=,R57_FAST=QOM,R57_D17=1,R57_D7B=code,R57_HC8=1,REF2_HC8_FAST=1,R57_DNR=1,R57_HCB=1,REF2_SMALL_NATIVE=1,R57_D7BNAX=1,REF2_OOO_1C=1,R57_NOCOM=1
+      fcprobe_224:224:BIGMOE_EXT_BUILD=build_qom,R57_REFTOK=,R57_FAST=QOM,R57_D17=1,R57_D7B=code,R57_HC8=1,REF2_HC8_FAST=1,R57_DNR=1,R57_HCB=1,REF2_SMALL_NATIVE=1,R57_D7BNAX=1,REF2_OOO_1C=1,R57_COPYPROBE=g+x+s
+      fcprobet_224:224:BIGMOE_EXT_BUILD=build_qom,R57_REFTOK=,R57_FAST=QOM,R57_D17=1,R57_D7B=code,R57_HC8=1,REF2_HC8_FAST=1,R57_DNR=1,R57_HCB=1,REF2_SMALL_NATIVE=1,R57_D7BNAX=1,REF2_OOO_1C=1,R57_COPYPROBE=g+t

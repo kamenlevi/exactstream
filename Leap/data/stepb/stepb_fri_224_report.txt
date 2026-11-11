@@ -1,0 +1,241 @@
+STEP 0 PART B read-out: ['/Users/kamen/Leap/data/stepb/out/stepb_fri_224_flat2.json']; tag stepb_fri_224, C 224, arm gate+t, FAST QOM
+  calibration: round trip 144 us (p10-p90 [124, 178]), dependent dispatch 1.94 us
+  read floor (same synced method; KB: cold us / GB/s, warm us / GB/s): 16: -22.9 / 16384, -5.2 / 16384; 64: -0.1 / 65536, -2.5 / 65536; 256: 0.8 / 323, 3.8 / 70; 1024: 10.6 / 99, 6.3 / 166; 2048: 10.8 / 194, 4.9 / 425; 4096: 18.7 / 224, 21.3 / 197; 8192: 24.5 / 342, 27.1 / 310; 16384: 60.9 / 275, 35.0 / 480; 65536: 242.4 / 277, 252.4 / 266; 262144: 974.4 / 276, 952.9 / 282
+
+== 2 rows: 6 kernel-level forwards (checks [8, 24]; rows [2]); logits == live [True, True, True, True, True, True]; skipped calls [0, 0, 0, 0, 0, 0]
+  per check (medians over forwards): GPU 127.90 ms in wrapped calls + glue; dense bytes (all but experts, pools not counted) 3.137 GB
+  piece     calls  glue-fl   call ms   glue ms   total ms      MB    GB/s(calls)
+  gdn         396      94     32.04      2.30      34.34   1475.6       46
+  experts      48       0     27.09      0.00      27.09   2005.8       74
+  att         312      27     24.13      0.81      24.93    461.7       19
+  moe         432      73     15.46      1.45      16.91    237.0       15
+  hc_m        288      76      8.09      1.91      10.00    478.9       59
+  hc_a        192      27      7.05      0.59       7.64    467.1       66
+  -             5       2      4.96      0.04       5.00      0.2        0
+  ple          12       5      0.35      0.45       0.80      1.5        4
+  hc_w         48       0      0.76      0.00       0.76      4.4        6
+  hc_f          7       2      0.38      0.06       0.43     10.0       27
+  layer         0       0      0.00      0.00       0.00      0.0        0
+  kernel types by GPU ms per check (top 40): piece | name | signature | calls per check | median us per call | KB per call | GB/s | read floor us (cold) | x floor
+   15.51 ms | gdn     | mk.leap_qmm26_d                    | 16x6144:bfloat16;80x96x32x8:uint32;80x96x32:bfloat16;80x96x32:bfloat16 |  36.0 |   430.8 |   8912.0 |     21 |   27.4 |  15.7
+   13.22 ms | gdn     | mk.leap_qmm26_d                    | 16x2560:bfloat16;512x40x32x8:uint32;512x40x32:bfloat16;512x40x32:bfloa |  36.0 |   367.2 |  23632.0 |     66 |   87.8 |   4.2
+    8.49 ms | moe     | mk.leap_qmm26_d                    | 16x2560:bfloat16;41x40x32x8:uint32;41x40x32:bfloat16;41x40x32:bfloat16 |  48.0 |   176.9 |   1966.0 |     11 |   10.8 |  16.3
+    7.87 ms | att     | fast.scaled_dot_product_attention  | 1x2x16x256:bfloat16;1x1x397x256:bfloat16;1x1x397x256:bfloat16;1x1x16x3 |  72.0 |   109.3 |    435.2 |      4 |    2.2 |  50.3
+    6.13 ms | att     | fast.scaled_dot_product_attention  | 1x2x16x256:bfloat16;1x1x429x256:bfloat16;1x1x429x256:bfloat16;1x1x16x4 |  72.0 |    85.1 |    467.7 |      6 |    2.5 |  34.3
+    5.99 ms | gdn     | mk.leap_qmm26_d                    | 16x2560:bfloat16;3x40x32x8:uint32;3x40x32:bfloat16;3x40x32:bfloat16->1 |  36.0 |   166.4 |    218.0 |      1 |    0.4 | 445.3
+    5.25 ms | att     | mk.leap_qmm26_d                    | 16x6144:bfloat16;80x96x32x8:uint32;80x96x32:bfloat16;80x96x32:bfloat16 |  12.0 |   437.5 |   8912.0 |     21 |   27.4 |  16.0
+    4.83 ms | -       | mk.leap_qmm16_codemma              | 16x2560:bfloat16;248320x320:uint32;248320x40:bfloat16;248320x40:bfloat |   1.0 |  4831.3 |  46640.0 |     10 |    nan |   nan P
+    4.00 ms | att     | mk.leap_qmm26_d                    | 16x2560:bfloat16;16x40x32x8:uint32;16x40x32:bfloat16;16x40x32:bfloat16 |  24.0 |   166.7 |    816.0 |      5 |    7.0 |  23.9
+    3.31 ms | att     | mk.leap_qmm26_d                    | 16x2560:bfloat16;384x40x32x8:uint32;384x40x32:bfloat16;384x40x32:bfloa |  12.0 |   275.9 |  17744.0 |     66 |   66.0 |   4.2
+    3.26 ms | hc_m    | mk.hc8r_k1c                        | 16x10240:bfloat16;16x2560:bfloat16;16x4:bfloat16;10240:bfloat16->20x16 |  48.0 |    68.0 |   4661.4 |     70 |   19.7 |   3.5
+    3.08 ms | moe     | mx.quantized_matmul                | 16x2560:bfloat16;512x640:uint32;512x40:bfloat16;512x40:bfloat16->16x51 |  48.0 |    64.2 |   1456.0 |     23 |   10.7 |   6.0
+    2.94 ms | hc_a    | mk.hc8r_k1c                        | 16x10240:bfloat16;16x10240:bfloat16;16x10240:bfloat16;10240:bfloat16-> |  48.0 |    61.4 |   4581.2 |     76 |   19.5 |   3.1
+    2.56 ms | hc_a    | mk.hc8r_k3c                        | 16x320:bfloat16;10240x80:uint32;10240x5:bfloat16;10240x5:bfloat16->16x |  48.0 |    53.3 |   3830.6 |     74 |   17.7 |   3.0
+    2.39 ms | hc_m    | mk.hc8r_k3c                        | 16x320:bfloat16;10240x80:uint32;10240x5:bfloat16;10240x5:bfloat16->16x |  48.0 |    49.8 |   3830.6 |     79 |   17.7 |   2.8
+    2.13 ms | moe     | mk.leap_qmm26_d                    | 16x640:bfloat16;80x10x32x8:uint32;80x10x32:bfloat16;80x10x32:bfloat16- |  48.0 |    44.4 |   1000.0 |     23 |   10.2 |   4.4
+    1.81 ms | gdn     | mk.gated_delta_step                | 1x2x16x128:bfloat16;1x2x16x128:bfloat16;1x2x48x128:bfloat16;1x2x48:flo |  36.0 |    50.2 |   6208.6 |    127 |   22.0 |   2.3
+    0.87 ms | hc_m    | mk.hc8r_k2b_1em06                  | 20x16x352:float32;20x16:float32->16x320:bfloat16;16x4:bfloat16         |  48.0 |    18.2 |    451.9 |     25 |    2.3 |   7.8
+    0.78 ms | hc_a    | mk.hc8r_k2b_1em06                  | 20x16x352:float32;20x16:float32->16x320:bfloat16;16x4:bfloat16         |  48.0 |    16.3 |    451.9 |     28 |    2.3 |   7.0
+    0.71 ms | moe     | mk.router_fused                    | 2x512:bfloat16->2x10:uint32;2x10:bfloat16                              |  48.0 |    14.8 |      2.1 |      0 |    0.0 | 14833.9
+    0.71 ms | att     | mx.quantized_matmul                | 16x2560:bfloat16;640x640:uint32;640x40:bfloat16;640x40:bfloat16->16x64 |  12.0 |    59.1 |   1800.0 |     31 |   10.8 |   5.5
+    0.63 ms | moe     | mk.moe_tail_precise                | 1x2x2560:bfloat16;1x2x1:bfloat16;1x2x2560:bfloat16;1:uint32->1x2x2560: |  48.0 |    13.1 |     30.0 |      2 |    0.0 | 13104.4
+    0.61 ms | hc_a    | mx.concatenate                     | 2x10240:bfloat16;14x10240:bfloat16->16x10240:bfloat16                  |  48.0 |    12.7 |    640.0 |     51 |    4.4 |   2.9
+    0.57 ms | moe     | mx.concatenate                     | 2x2560:bfloat16;14x2560:bfloat16->16x2560:bfloat16                     |  96.0 |     5.9 |    160.0 |     28 |    0.1 |  70.4
+    0.42 ms | hc_m    | mx.concatenate                     | 2x10240:bfloat16;14x10240:bfloat16->16x10240:bfloat16                  |  48.0 |     8.7 |    640.0 |     75 |    4.4 |   2.0
+    0.41 ms | hc_w    | cc.ref2._hc_write_c                | 1x2x10240:bfloat16;1x2x2560:bfloat16;1x2x4:bfloat16->1x2x10240:bfloat1 |  48.0 |     8.5 |     90.0 |     11 |    0.0 | 1642.9
+    0.32 ms | gdn     | mx.concatenate                     | 2x2560:bfloat16;14x2560:bfloat16->16x2560:bfloat16                     |  72.0 |     4.5 |    160.0 |     36 |    0.1 |  53.7
+    0.32 ms | gdn     | cc.gated_delta.compute_g           | 48:bfloat16;1x2x48:bfloat16;48:bfloat16->1x2x48:float32                |  36.0 |     8.8 |      0.8 |      0 |    0.0 | 8791.9
+    0.31 ms | gdn     | mx.concatenate                     | 2x6144:bfloat16;14x6144:bfloat16->16x6144:bfloat16                     |  36.0 |     8.5 |    384.0 |     46 |    1.7 |   4.9
+    0.30 ms | att     | mx.concatenate                     | 1x2x16x256:bfloat16;1x2x16x256:bfloat16;1x2x16x256:bfloat16;1x2x16x256 |  12.0 |    24.8 |    384.0 |     16 |    1.7 |  14.4
+    0.26 ms | gdn     | mk.gdn_gated_norm_exact            | 12288:bfloat16;12288:bfloat16;128:bfloat16;1:float32->12288:bfloat16   |  36.0 |     7.3 |     72.3 |     10 |    0.0 | 4068.7
+    0.25 ms | att     | mk.mtplx_qwen4_m4_rope_qk_hq24_hk2 | 1x16x24x256:bfloat16;1x16x2x256:bfloat16;32:float32;1:int32->1x16x24x2 |  12.0 |    20.5 |    416.1 |     21 |    2.0 |  10.2
+    0.24 ms | hc_m    | mx.concatenate                     | 2x2560:bfloat16;14x2560:bfloat16->16x2560:bfloat16                     |  48.0 |     4.9 |    160.0 |     33 |    0.1 |  58.4
+    0.23 ms | att     | fast.rms_norm                      | 1x16x24x256:bfloat16;256:bfloat16->1x16x24x256:bfloat16                |  12.0 |    19.1 |    384.5 |     21 |    1.7 |  11.0
+    0.20 ms | moe     | mx.concatenate                     | 2x640:bfloat16;14x640:bfloat16->16x640:bfloat16                        |  48.0 |     4.1 |     40.0 |     10 |    0.0 | 4083.6
+    0.18 ms | hc_f    | mx.quantized_matmul                | 16x10240:bfloat16;320x2560:uint32;320x160:bfloat16;320x160:bfloat16->1 |   1.0 |   183.9 |   3730.0 |     21 |   17.4 |  10.6
+    0.18 ms | gdn     | mk.gdn_prework_exact               | 20480:bfloat16;30720:bfloat16;40960:bfloat16;1:bfloat16->2x2048:bfloat |  36.0 |     5.1 |    280.0 |     56 |    1.0 |   5.3
+    0.16 ms | ple     | mx.conv1d                          | 1x11x10240:bfloat16;10240x4x1:bfloat16->1x2x10240:bfloat16             |   1.0 |   163.2 |    340.0 |      2 |    1.4 | 118.7
+    0.16 ms | att     | mk.mtplx_qsa_pool_k_d128_r64_c4_s1 | 1x16x128:bfloat16;128:bfloat16;32:float32;1:int32->1x4x128:bfloat16    |  12.0 |    13.0 |      5.4 |      0 |    0.0 | 13020.8
+    0.14 ms | att     | mk.mtplx_qsa_prepare_q_h4_d128_r64 | 1x16x4x128:bfloat16;128:bfloat16;32:float32;1:int32->1x16x4x128:bfloat |  12.0 |    11.6 |     32.4 |      3 |    0.0 | 11645.7
+  65 kernel types; calls under 20 us take 8.05 ms per check
+  experts (unit per layer, 48 layers): 26.98 ms per check, bytes (upper bound: distinct experts x MSB-3 record + ranks 0-1 x LSB) 2.006 GB -> 74 GB/s; per layer median 797 us, 43.1 MB; example base 20 lsb 4 rows 2 msb_sz 2064384 lsb_sz 720896
+    read floor for those bytes, layer by layer (cold): 7.26 ms per check -> experts at 3.72x the floor
+
+== 16 rows: 6 kernel-level forwards (checks [8, 24]; rows [16]); logits == live [None, None, None, None, None, None]; skipped calls [0, 0, 0, 0, 0, 0]
+  per check (medians over forwards): GPU 102.13 ms in wrapped calls + glue; dense bytes (all but experts, pools not counted) 3.123 GB
+  piece     calls  glue-fl   call ms   glue ms   total ms      MB    GB/s(calls)
+  experts      48       0     60.06      0.00      60.06   8420.6      140
+  att         288      26     15.05      0.60      15.64    458.8       30
+  gdn         288      42     13.19      0.76      13.95   1505.8      114
+  moe         288       0      4.09      0.00       4.09    232.9       57
+  hc_m        144       0      2.50      0.00       2.50    439.6      176
+  hc_a        144       0      2.44      0.00       2.45    435.7      178
+  -             4       1      2.03      0.01       2.04      0.6        0
+  ple          10       4      0.30      0.44       0.74      5.0       17
+  hc_w         48       0      0.61      0.00       0.61     35.4       58
+  hc_f          6       2      0.14      0.04       0.18      9.4       67
+  layer         0       0      0.00      0.00       0.00      0.0        0
+  kernel types by GPU ms per check (top 40): piece | name | signature | calls per check | median us per call | KB per call | GB/s | read floor us (cold) | x floor
+    4.15 ms | gdn     | mk.leap_qmm26_d                    | 16x6144:bfloat16;80x96x32x8:uint32;80x96x32:bfloat16;80x96x32:bfloat16 |  36.0 |   115.4 |   8912.0 |     79 |   27.4 |   4.2
+    4.13 ms | gdn     | mk.leap_qmm26_d                    | 16x2560:bfloat16;512x40x32x8:uint32;512x40x32:bfloat16;512x40x32:bfloa |  36.0 |   114.8 |  23632.0 |    211 |   87.8 |   1.3
+    2.35 ms | att     | fast.scaled_dot_product_attention  | 1x2x16x256:bfloat16;1x1x397x256:bfloat16;1x1x397x256:bfloat16;1x1x16x3 |  72.0 |    32.6 |    435.2 |     14 |    2.2 |  15.0
+    2.20 ms | moe     | mk.leap_qmm26_d                    | 16x2560:bfloat16;41x40x32x8:uint32;41x40x32:bfloat16;41x40x32:bfloat16 |  48.0 |    45.9 |   1966.0 |     44 |   10.8 |   4.2
+    2.05 ms | gdn     | mk.gated_delta_step                | 1x16x16x128:bfloat16;1x16x16x128:bfloat16;1x16x48x128:bfloat16;1x16x48 |  36.0 |    56.9 |   6660.5 |    120 |   22.6 |   2.5
+    2.02 ms | -       | mk.leap_qmm16_codemma              | 16x2560:bfloat16;248320x320:uint32;248320x40:bfloat16;248320x40:bfloat |   1.0 |  2023.7 |  46640.0 |     24 |    nan |   nan P
+    1.81 ms | att     | fast.scaled_dot_product_attention  | 1x2x16x256:bfloat16;1x1x429x256:bfloat16;1x1x429x256:bfloat16;1x1x16x4 |  72.0 |    25.2 |    467.7 |     19 |    2.5 |  10.1
+    1.81 ms | gdn     | mk.leap_qmm26_d                    | 16x2560:bfloat16;3x40x32x8:uint32;3x40x32:bfloat16;3x40x32:bfloat16->1 |  36.0 |    50.2 |    218.0 |      4 |    0.4 | 134.3
+    1.33 ms | att     | mk.leap_qmm26_d                    | 16x6144:bfloat16;80x96x32x8:uint32;80x96x32:bfloat16;80x96x32:bfloat16 |  12.0 |   110.5 |   8912.0 |     83 |   27.4 |   4.0
+    1.18 ms | att     | mk.leap_qmm26_d                    | 16x2560:bfloat16;16x40x32x8:uint32;16x40x32:bfloat16;16x40x32:bfloat16 |  24.0 |    49.3 |    816.0 |     17 |    7.0 |   7.1
+    1.09 ms | hc_a    | mk.hc8r_k3c                        | 16x320:bfloat16;10240x80:uint32;10240x5:bfloat16;10240x5:bfloat16->16x |  48.0 |    22.8 |   3830.6 |    172 |   17.7 |   1.3
+    1.08 ms | hc_m    | mk.hc8r_k3c                        | 16x320:bfloat16;10240x80:uint32;10240x5:bfloat16;10240x5:bfloat16->16x |  48.0 |    22.6 |   3830.6 |    174 |   17.7 |   1.3
+    0.96 ms | att     | mk.leap_qmm26_d                    | 16x2560:bfloat16;384x40x32x8:uint32;384x40x32:bfloat16;384x40x32:bfloa |  12.0 |    80.2 |  17744.0 |    226 |   66.0 |   1.2
+    0.86 ms | hc_m    | mk.hc8r_k1c                        | 16x10240:bfloat16;16x2560:bfloat16;16x4:bfloat16;10240:bfloat16->20x16 |  48.0 |    17.9 |   4661.4 |    266 |   19.7 |   0.9
+    0.78 ms | hc_a    | mk.hc8r_k1c                        | 16x10240:bfloat16;16x10240:bfloat16;16x10240:bfloat16;10240:bfloat16-> |  48.0 |    16.3 |   4581.2 |    287 |   19.5 |   0.8
+    0.54 ms | hc_m    | mk.hc8r_k2b_1em06                  | 20x16x352:float32;20x16:float32->16x320:bfloat16;16x4:bfloat16         |  48.0 |    11.3 |    451.9 |     41 |    2.3 |   4.9
+    0.40 ms | hc_a    | mk.hc8r_k2b_1em06                  | 20x16x352:float32;20x16:float32->16x320:bfloat16;16x4:bfloat16         |  48.0 |     8.4 |    451.9 |     55 |    2.3 |   3.6
+    0.37 ms | gdn     | mk.gdn_prework_exact               | 163840:bfloat16;30720:bfloat16;40960:bfloat16;1:bfloat16->16x2048:bflo |  36.0 |    10.2 |    840.0 |     84 |    7.4 |   1.4
+    0.28 ms | moe     | mx.quantized_matmul                | 16x2560:bfloat16;512x640:uint32;512x40:bfloat16;512x40:bfloat16->16x51 |  48.0 |     5.8 |   1456.0 |    257 |   10.7 |   0.5
+    0.26 ms | hc_w    | cc.ref2._hc_write_c                | 1x16x10240:bfloat16;1x16x2560:bfloat16;1x16x4:bfloat16->1x16x10240:bfl |  48.0 |     5.5 |    720.1 |    134 |    5.5 |   1.0
+    0.25 ms | moe     | mk.leap_qmm26_d                    | 16x640:bfloat16;80x10x32x8:uint32;80x10x32:bfloat16;80x10x32:bfloat16- |  48.0 |     5.2 |   1000.0 |    198 |   10.2 |   0.5
+    0.18 ms | ple     | mx.conv1d                          | 1x25x10240:bfloat16;10240x4x1:bfloat16->1x16x10240:bfloat16            |   1.0 |   176.7 |    900.0 |      5 |    8.4 |  21.1
+    0.17 ms | att     | mx.concatenate                     | 1x2x16x256:bfloat16;1x2x16x256:bfloat16;1x2x16x256:bfloat16;1x2x16x256 |  12.0 |    14.5 |    384.0 |     27 |    1.7 |   8.4
+    0.15 ms | gdn     | mk.gdn_gated_norm_exact            | 98304:bfloat16;98304:bfloat16;128:bfloat16;1:float32->98304:bfloat16   |  36.0 |     4.1 |    576.3 |    143 |    3.7 |   1.1
+    0.11 ms | att     | mx.quantized_matmul                | 16x2560:bfloat16;640x640:uint32;640x40:bfloat16;640x40:bfloat16->16x64 |  12.0 |     9.2 |   1800.0 |    201 |   10.8 |   0.9
+    0.08 ms | gdn     | cc.gated_delta.compute_g           | 48:bfloat16;1x16x48:bfloat16;48:bfloat16->1x16x48:float32              |  36.0 |     2.2 |      4.7 |      2 |    0.0 | 2187.0
+    0.08 ms | moe     | mk.moe_tail_precise                | 1x16x2560:bfloat16;1x16x1:bfloat16;1x16x2560:bfloat16;1:uint32->1x16x2 |  48.0 |     1.6 |    240.0 |    153 |    0.6 |   2.7
+    0.07 ms | hc_f    | mx.quantized_matmul                | 16x10240:bfloat16;320x2560:uint32;320x160:bfloat16;320x160:bfloat16->1 |   1.0 |    69.7 |   3730.0 |     55 |   17.4 |   4.0
+    0.05 ms | att     | mk.mtplx_qwen4_m4_rope_qk_hq24_hk2 | 1x16x24x256:bfloat16;1x16x2x256:bfloat16;32:float32;1:int32->1x16x24x2 |  12.0 |     4.4 |    416.1 |     98 |    2.0 |   2.2
+    0.04 ms | att     | mk.mtplx_qsa_pool_k_d128_r64_c4_s1 | 1x16x128:bfloat16;128:bfloat16;32:float32;1:int32->1x4x128:bfloat16    |  12.0 |     3.5 |      5.4 |      2 |    0.0 | 3520.2
+    0.04 ms | hc_f    | mx.quantized_matmul                | 16x320:bfloat16;10240x80:uint32;10240x5:bfloat16;10240x5:bfloat16->16x |   1.0 |    42.1 |   3730.0 |     91 |   17.4 |   2.4
+    0.04 ms | att     | fast.rms_norm                      | 1x16x2x256:bfloat16;256:bfloat16->1x16x2x256:bfloat16                  |  12.0 |     3.4 |     32.5 |     10 |    0.0 | 3437.5
+    0.02 ms | ple     | cc.attention_math._bf16_attention_ | 1x16x1x2560:bfloat16;1x16x4x1:bfloat16->1x16x4x2560:bfloat16           |   1.0 |    17.5 |    400.1 |     23 |    1.9 |   9.4
+    0.02 ms | ple     | mx.abs                             | 1x16x4x1:bfloat16->1x16x4x1:bfloat16                                   |   1.0 |    16.4 |      0.2 |      0 |    0.0 | 16354.3
+    0.02 ms | ple     | fast.rms_norm                      | 1x16x4x2560:bfloat16->1x16x4x2560:bfloat16                             |   3.0 |     5.2 |    640.0 |    126 |    4.4 |   1.2
+    0.01 ms | ple     | cc.activations.silu                | 1x16x10240:bfloat16->1x16x10240:bfloat16                               |   1.0 |    13.3 |    640.0 |     49 |    4.4 |   3.0
+    0.01 ms | ple     | mx.sqrt                            | 1x16x4x1:bfloat16->1x16x4x1:bfloat16                                   |   1.0 |    12.5 |      0.2 |      0 |    0.0 | 12530.9
+    0.01 ms | att     | fast.rms_norm                      | 1x16x24x256:bfloat16;256:bfloat16->1x16x24x256:bfloat16                |  12.0 |     0.6 |    384.5 |    687 |    1.7 |   0.3
+    0.01 ms | att     | cc.attention_math._bf16_attention_ | 1x16x6144:bfloat16;1x16x6144:bfloat16->1x16x6144:bfloat16              |  12.0 |     0.5 |    576.0 |   1089 |    3.7 |   0.1
+    0.01 ms | hc_f    | mx.sigmoid                         | 1x16x10240:bfloat16->1x16x10240:bfloat16                               |   1.0 |     5.2 |    640.0 |    126 |    4.4 |   1.2
+  52 kernel types; calls under 20 us take 4.58 ms per check
+  experts (unit per layer, 48 layers): 60.38 ms per check, bytes (upper bound: distinct experts x MSB-3 record + ranks 0-1 x LSB) 8.421 GB -> 139 GB/s; per layer median 1199 us, 171.0 MB; example base 103 lsb 26 rows 16 msb_sz 2064384 lsb_sz 720896
+    read floor for those bytes, layer by layer (cold): 30.52 ms per check -> experts at 1.98x the floor
+
+== t_sync: dependent chains of a kernel with almost no bytes (threads x threadgroup: us per kernel)
+  32 x 32: 1.24; 256 x 256: 1.30; 1024 x 1024: 1.40; 16384 x 1024: 1.55; 20480 x 1024: 1.56; 20480 x 256: 1.86; 131072 x 256: 4.13; 655360 x 256: 48.51
+
+== 2 rows: dependent-chain replay of the engine's own calls across layers (cold weights; per call = chain - null links): piece | name | signature | n | KB | us per call | GB/s
+  gdn     | mk.leap_qmm26_d                    | 16x6144:bfloat16;80x96x32x8:uint32;80x96x32:bfloat16;80x96x32:bf |  48 |   8912.0 |   112.2 |     81
+  gdn     | mk.leap_qmm26_d                    | 16x2560:bfloat16;512x40x32x8:uint32;512x40x32:bfloat16;512x40x32 |  36 |  23632.0 |   113.4 |    213
+  att     | fast.scaled_dot_product_attention  | 1x2x16x256:bfloat16;1x1x397x256:bfloat16;1x1x397x256:bfloat16;1x | 144 |    435.2 |    21.9 |     20
+  hc_a    | mk.hc8r_k3c                        | 16x320:bfloat16;10240x80:uint32;10240x5:bfloat16;10240x5:bfloat1 |  96 |   3830.6 |    27.4 |    143
+  moe     | mk.leap_qmm26_d                    | 16x2560:bfloat16;41x40x32x8:uint32;41x40x32:bfloat16;41x40x32:bf |  48 |   1966.0 |    47.6 |     42
+  gdn     | mk.leap_qmm26_d                    | 16x2560:bfloat16;3x40x32x8:uint32;3x40x32:bfloat16;3x40x32:bfloa |  36 |    218.0 |    44.9 |      5
+  hc_m    | mk.hc8r_k1c                        | 16x10240:bfloat16;16x2560:bfloat16;16x4:bfloat16;10240:bfloat16- |  48 |   4661.4 |    25.7 |    186
+  att     | mk.leap_qmm26_d                    | 16x2560:bfloat16;16x40x32x8:uint32;16x40x32:bfloat16;16x40x32:bf |  24 |    816.0 |    47.6 |     18
+  hc_a    | mk.hc8r_k1c                        | 16x10240:bfloat16;16x10240:bfloat16;16x10240:bfloat16;10240:bflo |  48 |   4581.2 |    22.3 |    210
+  hc_a    | mk.hc8r_k2b_1em06                  | 20x16x352:float32;20x16:float32->16x320:bfloat16;16x4:bfloat16   |  96 |    451.9 |    10.5 |     44
+  gdn     | mk.gated_delta_step                | 1x2x16x128:bfloat16;1x2x16x128:bfloat16;1x2x48x128:bfloat16;1x2x |  36 |   6208.6 |    25.4 |    250
+  att     | mk.leap_qmm26_d                    | 16x2560:bfloat16;384x40x32x8:uint32;384x40x32:bfloat16;384x40x32 |  12 |  17744.0 |    74.7 |    243
+  moe     | mx.quantized_matmul                | 16x2560:bfloat16;512x640:uint32;512x40:bfloat16;512x40:bfloat16- |  48 |   1456.0 |    18.6 |     80
+  moe     | mk.leap_qmm26_d                    | 16x640:bfloat16;80x10x32x8:uint32;80x10x32:bfloat16;80x10x32:bfl |  48 |   1000.0 |    13.7 |     74
+  -       | mx.concatenate                     | 2x2560:bfloat16;14x2560:bfloat16->16x2560:bfloat16               | 219 |    160.0 |     2.4 |     67
+  att     | mx.quantized_matmul                | 16x2560:bfloat16;640x640:uint32;640x40:bfloat16;640x40:bfloat16- |  12 |   1800.0 |    21.9 |     84
+  moe     | mk.router_fused                    | 2x512:bfloat16->2x10:uint32;2x10:bfloat16                        |  48 |      2.1 |     4.1 |      1
+  hc_f    | mx.concatenate                     | 2x10240:bfloat16;14x10240:bfloat16->16x10240:bfloat16            |  97 |    640.0 |     1.8 |    357
+  att     | mk.mtplx_qwen4_m4_rope_qk_hq24_hk2 | 1x16x24x256:bfloat16;1x16x2x256:bfloat16;32:float32;1:int32->1x1 |  12 |    416.1 |    10.6 |     40
+  gdn     | mk.gdn_prework_exact               | 20480:bfloat16;30720:bfloat16;40960:bfloat16;1:bfloat16->2x2048: |  36 |    280.0 |     3.4 |     85
+  gdn     | cc.gated_delta.compute_g           | 48:bfloat16;1x2x48:bfloat16;48:bfloat16->1x2x48:float32          |  36 |      0.8 |     3.3 |      0
+  hc_m    | mx.concatenate                     | 2x4:bfloat16;14x4:bfloat16->16x4:bfloat16                        |  48 |      0.2 |     2.0 |      0
+  hc_w    | cc.ref2._hc_write_c                | 1x2x10240:bfloat16;1x2x2560:bfloat16;1x2x4:bfloat16->1x2x10240:b |  48 |     90.0 |     1.9 |     49
+  moe     | cc.activations.swiglu              | 1x2x640:bfloat16;1x2x640:bfloat16->1x2x640:bfloat16              |  48 |      7.5 |     1.7 |      4
+  gdn     | mx.concatenate                     | 2x6144:bfloat16;14x6144:bfloat16->16x6144:bfloat16               |  36 |    384.0 |     2.3 |    170
+  att     | mk.mtplx_qsa_prepare_q_h4_d128_r64 | 1x16x4x128:bfloat16;128:bfloat16;32:float32;1:int32->1x16x4x128: |  12 |     32.4 |     6.7 |      5
+  moe     | mk.moe_tail_precise                | 1x2x2560:bfloat16;1x2x1:bfloat16;1x2x2560:bfloat16;1:uint32->1x2 |  48 |     30.0 |     1.7 |     18
+  att     | mk.mtplx_qsa_pool_k_d128_r64_c4_s1 | 1x16x128:bfloat16;128:bfloat16;32:float32;1:int32->1x4x128:bfloa |  12 |      5.4 |     6.2 |      1
+  gdn     | mx.sigmoid                         | 1x2x48:bfloat16->1x2x48:bfloat16                                 |  36 |      0.4 |     1.4 |      0
+  att     | fast.rms_norm                      | 1x16x24x256:bfloat16;256:bfloat16->1x16x24x256:bfloat16          |  12 |    384.5 |     4.1 |     96
+  moe     | mx.concatenate                     | 2x640:bfloat16;14x640:bfloat16->16x640:bfloat16                  |  48 |     40.0 |     1.0 |     43
+  ple     | fast.rms_norm                      | 1x2x4x2560:bfloat16->1x2x4x2560:bfloat16                         |   3 |     80.0 |     9.3 |      9
+  att     | mx.concatenate                     | 1x2x16x256:bfloat16;1x2x16x256:bfloat16;1x2x16x256:bfloat16;1x2x |  12 |    384.0 |     2.2 |    181
+  att     | fast.rms_norm                      | 1x16x2x256:bfloat16;256:bfloat16->1x16x2x256:bfloat16            |  12 |     32.5 |     1.8 |     19
+  att     | cc.attention_math._bf16_attention_ | 1x16x6144:bfloat16;1x16x6144:bfloat16->1x16x6144:bfloat16        |  12 |    576.0 |     1.6 |    362
+  att     | mx.repeat                          | 1x1x2560:bfloat16->1x14x2560:bfloat16                            |  12 |     75.0 |     0.4 |    178
+  att     | mx.concatenate                     | 1x2x2560:bfloat16;1x14x2560:bfloat16->1x16x2560:bfloat16         |  12 |    160.0 |     0.1 |   2484
+  gdn     | mk.gdn_gated_norm_exact            | 12288:bfloat16;12288:bfloat16;128:bfloat16;1:float32->12288:bflo |  36 |     72.3 |    -0.3 |  73988
+  fit t = t_sync + bytes / B, 4-bit / weight GEMV-like (quantized_matmul, qmm*): 9 kernel types -> t_sync 32.8 us, B 295 GB/s
+  fit t = t_sync + bytes / B, HC kernels (names with hc): 5 kernel types -> t_sync 5.3 us, B 226 GB/s
+  fit t = t_sync + bytes / B, all calls >= 256 KB: 21 kernel types -> t_sync 11.7 us, B 227 GB/s
+
+== 16 rows: dependent-chain replay of the engine's own calls across layers (cold weights; per call = chain - null links): piece | name | signature | n | KB | us per call | GB/s
+  gdn     | mk.leap_qmm26_d                    | 16x6144:bfloat16;80x96x32x8:uint32;80x96x32:bfloat16;80x96x32:bf |  48 |   8912.0 |   111.6 |     82
+  gdn     | mk.leap_qmm26_d                    | 16x2560:bfloat16;512x40x32x8:uint32;512x40x32:bfloat16;512x40x32 |  36 |  23632.0 |   115.4 |    210
+  att     | fast.scaled_dot_product_attention  | 1x2x16x256:bfloat16;1x1x397x256:bfloat16;1x1x397x256:bfloat16;1x | 144 |    435.2 |    21.8 |     20
+  hc_a    | mk.hc8r_k3c                        | 16x320:bfloat16;10240x80:uint32;10240x5:bfloat16;10240x5:bfloat1 |  96 |   3830.6 |    27.6 |    142
+  moe     | mk.leap_qmm26_d                    | 16x2560:bfloat16;41x40x32x8:uint32;41x40x32:bfloat16;41x40x32:bf |  48 |   1966.0 |    47.1 |     43
+  gdn     | mk.gated_delta_step                | 1x16x16x128:bfloat16;1x16x16x128:bfloat16;1x16x48x128:bfloat16;1 |  36 |   6660.5 |    57.5 |    119
+  gdn     | mk.leap_qmm26_d                    | 16x2560:bfloat16;3x40x32x8:uint32;3x40x32:bfloat16;3x40x32:bfloa |  36 |    218.0 |    45.5 |      5
+  att     | mk.leap_qmm26_d                    | 16x2560:bfloat16;16x40x32x8:uint32;16x40x32:bfloat16;16x40x32:bf |  24 |    816.0 |    49.3 |     17
+  hc_m    | mk.hc8r_k1c                        | 16x10240:bfloat16;16x2560:bfloat16;16x4:bfloat16;10240:bfloat16- |  48 |   4661.4 |    24.5 |    195
+  hc_a    | mk.hc8r_k1c                        | 16x10240:bfloat16;16x10240:bfloat16;16x10240:bfloat16;10240:bflo |  48 |   4581.2 |    22.1 |    213
+  hc_a    | mk.hc8r_k2b_1em06                  | 20x16x352:float32;20x16:float32->16x320:bfloat16;16x4:bfloat16   |  96 |    451.9 |     9.9 |     47
+  moe     | mx.quantized_matmul                | 16x2560:bfloat16;512x640:uint32;512x40:bfloat16;512x40:bfloat16- |  48 |   1456.0 |    18.7 |     80
+  att     | mk.leap_qmm26_d                    | 16x2560:bfloat16;384x40x32x8:uint32;384x40x32:bfloat16;384x40x32 |  12 |  17744.0 |    73.6 |    247
+  moe     | mk.leap_qmm26_d                    | 16x640:bfloat16;80x10x32x8:uint32;80x10x32:bfloat16;80x10x32:bfl |  48 |   1000.0 |    13.6 |     76
+  hc_w    | cc.ref2._hc_write_c                | 1x16x10240:bfloat16;1x16x2560:bfloat16;1x16x4:bfloat16->1x16x102 |  48 |    720.1 |     5.6 |    131
+  att     | mx.quantized_matmul                | 16x2560:bfloat16;640x640:uint32;640x40:bfloat16;640x40:bfloat16- |  12 |   1800.0 |    21.7 |     85
+  gdn     | mk.gdn_prework_exact               | 163840:bfloat16;30720:bfloat16;40960:bfloat16;1:bfloat16->16x204 |  36 |    840.0 |     5.4 |    159
+  gdn     | mk.gdn_gated_norm_exact            | 98304:bfloat16;98304:bfloat16;128:bfloat16;1:float32->98304:bflo |  36 |    576.3 |     5.3 |    111
+  moe     | mk.router_fused                    | 16x512:bfloat16->16x10:uint32;16x10:bfloat16                     |  48 |     16.9 |     3.7 |      5
+  att     | mk.mtplx_qwen4_m4_rope_qk_hq24_hk2 | 1x16x24x256:bfloat16;1x16x2x256:bfloat16;32:float32;1:int32->1x1 |  12 |    416.1 |    10.8 |     40
+  moe     | mk.moe_tail_precise                | 1x16x2560:bfloat16;1x16x1:bfloat16;1x16x2560:bfloat16;1:uint32-> |  48 |    240.0 |     2.6 |     95
+  att     | mk.mtplx_qsa_prepare_q_h4_d128_r64 | 1x16x4x128:bfloat16;128:bfloat16;32:float32;1:int32->1x16x4x128: |  12 |     32.4 |     7.4 |      4
+  att     | mk.mtplx_qsa_pool_k_d128_r64_c4_s1 | 1x16x128:bfloat16;128:bfloat16;32:float32;1:int32->1x4x128:bfloa |  12 |      5.4 |     7.2 |      1
+  moe     | cc.activations.swiglu              | 1x16x640:bfloat16;1x16x640:bfloat16->1x16x640:bfloat16           |  48 |     60.0 |     1.7 |     36
+  gdn     | cc.gated_delta.compute_g           | 48:bfloat16;1x16x48:bfloat16;48:bfloat16->1x16x48:float32        |  36 |      4.7 |     2.1 |      2
+  att     | fast.rms_norm                      | 1x16x24x256:bfloat16;256:bfloat16->1x16x24x256:bfloat16          |  12 |    384.5 |     4.0 |     98
+  gdn     | mx.sigmoid                         | 1x16x48:bfloat16->1x16x48:bfloat16                               |  36 |      3.0 |     1.2 |      3
+  att     | mx.concatenate                     | 1x2x16x256:bfloat16;1x2x16x256:bfloat16;1x2x16x256:bfloat16;1x2x |  12 |    384.0 |     2.3 |    171
+  hc_f    | fast.rms_norm                      | 1x16x4x2560:bfloat16->1x16x4x2560:bfloat16                       |   4 |    640.0 |     5.3 |    125
+  att     | fast.rms_norm                      | 1x16x2x256:bfloat16;256:bfloat16->1x16x2x256:bfloat16            |  12 |     32.5 |     1.1 |     30
+  att     | cc.attention_math._bf16_attention_ | 1x16x6144:bfloat16;1x16x6144:bfloat16->1x16x6144:bfloat16        |  12 |    576.0 |     0.6 |   1030
+  fit t = t_sync + bytes / B, 4-bit / weight GEMV-like (quantized_matmul, qmm*): 9 kernel types -> t_sync 32.9 us, B 294 GB/s
+  fit t = t_sync + bytes / B, HC kernels (names with hc): 5 kernel types -> t_sync 5.9 us, B 243 GB/s
+  fit t = t_sync + bytes / B, all calls >= 256 KB: 22 kernel types -> t_sync 12.3 us, B 220 GB/s
+
+== 2 rows: primitives per piece from the graph (mx.export_to_dot, one GDN and one attention layer; views = 14 no-kernel labels)
+  L 1 ple     :  28 kernel primitives (54 with views): Multiply 5, Concatenate 3, RMSNorm 3, View bfloat16 2, Full 2, Matmul 2, Quantize 1, Sum 1, Divide 1, Abs 1, Maximum 1, Sqrt 1, Sign 1, CompiledBroadcastAsTypeAsTypeSigmoidBroadcastMultiply 1, Convolu
+  L 1 hc_a    :   6 kernel primitives (16 with views): CustomKernel 3, Add 1, Full 1, Concatenate 1
+  L 1 gdn     :  14 kernel primitives (47 with views): CustomKernel 6, Full 3, Concatenate 3, CompiledAsTypeExpNegativeBroadcastBroadcastAddBroadcastBroadcastLogAddExpAsTypeBroadcastBroadcastMultiplyExp 1, Sigmoid 1
+  L 1 hc_m    :   9 kernel primitives (27 with views): Full 3, Concatenate 3, CustomKernel 3
+  L 1 moe_pre :  11 kernel primitives (29 with views): Full 3, Concatenate 3, CustomKernel 3, QuantizedMatmul 1, CompiledSigmoidBroadcastBroadcastMultiplyBroadcastBroadcastMultiply 1
+  L 1 experts :  22 kernel primitives (67 with views): BitwiseOr 3, AsType 3, Select 3, CustomKernel 3, LogicalNot 2, BitwiseAnd 2, PostIds 2, Arange 1, Less 1, Equal 1, Or 1
+  L 1 moe     :   1 kernel primitives (2 with views): CustomKernel 1
+  L 1 hc_w    :   1 kernel primitives (5 with views): CompiledBroadcastBroadcastMultiplyAdd 1
+  L 1 layer   :   0 kernel primitives (0 with views): 
+  L 3 hc_a    :   5 kernel primitives (15 with views): CustomKernel 3, Full 1, Concatenate 1
+  L 3 att     :  82 kernel primitives (281 with views): Matmul 24, Multiply 12, Select 12, Softmax 12, CustomKernel 6, SliceUpdate 5, Arange 2, Concatenate 2, RMSNorm 2, Add 1, LessEqual 1, QuantizedMatmul 1, AsType 1, CompiledAsTypeAsTypeSigmoidMultiply 1
+  L 3 hc_m    :   9 kernel primitives (27 with views): Full 3, Concatenate 3, CustomKernel 3
+  L 3 moe_pre :  11 kernel primitives (29 with views): Full 3, Concatenate 3, CustomKernel 3, QuantizedMatmul 1, CompiledSigmoidBroadcastBroadcastMultiplyBroadcastBroadcastMultiply 1
+  L 3 experts :  22 kernel primitives (67 with views): BitwiseOr 3, AsType 3, Select 3, CustomKernel 3, LogicalNot 2, BitwiseAnd 2, PostIds 2, Arange 1, Less 1, Equal 1, Or 1
+  L 3 moe     :   1 kernel primitives (2 with views): CustomKernel 1
+  L 3 hc_w    :   1 kernel primitives (5 with views): CompiledBroadcastBroadcastMultiplyAdd 1
+  L 3 layer   :   0 kernel primitives (0 with views): 
+
+== 16 rows: primitives per piece from the graph (mx.export_to_dot, one GDN and one attention layer; views = 14 no-kernel labels)
+  L 1 ple     :  24 kernel primitives (46 with views): Multiply 5, RMSNorm 3, View bfloat16 2, Matmul 2, Quantize 1, Sum 1, Divide 1, Abs 1, Maximum 1, Sqrt 1, Sign 1, CompiledBroadcastAsTypeAsTypeSigmoidBroadcastMultiply 1, Concatenate 1, Convolution 1, 
+  L 1 hc_a    :   4 kernel primitives (10 with views): CustomKernel 3, Add 1
+  L 1 gdn     :   8 kernel primitives (35 with views): CustomKernel 6, CompiledAsTypeExpNegativeBroadcastBroadcastAddBroadcastBroadcastLogAddExpAsTypeBroadcastBroadcastMultiplyExp 1, Sigmoid 1
+  L 1 hc_m    :   3 kernel primitives (15 with views): CustomKernel 3
+  L 1 moe_pre :   5 kernel primitives (17 with views): CustomKernel 3, QuantizedMatmul 1, CompiledSigmoidBroadcastBroadcastMultiplyBroadcastBroadcastMultiply 1
+  L 1 experts :  22 kernel primitives (67 with views): BitwiseOr 3, AsType 3, Select 3, CustomKernel 3, LogicalNot 2, BitwiseAnd 2, PostIds 2, Arange 1, Less 1, Equal 1, Or 1
+  L 1 moe     :   1 kernel primitives (2 with views): CustomKernel 1
+  L 1 hc_w    :   1 kernel primitives (5 with views): CompiledBroadcastBroadcastMultiplyAdd 1
+  L 1 layer   :   0 kernel primitives (0 with views): 
+  L 3 hc_a    :   3 kernel primitives (9 with views): CustomKernel 3
+  L 3 att     :  81 kernel primitives (275 with views): Matmul 24, Multiply 12, Select 12, Softmax 12, CustomKernel 6, SliceUpdate 5, Arange 2, RMSNorm 2, Add 1, LessEqual 1, QuantizedMatmul 1, AsType 1, Concatenate 1, CompiledAsTypeAsTypeSigmoidMultiply 1
+  L 3 hc_m    :   3 kernel primitives (15 with views): CustomKernel 3
+  L 3 moe_pre :   5 kernel primitives (17 with views): CustomKernel 3, QuantizedMatmul 1, CompiledSigmoidBroadcastBroadcastMultiplyBroadcastBroadcastMultiply 1
+  L 3 experts :  22 kernel primitives (67 with views): BitwiseOr 3, AsType 3, Select 3, CustomKernel 3, LogicalNot 2, BitwiseAnd 2, PostIds 2, Arange 1, Less 1, Equal 1, Or 1
+  L 3 moe     :   1 kernel primitives (2 with views): CustomKernel 1
+  L 3 hc_w    :   1 kernel primitives (5 with views): CompiledBroadcastBroadcastMultiplyAdd 1
+  L 3 layer   :   0 kernel primitives (0 with views): 

@@ -1,0 +1,33 @@
+# diff -rq pkg_110k pkg_110l (excluding .git)
+Files pkg_110k/LIMITS.md and pkg_110l/LIMITS.md differ
+Files pkg_110k/MANIFEST.json and pkg_110l/MANIFEST.json differ
+
+# LIMITS.md
+--- pkg_110k/LIMITS.md	2026-11-11 07:09:52
++++ pkg_110l/LIMITS.md	2026-11-11 12:14:09
+@@ -19,7 +19,10 @@
+   (with PF-D) reaches 47.5 GB on 10K tokens and 48.6 GB on 30K. At 32 GB, `chat` reaches 34.0 GB on 10K tokens and
+   35.5 GB on 30K.
+ - At 32 GB, `exact` was measured on chat (IFEval) only, and `lossy` has no code or math rows of its own.
+-- At 24 GB, prompts up to about 500 tokens stay under 24 GB; longer ones take more: about 25.0 GB at 3K tokens, 25.7 GB at 7K, 25.8 GB at 10K and 28.2 GB at 30K.
++- At 24 GB, prompts up to about 500 tokens stayed under 24 GB in our runs, with little room: this is a measurement, not a
++  bound (a 448-token prompt peaked at 23.954 GB, a 520-token one at 24.01 GB). Longer ones take more: about 25.0 GB at
++  3K tokens, measured on a simulated 36 GB Mac (memory locked away to leave the engine 25-27 GB), and on the 64 GB Mac
++  with the default prefill 25.7 GB at 7K, 25.8 GB at 10K and 28.2 GB at 30K.
+ - Longer prompts take more. At 24 GB, 32.0 GB at 64K tokens and 39.2 GB at 128K with the default prefill, and 37.9 and
+   51.6 GB with `chat.py`'s layer-major prefill, which is 2.4x faster at 64K and about 2x at 128K. At 32 GB, `chat.py`
+   reaches 46.3 GB at 64K; at 45 GB, 52.6 GB.
+
+# MANIFEST.json (key-sorted)
+26c26
+<    "sha256": "501620b694d06756b7bd7da9f1fed65118ea5800201d482c84f8b2ce35cd8cfc",
+---
+>    "sha256": "d777272cf53240fab742f7c7e365feb266fb7451df58bb3f5cace6899fac5350",
+83c83
+<    "source": "Leap 4ea3ff6 scripts/convert_records_p11.py"
+---
+>    "source": "Leap a31794a scripts/convert_records_p11.py"
+1018c1018
+<  "leap_commit": "4ea3ff6cf37d67ebfb845a91d736b41d1fd61c2b",
+---
+>  "leap_commit": "a31794a209531f3b653c38dce91787d7cd7ef4f0",

@@ -1,0 +1,75 @@
+10:17:26 armed (pid 76101): clean-clone run (8 configs if NO-SWAP >= 51, else 32 + 24 GB) + serve.py --mem 24 test; end 14:45
+10:17:36 wait: clear once: one more poll
+10:18:16 share lock (MEM 43) rc 0: shared run reserved until 10:58 (about 400% CPU, 100% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done. Free for it now: ab
+10:18:37 GO: NO-SWAP 51 GB, swap 6683 MB; configs: exact-45 exact-32 lossy-45 lossy-32 chat-45 chat-32 lossy-24 chat-24; text prompt on chat-45
+11-10 10:18:37 run exact-45: keys ifeval/1220,ifeval/3280, cap 256
+    === ifeval/1220 [gate+t, chat, drafter mtp] 153 tokens
+    === ifeval/3280 [gate+t, chat, drafter mtp] 256 tokens
+    whole decode 31.4 tok/s | whole request 22.0 tok/s | first token 2.79 s (2.61-2.97) | lifetime peak 41.52 GB | 2 prompt(s), 409 tokens, process wall 37 s (load + warm-up included)
+11-10 10:19:15   tokens vs exact-45_ar.json: 2/2 keys prefix-equal (rc 0)
+11-10 10:19:15   closure: modules 834, outside the clone + stdlib: 0; files opened 3269, outside the allowed roots: 0 (rc 0)
+11-10 10:19:15 run exact-32: keys ifeval/1220,ifeval/3280, cap 256
+    === ifeval/1220 [gate+t, chat, drafter mtp] 153 tokens
+    === ifeval/3280 [gate+t, chat, drafter mtp] 256 tokens
+    whole decode 30.4 tok/s | whole request 22.2 tok/s | first token 2.50 s (2.41-2.60) | lifetime peak 30.37 GB | 2 prompt(s), 409 tokens, process wall 31 s (load + warm-up included)
+11-10 10:19:46   tokens vs exact-32_ar.json: 2/2 keys prefix-equal (rc 0)
+11-10 10:19:47   closure: modules 834, outside the clone + stdlib: 0; files opened 3268, outside the allowed roots: 0 (rc 0)
+11-10 10:19:47 run lossy-45: keys ifeval/1220,ifeval/3280, cap 256
+    === ifeval/1220 [gate+t, chat, drafter mtp] 154 tokens
+    === ifeval/3280 [gate+t, chat, drafter mtp] 139 tokens
+    whole decode 35.7 tok/s | whole request 21.2 tok/s | first token 2.79 s (2.65-2.93) | lifetime peak 42.21 GB | 2 prompt(s), 293 tokens, process wall 31 s (load + warm-up included)
+11-10 10:20:18   tokens vs lossy-45_rli256.json: 2/2 keys prefix-equal with the reference's history (rc 0)
+11-10 10:20:18   closure: modules 848, outside the clone + stdlib: 0; files opened 3303, outside the allowed roots: 0 (rc 0)
+11-10 10:20:19 run lossy-32: keys ifeval/1220,ifeval/3280, cap 256
+    === ifeval/1220 [gate+t, chat, drafter mtp] 154 tokens
+    === ifeval/3280 [gate+t, chat, drafter mtp] 139 tokens
+    whole decode 32.7 tok/s | whole request 20.5 tok/s | first token 2.66 s (2.52-2.80) | lifetime peak 31.06 GB | 2 prompt(s), 293 tokens, process wall 31 s (load + warm-up included)
+11-10 10:20:50   tokens vs lossy-32_rli160.json: 2/2 keys prefix-equal with the reference's history (rc 0)
+11-10 10:20:50   closure: modules 848, outside the clone + stdlib: 0; files opened 3302, outside the allowed roots: 0 (rc 0)
+11-10 10:20:50 run chat-45: keys ifeval/1220,ifeval/3280, cap 256
+    === ifeval/1220 [gate+t, chat, drafter mtp] 192 tokens
+    === ifeval/3280 [gate+t, chat, drafter mtp] 235 tokens
+    whole decode 46.6 tok/s | whole request 30.2 tok/s | first token 2.49 s (2.47-2.50) | lifetime peak 43.71 GB | 2 prompt(s), 427 tokens, process wall 31 s (load + warm-up included)
+11-10 10:21:22   tokens vs chat-45_pdz4a.json: 2/2 keys prefix-equal with the reference's history (rc 0)
+11-10 10:21:23   closure: modules 849, outside the clone + stdlib: 0; files opened 3353, outside the allowed roots: 0 (rc 0)
+11-10 10:21:23 run chat-32: keys ifeval/1220,ifeval/3280, cap 256
+    === ifeval/1220 [gate+t, chat, drafter mtp] 184 tokens
+    === ifeval/3280 [gate+t, chat, drafter mtp] 256 tokens
+    whole decode 46.2 tok/s | whole request 29.6 tok/s | first token 2.66 s (2.55-2.78) | lifetime peak 31.08 GB | 2 prompt(s), 440 tokens, process wall 31 s (load + warm-up included)
+11-10 10:21:55   tokens vs chat-32_zs32.json: 2/2 keys prefix-equal with the reference's history (rc 0)
+11-10 10:21:55   closure: modules 848, outside the clone + stdlib: 0; files opened 3302, outside the allowed roots: 0 (rc 0)
+11-10 10:21:55 run lossy-24: keys humaneval/HumanEval/68,humaneval/HumanEval/16, cap 256
+    === humaneval/HumanEval/68 [gate+t, code, drafter dfl] 256 tokens
+    === humaneval/HumanEval/16 [gate+t, code, drafter dfl] 81 tokens
+    whole decode 133.0 tok/s | whole request 31.6 tok/s | first token 4.06 s (3.45-4.67) | lifetime peak 23.68 GB | 2 prompt(s), 337 tokens, process wall 24 s (load + warm-up included)
+11-10 10:22:19   tokens vs lossy-24_w13eh.json: 2/2 keys prefix-equal with the reference's history (rc 0)
+11-10 10:22:19   closure: modules 848, outside the clone + stdlib: 0; files opened 3302, outside the allowed roots: 0 (rc 0)
+11-10 10:22:19 run chat-24: keys humaneval/HumanEval/68,humaneval/HumanEval/16, cap 256
+    === humaneval/HumanEval/68 [gate+t, code, drafter dfl] 256 tokens
+    === humaneval/HumanEval/16 [gate+t, code, drafter dfl] 81 tokens
+    whole decode 133.5 tok/s | whole request 31.6 tok/s | first token 4.07 s (3.46-4.69) | lifetime peak 23.69 GB | 2 prompt(s), 337 tokens, process wall 25 s (load + warm-up included)
+11-10 10:22:45   tokens vs chat-24_w13eh.json: 2/2 keys prefix-equal with the reference's history (rc 0)
+11-10 10:22:45   closure: modules 848, outside the clone + stdlib: 0; files opened 3302, outside the allowed roots: 0 (rc 0)
+11-10 10:22:45 run chat-45 with a text prompt
+    === multi/cli_1110_102245 [gate+t, chat, drafter mtp] 87 tokens
+    A refrigerator works by circulating a refrigerant that absorbs heat from the air inside the unit, effectively removing thermal energy from the food and interior. This heated refrigerant is then pumped to coils on the back or bottom of the appliance, where it releases the absorbed heat into the surrounding room air. As the refrigerant cools and returns to the interior to repeat the cycle, the temperature inside the fridge remains low, preserving the food.
+    
+    whole decode 43.0 tok/s | whole request 22.6 tok/s | first token 1.83 s (1.83-1.83) | lifetime peak 43.69 GB | 1 prompt(s), 87 tokens, process wall 20 s (load + warm-up included)
+    tokens: /Users/kamen/Leap/release/cleanclone/w24/out/text/cli_1110_102245_tokens.json; log: /Users/kamen/Leap/release/cleanclone/w24/out/text/cli_1110_102245.log; module manifest: /Users/kamen/Leap/release/cleanclone/w24/out/text/cli_1110_102245_modules.json
+11-10 10:23:06 CLEAN-CLONE PASS
+10:23:08 clean-clone run ended (271 s): 11-10 10:23:06 CLEAN-CLONE PASS
+ready after 15 s
+openai curl rc 0
+anthropic curl rc 0
+the server ignored SIGINT for 30 s: TERM
+/private/tmp/claude-501/-Users-kamen-OjoX/f2971937-6c95-4e86-a049-05beff6a8e32/scratchpad/servetest/serve_test.sh: line 24:  9395 Terminated: 15          .venv/bin/python serve.py --mem 24 --port $PORT > $O/serve.log 2>&1
+server stopped (wall 57 s)
+OpenAI stream: PASS: 20 chunks, [DONE] True, finish_reason ['stop'], usage [{'prompt_tokens': 30, 'completion_tokens': 89, 'total_tokens': 119}], text 314 chars: '```python\ndef is_palindrome(s: str) -> bool:\n    """Check if a string is a palin'
+Anthropic stream: PASS: events 21 (order ok), stop_reason end_turn, usage {'output_tokens': 62}, text 337 chars: "Sunlight contains all colors of the visible spectrum, and when it enters Earth's"
+server: done: 30 prompt tokens -> 89 tokens, whole decode 31.9 tok/s, first token 2.16 s, peak 23.677965944 GB
+server: done: 23 prompt tokens -> 62 tokens, whole decode 32.1 tok/s, first token 1.81 s, peak 23.677965944 GB
+server log: 2 'done' lines (2 expected), 0 error lines
+SERVE TEST PASS
+10:24:05 serve test ended: SERVE TEST PASS
+10:24:05 unlocked
+10:24:05 exit (NO-SWAP 53 GB, swap 6683 MB)

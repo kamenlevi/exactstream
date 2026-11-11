@@ -1,0 +1,113 @@
+## V1 / V2: the override at reached positions of the REAL match walks (exact replay) and the model per check
+  code 16: reached positions 6088, with a match 57.5 %, right 99.1 % (replay errors 0); model k = real k at 92.5 % of 642 checks, mean (model - real) -0.210; kept real 9.928 (1.038x base 9.569) vs simulated 9.791 (1.023x)
+  code 32: reached positions 6239, with a match 58.1 %, right 99.1 % (replay errors 0); model k = real k at 91.1 % of 516 checks, mean (model - real) -0.258; kept real 12.353 (1.203x base 10.264) vs simulated 12.141 (1.183x)
+  mbpp 16: reached positions 15450, with a match 4.3 %, right 76.6 % (replay errors 0); model k = real k at 96.2 % of 2684 checks, mean (model - real) -0.090; kept real 5.824 (0.980x base 5.944) vs simulated 5.779 (0.972x)
+  mbpp 32: reached positions 15541, with a match 4.4 %, right 76.8 % (replay errors 0); model k = real k at 96.5 % of 2646 checks, mean (model - real) -0.124; kept real 5.909 (0.986x base 5.995) vs simulated 5.830 (0.972x)
+  agent 16: reached positions 1893, with a match 24.0 %, right 91.0 % (replay errors 0); model k = real k at 97.7 % of 609 checks, mean (model - real) -0.053; kept real 3.148 (1.045x base 3.011) vs simulated 3.122 (1.037x)
+  agent 32: reached positions 1905, with a match 24.5 %, right 91.2 % (replay errors 0); model k = real k at 98.7 % of 601 checks, mean (model - real) -0.057; kept real 3.191 (1.058x base 3.016) vs simulated 3.160 (1.048x)
+## LOSS: first-order harm / fix of the override at the base walk's anchors (exact), 16 rows
+  code: reached 6177, hits 3598 (58.2 %): same 3431, fix 137, harm 28, both wrong 2
+    feature bucket: hits / fix / harm / both-wrong
+    L     10-11: 55/2/2/0; 12-15: 76/0/0/2; 16: 3406/135/23/0; 8-9: 61/0/3/0
+    ext   12-15: 76/0/0/2; 16-23: 199/2/1/0; 24-31: 179/10/0/0; 32-63: 748/33/0/0; 64-998: 2280/90/22/0; 8-11: 116/2/5/0
+    amb   1: 3597/137/27/2; 2-998: 1/0/1/0
+    amb8  1: 3524/134/27/2; 2-998: 74/3/1/0
+    cnt   1: 3591/137/27/2; 2-3: 7/0/1/0
+    dist  0-16: 9/0/3/0; 17-64: 17/0/3/2; 257-99998: 1210/70/2/0; 65-256: 2362/67/20/0
+    src   answer: 26/0/6/2; prompt: 3572/137/22/0
+    p     0-3: 1089/4/7/0; 4-7: 1038/21/7/0; 8-15: 1471/112/14/2
+  mbpp: reached 15451, hits 674 (4.4 %): same 483, fix 35, harm 110, both wrong 46
+    feature bucket: hits / fix / harm / both-wrong
+    L     10-11: 162/12/26/14; 12-15: 146/7/23/8; 16: 99/3/14/4; 8-9: 267/13/47/20
+    ext   12-15: 146/7/23/8; 16-23: 83/2/10/3; 24-31: 16/1/4/1; 8-11: 429/25/73/34
+    amb   1: 669/35/107/45; 2-998: 5/0/3/1
+    amb8  1: 644/34/102/45; 2-998: 30/1/8/1
+    cnt   1: 611/34/102/42; 2-3: 63/1/8/4
+    dist  0-16: 29/0/10/2; 17-64: 221/8/35/18; 257-99998: 82/3/9/0; 65-256: 342/24/56/26
+    src   answer: 455/21/75/36; prompt: 219/14/35/10
+    p     0-3: 212/3/39/12; 4-7: 196/7/30/9; 8-15: 266/25/41/25
+  agent: reached 1906, hits 467 (24.5 %): same 369, fix 57, harm 23, both wrong 18
+    feature bucket: hits / fix / harm / both-wrong
+    L     10-11: 56/6/5/3; 12-15: 90/16/7/5; 16: 265/24/9/8; 8-9: 56/11/2/2
+    ext   12-15: 90/16/7/5; 16-23: 114/10/2/5; 24-31: 54/4/4/2; 32-63: 84/9/2/1; 64-998: 13/1/1/0; 8-11: 112/17/7/5
+    amb   1: 453/57/18/12; 2-998: 14/0/5/6
+    amb8  1: 438/54/14/11; 2-998: 29/3/9/7
+    cnt   1: 286/31/16/11; 2-3: 134/20/5/6; 4-998: 47/6/2/1
+    dist  0-16: 2/0/0/1; 17-64: 45/3/3/3; 257-99998: 254/27/16/11; 65-256: 166/27/4/3
+    src   answer: 92/7/3/4; prompt: 375/50/20/14
+    p     0-3: 222/22/7/10; 4-7: 133/16/10/2; 8-15: 112/19/6/6
+## EXAMPLES: MBPP's first-order harms (the copy wrong where the drafter was right), and where harms sit
+  harm s5 L9 ext9 prompt dist 249: ...' the tests: smartNumber(1) == 30' -> copy '\\n' / true ','; source ctx ' == 30\\nassert smart'
+  harm s5 L11 ext11 prompt dist 248: ...', smartNumber(50) == 273' -> copy '\\n' / true ','; source ctx ' 273\\nassert smart'
+  harm s5 L9 ext9 answer dist 53: ...' me check: 273 = 3 * ' -> copy '9' / true '7'; source ctx ' 3 * 91 ='
+  harm s5 L12 ext12 answer dist 137: ...' 273 = 3*7*13' -> copy '?' / true ' -'; source ctx '7*13? No,'
+  harm s6 L12 ext12 prompt dist 83: ...' the sum of common divisors of two given numbers.\\n' -> copy 'Your' / true '   '; source ctx ' given numbers.\\nYour code should'
+  harm s9 L11 ext11 answer dist 16: ...'0 words, expects 4 results\\n    # Test ' -> copy '2' / true '3'; source ctx '    # Test 2: '
+  harm s9 L16 ext25 prompt dist 347: ..."three', 2), ('four', 1)]\\n" -> copy 'assert' / true '   '; source ctx ' 1)]\\nassert count_common'
+  harm s9 L8 ext8 answer dist 218: ..." Let me check: in test 2, 'four'" -> copy ' and' / true ' appears'; source ctx ", 'four' and 'five"
+  harm s12 L10 ext10 prompt dist 179: ...'    Sort a list of elements using pancake sort.\\n' -> copy 'Your' / true '    \\n'; source ctx 'ake sort.\\nYour code should'
+  harm s13 L14 ext14 prompt dist 124: ...' of absolute differences in all pairs of the given array.\\n' -> copy 'Your' / true '   '; source ctx ' given array.\\nYour code should'
+  mbpp: sessions with harm 33 of 100; with a fix 17; top-10 sessions hold 73 of 110 harms; sessions with harm and no fix 17
+  agent: sessions with harm 6 of 12; with a fix 9; top-10 sessions hold 23 of 23 harms; sessions with harm and no fix 1
+  code: sessions with harm 22 of 24; with a fix 24; top-10 sessions hold 16 of 28 harms; sessions with harm and no fix 0
+## GATES: simulated kept per check / base (the drafter model), 3 sets x rows; the real walk's 'all' beside
+  gate                              code16          code32          mbpp16          mbpp32         agent16         agent32
+  real walk (all)                    1.038           1.203           0.980           0.986           1.045           1.058
+  all                     1.023/1.038(100%)1.183/1.203(100%)0.972/0.980(100%)0.972/0.986(100%)1.037/1.045(100%)1.048/1.058(100%)
+  L12                     1.031/1.045(97%)1.194/1.215(97%)0.990/0.997(36%)0.991/1.004(37%)1.022/1.031(75%)1.038/1.048(76%)
+  L16                     1.031/1.045(95%)1.185/1.206(94%)0.995/1.003(15%)0.997/1.010(15%)1.014/1.023(56%)1.021/1.031(57%)
+  ext24                   1.031/1.045(89%)1.181/1.201(89%)0.999/1.006 (2%)0.999/1.012 (2%)1.005/1.013(31%)1.008/1.018(32%)
+  ext32                   1.029/1.044(84%)1.159/1.179(83%)1.000/1.007 (0%)1.000/1.013 (0%)1.008/1.016(20%)1.010/1.020(21%)
+  amb8                    1.023/1.038(98%)1.178/1.199(98%)0.974/0.982(95%)0.975/0.988(95%)1.041/1.049(94%)1.055/1.065(94%)
+  sh:19:1:0.93            1.023/1.038(100%)1.183/1.203(100%)0.991/0.999(23%)0.991/1.004(23%)1.022/1.031(50%)1.027/1.038(50%)
+  sh:19:1:0.95            1.023/1.038(100%)1.183/1.203(100%)0.993/1.000(20%)0.992/1.006(21%)1.003/1.012(26%)1.006/1.017(28%)
+  cl:9:1:0.9              1.023/1.038(100%)1.183/1.203(100%)0.991/0.999(24%)0.991/1.004(23%)1.027/1.035(60%)1.034/1.045(60%)
+  du:3:1:0.6              1.023/1.038(100%)1.183/1.203(100%)0.984/0.992(45%)0.984/0.997(42%)1.040/1.049(75%)1.044/1.055(74%)
+  BG32                    1.022/1.036(98%)1.176/1.197(98%)0.985/0.992(83%)0.987/1.000(84%)1.027/1.035(79%)1.039/1.050(79%)
+  prompt                  1.033/1.047(99%)1.199/1.219(99%)0.992/0.999(32%)0.992/1.005(32%)1.034/1.042(80%)1.043/1.053(80%)
+  prompt&amb8             1.031/1.045(97%)1.192/1.213(97%)0.992/0.999(31%)0.991/1.004(31%)1.037/1.046(74%)1.048/1.058(75%)
+  prompt&L10              1.033/1.047(98%)1.199/1.219(98%)0.996/1.003(20%)0.995/1.009(20%)1.025/1.034(71%)1.032/1.043(71%)
+  prompt&ext12            1.033/1.047(97%)1.197/1.217(97%)0.997/1.004(11%)0.997/1.010(12%)1.022/1.031(61%)1.032/1.043(62%)
+  prompt&sh:9:1:0.9       1.033/1.047(99%)1.199/1.219(99%)0.994/1.002(16%)0.994/1.008(16%)1.024/1.032(48%)1.029/1.040(48%)
+  prompt&du:3:1:0.6       1.033/1.047(99%)1.199/1.219(99%)0.993/1.001(23%)0.993/1.006(23%)1.037/1.045(55%)1.039/1.050(55%)
+  prompt&du:4:1:0.7       1.033/1.047(99%)1.199/1.219(99%)0.994/1.001(20%)0.994/1.008(19%)1.029/1.037(45%)1.024/1.035(43%)
+  PX24                    1.033/1.047(99%)1.199/1.219(99%)0.992/1.000(24%)0.993/1.006(24%)1.039/1.047(64%)1.043/1.053(64%)
+  prompt&BG24             1.033/1.047(98%)1.197/1.217(98%)0.998/1.006(25%)1.000/1.013(26%)1.022/1.030(63%)1.029/1.040(64%)
+  prompt&BG32&du:3:1:0.6  1.031/1.045(97%)1.192/1.213(97%)1.000/1.007(17%)1.000/1.014(18%)1.024/1.032(41%)1.024/1.035(41%)
+  PBD1:1                  1.033/1.047(98%)1.197/1.217(98%)0.999/1.007(17%)1.000/1.013(18%)1.032/1.040(49%)1.031/1.041(49%)
+  PBD2:1                  1.033/1.047(99%)1.199/1.219(99%)0.994/1.001(23%)0.994/1.008(23%)1.034/1.042(54%)1.034/1.045(53%)
+  cells: simulated ratio / offset-corrected (+ real all - simulated all) (share of reached matches used)
+## CF: exact per-anchor ratios with the drafter's real blocks (HPD-0 = base16 trajectory), 16 rows
+  gate                                  code                  math                ifeval                 multi
+  all                  1.082 f517/h28 (100%) 0.944 f37/h150 (100%) 1.030 f175/h11 (100%)    1.000 f7/h4 (100%)
+  prompt                1.086 f514/h23 (99%)   0.990 f31/h41 (33%)    1.009 f67/h9 (39%)      0.999 f0/h1 (4%)
+  L12                   1.085 f510/h23 (97%)    0.989 f9/h31 (29%)   1.029 f152/h4 (94%)     1.000 f0/h0 (15%)
+  prompt&L12            1.085 f507/h23 (97%)      0.999 f9/h9 (9%)    1.010 f63/h3 (33%)      1.000 f0/h0 (0%)
+  cf:0.99                1.067 f331/h7 (23%)   0.985 f27/h62 (35%)  1.026 f157/h10 (49%)     1.000 f7/h3 (76%)
+  cf:0.9                 1.043 f190/h2 (10%)   0.996 f22/h27 (17%)    1.015 f86/h6 (27%)     1.000 f1/h1 (39%)
+  cf:0.8                  1.033 f136/h2 (7%)   0.998 f16/h17 (12%)    1.012 f69/h5 (20%)     1.000 f1/h1 (36%)
+  cfsh:19:1              1.062 f303/h6 (22%)   0.995 f20/h28 (19%)   1.022 f132/h7 (40%)     1.000 f1/h2 (43%)
+  cfsh:9:1               1.061 f299/h6 (21%)   0.997 f16/h21 (14%)   1.020 f120/h7 (37%)     1.000 f1/h1 (39%)
+  prompt&cfsh:19:1       1.062 f303/h4 (22%)   1.000 f15/h10 (10%)    1.007 f46/h5 (15%)      1.000 f0/h0 (0%)
+  prompt&cfsh:9:1        1.062 f299/h4 (21%)     1.000 f14/h8 (8%)    1.006 f44/h5 (14%)      1.000 f0/h0 (0%)
+  prompt&cf:0.9          1.044 f190/h0 (10%)    1.000 f15/h9 (10%)    1.004 f28/h4 (10%)      1.000 f0/h0 (0%)
+  sh:19:1:0.93         1.082 f517/h28 (100%)   0.982 f14/h52 (29%)   1.027 f148/h7 (93%)     0.999 f1/h3 (54%)
+  prompt&du:3:1:0.6     1.086 f514/h23 (99%)   0.991 f19/h34 (23%)    1.010 f67/h7 (38%)      0.999 f0/h1 (4%)
+  cells: ratio over base kept; first-order fixes / harms at reached positions; share of reached matches used
+  code: the drafter right at depth k0+2 (just after its first miss) 20.5 % of 440
+  math: the drafter right at depth k0+2 (just after its first miss) 20.8 % of 1775
+  ifeval: the drafter right at depth k0+2 (just after its first miss) 14.1 % of 2808
+  multi: the drafter right at depth k0+2 (just after its first miss) 12.9 % of 3270
+  code: dtok != ttok before the first miss: 0
+  math: dtok != ttok before the first miss: 0
+  ifeval: dtok != ttok before the first miss: 0
+  multi: dtok != ttok before the first miss: 0
+## HYBRID: 16 rows, real blocks at base anchors, the model elsewhere; ratio over base (share of checks at base anchors)
+  gate                                code own        code rechain            math own        math rechain          ifeval own      ifeval rechain           multi own       multi rechain
+  all                              1.026 (68%)         1.026 (68%)         0.953 (92%)         0.953 (92%)         1.002 (99%)         1.002 (99%)        0.999 (100%)        0.999 (100%)
+  prompt                           1.034 (69%)         1.036 (69%)         0.987 (98%)         0.987 (98%)         0.999 (99%)         0.999 (99%)        1.000 (100%)        1.000 (100%)
+  L12                              1.034 (70%)         1.034 (70%)         0.989 (98%)         0.989 (98%)         1.004 (99%)         1.004 (99%)        1.000 (100%)        1.000 (100%)
+  prompt&L12                       1.034 (70%)         1.036 (70%)         0.997 (99%)         0.997 (99%)        1.001 (100%)        1.001 (100%)        1.000 (100%)        1.000 (100%)
+  prompt&du:3:1:0.6                1.034 (69%)         1.036 (69%)         0.987 (98%)         0.987 (98%)         1.000 (99%)         1.000 (99%)        1.000 (100%)        1.000 (100%)
+  prompt&BG24                      1.034 (69%)         1.036 (69%)         0.987 (98%)         0.987 (98%)        1.001 (100%)        1.001 (100%)        1.000 (100%)        1.000 (100%)
+  PBD1:1                           1.034 (69%)         1.036 (69%)         0.987 (98%)         0.987 (98%)        1.001 (100%)        1.001 (100%)        1.000 (100%)        1.000 (100%)

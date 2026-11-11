@@ -1,0 +1,41 @@
+== 1. one GDN layer at 16 rows: weights, activations, FLOPs [P from the config's shapes] ==
+  in_proj_qkv  codes  13.11 MB  scales  0.82 MB  biases  0.82 MB  =  14.75 MB
+  in_proj_z    codes   7.86 MB  scales  0.49 MB  biases  0.49 MB  =   8.85 MB
+  in_proj_b    codes   0.06 MB  scales  0.00 MB  biases  0.00 MB  =   0.07 MB
+  in_proj_a    codes   0.06 MB  scales  0.00 MB  biases  0.00 MB  =   0.07 MB
+  out_proj     codes   7.86 MB  scales  0.49 MB  biases  0.49 MB  =   8.85 MB
+  conv1d + norm + A_log / dt_bias (bf16): 0.082 MB
+  recurrent state fp32 3.15 MB (read + written = 6.29 MB); conv state bf16 0.061 MB (read + written)
+  activations bf16 (each written once, read once or twice): x (HC read out) 82 KB, qkv 328 KB, z 197 KB, b, a 3 KB, q, k (normed) 131 KB, v 197 KB, y (pre out_proj) 197 KB, out 82 KB
+  activation bytes per layer ~1.22 MB written; ~x2-3 at DRAM level incl. reads
+  FLOPs: in_proj 1.350 G, out_proj 0.503 G, recurrence 0.075 G, conv 0.0013 G, norms 0.0007 G = 1.931 GFLOP per layer, 69.5 per check
+  bytes per layer: weights 32.58 MB + state 6.29 + conv state 0.12 + activations ~3.04 = 42.11 MB; x 36 layers = 1.516 GB per check
+  arithmetic intensity: 46 FLOP per byte (the M5 Pro's ~258-294 GB/s against tens of TFLOPS on the tensor units: byte-bound at 16 rows)
+
+== 2. floors per check (36 layers) at 258 / 280 / 294 GB/s [P on K bw_probe] ==
+  weights (codes + scales + biases, all five projections)   1172.8 MB   4.55 /  4.19 /  3.99 ms
+    of which in_proj_qkv                                     530.8 MB   2.06 /  1.90 /  1.81 ms
+    of which in_proj_z                                       318.5 MB   1.23 /  1.14 /  1.08 ms
+    of which out_proj                                        318.5 MB   1.23 /  1.14 /  1.08 ms
+    of which in_proj_a + b                                     5.0 MB   0.02 /  0.02 /  0.02 ms
+  recurrent state read + write                               226.5 MB   0.88 /  0.81 /  0.77 ms
+  conv state + small weights                                   7.4 MB   0.03 /  0.03 /  0.03 ms
+  activations (~2.5 touches of each)                         109.4 MB   0.42 /  0.39 /  0.37 ms
+  ALL                                                       1516.1 MB   5.88 /  5.41 /  5.16 ms
+
+== 3. lossless-pack ceiling from the REAL weights (order-0 entropy) [K on the model files] ==
+  L 1 in_proj_qkv  codes H0 3.571 bits (top codes [np.int64(9), np.int64(8), np.int64(10), np.int64(7)]: ['14.9%', '14.0%', '13.2%', '10.8%'])  scales H0 8.87 / delta 9.56 bits  biases H0 9.07 / delta 9.82 bits  -> 85.6% of today's bytes
+  L 1 in_proj_z    codes H0 3.584 bits (top codes [np.int64(9), np.int64(8), np.int64(10), np.int64(7)]: ['14.5%', '13.6%', '13.1%', '10.8%'])  scales H0 9.19 / delta 9.59 bits  biases H0 9.37 / delta 9.86 bits  -> 86.1% of today's bytes
+  L 1 out_proj     codes H0 3.664 bits (top codes [np.int64(9), np.int64(8), np.int64(10), np.int64(7)]: ['13.1%', '13.0%', '11.5%', '11.3%'])  scales H0 8.85 / delta 9.29 bits  biases H0 8.95 / delta 9.48 bits  -> 87.6% of today's bytes
+  L16 in_proj_qkv  codes H0 3.620 bits (top codes [np.int64(9), np.int64(8), np.int64(10), np.int64(7)]: ['13.9%', '13.4%', '12.5%', '11.0%'])  scales H0 8.72 / delta 9.43 bits  biases H0 8.91 / delta 9.68 bits  -> 86.6% of today's bytes
+  L16 in_proj_z    codes H0 3.653 bits (top codes [np.int64(9), np.int64(8), np.int64(10), np.int64(7)]: ['13.2%', '12.9%', '11.9%', '11.2%'])  scales H0 8.64 / delta 9.22 bits  biases H0 8.80 / delta 9.46 bits  -> 87.2% of today's bytes
+  L16 out_proj     codes H0 3.679 bits (top codes [np.int64(9), np.int64(8), np.int64(10), np.int64(7)]: ['12.8%', '12.7%', '11.3%', '11.3%'])  scales H0 8.77 / delta 9.21 bits  biases H0 8.88 / delta 9.37 bits  -> 87.9% of today's bytes
+  L32 in_proj_qkv  codes H0 3.616 bits (top codes [np.int64(9), np.int64(8), np.int64(10), np.int64(7)]: ['14.0%', '13.4%', '12.5%', '11.0%'])  scales H0 8.86 / delta 9.45 bits  biases H0 9.04 / delta 9.71 bits  -> 86.6% of today's bytes
+  L32 in_proj_z    codes H0 3.645 bits (top codes [np.int64(9), np.int64(8), np.int64(10), np.int64(7)]: ['13.4%', '13.1%', '12.0%', '11.2%'])  scales H0 8.71 / delta 9.24 bits  biases H0 8.85 / delta 9.48 bits  -> 87.1% of today's bytes
+  L32 out_proj     codes H0 3.677 bits (top codes [np.int64(9), np.int64(8), np.int64(10), np.int64(7)]: ['12.8%', '12.8%', '11.4%', '11.2%'])  scales H0 8.81 / delta 9.23 bits  biases H0 8.90 / delta 9.39 bits  -> 87.9% of today's bytes
+  L46 in_proj_qkv  codes H0 3.554 bits (top codes [np.int64(9), np.int64(8), np.int64(10), np.int64(7)]: ['15.2%', '14.4%', '13.3%', '10.8%'])  scales H0 9.08 / delta 9.63 bits  biases H0 9.25 / delta 9.88 bits  -> 85.4% of today's bytes
+  L46 in_proj_z    codes H0 3.555 bits (top codes [np.int64(9), np.int64(8), np.int64(10), np.int64(7)]: ['14.9%', '13.9%', '13.5%', '10.6%'])  scales H0 9.22 / delta 9.71 bits  biases H0 9.39 / delta 9.97 bits  -> 85.5% of today's bytes
+  L46 out_proj     codes H0 3.590 bits (top codes [np.int64(9), np.int64(8), np.int64(10), np.int64(7)]: ['14.5%', '14.0%', '12.7%', '11.2%'])  scales H0 9.26 / delta 9.52 bits  biases H0 9.35 / delta 9.72 bits  -> 86.2% of today's bytes
+  mean code entropy 3.617 bits of 4 (90.4% of the code bytes); whole-pack ceiling (codes + scales + biases, order-0) 86.5% of today's bytes
+  => the dense GDN weights 1.174 GB per check could shrink to ~1.015 GB: the weight floor 4.19 -> 3.62 ms at 280 GB/s (-0.56 ms upper bound, if the decode is free)
+  (0.4 s)

@@ -1,0 +1,28 @@
+## 1. hidden-state near-repeats and activation sparsity (taps; 3 files: agent_bash17, mgsm_de108, tf windows absent here)
+  agent_bash17.npz (2215 rows): L5: cos(prev) mean 0.660, >= 0.95 0.0 %; best of last 64 >= 0.99 0.6 %, >= 0.95 7.1 %; channels < 5 % RMS 5.3 % | L15: cos(prev) mean 0.532, >= 0.95 0.0 %; best of last 64 >= 0.99 0.0 %, >= 0.95 0.0 %; channels < 5 % RMS 4.5 % | L25: cos(prev) mean 0.550, >= 0.95 0.0 %; best of last 64 >= 0.99 0.0 %, >= 0.95 0.0 %; channels < 5 % RMS 4.6 % | L35: cos(prev) mean 0.383, >= 0.95 0.0 %; best of last 64 >= 0.99 0.0 %, >= 0.95 0.0 %; channels < 5 % RMS 4.2 % | L45: cos(prev) mean 0.629, >= 0.95 0.0 %; best of last 64 >= 0.99 0.0 %, >= 0.95 0.0 %; channels < 5 % RMS 4.7 % | 
+  mgsm_de108.npz (517 rows): L5: cos(prev) mean 0.624, >= 0.95 0.0 %; best of last 64 >= 0.99 0.0 %, >= 0.95 3.1 %; channels < 5 % RMS 4.8 % | L15: cos(prev) mean 0.589, >= 0.95 0.0 %; best of last 64 >= 0.99 0.0 %, >= 0.95 0.0 %; channels < 5 % RMS 4.4 % | L25: cos(prev) mean 0.628, >= 0.95 0.0 %; best of last 64 >= 0.99 0.0 %, >= 0.95 0.0 %; channels < 5 % RMS 4.5 % | L35: cos(prev) mean 0.643, >= 0.95 0.0 %; best of last 64 >= 0.99 0.0 %, >= 0.95 0.0 %; channels < 5 % RMS 4.3 % | L45: cos(prev) mean 0.753, >= 0.95 0.0 %; best of last 64 >= 0.99 0.0 %, >= 0.95 0.0 %; channels < 5 % RMS 4.7 % | 
+  agent_text23.npz (2215 rows): L5: cos(prev) mean 0.616, >= 0.95 0.0 %; best of last 64 >= 0.99 0.0 %, >= 0.95 10.7 %; channels < 5 % RMS 5.0 % | L15: cos(prev) mean 0.523, >= 0.95 0.0 %; best of last 64 >= 0.99 0.0 %, >= 0.95 0.0 %; channels < 5 % RMS 4.4 % | L25: cos(prev) mean 0.526, >= 0.95 0.0 %; best of last 64 >= 0.99 0.0 %, >= 0.95 0.0 %; channels < 5 % RMS 4.5 % | L35: cos(prev) mean 0.419, >= 0.95 0.0 %; best of last 64 >= 0.99 0.0 %, >= 0.95 0.0 %; channels < 5 % RMS 4.2 % | L45: cos(prev) mean 0.684, >= 0.95 0.0 %; best of last 64 >= 0.99 0.0 %, >= 0.95 0.3 %; channels < 5 % RMS 4.6 % | 
+
+## 2. expert-set locality from 36 routing captures (ids [tokens, 48, 10])
+  code: 368 checks; distinct experts per layer / 160 uses 0.455 (so 55 % of a check's uses repeat an expert another row uses); the next check's experts already in the last check 0.507, in the last 4 checks 0.739
+  ifeval: 255 checks; distinct experts per layer / 160 uses 0.421 (so 58 % of a check's uses repeat an expert another row uses); the next check's experts already in the last check 0.529, in the last 4 checks 0.766
+  multi: 241 checks; distinct experts per layer / 160 uses 0.368 (so 63 % of a check's uses repeat an expert another row uses); the next check's experts already in the last check 0.511, in the last 4 checks 0.749
+
+## 3. bigram-keyed routing repeats (a token whose (prev id, id) occurred earlier in the window)
+  code: 3277 of 5989 tokens repeat an earlier bigram (54.7 %); their top-10 Jaccard with the earlier occurrence 0.256 (random pair 0.073); top-1 expert equal 27.1 % of layers
+  ifeval: 589 of 4166 tokens repeat an earlier bigram (14.1 %); their top-10 Jaccard with the earlier occurrence 0.307 (random pair 0.083); top-1 expert equal 29.5 % of layers
+  multi: 451 of 3938 tokens repeat an earlier bigram (11.5 %); their top-10 Jaccard with the earlier occurrence 0.424 (random pair 0.148); top-1 expert equal 41.8 % of layers
+
+## 4. consecutive checks' accepted lengths (HPD-0 walks): a branch predictor's signal
+  code: P(k >= median 9) 0.509; given the last check's k >= median 0.740, given k < median 0.247; corr(k_c, k_c+1) 0.596
+  math: P(k >= median 5) 0.538; given the last check's k >= median 0.613, given k < median 0.454; corr(k_c, k_c+1) 0.244
+  ifeval: P(k >= median 1) 0.628; given the last check's k >= median 0.644, given k < median 0.602; corr(k_c, k_c+1) 0.342
+
+## 5. the decision map's reuse arms (the previous position's output reused): flips by class
+  moe_reuse_prev_L12_35.json: code-mid 32.99 %, code-sure 1.03 %, ifeval-mid 39.83 %, ifeval-sure 1.77 %, multi-mid 29.65 %, multi-sure 0.69 %
+  moe_reuse_prev_L08_11.json: code-mid 4.31 %, code-sure 0.00 %, ifeval-mid 5.81 %, ifeval-sure 0.00 %, multi-mid 4.24 %, multi-sure 0.00 %
+  moe_reuse_lag2_L12_35.json: code-mid 40.36 %, code-sure 2.46 %, ifeval-mid 51.80 %, ifeval-sure 4.83 %, multi-mid 39.73 %, multi-sure 2.85 %
+  moe_reuse_lag4_L12_35.json: code-mid 50.51 %, code-sure 4.76 %, ifeval-mid 60.02 %, ifeval-sure 10.04 %, multi-mid 50.46 %, multi-sure 5.28 %
+  moe_reuse_chain_L12_35.json: code-mid 21.83 %, code-sure 8.11 %, ifeval-mid 10.00 %, ifeval-sure 1.67 %, multi-mid 8.63 %, multi-sure 0.69 %
+  gdn_reuse_prev.json: code-mid 96.70 %, code-sure 88.50 %, ifeval-mid 98.52 %, ifeval-sure 95.82 %, multi-mid 98.82 %, multi-sure 98.89 %
+  att_reuse_prev.json: code-mid 29.19 %, code-sure 28.99 %, ifeval-mid 25.46 %, ifeval-sure 7.06 %, multi-mid 19.52 %, multi-sure 9.87 %

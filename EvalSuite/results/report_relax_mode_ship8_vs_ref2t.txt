@@ -1,0 +1,18 @@
+Load from ground-truth from /Users/kamen/Library/Caches/evalplus/fe585eb4df8c88d844eeb463ea4d0302.pkl
+evalsuite: relax_mode_ship8 vs ref2t (as the reference)  (anchors: floor = same weights, accepted = AutoRound int4 experts)
+test                                       variant               floor (same weights)  variant vs reference [90% CI]               pass
+-----------------------------------------  --------------------  --------------------  ------------------------------------------  ----
+math (n=50)                                90.0% vs ref 88.0%    88.0%                 +2.0 [-3.7, +7.7] pt, McNemar p=1.00 (1/2)  -   
+math final-answer agreement with ref       94.0% (47/50)         96.0% (48/50)                                                     -   
+ifeval (n=100)                             84.0% vs ref 90.0%    88.0%                 -6.0 [-9.9, -2.1] pt, McNemar p=0.03 (6/0)  FAIL
+ifeval final-answer agreement with ref     94.0% (94/100)        98.0% (98/100)                                                    -   
+humaneval (n=60)                           93.3% vs ref 95.0%    95.0%                 -1.7 [-4.4, +1.1] pt, McNemar p=1.00 (1/0)  PASS
+humaneval final-answer agreement with ref  98.3% (59/60)         100.0% (60/60)                                                    -   
+decode answer agreement with ref (n=210)   95.2%                 98.1%                                                             -   
+token-identical outputs (context only)     31/210                54/210                                                            -   
+decode length ratio vs ref                 x0.970                                                                                  PASS
+hesitation words / 1K tokens               0.38 vs ref 0.23                                                                        PASS
+truncations / loops                        11 / 1 vs ref 13 / 3                                                                    PASS
+  decode: {'generated_tokens': {'variant': 75498, 'ref': 77861}, 'loops_relax_mode_ship8': ['ifeval/3439'], 'truncated_relax_mode_ship8': ['humaneval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'math500', 'math500', 'math500', 'math500', 'math500'], 'rows_relax_mode_ship8': 210, 'loops_ref': ['gsm8k/709', 'ifeval/3326', 'ifeval/3439'], 'truncated_ref': ['ifeval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'math500', 'math500', 'math500', 'math500', 'math500', 'math500'], 'rows_ref': 210, 'loops_floor': ['ifeval/3326', 'ifeval/3439'], 'truncated_floor': ['ifeval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'ifeval', 'math500', 'math500', 'math500', 'math500', 'math500', 'math500'], 'rows_floor': 210}
+  missing runs: ['relax_mode_ship8']
+VERDICT: FAIL  (4/5 rules pass; margins: evalsuite/margins.json)

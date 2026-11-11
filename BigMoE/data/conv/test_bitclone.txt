@@ -1,0 +1,12 @@
+PASS checkpoint (_snapshot_gdn) holds the GDN bits
+census: 0[0] rows 0..9 (2 rows, 3 values, first 0xffc1); 0[1] rows 3..3 (1 rows, 1 values, first 0x8000); 0[2] rows 0..0 (1 rows, 1 values, first 0x8000); 0[3] rows 0..0 (1 rows, 1 values, first 0x8000); gdn 1[0] 2 values (first 0x8000); gdn 1[1] 1 values (first 0x80000000)
+PASS census finds the planted keys rows 0 + 9, values row 3, raw row 0, pooled block 0, the GDN values
+PASS copy: QSA keys / values / raw / pooled below C
+PASS copy: GDN state from the checkpoint
+PASS copy: MTP cache below C
+PASS copy: writes into the copy leave the source's bits
+PASS copy again after a write: the checkpoint kept its bits
+PASS live: QSA below C after the trim
+PASS live: GDN state from the checkpoint
+PASS control: x + 0 and cache_state._clone_tree change the planted bits
+PASS: 10/10

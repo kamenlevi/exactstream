@@ -1,0 +1,40 @@
+== M-34 SURE2B (Wed 05:49): SSD MB per kept token, QOM + 3-bit sure rows (base) vs 2-bit prefix reads for sure rows (2b fixed slots; 2bcap pool spent by bytes); B2 1540096 / B3 622592 / MR 2162688 B
+  domain | pool | cf | base | 2b (x base; upgrade reads, 2-bit reads) | 2bcap (x base)
+  code   | 24 GB | 0.0 |   54.4 |   50.1 (x0.921; 9309 upgrades, 32726 2-bit reads) |   47.8 (x0.877)
+  code   | 24 GB | 0.5 |   59.4 |   55.4 (x0.933; 10118 upgrades, 31797 2-bit reads) |   53.1 (x0.893)
+  code   | 12 GB | 0.0 |  123.3 |  110.7 (x0.898; 16564 upgrades, 84861 2-bit reads) |  106.0 (x0.859)
+  code   | 12 GB | 0.5 |  134.0 |  122.1 (x0.912; 17494 upgrades, 81789 2-bit reads) |  117.7 (x0.878)
+  ifeval | 24 GB | 0.0 |   84.3 |   82.5 (x0.979; 10483 upgrades, 20385 2-bit reads) |   81.1 (x0.962)
+  ifeval | 24 GB | 0.5 |  101.4 |  100.0 (x0.985; 9625 upgrades, 17695 2-bit reads) |   98.8 (x0.974)
+  ifeval | 12 GB | 0.0 |  238.2 |  228.1 (x0.957; 28331 upgrades, 83784 2-bit reads) |  223.1 (x0.936)
+  ifeval | 12 GB | 0.5 |  287.7 |  279.8 (x0.972; 25705 upgrades, 69225 2-bit reads) |  276.2 (x0.960)
+  multi  | 24 GB | 0.0 |   81.7 |   80.5 (x0.985; 8034 upgrades, 15128 2-bit reads) |   79.4 (x0.972)
+  multi  | 24 GB | 0.5 |   99.5 |   98.5 (x0.990; 6964 upgrades, 12460 2-bit reads) |   97.8 (x0.983)
+  multi  | 12 GB | 0.0 |  217.3 |  210.7 (x0.970; 19290 upgrades, 56988 2-bit reads) |  208.3 (x0.959)
+  multi  | 12 GB | 0.5 |  262.4 |  257.4 (x0.981; 16227 upgrades, 44921 2-bit reads) |  255.9 (x0.975)
+  -> code 24 GB cf 0, fixed slots: x0.921 -> KILL (line x0.80 / x0.92)  (16 s)
+== M-34 exploratory (Wed 05:50): with the bonus row gated (ledger lever 1) at cf 0; MB per kept token
+  code   | 24 GB | base   25.2 | 2b   18.0 (x0.712; 0 upgrades) | 2bcap   16.3 (x0.647)
+  code   | 12 GB | base   63.5 | 2b   45.2 (x0.712; 0 upgrades) | 2bcap   38.3 (x0.603)
+  ifeval | 24 GB | base   19.3 | 2b   13.7 (x0.712; 0 upgrades) | 2bcap   12.3 (x0.636)
+  ifeval | 12 GB | base   72.3 | 2b   51.5 (x0.712; 0 upgrades) | 2bcap   38.6 (x0.534)
+  multi  | 24 GB | base   13.9 | 2b    9.9 (x0.712; 0 upgrades) | 2bcap    8.7 (x0.627)
+  multi  | 12 GB | base   52.9 | 2b   37.7 (x0.712; 0 upgrades) | 2bcap   28.9 (x0.547)
+  (5 s)
+== RESULT M-34 SURE2B (Wed 05:49-05:50): registered line KILL (code 24 GB cf 0, fixed slots x0.921 > x0.92; IFEval /
+  multi x0.98 / x0.985; 12 GB x0.90 / x0.96 / x0.97). Why: at cf 0 the bytes left are mostly the bonus row's (all 10
+  ranks + the LSB); sure rows read ranks 0-1 only, and 28 % of their 2-bit loads are later upgraded by an unsure row.
+  Exploratory, on top of ledger lever 1 (the bonus row gated: every row sure at cf 0): 2-bit prefixes cover every read,
+  x0.712 with fixed slots and no upgrades (24 GB: code 25.2 -> 18.0, IFEval 19.3 -> 13.7, multi 13.9 -> 9.9 MB per kept
+  token), x0.63-0.65 with byte-budget (variable-size) slots (16.3 / 12.3 / 8.7); 12 GB x0.712 / x0.53-0.60. The base
+  reproduces the ledger (part C cf 0 + 3b: 54.4 / 84.3 / 81.7 vs 54.5 / 84.4 / 81.7; lever 1's x0.50 / x0.23 / x0.17).
+  So the 2-bit prefix is a lever only after lever 1, and its quality (sure rows' missed ranks 0-1 at 2 bits) needs a
+  map screen: w = s3 * (2 * (q3 >> 1) + 0.5) + b3.
+== M-34 on the engine convention (Wed 05:52; NewIdeas' ask): cf 0, MB per kept token
+  code   | 24 GB | base   35.7 | 2b   29.7 (x0.833; 4335 upgrades, 36760 2-bit reads) | 2bcap   27.7 (x0.777)
+  code   | 12 GB | base   83.0 | 2b   67.4 (x0.813; 8985 upgrades, 93194 2-bit reads) | 2bcap   61.4 (x0.741)
+  ifeval | 24 GB | base   19.4 | 2b   13.9 (x0.715; 101 upgrades, 30420 2-bit reads) | 2bcap   12.4 (x0.639)
+  ifeval | 12 GB | base   72.6 | 2b   51.9 (x0.714; 203 upgrades, 113904 2-bit reads) | 2bcap   39.0 (x0.537)
+  multi  | 24 GB | base   13.9 | 2b    9.9 (x0.712; 0 upgrades, 22892 2-bit reads) | 2bcap    8.7 (x0.627)
+  multi  | 12 GB | base   52.9 | 2b   37.7 (x0.712; 0 upgrades, 87157 2-bit reads) | 2bcap   28.9 (x0.547)
+  (5 s)

@@ -1,0 +1,13 @@
+layer: 20 MB read, 48 layers
+one command buffer, no events         2.57 ms/token
+one command buffer per layer          2.41 ms/token  (+-3.3 us/layer)
+per-layer GPU->CPU->GPU handshake     9.27 ms/token  (+139.6 us/layer vs one buffer)
+GPU-only signal->wait chain            9.40 ms/token  (+142.3 us/layer vs one buffer)
+shared-event waits, pre-signaled       2.52 ms/token  (+-1.0 us/layer vs one buffer)
+MTLEvent (GPU-only) signal->wait       2.49 ms/token  (+-1.7 us/layer vs one buffer)
+mem-flag GPU->CPU, CPU-signaled wait    2.53 ms/token  (+-0.8 us/layer vs one buffer)
+  mem-flag + cold 2.77MB pread on  4 layers    3.13 ms/token (+150 us per stalled layer)
+  mem-flag + cold 2.77MB pread on 12 layers    4.57 ms/token (+170 us per stalled layer)
+handshake, CPU busy-polls value        9.67 ms/token  (+147.8 us/layer vs one buffer)
+handshake + cold 2.77MB pread on  4 layers   11.14 ms/token  (+468 us per stalled layer)
+handshake + cold 2.77MB pread on 12 layers   13.88 ms/token  (+384 us per stalled layer)

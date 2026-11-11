@@ -1,0 +1,7 @@
+# SpecMD: A Comprehensive Study on Speculative Expert Prefetching (arXiv 2602.03921, 3 Feb 2026; Apple: Hoang, Jaiswal, Samragh, Cho)
+- Link: https://arxiv.org/abs/2602.03921 ; HTML https://arxiv.org/html/2602.03921v1 ; Apple ML page https://machinelearning.apple.com/research/specmd-expert-prefetching. Source: WebSearch extracts [S].
+- What: a benchmarking framework for MoE expert caching under offloading (Mixtral-8x7B, OLMoE-1B-7B, Phi-3.5-MoE, Qwen1.5-MoE; three hardware configs). Finding: recency / frequency policies fit MoE badly because experts are accessed in a deterministic layer order; proposes Least-Stale eviction (stale experts first, then experts of layers already passed in this forward).
+- Numbers [S]: collision misses up to 85x fewer than LRU at 1 % capacity, 88-92 % hit rates; OLMoE at 5 % cache (0.6 GB): TTFT -10.7..-34.7 %; collision 1.6-1.9 % vs LRU 4.5-12.6 %.
+- Maps to us: a cache-policy paper (SSD wall), not a distinct-experts paper. Our per-layer pools already make "layer already passed" irrelevant (each layer has its own LRU), and M-14 / M-38 / FAR measured LRU vs learned keys vs Belady here (learned key -7.8 %, perfect H 8 foresight -34 %). Its substitution baseline ("expert substitution collapses GSM8K", cited in TRIED Lossy miss handling) is the relevant quality fact.
+- TRIED status: covered by the cache-policy line (KILL for policies beyond LRU + prior at 45 GB; FAR hybrid BETWEEN -> PASS line on CPU).
+- Open: nothing for the union wall.

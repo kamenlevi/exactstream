@@ -1,0 +1,19 @@
+SCREEN 7 READ (QUEUE 14:3x + amendment 2), KL(REF2-T || arm) mean per row; SE = paired per-row / per-window
+| arm | code | ifeval | multi |
+|---|---|---|---|
+| s7_ref | 0.0040 | 0.0232 | 0.0236 |
+| s7_ref3 | 0.0051 | 0.0297 | 0.0324 |
+| s7_cal | 0.0052 | 0.0299 | 0.0308 |
+| s7_cal_all | 0.0180 | 0.1094 | 0.1465 |
+| s7_trl | 0.0046 | 0.0261 | 0.0278 |
+E29 = ref3 - ref (ranks 2-9 MSB-3 term, 239 slots): code +0.00114 (SE 0.00034 / 0.00065, z 3.4 / 1.8); ifeval +0.00649 (SE 0.00068 / 0.00083, z 9.6 / 7.9); multi +0.00886 (SE 0.00065 / 0.00092, z 13.6 / 9.6)
+cal - ref (S = 4 layers at MSB-2): code +0.00126 (SE 0.00022 / 0.00053, z 5.8 / 2.4); ifeval +0.00673 (SE 0.00075 / 0.00054, z 9.0 / 12.6); multi +0.00721 (SE 0.00084 / 0.00130, z 8.6 / 5.5)
+cal_all - ref (48 layers at MSB-2): code +0.01405 (SE 0.00105 / 0.00416, z 13.3 / 3.4); ifeval +0.08624 (SE 0.00271 / 0.00575, z 31.9 / 15.0); multi +0.12293 (SE 0.00402 / 0.01135, z 30.6 / 10.8)
+trl - ref (S = 4 layers from the TRL mix): code +0.00060 (SE 0.00024 / 0.00032, z 2.5 / 1.9); ifeval +0.00296 (SE 0.00064 / 0.00069, z 4.6 / 4.3); multi +0.00419 (SE 0.00076 / 0.00062, z 5.5 / 6.7)
+gate (cal - ref >= 2 x paired SE): code OK (window SE: OK); ifeval OK (window SE: OK); multi OK (window SE: OK)
+scale (cal_all - ref) / (cal - ref): 11.1 / 12.8 / 17.1 (linear 48 / 4 = 12)
+| domain | trl - ref | est_abs_TRL KL | flips | in-frame est KL | flips | verdict (in-frame) | strict KL (= est_abs + E29) | flips | strict verdict | raw s7_trl flips |
+|---|---|---|---|---|---|---|---|---|---|---|
+| code | +0.00060 | 0.0107 | 1.54 (BETWEEN) | 0.0095 | 1.45 | BETWEEN | 0.0118 | 1.63 | BETWEEN | 1.04 |
+| ifeval | +0.00296 | 0.0611 | 10.07 (KILL) | 0.0546 | 9.54 | KILL | 0.0676 | 10.57 | KILL | 6.89 |
+| multi | +0.00419 | 0.0950 | 10.98 (KILL) | 0.0861 | 10.44 | KILL | 0.1039 | 11.48 | KILL | 5.69 |

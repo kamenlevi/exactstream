@@ -1,0 +1,133 @@
+--- base/dm_oea_masks.py	2026-11-05 18:31:43
++++ nw_masks.py	2026-11-05 18:33:21
+@@ -28,7 +28,22 @@
+ Out: <out_dir>/<arm>/<window>.npz, keep [rows, 48, 10] bool, rank-sorted as DAY9's routing capture (the harness's
+ rmask: PERT.update(rmask=<absolute dir>, renorm=False); os.path.join(OUT, abs, nm) resolves to the absolute dir).
+ Reads ~/FableGod/decision_map (read-only). Usage (BigMoE venv): python dm_oea_masks.py <out_dir> <arm> [<arm> ...]
++
++NEVER-WAIT (Fable FAR + ZERO, ~/FableGod/far/NEVERWAIT_TEST.md 2.1-2.3; this file = dm_oea_masks.py + mk_builder.py's
++anchored edits, Thu 5 Nov 2026). <qom arm>[_c<N>]_nw<d>[r1|s], d in 0 / 1 / 2:
++  late[p, l, r] = keep[p, l, r] AND ids[p, l, r] in M_l on the check's realized rows, every rank, where M_l = the
++  experts of the check's union U_l that are NOT in the pool at the moment of their touch (the events the load-miss
++  count already counts). The harness writes a late term d layers late through layer l's own inject gates.
++  r1: an expert some row of the check (realized or stand-in) has at rank 0 is waited for (never late).
++  s:  late only on realized rows whose draft cf >= 0.9.
++  Tail (d >= 1, layers >= 48 - d, nothing later to write after): a late rank-0 term stays in place (late False: the
++  engine waits there), any other late term is dropped (keep False). d = 0 has no tail (the lateness-0 self-check).
++  Never with _t3 (a _t3 mask sets the sure rows' keep[:, :, :2] False, so keep & late would lose every late top-2).
++  Out: keep as the twin's (but for the tail's drops) plus late [rows, 48, 10] bool, rank-sorted like keep; the pool
++  evolves exactly as the twin's. Stats per domain: <out_dir>/<arm>.stats.json and the printed "nw" line.
+ """
++import sys as _sys
++_sys.dont_write_bytecode = True                              # nothing is written beside the map's or NewIdeas' sources
+ import json, os, re, sys
+ from collections import OrderedDict
+ import numpy as np
+@@ -39,6 +54,8 @@
+ 
+ 
+ LIVE_T = 0.3
++RANK_W = np.array([0.294, 0.193, 0.143, 0.109, 0.084, 0.064, 0.048, 0.033, 0.021, 0.010])   # nw stats: AUDIT_1105 7.2's mean
++# renormalised gate weight by rank (as ~/FableGod/zero/late_terms.py), for "late MoE mass per realized row-layer"
+ 
+ 
+ def live_segments(k, m, A, dc):
+@@ -106,7 +123,11 @@
+ 
+ 
+ def masks(out_dir, arm):
+-    t3 = arm.endswith("_t3"); arm_ = arm[:-3] if t3 else arm   # <arm>_t3 (Tue 23:0x): sure rows' ranks 0-1 off in the mask, so
++    mn = re.search(r"_nw([012])(r1|s)?$", arm)                # <arm>_nw<d>[r1|s] (Thu 11-05): stripped BEFORE _t3 and _c<N>
++    nwd, nwv = (int(mn.group(1)), mn.group(2) or "") if mn else (None, "")
++    armt = arm[:mn.start()] if mn else arm                    # the twin's name; `arm` stays the output folder's name
++    if mn and armt.endswith("_t3"): raise SystemExit(f"{arm}: never-wait arms are built without _t3")
++    t3 = armt.endswith("_t3"); arm_ = armt[:-3] if t3 else armt   # <arm>_t3 (Tue 23:0x): sure rows' ranks 0-1 off in the mask, so
+     # the harness's ('t3mask',) gate serves them from records3 at 3 bits (Breakthrough's hyb_t3 convention); pools unchanged
+     mc = re.search(r"_c(\d+)$", arm_)                      # <arm>_c<N> (Tue 23:2x): qom's base pool = N slots per layer
+     cpool = int(mc.group(1)) if mc else None                  # (e.g. _c164 = the uniform C 160 line), not laysz45_256's C_m
+@@ -125,10 +146,13 @@
+     ms_ = re.search(r"^qom_[0-9.]+_split([0-9.]+)$", arm0)   # Thu 07:2x: the strict band (loads unchanged; strict rows touch
+     scf = float(ms_.group(1)) if ms_ else None               # only what they keep, as audit_split_replay.py)
+     qom = arm0.startswith("qom_"); CL = ([cpool] * 48 if cpool else pool_sizes()) if qom else None
++    if mn and not qom: raise SystemExit(f"{arm}: never-wait needs a qom arm (the cold set is the pool replay's)")
+     base = json.load(open(os.path.join(OUT, "baseline.json")))
+     G = dm_gate.load()
+     od = os.path.join(out_dir, arm); os.makedirs(od, exist_ok=True)
+     st, qs, bqn, tls = {}, {}, {}, {}
++    nws, nwr = {}, {}                                         # nw stats per domain: [top-2, members, undrafted tails, mass, tail
++                                                              # rank 0 in place, tail dropped]; realized rows with a late term
+     for dom, wf in dm_gate.WALK.items():
+         Z = np.load(os.path.join(dm_gate.TD, wf))
+         cache = [OrderedDict() for _ in range(48)]               # qom: the base pool per layer, carried across windows
+@@ -137,6 +161,7 @@
+             ids = np.load(os.path.join(OUT, "routing", nm))["ids"]; N = len(ids)
+             g = np.nan_to_num(G[nm], nan=-1.0)
+             keep = np.ones((N, 48, 10), bool)
++            late = np.zeros((N, 48, 10), bool); hit = np.zeros(N, bool)   # nw: the late flags; rows with >= 1 late term
+             d = st.setdefault(dom, [0, 0, 0, 0])               # union, exact union, kept row-layer experts, row-layers
+             q = qs.setdefault(dom, [0, 0, 0, 0, 0])            # qom: sure-row rank 2-9 pairs, kept as members, kept as
+                                                                # resident, loads, load misses
+@@ -169,8 +194,11 @@
+                         d[0] += len(U); d[1] += len(np.unique(ids[rows, l, :]))
+                         if qom:                                  # the check's loads, then what is resident after them
+                             c = cache[l]
++                            Ml = []                              # nw: M_l, in touch order
+                             for e in U.tolist():
+-                                q[3] += 1; q[4] += e not in c; touch(c, e, CL[l])
++                                q[3] += 1; q[4] += e not in c
++                                if mn and e not in c: Ml.append(e)
++                                touch(c, e, CL[l])
+                             res = np.fromiter(c.keys(), np.int64, len(c))
+                         for j, p in enumerate(range(A, fm + 1)):
+                             if k0[j] < 10:
+@@ -182,6 +210,18 @@
+                                 if t3 and thr is not None and k0[j] == ks:   # a sure row of this check (never the
+                                     keep[p, l, :ks] = False                 # live bonus row: its cf is -1); its top-ks
+                                     # ranks go to the t3 gate (harness t3k = ks; ks 2 = every arm before Wed 04:0x)
++                        if mn and Ml:                            # NEVER-WAIT 2.3: late = keep AND expert in M_l, realized rows, every rank
++                            Mx = set(Ml) - set(ids[rows, l, 0].tolist()) if nwv == "r1" else set(Ml)   # r1: rank-0 experts wait
++                            Ma = np.fromiter(Mx, np.int64, len(Mx)); w = nws.setdefault(dom, [0, 0, 0, 0.0, 0, 0])
++                            for j, p in enumerate(range(A, fm + 1)):
++                                if not len(Ma) or (nwv == "s" and cfs[j] < 0.9): continue   # s: rows whose draft cf >= 0.9 only
++                                lt = keep[p, l] & np.isin(ids[p, l], Ma)
++                                if not lt.any(): continue
++                                w[0] += int(lt[:2].sum()); w[1 if k0[j] < 10 else 2] += int(lt[2:].sum())
++                                w[3] += float(RANK_W[lt].sum()); hit[p] = True
++                                if nwd and l >= 48 - nwd:        # the tail: a late rank 0 stays in place, the rest is dropped
++                                    w[4] += int(lt[0]); w[5] += int(lt[1:].sum()); keep[p, l, 1:] &= ~lt[1:]
++                                else: late[p, l] = lt
+                         if qom:                                  # tiles: distinct kept experts of the block, every row
+                             Us, rs = set(U.tolist()), set(res.tolist()); kset = set()   # (stand-ins too), as the audit
+                             for j, r in enumerate(rows):
+@@ -197,7 +237,11 @@
+                                         if e in c and (not sj or e in Us): c.move_to_end(e)
+                         d[2] += int(keep[A:fm + 1, l].sum()); d[3] += fm + 1 - A
+                     if qom: tls.setdefault(dom, [0, 0])[1] += min(k, fm - A) + 1   # kept tokens of this segment
+-            np.savez_compressed(os.path.join(od, nm), keep=keep)
++            if mn:
++                nwr[dom] = nwr.get(dom, 0) + int(hit.sum())
++                assert not (late & ~keep).any() and not late[:base[nm]["a"]].any() and (nwd == 0 or not late[:, 48 - nwd:].any()), nm
++                np.savez_compressed(os.path.join(od, nm), keep=keep, late=late)
++            else: np.savez_compressed(os.path.join(od, nm), keep=keep)
+     for dom, (u, ux, kp, rl) in st.items():
+         print(f"{arm} {dom}: union x{u / ux:.3f} per check, experts kept per realized row-layer {kp / max(rl, 1):.2f} of 10",
+               flush=True)
+@@ -208,6 +252,18 @@
+             print(f"  qom {dom} (pool {cpool or os.environ.get('QOM_C', 'm')}): sure-row rank 2-9 pairs {n}: kept as union members "
+                   f"{100 * mem / max(n, 1):.1f} %, + resident {100 * res / max(n, 1):.1f} % = {100 * (mem + res) / max(n, 1):.1f} %; "
+                   f"load miss rate {100 * ms / max(ld, 1):.1f} % of {ld} loads", flush=True)
++        if mn:
++            w = nws.get(dom, [0, 0, 0, 0.0, 0, 0]); rr = rl / 48; kt = tls[dom][1]
++            S = dict(arm=arm, dom=dom, pool=cpool or os.environ.get("QOM_C", "m"), lateness=nwd, variant=nwv, realized_rows=int(rr), kept_tokens=int(kt),
++                     misses_per_kept=qs[dom][4] / max(kt, 1), late_per_row=(w[0] + w[1] + w[2]) / max(rr, 1), late_top2_per_row=w[0] / max(rr, 1),
++                     late_members_per_row=w[1] / max(rr, 1), late_undrafted_tails_per_row=w[2] / max(rr, 1), late_mass_pct=100 * w[3] / max(rl, 1),
++                     rows_with_late_pct=100 * nwr.get(dom, 0) / max(rr, 1), tail_rank0_in_place=w[4], tail_dropped=w[5])
++            json.dump(S, open(os.path.join(out_dir, f"{arm}.{dom}.stats.json"), "w"), indent=1)
++            print(f"  nw {arm} {dom}: demand misses per kept token {S['misses_per_kept']:.2f}; late terms per realized row {S['late_per_row']:.2f} "
++                  f"(top-2 {S['late_top2_per_row']:.2f} / members {S['late_members_per_row']:.2f} / undrafted tails {S['late_undrafted_tails_per_row']:.2f}); "
++                  f"late MoE mass per realized row-layer {S['late_mass_pct']:.2f} %; realized rows with a late term {S['rows_with_late_pct']:.0f} % of "
++                  f"{S['realized_rows']}; tail (layers >= {48 - nwd}): {w[4]} late rank-0 terms in place, {w[5]} late terms dropped "
++                  f"(all counted before the tail rule)", flush=True)
+     if arm.startswith("q1u_") and not live:                 # self-check against Breakthrough's own masks
+         ref = os.path.join(OUT, "q1u_cf0" + str(thr)[2:])
+         bad = sum(not np.array_equal(np.load(os.path.join(od, f))["keep"], np.load(os.path.join(ref, f))["keep"])

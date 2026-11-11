@@ -1,0 +1,28 @@
+Absolute tok/s on the code sets (replay), by engine (fixed ms + ms per row) and rule. "in-span 1.0" = rows inside comments / docstrings cost 1.0 ms.
+
+=== HumanEval+ fresh 12
+  rule                                                              today 62 + 2.8   half way 45 + 2.2      floor 30 + 1.5      floor 25 + 1.3   floor 30+1.5, in-span 1.0   floor 25+1.3, in-span 1.0
+  today's rule (exact rows, 0.3 cut)                                           110                 147                 218                 258                         218                         258    kept 10.4
+  docstring rows all kept, 64 rows (COPYRUN where verbatim)                    133                 178                 264                 311                         276                         321    kept 14.0
+  INERT 16                                                                     130                 173                 257                 303                         261                         307    kept 13.1
+  INERT 32                                                                     148                 197                 292                 344                         307                         357    kept 16.5
+  INERT, one pass per span (<= 128 rows)                                       162                 214                 318                 374                         344                         395    kept 19.4
+  guarded INERT 32 (no long comment blocks)                                    131                 174                 259                 306                         269                         313    kept 13.5
+
+=== HumanEval+ all 24
+  rule                                                              today 62 + 2.8   half way 45 + 2.2      floor 30 + 1.5      floor 25 + 1.3   floor 30+1.5, in-span 1.0   floor 25+1.3, in-span 1.0
+  today's rule (exact rows, 0.3 cut)                                           100                 134                 200                 236                         200                         236    kept 9.2
+  docstring rows all kept, 64 rows (COPYRUN where verbatim)                    124                 166                 246                 291                         258                         301    kept 12.6
+  INERT 16                                                                     130                 173                 257                 304                         263                         308    kept 13.1
+  INERT 32                                                                     153                 203                 301                 355                         320                         370    kept 17.3
+  INERT, one pass per span (<= 128 rows)                                       170                 224                 333                 391                         365                         417    kept 21.1
+  guarded INERT 32 (no long comment blocks)                                    126                 168                 250                 296                         261                         304    kept 12.8
+
+=== MBPP 100
+  rule                                                              today 62 + 2.8   half way 45 + 2.2      floor 30 + 1.5      floor 25 + 1.3   floor 30+1.5, in-span 1.0   floor 25+1.3, in-span 1.0
+  today's rule (exact rows, 0.3 cut)                                            67                  91                 136                 161                         136                         161    kept 5.6
+  docstring rows all kept, 64 rows (COPYRUN where verbatim)                     95                 127                 189                 224                         195                         229    kept 8.7
+  INERT 16                                                                     111                 149                 222                 262                         231                         270    kept 10.7
+  INERT 32                                                                     126                 168                 249                 294                         264                         306    kept 13.0
+  INERT, one pass per span (<= 128 rows)                                       135                 179                 266                 314                         286                         330    kept 14.6
+  guarded INERT 32 (no long comment blocks)                                    104                 140                 208                 246                         216                         253    kept 9.9

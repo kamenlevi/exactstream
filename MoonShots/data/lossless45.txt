@@ -1,0 +1,18 @@
+== M-27 LOSSLESS45 (Tue 17:05): records3, 4 experts x 48 layers (192 records, 0.56 GB read)
+  3-bit codes: H0 2.7239 b (per layer 2.7005-2.7305), Huffman 2.7645 b, rANS ~2.7400 b, of 3
+  LSB plane: P(1) 0.4988, entropy 1.00000 b of 1
+  scales / biases 16-bit entropy: s3 7.92, b3 8.13, b 8.07 of 16 b (fixed-width lossless 11)
+  shared base + delta (288 expert pairs, same layer): H0 - H(e | e') mean -0.0003 b (max +0.0134); H(e - e' mod 8) - H0 mean +0.229 b (> 0: deltas cost more than the codes)
+  per layer (H0 codes, Huffman, s3 / b3 / b entropy): L0 2.700/2.743/8.2/8.4/8.4; L6 2.723/2.763/7.9/8.1/8.1; L12 2.727/2.767/7.9/8.1/8.0; L18 2.727/2.767/7.9/8.1/8.0; L24 2.723/2.764/7.9/8.1/8.1; L30 2.722/2.762/7.9/8.1/8.1; L36 2.725/2.766/7.8/8.1/8.0; L42 2.722/2.763/7.9/8.1/8.1
+  format: MSB / LSB part bytes; SSD MB per kept token at C 256 (code / IFEval / multi) and the saving
+    today                                  2162688 /  770048 |  47.0 /  31.1 /  30.7 |   0.0 /   0.0 /   0.0 %
+    fixed-width scales (11 b)              2064384 /  720896 |  44.7 /  29.5 /  29.2 |   5.0 /   5.0 /   5.0 %
+    entropy floor (rANS + coded scales)    1851392 /  704512 |  40.9 /  27.1 /  26.7 |  13.1 /  12.8 /  13.1 %
+  code, per check: 52.0 MB fewer SSD bytes = 4.33 ms at 12 GB/s; GPU rANS decode of the missed codes 5.20 ms at 46 GB/s -> net -0.87 ms per check if the decode sits on the GPU's path
+  -> bytes: 13.1 % saved on code -> PASS; time: no net gain (decode >= SSD time saved)  (25 s)
+== EXPLORATORY (not pre-registered; Tue 17:1x): the fixed-width form held packed in RAM too (11-bit s3 / b3 / b inside the
+  dequant kernels: no separate decode), so the same pool RAM holds ~4.6 % more parts; joint fit (M-25b's machinery, cap45 +
+  capture, held-out by window) with part sizes 2,064,384 / 720,896 B at today's RAM. SSD MB per kept token vs M-17's sizes:
+  C 256 code 46.31 -> 38.16 (-17.6 %; -16.4 % vs the joint fit at today's bytes), IFEval -16.1 %, multi -15.8 %;
+  C 320 code 22.85 -> 17.26 (-24.5 %), IFEval -16.3 %, multi -15.4 %. Exact (W24-sp: all 221,184 scale pieces round-trip at
+  11 bits). Implied C50 steady (SSD fully exposed, code ratio on all six prompts): 63.6 -> ~66.9 tok/s (+5 %).

@@ -1,0 +1,17 @@
+23:27:03 convcache: installed (budget 4.00 GB, grid 8192, check on, SWIN 2048)
+23:27:04 convcache: miss N 4302 c 0 (none, no stored prefix) prefilled 4302, restore 0.0 ms, prefill 564.9 ms; entries 1, 0.054 GB; edges [1024, 4096]
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+{"case": "A turn 1", "N": 4302, "mtp": false, "hit": false, "c": 0, "src": "none", "prefilled": 4302, "miss": "no stored prefix", "check": "", "vs_cold": {"last": true, "cap": true, "ctx": true, "dwin": true}, "PASS": true, "entries": 1, "gb": 0.054, "edges": [1024, 4096], "s": 1.2}
+23:27:05 convcache: hit N 4496 c 4096 (live) prefilled 400, restore 0.98 ms, prefill 59.0 ms; entries 1, 0.054 GB; edges [1024, 4096]; check PASS
+{"case": "A turn 2", "N": 4496, "mtp": false, "hit": true, "c": 4096, "src": "live", "prefilled": 400, "miss": "", "check": "PASS", "vs_cold": {"last": true, "cap": true, "ctx": true, "dwin": true}, "PASS": true, "entries": 1, "gb": 0.054, "edges": [1024, 4096], "s": 1.3}
+23:27:07 convcache: hit N 4300 c 1024 (copy) prefilled 3276, restore 1.36 ms, prefill 489.8 ms; entries 2, 0.108 GB; edges [1024, 4096]; check PASS
+{"case": "B turn 1 (new conversation, same system + tools)", "N": 4300, "mtp": false, "hit": true, "c": 1024, "src": "copy", "prefilled": 3276, "miss": "", "check": "PASS", "vs_cold": {"last": true, "cap": true, "ctx": true, "dwin": true}, "PASS": true, "entries": 2, "gb": 0.108, "edges": [1024, 4096], "s": 1.7}
+23:27:08 convcache: miss N 4404 c 0 (none, no stored prefix) prefilled 4404, restore 0.0 ms, prefill 542.0 ms; entries 3, 0.163 GB; edges [1024, 4096]
+{"case": "B turn 2 (chat path: MTP head)", "N": 4404, "mtp": true, "hit": false, "c": 0, "src": "none", "prefilled": 4404, "miss": "no stored prefix", "check": "", "vs_cold": {"last": true, "cap": true, "mtp": true}, "PASS": true, "entries": 3, "gb": 0.163, "edges": [1024, 4096], "s": 1.2}
+23:27:09 convcache: hit N 4627 c 4096 (live) prefilled 531, restore 0.97 ms, prefill 81.6 ms; entries 3, 0.177 GB; edges [1024, 4096]; check PASS
+{"case": "B turn 3 (chat path: MTP head)", "N": 4627, "mtp": true, "hit": true, "c": 4096, "src": "live", "prefilled": 531, "miss": "", "check": "PASS", "vs_cold": {"last": true, "cap": true, "mtp": true}, "PASS": true, "entries": 3, "gb": 0.177, "edges": [1024, 4096], "s": 1.5}
+23:27:10 convcache: miss N 18 c 0 (none, one chunk) prefilled 18, restore 0.0 ms, prefill 6.4 ms; entries 3, 0.179 GB; edges []
+{"case": "side request (title)", "N": 18, "mtp": false, "hit": false, "c": 0, "src": "none", "prefilled": 18, "miss": "one chunk", "check": "", "vs_cold": {"last": true, "cap": true, "ctx": true, "dwin": true}, "PASS": true, "entries": 3, "gb": 0.179, "edges": [], "s": 0.1}
+23:27:11 convcache: hit N 4801 c 4096 (live) prefilled 705, restore 0.87 ms, prefill 96.8 ms; entries 3, 0.18 GB; edges [1024, 4096]; check PASS
+{"case": "A turn 3 (back to A)", "N": 4801, "mtp": false, "hit": true, "c": 4096, "src": "live", "prefilled": 705, "miss": "", "check": "PASS", "vs_cold": {"last": true, "cap": true, "ctx": true, "dwin": true}, "PASS": true, "entries": 3, "gb": 0.18, "edges": [1024, 4096], "s": 1.5}
+PASS hits [(False, 0), (True, 4096), (True, 1024), (False, 0), (True, 4096), (False, 0), (True, 4096)] expected [(False, 0), (True, 4096), (True, 1024), (False, 0), (True, 4096), (False, 0), (True, 4096)] peak 4.584 GB, wall 8.5 s

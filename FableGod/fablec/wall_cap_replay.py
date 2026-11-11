@@ -1,0 +1,128 @@
+"""AUDIT 1105, test 3a (Fable C, Thu 5 Nov 2026, 07:1x; CPU only, one core, ~minutes). Bytes AND tiles per kept token on the 36
+decision-map windows at the 45 GB (laysz45_256 per-layer MSB sizes) and 24 GB (147) pools, live-cut blocks, the ledger's
+conventions as in bytes10_replay.py (plain LRU per layer, prompt rows warm the pool, one session per domain in walk order,
+wrong-draft stand-ins p + 97, kept = min(k, fm - A) + 1; the bonus row gated by the next segment's first draft cf = the
+QOM-BQ / DRAFT17 form). The LSB sidecar is not replayed (cloud3's convention, REPORT_P3 section 8).
+Rules (k0 = the ranks a row LOADS; keep = the ranks it COMPUTES; 'members' = experts in the block's loads at that layer):
+  EXACT      every row loads and keeps 10.
+  QOM0BQ     today's 45 GB FAST preset (qom_keep.py: THR 0, KS 2): drafted rows load ranks 0-1; keep ranks 0-1 + any rank 2-9
+             that is a member or resident after the block's loads; rows without a draft load and keep 10.
+  B2D        cloud3's strict three-band table: k0 = 2 at cf >= 0.99, 5 on [0.9, 0.99), 8 on every other drafted row, 10 with no
+             draft; keep = ranks < k0 + members; no resident keep.
+  B2D-TWIN   the same k0 with the resident keep (cloud3 section 20's twin).
+  SPLIT99    this audit's split form: loads as QOM0BQ (every drafted row ranks 0-1); keep: rows with cf >= 0.99 strict (ranks
+             0-1 + members), every other drafted row as QOM (ranks 0-1 + members + residents), no-draft rows 10.
+  SPLIT90    as SPLIT99 with the strict band at cf >= 0.9.
+Misses are counted before the block (loads not resident), the engine-reachable convention. LRU order: the loads are inserted
+first (evicting LRU victims), then every kept expert is touched row by row in rank order. Tiles = sum over layers of the
+distinct kept experts per block, per kept token. Output: audit_split_replay.out / .json."""
+import json, os, sys, time
+from collections import OrderedDict
+import numpy as np
+sys.path.insert(0, os.path.expanduser("~/FableGod/fablec"))
+from bytes10_replay import windows, live_blocks, POOLS, MR  # noqa: E402
+
+RULES = ["EXACT", "QOM0BQ", "SPLIT99", "SPLIT90", "SPLIT99+K8", "SPLIT99+K6", "SPLIT99+K4", "SPLIT99+M90", "SPLIT99+R05", "SPLIT99+K6+R05", "SPLIT99+K6+M90", "QOM+K8", "QOM+K6", "QOM+K4"]
+POOL_LINES = ["45"]
+
+
+def k0_of(rule, c):
+    if rule == "EXACT" or c < 0: return 10
+    if rule in ("QOM0BQ", "TOP2ALL") or rule.startswith("SPLIT") or rule.startswith("QOM+"): return 2
+    if c >= 0.99: return 2
+    if c >= 0.9: return 5
+    return 8
+
+
+def zero_row(rule, c, l):
+    """True = the row computes NO routed expert at this layer (the shared expert only): Z999 = cf >= 0.999 in layers 8-35
+    (the measured arm gate_top0_cf0999_L08_35); Z99 = cf >= 0.99 in layers 12-35."""
+    if "+Z999" in rule: return c >= 0.999 and 8 <= l <= 35
+    if "+Z99" in rule: return c >= 0.99 and 12 <= l <= 35
+    return False
+
+
+def mid_strict(rule, c, l):
+    return "+M90" in rule and c >= 0.9 and 12 <= l <= 35
+
+
+def strict_row(rule, c, reach=1.0):
+    """True = no resident keep on this row. '+Rxx' adds REACH-CUT: a drafted row whose reach (the product of the earlier
+    drafts' cf in the block) is below tau is strict too."""
+    if rule in ("EXACT", "QOM0BQ", "B2D-TWIN"): return False
+    if rule in ("B2D", "TOP2ALL"): return True
+    parts = rule.split("+"); base = parts[0]; rc = [p for p in parts[1:] if p.startswith("R")]
+    if base == "QOM": return False
+    thr = {"SPLIT99": 0.99, "SPLIT95": 0.95, "SPLIT90": 0.9}[base]
+    if c >= thr: return True
+    return bool(rc) and c >= 0 and reach < float("0." + rc[0][2:])
+
+
+def cap_of(rule):
+    for p_ in rule.split("+"):
+        if p_.startswith("K") and p_[1:].isdigit(): return int(p_[1:])
+    return 10
+
+
+def run(ws, rule, Cm):
+    global CAP
+    CAP = cap_of(rule)
+    pools = [OrderedDict() for _ in range(48)]
+    miss = tiles = 0; kept = 0; nblk = 0
+    for w in ws:
+        ids = w["ids"]; a = w["a"]
+        for l in range(48):                                   # warm: the prompt rows' experts in order
+            c = pools[l]
+            for e in ids[:a, l].ravel().tolist():
+                if e in c: c.move_to_end(e)
+                else:
+                    c[e] = 1
+                    if len(c) > Cm[l]: c.popitem(last=False)
+        for rows, cfs, kp in live_blocks(w, bonus="next"):
+            cfs = list(cfs)
+            if cfs[-1] < 0: cfs[-1] = 1.0          # 'ball': DRAFT17's last row is sure; with no next draft it carries cf 1.0 (keepset README)
+            E = ids[rows]; R = len(rows); kept += kp; nblk += 1
+            k0 = [k0_of(rule, c) for c in cfs]; rch = []; acc = 1.0
+            for c in cfs:
+                rch.append(acc); acc *= (c if c >= 0 else 1.0)
+            st = [strict_row(rule, c, q) for c, q in zip(cfs, rch)]
+            for l in range(48):
+                c = pools[l]
+                zr = [zero_row(rule, cc, l) for cc in cfs]; ms = [mid_strict(rule, cc, l) for cc in cfs]
+                loads = set()
+                for r in range(R):
+                    if not zr[r]: loads.update(E[r, l, :k0[r]].tolist())
+                for e in loads:                               # demand reads; misses before the block
+                    if e in c: c.move_to_end(e)
+                    else:
+                        miss += 1; c[e] = 1
+                        if len(c) > Cm[l]: c.popitem(last=False)
+                keepset = set()
+                for r in range(R):
+                    if zr[r]: continue
+                    row = E[r, l].tolist(); kk = k0[r]
+                    keepset.update(row[:kk])
+                    for q_, e in enumerate(row[kk:], start=kk):
+                        if e in loads or (not (st[r] or ms[r]) and q_ < CAP and e in c): keepset.add(e)
+                for e in keepset:
+                    if e in c: c.move_to_end(e)
+                tiles += len(keepset)
+    return dict(mb=miss * MR / 1e6 / max(kept, 1), tiles=tiles / max(kept, 1), kept=kept, blocks=nblk)
+
+
+W = windows(); res = {}; lines = []
+t0 = time.time()
+lines.append("| domain | pool | rule | SSD MB per kept token | tiles per kept token | tiles vs EXACT | tiles vs QOM0BQ | MB vs QOM0BQ |")
+lines.append("|---|---|---|---|---|---|---|---|")
+for pool in POOL_LINES:
+    Cm = POOLS[pool][0]
+    for dom in ("code", "ifeval", "multi"):
+        for rule in RULES:
+            r = run(W[dom], rule, Cm); res[f"{dom}|{pool}|{rule}"] = r
+            ex = res[f"{dom}|{pool}|EXACT"]; q = res.get(f"{dom}|{pool}|QOM0BQ", r)
+            lines.append(f"| {dom} | {pool} GB | {rule} | {r['mb']:.1f} | {r['tiles']:.0f} | x{r['tiles'] / ex['tiles']:.3f} | x{r['tiles'] / q['tiles']:.3f} | x{r['mb'] / max(q['mb'], 1e-9):.2f} |")
+            print(lines[-1], flush=True)
+lines.append(f"({time.time() - t0:.0f} s; blocks per domain " + ", ".join(f"{d} {res[f'{d}|45|EXACT']['blocks']} / kept {res[f'{d}|45|EXACT']['kept']}" for d in ("code", "ifeval", "multi")) + ")")
+out = "\n".join(lines); print(out)
+D = os.path.expanduser("~/FableGod/fablec")
+open(os.path.join(D, "wall_cap_replay.out"), "w").write(out + "\n"); json.dump(res, open(os.path.join(D, "wall_cap_replay.json"), "w"), indent=1)

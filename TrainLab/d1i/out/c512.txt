@@ -1,0 +1,13 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=31.5 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.00 GB pools
+b12: hc (196, 1336.9344, 710.2464)
+b12: C_m=51 C_l=20 (10 %), HC 8, late rank 1 off, late MSB-3 ranks none, pools 6.00 GB, active 9.28 GB
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (321, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (322, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (266, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (386, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[long] d1i cold chunk 512 attn/moe -/- gpu 0 nologits 1 group 64 warm 0: prefill 2617 tokens in 27.39 s (96 tok/s); waited misses/token 0-16 106.4 16-32 79.0 32-64 73.4; decode 19.8 tok/s, reads/token 83.0; peak active 9.5 GB, cache 0.1 GB, max RSS 9.9 GB, PEAK FOOTPRINT 11.3 GB; sha ea978d1ca2 | pf {'grouped': 250, 'single': 38, 'fallback': 18, 'groups': 1307, 't_read': 17.82, 'warm_base': 0, 'warm_side': 0, 't_warm': 0.0, 'act_in_gb': 9.96, 'peak_pre_gb': 10.4, 'peak_moe_gb': 10.78} | 'Here is a section-by-section summary of the provided Python '
+[long] d1i repeat chunk 512 attn/moe -/- gpu 0 nologits 1 group 64 warm 0: prefill 2617 tokens in 27.36 s (96 tok/s); waited misses/token 0-16 78.0 16-32 61.8 32-64 62.4; decode 21.9 tok/s, reads/token 66.1; peak active 9.5 GB, cache 0.1 GB, max RSS 11.0 GB, PEAK FOOTPRINT 11.3 GB; sha c2c30174c7 | pf {'grouped': 250, 'single': 38, 'fallback': 18, 'groups': 1307, 't_read': 17.77, 'warm_base': 0, 'warm_side': 0, 't_warm': 0.0, 'act_in_gb': 9.96, 'peak_pre_gb': 10.4, 'peak_moe_gb': 10.78} | 'This Python script is designed to evaluate and compare diffe'
