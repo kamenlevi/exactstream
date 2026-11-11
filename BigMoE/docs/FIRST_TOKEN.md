@@ -75,3 +75,6 @@ files were deleted in the 11-09 cleanup, so no new Strata timing can run without
 - **P2 at 24 GB: EvalSuite's same-scores gate PASSED (Wed 19:51, EvalSuite 8adeb09).** IFBench -1.33 pt (p 0.80), GPQA
   Diamond's 67 short prompts -2.99 pt (p 0.63); 5 longer-prompt controls token-identical. The clean ABBA timing against
   Strata's 1.46 s runs tonight (docs/PREREG_W24T_2026-11-11.md).
+- **W24T, the clean ABBA timing at 24 GB (Thu 00:31, quiet lock): P2 median 1.12 s (0.82-1.91) vs the card's 3.11 s.**
+  That is 23 % under Strata's 1.46 s on the same 12 prompts. P2 is gated PASS (EvalSuite 8adeb09), so it is a candidate
+  for package 1.2, on Kamen's word.

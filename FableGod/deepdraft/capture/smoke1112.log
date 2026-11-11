@@ -1,0 +1,17 @@
+[dlog 00:51:29] plan: 35451 prompts (code 35451), Magicoder Python 35451 after the eval-overlap filter; target 300 answer tokens per language, cap 384 per answer, 2.0 GB / free >= 115.0 GB; -> /Users/kamen/FableGod/deepdraft/capture/smoke1112
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=23.4 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=132 C_l=112 per layer, 16.95 GB pools
+[dlog 00:51:30] E2: smallest base pool C_m 132 < 16 rows x 10: rows -> 13
+[dlog 00:51:30] E2: C 128, base pool C_m >= 132, rows per check 13, BIGMOE_MAXK 160
+[dlog 00:51:30] loaded in 1 s, 20.9 GB active; C 128; preset 45 (REF2-T 4433333333/3c, C_l 112, MAXK 160, build_next, L1-20 + cut 0.3; D-23's)
+[dlog 00:51:30] resume: 0 prompts on disk, answer tokens {'code': 0}, 0.00 GB
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+[dlog 00:51:36] warm-up (discarded): gsm8k/708 67 tokens, 21.7 tok/s, logged file OK (3.1 MB, on-path 1.0000) 
+[dlog 00:51:36] first prompt as tokenized: '<|im_start|>user\nYou are tasked with creating a Python program to automate the process of opening a web browser, navigating to a specific webpage, entering a team number, and clicking a button. Your program should utilize the Selenium library to achieve this automation.\n\nYour program should perform the following steps:\n1. Import the necessary modules from the Selenium library to interact with a web browser.\n2. Define a function called `open_browser` that takes no arguments.\n3. Inside the `open_browser` function, set the variable `teamnumber` to 3751 and `PATH` to the absolute path of the Chrome WebDriver executable file.\n4. Use the Chrome WebDriver to open a new browser window.\n5. Navigate the browser to the URL "http://cansat.info/plot.html".\n6. Locate the input field with the id "team" and enter the value of `teamnumber` into it.\n7. Find and click the button located at the XPath "/html/body/p[8]/button".\n8. After clicking the button, the program should wait for 10,000 milliseconds (10 seconds) before terminating.\n\nYour program should automate the process described above and execute it when the `open_browser` function is called.<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n'
+[dlog 00:51:49] dd/mc_3030 [mc] P 271, 233 tokens, 29.9 tok/s, kept 6.13/check, on-path 1.0000, 13.0 MB; totals {'code': 233}, 0.01 GB
+[dlog 00:51:57] dd/mc_1903 [mc] P 183, 131 tokens, 39.0 tok/s, kept 11.00/check, on-path 1.0000, 8.1 MB; totals {'code': 364}, 0.02 GB
+[dlog 00:51:57] every language has >= 300 answer tokens: done
+[dlog 00:51:57] session: 2 prompts, 364 answer tokens in 11 s of decode (32.6 tok/s); totals {'code': 364}, 0.02 GB on disk; footprint now 23.6 GB, peak 24.9 GB; 28 s

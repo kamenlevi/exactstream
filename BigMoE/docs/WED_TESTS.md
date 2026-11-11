@@ -1697,3 +1697,10 @@ prompts above 256 tokens (258-269).
 
 **Next.** One clean ABBA timing at 24 GB under a quiet lock tonight (docs/PREREG_W24T_2026-11-11.md). If it holds near
 1.1 s, P2 at 24 GB goes into the next package (1.2), on Kamen's word.
+
+## Thu 12 Nov 00:31-00:37: W24T = the clean 24 GB first-token timing (PREREG 23af00c): P2 median 1.12 s vs the card's 3.11 s, under Strata's 1.46 s (data/w24/w24t_report.txt)
+ABBA under one quiet lock (NO-SWAP 34 GB), the 12 IFEval prompts, CAP 256. The pooled card is 3.11 s median (mean 3.21,
+range 2.56-4.41). The pooled P2 (13 rows, plain) is **1.12 s median (mean 1.25, range 0.82-1.91), 0.36x the card**.
+Strata on the same prompts: 1.46 s (D) and 1.65 s (B). Validity: the controls are identical (12/12, 634/634), P2 is
+deterministic (12/12, 639/639), and P2 engaged on every prompt. Decode 31.3-31.4 (P2) vs 30.3-31.2 tok/s (card). Peak
+23.00 vs 23.70 GB. The full write-up waits for the Thu 17:00 reset.
