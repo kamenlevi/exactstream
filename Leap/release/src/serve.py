@@ -1,37 +1,54 @@
 #!/usr/bin/env python3
-"""serve.py: the engine as a local OpenAI- and Anthropic-compatible server (127.0.0.1 only).
+"""serve.py: the engine as a local OpenAI- and Anthropic-compatible server (127.0.0.1 only), for chat apps and coding agents.
 
   .venv/bin/python serve.py                          # the 32 GB chat config on http://127.0.0.1:8080
   .venv/bin/python serve.py --mem 45 --port 8081
+  tools/claude_code.sh [--mem 45|32|24]              # this server + Claude Code in one command (tools/codex_code.sh: Codex)
 
-  OpenAI clients:     base URL http://127.0.0.1:8080/v1, any API key, model "exactstream"
-                      (GET /v1/models, POST /v1/chat/completions, streaming as server-sent events)
-  Anthropic clients:  ANTHROPIC_BASE_URL=http://127.0.0.1:8080, any key (POST /v1/messages, streaming;
+  OpenAI clients:     base URL http://127.0.0.1:8080/v1, any API key, model "exactstream" (GET /v1/models,
+                      POST /v1/chat/completions with tools, POST /v1/responses for Codex; streaming as server-sent events)
+  Anthropic clients:  ANTHROPIC_BASE_URL=http://127.0.0.1:8080, any key (POST /v1/messages with tools, streaming;
                       POST /v1/messages/count_tokens)
+  Status:             GET /health, GET /stats (JSON), GET /statusline (one line; tools/statusline.sh shows it in Claude Code)
+  Only programs on this Mac: a request whose Host is not 127.0.0.1 / localhost / ::1, or that carries an Origin other than a
+  page on those, is refused (403), so a web page open in a browser cannot use the server (cross-site requests, DNS rebinding).
 
 The engine loads once and runs every request through the same decode loop as run.py (engine/loop/r57_screen_<snapshot>.py),
-unchanged: serve.py hands the loop one prompt item per request (the model's chat template over the request's messages,
-non-thinking, greedy) and streams the tokens each check commits (the session-vocabulary hook the chat and lossy configs run;
-the exact configs send the answer when it is done). One request runs at a time; the others wait in a queue. Text only:
-tool definitions and tool calls are not mapped yet, and every request prefills its whole prompt (no cache across
-requests). The engine's own log goes to out/<tag>.log."""
-import argparse, importlib.abc, importlib.util, json, os, queue, runpy, signal, sys, threading, time, uuid
+unchanged: serve.py hands the loop one prompt item per request (the model's chat template over the request's messages and
+tools, non-thinking, greedy) and streams the tokens each check commits (the session-vocabulary hook the chat and lossy
+configs run; the exact configs send the answer when it is done). One request runs at a time; the others wait in a queue,
+the main conversation first. agentio.py maps the tool formats (Anthropic Messages, OpenAI Responses and chat completions)
+to and from the model's chat template.
+
+Conversation cache (engine/loop/convcache.py; on at --mem 45 and 32, off at 24): a request that continues an earlier one
+restores the deepest stored state of that conversation and prefills only its new tokens. It was checked bit for bit
+against a cold prefill on every cache hit at 32 and at 45 GB (12 of 12 hits each, branches on). At 24 GB it is unchecked,
+and the P2 path's short prompts bypass it; CONV_CACHE=1 turns it on there at your own risk. CONV_CACHE=0 turns it off;
+CONV_CACHE_GB sets its memory budget (default 2.5 GB, the checked runs' setting). With the cache on, every request drafts
+with DFlash2 (an MTP-head turn could restore only from an MTP-head turn's entry).
+EXACTSTREAM_LOG_REQUESTS=<file>: each request's body, rendered ids and result, one JSON line each. The engine's own log
+goes to out/<tag>.log."""
+import argparse, importlib.abc, importlib.util, itertools, json, os, queue, runpy, signal, sys, threading, time, uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ROOT)
 import run as R                                            # read_config, tokenizer, drafter_cached, DRAFTER, KIND_SET
+import agentio as AI                                       # tool calls: the three wire formats <-> the chat template
 
 NMAX = 99999                                               # requests per server run (the loop's prompt list is fixed at start)
 MODEL = "exactstream"
 
 
 class Job:
-    def __init__(self, ids, cap, user=""):
+    def __init__(self, ids, cap, user="", meta=None):
         self.ids, self.cap, self.user = ids, cap, user   # user: the last user message (the loop's type rule reads it)
+        self.meta = meta or {}                             # agentio.meta: sys_end, side, lane, conv, prefix_key
         self.q = queue.Queue()                             # ("text", piece) ... then ("end", stats) or ("error", message)
         self.stop = False                                  # the client went away: end at the next check
         self.out, self.shown, self.t0, self.t1 = [], "", time.perf_counter(), None
+        self.n1 = 0                                        # tokens in the first commit (the live tok/s counts after it)
+        self.why = "client left"                           # why stop was set: the client left, or a stop sequence
 
 
 def text_of(content):
@@ -72,6 +89,7 @@ def main():
                     help="the most any request may generate (default 65536; a request's own max_tokens can ask for less)")
     ap.add_argument("--drafter", choices=("auto", "dfl", "mtp"), help="dfl: every request takes the engine's code path (DFlash2), mtp: its chat path (the MTP head), auto: the engine's type rule (default; --kind code: dfl)")
     ap.add_argument("--kind", default="chat", choices=tuple(R.KIND_SET))
+    ap.add_argument("--max-context", type=int, default=131072, help="the longest prompt accepted (tokens); longer ones get the API's 'prompt is too long' error")
     ap.add_argument("--no-warmup", action="store_true")
     ap.add_argument("--_screen", help=argparse.SUPPRESS)  # tests: a stand-in loop instead of the engine's
     a = ap.parse_args()
@@ -83,7 +101,7 @@ def main():
         sys.exit("serve.py: engine/models/bare is not linked to a converted store (install.sh --store <dir>)")
     if R.drafter_cached() is None:
         sys.exit(f"serve.py: the block drafter's base {R.DRAFTER[0]} @ {R.DRAFTER[1][:7]} is not in the Hugging Face cache")
-    snap = R.snapshot(cpath)                               # the config's decode loop (24 GB: w24), as in run.py
+    snap = R.snapshot(cpath)                               # the config's decode loop (24 GB: w24p2), as in run.py
     screen = a._screen or os.path.join(ROOT, "engine", "loop", f"r57_screen_{snap}.py")
     out = os.path.join(ROOT, "out")
     os.makedirs(out, exist_ok=True)
@@ -97,8 +115,16 @@ def main():
     env.update(cenv)
     env["BIGMOE_EXT_BUILD"] = "build"
     env["BIGMOE_IDLE_MS"] = os.environ.get("BIGMOE_IDLE_MS", "50")  # idle: the ext's loader naps (200 us) after 50 ms without
-    os.environ.update(env)                                          # work instead of spinning a core; timing only (exact).
-                                                                    # BIGMOE_IDLE_MS=0 in the shell keeps the spin.
+                                                           # work instead of spinning a core; timing only (exact; Leap 11-11:
+                                                           # idle CPU 100 -> 1.5 %). BIGMOE_IDLE_MS=0 in the shell keeps the spin.
+    if a.mem in ("32", "24"):                              # PF-A, as chat.py: layer-major prefill of long prompts (agents send
+        env["R57_PFLM"] = os.environ.get("R57_PFLM", "1")   # 10K+ tokens); the 45 GB path has its own prefill (PF-D)
+    os.environ.update(env)
+    cache_on = os.environ.get("CONV_CACHE", "0" if a.mem == "24" else "1") != "0"   # BigMoE's conversation cache
+    # (engine/loop/convcache.py): a new turn prefills only its new tokens. Checked bitwise at 45 and 32 GB; at 24 GB it is
+    # off unless CONV_CACHE=1 (unchecked there, and the P2 path's prompts of <= 256 tokens bypass it)
+    os.environ.setdefault("CONV_CACHE_GB", {"24": "0.6", "32": "2.5", "45": "2.5"}[a.mem])   # 2.5 GB: the checked runs'
+    CCm = [None]                                           # the module once installed; False = off (not there / failed)
 
     term = os.fdopen(os.dup(1), "w", buffering=1)          # serve.py's own lines; the engine's prints go to the log
 
@@ -107,7 +133,11 @@ def main():
 
     say("Powered by MTPLX https://github.com/youssofal/mtplx")
     tok = R.tokenizer(store)
-    jobs, cur, state = queue.Queue(), [None], {"ready": False, "i": 0}
+    jobs, cur, state = queue.PriorityQueue(), [None], {"ready": False, "i": 0, "agent_t": 0.0}
+    lastby = {}                                            # lane -> the last finished request there (GET /stats, /statusline)
+    jseq, RANK = itertools.count(), {"main": 0, "sub": 1, "side": 2}   # one engine queue: the main conversation first
+    loglock = threading.Lock()
+    LOG_HEADERS = ("user-agent", "x-app", "anthropic-beta", "anthropic-version", "originator")
 
     def G():
         return sys.modules["__main__"].__dict__
@@ -129,19 +159,34 @@ def main():
             j.q.put(("text", text[len(j.shown):]))
         n = r.get("n", len(j.out))
         eos = bool(j.out) and tok.convert_ids_to_tokens(int(j.out[-1])) in ("<|im_end|>", "<|endoftext|>")
-        stats = dict(n=n, prompt=len(j.ids), tps=r.get("tps"), pfs=r.get("pfs"),
+        cc = CCm[0].last() if CCm[0] else {}
+        stats = dict(n=n, prompt=len(j.ids), tps=r.get("tps"), pfs=r.get("pfs"), cache=cc,
                      peak=(r["mem"][6] if r.get("mem") and len(r["mem"]) > 6 else None),
                      reason="stop" if eos else "length", cut=j.stop)
         j.q.put(("end", stats))
+        lane = j.meta.get("lane", "main")
+        lastby[lane] = dict(n=n, prompt=len(j.ids), tps=stats["tps"], think=(j.t1 - j.t0) if j.t1 is not None else None,
+                            cached=cc.get("c", 0) if cc.get("hit") else 0, lane=lane, t=time.time())
         say(f"done: {len(j.ids)} prompt tokens -> {n} tokens, whole decode {stats['tps'] or 0:.1f} tok/s, first token "
             f"{stats['pfs'] if stats['pfs'] is None else round(stats['pfs'], 2)} s, peak {stats['peak']} GB"
-            + (" (client left)" if j.stop else ""))
+            + (f" ({j.why})" if j.stop else "")
+            + (f"; cache {'hit' if cc.get('hit') else 'miss'} c {cc.get('c')} ({cc.get('src')}), prefilled {cc.get('prefilled')}, "
+               f"restore {cc.get('restore_ms')} ms" + (f", check {cc.get('check')}" if cc.get('check') is not None else "")
+               if cc else ""))
 
-    drafter = a.drafter or ("dfl" if a.kind == "code" else "auto")
+    drafter = a.drafter or ("dfl" if a.kind == "code" or cache_on else "auto")   # with the cache: DFlash2 throughout (an
+                                                           # MTP-head turn can restore only from an MTP-head turn's entry)
     forced = {"dfl": "code", "mtp": "chat"}.get(drafter)
 
     def next_item():
         finish()
+        if cache_on and CCm[0] is None:                    # once, before the first request's prefill
+            try:
+                import convcache
+                CCm[0] = convcache if convcache.install(G()) else False
+            except Exception as e:
+                CCm[0] = False
+                say(f"conversation cache off: {type(e).__name__}: {e}")
         g = G()
         g["HARD"] = 1e12                                   # no job budget in a server
         if forced and not getattr(next_item, "ruled", False):   # the loop's type rule: forced for serve.py's requests
@@ -151,21 +196,70 @@ def main():
         if not state["ready"]:
             state["ready"] = True
             say(f"ready on http://127.0.0.1:{a.port} (config {a.config}-{a.mem}, C {C})")
-        j = jobs.get()
+        while True:
+            _, _, j = jobs.get()
+            if not j.stop:
+                break
+            j.q.put(("end", dict(n=0, prompt=len(j.ids), tps=None, pfs=None, peak=None, reason="stop", cut=True)))   # left while waiting
         g["CAP"] = j.cap
         state["i"] += 1
         if state["i"] > NMAX:
             raise SystemExit(0)
         cur[0] = j
         j.t0 = time.perf_counter()
-        return [dict(key=keys[state["i"] - 1], set=s, prompt=j.user, user=j.user, prompt_ids=j.ids)]
+        if CCm[0]:
+            CCm[0].hint(sys_end=j.meta.get("sys_end", 0), lane=j.meta.get("lane", "main"), side=j.meta.get("side", False),
+                        conv=j.meta.get("conv"))
+        return [dict(key=keys[state["i"] - 1], set=s, prompt=j.user, user=j.user, prompt_ids=j.ids,
+                     sys_end=j.meta.get("sys_end", 0), side=j.meta.get("side", False), agent=j.meta)]
+
+    def live():
+        """GET /stats (Leap 11-11, Kamen's status line): what the engine is doing now, from the job's own timestamps (stats
+        only: nothing here touches the engine or the tokens). thinking = the prompt pass, before the first token."""
+        j, now = cur[0], time.perf_counter()
+        done = [r for k, r in list(lastby.items()) if k != "side"]   # the last answer of the conversation or a subagent;
+        L = max(done, key=lambda r: r["t"]) if done else lastby.get("side", {})   # Claude Code's small background calls
+        d = {"state": "idle" if state["ready"] else "loading", "queued": jobs.qsize(), "last": dict(L)}   # only before one
+        if j is not None:
+            cc = CCm[0].last() if CCm[0] else {}           # the cache's lookup for THIS prompt (its n = the prompt length)
+            d.update(lane=j.meta.get("lane", "main"), prompt=len(j.ids),
+                     cached=cc.get("c", 0) if cc.get("hit") and cc.get("n") == len(j.ids) else 0)
+            if j.t1 is None:
+                d.update(state="thinking", think_s=round(now - j.t0, 1))
+            else:
+                n_, dt = len(j.out), now - j.t1
+                d.update(state="writing", think_s=round(j.t1 - j.t0, 1), out=n_,
+                         tps=round((n_ - j.n1) / dt, 1) if n_ > j.n1 and dt > 0.3 else None)
+        return d
+
+    def status_line():
+        """GET /statusline: one short line for Claude Code's status line (tools/statusline.sh prints it)"""
+        d = live()
+        mark = "◐◓◑◒"[int(time.time()) % 4]
+        TAG = {"side": " · background", "sub": " · subagent"}   # Claude Code's small calls / a subagent's conversation
+        tag = TAG.get(d.get("lane"), "")
+        qn = f" · {d['queued']} queued" if d.get("queued") else ""
+        if d["state"] == "loading":
+            return f"⏳ loading the engine {mark}"
+        if d["state"] == "thinking":
+            c = d.get("cached") or 0
+            return f"⏳ thinking {d['think_s']:.0f}s {mark} · prompt {d['prompt']:,} tok" + (f" ({c:,} cached)" if c else "") + tag + qn
+        if d["state"] == "writing":
+            head = f"⚡ {d['tps']:.1f} tok/s" if d.get("tps") else "⚡ writing"
+            return f"{head} · {d['out']:,} tok · thought {d['think_s']:.1f}s" + tag + qn
+        L = d["last"]
+        if not L:
+            return "✓ ready" + qn
+        parts = [f"{L['n']:,} tok"] + ([f"{L['tps']:.1f} tok/s"] if L.get("tps") else []) + \
+                ([f"thought {L['think']:.1f}s"] if L.get("think") is not None else [])
+        return "✓ last: " + " · ".join(parts) + TAG.get(L.get("lane"), "") + qn
 
     def on_commit(new):
         j = cur[0]
         if j is None:
             return
         if j.t1 is None:
-            j.t1 = time.perf_counter()
+            j.t1, j.n1 = time.perf_counter(), len(new)
         j.out.extend(int(x) for x in new)
         text = tok.decode(j.out, skip_special_tokens=True).rstrip("�")
         if text.startswith(j.shown) and len(text) > len(j.shown):
@@ -246,6 +340,33 @@ def main():
         def log_message(self, fmt, *args):
             pass
 
+        def _local(self):                                  # 1.2.0: only programs on this Mac, never a web page. A page in a
+            # browser can send requests to 127.0.0.1 too: a cross-site request carries the page's Origin, and DNS
+            # rebinding (a site whose name resolves to 127.0.0.1) carries the site's name in Host. So a Host must name the
+            # loopback (127.0.0.1, localhost, ::1; none = a non-browser client), and an Origin, if any, a loopback page.
+            # Claude Code, Codex, curl and the OpenAI / Anthropic SDKs send Host 127.0.0.1:<port> and no Origin.
+            loop = ("127.0.0.1", "localhost", "::1")
+            h = (self.headers.get("Host") or "").strip().lower()
+            if h:
+                h = h[1:h.find("]")] if h.startswith("[") and "]" in h else (h.rsplit(":", 1)[0] if h.count(":") == 1 else h)
+                if h not in loop:
+                    return False
+            o = self.headers.get("Origin")
+            if o is not None:
+                try:
+                    from urllib.parse import urlsplit
+                    if (urlsplit(o.strip()).hostname or "") not in loop:
+                        return False
+                except ValueError:
+                    return False
+            return True
+
+        def _refuse(self):
+            say(f"refused a {self.command} {self.path[:80]}: Host {self.headers.get('Host')!r}, Origin {self.headers.get('Origin')!r} "
+                f"(serve.py answers programs on this Mac, addressed to 127.0.0.1 or localhost)")
+            self._json(403, {"type": "error", "error": {"type": "permission_error", "message": "serve.py answers only programs "
+                             "on this Mac that address it as 127.0.0.1 or localhost; requests from web pages are refused"}})
+
         def _json(self, code, obj):
             b = json.dumps(obj).encode()
             self.send_response(code)
@@ -264,59 +385,154 @@ def main():
             self.send_header("Cache-Control", "no-cache")
             self.end_headers()
 
+        def _comment(self):                                # an SSE comment line: keeps a waiting stream alive, and
+            self.wfile.write(b": ping\n\n")                  # raises once the client has gone
+            self.wfile.flush()
+
         def _sse(self, data, event=None):
             self.wfile.write(((f"event: {event}\n" if event else "") + f"data: {data}\n\n").encode())
             self.wfile.flush()
 
         def do_GET(self):
+            if not self._local():
+                return self._refuse()
             if self.path.rstrip("/") in ("/v1/models", "/models"):
                 return self._json(200, {"object": "list", "data": [{"id": MODEL, "object": "model", "created": 0,
                                                                     "owned_by": "exactstream"}]})
             if self.path.rstrip("/") in ("", "/health"):
                 return self._json(200, {"status": "ready" if state["ready"] else "loading"})
+            if self.path.rstrip("/") == "/stats":
+                return self._json(200, live())
+            if self.path.rstrip("/") == "/statusline":
+                b = status_line().encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/plain; charset=utf-8")
+                self.send_header("Content-Length", str(len(b)))
+                self.end_headers()
+                self.wfile.write(b)
+                return
             self._json(404, {"error": {"type": "not_found", "message": self.path}})
 
-        def _run(self, ids, max_tokens, user=""):
-            j = Job(ids, max(1, min(int(max_tokens or a.max_tokens), a.max_tokens)), user)
-            jobs.put(j)
+        def _log(self, rec):
+            if os.environ.get("EXACTSTREAM_LOG_REQUESTS"):
+                line = json.dumps(dict(rec, t=round(time.time(), 3), rid=getattr(self, "rid", None))) + "\n"
+                with loglock, open(os.environ["EXACTSTREAM_LOG_REQUESTS"], "a") as lf_:
+                    lf_.write(line)
+
+        def _meta(self, body, tools, ids, se, max_tokens):
+            m = AI.meta(body, self.headers, tools, ids, se, max_tokens, time.time() - state["agent_t"] < 1800)
+            if m["lane"] == "main" and tools:
+                state["agent_t"] = time.time()
+            self._log({"kind": "render", "meta": m, "ids": ids})
+            return m
+
+        def _run(self, ids, max_tokens, user="", meta=None):
+            j = Job(ids, max(1, min(int(max_tokens or a.max_tokens), a.max_tokens)), user, meta)
+            jobs.put((RANK.get(j.meta.get("lane"), 0), next(jseq), j))
             return j
 
         def do_POST(self):
+            if not self._local():
+                return self._refuse()
             try:
                 body = self._body()
             except Exception as e:
                 return self._json(400, {"error": {"type": "invalid_request_error", "message": str(e)}})
             p = self.path.split("?")[0].rstrip("/")
+            self.rid = AI.new_id("req_")
+            self._log({"kind": "request", "path": p, "body": body,
+                       "headers": {k.lower(): v for k, v in self.headers.items() if k.lower() in LOG_HEADERS}})
             if p in ("/v1/chat/completions", "/chat/completions"):
                 return self._openai(body)
             if p in ("/v1/messages", "/messages"):
                 return self._anthropic(body)
+            if p in ("/v1/responses", "/responses"):
+                return self._responses(body)
             if p in ("/v1/messages/count_tokens", "/messages/count_tokens"):
-                ids = prompt_ids(body.get("messages", []), text_of(body.get("system")))
-                return self._json(200, {"input_tokens": len(ids)})
+                try:
+                    msgs, tools = AI.from_anthropic(body)
+                    return self._json(200, {"input_tokens": len(AI.render(tok, msgs, tools)[0])})
+                except Exception as e:
+                    return self._bad(e, "anthropic")
             self._json(404, {"error": {"type": "not_found", "message": self.path}})
 
-        def _pieces(self, j):
-            while True:
-                kind, v = j.q.get()
+        def _pieces(self, j, ping=None):                   # ping: called every 10 s while nothing arrives (a queued or
+            while True:                                    # prefilling request); it raises when the client has gone
+                try:
+                    kind, v = j.q.get(timeout=10 if ping else None)
+                except queue.Empty:
+                    ping()
+                    continue
                 if kind == "text":
                     yield v
                 else:
                     self.stats = v
                     return
 
-        def _openai(self, body):
-            ids = prompt_ids(body.get("messages", []))
-            j = self._run(ids, body.get("max_completion_tokens") or body.get("max_tokens"), last_user(body.get("messages", [])))
-            cid, created = "chatcmpl-" + uuid.uuid4().hex[:24], int(time.time())
+        def _too_long(self, n, kind):
+            msg = f"prompt is too long: {n} tokens > {a.max_context} maximum"
+            if kind == "anthropic":
+                return self._json(400, {"type": "error", "error": {"type": "invalid_request_error", "message": msg}})
+            return self._json(400, {"error": {"message": msg, "type": "invalid_request_error", "code": "context_length_exceeded"}})
+
+        def _bad(self, e, kind):
+            msg = f"{type(e).__name__}: {e}"
+            if kind == "anthropic":
+                return self._json(400, {"type": "error", "error": {"type": "invalid_request_error", "message": msg}})
+            return self._json(400, {"error": {"message": msg, "type": "invalid_request_error"}})
+
+        def _events(self, j, tools, stops=None, ping=None):
+            """the model's text as ("text", s) and ("tool", name, args) events, as they arrive; a stop sequence ends the
+            answer (self.stop_hit)"""
+            P, seen, S = AI.ToolParser(tools), [], AI.StopText(stops)
+            self.stop_hit = None
+            for piece in self._pieces(j, ping):
+                s = S.feed(piece)
+                if S.hit is not None and self.stop_hit is None:
+                    self.stop_hit, j.why, j.stop = S.hit, "stop sequence", True   # the loop ends it at its next check
+                for e in P.feed(s):
+                    seen.append(e)
+                    yield e
+            for e in P.feed(S.finish()) + P.finish():
+                seen.append(e)
+                yield e
+            self._log({"kind": "result", "events": seen, "out_ids": j.out, "stats": getattr(self, "stats", None)})
+
+        def _drain(self, j):
+            j.stop = True
+            for _ in self._pieces(j):
+                pass
+
+        def _openai(self, body):                           # OpenAI chat completions, with or without tools
+            try:
+                msgs, tools = AI.from_chat(body)
+                ids, se = AI.render(tok, msgs, tools)
+            except Exception as e:
+                return self._bad(e, "openai")
+            if len(ids) >= a.max_context:
+                return self._too_long(len(ids), "openai")
+            mt = body.get("max_completion_tokens") or body.get("max_tokens")
+            j = self._run(ids, mt, last_user(body.get("messages", [])), self._meta(body, tools, ids, se, mt))
+            cid, created = AI.new_id("chatcmpl-"), int(time.time())
+
+            def usage():
+                s = self.stats
+                return {"prompt_tokens": s["prompt"], "completion_tokens": s["n"], "total_tokens": s["prompt"] + s["n"]}
             if not body.get("stream"):
-                text = "".join(self._pieces(j))
-                st_ = self.stats
+                text, calls = "", []
+                for e in self._events(j, tools, body.get("stop")):
+                    if e[0] == "text":
+                        text += e[1]
+                    else:
+                        calls.append({"id": AI.new_id("call_"), "type": "function",
+                                      "function": {"name": e[1], "arguments": json.dumps(e[2])}})
+                msg = {"role": "assistant", "content": text or None}
+                if calls:
+                    msg["tool_calls"] = calls
                 return self._json(200, {"id": cid, "object": "chat.completion", "created": created, "model": MODEL,
-                                        "choices": [{"index": 0, "message": {"role": "assistant", "content": text},
-                                                     "finish_reason": st_["reason"]}],
-                                        "usage": {"prompt_tokens": st_["prompt"], "completion_tokens": st_["n"],
-                                                  "total_tokens": st_["prompt"] + st_["n"]}})
+                                        "choices": [{"index": 0, "message": msg,
+                                                     "finish_reason": "tool_calls" if calls else "stop" if self.stop_hit is not None else self.stats["reason"]}],
+                                        "usage": usage()})
             self._sse_start()
 
             def chunk(delta, fin=None):
@@ -324,53 +540,176 @@ def main():
                                    "choices": [{"index": 0, "delta": delta, "finish_reason": fin}]})
             try:
                 self._sse(chunk({"role": "assistant", "content": ""}))
-                for piece in self._pieces(j):
-                    self._sse(chunk({"content": piece}))
-                self._sse(chunk({}, self.stats["reason"]))
+                k = 0
+                for e in self._events(j, tools, body.get("stop"), ping=self._comment):
+                    if e[0] == "text":
+                        self._sse(chunk({"content": e[1]}))
+                    else:
+                        self._sse(chunk({"tool_calls": [{"index": k, "id": AI.new_id("call_"), "type": "function",
+                                                         "function": {"name": e[1], "arguments": json.dumps(e[2])}}]}))
+                        k += 1
+                self._sse(chunk({}, "tool_calls" if k else "stop" if self.stop_hit is not None else self.stats["reason"]))
                 if (body.get("stream_options") or {}).get("include_usage"):
-                    st_ = self.stats
                     self._sse(json.dumps({"id": cid, "object": "chat.completion.chunk", "created": created, "model": MODEL,
-                                          "choices": [], "usage": {"prompt_tokens": st_["prompt"], "completion_tokens":
-                                                                   st_["n"], "total_tokens": st_["prompt"] + st_["n"]}}))
+                                          "choices": [], "usage": usage()}))
                 self._sse("[DONE]")
             except (BrokenPipeError, ConnectionResetError):
-                j.stop = True
-                for _ in self._pieces(j):
-                    pass
+                self._drain(j)
 
-        def _anthropic(self, body):
-            ids = prompt_ids(body.get("messages", []), text_of(body.get("system")))
-            j = self._run(ids, body.get("max_tokens"), last_user(body.get("messages", [])))
-            mid = "msg_" + uuid.uuid4().hex[:24]
-            reason = {"stop": "end_turn", "length": "max_tokens"}
-            if not body.get("stream"):
-                text = "".join(self._pieces(j))
-                st_ = self.stats
-                return self._json(200, {"id": mid, "type": "message", "role": "assistant", "model": body.get("model", MODEL),
-                                        "content": [{"type": "text", "text": text}], "stop_reason": reason[st_["reason"]],
-                                        "stop_sequence": None,
-                                        "usage": {"input_tokens": st_["prompt"], "output_tokens": st_["n"]}})
-            self._sse_start()
+        def _anthropic(self, body):                        # Anthropic Messages (Claude Code), with tools
             try:
-                self._sse(json.dumps({"type": "message_start", "message": {
-                    "id": mid, "type": "message", "role": "assistant", "model": body.get("model", MODEL), "content": [],
-                    "stop_reason": None, "stop_sequence": None, "usage": {"input_tokens": len(ids), "output_tokens": 0}}}),
-                    "message_start")
-                self._sse(json.dumps({"type": "content_block_start", "index": 0, "content_block": {"type": "text", "text": ""}}),
-                          "content_block_start")
-                for piece in self._pieces(j):
-                    self._sse(json.dumps({"type": "content_block_delta", "index": 0,
-                                          "delta": {"type": "text_delta", "text": piece}}), "content_block_delta")
-                st_ = self.stats
-                self._sse(json.dumps({"type": "content_block_stop", "index": 0}), "content_block_stop")
-                self._sse(json.dumps({"type": "message_delta", "delta": {"stop_reason": reason[st_["reason"]],
-                                                                          "stop_sequence": None},
-                                      "usage": {"output_tokens": st_["n"]}}), "message_delta")
-                self._sse(json.dumps({"type": "message_stop"}), "message_stop")
+                msgs, tools = AI.from_anthropic(body)
+                ids, se = AI.render(tok, msgs, tools)
+            except Exception as e:
+                return self._bad(e, "anthropic")
+            if len(ids) >= a.max_context:
+                return self._too_long(len(ids), "anthropic")
+            j = self._run(ids, body.get("max_tokens"), last_user(body.get("messages", [])),
+                          self._meta(body, tools, ids, se, body.get("max_tokens")))
+            mid, model = AI.new_id("msg_"), body.get("model", MODEL)
+            reason = {"stop": "end_turn", "length": "max_tokens"}
+            stops = body.get("stop_sequences")
+
+            def why(n_tools):
+                if n_tools:
+                    return "tool_use"
+                return "stop_sequence" if self.stop_hit is not None else reason[self.stats["reason"]]
+            if not body.get("stream"):
+                content = []
+                for e in self._events(j, tools, stops):
+                    if e[0] == "text":
+                        if content and content[-1]["type"] == "text":
+                            content[-1]["text"] += e[1]
+                        else:
+                            content.append({"type": "text", "text": e[1]})
+                    else:
+                        content.append({"type": "tool_use", "id": AI.new_id("toolu_"), "name": e[1], "input": e[2]})
+                s = self.stats
+                tool_used = any(c["type"] == "tool_use" for c in content)
+                return self._json(200, {"id": mid, "type": "message", "role": "assistant", "model": model,
+                                        "content": content or [{"type": "text", "text": ""}],
+                                        "stop_reason": why(tool_used), "stop_sequence": self.stop_hit,
+                                        "usage": {"input_tokens": s["prompt"], "output_tokens": s["n"]}})
+            self._sse_start()
+
+            def ev(o):
+                self._sse(json.dumps(o), o["type"])
+            try:
+                ev({"type": "message_start", "message": {"id": mid, "type": "message", "role": "assistant", "model": model,
+                                                         "content": [], "stop_reason": None, "stop_sequence": None,
+                                                         "usage": {"input_tokens": len(ids), "output_tokens": 0}}})
+                ev({"type": "ping"})
+                idx, open_text, n_tools = 0, False, 0
+                for e in self._events(j, tools, stops, ping=lambda: ev({"type": "ping"})):
+                    if e[0] == "text":
+                        if not open_text:
+                            ev({"type": "content_block_start", "index": idx, "content_block": {"type": "text", "text": ""}})
+                            open_text = True
+                        ev({"type": "content_block_delta", "index": idx, "delta": {"type": "text_delta", "text": e[1]}})
+                    else:
+                        if open_text:
+                            ev({"type": "content_block_stop", "index": idx})
+                            idx, open_text = idx + 1, False
+                        ev({"type": "content_block_start", "index": idx,
+                            "content_block": {"type": "tool_use", "id": AI.new_id("toolu_"), "name": e[1], "input": {}}})
+                        ev({"type": "content_block_delta", "index": idx,
+                            "delta": {"type": "input_json_delta", "partial_json": json.dumps(e[2])}})
+                        ev({"type": "content_block_stop", "index": idx})
+                        idx, n_tools = idx + 1, n_tools + 1
+                if open_text:
+                    ev({"type": "content_block_stop", "index": idx})
+                elif idx == 0:                             # an empty answer still carries one (empty) text block
+                    ev({"type": "content_block_start", "index": 0, "content_block": {"type": "text", "text": ""}})
+                    ev({"type": "content_block_stop", "index": 0})
+                s = self.stats
+                ev({"type": "message_delta", "delta": {"stop_reason": why(n_tools), "stop_sequence": self.stop_hit},
+                    "usage": {"output_tokens": s["n"]}})
+                ev({"type": "message_stop"})
             except (BrokenPipeError, ConnectionResetError):
-                j.stop = True
-                for _ in self._pieces(j):
-                    pass
+                self._drain(j)
+
+        def _responses(self, body):                        # OpenAI Responses (Codex), with function tools
+            try:
+                msgs, tools = AI.from_responses(body)
+                ids, se = AI.render(tok, msgs, tools)
+            except Exception as e:
+                return self._bad(e, "openai")
+            if len(ids) >= a.max_context:
+                return self._too_long(len(ids), "openai")
+            j = self._run(ids, body.get("max_output_tokens"), "", self._meta(body, tools, ids, se, body.get("max_output_tokens")))
+            base = {"id": AI.new_id("resp_"), "object": "response", "created_at": int(time.time()),
+                    "model": body.get("model", MODEL), "output": [], "parallel_tool_calls": False, "tool_choice": "auto",
+                    "tools": []}
+            items = []
+
+            def usage():
+                s = self.stats
+                return {"input_tokens": s["prompt"], "output_tokens": s["n"], "total_tokens": s["prompt"] + s["n"],
+                        "input_tokens_details": {"cached_tokens": 0}, "output_tokens_details": {"reasoning_tokens": 0}}
+            if not body.get("stream"):
+                text = ""
+                for e in self._events(j, tools):
+                    if e[0] == "text":
+                        text += e[1]
+                    else:
+                        items.append({"type": "function_call", "id": AI.new_id("fc_"), "call_id": AI.new_id("call_"),
+                                      "name": e[1], "arguments": json.dumps(e[2]), "status": "completed"})
+                AI.remember(base["id"], [i["call_id"] for i in items])
+                if text.strip():
+                    items.insert(0, {"type": "message", "id": AI.new_id("msg_"), "role": "assistant", "status": "completed",
+                                     "content": [{"type": "output_text", "text": text, "annotations": []}]})
+                return self._json(200, dict(base, status="completed", output=items, usage=usage()))
+            self._sse_start()
+            seq, cur = [0], {"msg": None, "text": ""}
+
+            def ev(t, **kw):
+                seq[0] += 1
+                d = {"type": t, "sequence_number": seq[0]}
+                d.update(kw)
+                self._sse(json.dumps(d), t)
+
+            def close_msg():
+                if cur["msg"] is None:
+                    return
+                i, iid = cur["msg"]
+                part = {"type": "output_text", "text": cur["text"], "annotations": []}
+                ev("response.output_text.done", item_id=iid, output_index=i, content_index=0, text=cur["text"])
+                ev("response.content_part.done", item_id=iid, output_index=i, content_index=0, part=part)
+                item = {"type": "message", "id": iid, "role": "assistant", "status": "completed", "content": [part]}
+                ev("response.output_item.done", output_index=i, item=item)
+                items.append(item)
+                cur["msg"], cur["text"] = None, ""
+            try:
+                ev("response.created", response=dict(base, status="in_progress"))
+                ev("response.in_progress", response=dict(base, status="in_progress"))
+                for e in self._events(j, tools, ping=self._comment):
+                    if e[0] == "text":
+                        if cur["msg"] is None:
+                            i, iid = len(items), AI.new_id("msg_")
+                            ev("response.output_item.added", output_index=i,
+                               item={"type": "message", "id": iid, "role": "assistant", "status": "in_progress", "content": []})
+                            ev("response.content_part.added", item_id=iid, output_index=i, content_index=0,
+                               part={"type": "output_text", "text": "", "annotations": []})
+                            cur["msg"] = (i, iid)
+                        i, iid = cur["msg"]
+                        cur["text"] += e[1]
+                        ev("response.output_text.delta", item_id=iid, output_index=i, content_index=0, delta=e[1])
+                    else:
+                        close_msg()
+                        i, fid, args = len(items), AI.new_id("fc_"), json.dumps(e[2])
+                        item = {"type": "function_call", "id": fid, "call_id": AI.new_id("call_"), "name": e[1],
+                                "arguments": "", "status": "in_progress"}
+                        AI.remember(base["id"], [item["call_id"]])
+                        ev("response.output_item.added", output_index=i, item=item)
+                        ev("response.function_call_arguments.delta", item_id=fid, output_index=i, delta=args)
+                        ev("response.function_call_arguments.done", item_id=fid, output_index=i, arguments=args)
+                        done = dict(item, arguments=args, status="completed")
+                        ev("response.output_item.done", output_index=i, item=done)
+                        items.append(done)
+                close_msg()
+                ev("response.completed", response=dict(base, status="completed", output=items, usage=usage()))
+            except (BrokenPipeError, ConnectionResetError):
+                self._drain(j)
 
     def _stop(signum, frame):                              # SIGINT (Ctrl-C, or `kill -INT` on a server started from a
         raise KeyboardInterrupt                            # script, which starts it with SIGINT ignored) and SIGTERM (`kill`,

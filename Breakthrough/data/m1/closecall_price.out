@@ -1,0 +1,110 @@
+Close-call (lossy) acceptance price: DFlash2 L1-20 replays, teacher-forced; nt_analyze's LB / MOD estimators
+
+== chat (ifeval + multi): 6145 checks, exact kept per check 2.23 (51 tok/s at 44 ms per check)
+| rule | forgives (first misses) | kept LB | kept MOD | tok/s LB-MOD | deviating tokens LB-MOD | forgiven with p_d < 0.01 |
+|---|---|---|---|---|---|---|
+| rho 0.5 | 0.09 | 2.32 (+4%) | 2.46 (+10%) | 53-56 | 3.7-3.9 % | 0 |
+| rho 0.25 | 0.18 | 2.41 (+8%) | 2.74 (+23%) | 55-62 | 7.3-7.8 % | 0 |
+| rho 0.1 | 0.27 | 2.49 (+12%) | 3.10 (+39%) | 57-70 | 10.6-11.5 % | 0 |
+| rho 0.75 | 0.04 | 2.27 (+2%) | 2.32 (+4%) | 52-53 | 1.7-1.7 % | 0 |
+| rho 0.61 = R1(0.5) | 0.06 | 2.29 (+3%) | 2.39 (+7%) | 52-54 | 2.7-2.8 % | 0 |
+| delta 0.05 | 0.02 | 2.25 (+1%) | 2.28 (+2%) | 51-52 | 0.9-0.9 % | 0 |
+| delta 0.1 | 0.04 | 2.27 (+2%) | 2.33 (+5%) | 52-53 | 1.8-1.8 % | 2 |
+| delta 0.2 | 0.10 | 2.33 (+5%) | 2.50 (+12%) | 53-57 | 4.4-4.6 % | 68 |
+
+== ifeval: 2850 checks, exact kept per check 2.44 (55 tok/s at 44 ms per check)
+| rule | forgives (first misses) | kept LB | kept MOD | tok/s LB-MOD | deviating tokens LB-MOD | forgiven with p_d < 0.01 |
+|---|---|---|---|---|---|---|
+| rho 0.5 | 0.12 | 2.55 (+5%) | 2.77 (+13%) | 58-63 | 4.4-4.7 % | 0 |
+| rho 0.25 | 0.24 | 2.67 (+10%) | 3.22 (+32%) | 61-73 | 8.7-9.4 % | 0 |
+| rho 0.1 | 0.35 | 2.78 (+14%) | 3.81 (+56%) | 63-86 | 12.4-13.7 % | 0 |
+| rho 0.75 | 0.05 | 2.49 (+2%) | 2.57 (+5%) | 57-58 | 2.0-2.1 % | 0 |
+| rho 0.61 = R1(0.5) | 0.08 | 2.52 (+3%) | 2.66 (+9%) | 57-60 | 3.2-3.3 % | 0 |
+| delta 0.05 | 0.03 | 2.47 (+1%) | 2.51 (+3%) | 56-57 | 1.1-1.1 % | 0 |
+| delta 0.1 | 0.06 | 2.50 (+2%) | 2.59 (+6%) | 57-59 | 2.2-2.3 % | 1 |
+| delta 0.2 | 0.14 | 2.58 (+6%) | 2.84 (+17%) | 59-65 | 5.3-5.6 % | 38 |
+
+== multi: 3295 checks, exact kept per check 2.05 (47 tok/s at 44 ms per check)
+| rule | forgives (first misses) | kept LB | kept MOD | tok/s LB-MOD | deviating tokens LB-MOD | forgiven with p_d < 0.01 |
+|---|---|---|---|---|---|---|
+| rho 0.5 | 0.06 | 2.11 (+3%) | 2.20 (+7%) | 48-50 | 3.0-3.1 % | 0 |
+| rho 0.25 | 0.13 | 2.18 (+6%) | 2.36 (+15%) | 49-54 | 5.7-6.1 % | 0 |
+| rho 0.1 | 0.20 | 2.24 (+9%) | 2.57 (+25%) | 51-58 | 8.6-9.4 % | 0 |
+| rho 0.75 | 0.03 | 2.08 (+1%) | 2.11 (+3%) | 47-48 | 1.3-1.4 % | 0 |
+| rho 0.61 = R1(0.5) | 0.05 | 2.10 (+2%) | 2.15 (+5%) | 48-49 | 2.2-2.2 % | 0 |
+| delta 0.05 | 0.02 | 2.07 (+1%) | 2.08 (+2%) | 47-47 | 0.7-0.8 % | 0 |
+| delta 0.1 | 0.03 | 2.08 (+1%) | 2.11 (+3%) | 47-48 | 1.3-1.3 % | 1 |
+| delta 0.2 | 0.07 | 2.12 (+3%) | 2.22 (+8%) | 48-50 | 3.4-3.5 % | 30 |
+
+== agent: 637 checks, exact kept per check 3.00 (68 tok/s at 44 ms per check)
+| rule | forgives (first misses) | kept LB | kept MOD | tok/s LB-MOD | deviating tokens LB-MOD | forgiven with p_d < 0.01 |
+|---|---|---|---|---|---|---|
+| rho 0.5 | 0.08 | 3.07 (+3%) | 3.27 (+9%) | 70-74 | 2.5-2.5 % | 0 |
+| rho 0.25 | 0.13 | 3.12 (+4%) | 3.48 (+16%) | 71-79 | 4.0-4.1 % | 0 |
+| rho 0.1 | 0.20 | 3.19 (+7%) | 3.84 (+28%) | 73-87 | 6.2-6.4 % | 0 |
+| rho 0.75 | 0.05 | 3.04 (+2%) | 3.16 (+5%) | 69-72 | 1.5-1.6 % | 0 |
+| rho 0.61 = R1(0.5) | 0.07 | 3.06 (+2%) | 3.22 (+8%) | 70-73 | 2.1-2.1 % | 0 |
+| delta 0.05 | 0.05 | 3.04 (+1%) | 3.15 (+5%) | 69-71 | 1.4-1.5 % | 1 |
+| delta 0.1 | 0.06 | 3.05 (+2%) | 3.20 (+7%) | 69-73 | 1.9-2.0 % | 2 |
+| delta 0.2 | 0.13 | 3.13 (+4%) | 3.50 (+17%) | 71-80 | 4.2-4.3 % | 16 |
+
+== mgsm: 3713 checks, exact kept per check 3.52 (80 tok/s at 44 ms per check)
+| rule | forgives (first misses) | kept LB | kept MOD | tok/s LB-MOD | deviating tokens LB-MOD | forgiven with p_d < 0.01 |
+|---|---|---|---|---|---|---|
+| rho 0.5 | 0.06 | 3.58 (+2%) | 3.78 (+7%) | 81-86 | 1.7-1.7 % | 0 |
+| rho 0.25 | 0.11 | 3.63 (+3%) | 4.02 (+14%) | 83-91 | 3.0-3.0 % | 0 |
+| rho 0.1 | 0.16 | 3.68 (+4%) | 4.27 (+21%) | 84-97 | 4.2-4.3 % | 0 |
+| rho 0.75 | 0.03 | 3.55 (+1%) | 3.63 (+3%) | 81-83 | 0.7-0.7 % | 0 |
+| rho 0.61 = R1(0.5) | 0.04 | 3.56 (+1%) | 3.71 (+5%) | 81-84 | 1.2-1.2 % | 0 |
+| delta 0.05 | 0.01 | 3.53 (+0%) | 3.58 (+2%) | 80-81 | 0.4-0.4 % | 0 |
+| delta 0.1 | 0.02 | 3.55 (+1%) | 3.63 (+3%) | 81-82 | 0.7-0.7 % | 0 |
+| delta 0.2 | 0.05 | 3.57 (+1%) | 3.74 (+6%) | 81-85 | 1.4-1.4 % | 9 |
+
+== gsm: 2042 checks, exact kept per check 6.98 (159 tok/s at 44 ms per check)
+| rule | forgives (first misses) | kept LB | kept MOD | tok/s LB-MOD | deviating tokens LB-MOD | forgiven with p_d < 0.01 |
+|---|---|---|---|---|---|---|
+| rho 0.5 | 0.11 | 7.08 (+1%) | 7.62 (+9%) | 161-173 | 1.4-1.5 % | 0 |
+| rho 0.25 | 0.21 | 7.17 (+3%) | 8.21 (+18%) | 163-187 | 2.6-2.7 % | 0 |
+| rho 0.1 | 0.31 | 7.26 (+4%) | 8.87 (+27%) | 165-202 | 3.8-4.0 % | 0 |
+| rho 0.75 | 0.06 | 7.03 (+1%) | 7.27 (+4%) | 160-165 | 0.7-0.7 % | 0 |
+| rho 0.61 = R1(0.5) | 0.09 | 7.06 (+1%) | 7.47 (+7%) | 161-170 | 1.1-1.1 % | 0 |
+| delta 0.05 | 0.02 | 7.00 (+0%) | 7.09 (+2%) | 159-161 | 0.3-0.3 % | 0 |
+| delta 0.1 | 0.04 | 7.02 (+1%) | 7.19 (+3%) | 160-163 | 0.5-0.5 % | 0 |
+| delta 0.2 | 0.09 | 7.06 (+1%) | 7.45 (+7%) | 160-169 | 1.1-1.1 % | 0 |
+
+== code, 32-row checks (NT-1, HumanEval 24): 621 checks, exact kept per check 10.23 (79 tok/s at 130 ms per check); 16-row exact baselines: DFlash2 walk 9.57, MTP b5 9.50
+| rule | forgives (first misses) | kept LB | kept MOD | tok/s LB-MOD | deviating tokens LB-MOD | forgiven with p_d < 0.01 |
+|---|---|---|---|---|---|---|
+| rho 0.5 | 0.11 | 10.34 (+1%) | 11.27 (+10%) | 80-87 | 1.1-1.1 % | 0 |
+| rho 0.25 | 0.19 | 10.41 (+2%) | 12.08 (+18%) | 80-93 | 1.8-1.9 % | 0 |
+| rho 0.1 | 0.25 | 10.47 (+2%) | 12.79 (+25%) | 81-98 | 2.3-2.5 % | 0 |
+| rho 0.75 | 0.06 | 10.28 (+1%) | 10.71 (+5%) | 79-82 | 0.5-0.5 % | 0 |
+| rho 0.61 = R1(0.5) | 0.09 | 10.31 (+1%) | 11.04 (+8%) | 79-85 | 0.8-0.9 % | 0 |
+| delta 0.05 | 0.04 | 10.26 (+0%) | 10.54 (+3%) | 79-81 | 0.3-0.3 % | 0 |
+| delta 0.1 | 0.04 | 10.27 (+0%) | 10.59 (+4%) | 79-81 | 0.4-0.4 % | 0 |
+| delta 0.2 | 0.10 | 10.32 (+1%) | 11.12 (+9%) | 79-86 | 0.9-0.9 % | 0 |
+
+SELF-CHECK vs R-61N's chat LB 2.32 / 2.41 / 2.49 and NT-1's code LB 10.34 / 10.41 / 10.47 (rho 0.5 / 0.25 / 0.1); MOD within 0.05 of 2.46 / 2.74 / 3.10 and 11.27 / 12.08 / 12.79:
+  chat rho 0.5: LB 2.32 (ref 2.32), MOD 2.46 (ref 2.46) PASS
+  chat rho 0.25: LB 2.41 (ref 2.41), MOD 2.74 (ref 2.74) PASS
+  chat rho 0.1: LB 2.49 (ref 2.49), MOD 3.10 (ref 3.1) PASS
+  code32 rho 0.5: LB 10.34 (ref 10.34), MOD 11.27 (ref 11.27) PASS
+  code32 rho 0.25: LB 10.41 (ref 10.41), MOD 12.08 (ref 12.08) PASS
+  code32 rho 0.1: LB 10.47 (ref 10.47), MOD 12.79 (ref 12.79) PASS
+SELF-CHECK PASS
+
+CALIBRATION vs RELAX's live R1(0.5) on IFEval (kept +7.2 %, 3.62 % of tokens deviating): estimate LB +3.3% .. MOD +9.0%; deviating 3.2 .. 3.3 %
+
+ESTIMATE TABLE (kept per check: the live R1(0.5) point sits inside LB..MOD; tok/s at 44 ms chat / 65 ms code per 16-row check; expected quality: RELAX's measured R1(0.5) hit scaled by the deviating-token share, MOD) [P]
+| rule | IFEval kept (DFlash2 / MTP b5 est) | IFEval tok/s (MTP b5) | chat kept | code kept per 16 (MTP b5 est) | code tok/s (MTP b5) | expected IFEval hit | expected HumanEval+ hit |
+|---|---|---|---|---|---|---|---|
+| exact (no rule) | 2.44 / 2.74 | 62 | 2.23 | 9.50 | 146 | 0 | 0 |
+| rho 0.75 | 2.49-2.57 / 2.80-2.89 | 64-66 | 2.27-2.32 | 9.55-9.95 | 147-153 | -1.9 pts | -2.0 pts |
+| rho 0.61 = R1(0.5) | 2.52-2.66 / 2.83-2.99 | 64-68 | 2.29-2.39 | 9.58-10.26 | 147-158 | -3.0 pts | -3.3 pts |
+| rho 0.5 | 2.55-2.77 / 2.87-3.11 | 65-71 | 2.32-2.46 | 9.60-10.47 | 148-161 | -4.3 pts | -4.2 pts |
+| rho 0.25 | 2.67-3.22 / 3.00-3.62 | 68-82 | 2.41-2.74 | 9.67-11.23 | 149-173 | -8.6 pts | -7.1 pts |
+| rho 0.1 | 2.78-3.81 / 3.13-4.27 | 71-97 | 2.49-3.10 | 9.73-11.88 | 150-183 | -12.5 pts | -9.7 pts |
+| delta 0.05 | 2.47-2.51 / 2.77-2.82 | 63-64 | 2.25-2.28 | 9.53-9.79 | 147-151 | -1.0 pts | -1.3 pts |
+| delta 0.1 | 2.50-2.59 / 2.80-2.91 | 64-66 | 2.27-2.33 | 9.54-9.84 | 147-151 | -2.1 pts | -1.5 pts |
+| delta 0.2 | 2.58-2.84 / 2.89-3.19 | 66-73 | 2.33-2.50 | 9.59-10.33 | 147-159 | -5.1 pts | -3.5 pts |
+Upper bound (drafterwall, byte floor, lossy oracle gate + lag-2 ceiling) [P]: HumanEval+ 706 tok/s (964 with the perfect pick at 64 rows), MBPP 441 (591); kept 20.1 vs 12.6 per 32-row check on HumanEval+, 12.1 vs 6.2 on MBPP.

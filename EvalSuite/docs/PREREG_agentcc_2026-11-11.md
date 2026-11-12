@@ -489,6 +489,101 @@ Written and committed before any run of this test.
     - The check grades a copy of the same files.
     - Timing comparisons are information.
 
+## Amendment 5 (Thu 2026-11-12 18:3x, before any run): the 1.2 release gate (arm r120), Leap's pkg_120 candidate with Claude Code 2.1.322 at 32 GB with the conversation cache
+- **Asked by:** the orchestrator, 18:2x, on Kamen's word that package 1.2 ships today with Claude Code support and the
+  gated 24 GB first-token path. This arm is its release gate for Claude Code.
+- **Role:** a new arm with its own verdict under the registered lines: probe at least 28 / 30 with 0 invented tools,
+  and tasks at least 10 / 12. Its line reads "AGENTCC r120".
+  - It is scored with tools/agentcc_score.py as of part 4 (9bb84b50...), with the part 4 rule, the 4c integrity screen
+    (tools/agentcc_screen.py on `tools/agentcc_diffs.sh <run> <out> checks`) and 4c's symlink rule.
+  - The release gate passes when AGENTCC r120 is PASS. The earlier arms (32c, 32c2, 45c) are not re-read through it.
+- **Against 32c2 (amendments 4-4c), two changes:**
+  1. **The server and launcher are Leap's pkg_120 candidate,** run as it ships, with its own defaults at --mem 32 for the
+     cache, branches, budget and window. The dated line before the start records:
+     - the candidate's commit and the sha256 of serve.py, agentio.py, engine/loop/convcache.py and the launcher;
+     - which settings come from defaults and which from env;
+     - the diff of those files from 80c8041.
+  2. **Claude Code 2.1.322,** the installed one: sha256 a9d237949db816a0..., from ~/.local/share/claude/versions/2.1.322
+     or a byte-identical kept copy. CLAUDE_BIN is pinned to it.
+- **Unchanged from 32c2:**
+  - Leap's hardened sandbox: tasks5's per-task write and read profiles, the check on a no-follow copy, and the
+    lingering-process sweep;
+  - the neutral HOME, CLAUDE_CODE_TMPDIR and TMPPREFIX per task;
+  - the manifest a44aaeeeefea and the checks, byte-identical;
+  - probe_cc.py (1fffa3b687d332be...) with its fixed tools file;
+  - the 1,200 s timeouts, --max-turns 25 and the allowed tools.
+- **The probe does not see the version.** probe_cc.py sends EvalSuite's fixed tools file (2a0590bd15df, captured from
+  Claude Code 2.1.321) straight to the server. So the probe half tests the candidate server, and only the task half runs
+  Claude Code 2.1.322 end to end.
+  - Disclosure: the RESULT reports how many of the 30 probe calls equal 32c2's. If all do, the probe half is not new
+    evidence, and the RESULT says so next to the verdict.
+- **Validity:** as amendments 4a and 4c, with the candidate's sums in place of 80c8041's.
+  - Every task transcript's init event must read claude_code_version 2.1.322.
+  - provenance.txt records CLAUDE_BIN's path, sha256 and --version.
+  - There must be 30 probe calls and 12 tasks, and no swap-guard stop. Otherwise there is no verdict.
+- **Gates (the runner's, as cache4):** a GO file only after the dated line, NO-SWAP >= 40 GB (32c2's peak of 36.17 GB,
+  rounded up, plus 3), Kamen idle, no other engine, lock, PAUSE or HOLD, two clear polls, and the swap guard.
+  - The last start is Thu 23:30, with a watchdog at 00:15. A stopped run has no verdict.
+- **The 24 GB arm (r120s; information, no verdict):** the same procedure at the package's --mem 24 cached settings,
+  run only after r120 and only if memory and time allow, on its own floor (its expected peak plus 3 GB). The agent test
+  has never been run at 24 GB, so it reports what happens and decides nothing.
+
+- **Amendment 5a (Thu 18:5x): the dated line before the start of r120.** EvalSuite checked each item below against the
+  files (Leap e005071, data/pkg120_1112/).
+  - **The candidate:** pkg_120 commit 58aad586bbafca77..., in release/out/pkg_120 (clean). The installed clean clone,
+    release/cleanclone/v120/clone, is at that commit.
+  - **Its agent-path files:**
+    - serve.py 9791db4955036b85...
+    - agentio.py 60e4520efc8de3e3... (= 80c8041)
+    - engine/loop/convcache.py 55631cb8e1760878... (= 80c8041)
+    - tools/claude_local.sh 30a93ccd2c45d831...
+    - tools/claude_code.sh c40ab0c901483098...
+    - tools/statusline.sh d2a4d29ab3d50a03...
+    - configs/chat-32.env 256fdbd716bedde0...
+  - **Against 80c8041:** serve.py adds the docstring, read-only status-line state (/stats, /statusline), the cache off by
+    default at --mem 24 and a 2.5 GB budget at 45. At --mem 32 the cache defaults (on, 2.5 GB, branches on) and the
+    generation path are unchanged.
+    - claude_local.sh sets AUTO_COMPACT_WINDOW only from 100K up. claude_code.sh sets the window by --mem. statusline.sh
+      is new.
+  - **As shipped:** the runner unsets CONV_CACHE*, R57_PFLM, BIGMOE_IDLE_MS and EXACTSTREAM_CONTEXT. Its environment
+    carries none of them (dry-run provenance).
+    - So serve.py runs on its own defaults at --mem 32: the cache on with 2.5 GB and branches, PF-A on, idle 50 ms.
+    - EXACTSTREAM_CONTEXT=65536 is set, because tools/claude_code.sh exports that at --mem 32 and the runner starts
+      serve.py itself.
+    - So Claude Code gets CLAUDE_CODE_MAX_CONTEXT_TOKENS=65536 and no AUTO_COMPACT_WINDOW.
+    - **A change from 32c2, which ran 128K with auto-compact at 128K.** Claude Code 2.1.322 compacts at about 32K tokens
+      in a 64K window (Leap, 11-11). 32c2's longest prompt was 16,905 tokens, and 32c's was 30,221.
+  - **Claude Code 2.1.322:** Leap's copy, logs/claude_versions/2.1.322: sha256 a9d237949db816a0..., 323,702,464 bytes,
+    equal to versions/2.1.322. Its `--version` prints 2.1.322.
+  - **The runner:** data/pkg120_1112/agentcc_r120.sh (= scratchpad agent/agentcc_r120.sh), sha256 f0d866088644ee1d....
+    - It is agentcc_cache4.sh with only these changes: the candidate pin (the clone at the commit, 9 files against its
+      MANIFEST.json, clone_rootcheck.py: only install.sh's @ROOT@ rewrite), the as-shipped environment, the 2.1.322 pin
+      in the t01 guard and the end count, and GB / NEED / ARM from the environment.
+    - Everything else is cache4's: tasks5 28caec4c, the hardened profile, the neutral HOME, CLAUDE_CODE_TMPDIR and
+      TMPPREFIX per task, probe_cc.py 1fffa3b6 and the manifest.
+  - **Arming:** r120 is armed as pid 32724 on the fresh folder agentcc_runs/r120.
+    - Its gates: GO, NO-SWAP >= 40, Kamen idle, no engine, lock, PAUSE or HOLD, two clear polls, the swap guard, and pid
+      32385, Leap's candidate GPU checks.
+    - From 19:00, with a last start of 23:30. watchdog_r120.sh (84544c54) sends TERM at 00:15.
+  - **Dry runs (18:53):** every pin check passed for r120 and for r120s.
+  - **Correction for r120s: the package ships the cache OFF at --mem 24,** so "cached settings" in amendment 5 was wrong.
+    - r120s runs as shipped: uncached, a 128K window with AUTO_COMPACT 128K, PF-A on, and P2 on (no agent prompt is
+      <= 256 tokens). It uses configs/chat-24.env e1d9373f5ae17dce....
+    - It is pid 32945 on agentcc_runs/r120s, after r120, with NO-SWAP >= 33 and the same watchdog. It is information
+      only.
+    - It is slow (about 31 s a turn), so tasks may hit their 1,200 s timeouts or the 00:15 watchdog. It reports what
+      completes.
+
+- **Amendment 5b (Thu 19:0x, before any GO; the orchestrator, 19:0x): the window moves later.** Kamen's apps close at
+  00:25 under his standing night rule, which frees the 40 GB.
+  - r120's last start moves to Fri 01:30, with the watchdog at 02:15. It still starts earlier if memory clears earlier.
+  - r120s, information only, gets a last start of 02:00 and its watchdog at 04:00. It runs only if its gates allow.
+  - Leap re-arms both runners with the same script (sha f0d86608) and only these times changed. Nothing else changes.
+
+- **Amendment 5c (Thu 19:0x, the orchestrator): r120s is dropped for tonight.** The night's GPU after r120 goes to the
+  45 GB first-token A/B, Leap's prefill chain and the deep-drafter capture. A 24 GB agent arm, information only, can run
+  on a later night under its own dated line. r120 is unchanged.
+
 ## Known limits
 - **Small N:** 12 tasks and 30 calls bound the failure rate only loosely.
 - **Small tasks:** they are single-step, Python plus one shell task, with no long sessions and no large repos.

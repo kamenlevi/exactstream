@@ -1,0 +1,15 @@
+**What is new**
+
+- **Coding agents.** `serve.py` now handles tool calls in the Anthropic Messages, OpenAI chat-completions and OpenAI Responses formats, so Claude Code and Codex can run on the model. `tools/claude_code.sh` starts the server and Claude Code in one command (`--mem 45`, `32` or `24`), with a status line that shows the time spent reading the prompt and the live speed. EvalSuite's Claude Code agent test (30 tool-call prompts and 12 coding tasks in a sandbox) passed at 32 GB, twice, and at 45 GB. At 24 GB only a three-task smoke test ran. `tools/codex_code.sh` does the same for Codex, which was only smoke-tested.
+- **A conversation cache at 45 and 32 GB.** The server keeps each conversation's state (up to 2.5 GB), so a turn that continues a conversation reads only its new tokens: in the agent test the median first token went from 31.9 to 6.8 seconds at 32 GB. On every cache hit we checked, the results were bitwise those of a full prefill (12 of 12 at 32 GB and 12 of 12 at 45 GB). It is off at 24 GB, where it is unchecked.
+- **A faster first token at 24 GB (P2).** At `--mem 24`, a prompt of 256 tokens or fewer now skips the prefill and runs through the decode's check path: on 12 IFEval prompts the first token takes 1.12 seconds instead of 3.11 (Strata: 1.46), and the whole request runs at 24.4 instead of 17.9 tokens per second. P2 is lossy: 2 of the 12 answers are the same as before. It passed its own same-scores gate on IFBench and on GPQA Diamond's prompts of 256 tokens or fewer.
+- **One-command setup.** `bash setup.sh` checks the Mac, downloads the model, the drafter base and our drafter files (about 108 GB, no account needed, revisions and checksums pinned), converts the expert store and installs. It can be stopped and run again, and `--dry-run` only reports. The manual steps are still in INSTALL.md.
+- Context windows for agents: 64K tokens at 45 and 32 GB and 128K at 24 GB, because longer prompts would take more memory than a 64 GB Mac can spare.
+
+**What else changed**
+
+- The exact configs pin `MTPLX_QSA_PREFILL=0`. MTPLX's sparse prefill attention, which is not exact, can only switch on in a prompt phase this engine never sets, so this changes nothing today; it keeps the exact configs exact if a later engine sets that phase.
+- The local server now refuses requests from web pages, because a page open in your browser could otherwise send it requests (cross-site requests, DNS rebinding). It answers only programs on this Mac that address it as 127.0.0.1 or localhost. 1.1.0's `serve.py` had the same gap, so anyone running it should update.
+- The 24 GB configs run a new decode loop, `engine/loop/r57_screen_w24p2.py`: 1.1.0's 24 GB loop plus P2, byte for byte the loop the P2 gate ran. Every other engine file is unchanged from 1.1.0.
+
+The drafter files stay on the v1.0.0 release. The papers are unchanged.

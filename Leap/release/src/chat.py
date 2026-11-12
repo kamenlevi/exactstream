@@ -246,7 +246,7 @@ def main():
     if R.drafter_cached() is None:
         sys.exit(f"chat.py: the block drafter's base {R.DRAFTER[0]} @ {R.DRAFTER[1][:7]} is not in the Hugging Face cache "
                  f"(see WEIGHTS.md)")
-    snap = R.snapshot(cpath)                               # the config's decode loop (24 GB: w24), as in run.py
+    snap = R.snapshot(cpath)                               # the config's decode loop (24 GB: w24p2), as in run.py
     screen = a._screen or os.path.join(ROOT, "engine", "loop", f"r57_screen_{snap}.py")
     out = os.path.join(ROOT, "out")
     os.makedirs(out, exist_ok=True)

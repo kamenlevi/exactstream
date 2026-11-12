@@ -1,0 +1,83 @@
+== 1. dry run, fresh clone, against the local copies
+[setup] this Mac: Apple M5 Pro, 64 GB of memory, macOS 26.5
+[setup] memory: every setting fits (--mem 45, 32 and 24)
+[setup] tools: Python 3.12.13, CMake 4.4.3, Xcode command-line tools
+[setup] data folder: /Users/kamen/Leap/release/cleanclone/v120s/data (model: /Users/kamen/BigMoE/models/bare, drafter files: /Users/kamen/Leap/release/cleanclone/v120s/weights_src)
+[setup] 1/5 venv + extension: to do (install.sh)
+[setup] 2/5 model (Youssofal/Qwen3.8-Flash-Next-MTPLX-Bare-Speed @ 4285a4a, 35 files, 105.4 GB): done
+[setup] 3/5 drafter base (incoai/Qwen3.8-Flash-Next-DFlash2 @ a22a174, 1.2 GB, Hugging Face cache): done
+[setup]     drafter files (release v1.0.0, 1.4 GB): done
+[setup] 4/5 expert store (/Users/kamen/BigMoE/models/bare/records3, 68.5 GB): done (48 layers)
+[setup] 5/5 install.sh --store --weights: runs last, every time (it links the store and the drafter files)
+[setup] disk: 217.3 GB free where the data goes; what is left needs 26.0 GB (including 25.0 GB kept free for the conversion and swap)
+[setup] licences: the model is Qwen3.8-Flash-Next by Qwen (Copyright (c) 2026 Qwen), under the Qwen Community License 1.0. Its
+[setup]   weights and everything derived from them, the converted expert store too, stay under that licence, not this
+[setup]   repository's GPL-3, and its conditions bind whoever uses them (third_party/LICENSE-qwen). The drafter base, DFlash2 by
+[setup]   Inco AI, is Apache-2.0; our drafter files: l120_ft.safetensors under Apache-2.0, d22_b5.safetensors under the Qwen
+[setup]   Community License 1.0 (third_party/NOTICE-l120_ft, third_party/NOTICE-d22_b5).
+[setup] DRY RUN: nothing changed, nothing downloaded
+rc 0
+== 2. real run, no download (local copies), offline wheels
+[setup] this Mac: Apple M5 Pro, 64 GB of memory, macOS 26.5
+[setup] memory: every setting fits (--mem 45, 32 and 24)
+[setup] tools: Python 3.12.13, CMake 4.4.3, Xcode command-line tools
+[setup] data folder: /Users/kamen/Leap/release/cleanclone/v120s/data (model: /Users/kamen/BigMoE/models/bare, drafter files: /Users/kamen/Leap/release/cleanclone/v120s/weights_src)
+[setup] 1/5 venv + extension: to do (install.sh)
+[setup] 2/5 model (Youssofal/Qwen3.8-Flash-Next-MTPLX-Bare-Speed @ 4285a4a, 35 files, 105.4 GB): done
+[setup] 3/5 drafter base (incoai/Qwen3.8-Flash-Next-DFlash2 @ a22a174, 1.2 GB, Hugging Face cache): done
+[setup]     drafter files (release v1.0.0, 1.4 GB): done
+[setup] 4/5 expert store (/Users/kamen/BigMoE/models/bare/records3, 68.5 GB): done (48 layers)
+[setup] 5/5 install.sh --store --weights: runs last, every time (it links the store and the drafter files)
+[setup] disk: 217.3 GB free where the data goes; what is left needs 26.0 GB (including 25.0 GB kept free for the conversion and swap)
+[setup] licences: the model is Qwen3.8-Flash-Next by Qwen (Copyright (c) 2026 Qwen), under the Qwen Community License 1.0. Its
+[setup]   weights and everything derived from them, the converted expert store too, stay under that licence, not this
+[setup]   repository's GPL-3, and its conditions bind whoever uses them (third_party/LICENSE-qwen). The drafter base, DFlash2 by
+[setup]   Inco AI, is Apache-2.0; our drafter files: l120_ft.safetensors under Apache-2.0, d22_b5.safetensors under the Qwen
+[setup]   Community License 1.0 (third_party/NOTICE-l120_ft, third_party/NOTICE-d22_b5).
+[install] root path written into 45 files (@ROOT@ -> /Users/kamen/Leap/release/cleanclone/v120s/clone)
+[install] venv OK: mlx 0.32.2, mlx-metal 0.32.2, mlx-lm 0.31.3, mtplx 2.12.2
+[install] extension built: /Users/kamen/Leap/release/cleanclone/v120s/clone/engine/ext/build/bigmoe_ext.cpython-312-darwin.so
+[install] drafter base in the Hugging Face cache at the pinned revision: /Users/kamen/.cache/huggingface/hub/models--incoai--Qwen3.8-Flash-Next-DFlash2/snapshots/a22a1744e85c17364dcc54a6a420af7135d4c7f6
+[install] done. Try: .venv/bin/python run.py --config exact --mem 45 --prompt 'Explain how a refrigerator works.'
+[install] venv OK: mlx 0.32.2, mlx-metal 0.32.2, mlx-lm 0.31.3, mtplx 2.12.2
+[install] extension built: /Users/kamen/Leap/release/cleanclone/v120s/clone/engine/ext/build/bigmoe_ext.cpython-312-darwin.so
+[install] store linked: engine/models/bare -> /Users/kamen/BigMoE/models/bare
+[install] drafter weights linked from /Users/kamen/Leap/release/cleanclone/v120s/weights_src
+[install] drafter base in the Hugging Face cache at the pinned revision: /Users/kamen/.cache/huggingface/hub/models--incoai--Qwen3.8-Flash-Next-DFlash2/snapshots/a22a1744e85c17364dcc54a6a420af7135d4c7f6
+[install] done. Try: .venv/bin/python run.py --config exact --mem 45 --prompt 'Explain how a refrigerator works.'
+[setup] DONE. Try: .venv/bin/python run.py --config chat --mem 24 --prompt 'Explain how a refrigerator works.'
+[setup]   or Claude Code on this model: tools/claude_code.sh (INSTALL.md)
+rc 0
+== 3. second run: everything done
+[setup] 1/5 venv + extension: done
+[setup] 2/5 model (Youssofal/Qwen3.8-Flash-Next-MTPLX-Bare-Speed @ 4285a4a, 35 files, 105.4 GB): done
+[setup] 3/5 drafter base (incoai/Qwen3.8-Flash-Next-DFlash2 @ a22a174, 1.2 GB, Hugging Face cache): done
+[setup] 4/5 expert store (/Users/kamen/BigMoE/models/bare/records3, 68.5 GB): done (48 layers)
+[setup] 5/5 install.sh --store --weights: runs last, every time (it links the store and the drafter files)
+[setup] venv + extension: done
+[install] venv OK: mlx 0.32.2, mlx-metal 0.32.2, mlx-lm 0.31.3, mtplx 2.12.2
+[install] extension built: /Users/kamen/Leap/release/cleanclone/v120s/clone/engine/ext/build/bigmoe_ext.cpython-312-darwin.so
+[install] store linked: engine/models/bare -> /Users/kamen/BigMoE/models/bare
+[install] drafter weights linked from /Users/kamen/Leap/release/cleanclone/v120s/weights_src
+[install] drafter base in the Hugging Face cache at the pinned revision: /Users/kamen/.cache/huggingface/hub/models--incoai--Qwen3.8-Flash-Next-DFlash2/snapshots/a22a1744e85c17364dcc54a6a420af7135d4c7f6
+[install] done. Try: .venv/bin/python run.py --config exact --mem 45 --prompt 'Explain how a refrigerator works.'
+[setup] DONE. Try: .venv/bin/python run.py --config chat --mem 24 --prompt 'Explain how a refrigerator works.'
+rc 0
+== 4. run.py dry run in this install
+[transformers] PyTorch was not found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
+.  
+..  
+d22_b5.safetensors -> /Users/kamen/Leap/release/cleanclone/v120s/weights_src/d22_b5.safetensors
+l120_ft.safetensors -> /Users/kamen/Leap/release/cleanclone/v120s/weights_src/l120_ft.safetensors
+== 5. one drafter file missing: dry run, then --no-download
+[setup] data folder: /Users/kamen/exactstream-data (model: /Users/kamen/BigMoE/models/bare, drafter files: /Users/kamen/Leap/release/cleanclone/v120s/weights_half)
+[setup]     drafter files (release v1.0.0, 1.4 GB): 1 files to download (0.3 GB)
+[setup] 5/5 install.sh --store --weights: runs last, every time (it links the store and the drafter files)
+[setup] disk: 217.3 GB free where the data goes; what is left needs 25.3 GB (including 25.0 GB kept free for the conversion and swap)
+[setup]   Inco AI, is Apache-2.0; our drafter files: l120_ft.safetensors under Apache-2.0, d22_b5.safetensors under the Qwen
+[setup] DRY RUN: nothing changed, nothing downloaded
+[setup] STOP: the drafter files is missing and --no-download is set
+rc 
+== 6. not enough disk (simulated by a larger floor is not possible; skipped) / unknown option
+setup.sh: unknown option --bogus (see --help)
+rc 2

@@ -54,7 +54,7 @@ def read_config(name, mem):
 
 
 def snapshot(cpath):
-    """The decode loop a config runs on: its SNAPSHOT= line (the 24 GB configs: w24), else engine/loop/SNAPSHOT (rel1)."""
+    """The decode loop a config runs on: its SNAPSHOT= line (the 24 GB configs: w24p2), else engine/loop/SNAPSHOT (rel1)."""
     for ln in open(cpath):
         if ln.strip().startswith("SNAPSHOT="):
             return ln.strip()[len("SNAPSHOT="):]

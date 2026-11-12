@@ -1,0 +1,79 @@
+diff --git a/INSTALL.md b/INSTALL.md
+index 3ec4d75..6c6abdd 100644
+--- a/INSTALL.md
++++ b/INSTALL.md
+@@ -77,7 +77,8 @@ saves 2.4 GB of peak memory, at about 2.7x the first-token time. Every turn in `
+ OpenAI (base URL `http://127.0.0.1:8080/v1`, any API key, model `exactstream`; chat completions, and the Responses API
+ that Codex uses) and Anthropic (base URL `http://127.0.0.1:8080`, `POST /v1/messages`). One request runs at a time and
+ the others wait. Like `chat.py`, it prefills long prompts layer-major at `--mem 32` and `--mem 24`. Ctrl-C or `kill`
+-stops it.
++stops it. It answers only programs on this Mac that address it as `127.0.0.1` or `localhost`: a request from a web page of
++another site (its `Origin`), or one sent to another host name (DNS rebinding), is refused, so a site you visit cannot use it.
+ 
+ **Conversation cache.** At `--mem 45` and `--mem 32` the server keeps each conversation's state (up to 2.5 GB in all), so
+ a request that continues an earlier one reads only its new tokens. We checked it bit for bit against a full prefill on
+diff --git a/serve.py b/serve.py
+index 770a29c..2d6cf2a 100644
+--- a/serve.py
++++ b/serve.py
+@@ -10,6 +10,8 @@
+   Anthropic clients:  ANTHROPIC_BASE_URL=http://127.0.0.1:8080, any key (POST /v1/messages with tools, streaming;
+                       POST /v1/messages/count_tokens)
+   Status:             GET /health, GET /stats (JSON), GET /statusline (one line; tools/statusline.sh shows it in Claude Code)
++  Only programs on this Mac: a request whose Host is not 127.0.0.1 / localhost / ::1, or that carries an Origin other than a
++  page on those, is refused (403), so a web page open in a browser cannot use the server (cross-site requests, DNS rebinding).
+ 
+ The engine loads once and runs every request through the same decode loop as run.py (engine/loop/r57_screen_<snapshot>.py),
+ unchanged: serve.py hands the loop one prompt item per request (the model's chat template over the request's messages and
+@@ -338,6 +340,33 @@ def main():
+         def log_message(self, fmt, *args):
+             pass
+ 
++        def _local(self):                                  # 1.2.0: only programs on this Mac, never a web page. A page in a
++            # browser can send requests to 127.0.0.1 too: a cross-site request carries the page's Origin, and DNS
++            # rebinding (a site whose name resolves to 127.0.0.1) carries the site's name in Host. So a Host must name the
++            # loopback (127.0.0.1, localhost, ::1; none = a non-browser client), and an Origin, if any, a loopback page.
++            # Claude Code, Codex, curl and the OpenAI / Anthropic SDKs send Host 127.0.0.1:<port> and no Origin.
++            loop = ("127.0.0.1", "localhost", "::1")
++            h = (self.headers.get("Host") or "").strip().lower()
++            if h:
++                h = h[1:h.find("]")] if h.startswith("[") and "]" in h else (h.rsplit(":", 1)[0] if h.count(":") == 1 else h)
++                if h not in loop:
++                    return False
++            o = self.headers.get("Origin")
++            if o is not None:
++                try:
++                    from urllib.parse import urlsplit
++                    if (urlsplit(o.strip()).hostname or "") not in loop:
++                        return False
++                except ValueError:
++                    return False
++            return True
++
++        def _refuse(self):
++            say(f"refused a {self.command} {self.path[:80]}: Host {self.headers.get('Host')!r}, Origin {self.headers.get('Origin')!r} "
++                f"(serve.py answers programs on this Mac, addressed to 127.0.0.1 or localhost)")
++            self._json(403, {"type": "error", "error": {"type": "permission_error", "message": "serve.py answers only programs "
++                             "on this Mac that address it as 127.0.0.1 or localhost; requests from web pages are refused"}})
++
+         def _json(self, code, obj):
+             b = json.dumps(obj).encode()
+             self.send_response(code)
+@@ -365,6 +394,8 @@ def main():
+             self.wfile.flush()
+ 
+         def do_GET(self):
++            if not self._local():
++                return self._refuse()
+             if self.path.rstrip("/") in ("/v1/models", "/models"):
+                 return self._json(200, {"object": "list", "data": [{"id": MODEL, "object": "model", "created": 0,
+                                                                     "owned_by": "exactstream"}]})
+@@ -401,6 +432,8 @@ def main():
+             return j
+ 
+         def do_POST(self):
++            if not self._local():
++                return self._refuse()
+             try:
+                 body = self._body()
+             except Exception as e:

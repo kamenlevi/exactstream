@@ -1719,3 +1719,11 @@ it gives 17.9 % at depths 23-30 at best (f2), against b5's own chain at 85.1 % (
 0.15). The stale control gives 13.5 %. MBPP is the same. b5 cannot read approximate trunk states (cosine about 0.7). The
 route needs the reader trained with its stand-in (PLAN step 3). The eval peaked at 10.5 GB, over the 8 GB day limit;
 swap stayed flat.
+
+## Thu 12 Nov 17:0x-19:0x: DEEPDRAFT step 3 first test (PREREG a73438e): b5 trained with D-22's chain to depth 30 on capture night 1: INCONCLUSIVE (data/deepdraft/ttt30/eval.json)
+The MTP head b5 was trained for 600 more steps with D-22's training-time-test chain (KL to the 125B's top-32 at every depth,
+accept-until-fail), now to depth 30, on night 1's Magicoder answers; the 125B is untouched. On the 24 held-out HumanEval+
+windows, depths 23-30 rose from 85.1 % to 87.3 %, between KILL (< 87) and CONTINUE (>= 90). Depth 0 stayed (97.7 -> 97.6).
+The gain grows with depth (7-10 +1.2, 15-22 +2.2, 23-30 +2.3 pt) and transfers: MBPP 23-30 rose from 63.3 % to 68.5 %. Kept
+per 32-row check went from 12.55 to 13.12 (HumanEval+) and from 6.22 to 6.54 (MBPP). The run used about 19 % of night 1's
+tokens, once. Next: about 3,000 steps (one full pass), pre-registered, with the curve at 600 / 1,500 / 3,000 steps.

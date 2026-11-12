@@ -1,0 +1,131 @@
+2,22c2,35
+< # 32c2 (v4, agentcc_cache4.sh): the cached 32 GB confirmation rerun of EvalSuite's Claude Code agent test (PREREG_agentcc amendments 4, 4a and
+< # 4c; agentcc_cache2.sh / 4b is void: a security review of Leap 68ec944 found that the sandbox let the agent write anywhere
+< # in <run> while the unsandboxed runner followed links there and at the check's name). As 32c (agentcc_cache.sh) with:
+< #  - agentcc_tasks5.py (frozen, sha-checked copy in the run folder; = tasks4 + v5: after claude ends, the sandboxed
+< #    processes still in the task's folders are killed (lingering.jsonl), and the check runs on the runner's copy of the
+< #    task folder, <run>/checks/<id>, under <run>/sandbox_check_<id>.sb whose only writable folder is that copy):
+< #    one profile per task (<run>/sandbox_<id>.sb, kept):
+< #    WRITES only in the task's own folder, its config folder and its temp folder <run>/cctmp/<id> (+ /private/var/folders
+< #    and /dev from the base), READS denied in ~/EvalSuite/agentcc and in <run> outside those and the read-only HOME;
+< #    CLAUDE_CODE_TMPDIR=<run>/cctmp/<id> and TMPPREFIX=<run>/cctmp/<id>/zsh per task; runner outputs opened with
+< #    O_NOFOLLOW (O_EXCL when new); the check copy removes any entry at its name first; CLAUDE_BIN from the environment;
+< #  - the base sandbox.sb names no part of <run> (agentcc_tasks5.py refuses one that does);
+< #  - Claude Code pinned to 2.1.321: CLAUDE_BIN = Leap's kept copy (logs/claude_versions/2.1.321, sha256 abc9feee...,
+< #    323,686,048 bytes; the installed claude updated itself to 2.1.322 on 11-11 08:15); a guard stops the tasks if t01's
+< #    init event is not claude_code_version 2.1.321; every transcript's version is counted at the end;
+< #  - the server files and launcher of the 80c8041 pin: the cache clone's serve.py, agentio.py, engine/loop/convcache.py and
+< #    tools/codex_local.sh checked against 80c8041's release/next/SHA256SUMS, and the launcher run from
+< #    tools/claude_local.sh.80c8041 (e5b900fa; the clone's tools/claude_local.sh is now release/next's newer one);
+< #  - CONV_CACHE=1, CONV_CACHE_GB=2.5 (set explicitly; 32c had it as serve.py's default), CONV_CACHE_BRANCH=1;
+< #  - NO-SWAP >= 45 GB, the swap guard (+2 GB stops everything), the neutral HOME, CLAUDE_CODE_TMPDIR, the same base
+< #    sandbox.sb, probe_cc.py unchanged.
+---
+> # r120 (agentcc_r120.sh = agentcc_cache4.sh, the 32c2 runner, with the changes EvalSuite's PREREG_agentcc amendment 5 lists):
+> #  - the server and the launcher are the package candidate's, AS SHIPPED: the clean clone CL of pkg_120 at PIN (its files
+> #    checked against PIN's MANIFEST.json), serve.py with its own defaults at --mem GB (no CONV_CACHE / CONV_CACHE_GB /
+> #    CONV_CACHE_BRANCH in the environment; the runner unsets them), and tools/claude_local.sh as shipped;
+> #  - the context window tools/claude_code.sh sets at --mem GB (EXACTSTREAM_CONTEXT: 65536 at 45 / 32, 131072 at 24),
+> #    exported for the launcher, since the runner starts serve.py itself instead of through claude_code.sh;
+> #  - Claude Code pinned to 2.1.322 (Leap's copy logs/claude_versions/2.1.322, sha256 a9d23794..., 323,702,464 bytes, equal
+> #    to the installed versions/2.1.322); the t01 guard and the end-of-run count check 2.1.322;
+> #  - GB / NEED / ARM from the environment (default 32 GB, NO-SWAP >= 40 = 32c2's peak 36.17 GB rounded up + 3, arm r120);
+> #    the 24 GB arm (r120s, information only) runs the same file with GB=24 and its own NEED.
+> # Everything else is 32c2's: tasks5, the hardened per-task sandbox, the neutral HOME, CLAUDE_CODE_TMPDIR and TMPPREFIX per
+> # task, probe_cc.py unchanged, the manifest unchanged, a fresh folder, the GO file, the gates, the swap guard.
+> # The 32c2 runner's own description (agentcc_cache4.sh):
+> #  | 32c2 (v4, agentcc_cache4.sh): the cached 32 GB confirmation rerun of EvalSuite's Claude Code agent test (PREREG_agentcc amendments 4, 4a and
+> #  | 4c; agentcc_cache2.sh / 4b is void: a security review of Leap 68ec944 found that the sandbox let the agent write anywhere
+> #  | in <run> while the unsandboxed runner followed links there and at the check's name). As 32c (agentcc_cache.sh) with:
+> #  |  - agentcc_tasks5.py (frozen, sha-checked copy in the run folder; = tasks4 + v5: after claude ends, the sandboxed
+> #  |    processes still in the task's folders are killed (lingering.jsonl), and the check runs on the runner's copy of the
+> #  |    task folder, <run>/checks/<id>, under <run>/sandbox_check_<id>.sb whose only writable folder is that copy):
+> #  |    one profile per task (<run>/sandbox_<id>.sb, kept):
+> #  |    WRITES only in the task's own folder, its config folder and its temp folder <run>/cctmp/<id> (+ /private/var/folders
+> #  |    and /dev from the base), READS denied in ~/EvalSuite/agentcc and in <run> outside those and the read-only HOME;
+> #  |    CLAUDE_CODE_TMPDIR=<run>/cctmp/<id> and TMPPREFIX=<run>/cctmp/<id>/zsh per task; runner outputs opened with
+> #  |    O_NOFOLLOW (O_EXCL when new); the check copy removes any entry at its name first; CLAUDE_BIN from the environment;
+> #  |  - the base sandbox.sb names no part of <run> (agentcc_tasks5.py refuses one that does);
+> #  |  - Claude Code pinned to 2.1.321: CLAUDE_BIN = Leap's kept copy (logs/claude_versions/2.1.321, sha256 abc9feee...,
+> #  |    323,686,048 bytes; the installed claude updated itself to 2.1.322 on 11-11 08:15); a guard stops the tasks if t01's
+> #  |    init event is not claude_code_version 2.1.321; every transcript's version is counted at the end;
+> #  |  - the server files and launcher of the 80c8041 pin: the cache clone's serve.py, agentio.py, engine/loop/convcache.py and
+> #  |    tools/codex_local.sh checked against 80c8041's release/next/SHA256SUMS, and the launcher run from
+> #  |    tools/claude_local.sh.80c8041 (e5b900fa; the clone's tools/claude_local.sh is now release/next's newer one);
+> #  |  - CONV_CACHE=1, CONV_CACHE_GB=2.5 (set explicitly; 32c had it as serve.py's default), CONV_CACHE_BRANCH=1;
+> #  |  - NO-SWAP >= 45 GB, the swap guard (+2 GB stops everything), the neutral HOME, CLAUDE_CODE_TMPDIR, the same base
+> #  |    sandbox.sb, probe_cc.py unchanged.
+27,28c40,43
+< RUN=$1; FROMS=$2; LASTS=$3; shift 3; AFTER="$*"; GB=32; NEED=45
+< [ -e "$RUN" ] && { echo "agentcc_cache4.sh: $RUN exists; use a fresh folder"; exit 2; }
+---
+> RUN=$1; FROMS=$2; LASTS=$3; shift 3; AFTER="$*"; GB=${GB:-32}; NEED=${NEED:-40}; ARM=${ARM:-r120}
+> [ -e "$RUN" ] && { echo "agentcc_r120.sh: $RUN exists; use a fresh folder"; exit 2; }
+> case $GB in 24) CTX=131072;; 32|45) CTX=65536;; *) echo "agentcc_r120.sh: GB 45, 32 or 24"; exit 2;; esac   # = tools/claude_code.sh
+> unset CONV_CACHE CONV_CACHE_GB CONV_CACHE_BRANCH CONV_CACHE_CHECK CONV_CACHE_GRID R57_PFLM BIGMOE_IDLE_MS EXACTSTREAM_CONTEXT   # as shipped
+30,31c45,47
+< L=/Users/kamen/Leap; CL=$L/release/cleanclone/cache/clone; MAN=/Users/kamen/EvalSuite/agentcc/manifest.json
+< PIN=80c8041; TASKS_SRC=$L/data/agent_cc_1111/profile/agentcc_tasks5.py
+---
+> L=/Users/kamen/Leap; CL=$L/release/cleanclone/v120b/clone; MAN=/Users/kamen/EvalSuite/agentcc/manifest.json
+> # 5d: the candidate pkg_120b, with serve.py's Host / Origin check
+> PKG=$L/release/out/pkg_120b; PIN=21fb59b6bfd980e9c7aec0bfb8e3094c553b92b7; TASKS_SRC=$L/data/agent_cc_1111/profile/agentcc_tasks5.py
+33,34c49,50
+< CLAUDE_PIN=$L/logs/claude_versions/2.1.321; CLAUDE_SHA=abc9feeeca8091d51b623291e044cf0528c2f6b74e0c1d6ef671d52c73f7cd3c; CLAUDE_SIZE=323686048
+< LAUNCH=$CL/tools/claude_local.sh.80c8041; PROBE=/Users/kamen/EvalSuite/tools/probe_cc.py
+---
+> CLAUDE_PIN=$L/logs/claude_versions/2.1.322; CLAUDE_SHA=a9d237949db816a0b7afd88a9a8e1df36b3a597a30f5a41d1c0539eb180a3450; CLAUDE_SIZE=323702464; CCV=2.1.322
+> LAUNCH=$CL/tools/claude_local.sh; PROBE=/Users/kamen/EvalSuite/tools/probe_cc.py
+59,63c75,81
+<   git -C $L show $PIN:release/next/SHA256SUMS > $RUN/SHA256SUMS.$PIN || { say "STOP: no SHA256SUMS at $PIN"; return 3; }
+<   echo "pin: release/next at $PIN ($(git -C $L log -1 --format='%h %s' $PIN | cut -c1-100))" > $P
+<   for f in serve.py agentio.py engine/loop/convcache.py tools/codex_local.sh; do
+<     a=$(sha $CL/$f); b=$(grep " $f$" $RUN/SHA256SUMS.$PIN | cut -d' ' -f1)
+<     [ -n "$b" ] && [ "$a" = "$b" ] && echo "clone $f = $PIN ($a)" >> $P || { say "STOP: clone $f is not $PIN's"; return 3; }
+---
+>   git -C $PKG show $PIN:MANIFEST.json > $RUN/MANIFEST.$PIN.json || { say "STOP: no MANIFEST.json at $PIN"; return 3; }
+>   [ "$(git -C $CL rev-parse HEAD)" = "$PIN" ] || { say "STOP: the clone $CL is not at $PIN"; return 3; }
+>   RC=$(/opt/homebrew/opt/python@3.12/bin/python3.12 -I $L/data/pkg120_1112/clone_rootcheck.py $CL) || { say "STOP: the clone has other changes than install.sh's @ROOT@ rewrite: $RC"; return 3; }
+>   echo "pin: package candidate $PIN ($(git -C $PKG log -1 --format='%s' $PIN | cut -c1-100)); clone $CL at HEAD $PIN; $RC" > $P
+>   for f in serve.py agentio.py run.py engine/loop/convcache.py tools/claude_local.sh tools/claude_code.sh tools/statusline.sh tools/codex_local.sh configs/chat-$GB.env; do
+>     a=$(sha $CL/$f); b=$(/opt/homebrew/opt/python@3.12/bin/python3.12 -I -c 'import json, sys; print(json.load(open(sys.argv[1]))["files"][sys.argv[2]]["sha256"])' $RUN/MANIFEST.$PIN.json $f 2>/dev/null)
+>     [ -n "$b" ] && [ "$a" = "$b" ] && echo "clone $f = $PIN's ($a)" >> $P || { say "STOP: clone $f is not $PIN's"; return 3; }
+65,66c83
+<   a=$(sha $LAUNCH); b=$(grep " tools/claude_local.sh$" $RUN/SHA256SUMS.$PIN | cut -d' ' -f1)
+<   [ -n "$b" ] && [ "$a" = "$b" ] && echo "launcher $LAUNCH = $PIN's tools/claude_local.sh ($a)" >> $P || { say "STOP: the launcher is not $PIN's"; return 3; }
+---
+>   [ "$LAUNCH" = "$CL/tools/claude_local.sh" ] && echo "launcher: $LAUNCH (as shipped, checked above)" >> $P || { say "STOP: the launcher is not the clone's"; return 3; }
+74c91,93
+<   echo "cache: CONV_CACHE=1 CONV_CACHE_GB=2.5 CONV_CACHE_BRANCH=1" >> $P
+---
+>   echo "server: serve.py --mem $GB --port $PORT with the package's own defaults: conversation cache on at 45 / 32 GB and off at 24 (CONV_CACHE unset), CONV_CACHE_GB 2.5 at 45 / 32 (unset), CONV_CACHE_BRANCH 1 (unset), PF-A R57_PFLM=1 at 32 / 24 (unset), BIGMOE_IDLE_MS 50 (unset); set by the runner for its records only: CONV_CACHE_LOG=$RUN/convcache.log, EXACTSTREAM_LOG_REQUESTS=$RUN/server_requests.jsonl" >> $P
+>   echo "claude: EXACTSTREAM_CONTEXT=$CTX (tools/claude_code.sh's value at --mem $GB), read by the shipped claude_local.sh: CLAUDE_CODE_MAX_CONTEXT_TOKENS=$CTX$([ $CTX -ge 100000 ] && echo ", CLAUDE_CODE_AUTO_COMPACT_WINDOW=$CTX" || echo ", no AUTO_COMPACT_WINDOW")" >> $P
+>   echo "runner environment, cache / engine / window variables: [$(env | grep -E '^(CONV_CACHE|R57_|BIGMOE_|EXACTSTREAM_)' | tr '\n' ' ')]" >> $P
+88c107
+< say "armed (pid $$): 32c2 v4 (agentcc $GB GB, cached, per-task read + write profile, Claude Code 2.1.321) -> $RUN; after [$AFTER], needs $RUN/GO; from $FROMS, last start $LASTS, NO-SWAP >= $NEED"
+---
+> say "armed (pid $$): $ARM (agentcc $GB GB, package candidate ${PIN:0:7} as shipped, per-task read + write profile, Claude Code $CCV) -> $RUN; after [$AFTER], needs $RUN/GO; from $FROMS, last start $LASTS, NO-SWAP >= $NEED"
+104c123
+<     peer lock share 300m --cpu 400 --gpu 100 "MEM $NEED GB: Leap Claude Code agent test 32c2 (cached 32 GB rerun, EvalSuite PREREG_agentcc amendment 4c)" > /dev/null 2>&1 && LOCKED=1
+---
+>     peer lock share 300m --cpu 400 --gpu 100 "MEM $NEED GB: Leap Claude Code agent test $ARM (1.2 release gate, $GB GB, EvalSuite PREREG_agentcc amendment 5)" > /dev/null 2>&1 && LOCKED=1
+131c150
+< ( cd $CL && CONV_CACHE=1 CONV_CACHE_GB=2.5 CONV_CACHE_BRANCH=1 CONV_CACHE_LOG=$RUN/convcache.log EXACTSTREAM_LOG_REQUESTS=$RUN/server_requests.jsonl exec .venv/bin/python serve.py --mem $GB --port $PORT ) > $RUN/serve.log 2>&1 &
+---
+> ( cd $CL && CONV_CACHE_LOG=$RUN/convcache.log EXACTSTREAM_LOG_REQUESTS=$RUN/server_requests.jsonl exec .venv/bin/python serve.py --mem $GB --port $PORT ) > $RUN/serve.log 2>&1 &
+140c159
+< export CLAUDE_BIN=$CLAUDE_PIN
+---
+> export CLAUDE_BIN=$CLAUDE_PIN EXACTSTREAM_CONTEXT=$CTX
+150,151c169,170
+<     if [ "$v" != "2.1.321" ]; then
+<       say "STOP: t01's init event reads claude_code_version '$v', not 2.1.321: stopping the tasks"
+---
+>     if [ "$v" != "$CCV" ]; then
+>       say "STOP: t01's init event reads claude_code_version '$v', not $CCV: stopping the tasks"
+159,160c178,179
+< n=0; ok=0; for f in $RUN/t[0-9][0-9]_*.jsonl; do [ -e "$f" ] || continue; n=$((n + 1)); [ "$(initver "$f")" = 2.1.321 ] && ok=$((ok + 1)); done
+< say "transcripts with claude_code_version 2.1.321: $ok of $n; per-task profiles kept: $(ls $RUN/sandbox_t*.sb 2>/dev/null | wc -l | tr -d ' '); symlinks in the run folder: $(find $RUN -type l 2>/dev/null | wc -l | tr -d ' ')"
+---
+> n=0; ok=0; for f in $RUN/t[0-9][0-9]_*.jsonl; do [ -e "$f" ] || continue; n=$((n + 1)); [ "$(initver "$f")" = "$CCV" ] && ok=$((ok + 1)); done
+> say "transcripts with claude_code_version $CCV: $ok of $n; per-task profiles kept: $(ls $RUN/sandbox_t*.sb 2>/dev/null | wc -l | tr -d ' '); symlinks in the run folder: $(find $RUN -type l 2>/dev/null | wc -l | tr -d ' ')"

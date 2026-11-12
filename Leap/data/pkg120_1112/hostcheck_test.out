@@ -1,0 +1,39 @@
+candidate 21fb59b (pkg_120b 21fb59b); serve.py sha256 4c15a1d4bbc32f89
+== allowed: loopback Host forms, no Origin, loopback Origins
+  ok: GET /health, curl's own Host (127.0.0.1:8136) -> 200 (want 200)
+  ok: GET /stats, Host 127.0.0.1:8136 -> 200 (want 200)
+  ok: GET /stats, Host localhost:8136 -> 200 (want 200)
+  ok: GET /stats, Host [::1]:8136 -> 200 (want 200)
+  ok: GET /stats, Host localhost -> 200 (want 200)
+  ok: GET /stats, Host LocalHost:8136 -> 200 (want 200)
+  ok: POST /v1/messages, no Origin -> 200 (want 200)
+  ok: POST /v1/messages, Origin http://localhost:3000 -> 200 (want 200)
+  ok: POST /v1/messages, Origin http://127.0.0.1:8136 -> 200 (want 200)
+  ok: POST /v1/messages, Origin http://[::1]:5173 -> 200 (want 200)
+  ok: GET /health, HTTP/1.0 with no Host (a non-browser client) -> 200 (want 200)
+  ok: POST /v1/chat/completions from Python urllib -> 200 (want 200)
+== refused: foreign Host (DNS rebinding) and foreign Origin (cross-site)
+  ok: GET /stats, Host evil.example:8136 -> 403 (want 403)
+  ok: GET /stats, Host evil.example -> 403 (want 403)
+  ok: GET /stats, Host 127.0.0.1.evil.example:8136 -> 403 (want 403)
+  ok: GET /stats, Host 192.168.1.5:8136 -> 403 (want 403)
+  ok: GET /stats, Host 0.0.0.0:8136 -> 403 (want 403)
+  ok: POST /v1/messages, Host evil.example:8136, no Origin -> 403 (want 403)
+  ok: POST /v1/messages, Origin https://evil.example -> 403 (want 403)
+  ok: POST /v1/messages, Origin null -> 403 (want 403)
+  ok: POST /v1/messages, Origin http://localhost.evil.example -> 403 (want 403)
+  ok: POST /v1/messages, Origin http://127.0.0.1.nip.io:8136 -> 403 (want 403)
+  ok: POST /v1/messages, Origin file:// -> 403 (want 403)
+  ok: POST /v1/responses, Origin https://evil.example -> 403 (want 403)
+refused lines in the server log: 12 (12 expected)
+== Claude Code 2.1.322 (Claude Code) through tools/claude_code.sh (sandboxed, only Read allowed)
+  rc 0; result: success | Done: 1 tool result(s). | turns 2
+  server: 2 Claude Code requests answered, 0 refused; hello.txt written: no (Write was not allowed)
+== Codex codex-cli 0.144.1 through tools/codex_code.sh (its workspace-write sandbox, no network)
+  rc 0; last line: Done: 1 tool result(s).
+  server: 2 Codex requests answered, 0 refused; hello.txt = 'hello from the mock'
+== totals: 24 as expected, 0 wrong; server errors: 1
+19:05:13 refused a GET /stats: Host 'evil.example:8136', Origin None (serve.py answers programs on this Mac, addressed to 127.0.0.1 or localhost)
+19:05:13 refused a GET /stats: Host 'evil.example', Origin None (serve.py answers programs on this Mac, addressed to 127.0.0.1 or localhost)
+19:05:13 refused a GET /stats: Host '127.0.0.1.evil.example:8136', Origin None (serve.py answers programs on this Mac, addressed to 127.0.0.1 or localhost)
+server stopped; port 8136 listeners: 0

@@ -143,7 +143,9 @@ for r, _, fs in os.walk(SRC):                                  # run.py, install
         rel = os.path.relpath(os.path.join(r, f), SRC)
         placed[rel] = (os.path.join(r, f), f"Leap release/src/{rel}")
 EXTRA = {"convert/make_records3.py": ("git", f"{HOME}/MoonShots", "b660ce9", "patches/planes_engine/make_records3.py"),
-         "convert/convert_records_p11.py": ("git", LEAP, "HEAD", "scripts/convert_records_p11.py")}
+         "convert/convert_records_p11.py": ("git", LEAP, "HEAD", "scripts/convert_records_p11.py"),
+         # 1.2.0: serve.py's conversation cache, BigMoE's module at 3c068d7 (the checked T1e / T1-45 copy, sha256 55631cb8)
+         "engine/loop/convcache.py": ("git", BM, "3c068d7", "conv/convcache.py")}
 REFS = json.load(open(a.refs)) if a.refs else {
     "exact-45_ar": f"{BM}/data/n45/ar_ref_tokens.json", "exact-32_ar": f"{BM}/data/n45/ar_ref_tokens.json",
     "chat-45_pdz0": f"{BM}/data/r57/pdz0_256_tokens.json", "chat-32_zs32": f"{BM}/data/r57/zs32_160_tokens.json"}
@@ -171,7 +173,8 @@ for dst, (src, _) in placed.items():
 F = f"{HOME}/BigMoE/data/r57/snap/frozen_{S}"
 RW = [(f"{F}/{sub}", f"@ROOT@/{dst}") for sub, dst in ROOTS] + [(f"{HOME}/BigMoE/data/r57/snap/{S}", "@ROOT@/engine/loop")]
 for P in (HOME, "~"):
-    RW += [(f"{P}/BigMoE/data/r57/snap/{x}", "@ROOT@/engine/loop") for x in XS]
+    RW += [(f"{P}/BigMoE/data/r57/snap/{x}", "@ROOT@/engine/loop") for x in sorted(XS, key=len, reverse=True)]   # w24p2
+    # before w24: a shorter snapshot name is a prefix of a longer one (1.2.0)
     RW += [(f"{P}/BigMoE/data/r57/snap/{S}", "@ROOT@/engine/loop"),
            (f"{P}/Leap/third_party/ms_gdn", "@ROOT@/kernels/ms_gdn"), (f"{P}/Leap/third_party", "@ROOT@/third_party"),
            (f"{P}/Leap/scripts", "@ROOT@/kernels"), (f"{P}/Leap/data/l120_ft.safetensors", "@ROOT@/weights/l120_ft.safetensors"),
@@ -279,7 +282,7 @@ ncs = 0
 # Not private (the old text is step 4's own redaction line): the 24 GB loop's row-cap comment, readable again (Tue 10 Nov).
 EXTRA_CS = [(f"engine/loop/r57_screen_{x}.py", f"# {RED}\n# rows (drafts cut to N - 1",
              "# R57_ROWCAP=N (W24, Mon 9 Nov: the 24 GB line's row cap): EVERY prompt's check verifies at most N\n"
-             "# rows (drafts cut to N - 1") for x in XS if x == "w24"]
+             "# rows (drafts cut to N - 1") for x in XS if x in ("w24", "w24p2")]   # w24p2 (1.2.0) = w24's loop + P2: the same comment
 for rel, old, new in [tuple(x) for x in PRIV.get("comment_subs", [])] + EXTRA_CS:
     fp = f"{OUT}/{rel}"
     t0 = open(fp, encoding="utf-8").read()
