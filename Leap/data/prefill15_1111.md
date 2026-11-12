@@ -240,3 +240,10 @@ QSA run.
   2. prof_qsa2.sh, the dense band + the QSA cProfile;
   3. prof_pipe3.sh, PIPE=2;
   4. prof_fast4.sh, the FAST lane.
+
+**Night 11-12: the 4 runners SKIPPED (no slot; the orchestrator foresaw it).** No run started.
+- They need NO-SWAP of 46 GB or more. They had only 17-19 GB free (swap 4.7 GB): Kamen's sessions held about 15 GB, and
+  BigMoE's DEEPDRAFT capture held the GPU.
+- Each one exited at its last start: prof_pipe2 at 06:00 ("no free window", another lock held), prof_qsa2 at 07:00,
+  prof_pipe3 at 07:30 and prof_fast4 at 08:00.
+- No numbers. The chain is to be re-armed for the next night with room, after clearing scratchpad prof15/*.done.

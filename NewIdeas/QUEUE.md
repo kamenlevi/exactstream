@@ -39,6 +39,12 @@ needed, use the cpu to its full to 'prep' the math which is about to go to the g
     - Order: card-reference leftover (0.5-2.5 h), then lcoh (~3.6 h), then whichever next arm fits.
     - The last chunk or arm must END by 15:00.
     - Fit12's 12 GB IFBench arm (~3 h, MEM ~12-16 GB) goes after 15:00, by day.
+  - THU 05:42 (`date`) v1.1.0 PUBLISHED Wed 16:52 on Kamen's go (release eb72552; site live with small-ram). The orchestrator
+    number-checked v1.0.1's erratum and v1.1.0's deltas itself. Now: BigMoE's DEEPDRAFT capture night 1 holds the quiet Mac
+    until ~13:30.
+    - THU F2b (MTP Head; turns/f2b.sh, DRY-tested): 45 GB class, quiet whole Mac, >= 6 h minimal / 9-10 h full. It takes the
+      first free night of >= 6 h after BigMoE's DEEPDRAFT nights, likely a weekend night. The orchestrator names the night
+      with Kamen; MTP Head arms it held with F2B_NB / F2B_END.
   - TUE 11:17 (`date`) S1q LOWER-MEMORY ARM PARKED (NewIdeas' call) until after the release. Fit12's pre-checks: the same chunk
     peaks at 11.725 GB in a re-run and 12.027 GB in the gate, with identical tokens (18 / 18). The ~0.3 GB run-to-run swing is
     outside MLX (MLX flat at 10.40-10.46). The arm needs ~0.4 GB of real cuts. The drafter cut would move QOM's cut, so it

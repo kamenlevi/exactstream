@@ -1704,3 +1704,10 @@ range 2.56-4.41). The pooled P2 (13 rows, plain) is **1.12 s median (mean 1.25, 
 Strata on the same prompts: 1.46 s (D) and 1.65 s (B). Validity: the controls are identical (12/12, 634/634), P2 is
 deterministic (12/12, 639/639), and P2 engaged on every prompt. Decode 31.3-31.4 (P2) vs 30.3-31.2 tok/s (card). Peak
 23.00 vs 23.70 GB. The full write-up waits for the Thu 17:00 reset.
+
+## Thu 12 Nov 01:07-13:30: DEEPDRAFT capture night 1 (PREREG 52b8571 + amendments 754a8a8 / d24597a): 604,474 answer tokens on fresh Python prompts
+2,277 Magicoder Python prompts (eval-overlap filtered) at C 160, picked from NO-SWAP 42 GB. 604,474 answer tokens, 32.80
+GB of features (h, wd, top-32) in ~/FableGod/deepdraft/capture/n1112/; every prompt on-path 1.0000. Stopped by the 13:30
+hard stop as planned (the prompt in progress is redone next night). 59 heat freezes, 12,711 s frozen (28 % of the run),
+most after Kamen's 07:08 fan minimum (FAN_CAP 2000). Pace about 68K answer tokens per hour with normal fans and about
+29-43K per hour at the minimum. Verdict lines only; the full write-up comes after the Thu 17:00 reset.
