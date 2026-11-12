@@ -1,0 +1,9 @@
+per-stage sums over the 48 layers, wall / main-thread CPU in s (R57_PFLM_PROF, SYNC=0: timestamps only, the real overlapped run)
+10k PIPE=0: whole prefill 18.33 / 6.03; hc_write 5.52 / 3.38, read 5.37 / 1.25, moe_build 4.25 / 0.95, ple_stage 2.31 / 0.17, moe_eval 0.73 / 0.15, hc_read 0.04 / 0.04, gdn 0.04 / 0.04, qsa 0.03 / 0.03, ple 0.00 / 0.00
+   the 12 full-attention layers only: hc_write 1.80 / 1.62, read 1.32 / 0.31, moe_build 1.14 / 0.44, moe_eval 0.20 / 0.07, qsa 0.03 / 0.03, hc_read 0.01 / 0.01
+10k PIPE=1: whole prefill 18.91 / 6.85; attn_submit 6.39 / 3.40, read 5.14 / 1.25, moe_submit 5.08 / 1.84, ple_stage 2.00 / 0.17, prev_wait 0.00 / 0.00
+   the 12 full-attention layers only: attn_submit 1.95 / 1.51, moe_submit 1.23 / 0.68, read 1.20 / 0.28, prev_wait 0.00 / 0.00
+30k PIPE=0: whole prefill 57.42 / 19.15; hc_write 30.60 / 15.26, moe_build 11.83 / 1.01, ple_stage 6.99 / 0.47, read 5.31 / 1.77, moe_eval 2.21 / 0.19, hc_read 0.14 / 0.13, qsa 0.11 / 0.11, gdn 0.10 / 0.10, ple 0.00 / 0.00
+   the 12 full-attention layers only: hc_write 15.23 / 12.88, moe_build 3.08 / 0.48, read 1.32 / 0.46, moe_eval 0.55 / 0.04, qsa 0.11 / 0.11, hc_read 0.07 / 0.06
+30k PIPE=1: whole prefill 58.84 / 24.44; attn_submit 31.32 / 16.41, moe_submit 14.67 / 5.65, ple_stage 7.23 / 0.43, read 5.18 / 1.62, prev_wait 0.00 / 0.00
+   the 12 full-attention layers only: attn_submit 15.95 / 13.20, moe_submit 3.68 / 1.66, read 1.22 / 0.37, prev_wait 0.00 / 0.00

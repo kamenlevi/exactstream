@@ -1,4 +1,5 @@
 #!/bin/bash
+# v2 (Leap 11-13 00:4x): the compare uses token lists only (the tokens file's item keys carry the run's timestamp; x32k, 11-12).
 # PF-B one-build candidate, the 45 GB night test (pre-registered in data/prefill15_1112.md section 3; the orchestrator's night
 # queue 11-12: after rel120_check, r120, x32k and the prof chain). chat at 45 GB in the cache clone (unchanged), on prof15's
 # prompts of 10K and 30K tokens, --max-tokens 32, R57_LOGHASH=1, one process per arm and prompt, --trace (the module manifest
@@ -97,7 +98,7 @@ def load(n, r):
         pf = next((p for name, p in (m["modules"] if isinstance(m, dict) else m) if name == "pflm"), "not imported")
     except Exception:
         pf = "?"
-    return dict(tok=json.dumps(tk, sort_keys=True), lh=json.dumps(lh), nlh=len(lh), peak=peak, pflm=pf)
+    return dict(tok=json.dumps([v for k in sorted(tk) for a in sorted(tk[k]) for v in tk[k][a]]), lh=json.dumps(lh), nlh=len(lh), peak=peak, pflm=pf)
 for r in ("R0", "R1", "R2", "R3"):
     parts = []
     for n in ("10k", "30k"):

@@ -1,0 +1,13 @@
+per-stage sums over the 48 layers, wall / main-thread CPU in s (SYNC=0); PIPE=0 / PIPE=1 rows from ../pipe2_1113
+10K PIPE=0: whole prefill 18.33 / 6.03; hc_write 5.52 / 3.38, read 5.37 / 1.25, moe_build 4.25 / 0.95, ple_stage 2.31 / 0.17, moe_eval 0.73 / 0.15, hc_read 0.04 / 0.04, gdn 0.04 / 0.04, qsa 0.03 / 0.03, ple 0.00 / 0.00
+   the 12 full-attention layers only: hc_write 1.80 / 1.62, read 1.32 / 0.31, moe_build 1.14 / 0.44, moe_eval 0.20 / 0.07, qsa 0.03 / 0.03, hc_read 0.01 / 0.01
+10K PIPE=2: whole prefill 14.76 / 7.30; attn_submit 6.87 / 4.97, moe_submit 5.02 / 1.97, ple_stage 2.57 / 0.18, read 0.00 / 0.00, prev_wait 0.00 / 0.00, read_wait 0.00 / 0.00
+   the 12 full-attention layers only: attn_submit 2.25 / 2.09, moe_submit 1.09 / 0.67, read 0.00 / 0.00, prev_wait 0.00 / 0.00, read_wait 0.00 / 0.00
+30K PIPE=0: whole prefill 57.42 / 19.15; hc_write 30.60 / 15.26, moe_build 11.83 / 1.01, ple_stage 6.99 / 0.47, read 5.31 / 1.77, moe_eval 2.21 / 0.19, hc_read 0.14 / 0.13, qsa 0.11 / 0.11, gdn 0.10 / 0.10, ple 0.00 / 0.00
+   the 12 full-attention layers only: hc_write 15.23 / 12.88, moe_build 3.08 / 0.48, read 1.32 / 0.46, moe_eval 0.55 / 0.04, qsa 0.11 / 0.11, hc_read 0.07 / 0.06
+30K PIPE=1: whole prefill 58.84 / 24.44; attn_submit 31.32 / 16.41, moe_submit 14.67 / 5.65, ple_stage 7.23 / 0.43, read 5.18 / 1.62, prev_wait 0.00 / 0.00
+   the 12 full-attention layers only: attn_submit 15.95 / 13.20, moe_submit 3.68 / 1.66, read 1.22 / 0.37, prev_wait 0.00 / 0.00
+30K PIPE=1 + dense band: whole prefill 56.54 / 23.48; attn_submit 30.27 / 15.96, moe_submit 14.03 / 5.34, ple_stage 6.66 / 0.41, read 5.17 / 1.45, prev_wait 0.00 / 0.00
+   the 12 full-attention layers only: attn_submit 15.48 / 12.88, moe_submit 3.54 / 1.60, read 1.21 / 0.33, prev_wait 0.00 / 0.00
+30K PIPE=2: whole prefill 52.57 / 23.42; attn_submit 30.89 / 17.23, moe_submit 14.25 / 5.29, ple_stage 6.82 / 0.43, read 0.00 / 0.00, prev_wait 0.00 / 0.00, read_wait 0.00 / 0.00
+   the 12 full-attention layers only: attn_submit 15.76 / 13.26, moe_submit 3.59 / 1.59, read 0.00 / 0.00, read_wait 0.00 / 0.00, prev_wait 0.00 / 0.00

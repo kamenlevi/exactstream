@@ -1,4 +1,8 @@
 #!/bin/bash
+# v3b (00:44): the start gate 44, the per-run minimum: NO-SWAP reads 44.90 GB, which the integer gate truncates to 44.
+# v3 (Leap 11-13 00:4x, the orchestrator 00:3x): the start gate NO-SWAP 46 -> 45 GB (NO-SWAP flat at 44.9-45 after the 00:25
+# app close; the first run is 10K, peak 35.6 GB on 11-11; a 30K PIPE=1 run is about 40.7 + 1.6 GB (the second full-E scratch); the per-run minimum 44 is unchanged); the compare uses token lists only (the tokens file's item keys
+# carry the run's timestamp, so whole-file compares said DIFFER: the x32k false alarm, 11-12 19:5x).
 # v2 (orchestrator 14:2x): the share lock is taken INSIDE the gate loop and retried until granted (a failed `peer lock`
 # used to fall through and run beside another job); after the grant, 20 s later, no other lock / engine and NO-SWAP
 # >= 46 again, else unlock and keep waiting. Start 00:33 so busy() sees a ticket queued at 00:30.
@@ -32,13 +36,13 @@ while :; do
   [ -z "$why" ] && [ -n "$(procs)" ] && why="an engine runs"
   [ -z "$why" ] && [ "$(busy)" -gt 0 ] && why="another lock"
   [ -z "$why" ] && held && why="PAUSE / HOLD"
-  [ -z "$why" ] && [ "$(noswap)" -lt 46 ] && why="NO-SWAP $(noswap) < 46"
+  [ -z "$why" ] && [ "$(noswap)" -lt 44 ] && why="NO-SWAP $(noswap) < 44"
   if [ -z "$why" ]; then CLR=$((CLR + 1)); else CLR=0; fi
   [ -z "$why" ] && [ $CLR -lt 2 ] && why="clear once"
   if [ -z "$why" ]; then
     if peer lock share 60m --cpu 400 --gpu 100 "MEM 46 GB: Leap prefill PF-B pipelining A/B (32 GB, 10K / 30K), ~10 min" > /dev/null 2>&1; then
       LOCKED=1; sleep 20
-      if [ "$(busy)" = 0 ] && [ -z "$(procs)" ] && [ "$(noswap)" -ge 46 ]; then say "lock granted; clear after 20 s"; break; fi
+      if [ "$(busy)" = 0 ] && [ -z "$(procs)" ] && [ "$(noswap)" -ge 44 ]; then say "lock granted; clear after 20 s"; break; fi
       peer unlock >/dev/null 2>&1; LOCKED=0; CLR=0; why="after the lock: another lock / an engine / NO-SWAP $(noswap)"
     else
       CLR=0; why="share lock not granted"
@@ -70,7 +74,7 @@ def get(n, p):
         tk = json.load(open(f"{W}/pipe_{n}_p{p}_tokens.json")); rr = json.load(open(f"{W}/pipe_{n}_p{p}_runs.json"))
     except Exception as e:
         return None, None
-    toks = json.dumps(tk, sort_keys=True)
+    toks = json.dumps([v for k in sorted(tk) for a in sorted(tk[k]) for v in tk[k][a]])   # token lists only: item keys carry timestamps
     lh = []
     def walk(o):
         if isinstance(o, dict):

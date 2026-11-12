@@ -1,4 +1,7 @@
 #!/bin/bash
+# v3 (Leap 11-13 00:4x, the orchestrator 00:3x): the start gate NO-SWAP 46 -> 45 GB (NO-SWAP flat at 44.9-45 after the 00:25
+# app close; it runs after prof_qsa2.sh; 10K first, then 30K; the per-run minimum 44 is unchanged); the compare uses token lists only (the tokens file's item keys
+# carry the run's timestamp, so whole-file compares said DIFFER: the x32k false alarm, 11-12 19:5x).
 # v2 (orchestrator 14:2x): the share lock is taken INSIDE the gate loop and retried until granted (a failed `peer lock`
 # used to fall through and run beside another job); after the grant, 20 s later, no other lock / engine and NO-SWAP
 # >= 46 again, else unlock and keep waiting. Start 00:33 so busy() sees a ticket queued at 00:30.
@@ -32,13 +35,13 @@ while :; do
   [ -z "$why" ] && [ -n "$(procs)" ] && why="an engine runs"
   [ -z "$why" ] && [ "$(busy)" -gt 0 ] && why="another lock"
   [ -z "$why" ] && held && why="PAUSE / HOLD"
-  [ -z "$why" ] && [ "$(noswap)" -lt 46 ] && why="NO-SWAP $(noswap) < 46"
+  [ -z "$why" ] && [ "$(noswap)" -lt 45 ] && why="NO-SWAP $(noswap) < 45"
   if [ -z "$why" ]; then CLR=$((CLR + 1)); else CLR=0; fi
   [ -z "$why" ] && [ $CLR -lt 2 ] && why="clear once"
   if [ -z "$why" ]; then
     if peer lock share 30m --cpu 400 --gpu 100 "MEM 47 GB: Leap prefill PF-B PIPE=2 (32 GB, 10K / 30K), ~5 min" > /dev/null 2>&1; then
       LOCKED=1; sleep 20
-      if [ "$(busy)" = 0 ] && [ -z "$(procs)" ] && [ "$(noswap)" -ge 46 ]; then say "lock granted; clear after 20 s"; break; fi
+      if [ "$(busy)" = 0 ] && [ -z "$(procs)" ] && [ "$(noswap)" -ge 45 ]; then say "lock granted; clear after 20 s"; break; fi
       peer unlock >/dev/null 2>&1; LOCKED=0; CLR=0; why="after the lock: another lock / an engine / NO-SWAP $(noswap)"
     else
       CLR=0; why="share lock not granted"
@@ -77,7 +80,7 @@ def get(n, p):
         elif isinstance(o, list):
             for v in o: walk(v)
     walk(rr)
-    return json.dumps(tk, sort_keys=True), json.dumps(lh)
+    return json.dumps([v for k in sorted(tk) for a in sorted(tk[k]) for v in tk[k][a]]), json.dumps(lh)   # token lists only (keys carry timestamps)
 for n in ("10k", "30k"):
     a, b = get(n, 0), get(n, 2)
     print(n, "PIPE=2 vs PIPE=0 BITWISE:", "missing files" if None in (a, b) else
