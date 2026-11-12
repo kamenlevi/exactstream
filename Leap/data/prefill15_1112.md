@@ -1,7 +1,45 @@
 > (a quote from the project owner, kept private)
 # small tests, <= 5 GB under a share lock, time nothing)
 
-## 1. FINDING: `exact` past 32K tokens of context is probably not bitwise
+## 0. CORRECTED 17:0x: sections 1 and 2 were wrong. The sparse lane cannot engage in this engine
+
+**Why.** MTPLX's gate `_qsa_large_prefill_enabled(rows, total)` first requires `current_attention_phase() == "prefill"`.
+- The phase is a ContextVar whose default is "unknown".
+- The shipped loop never sets it. r57_screen_rel1.py imports only mtplx.cache_state, and stream.py and
+  serve / chat / run.py never call it. The engine's only `attention_phase("prefill")` is BigMoE's research lmp4pd path
+  in bigmoe/decode.py, which no shipped config uses.
+- `MTPLX_QSA_PREFILL` is read only by that gate (qwen4_exp.py:2242); profiles.py lists the name.
+
+**CPU check with the real gate function** (the clone's venv):
+- as shipped, a 1,024-row chunk ending at 40,000 tokens -> **False**; inside `attention_phase("prefill")` -> True;
+- at 10,000 tokens -> False either way;
+- with the FAST env (the three MIN_CONTEXT variables = 4096): False at 10K and 40K as shipped, True only inside the
+  phase.
+
+**So:**
+- (1) `exact` stays dense past 32K and the 1.1.0 claim stands. This was a false alarm; I read the AUTO default as the
+  whole story.
+- (2) `EXACTSTREAM_QSA` was inert (fast never engages; dense pins what already happens). It is REVERTED from
+  release/next/serve.py (back to fa705c6; SHA256SUMS OK).
+- The EvalSuite pre-registration is ON HOLD.
+- prof4/prof_fast4.sh (FAST via env only) would test nothing: dropped.
+- The dense band (MTPLX_QSA_DENSE_BAND_SDPA, prof_qsa2) is not phase-gated (env + shape only): still valid.
+
+**To make the FAST lane real (design, untested).** Run the engine's prefill inside `attention_phase("prefill")`, e.g.
+serve.py wrapping `G()["prefill"]` as convcache.install does. That would also give chat / lossy MTPLX's AUTO lane past
+32K (MTPLX's receipts: +34.8 % at 98K), which this engine does not use today. First check what else in MTPLX reads the
+phase.
+
+**Still done, as the orchestrator asked (17:0x):**
+- **The engine-level confirmation**, scripts/prefill15/x32k/x32k_exact.sh: exact-32, a 40,016-token prompt (cut from
+  long_ctx's 64K papers prompt), auto vs MTPLX_QSA_PREFILL=0, tokens + LOGHASH, no timings. Expected: EQUAL.
+  - Gates: NO-SWAP >= 46, a share lock with MEM 38 GB, no other big lock or engine, Kamen idle >= 600 s.
+  - Head-tested (arm, skip, exit). ARMED 17:07, last start Fri 08:00.
+- **The defensive pin, staged** (release/next/configs/exact-32.env and exact-45.env; not published):
+  MTPLX_QSA_PREFILL=0 with a comment. A no-op in this engine; it keeps exact dense if a later engine sets the phase.
+  read_config skips comment lines anywhere.
+
+## 1. (WITHDRAWN, see 0) FINDING: `exact` past 32K tokens of context is probably not bitwise
 
 **The setting.** MTPLX's sparse QSA prefill lane is selected by `MTPLX_QSA_PREFILL`. When the variable is unset it
 resolves to AUTO, which is ON on M5 (mtplx/models/qwen4_exp.py `_qsa_prefill_enabled`: "Unset resolves AUTO: on where
@@ -24,7 +62,7 @@ the NAX flash kernel is supported").
 
 `EXACTSTREAM_QSA=dense` (below) is option (a) as a switch.
 
-## 2. The FAST QSA lane, wired as an opt-in (release/next/serve.py; not in 1.1.0)
+## 2. (REVERTED, see 0: inert in this engine) The FAST QSA lane, wired as an opt-in (release/next/serve.py; not in 1.1.0)
 
 `EXACTSTREAM_QSA` takes three values:
 - `auto` (the default): as shipped, MTPLX AUTO.
