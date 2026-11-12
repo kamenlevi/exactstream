@@ -133,3 +133,17 @@ groups [0, 1] and [2, 3, 4], so the short final chunk sits inside a group. For Q
 - **Room needed.** About 45 GB plus up to ~9 GB plus the OS. Run it only with NO-SWAP of 56 or more.
 - **Next step toward one build (not built).** In PF-B's read, rebuild the pool-resident experts on the GPU (PF-D's
   `rebuild_parts`) instead of reading them from the SSD.
+
+## 4. x32k, the engine-level check: exact stays BITWISE past 32K (Thu 19:40-19:52; data/prefill15_x32k/)
+
+exact-32 on a 40,028-token prompt (prompt_40k.txt + the chat template), --max-tokens 32, R57_LOGHASH=1, cache clone, one
+process per arm: auto (as shipped) vs MTPLX_QSA_PREFILL=0 (the lane pinned off). Ran in the 1.2.0 night chain after r120,
+NO-SWAP 49 / 46 GB.
+- **The 32 tokens are EQUAL and the 10 verify-logit hashes are EQUAL.** The sparse QSA lane does not engage in this engine,
+  as the CPU gate check said (section 0). So the 1.1.0 / 1.2.0 exact claim holds past 32K, and the pin shipped in 1.2.0 is
+  defensive only.
+- Each arm: first token 337.8 / 334.4 s (a cold 40K prefill at 32 GB with the default prefill, about 120 tok/s); lifetime
+  peak 36.22 GB in both.
+- **Correction to the runner's own verdict line.** It printed "tokens DIFFER" because it compared whole tokens.json files,
+  and a prompt-file run's item key carries the run's timestamp (multi/cli_1112_194020 vs multi/cli_1112_194614).
+  x32k_exact.sh now compares the token lists only. Rerun on the same files: "tokens EQUAL | verify-logit hashes EQUAL".

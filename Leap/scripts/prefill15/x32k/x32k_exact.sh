@@ -83,7 +83,8 @@ def get(arm):
         elif isinstance(o, list):
             for v in o: walk(v)
     walk(rr)
-    return json.dumps(tk, sort_keys=True), json.dumps(lh)
+    # the token lists only: a prompt-file run's item key carries its own timestamp (cli_<time>), so whole files always differ
+    return json.dumps([v for k in sorted(tk) for a in sorted(tk[k]) for v in tk[k][a]]), json.dumps(lh)
 a, b = get("auto"), get("dense")
 if None in a or None in b:
     print("x32k BITWISE: missing files")

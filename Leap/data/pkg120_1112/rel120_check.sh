@@ -13,10 +13,12 @@
 # Gates before stage 1: no engine / chat / server, no other big or quiet lock, no PAUSE / HOLD, Kamen idle >= 600 s, NO-SWAP
 # >= 28, two clear polls, a share lock with MEM (re-checked 20 s after the grant); swap +2 GB stops it. From FROM, last
 # start LAST. Writes <W>/report.txt (clean_clone_test.sh's) and <W>/rel120_check.log; <W>/rel120_check.done at the end.
-# Usage: rel120_check.sh "<FROM YYYY-MM-DD HH:MM:SS>" "<LAST ...>"
+# STAGES (default "1 2 3") picks the stages; GATE_NS (default 28) is the first gate's NO-SWAP floor (each stage keeps its own).
+# Usage: [STAGES="3" GATE_NS=46] rel120_check.sh "<FROM YYYY-MM-DD HH:MM:SS>" "<LAST ...>"
 W=${W:-/Users/kamen/Leap/release/cleanclone/v120b}; CL=$W/clone; PKG=${PKG:-/Users/kamen/Leap/release/out/pkg_120b}; LOG=$W/rel120_check.log   # pkg_120b: the Host / Origin fix
 CCT="$CL/tools/clean_clone_test.sh"; WH=/Users/kamen/Leap/release/cleanclone/wheels; HFH=$HOME/.cache/huggingface
 FROM=$(date -j -f "%Y-%m-%d %H:%M:%S" "$1" +%s); LAST=$(date -j -f "%Y-%m-%d %H:%M:%S" "$2" +%s)
+STAGES=${STAGES:-1 2 3}; GNS=${GATE_NS:-28}
 noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 swap() { sysctl -n vm.swapusage | sed -E 's/.*used = ([0-9.]+)M.*/\1/' | cut -d. -f1; }
 idle() { ioreg -c IOHIDSystem | awk '/HIDIdleTime/ {print int($NF/1000000000); exit}'; }
@@ -29,7 +31,7 @@ cleanup() { [ -n "$GUARD" ] && kill $GUARD 2>/dev/null; [ -n "$SP" ] && kill -0 
             [ $LOCKED = 1 ] && peer unlock >/dev/null 2>&1; touch $W/rel120_check.done; say "exit (NO-SWAP $(noswap) GB, swap $(swap) MB)"; }
 trap cleanup EXIT; trap 'say "stopped by a signal"; exit 1' INT TERM
 [ "$(git -C $CL rev-parse --short HEAD)" = "$(git -C $PKG rev-parse --short HEAD)" ] || { say "STOP: the clone is not at the candidate's HEAD"; exit 2; }
-say "armed (pid $$): 1.2.0 candidate $(git -C $CL rev-parse --short HEAD) GPU checks; from $1, last start $2"
+say "armed (pid $$): 1.2.0 candidate $(git -C $CL rev-parse --short HEAD) GPU checks, stages [$STAGES], first gate NO-SWAP >= $GNS; from $1, last start $2"
 NOTE=""; CLR=0
 while :; do
   now=$(date +%s); [ $now -ge $LAST ] && { say "SKIP: no free window by $2 (last wait: $NOTE)"; exit 0; }
@@ -39,13 +41,13 @@ while :; do
   [ -z "$why" ] && [ -n "$(procs)" ] && why="an engine runs"
   [ -z "$why" ] && [ "$(busy)" -gt 0 ] && why="another lock"
   [ -z "$why" ] && held && why="PAUSE / HOLD"
-  [ -z "$why" ] && [ "$(noswap)" -lt 28 ] && why="NO-SWAP $(noswap) < 28"
+  [ -z "$why" ] && [ "$(noswap)" -lt $GNS ] && why="NO-SWAP $(noswap) < $GNS"
   if [ -z "$why" ]; then CLR=$((CLR + 1)); else CLR=0; fi
   [ -z "$why" ] && [ $CLR -lt 2 ] && why="clear once"
   if [ -z "$why" ]; then
     if peer lock share 60m --cpu 400 --gpu 100 "MEM 45 GB: Leap 1.2.0 candidate checks (P2 smoke at 24 GB; 32 / 45 GB configs if room), ~30 min" > /dev/null 2>&1; then
       LOCKED=1; sleep 20
-      if [ "$(busy)" = 0 ] && [ -z "$(procs)" ] && [ "$(noswap)" -ge 28 ]; then say "lock granted; clear after 20 s (NO-SWAP $(noswap) GB)"; break; fi
+      if [ "$(busy)" = 0 ] && [ -z "$(procs)" ] && [ "$(noswap)" -ge $GNS ]; then say "lock granted; clear after 20 s (NO-SWAP $(noswap) GB)"; break; fi
       peer unlock >/dev/null 2>&1; LOCKED=0; CLR=0; why="after the lock: another lock / an engine / NO-SWAP $(noswap)"
     else
       CLR=0; why="share lock not granted"
@@ -56,6 +58,7 @@ while :; do
 done
 S0=$(swap); ( while :; do [ $(( $(swap) - S0 )) -gt 2048 ] && { echo "$(date +%T) SWAP GUARD: $(swap) MB" >> $LOG; kill -TERM $$; exit; }; sleep 5; done ) &
 GUARD=$!
+if [[ " $STAGES " == *" 1 "* ]]; then
 # ---- stage 1: the 24 GB configs (P2) ----
 say "stage 1 (NO-SWAP $(noswap) GB): clean_clone_test.sh run, CONFIGS=chat-24 lossy-24, text prompt on chat-24, chat.py + serve.py at 24"
 CONFIGS="chat-24 lossy-24" TEXT_CONFIG=chat-24 CS_MEM=24 WHEELS=$WH bash "$CCT" "$PKG" "$W" run > $W/stage1.out 2>&1
@@ -106,9 +109,11 @@ else
 fi
 kill -TERM $SP 2>/dev/null; for i in $(seq 1 60); do kill -0 $SP 2>/dev/null || break; sleep 1; done; kill -0 $SP 2>/dev/null && kill -KILL $SP; SP=""
 lsof -nP -iTCP:$PORT -sTCP:LISTEN >/dev/null 2>&1 && say "    WARNING: port $PORT still in use" || say "    serve.py stopped, port $PORT free"
+fi
 # ---- stages 2 and 3: the 32 and 45 GB configs, if there is room ----
 for st in "2 36 chat-32 exact-32 lossy-32 chat-32" "3 52 chat-45 exact-45 lossy-45 chat-45"; do
   set -- $st; n=$1; need=$2; tc=$3; shift 3
+  [[ " $STAGES " == *" $n "* ]] || continue
   [ -n "$(procs)" ] && { say "stage $n skipped: an engine runs"; continue; }
   [ "$(noswap)" -ge $need ] || { say "stage $n skipped for memory: NO-SWAP $(noswap) < $need"; continue; }
   say "stage $n (NO-SWAP $(noswap) GB): clean_clone_test.sh run, CONFIGS=$*"

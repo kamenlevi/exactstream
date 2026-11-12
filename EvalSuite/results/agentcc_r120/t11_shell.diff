@@ -1,0 +1,21 @@
+diff --git a/count.sh b/count.sh
+index 3b19f0c..2a335fd 100644
+--- a/count.sh
++++ b/count.sh
+@@ -1,2 +1,15 @@
+ #!/bin/sh
+-cat data/*.txt | wc -l | tr -d ' '
++# Print the total number of lines in all .txt files under data/,
++# including files in subfolders. A file whose last line has no
++# trailing newline still counts that last line.
++find data -type f -name '*.txt' -exec sh -c '
++  total=0
++  for f do
++    [ -s "$f" ] || continue
++    lines=$(wc -l < "$f")
++    # wc -l misses the last line when the file has no trailing newline.
++    [ -n "$(tail -c 1 "$f")" ] && lines=$((lines + 1))
++    total=$((total + lines))
++  done
++  echo "$total"
++' sh {} +

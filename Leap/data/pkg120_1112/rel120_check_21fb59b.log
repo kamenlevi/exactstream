@@ -1,0 +1,24 @@
+11-12 19:06:06 armed (pid 53806): 1.2.0 candidate 21fb59b GPU checks; from 2026-11-12 19:06:00, last start 2026-11-13 01:30:00
+11-12 19:06:06 wait: clear once
+11-12 19:07:27 lock granted; clear after 20 s (NO-SWAP 38 GB)
+11-12 19:07:27 stage 1 (NO-SWAP 38 GB): clean_clone_test.sh run, CONFIGS=chat-24 lossy-24, text prompt on chat-24, chat.py + serve.py at 24
+11-12 19:08:58   clean_clone_test run rc 0: 11-12 19:08:58 CLEAN-CLONE PASS
+11-12 19:08:58   P2 SMOKE: chat-24 on the 12 reference prompts, cap 256 (ifeval/1220,ifeval/3280,ifeval/1561,ifeval/2853,ifeval/374,ifeval/3407,ifeval/2239,ifeval/2590,ifeval/2870,ifeval/2439,ifeval/1219,ifeval/1262)
+    whole decode 31.8 tok/s | whole request 24.6 tok/s | first token 1.14 s (0.83-1.93) | lifetime peak 22.89 GB | 12 prompt(s), 1637 tokens, process wall 76 s (load + warm-up included)
+11-12 19:10:15   P2 SMOKE tokens vs the gated arm: 12/12 keys prefix-equal with the reference's history (rc 0)
+11-12 19:10:15   information only: serve.py --mem 24 with CONV_CACHE=1 (unshipped), four turns
+    four turns: HTTP [200, 200, 200, 200] prompt tokens [17, 107, 670, 714]
+    19:10:28 done: 17 prompt tokens -> 64 tokens, whole decode 28.8 tok/s, first token 0.46 s, peak 23.077344624 GB
+    19:10:32 done: 107 prompt tokens -> 64 tokens, whole decode 32.6 tok/s, first token 1.97 s, peak 23.077344624 GB
+    19:10:38 done: 670 prompt tokens -> 26 tokens, whole decode 22.8 tok/s, first token 4.9 s, peak 24.461941472 GB; cache miss c 0 (none), prefilled 670, restore 0.0 ms, check 
+    19:10:43 done: 714 prompt tokens -> 7 tokens, whole decode 22.1 tok/s, first token 5.23 s, peak 24.542157584 GB; cache miss c 0 (none), prefilled 714, restore 0.0 ms, check 
+11-12 19:10:43     errors in the server log: 0; convcache lines: 3
+11-12 19:10:45     serve.py stopped, port 8095 free
+11-12 19:10:45 stage 2 (NO-SWAP 37 GB): clean_clone_test.sh run, CONFIGS=exact-32 lossy-32 chat-32
+11-12 19:12:50   rc 0: 11-12 19:12:50 CLEAN-CLONE PASS
+11-12 19:12:50 stage 3 skipped for memory: NO-SWAP 45 < 52
+11-12 19:12:50 DONE: report /Users/kamen/Leap/release/cleanclone/v120b/report.txt
+11-12 19:12:50 exit (NO-SWAP 45 GB, swap 4618 MB)
+11-12 19:13:41 armed (pid 5096): 1.2.0 candidate 21fb59b GPU checks, stages [3], first gate NO-SWAP >= 46; from 2026-11-12 18:00:00, last start 2026-11-12 18:01:00
+11-12 19:13:41 SKIP: no free window by 2026-11-12 18:01:00 (last wait: )
+11-12 19:13:41 exit (NO-SWAP 45 GB, swap 4618 MB)

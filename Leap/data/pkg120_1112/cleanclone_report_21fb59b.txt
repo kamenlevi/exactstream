@@ -1,0 +1,67 @@
+11-12 19:03:54 cloned 21fb59b 1.2.0: coding agents (serve.py tool calls; conversation cache at 45 and 32 GB; tools/claude_
+[install] root path written into 45 files (@ROOT@ -> /Users/kamen/Leap/release/cleanclone/v120b/clone)
+[install] venv OK: mlx 0.32.2, mlx-metal 0.32.2, mlx-lm 0.31.3, mtplx 2.12.2
+[install] extension built: /Users/kamen/Leap/release/cleanclone/v120b/clone/engine/ext/build/bigmoe_ext.cpython-312-darwin.so
+[install] store linked: engine/models/bare -> /Users/kamen/BigMoE/models/bare
+[install] drafter weights linked from /Users/kamen/Leap/release/cleanclone/v120b/weights_src
+[install] drafter base in the Hugging Face cache at the pinned revision: /Users/kamen/.cache/huggingface/hub/models--incoai--Qwen3.8-Flash-Next-DFlash2/snapshots/a22a1744e85c17364dcc54a6a420af7135d4c7f6
+[install] done. Try: .venv/bin/python run.py --config exact --mem 45 --prompt 'Explain how a refrigerator works.'
+11-12 19:04:01 install.sh rc 0 in 7 s
+11-12 19:04:02 dry run exact-45 OK: Powered by MTPLX
+11-12 19:04:02 dry run exact-32 OK: Powered by MTPLX
+11-12 19:04:02 dry run lossy-45 OK: Powered by MTPLX
+11-12 19:04:03 dry run lossy-32 OK: Powered by MTPLX
+11-12 19:04:03 dry run chat-45 OK: Powered by MTPLX
+11-12 19:04:03 dry run chat-32 OK: Powered by MTPLX
+11-12 19:04:03 dry run lossy-24 OK: Powered by MTPLX
+11-12 19:04:03 dry run chat-24 OK: Powered by MTPLX
+11-12 19:04:03 PREP DONE
+11-12 19:07:27 run chat-24: keys ifeval/1220,ifeval/3280, cap 256
+    === ifeval/1220 [gate+t, chat, drafter mtp] 151 tokens
+    === ifeval/3280 [gate+t, chat, drafter mtp] 182 tokens
+    whole decode 29.2 tok/s | whole request 24.6 tok/s | first token 1.07 s (1.06-1.09) | lifetime peak 22.93 GB | 2 prompt(s), 333 tokens, process wall 25 s (load + warm-up included)
+11-12 19:07:53   tokens vs chat-24_w24p2.json: 2/2 keys prefix-equal with the reference's history (rc 0)
+11-12 19:07:53   closure: modules 848, outside the clone + stdlib: 0; files opened 3302, outside the allowed roots: 0 (rc 0)
+11-12 19:07:53 run lossy-24: keys ifeval/1220,ifeval/3280, cap 256
+    === ifeval/1220 [gate+t, chat, drafter mtp] 151 tokens
+    === ifeval/3280 [gate+t, chat, drafter mtp] 182 tokens
+    whole decode 29.6 tok/s | whole request 24.9 tok/s | first token 1.06 s (1.05-1.07) | lifetime peak 22.90 GB | 2 prompt(s), 333 tokens, process wall 23 s (load + warm-up included)
+11-12 19:08:17   tokens vs lossy-24_w24p2.json: 2/2 keys prefix-equal with the reference's history (rc 0)
+11-12 19:08:17   closure: modules 848, outside the clone + stdlib: 0; files opened 3302, outside the allowed roots: 0 (rc 0)
+11-12 19:08:17 run chat-24 with a text prompt
+    === multi/cli_1112_190817 [gate+t, chat, drafter mtp] 77 tokens
+    A refrigerator uses a circulating refrigerant that absorbs heat from the interior air as it evaporates into a gas. This warm gas is then compressed and passed through coils on the back or bottom of the unit, where it releases the absorbed heat into the surrounding room. Finally, the cooled liquid refrigerant returns to the interior to repeat the cycle, continuously lowering the temperature inside the appliance.
+    
+    whole decode 29.5 tok/s | whole request 23.7 tok/s | first token 0.64 s (0.64-0.64) | lifetime peak 22.91 GB | 1 prompt(s), 77 tokens, process wall 13 s (load + warm-up included)
+    tokens: /Users/kamen/Leap/release/cleanclone/v120b/out/text/cli_1112_190817_tokens.json; log: /Users/kamen/Leap/release/cleanclone/v120b/out/text/cli_1112_190817.log; module manifest: /Users/kamen/Leap/release/cleanclone/v120b/out/text/cli_1112_190817_modules.json
+11-12 19:08:31 chat.py --mem 24: one message
+11-12 19:08:45   chat.py rc 0: [75 tokens | whole decode 31.2 tok/s | first token 1.64 s | lifetime peak 23.05 GB | drafter mtp, 2.81 tokens per check]
+11-12 19:08:45 serve.py --mem 24: one streamed OpenAI and one streamed Anthropic request, then SIGTERM
+11-12 19:08:57   OpenAI stream: [DONE] 1, finish_reason 1; Anthropic stream: message_stop 1, text deltas 4
+11-12 19:08:58   serve.py stopped on SIGTERM: 1 'stopped' line(s)
+11-12 19:08:58 CLEAN-CLONE PASS
+11-12 19:10:45 run exact-32: keys ifeval/1220,ifeval/3280, cap 256
+    === ifeval/1220 [gate+t, chat, drafter mtp] 153 tokens
+    === ifeval/3280 [gate+t, chat, drafter mtp] 256 tokens
+    whole decode 28.2 tok/s | whole request 20.2 tok/s | first token 2.85 s (2.73-2.97) | lifetime peak 30.39 GB | 2 prompt(s), 409 tokens, process wall 34 s (load + warm-up included)
+11-12 19:11:20   tokens vs exact-32_ar.json: 2/2 keys prefix-equal (rc 0)
+11-12 19:11:20   closure: modules 834, outside the clone + stdlib: 0; files opened 3268, outside the allowed roots: 0 (rc 0)
+11-12 19:11:20 run lossy-32: keys ifeval/1220,ifeval/3280, cap 256
+    === ifeval/1220 [gate+t, chat, drafter mtp] 154 tokens
+    === ifeval/3280 [gate+t, chat, drafter mtp] 139 tokens
+    whole decode 29.6 tok/s | whole request 18.7 tok/s | first token 2.90 s (2.70-3.10) | lifetime peak 31.08 GB | 2 prompt(s), 293 tokens, process wall 33 s (load + warm-up included)
+11-12 19:11:54   tokens vs lossy-32_rli160.json: 2/2 keys prefix-equal with the reference's history (rc 0)
+11-12 19:11:54   closure: modules 848, outside the clone + stdlib: 0; files opened 3300, outside the allowed roots: 0 (rc 0)
+11-12 19:11:54 run chat-32: keys ifeval/1220,ifeval/3280, cap 256
+    === ifeval/1220 [gate+t, chat, drafter mtp] 184 tokens
+    === ifeval/3280 [gate+t, chat, drafter mtp] 256 tokens
+    whole decode 44.2 tok/s | whole request 28.3 tok/s | first token 2.79 s (2.65-2.93) | lifetime peak 31.06 GB | 2 prompt(s), 440 tokens, process wall 33 s (load + warm-up included)
+11-12 19:12:28   tokens vs chat-32_zs32.json: 2/2 keys prefix-equal with the reference's history (rc 0)
+11-12 19:12:28   closure: modules 848, outside the clone + stdlib: 0; files opened 3300, outside the allowed roots: 0 (rc 0)
+11-12 19:12:28 run chat-32 with a text prompt
+    === multi/cli_1112_191228 [gate+t, chat, drafter mtp] 82 tokens
+    A refrigerator works by circulating a refrigerant fluid that absorbs heat from the air inside the unit and releases it outside through coils at the back or bottom. This process relies on the refrigerant changing states between liquid and gas, which allows it to efficiently transfer thermal energy away from the food compartment. As a result, the interior temperature remains lower than the surrounding environment, keeping food cold and slowing down spoilage.
+    
+    whole decode 39.7 tok/s | whole request 19.8 tok/s | first token 2.09 s (2.09-2.09) | lifetime peak 31.06 GB | 1 prompt(s), 82 tokens, process wall 21 s (load + warm-up included)
+    tokens: /Users/kamen/Leap/release/cleanclone/v120b/out/text/cli_1112_191228_tokens.json; log: /Users/kamen/Leap/release/cleanclone/v120b/out/text/cli_1112_191228.log; module manifest: /Users/kamen/Leap/release/cleanclone/v120b/out/text/cli_1112_191228_modules.json
+11-12 19:12:50 CLEAN-CLONE PASS

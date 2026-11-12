@@ -584,6 +584,37 @@ Written and committed before any run of this test.
   45 GB first-token A/B, Leap's prefill chain and the deep-drafter capture. A 24 GB agent arm, information only, can run
   on a later night under its own dated line. r120 is unchanged.
 
+- **Amendment 5d (Thu 19:1x, before any GO; the orchestrator, 19:0x): r120 runs on pkg_120b, with serve.py's
+  Host / Origin check.** 5a's candidate 58aad586 is superseded. EvalSuite checked each item below against the files
+  (Leap f79eaa2, data/pkg120_1112/).
+  - **The candidate:** pkg_120b commit 21fb59b6bfd980e9..., in release/out/pkg_120b (clean, parent e52af19). Its clean
+    clone, release/cleanclone/v120b/clone, is at that commit.
+  - **Changed against 58aad586:** serve.py (+33 lines, new sha256 4c15a1d4bbc32f89...), INSTALL.md and MANIFEST.json.
+    - The other agent-path files equal 5a's: agentio.py, run.py, convcache.py, claude_local.sh, claude_code.sh,
+      statusline.sh, codex_local.sh and configs/chat-32.env.
+  - **What the change does:** do_GET and do_POST first refuse, with a 403, a Host that is not 127.0.0.1, localhost or
+    ::1, and an Origin, if present, that is not a page on those. A missing Host is allowed. Nothing else changes, and
+    no generation path is touched.
+  - **Leap's stand-in** (hostcheck_test.out, a mock engine): 24 of 24 as expected.
+    - Loopback Hosts and Origins, a missing Origin or Host, and urllib all get 200.
+    - Six foreign Hosts and six foreign Origins get 403 (12 refused lines).
+    - Claude Code 2.1.322 through tools/claude_code.sh: rc 0, 2 requests answered, 0 refused. Codex 0.144.1 likewise.
+    - Its one "error" line is the mock setup's: "conversation cache off: ModuleNotFoundError: No module named
+      'convcache'".
+  - **The runner:** agentcc_r120.sh, sha256 9e0fbc21c29abbba..., in data/pkg120_1112 and the running copy. Against the
+    registered f0d86608 it changes only CL (v120b), PKG (pkg_120b) and PIN (21fb59b6), plus one comment.
+    - Its dry run passed at 19:06: all 9 files equal 21fb59b6's MANIFEST, the clone carries only the @ROOT@ rewrite, and
+      Claude Code is 2.1.322 a9d23794.
+  - **Arming:** pid 55449 on the fresh folder agentcc_runs/r120b. It waits for rel120_check (pid 53806) and for GO,
+    which comes only after this line. The last start is 01:30, with the watchdog at 02:15, as in 5b.
+  - **Added to the report, next to the verdict:**
+    - whether the conversation cache was on, from serve.log and convcache.log. It ships on at 32 GB, so if it is off,
+      that is a package defect, reported at once to the orchestrator and Leap;
+    - every request serve.log shows as refused during the run. A Claude Code request refused by the new check shows up
+      in the tasks, and so in the verdict.
+  - **Everything else is as 5a-5c:** as shipped, a 64K window, Claude Code 2.1.322, the hardened sandbox, the same
+    lines, rules and validity, and no r120s tonight.
+
 ## Known limits
 - **Small N:** 12 tasks and 30 calls bound the failure rate only loosely.
 - **Small tasks:** they are single-step, Python plus one shell task, with no long sessions and no large repos.
