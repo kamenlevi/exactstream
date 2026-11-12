@@ -14,7 +14,7 @@ set -uo pipefail
 PKG=${1:?package repo}; W=${2:?work dir}; PHASE=${3:?prep|run}
 KEYS_ARG=${4:-}; KEYS=${4:-ifeval/1220,ifeval/3280}; CAP=${5:-256}
 # Without [keys], each config runs the first two prompts of its own shipped reference run, cap 256: the 45 / 32 GB
-# references are 12 IFEval prompts (ifeval/1220, ifeval/3280 first), the 24 GB ones 12 HumanEval prompts. The lossy
+# references are 12 IFEval prompts (ifeval/1220, ifeval/3280 first; since 1.2.0 the 24 GB ones too, P2's run). The lossy
 # and chat configs' tokens depend on what the process decoded before (the relaxed acceptance takes the drafter's proposals),
 # so their check needs the reference's earlier prompts run to the same length: hence the same cap (check_tokens.py --history
 # reports a prompt whose history differs as information only). The exact configs do not depend on history.
