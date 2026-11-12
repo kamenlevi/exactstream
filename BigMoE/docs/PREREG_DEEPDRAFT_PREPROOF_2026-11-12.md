@@ -42,3 +42,33 @@ figures are this run's own plain chain, which must reproduce d23h's 97.7 / 86.6.
 
 **Limits.** At most 8 GB per GPU process (Kamen's apps are open), under a share lock with MEM. Fans at the minimum,
 with heat pauses, so no timing claims. Stop at main 96 %; continue after the 17:00 reset if not done.
+
+## RESULT (Thu 12 Nov 15:3x): KILL (data/deepdraft/preproof/eval.json)
+
+**Per-depth agreement, HumanEval+ code (24 held-out windows).** b5's top-1 equals the 125B's token; depth 0 equals chain
+depth 1, which every arm shares.
+
+| arm | 0 | 1-2 | 3-6 | 7-10 | 11-14 | 15-22 | 23-30 |
+|---|---|---|---|---|---|---|---|
+| plain (b5's own chain) | 97.7 | 96.0 | 93.2 | 90.5 | 88.9 | 86.8 | 85.1 |
+| stale (z = W_s, no update) | 97.7 | 59.1 | 24.3 | 17.2 | 17.8 | 16.2 | 13.5 |
+| helper f1 (1/3 of the data) | 97.7 | 17.4 | 16.8 | 19.5 | 0.0 | 0.0 | 0.0 |
+| helper f2 (2/3) | 97.7 | 51.8 | 26.4 | 23.0 | 21.4 | 19.8 | 17.9 |
+| helper f3 (all) | 97.7 | 17.6 | 16.5 | 16.8 | 10.1 | 0.0 | 0.0 |
+
+- **Verdict.** The gap recovered at depths 23-30 is g = -6.76 for f3 (f2 -5.34, f1 -6.76) against PASS >= 0.40 and
+  KILL < 0.15: KILL.
+- **MBPP shows the same pattern.** The plain chain runs 93.5 -> 63.3; f2 gives 49.1 at depths 1-2 and 17.8 at 23-30.
+- **Validation (the helper's own).** Per-stream normalised MSE at steps 1 / 8: f2 0.62 / 0.88, f1 0.91 / 0.93, f3 0.88 /
+  0.93, against stale 0.86 / 1.19. f1 and f3 barely beat stale and diverge beyond their 8-step training horizon (the 0.0
+  past depth 10). No data slope can be read: one seed, and the instability dominates.
+- **Reading.** A separately trained small stand-in for the trunk state, read by an unchanged b5, is far worse than b5's
+  own carried state. The head needs its input to be the exact trunk state, or its own trained chain state: the predicted
+  states (a cosine of about 0.7 at best) are off its training distribution. DEEPDRAFT's route therefore needs the reader
+  trained together with its stand-in (PLAN step 3), not a frozen reader with a bolted-on state predictor.
+- **Notes.**
+  - This run's plain chain reads 85.1 at depths 23-30, against t2_laglaw's 86.6, because that script counts the -1
+    cells (beyond the answer) as right. g uses this run's own plain chain, as pre-registered.
+  - The eval process peaked at 10.5 GB MLX (M.load at frac 0.03 + 5 arms), over the 8 GB limit set for the day. Swap did
+    not grow (4.70 GB).
+  - The helpers' weights (111 MB each) are kept outside the repo, in ~/datasets/deepdraft/preproof_helpers/.

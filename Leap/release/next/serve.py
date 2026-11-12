@@ -108,6 +108,16 @@ def main():
     env["BIGMOE_IDLE_MS"] = os.environ.get("BIGMOE_IDLE_MS", "50")  # idle: the ext's loader naps (200 us) after 50 ms without
                                                            # work instead of spinning a core; timing only (exact; Leap 11-11:
                                                            # idle CPU 100 -> 1.5 %). BIGMOE_IDLE_MS=0 in the shell keeps the spin.
+    qsa = os.environ.get("EXACTSTREAM_QSA", "auto")       # MTPLX's sparse QSA prefill lane (Leap 11-12, opt-in; not in 1.1.0):
+    if qsa == "dense":                                     # auto = as shipped (MTPLX AUTO: on M5, sparse past 32K of context);
+        env["MTPLX_QSA_PREFILL"] = "0"                    # dense = never sparse (bitwise at any length, slower past 32K);
+    elif qsa == "fast":                                    # fast = sparse from 4K (NOT exact: max |d| 0.009-0.016 per
+        if a.config == "exact":                            # PrefillKernels; EvalSuite's gate decides; refused for exact)
+            sys.exit("serve.py: EXACTSTREAM_QSA=fast is not exact; use it with --config chat or lossy")
+        for k in ("MTPLX_QSA_PREFILL_MIN_CONTEXT", "MTPLX_QSA_PREFILL_FLASH_MIN_CONTEXT", "MTPLX_QSA_PREFILL_DIRECT_MIN_CONTEXT"):
+            env[k] = "4096"
+    elif qsa != "auto":
+        sys.exit("serve.py: EXACTSTREAM_QSA takes auto, dense or fast")
     if a.mem in ("32", "24"):                              # PF-A, as chat.py: layer-major prefill of long prompts (agents send
         env["R57_PFLM"] = os.environ.get("R57_PFLM", "1")   # 10K+ tokens); the 45 GB path has its own prefill (PF-D)
     os.environ.update(env)

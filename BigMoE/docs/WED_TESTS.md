@@ -1711,3 +1711,11 @@ GB of features (h, wd, top-32) in ~/FableGod/deepdraft/capture/n1112/; every pro
 hard stop as planned (the prompt in progress is redone next night). 59 heat freezes, 12,711 s frozen (28 % of the run),
 most after Kamen's 07:08 fan minimum (FAN_CAP 2000). Pace about 68K answer tokens per hour with normal fans and about
 29-43K per hour at the minimum. Verdict lines only; the full write-up comes after the Thu 17:00 reset.
+
+## Thu 12 Nov 15:0x-15:3x: DEEPDRAFT pre-proof (PREREG ef380e3): a learned per-token stand-in for the trunk state read by the unchanged MTP head b5: KILL (data/deepdraft/preproof/eval.json)
+A 36M-parameter recurrent helper, trained on the capture's 604K tokens (1/3, 2/3 and all), predicts the trunk's widened
+stream from the last exact state plus the drafted tokens. Fed to b5 at depths >= 2 on the 24 held-out HumanEval+ windows,
+it gives 17.9 % at depths 23-30 at best (f2), against b5's own chain at 85.1 % (gap recovered -5.3 to -6.8; KILL below
+0.15). The stale control gives 13.5 %. MBPP is the same. b5 cannot read approximate trunk states (cosine about 0.7). The
+route needs the reader trained with its stand-in (PLAN step 3). The eval peaked at 10.5 GB, over the 8 GB day limit;
+swap stayed flat.
