@@ -145,10 +145,11 @@ man_same() {    # manifest $2 vs reference $1: the same outside modules with the
 import json, sys
 ext = lambda p: {k: s for k, (f, s) in json.load(open(p))["modules"].items() if any(t in f for t in $T_)}
 a, b = ext(sys.argv[1]), ext(sys.argv[2])
-ks = set(a) & set(b) if sys.argv[3] == "shared" else set(a) | set(b)
+ks = set(a) & set(b) if sys.argv[3] == "shared" else set(b) if sys.argv[3] == "subset" else set(a) | set(b)   # subset: every module loaded here = the reference's
 d = sorted(k for k in ks if a.get(k) != b.get(k))
 print(f"outside modules: {len(b)}, compared {len(ks)} ({sys.argv[3]}), equal: {len(ks) - len(d)}" + (f"; DIFFERENT: {d}" if d else "")
-      + (f"; only in this stage: {sorted(set(b) - set(a))}" if sys.argv[3] == "shared" and set(b) - set(a) else ""))
+      + (f"; only in this stage: {sorted(set(b) - set(a))}" if sys.argv[3] == "shared" and set(b) - set(a) else "")
+      + (f"; not loaded here: {sorted(set(a) - set(b))}" if sys.argv[3] == "subset" and set(a) - set(b) else ""))
 sys.exit(1 if d else 0)
 MS
 }
@@ -247,7 +248,7 @@ fast() {        # tag, keys, label: one stack process (all its keys), under this
     REFMAN="$AF/${tag}_modules.json"; say "reference manifest: $REFMAN"
     if [ -z "$REFMAN1" ]; then REFMAN1=$REFMAN
     else man_same "$REFMAN1" "$REFMAN" shared >> "$LOG" 2>&1 || void "CHAT $3: its shared modules differ from the first stage's ($REFMAN1)"; fi
-  else man_same "$REFMAN" "$AF/${tag}_modules.json" >> "$LOG" 2>&1 || void "CHAT $3: its modules differ from $REFMAN"; fi
+  else man_same "$REFMAN" "$AF/${tag}_modules.json" "$([ "${WARM:-1}" = 0 ] && echo subset || echo all)" >> "$LOG" 2>&1 || void "CHAT $3: its modules differ from $REFMAN"; fi   # PREREG_p2gate45 1b: without the warm-up, a module only it loads (qmm32) is absent
   QSETS="$QS" python3 - "$AF/${tag}_runs.json" <<'ENG' >> "$LOG" 2>&1 || void "CHAT $3: QOM not engaged on its sets"
 import json, os, sys
 runs = json.load(open(sys.argv[1]))
