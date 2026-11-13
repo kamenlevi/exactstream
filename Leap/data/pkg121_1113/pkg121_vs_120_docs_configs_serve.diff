@@ -1,0 +1,241 @@
+diff --git a/CITATION.cff b/CITATION.cff
+index b1b209c..28c412b 100644
+--- a/CITATION.cff
++++ b/CITATION.cff
+@@ -5,7 +5,7 @@ title: "ExactStream: a 125B mixture-of-experts model on a 64 GB Mac"
+ authors:
+   - family-names: Levi
+     given-names: Kamen
+-version: 1.2.0
++version: 1.2.1
+ license: GPL-3.0-only
+ repository-code: https://github.com/kamenlevi/exactstream
+ abstract: >-
+diff --git a/CONFIGS.md b/CONFIGS.md
+index 833db25..c6b7d6c 100644
+--- a/CONFIGS.md
++++ b/CONFIGS.md
+@@ -8,11 +8,11 @@ gates on the model's known benchmarks. This is research code, released as measur
+ |---|---|---|---|
+ | `exact` | 45 (C 256) / 32 (C 160) | config E: exact, tokens bitwise equal to the exact reference (NAX6-N) | exact |
+ | `lossy` | 45 / 32 | config L + COH | 45: lossy, same scores as `exact` on IFBench, GPQA Diamond and LiveCodeBench v6 (a card gate, both orders); 32: lossy, not gated (no gate ran at C 160; on IFEval it gives the 45 GB line's tokens on 12 / 12 prompts) |
+-| `chat` | 45 / 32 | config zs = M1-B + COH + SB1 | 45: lossy, same scores as `exact` on IFEval, IFBench, GPQA Diamond and LiveCodeBench v6 (gates on M1-B + COH, both orders; the shipped config gives its tokens on all 12 IFEval prompts); 32: lossy, not gated (its card gate did not run) |
++| `chat` | 45 / 32 | config zs = M1-B + COH + SB1; since 1.2.1 at 45 GB a prompt of 256 tokens or fewer skips the prefill and runs as 16-row forwards on the decode's check path (P2); decode loop `engine/loop/r57_screen_c45p2.py` | 45: lossy, same scores as `exact` on IFEval, IFBench, GPQA Diamond and LiveCodeBench v6 (gates on M1-B + COH, both orders; without P2 the shipped config gives its tokens on all 12 IFEval prompts); P2 lossy, same scores as the configuration without it on IFBench and GPQA Diamond's prompts of 256 tokens or fewer (the 45 GB P2 gate, Fri 13 Nov 2026); with P2 the first token on IFEval takes 0.47 s instead of 2.44 s ([RESULTS.md](RESULTS.md)); 32: lossy, not gated (its card gate did not run) |
+ | `lossy`, `chat` | 24 (C 100) | one config, w13b + P2: L + COH below 24 GB (pools of 141 base + 26 sidecar slots, at most 13 rows per check, only the 4-bit block drafter); since 1.2.0 a prompt of 256 tokens or fewer skips the prefill and runs as 13-row forwards on the decode's check path (P2); decode loop `engine/loop/r57_screen_w24p2.py` | lossy, same scores as `exact` on IFBench, GPQA Diamond and LiveCodeBench v6 (the 24 GB card gate, Tue 10 Nov 2026); P2 lossy, same scores as the configuration without it on IFBench and GPQA Diamond's prompts of 256 tokens or fewer (the P2 gate, Wed 11 Nov 2026); under 24 GB on prompts up to about 500 tokens and more on longer ones: about 25.0 GB at 3K tokens, 25.7 GB at 7K, 25.8 GB at 10K and 28.2 GB at 30K; about 130 tok/s on HumanEval, 91 on MBPP, 41 on math and 31 on chat (IFEval); with P2 the first token on IFEval takes 1.12 s instead of 3.11 s ([RESULTS.md](RESULTS.md)) |
+ 
+ Each config is one environment line in `configs/<config>-<mem>.env`, as the research runs used it. The 24 GB configs add
+-a `SNAPSHOT=w24p2` line (their decode loop) and keep the prefill chunk, `R57_PFCHUNK`, on a line of its own. The exact
++a `SNAPSHOT=w24p2` line (their decode loop; `chat` at 45 GB has `SNAPSHOT=c45p2` since 1.2.1) and keep the prefill chunk, `R57_PFCHUNK`, on a line of its own. The exact
+ configs pin `MTPLX_QSA_PREFILL=0` (1.2.0): MTPLX's sparse prefill attention, which is not exact, can only switch on in a
+ prompt phase this engine never sets, so the pin changes nothing today and keeps the exact configs dense if that changes. `--kind
+ chat|code|math` picks which benchmark family's switches apply to a prompt (default chat). The memory line (45, 32 or 24
+diff --git a/INSTALL.md b/INSTALL.md
+index 6c6abdd..641d1b5 100644
+--- a/INSTALL.md
++++ b/INSTALL.md
+@@ -55,9 +55,10 @@ loads the model and runs one discarded warm-up prompt (`--no-warmup` skips it; t
+ The decode loop is the research harness's own loop, unchanged; `run.py` only turns a text prompt into a prompt item and
+ prints the answer and the loop's timing. The configs are in [CONFIGS.md](CONFIGS.md).
+ 
+-At `--mem 24`, a prompt of 256 tokens or fewer skips the prefill and runs through the decode's check path (P2, new in
+-1.2.0): about a third of the first-token time, and an answer that can differ from the prefill path's. P2 is lossy and
+-passed its own same-scores gate (CONFIGS.md).
++At `--mem 24`, and since 1.2.1 with `--config chat --mem 45`, a prompt of 256 tokens or fewer skips the prefill and runs
++through the decode's check path (P2, new in 1.2.0 at 24 GB): about a third of the first-token time at 24 GB and a fifth at
++45 GB, and an answer that can differ from the prefill path's. P2 is lossy and passed its own same-scores gate on each
++memory line (CONFIGS.md).
+ 
+ ## Chat and a local server
+     .venv/bin/python chat.py --mem 24
+@@ -120,4 +121,5 @@ configs' tokens depend on what the process decoded before, so a prompt of theirs
+ ran exactly as in the reference run (same prompts, same order, same lengths); otherwise it is reported as information.
+ On the test MacBook Pro the `run` phase of 1.1.0 (Tue 10 Nov 2026) passed in about 4.5 minutes: all eight configs matched
+ their references, and every module and every file opened came from inside the allowed folders. Since 1.2.0 the 24 GB
+-configs' reference is the P2 gate's arm on 12 IFEval prompts (verify/README.md).
++configs' reference is the P2 gate's arm on 12 IFEval prompts, and since 1.2.1 that of `chat` at 45 GB is its P2 arm on
++the same prompts (verify/README.md).
+diff --git a/LIMITS.md b/LIMITS.md
+index a28a68b..1a9513f 100644
+--- a/LIMITS.md
++++ b/LIMITS.md
+@@ -6,9 +6,10 @@ on macOS 26.5 (25F71).
+ - MLX is pinned to 0.32.2. Its sorted gather_qmm leaves rows unwritten past 32,767 sorted rows when the row count is
+   not a multiple of 64 (MLX issue #4632); the engine pads to 64. 0.32.4 fixes the bug but changes tokens against our
+   exact references.
+-- First token on short prompts at 45 GB takes 2.7-4.6 s (2.26 s on `chat`). Strata (MIT; github.com/Niko1221/Strata),
+-  which we ran on the same MacBook Pro and prompts, takes 0.5-1.0 s, so up to 256 generated tokens it wins or ties every
+-  whole-request number; our decode is ahead on code and math, about level on chat, and behind on exact chat.
++- First token on short prompts at 45 GB takes 2.7-4.6 s on `exact` and `lossy` (2.26 s on `chat` without P2, 0.47 s with
++  it since 1.2.1). Strata (MIT; github.com/Niko1221/Strata), which we ran on the same MacBook Pro and prompts, takes
++  0.5-1.0 s, so up to 256 generated tokens it wins or ties every whole-request number of `exact` and `lossy`; our decode
++  is ahead on code and math, about level on chat, and behind on exact chat.
+ - The chat prefill path (PF-D) is on for `chat` at 45 GB only. It was measured on chat-length prompts (37-101 tokens)
+   and checked exact on 10K and 30K-token prompts, where it shortens the first token by only 3-4 % and adds about 2 GB
+   to the lifetime peak.
+@@ -16,7 +17,9 @@ on macOS 26.5 (25F71).
+   prefill's except when a prompt's last 1,024-token chunk is under about 200 tokens: there the arithmetic rounds
+   differently and an answer can differ. `R57_PFLM=0` in the shell turns it off (INSTALL.md).
+ - Lifetime peaks go above the memory line on long prompts. At 45 GB: 45.1-46.4 GB on 7.9K tokens, and `chat` as shipped
+-  (with PF-D) reaches 47.5 GB on 10K tokens and 48.6 GB on 30K. At 32 GB, `chat` reaches 34.0 GB on 10K tokens and
++  (with PF-D) reaches 47.5 GB on 10K tokens and 48.6 GB on 30K. In the 45 GB P2 gate, `chat` without P2 passed the line
++  already on five GPQA prompts of 258-269 tokens (45.42 GB); on the gate's prompts of 256 tokens or fewer it peaked at
++  44.40 GB, and at 42.85 GB with P2. At 32 GB, `chat` reaches 34.0 GB on 10K tokens and
+   35.5 GB on 30K.
+ - At 32 GB, `exact` was measured on chat (IFEval) only, and `lossy` has no code or math rows of its own.
+ - At 24 GB, prompts up to about 500 tokens stayed under 24 GB in our runs, with little room: this is a measurement, not a
+@@ -26,22 +29,35 @@ on macOS 26.5 (25F71).
+ - Longer prompts take more. At 24 GB, 32.0 GB at 64K tokens and 39.2 GB at 128K with the default prefill, and 37.9 and
+   51.6 GB with `chat.py`'s layer-major prefill, which is 2.4x faster at 64K and about 2x at 128K. At 32 GB, `chat.py`
+   reaches 46.3 GB at 64K; at 45 GB, 52.6 GB.
+-- P2 (24 GB, prompts of 256 tokens or fewer) is lossy: on 12 IFEval prompts 2 of 12 answers equal the prefill path's.
+-  Its gate covered the benchmark sets it touches, IFBench and GPQA Diamond's 67 prompts of 256 tokens or fewer (the same
+-  scores within the gate's rule: -1.33 and -2.99 points, p 0.80 and 0.63); LiveCodeBench v6 has no prompt that short.
+-  Its speed was measured on 12 IFEval prompts only: first token 1.12 s (median) against 3.11 s without it.
++- P2 (24 GB, and `chat` at 45 GB since 1.2.1; prompts of 256 tokens or fewer) is lossy: on 12 IFEval prompts 2 of 12
++  answers equal the prefill path's, at each memory line. Its gates covered the benchmark sets it touches, IFBench and
++  GPQA Diamond's 67 prompts of 256 tokens or fewer (the same scores within the gate's rule: at 24 GB -1.33 and -2.99
++  points, p 0.80 and 0.63; at 45 GB +2.00 and -1.49 points, p 0.68 and 1.00); LiveCodeBench v6 has no prompt that short.
++  Its speed was measured on 12 IFEval prompts only: first token 1.12 s (median) against 3.11 s without it at 24 GB, and
++  0.47 s against 2.44 s at 45 GB.
++- At 45 GB, `chat` with P2 runs a decode loop of its own (`engine/loop/r57_screen_c45p2.py`, the 45 GB P2 gate's loop)
++  with the same sibling modules as the other configs. The gate ran that loop with a newer copy of one of them (pflm.py,
++  the prefill path for longer prompts): the same operations plus a fold that is switched off (R57_PFD_FOLD unset) in the
++  gate and here. The release checks compare 1.2.1's tokens with 1.2.0's on a prompt well over 256 tokens, and with the
++  gate's own answers on the first five prompts of its P2 arm.
+ - At 24 GB, on those 12 IFEval prompts, P2 gives the first token in 1.12 s against Strata's 1.46 s on the same MacBook Pro
+-  and prompts, and the whole request at 24.4 against Strata's 20.3-21.0 tok/s. On the other sets we have not timed P2:
+-  there, from the 1.1.0 runs, Strata gives the first token 1.9-2.5x faster, while our decode is ahead on code (3.3-5.0x).
++  and prompts, and the whole request at 24.4 against Strata's 20.3-21.0 tok/s. At 45 GB, on the same prompts, `chat` with
++  P2 gives the first token in 0.47 s against Strata's 0.83 s (its 33 GB arena), the whole decode at 50.7 against 40.1-41.4
++  tok/s and the whole request at 43.2 against 29.2-29.7 tok/s. On the other sets we have not timed P2: there, from the
++  1.1.0 runs, Strata gives the first token 1.9-2.5x faster, while our decode is ahead on code (3.3-5.0x).
+ - Coding agents were tested at 32 and 45 GB only. EvalSuite's Claude Code agent test passed with the conversation cache
+   at 32 GB (two runs) and at 45 GB; without the cache, at 32 GB, it failed its tool-call probe line (27 of 30 against
+-  28). At 24 GB only a three-task smoke test ran. Codex was only smoke-tested (three tasks at 24 GB).
++  28). At 24 GB only a three-task smoke test ran. Codex was only smoke-tested (three tasks at 24 GB). The 45 GB agent test
++  ran before P2 reached `chat` at 45 GB (1.2.1): an agent's requests are longer than 256 tokens and take the prefill as
++  before, and only its short background calls take P2.
+ - The conversation cache is on at 45 and 32 GB and off at 24 GB, where it is unchecked. It holds up to 2.5 GB by default.
+-  In the agent tests the server's lifetime peak was 36.17 GB at 32 GB and 49.43 GB at 45 GB. Agent prompts at 24 GB
++  P2's prompts (256 tokens or fewer) bypass it. In the agent tests the server's lifetime peak was 36.17-36.50 GB at
++  32 GB and 49.43 GB at 45 GB. Agent prompts at 24 GB
+   take it over 24 GB (27.3 GB at 12.6K tokens), and without the cache every turn there prefills its whole prompt (about
+   31 s to the first token at 12.6K tokens).
+ - `serve.py` runs one request at a time. Every turn in `chat.py` prefills the whole conversation.
+ - The lossy configs are gated on the named benchmarks only. On a multilingual chat set, M1-B (the `chat` configs' lossy
+   part) fails our own blunder check, which is information only.
+ - Tested on one MacBook Pro, with two benchmark prompts per config in the clean-clone test (IFEval); other Macs and
+-  macOS versions are untested.
++  macOS versions are untested. In that test at 45 GB (1.2.0, Fri 13 Nov 2026) the lifetime peaks were 41.48 GB on
++  `exact`, 42.18 GB on `lossy` and 43.70 GB on `chat`.
+diff --git a/RESULTS.md b/RESULTS.md
+index 9067b06..0c7ac97 100644
+--- a/RESULTS.md
++++ b/RESULTS.md
+@@ -10,6 +10,7 @@ first token (median, s) / lifetime peak (GB). From the RELEASE paper, section 2,
+ | `lossy` | 45 | 164.0 / 36.2 / 4.60 / 42.94 | 112.7 / 25.3 / 3.72 / 42.60 | 45.2 / 22.4 / 3.01 / 42.42 (two passes) | 78.9 / 37.9 / 3.20 / 43.17 |
+ | `lossy` | 32 | not measured (1) | not measured (1) | 39.0 / 21.1 / 2.90 / 31.30 (one pass) | not measured |
+ | `chat` | 45 | not run | not run | 50.7 / 28.8 / 2.26 / 43.69 (one pass) | not run |
++| `chat` | 45, with P2 (1.2.1) (4) | not timed | not timed | 50.7 / 43.2 / 0.47 / 42.36 (two passes) | not timed |
+ | `chat` | 32 | not run | not run | 51.3 / 22.5 / 2.99 / 31.22 | not run |
+ | `lossy`, `chat` | 24, without P2 (2) | 130.3 / 40.8 / 3.54 / 23.82 (two passes) | 91.2 / 26.1 / 3.34 / 23.74 (two passes) | 30.6 / 18.1 / 3.09 / 23.66 (two passes) | 40.8 / 27.4 / 2.86 / 24.01 (two passes) |
+ | `lossy`, `chat` | 24, with P2 (1.2.0) (3) | not timed | not timed | 31.4 / 24.4 / 1.12 / 23.00 (two passes) | not timed |
+@@ -28,6 +29,13 @@ passes gave the same tokens on 12 of 12 prompts and the same logits on 639 of 63
+ fewer take P2; on longer ones the 24 GB configuration runs as before. P2 reads 12.75 GB from the SSD per prompt for its
+ first token instead of 20.4. Strata on the same prompts: first token 1.46 s (median).
+ 
++(4) BigMoE's 45 GB first-token A/B (Fri 13 Nov, under a quiet lock, on the decode loop the 45 GB P2 gate ran), on the
++same 12 IFEval prompts: the 45 GB `chat` configuration without P2 ran first and last and the two P2 passes in the middle
++(ABCCBA; B, an exact variant, is not shipped). Without P2 in that run: 50.2 / 27.6 / 2.44 / 43.70. The two P2 passes gave the same tokens on 12 of 12
++prompts. Only prompts of 256 tokens or fewer take P2; longer ones run the 45 GB `chat` prefill (PF-D) as before. P2 reads
++2.1 GB from the SSD per prompt for its first token instead of 9.6. Strata on the same prompts (its 33 GB arena, the same
++MacBook Pro): first token 0.83 s (median), whole decode 40.1-41.4 tok/s, whole request 29.2-29.7 tok/s.
++
+ ## Coding agents (serve.py, Claude Code)
+ 
+ EvalSuite's Claude Code agent test: a probe of 30 tool-call prompts (the line: 28 or more right, no invented tool) and 12
+diff --git a/configs/chat-45.env b/configs/chat-45.env
+index 018b976..da02d45 100644
+--- a/configs/chat-45.env
++++ b/configs/chat-45.env
+@@ -2,5 +2,22 @@
+ # Source: BigMoE data/stack/chat_env.txt + R57_SB1=1 (== pfd.sh ZS); runs pdz0. Gate status: README, Configs.
+ # PF-D on (R57_PFD=1,R57_PFD_V=4,R57_PFD_AHEAD=1; BigMoE rel0 aa1ca3b, pfd.sh arm pdz4a, WED_TESTS Mon 00:09): first token from
+ # pool-resident experts, tokens bitwise equal to zs without it (12/12 IFEval, logits hash 721/721); lifetime peak +1.3 GB.
++# 1.2.1: + P2 (LOSSY, gated): R57_P2=256,R57_P2_ROWS=16,R57_P2_VERIFY=0. A prompt of 256 tokens or fewer skips the prefill and
++# runs as 16-row plain forwards on the decode's check path; longer prompts take the prefill above (PF-D) unchanged. On the 12
++# IFEval prompts (BigMoE's 45 GB first-token A/B, Fri 13 Nov 02:16, bb61289) the first token took 0.47 s (median) instead of
++# 2.44 s, the lifetime peak 42.3-42.4 vs 43.6-43.7 GB; such a prompt's answer differs from the prefill path's (2 of 12 equal).
++# EvalSuite's 45 GB P2 gate (Fri 13 Nov, f25a578; PREREG_p2gate45 + amendments 1, 1a, 1b) found the scores the same: IFBench
++# +2.00 pt (p 0.68), GPQA Diamond's 67 prompts of <= 256 tokens -1.49 pt (p 1.00), 5 longer-prompt controls token-identical.
++# The env line below = BigMoE data/stack/chat45_p2_env.txt line 2 (blob e4012e80) verbatim, the gate's P2 arm: 1.2.0's
++# settings with R57_QOM_SETS widened to lcb6, ifbench and gpqad as the gate ran them (a chat prompt's set, multi, is a QOM
++# set in both), plus the three P2 keys.
++# Decode loop: engine/loop/r57_screen_c45p2.py (BigMoE 3bf3dbd, snapshot c45p2) = the gate's loop (P3 snapshot c477b60,
++# r57_screen_p3.py, sha256 e410133cfe69) with its 19 frozen-tree paths renamed for the package's path rewrite: rel1's loop +
++# P2 v0 and its runs.json field; with R57_P2 unset it runs as rel1's. Its sibling modules are rel1's (1.2.0's), so pflm.py
++# is 1.2.0's: the gate ran P3's copy, which adds P3's fold (R57_PFD_FOLD, unset in the gate and here) and refactors the
++# read-ahead around it. 1.2.1's release checks compare the tokens with 1.2.0's chat-45 on a prompt well over 256 tokens and
++# with the gate's own rows on the first 5 keys of its P2 arm.
++# Memory: LIMITS.md (P2 lowers the short prompts' peak; long prompts can pass the 45 GB line).
++SNAPSHOT=c45p2
+ C=256
+-BIGMOE_EXT_BUILD=build_qom,R57_REFTOK=,R57_FAST=QOM,R57_D17=1,R57_D7B=code,R57_HC8=1,REF2_HC8_FAST=1,R57_DNR=1,R57_HCB=1,REF2_SMALL_NATIVE=1,R57_D7BNAX=1,REF2_OOO_1C=1,R57_NAX=1,REF2_NAX_1CQ=1,REF2_DN_KS=1,REF2_GDN_LAZY=1,D7BNAX_32=2,R57_FASTTAX=1,R57_SBN=2,R57_DSUB=1,R57_SVH=1,R57_RELAX_SPAN=1,R57_RELAX_SPAN_RULE=R2:2:0.25,R57_COPY=g2,REF2_KEEP_CACHES=1,R57_WIRED=1,BIGMOE_PAUSE_EVERY_MS=50,R57_S0CARRY=1,REF2_SB_FIRST=1,REF2_PLE_LATE=1,REF2_COMMIT_SUB=9,R57_DQ1=1,REF2_NAX_COH=1,R57_QOM_MTP=2,R57_SB1=1,R57_QOM_SETS=humaneval,mbpp,ifeval,multi,R57_PFD=1,R57_PFD_V=4,R57_PFD_AHEAD=1
++BIGMOE_EXT_BUILD=build_qom,R57_REFTOK=,R57_FAST=QOM,R57_D17=1,R57_D7B=code,R57_HC8=1,REF2_HC8_FAST=1,R57_DNR=1,R57_HCB=1,REF2_SMALL_NATIVE=1,R57_D7BNAX=1,REF2_OOO_1C=1,R57_NAX=1,REF2_NAX_1CQ=1,REF2_DN_KS=1,REF2_GDN_LAZY=1,D7BNAX_32=2,R57_FASTTAX=1,R57_SBN=2,R57_DSUB=1,R57_SVH=1,R57_RELAX_SPAN=1,R57_RELAX_SPAN_RULE=R2:2:0.25,R57_COPY=g2,REF2_KEEP_CACHES=1,R57_WIRED=1,BIGMOE_PAUSE_EVERY_MS=50,R57_S0CARRY=1,REF2_SB_FIRST=1,REF2_PLE_LATE=1,REF2_COMMIT_SUB=9,R57_DQ1=1,R57_QOM_MTP=2,REF2_NAX_COH=1,R57_SB1=1,R57_PFD=1,R57_PFD_V=4,R57_PFD_AHEAD=1,R57_P2=256,R57_P2_ROWS=16,R57_P2_VERIFY=0,R57_QOM_SETS=humaneval,mbpp,ifeval,multi,lcb6,ifbench,gpqad
+diff --git a/serve.py b/serve.py
+index 2d6cf2a..004d061 100644
+--- a/serve.py
++++ b/serve.py
+@@ -23,7 +23,9 @@ to and from the model's chat template.
+ Conversation cache (engine/loop/convcache.py; on at --mem 45 and 32, off at 24): a request that continues an earlier one
+ restores the deepest stored state of that conversation and prefills only its new tokens. It was checked bit for bit
+ against a cold prefill on every cache hit at 32 and at 45 GB (12 of 12 hits each, branches on). At 24 GB it is unchecked,
+-and the P2 path's short prompts bypass it; CONV_CACHE=1 turns it on there at your own risk. CONV_CACHE=0 turns it off;
++and the P2 path's short prompts bypass it; CONV_CACHE=1 turns it on there at your own risk. Since 1.2.1 the 45 GB chat
++config runs P2 too: its prompts of 256 tokens or fewer bypass the cache (no lookup, no entry, no cache statistics), longer
++ones use it as before. CONV_CACHE=0 turns it off;
+ CONV_CACHE_GB sets its memory budget (default 2.5 GB, the checked runs' setting). With the cache on, every request drafts
+ with DFlash2 (an MTP-head turn could restore only from an MTP-head turn's entry).
+ EXACTSTREAM_LOG_REQUESTS=<file>: each request's body, rendered ids and result, one JSON line each. The engine's own log
+@@ -124,6 +126,9 @@ def main():
+     # (engine/loop/convcache.py): a new turn prefills only its new tokens. Checked bitwise at 45 and 32 GB; at 24 GB it is
+     # off unless CONV_CACHE=1 (unchecked there, and the P2 path's prompts of <= 256 tokens bypass it)
+     os.environ.setdefault("CONV_CACHE_GB", {"24": "0.6", "32": "2.5", "45": "2.5"}[a.mem])   # 2.5 GB: the checked runs'
++    P2MAX = int(os.environ.get("R57_P2", "0") or 0)        # P2 (24 GB; chat-45 since 1.2.1): a prompt of <= P2MAX tokens runs
++    # the loop's prefill_p2, which bypasses the cache; its last() then still holds the previous request's lookup, so such a
++    # prompt reports no cache use (1.2.1; statistics only, the tokens never depended on it)
+     CCm = [None]                                           # the module once installed; False = off (not there / failed)
+ 
+     term = os.fdopen(os.dup(1), "w", buffering=1)          # serve.py's own lines; the engine's prints go to the log
+@@ -159,7 +164,7 @@ def main():
+             j.q.put(("text", text[len(j.shown):]))
+         n = r.get("n", len(j.out))
+         eos = bool(j.out) and tok.convert_ids_to_tokens(int(j.out[-1])) in ("<|im_end|>", "<|endoftext|>")
+-        cc = CCm[0].last() if CCm[0] else {}
++        cc = CCm[0].last() if CCm[0] and not (P2MAX and len(j.ids) <= P2MAX) else {}
+         stats = dict(n=n, prompt=len(j.ids), tps=r.get("tps"), pfs=r.get("pfs"), cache=cc,
+                      peak=(r["mem"][6] if r.get("mem") and len(r["mem"]) > 6 else None),
+                      reason="stop" if eos else "length", cut=j.stop)
+@@ -221,7 +226,8 @@ def main():
+         L = max(done, key=lambda r: r["t"]) if done else lastby.get("side", {})   # Claude Code's small background calls
+         d = {"state": "idle" if state["ready"] else "loading", "queued": jobs.qsize(), "last": dict(L)}   # only before one
+         if j is not None:
+-            cc = CCm[0].last() if CCm[0] else {}           # the cache's lookup for THIS prompt (its n = the prompt length)
++            cc = CCm[0].last() if CCm[0] and not (P2MAX and len(j.ids) <= P2MAX) else {}   # the cache's lookup for THIS
++                                                           # prompt (its n = the prompt length; none for a P2 prompt)
+             d.update(lane=j.meta.get("lane", "main"), prompt=len(j.ids),
+                      cached=cc.get("c", 0) if cc.get("hit") and cc.get("n") == len(j.ids) else 0)
+             if j.t1 is None:
+diff --git a/verify/README.md b/verify/README.md
+index 6fd4554..79dbfcc 100644
+--- a/verify/README.md
++++ b/verify/README.md
+@@ -5,4 +5,7 @@ Exact configs must match their reference token for token (as a prefix: the short
+ the decode loop's tokens.json format, {key: {arm: [[tokens]]}}; their sources are listed in MANIFEST.json.
+ 
+ Since 1.2.0 the 24 GB configs (with P2) are checked against P2's gated arm on the 12 IFEval prompts at cap 256 (BigMoE's
+-W24T run w4p1_100; its second P2 run gave the same tokens on 12 of 12 prompts). The other references are 1.1.0's.
++W24T run w4p1_100; its second P2 run gave the same tokens on 12 of 12 prompts). Since 1.2.1 `chat` at 45 GB (with P2) is
++checked against its P2 arm on the same 12 IFEval prompts at cap 256 (BigMoE's 45 GB first-token A/B, run p2p1_256, on
++the decode loop the 45 GB P2 gate ran; its second P2 run, p2p2_256, gave the same tokens on 12 of 12 prompts). 1.2.0's
++chat-45 reference (pdz4a) no longer applies: P2 changes 10 of those 12 answers. The other references are 1.1.0's.

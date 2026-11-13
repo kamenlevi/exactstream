@@ -10,6 +10,7 @@ first token (median, s) / lifetime peak (GB). From the RELEASE paper, section 2,
 | `lossy` | 45 | 164.0 / 36.2 / 4.60 / 42.94 | 112.7 / 25.3 / 3.72 / 42.60 | 45.2 / 22.4 / 3.01 / 42.42 (two passes) | 78.9 / 37.9 / 3.20 / 43.17 |
 | `lossy` | 32 | not measured (1) | not measured (1) | 39.0 / 21.1 / 2.90 / 31.30 (one pass) | not measured |
 | `chat` | 45 | not run | not run | 50.7 / 28.8 / 2.26 / 43.69 (one pass) | not run |
+| `chat` | 45, with P2 (1.2.1) (4) | not timed | not timed | 50.7 / 43.2 / 0.47 / 42.36 (two passes) | not timed |
 | `chat` | 32 | not run | not run | 51.3 / 22.5 / 2.99 / 31.22 | not run |
 | `lossy`, `chat` | 24, without P2 (2) | 130.3 / 40.8 / 3.54 / 23.82 (two passes) | 91.2 / 26.1 / 3.34 / 23.74 (two passes) | 30.6 / 18.1 / 3.09 / 23.66 (two passes) | 40.8 / 27.4 / 2.86 / 24.01 (two passes) |
 | `lossy`, `chat` | 24, with P2 (1.2.0) (3) | not timed | not timed | 31.4 / 24.4 / 1.12 / 23.00 (two passes) | not timed |
@@ -27,6 +28,13 @@ again, without it again, on the same 12 IFEval prompts). Without P2 in that run:
 passes gave the same tokens on 12 of 12 prompts and the same logits on 639 of 639 checks. Only prompts of 256 tokens or
 fewer take P2; on longer ones the 24 GB configuration runs as before. P2 reads 12.75 GB from the SSD per prompt for its
 first token instead of 20.4. Strata on the same prompts: first token 1.46 s (median).
+
+(4) BigMoE's 45 GB first-token A/B (Fri 13 Nov, under a quiet lock, on the decode loop the 45 GB P2 gate ran), on the
+same 12 IFEval prompts: the 45 GB `chat` configuration without P2 ran first and last and the two P2 passes in the middle
+(ABCCBA; B, an exact variant, is not shipped). Without P2 in that run: 50.2 / 27.6 / 2.44 / 43.70. The two P2 passes gave the same tokens on 12 of 12
+prompts. Only prompts of 256 tokens or fewer take P2; longer ones run the 45 GB `chat` prefill (PF-D) as before. P2 reads
+2.1 GB from the SSD per prompt for its first token instead of 9.6. Strata on the same prompts (its 33 GB arena, the same
+MacBook Pro): first token 0.83 s (median), whole decode 40.1-41.4 tok/s, whole request 29.2-29.7 tok/s.
 
 ## Coding agents (serve.py, Claude Code)
 

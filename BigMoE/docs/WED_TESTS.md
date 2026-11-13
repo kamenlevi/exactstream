@@ -1778,3 +1778,13 @@ The 125B is untouched. Same held-out windows and harness as t30a; agreement with
 - **Validity.** b5 and t30a re-score exactly as in t30a's eval. One resume at step 1,271 restored the weights, Adam's
   moments and the step. Pooled cells only, one run per arm: a direction, not a significance claim. Heat pauses
   throughout; no timing claims.
+
+## Fri 13 Nov 15:13-: DEEPDRAFT step 3 third test, TTT30C (PREREG 22bf65a): smokes done, t30f training (in progress) (data/deepdraft/ttt30c/)
+The arms are t30b's exact run plus one change each: t30f adds a feature loss, and t30x2 / t30x4 add a dense branch
+(capacity x2.1 / x4.4). The slot opened at 15:08, when EvalSuite's 45 GB P2 gate ended.
+- **t30x2 smoke:** both exact-equality checks EQUAL (the lambda-0 path and the zero-init branch each give b5's loss,
+  0.3548715). The MLX peak was 22.4 GB at step 1, over its 20 GB guard, so the arm was skipped for a re-plan. The branch
+  adds 6.8 GB to t30b's 15.6 GB.
+- **t30f smoke:** EQUAL, lambda 0.09164, peak 15.6 GB. Training since 15:16, beside the capture.
+- **Next:** t30x2, then t30x4 (a linear projection puts it near 36 GB), each with its guard re-set from its own smoke and
+  run with the capture off. No lines are read yet.

@@ -1,0 +1,98 @@
+diff --git a/release/make_release.py b/release/make_release.py
+index 9ab3e0c..d21bde4 100644
+--- a/release/make_release.py
++++ b/release/make_release.py
+@@ -29,6 +29,10 @@ ap.add_argument("--es-commit", default="HEAD", help="EvalSuite commit for harnes
+ ap.add_argument("--extra-snap", action="append", default=[], help="another snapshot's decode loop at the same BigMoE commit "
+                 "(e.g. w24, the 24 GB configs' SNAPSHOT=w24): engine/loop/r57_screen_<name>.py; its other modules must equal "
+                 "the main snapshot's")
++ap.add_argument("--sub-snap", action="append", default=[], help="NAME@COMMIT (1.2.1: p3@c477b60, the 45 GB chat's P2 loop): "
++                "another snapshot's decode loop WITH its own siblings (its pflm.py differs) in engine/loop/NAME/, from BigMoE "
++                "COMMIT, so no other config's files change. Asserted: bigmoe/, ext/ and the other by-path files at COMMIT equal "
++                "the main commit's, and every frozen module the package places equals frozen_NAME's after the path rewrite")
+ a = ap.parse_args()
+ S = a.snap
+ XS = a.extra_snap
+@@ -72,6 +76,19 @@ if sh("git", "-C", ES, "status", "--short", "evalsuite"):
+ B = f"{STAGE}/bm/data/r57/snap"
+ FZ = f"{B}/frozen_{S}"
+ assert os.path.isfile(f"{B}/{S}/r57_screen_{S}.py"), f"no r57_screen_{S}.py in the snapshot"
++SUB = []                                                       # --sub-snap: (name, commit, its extraction dir)
++for spec_ in a.sub_snap:
++    nm, cm = spec_.split("@", 1)
++    cm = sh("git", "-C", BM, "rev-parse", cm)
++    d_ = f"{STAGE}/bm_{nm}"
++    os.makedirs(d_)
++    tar = subprocess.run(["git", "-C", BM, "archive", cm, f"data/r57/snap/{nm}", f"data/r57/snap/frozen_{nm}"],
++                         check=True, capture_output=True).stdout
++    tarfile.open(fileobj=io.BytesIO(tar)).extractall(d_, filter="data")
++    assert os.path.isfile(f"{d_}/data/r57/snap/{nm}/r57_screen_{nm}.py"), f"no r57_screen_{nm}.py in snapshot {nm}"
++    assert subprocess.run(["git", "-C", BM, "diff", "--quiet", C, cm, "--", *BM_PATHS[:8]]).returncode == 0, \
++        f"--sub-snap {nm}: BigMoE {cm[:8]} differs from {C[:8]} in {BM_PATHS[:8]} (the package ships one copy)"
++    SUB.append((nm, cm, d_))
+ 
+ # ---- 2. the module closure: union of every R57_MODMAN manifest ----
+ mods = set()
+@@ -106,6 +123,10 @@ for x in XS:                                                   # extra decode lo
+             assert os.path.isfile(f"{B}/{S}/{f}") and open(f"{B}/{x}/{f}", "rb").read() == open(f"{B}/{S}/{f}", "rb").read(), \
+                 f"--extra-snap {x}: {f} differs from snapshot {S}'s (the package ships one copy)"
+     placed[f"engine/loop/r57_screen_{x}.py"] = (f"{B}/{x}/r57_screen_{x}.py", f"BigMoE {C[:8]} data/r57/snap/{x}/r57_screen_{x}.py")
++for nm, cm, d_ in SUB:                                         # --sub-snap: the loop and ALL its siblings, in their own folder
++    for f in sorted(os.listdir(f"{d_}/data/r57/snap/{nm}")):   # (the loop puts its own folder first on sys.path)
++        if f.endswith(".py"):
++            placed[f"engine/loop/{nm}/{f}"] = (f"{d_}/data/r57/snap/{nm}/{f}", f"BigMoE {cm[:8]} data/r57/snap/{nm}/{f}")
+ for p in BM_PATHS[:8]:
+     src = f"{STAGE}/bm/{p}"
+     if os.path.isdir(src):
+@@ -188,6 +209,12 @@ for P in (HOME, "~"):
+            # The module manifests never list them: R57_MODMAN records only Leap / TrainLab / Breakthrough / snapshot files
+            # (the 11-09 07:00 smoke: lossy / chat 'No module named tierglu' with HOME empty).
+            (f"{P}/MoonShots/patches/planes_engine", "@ROOT@/kernels/ms_gdn")]
++RWS = []                                                       # --sub-snap first: its frozen tree maps to the same places as
++for nm, cm, d_ in SUB:                                         # the main snapshot's, its loop folder to engine/loop/<name>
++    for P in (HOME, "~"):
++        RWS += [(f"{P}/BigMoE/data/r57/snap/frozen_{nm}/{sub}", f"@ROOT@/{dst}") for sub, dst in ROOTS]
++        RWS += [(f"{P}/BigMoE/data/r57/snap/{nm}", f"@ROOT@/engine/loop/{nm}")]
++RW = RWS + RW
+ TL = re.compile(r"(~|" + re.escape(HOME) + r")/TrainLab(?=[\"'/])")      # ~/TrainLab as a whole word
+ code = [p for p in placed if p.endswith((".py", ".sh")) and not p.startswith("third_party/nanobind/")]
+ nrw = 0
+@@ -200,6 +227,28 @@ for p in code:
+         nrw += 1
+         open(f"{OUT}/{p}", "w").write(t)
+ 
++
++def _rw(t):
++    for x, y in RW:
++        t = t.replace(x, y)
++    return TL.sub("@ROOT@/drafters", t)
++
++
++for nm, cm, d_ in SUB:                                         # --sub-snap: the frozen modules its loop imports must be the
++    FZN = f"{d_}/data/r57/snap/frozen_{nm}"                    # package's copies (one copy ships), byte for byte after the rewrite
++    nchk = 0
++    for dst, (src, _) in placed.items():
++        if src.startswith(FZ + "/"):
++            rel = os.path.relpath(src, FZ)
++            assert os.path.isfile(f"{FZN}/{rel}"), f"--sub-snap {nm}: frozen_{nm} has no {rel}"
++            assert _rw(open(f"{FZN}/{rel}").read()) == open(f"{OUT}/{dst}").read(), \
++                f"--sub-snap {nm}: {rel} differs from frozen_{S}'s after the path rewrite"
++            nchk += 1
++    for m in missing:
++        assert not any(os.path.isfile(f"{FZN}/{sub}/{m}.py") for sub, _ in ROOTS), f"--sub-snap {nm}: {m} only in frozen_{nm}"
++    print(f"  --sub-snap {nm} (BigMoE {cm[:8]}): {nchk} frozen modules equal frozen_{S}'s after the path rewrite; "
++          f"bigmoe/, ext/ and the by-path files equal {C[:8]}'s; loop folder engine/loop/{nm}/")
++
+ # ---- 4. comment-safe scrub (build_public.sh's rules; quotes only inside comments / docstrings) ----
+ # The private names and phrases the scrub replaces and the leak check refuses are read from release/private_patterns.json,
+ # which is gitignored: written out here they would block the public snapshot, whose own leak check refuses them (11-09).
+@@ -330,7 +379,8 @@ for p in placed:
+             bad.append(f"{p}: {r.stderr.strip().splitlines()[-1] if r.stderr.strip() else '?'}")
+ 
+ # ---- 6. manifest + git ----
+-man = dict(snapshot=S, bigmoe_commit=C, evalsuite_commit=EC, leap_commit=sh("git", "-C", LEAP, "rev-parse", "HEAD"),
++man = dict(snapshot=S, bigmoe_commit=C, sub_snapshots={nm: cm for nm, cm, _ in SUB}, evalsuite_commit=EC,
++           leap_commit=sh("git", "-C", LEAP, "rev-parse", "HEAD"),
+            modules_union=sorted(mods), modules_missing=missing, path_rewrites=nrw, scrub_subs=nsub, scrub_quotes=nq,
+            warnings=WARN, home_paths_left=home_left, files={p: dict(sha256=sha(f"{OUT}/{p}"), source=s) for p, (_, s) in sorted(placed.items())})
+ json.dump(man, open(f"{OUT}/MANIFEST.json", "w"), indent=1)

@@ -55,9 +55,10 @@ loads the model and runs one discarded warm-up prompt (`--no-warmup` skips it; t
 The decode loop is the research harness's own loop, unchanged; `run.py` only turns a text prompt into a prompt item and
 prints the answer and the loop's timing. The configs are in [CONFIGS.md](CONFIGS.md).
 
-At `--mem 24`, a prompt of 256 tokens or fewer skips the prefill and runs through the decode's check path (P2, new in
-1.2.0): about a third of the first-token time, and an answer that can differ from the prefill path's. P2 is lossy and
-passed its own same-scores gate (CONFIGS.md).
+At `--mem 24`, and since 1.2.1 with `--config chat --mem 45`, a prompt of 256 tokens or fewer skips the prefill and runs
+through the decode's check path (P2, new in 1.2.0 at 24 GB): about a third of the first-token time at 24 GB and a fifth at
+45 GB, and an answer that can differ from the prefill path's. P2 is lossy and passed its own same-scores gate on each
+memory line (CONFIGS.md).
 
 ## Chat and a local server
     .venv/bin/python chat.py --mem 24
@@ -120,4 +121,5 @@ configs' tokens depend on what the process decoded before, so a prompt of theirs
 ran exactly as in the reference run (same prompts, same order, same lengths); otherwise it is reported as information.
 On the test MacBook Pro the `run` phase of 1.1.0 (Tue 10 Nov 2026) passed in about 4.5 minutes: all eight configs matched
 their references, and every module and every file opened came from inside the allowed folders. Since 1.2.0 the 24 GB
-configs' reference is the P2 gate's arm on 12 IFEval prompts (verify/README.md).
+configs' reference is the P2 gate's arm on 12 IFEval prompts, and since 1.2.1 that of `chat` at 45 GB is its P2 arm on
+the same prompts (verify/README.md).

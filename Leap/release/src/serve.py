@@ -23,7 +23,9 @@ to and from the model's chat template.
 Conversation cache (engine/loop/convcache.py; on at --mem 45 and 32, off at 24): a request that continues an earlier one
 restores the deepest stored state of that conversation and prefills only its new tokens. It was checked bit for bit
 against a cold prefill on every cache hit at 32 and at 45 GB (12 of 12 hits each, branches on). At 24 GB it is unchecked,
-and the P2 path's short prompts bypass it; CONV_CACHE=1 turns it on there at your own risk. CONV_CACHE=0 turns it off;
+and the P2 path's short prompts bypass it; CONV_CACHE=1 turns it on there at your own risk. Since 1.2.1 the 45 GB chat
+config runs P2 too: its prompts of 256 tokens or fewer bypass the cache (no lookup, no entry, no cache statistics), longer
+ones use it as before. CONV_CACHE=0 turns it off;
 CONV_CACHE_GB sets its memory budget (default 2.5 GB, the checked runs' setting). With the cache on, every request drafts
 with DFlash2 (an MTP-head turn could restore only from an MTP-head turn's entry).
 EXACTSTREAM_LOG_REQUESTS=<file>: each request's body, rendered ids and result, one JSON line each. The engine's own log
@@ -124,6 +126,9 @@ def main():
     # (engine/loop/convcache.py): a new turn prefills only its new tokens. Checked bitwise at 45 and 32 GB; at 24 GB it is
     # off unless CONV_CACHE=1 (unchecked there, and the P2 path's prompts of <= 256 tokens bypass it)
     os.environ.setdefault("CONV_CACHE_GB", {"24": "0.6", "32": "2.5", "45": "2.5"}[a.mem])   # 2.5 GB: the checked runs'
+    P2MAX = int(os.environ.get("R57_P2", "0") or 0)        # P2 (24 GB; chat-45 since 1.2.1): a prompt of <= P2MAX tokens runs
+    # the loop's prefill_p2, which bypasses the cache; its last() then still holds the previous request's lookup, so such a
+    # prompt reports no cache use (1.2.1; statistics only, the tokens never depended on it)
     CCm = [None]                                           # the module once installed; False = off (not there / failed)
 
     term = os.fdopen(os.dup(1), "w", buffering=1)          # serve.py's own lines; the engine's prints go to the log
@@ -159,7 +164,7 @@ def main():
             j.q.put(("text", text[len(j.shown):]))
         n = r.get("n", len(j.out))
         eos = bool(j.out) and tok.convert_ids_to_tokens(int(j.out[-1])) in ("<|im_end|>", "<|endoftext|>")
-        cc = CCm[0].last() if CCm[0] else {}
+        cc = CCm[0].last() if CCm[0] and not (P2MAX and len(j.ids) <= P2MAX) else {}
         stats = dict(n=n, prompt=len(j.ids), tps=r.get("tps"), pfs=r.get("pfs"), cache=cc,
                      peak=(r["mem"][6] if r.get("mem") and len(r["mem"]) > 6 else None),
                      reason="stop" if eos else "length", cut=j.stop)
@@ -221,7 +226,8 @@ def main():
         L = max(done, key=lambda r: r["t"]) if done else lastby.get("side", {})   # Claude Code's small background calls
         d = {"state": "idle" if state["ready"] else "loading", "queued": jobs.qsize(), "last": dict(L)}   # only before one
         if j is not None:
-            cc = CCm[0].last() if CCm[0] else {}           # the cache's lookup for THIS prompt (its n = the prompt length)
+            cc = CCm[0].last() if CCm[0] and not (P2MAX and len(j.ids) <= P2MAX) else {}   # the cache's lookup for THIS
+                                                           # prompt (its n = the prompt length; none for a P2 prompt)
             d.update(lane=j.meta.get("lane", "main"), prompt=len(j.ids),
                      cached=cc.get("c", 0) if cc.get("hit") and cc.get("n") == len(j.ids) else 0)
             if j.t1 is None:

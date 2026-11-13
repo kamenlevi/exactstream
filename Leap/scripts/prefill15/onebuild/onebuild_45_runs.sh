@@ -11,7 +11,8 @@
 # plus PF-B's extra over the default at 32 GB (+1.8 / +5.4 GB, data/prefill_1109.md): R1 ~47.0 / ~52 GB; the QD trims R2 / R3
 # sit between R0 and R1 at 30K (~49-50 GB). Gates: every 10K run 52; 30K R0 53, R3 and R2 54, R1 56. The 30K block now runs
 # R0 FIRST (its gate is the lowest, and R1-R3 need it as the bitwise reference): 30K R0 R3 R2 R1 (was R3 R2 R1 R0).
-# BLOCKS (default "10k 30k") picks the blocks. Before each run: no engine and NO-SWAP >= its gate, else that run is skipped;
+# v3 (Fri 15:5x; the orchestrator's start rule: nothing may END after Sat 10:00): CUTOFF=<epoch> skips a run that could end
+# after it (est 420 s per 10K run, 900 s per 30K run). BLOCKS (default "10k 30k") picks the blocks. Before each run: no engine and NO-SWAP >= its gate, else that run is skipped;
 # swap +2 GB stops. Usage: [BLOCKS="10k"] onebuild_45_runs.sh <work dir with prompt_10k.txt and prompt_30k.txt>
 W=$1; CL=/Users/kamen/Leap/release/cleanclone/cache/clone; HOOK=/Users/kamen/Leap/scripts/prefill15/onebuild/hook; LOG=$W/onebuild.log
 noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
@@ -33,6 +34,8 @@ for job in "10k R0 52" "10k R1 52" "10k R2 52" "10k R3 52" "30k R0 53" "30k R3 5
   [[ " $BLOCKS " == *" $N "* ]] || continue
   [ -n "$(procs)" ] && { say "SKIP $N $R: an engine runs"; continue; }
   [ "$(noswap)" -lt $NEED ] && { say "SKIP $N $R: NO-SWAP $(noswap) < $NEED (its peak + 4)"; continue; }
+  EST=$( [ $N = 10k ] && echo 420 || echo 900 )        # v3: a generous wall per run (load, prefill, 32 tokens, heat pauses)
+  [ -n "${CUTOFF:-}" ] && [ $(( $(date +%s) + EST )) -gt "$CUTOFF" ] && { say "SKIP $N $R: it could end after the cutoff (est $EST s)"; continue; }
   case $R in
     R0) PP=""; EX="" ;;
     R1) PP=$HOOK; EX="--env R57_PFLM=3 --env R57_PFD=0" ;;

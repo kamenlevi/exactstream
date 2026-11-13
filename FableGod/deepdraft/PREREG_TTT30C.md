@@ -84,3 +84,21 @@ of dlog/d1102mbpp; agreement by depth band over valid cells; kept per 32-row che
 - If nothing pays, the wall is what the reader can see, not its size. The next candidate is EAGLE-3's multi-layer taps:
   the capture already logs DFlash2's 5-layer taps (h), which the MTP head does not read today. It would be
   pre-registered separately.
+
+## Run notes (Fri 13 Nov 15:1x, after the smokes; nothing in the arms or the lines changes)
+- **The slot opened at 15:08**, when EvalSuite's 45 GB P2 gate ended. The capture (C 100) started then, and the arms'
+  launcher 300 s later.
+- **t30x2 smoke, 15:13-15:14:**
+  - Both checks EQUAL: b5's loss 0.3548715 equals the lambda-0 path's, and with the zero-init 10,240-wide branch it is
+    still 0.3548715.
+  - The MLX peak was 22.4 GB at step 1, over the 20 GB guard. The run stopped and the launcher skipped the arm.
+  - The guard was an estimate; the measured peak replaces it. The branch adds 6.8 GB over t30b's 15.6 GB at 10,240 wide.
+- **t30f smoke, 15:14-15:16:**
+  - EQUAL (b5's loss 0.3548715 at lambda 0).
+  - lambda = 0.09164, which is 0.5 x KL 0.32056 / feature term 1.74896 (b5, slices 0-19).
+  - Peak 15.6 GB, the same as t30b's. It has been training beside the capture since 15:16, and its step 1 equals the
+    smoke's.
+- **New order: t30f, then t30x2, then t30x4.**
+  - Each branch arm's guard is re-set from its own smoke before it starts.
+  - t30x2 needs at least its 22.4 GB step-1 peak. t30x4's branch is 3x wider, so a linear projection puts it near
+    36 GB. It runs with the capture off, not beside it.

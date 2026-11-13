@@ -1,0 +1,52 @@
+diff --git a/release/src/chat.py b/release/src/chat.py
+index 02b1ae7..3645836 100644
+--- a/release/src/chat.py
++++ b/release/src/chat.py
+@@ -246,8 +246,8 @@ def main():
+     if R.drafter_cached() is None:
+         sys.exit(f"chat.py: the block drafter's base {R.DRAFTER[0]} @ {R.DRAFTER[1][:7]} is not in the Hugging Face cache "
+                  f"(see WEIGHTS.md)")
+-    snap = R.snapshot(cpath)                               # the config's decode loop (24 GB: w24p2), as in run.py
+-    screen = a._screen or os.path.join(ROOT, "engine", "loop", f"r57_screen_{snap}.py")
++    snap = R.snapshot(cpath)                               # the config's decode loop (24 GB: w24p2; chat-45: p3), as in run.py
++    screen = a._screen or R.screen_path(snap)
+     out = os.path.join(ROOT, "out")
+     os.makedirs(out, exist_ok=True)
+     tag = time.strftime("chat_%m%d_%H%M%S")
+diff --git a/release/src/run.py b/release/src/run.py
+index aa81a7c..96e126e 100644
+--- a/release/src/run.py
++++ b/release/src/run.py
+@@ -54,13 +54,22 @@ def read_config(name, mem):
+ 
+ 
+ def snapshot(cpath):
+-    """The decode loop a config runs on: its SNAPSHOT= line (the 24 GB configs: w24p2), else engine/loop/SNAPSHOT (rel1)."""
++    """The decode loop a config runs on: its SNAPSHOT= line (the 24 GB configs: w24p2; chat-45: p3), else
++    engine/loop/SNAPSHOT (rel1)."""
+     for ln in open(cpath):
+         if ln.strip().startswith("SNAPSHOT="):
+             return ln.strip()[len("SNAPSHOT="):]
+     return open(os.path.join(ROOT, "engine", "loop", "SNAPSHOT")).read().strip()
+ 
+ 
++def screen_path(snap):
++    """The decode loop's file: engine/loop/<snap>/r57_screen_<snap>.py when the loop ships with its own siblings (1.2.1:
++    p3, the 45 GB chat's P2 loop, whose pflm.py differs; the loop puts its own folder first on sys.path), else
++    engine/loop/r57_screen_<snap>.py."""
++    own = os.path.join(ROOT, "engine", "loop", snap, f"r57_screen_{snap}.py")
++    return own if os.path.isfile(own) else os.path.join(ROOT, "engine", "loop", f"r57_screen_{snap}.py")
++
++
+ def tokenizer(store):
+     from transformers import AutoTokenizer
+     return AutoTokenizer.from_pretrained(store)
+@@ -175,7 +184,7 @@ def main():
+                  f"Face cache (HF_HOME). Fetch it once (1.2 GB):\n  .venv/bin/hf download {DRAFTER[0]} config.json "
+                  f"model.safetensors --revision {DRAFTER[1]}")
+     snap = snapshot(cpath)
+-    screen = os.path.join(ROOT, "engine", "loop", f"r57_screen_{snap}.py")
++    screen = screen_path(snap)
+     os.makedirs(a.out, exist_ok=True)
+     tag = time.strftime("cli_%m%d_%H%M%S")
+     items = {}
