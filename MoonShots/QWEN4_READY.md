@@ -50,7 +50,9 @@ that generation of models and document absolutely everything real time ... set e
 
 ## 2. Port map (every model-specific part of the engine; config-driven vs hard-coded)
 Read-only scan, Sat 7 Nov 23:5x: BigMoE, Leap, TrainLab, EvalSuite, the decision map, Breakthrough, plus MoonShots'
-planes_engine, the drafter's HF cache and mtplx 2.12.2.
+planes_engine, the drafter's HF cache and mtplx 2.12.2. Rows 26-33 added Fri 13 Nov 17:4x (orchestrator): this week's P2,
+P3 and DEEPDRAFT parts and what 1.2.0 / 1.2.1 add, from a read-only scan of BigMoE, Leap release/out/pkg_120b /
+pkg_121 and FableGod deepdraft.
 - **The core is config-driven.** The expert count and piece shapes come from the safetensors headers, the record sizes from
   records3/index.json, and the ext takes both as arguments.
 - **Everything around the core is baked in:** top-k 10, the 48 x 512 tables, the 640 x 2560 expert shape in the
@@ -85,6 +87,14 @@ planes_engine, the drafter's HF cache and mtplx 2.12.2.
 | 23 | AR reference outputs | EvalSuite results/ref2/decode.jsonl (read at r57:1249) | today's model's outputs | DATA | regenerate | EvalSuite |
 | 24 | decision map | FableGod decision_map/dm_common.py:49-53, 164-228, 381-431, 475-570; dm_t3.py:26, 139-171; dm_ablations.py:186-270; run_map.py | TOPK 8, 10 ranks, range(48), 512, 640 x 2560; TrainLab walk windows + D-02a top-1 | HARD + DATA | parametrise + re-extract | Breakthrough |
 | 25 | keep-set rule | Breakthrough keepset/qom_keep.py:18, 124-125; qom_vectors.npz | K = 10, arrays [R, 10] | HARD | pass K = top-k; regenerate the test vectors | Breakthrough |
+| 26 | P2 first token at 24 GB (1.2.0; LOSSY, gated) | BigMoE data/r57/snap/w24p2/r57_screen_w24p2.py:523-525 (R57_P2 / R57_P2_ROWS), 1060 (R57_P2_VERIFY), 1123 (prompts <= P2MAX take the decode's check path, not the prefill), 112-113 (EOS, TAPS); shipped as Leap release/out/pkg_120b/engine/loop/r57_screen_w24p2.py; configs chat-24.env / lossy-24.env:2 (R57_P2=256, R57_P2_ROWS=13, R57_P2_VERIFY=0) | 13 rows x top-10 = 130 ids per check, under the 141-slot 24 GB base pool and the gate's 185; P2MAX 256; the rest as row 1 (48 / 512 tables, EOS, taps, MAXK 160); the gate PASS is today's model's | MIXED | P2_ROWS = floor(min(185, base slots) / top-k); re-run EvalSuite's 24 GB P2 gate before shipping P2; row 1's port | BigMoE / EvalSuite / Leap |
+| 27 | P2 at 45 GB (chat-45, package 1.2.1, not pushed) | BigMoE snapshot c45p2 (3bf3dbd): data/r57/snap/c45p2/r57_screen_c45p2.py:500-501, 1033, 1096 (the same P2 code), pflm.py, relax_* / inert_span.py; Leap release/out/pkg_121/engine/loop/r57_screen_c45p2.py; configs/chat-45.env:5 (R57_P2=256, R57_P2_ROWS=16, R57_P2_VERIFY=0) | 16 x top-10 = 160 ids (gate cap 185); the 45 GB P2 gate PASS (EvalSuite, 13 Nov) is today's model's | MIXED | as row 26; re-gate at 45 GB | BigMoE / EvalSuite / Leap |
+| 28 | P3 exact fold (first token) | BigMoE data/r57/snap/p3/ (c477b60): r57_screen_p3.py (P2 code at :500-501, 1033, 1096 too); pflm.py:682 install_pfd, :732 stage_many, :298 unp11 (11-word blocks), :313 native layout (t*KG + g)*32 + r, :535 1,024-word buffers, :550 record offsets 3p / 9+2p / 10+2p (w3, s3, b3, l1, b), :158 / :175 hybrid asserts (shared_expert_gate, ssm mask), :41 MLX 0.32.2 split-K note | the records3 / p11 / native layouts (rows 9-11), E 512 scratch, the hybrid layer types, MLX 0.32.2 | MIXED | layouts from index.json (rows 9-11); re-prove exact (bitwise == the default prefill) on the new model; hazard 11 | BigMoE |
+| 29 | DEEPDRAFT capture | BigMoE scripts/dd_capture.py:11-18 (npz: h, wd, tk, lp, ids), 75 (EOS {248044, 248046}), 200-220 (taps = the mean of the 4 HC streams; DFlash2 weights Leap data/l120_ft.safetensors), 389 (h (N-1, 2560)), 394 (assert wd (N-1, 10240)); dd_capture_slot.sh / dd_capture_night.sh (45 GB engine, 164 GB disk check); output ~/TrainLab/data/dlog/n1112 | hidden 2560, widened stream 10240 (hc 4 x 2560), EOS, the tap rule; the captures are today's model's hidden states | HARD + DATA | shapes / hc / EOS from config; recapture on the new model (one night, section 3 item 5) | BigMoE / MTP Head |
+| 30 | DEEPDRAFT TTT (deep MTP head) | BigMoE scripts/dd_ttt.py:23 (--xb 10240 / 30720 branch), 176-189 (starts from TrainLab's d22_b5), 324; dd_d22_ttt.py (verbatim TrainLab sticky/d22_ttt.py: head.layers[0] :85, :97; d16w wd inputs :128; held-out HumanEval 24 / gsm 60 :14); dd_ttt_slot.sh / dd_ttt_alone.sh; checkpoints ~/datasets/deepdraft/ckpt/dd_t30*; pre-registrations FableGod deepdraft/PREREG_TTT30*.md, PLAN.md | one MTP layer of hidden 2560 on a 10240-wide input, the b5 start point, trained weights (t30b ...), the eval items | HARD + DATA | retrain from the new model's own MTP layer on a fresh capture; re-register the gate rules for the new model | BigMoE / MTP Head |
+| 31 | agent server tool calls (1.2.0) | Leap release/src/agentio.py:3-12, 30 (the chat template's `<tool_call>` / `<function=NAME>` / `<parameter=ARG>` markup); serve.py | today's chat template's tool-call syntax | HARD | re-derive from the new chat template; re-run EvalSuite's agent tests (AGENTCC) | Leap / EvalSuite |
+| 32 | conversation cache (1.2.0) | Leap release/out/pkg_121/engine/loop/convcache.py:7-21 (GDN / PLE state checkpoints at prefill-chunk edges; row 0 of layer 35's QSA keys), 46 and 240 (window 2048), 92-100 (_snapshot_gdn / _restore_gdn) | the hybrid's state layout (GDN, PLE), the layer-35 QSA detail, a 2,048-token window | MIXED | state lists from the cache objects, window from config; re-run the bitwise clone test (T1e) | BigMoE / Leap |
+| 33 | setup, verify data, agent launchers (1.2.0) | Leap release/src/setup.sh:45-46 (REPO / REV: the MTPLX 4-bit pack of Qwen3.8-Flash-Next, the DFlash2 base), 12-17 (105.4 / 1.2 / 1.4 / 68.5 GB); setup/files.tsv (checksums); verify/*.json (reference tokens per config, incl. chat-24_w24p2, chat-45_p2); tools/claude_code.sh:15-18 (context 64K at 45 / 32 GB, 128K at 24, from today's memory curve) | pins, sizes, checksums, reference outputs, context defaults | DATA + CONFIG | new pins / sizes / checksums; regenerate verify/*.json; re-measure memory for the context defaults | Leap |
 
 Not read by any live engine code (mtplx handles them from config.json): the indexer, the n-gram sidecar, per-layer
 embeddings (REF2 finds PLE through the module's `.ple` attribute). Special token literals in live code: EOS {248044,
@@ -118,6 +128,9 @@ embeddings (REF2 finds PLE through the module's `.ple` attribute). Special token
     M % 64 != 0 (MLX #4632; fixed upstream in 0.32.3+ per the orchestrator, 0.32.4 per Leap's note). We pin 0.32.2 with
     the pad-to-64 fix, because 0.32.4 changes tokens vs our exact references. A Qwen 4 port on MLX must pad, or choose
     its MLX version deliberately, and take its exact references from that same version.
+12. **Per-model gates and row counts (rows 26-28):** P2 is lossy and its gates (24 and 45 GB) passed on today's model
+    only; its check sizes R57_P2_ROWS 13 / 16 assume top-10 (130 / 160 ids against the 141-slot 24 GB pool and the gate's
+    185). P3 is exact only as proven on today's model. Re-gate P2 and re-prove P3 before either ships for Qwen 4.
 
 ## 3. Runbook: from the announcement (T-1d) to "weights public" (T+0) and on
 | T | step | who | ready now? |
@@ -150,7 +163,12 @@ Pre-write NOW (owners; MoonShots cannot edit their trees):
 3. **EvalSuite:** an AR-reference generator with a model-path argument; the same-scores harness with a model switch.
 4. **Breakthrough:** the decision map's baseline capture for a new model (top-8 rows, xcapture) with a model switch.
 5. **MTP Head / TrainLab:** a day-0 drafter decision tree: (a) the model's own MTP layer (zero training), (b) DFlash2
-   retraining (hours: capture + train), (c) prompt-lookup copy drafting (model-agnostic, day-0).
+   retraining (hours: capture + train), (c) prompt-lookup copy drafting (model-agnostic, day-0), (d) the TTT30 recipe
+   (DEEPDRAFT, rows 29-30): a deep MTP head retrained in about one capture night plus one training pass. Capture n1112
+   ran 12 h 22 min (01:08-13:30, 12 Nov; 2,277 prompt files, 32.8 GB by its log, ~31 GiB on disk) [FableGod
+   deepdraft/capture/capture_n1112.log lines 97, 2683]; t30b ran 4,206 steps, 02:29-10:08 on 13 Nov, with pauses (20,463 s
+   of training; one restart at step 1,271), peak 15.6 GB [BigMoE data/deepdraft/ttt30b/night.log lines 6-16;
+   ~/datasets/deepdraft/ckpt/dd_t30b.json].
 6. **MoonShots:** watcher, port_check (with the port map's hazards), note templates, prior art: done. Still mine:
    make_records3.py (port map row 9, my own file: shapes from the headers) and the planes_engine copies of
    gdn_exact / tierglu (rows 13-14) with Leap.

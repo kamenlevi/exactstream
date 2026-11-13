@@ -87,10 +87,12 @@ def hazards(new, old):
         out.append(f"SILENT: {E} experts > 527: bigmoe/gated.py TLINES=17 x 31 ids, ext li = e/31 unchecked -> wrong slots "
                    f"(and > 1024 overflows ext slot_of); raise TLINES = ceil(E/31) + add bounds checks, rebuild the ext")
     if k and 16 * k > 185:
-        out.append(f"top-{k}: a 16-row check needs {16 * k} ids > the gate's 185 (gated.py:25-30, ext:587-591); screens pin MAXK 160")
+        out.append(f"top-{k}: a 16-row check needs {16 * k} ids > the gate's 185 (gated.py:25-30, ext:587-591); screens pin MAXK 160; "
+                   f"P2's checks (R57_P2_ROWS 16 in chat-45.env, 13 in chat-24 / lossy-24.env) need ROWS x {k} ids")
     if k and k != 10:
         out.append(f"top-{k} != 10: tier plan '4433333333' + assert len(PLAN)==10 (stream.py:594), qom_keep K=10, relax_core "
-                   f"k_top=10 (2 copies), EvalSuite KTOP / TOPK, the decision map's 10 ranks")
+                   f"k_top=10 (2 copies), EvalSuite KTOP / TOPK, the decision map's 10 ranks; P2_ROWS 16 / 13 sized for top-10 "
+                   f"(130 ids vs the 141-slot 24 GB pool): set P2_ROWS = floor(min(185, base slots) / {k})")
     if (I, Hd) != (to.get("moe_intermediate_size"), to.get("hidden_size")):
         out.append(f"expert shape {I}x{Hd} != 640x2560: make_records3 SHAPES, p11 PADW 9216 (pieces would OVERLAP), "
                    f"r3layout_ref 8804 words, convert_records3.sh recsz 2785280, kernel asserts N*40 / D*10 (3c-N, NAX6-N, "
@@ -101,28 +103,37 @@ def hazards(new, old):
     gdn = ("linear_num_value_heads", "linear_num_key_heads", "linear_key_head_dim", "linear_value_head_dim", "linear_conv_kernel_dim")
     if any(tn.get(x) != to.get(x) for x in gdn):
         out.append("SILENT: GDN dims changed: gdnbody.py / gdn_exact.py compile 10240 / 2048 / 128 / 6144 / 48 heads; ref2 guards "
-                   "fall back to MTPLX's NON-exact path without an error -> the bitwise spec == AR guarantee is lost")
+                   "fall back to MTPLX's NON-exact path without an error -> the bitwise spec == AR guarantee is lost; convcache.py "
+                   "(1.2.0) snapshots / restores the GDN + PLE states: re-run its bitwise clone test")
     if L and L != 48:
         out.append(f"{L} layers != 48: r57 tables (48, 512) / range(512) / L < 48, POP45 shape assert, md5-pinned laysz45 pools "
-                   f"(applied silently), stream.py uniform past the list, the decision map's range(48)")
+                   f"(applied silently), stream.py uniform past the list, the decision map's range(48); convcache.py keeps row 0 of "
+                   f"layer 35's QSA keys")
     if E and E != 512:
         out.append(f"{E} experts != 512: r57 zeros((48,512)) / range(512), pop_cap45 (48,512), router_fused E % 128, the map")
     if tn.get("vocab_size") != to.get("vocab_size") or tn.get("eos_token_id") != to.get("eos_token_id"):
         out.append("SILENT: vocab / EOS changed: EOS {248044, 248046} literal in r57 + 6 EvalSuite runners + TrainLab; vocab "
-                   "248320 literal in dfl2c_train / d02b_walk; EvalSuite's pre-tokenized items + the AR reference are today's "
+                   "248320 literal in dfl2c_train / d02b_walk; EOS also in DEEPDRAFT dd_capture.py:75; EvalSuite's pre-tokenized items + the AR reference are today's "
                    "tokenizer -> generation may not stop, comparisons go wrong")
+    if Hd and Hd != to.get("hidden_size"):
+        out.append(f"hidden {Hd} != {to.get('hidden_size')}: DEEPDRAFT capture asserts h (N-1, 2560) / wd (N-1, 10240 = hc x hidden) "
+                   f"(BigMoE dd_capture.py:389, 394), dd_ttt.py --xb 10240 / 30720, the d22_b5 head; DFlash2 (port map row 18)")
     if (tn.get("mtp_num_hidden_layers") or 0) > 1:
         out.append(f"{tn.get('mtp_num_hidden_layers')} MTP layers: stream.py streams mtp.layers.0 only")
     if tn.get("hc_count") != to.get("hc_count") or tn.get("hc_lowrank") != to.get("hc_lowrank"):
         out.append("hc_count / hc_lowrank changed: the drafter tap reshape hard-codes hc 4 (r57:682, EvalSuite, TrainLab); "
-                   "mtplx fast paths gate on hc 4 / lowrank 320")
+                   "mtplx fast paths gate on hc 4 / lowrank 320; DEEPDRAFT taps = the mean of the 4 HC streams (dd_capture.py:12, 215)")
     q = new.get("quantization") if isinstance(new.get("quantization"), dict) else {}
     if not q or q.get("bits") != 4 or q.get("group_size") != 64:
         out.append("not 4-bit affine g64 (e.g. bf16 upstream): records3 / tiers / p11 / qmm16 / ref2 assume 4-bit g64 -> "
                    "quantise first (mtplx recipe: base 4-bit g64, mlp.gate + indexer 8-bit, hc mixers + PLE bf16)")
     out.append("ALWAYS (per new model): retrain or replace the drafter (DFlash2 taps 5/15/25/35/45, hidden / vocab / 48 layers; "
                "the md5-pinned d22_b5 MTP head), regenerate pinned data (pools, popularity, priors, corrections), the AR "
-               "reference, EvalSuite items, the decision map inputs; mtplx must support the model_type")
+               "reference, EvalSuite items, the decision map inputs; mtplx must support the model_type. Since 13 Nov also: "
+               "re-run EvalSuite's P2 gates (24 / 45 GB; P2 is lossy, gated per model) and re-prove P3's exactness; recapture "
+               "and retrain the DEEPDRAFT head (TTT30: one capture night + one training pass); new setup.sh REPO / REV pins, "
+               "setup/files.tsv checksums and verify/*.json references; agentio.py's tool-call markup from the new chat "
+               "template (port map rows 26-33)")
     return out
 
 
