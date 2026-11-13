@@ -1,0 +1,12 @@
+RESULT G stage 2 (32 GB) rc 0: CLEAN-CLONE PASS
+RESULT H stage 1 (24 GB) rc 0: CLEAN-CLONE PASS
+RESULT A stage 3 (45 GB) rc 0: CLEAN-CLONE PASS
+RESULT B P2 SMOKE 45 rc 0, check rc 0: 12/12 keys prefix-equal with the reference's history; first token median 0.48 s (0.22-0.65) over 12 prompts, P2 on 12, lifetime peak 42.34 GB; ran 00:43:52-00:44:35
+RESULT C TOKEN CHECK 2 rc 0: PASS: tokens equal the gate's rows on 5 / 5 keys; ran 00:44:36-00:46:20
+RESULT D TOKEN CHECK 1 rc 0 / 0: FAIL: tokens DIFFER (256 tokens; prompt [1972], p2 [0]); logits hashes DIFFER (2042 chars); peaks 1.2.1 lifetime peak 46.60 GB, 1.2.0 lifetime peak 46.78 GB
+RESULT E serve.py 45 + cache: five requests: HTTP [200, 200, 200, 200, 200], prompt tokens [1972, 17, 2062, 106, 2116]; cache checks PASS 2, FAIL 0; P2 requests: 2 short, 0 with cache statistics (want 0); errors in the server log 0
+RESULT F peak len_300 rc 0: prompt 289 tokens, P2 chunks 0, first token 4.75 s, 223 tokens at 50.0 tok/s, lifetime peak 44.89 GB; ran 00:48:36-00:48:57
+RESULT F peak len_1k rc 0: prompt 965 tokens, P2 chunks 0, first token 6.97 s, 232 tokens at 51.7 tok/s, lifetime peak 46.07 GB; ran 00:48:58-00:49:19
+RESULT F peak len_4k rc 0: prompt 3999 tokens, P2 chunks 0, first token 26.85 s, 256 tokens at 40.6 tok/s, lifetime peak 46.77 GB; ran 00:49:19-00:50:02
+RESULT F-prompt_10k SKIPPED: NO-SWAP 43 < 52 (its peak + 4; waited 120 s)
+RESULT I SKIPPED: NO-SWAP 44 < 53 (its peak + 4; waited 120 s)

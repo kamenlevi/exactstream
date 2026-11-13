@@ -1,0 +1,116 @@
+58c58
+<     """Leap's /Users/kamen/BigMoE/data/r57/snap/frozen_rel1/Leap_scripts/pfb_fix.py (Sun 08:3x): SwitchGLU's forward (sort, up / gate / down sorted gather, SwiGLU,
+---
+>     """Leap's /Users/kamen/BigMoE/data/r57/snap/frozen_p3/Leap_scripts/pfb_fix.py (Sun 08:3x): SwitchGLU's forward (sort, up / gate / down sorted gather, SwiGLU,
+288c288,289
+<        "pB": 0, "pC": 0, "hB": 0, "hC": 0, "mB": 0, "mC": 0, "tPred": 0.0}   # read-ahead: predicted / hit / read on demand                                      # FAST rows at 3 bits: base pooled (4) / base read (5)
+---
+>        "pB": 0, "pC": 0, "hB": 0, "hC": 0, "mB": 0, "mC": 0, "tPred": 0.0,   # read-ahead: predicted / hit / read on demand
+>        "fold": 0, "tJ": 0.0}                                  # P3 (R57_PFD_FOLD): forecasts folded into the id sync; that sync's s                                      # FAST rows at 3 bits: base pooled (4) / base read (5)
+693a695,697
+>     FOLD = AHEAD and os.environ.get("R57_PFD_FOLD") == "1"   # P3 (exact; Wed 11 Nov, docs/FIRST_TOKEN.md): the next layer's
+>     # forecast is evaluated with this layer's routing ids (one sync, not two), its B + C staging arrays in one eval, and the
+>     # assemble pass with the call (one eval, not two; R57_PFD_CHECK keeps the separate one). Same reads, same values.
+714a719,724
+> 
+>     def stage_submit(t_, ids, off, size, arr):
+>         """the preads of ids into an evaluated staging array's first rows (zero-copy into its buffer)."""
+>         view = np.asarray(memoryview(arr)).view(np.uint8).reshape(int(arr.shape[0]), size)
+>         futs = {e: pool_().submit(pread_into, t_, e, off, size, view[k]) for k, e in enumerate(ids)}
+>         return [arr, {e: k for k, e in enumerate(ids)}, futs, view, len(ids)]
+718,719c728
+<         n = len(ids)
+<         arr = mx.zeros((n + spare, size // 4), mx.uint32)
+---
+>         arr = mx.zeros((len(ids) + spare, size // 4), mx.uint32)
+721,723c730
+<         view = np.asarray(memoryview(arr)).view(np.uint8).reshape(n + spare, size)
+<         futs = {e: pool_().submit(pread_into, t_, e, off, size, view[k]) for k, e in enumerate(ids)}
+<         return [arr, {e: k for k, e in enumerate(ids)}, futs, view, n]
+---
+>         return stage_submit(t_, ids, off, size, arr)
+724a732,738
+>     def stage_many(t_, want):
+>         """P3: several staging arrays [(tag, ids, off, size, spare)] allocated in ONE eval, then their preads."""
+>         arrs = [mx.zeros((len(ids) + sp, sz // 4), mx.uint32) for _, ids, _, sz, sp in want]
+>         if arrs:
+>             mx.eval(*arrs)
+>         return {tag: stage_submit(t_, ids, off, sz, a) for (tag, ids, off, sz, _), a in zip(want, arrs)}
+> 
+763,767c777,790
+<     def predict(L1, x, k):
+<         """the next layer's router on this layer's MoE input (R-57's forecast): its predicted misses start reading now."""
+<         lay_ = LAYERS[L1]
+<         t1 = (getattr(lay_.mlp.switch_mlp, "_bm", None) or {}).get("tier")
+<         if t1 is None or t1.get("side") is None or t1.get("layout") != 2:
+---
+>     def forecast_tier(L1):
+>         """the next layer's tier dict when the read-ahead can serve it (sidecar, layout 2), else None."""
+>         t1 = (getattr(LAYERS[L1].mlp.switch_mlp, "_bm", None) or {}).get("tier")
+>         return t1 if t1 is not None and t1.get("side") is not None and t1.get("layout") == 2 else None
+> 
+>     def forecast(L1, x, k):
+>         """the next layer's router on this layer's MoE input (R-57's forecast), lazy: its top-k ids."""
+>         return mx.argpartition(-LAYERS[L1].mlp.gate(x), kth=k - 1, axis=-1)[..., :k]
+> 
+>     def predict(L1, x, k, top=None):
+>         """the next layer's router on this layer's MoE input (R-57's forecast): its predicted misses start reading now.
+>         top: the forecast already evaluated with this layer's ids (P3), else computed and synced here."""
+>         t1 = forecast_tier(L1)
+>         if t1 is None:
+769c792,793
+<         top = mx.argpartition(-lay_.mlp.gate(x), kth=k - 1, axis=-1)[..., :k]
+---
+>         if top is None:
+>             top = forecast(L1, x, k)
+777,780c801,812
+<         if len(Bp) and not FASTP:
+<             st["B"] = stage_reads(t1, [int(e) for e in Bp], m1, r1 - m1, max(8, len(Bp) // 2))
+<         if len(Cp):
+<             st["C"] = stage_reads(t1, [int(e) for e in Cp], 0, m1 if FASTP else r1, max(8, len(Cp) // 2))
+---
+>         if FOLD:                                         # P3: both staging arrays in one eval
+>             want = []
+>             if len(Bp) and not FASTP:
+>                 want.append(("B", [int(e) for e in Bp], m1, r1 - m1, max(8, len(Bp) // 2)))
+>             if len(Cp):
+>                 want.append(("C", [int(e) for e in Cp], 0, m1 if FASTP else r1, max(8, len(Cp) // 2)))
+>             st = stage_many(t1, want)
+>         else:
+>             if len(Bp) and not FASTP:
+>                 st["B"] = stage_reads(t1, [int(e) for e in Bp], m1, r1 - m1, max(8, len(Bp) // 2))
+>             if len(Cp):
+>                 st["C"] = stage_reads(t1, [int(e) for e in Cp], 0, m1 if FASTP else r1, max(8, len(Cp) // 2))
+785c817
+<     def v4_scratch(t_, bm_, x, k, uniq, sb, ss, A, B, C):
+---
+>     def v4_scratch(t_, bm_, x, k, uniq, sb, ss, A, B, C, top=None):
+800c832
+<                 predict(L + 1, x, k)
+---
+>                 predict(L + 1, x, k, top)
+841a874,881
+>         top = None
+>         L1_ = int(bm["L"]) + 1
+>         if FOLD and (V4 or FASTP) and not LMC["on"] and L1_ < len(LAYERS) and forecast_tier(L1_) is not None:
+>             top = forecast(L1_, x, int(indices.shape[-1]))
+>             tj_ = time.perf_counter()
+>             mx.eval(indices, top)                        # P3: this layer's ids and the next layer's forecast in one sync
+>             PFD["tJ"] += time.perf_counter() - tj_
+>             PFD["fold"] += 1
+858,861c898,902
+<             scr, rm = v4_scratch(t, bm, x, int(indices.shape[-1]), uniq, sb, ss, A, B, C)
+<             t4_ = time.perf_counter()
+<             mx.eval(*scr)
+<             PFD["tG"] += time.perf_counter() - t4_
+---
+>             scr, rm = v4_scratch(t, bm, x, int(indices.shape[-1]), uniq, sb, ss, A, B, C, top)
+>             if not FOLD or check:                        # P3: the assemble pass rides on the call's eval (tM holds both)
+>                 t4_ = time.perf_counter()
+>                 mx.eval(*scr)
+>                 PFD["tG"] += time.perf_counter() - t4_
+963c1004,1005
+<     tier._pfd_dbg = dict(stage_reads=stage_reads, gather=gather, grave=GRAVE)   # unit test (pfd_unit.py) of the staging
+---
+>     tier._pfd_dbg = dict(stage_reads=stage_reads, gather=gather, grave=GRAVE,   # unit tests (pfd_unit.py, pfd_fold_unit.py)
+>                          stage_many=stage_many)

@@ -1,0 +1,52 @@
+499a500,502
+> P2MAX = int(os.environ.get("R57_P2", "0") or "0")        # Wed 11 Nov P2 (docs/FIRST_TOKEN.md; LOSSY until EvalSuite's gate): prompts of
+> P2ROWS = int(os.environ.get("R57_P2_ROWS", "16") or "16")  # <= P2MAX tokens run as P2ROWS-row decode checks (verify path), not the prefill
+> assert not (P2MAX and A6 & {"pools", "warm"}), "R57_P2 skips the prefill's A6 capture: no R57_A6 pools / warm"
+1028a1032,1063
+> P2ST = {"chunks": 0, "rows": 0}
+> P2VER = os.environ.get("R57_P2_VERIFY", "1") != "0"      # =0: every chunk a plain forward under the decode arm (no verify scope)
+> def prefill_p2(ids, arm, want_w=False, rows=16):
+>     """P2 (Wed 11 Nov; LOSSY until gated): the prompt in `rows`-row chunks through the decode's own check path (the decode arm's
+>     sync-free gate on the pool slots and its look-ahead, the check's precision with the FAST masks off; no PF-D assemble, no
+>     prediction sync), each chunk verified and committed whole (keep = all its rows: the commit's full-accept branch, which
+>     reads no snapshot). The first token runs alone as a plain forward, so no verify starts on an empty cache.
+>     R57_P2_VERIFY=0: plain forwards throughout. Returns what prefill() returns."""
+>     set_arm(arm)
+>     cache, lg, ws = model.make_cache(), None, []
+>     tap_reset(); TAP["on"] = True
+>     try:
+>         starts = [0] + list(range(1, len(ids), rows)) if P2VER else list(range(0, len(ids), rows))
+>         for j, a in enumerate(starts):
+>             r_ = [int(x) for x in ids[a:(starts[j + 1] if j + 1 < len(starts) else len(ids))]]
+>             if P2VER and a > 0:
+>                 with ref2.verify_scope(model):
+>                     lg = model(mx.array([r_]), cache=cache)
+>                 model.commit_verified_window(cache, None, keep_tokens=len(r_), verified_tokens=len(r_))
+>             else:
+>                 lg = model(mx.array([r_]), cache=cache)
+>             if want_w:                                   # the chat switch: each chunk's widened stream for the MTP head
+>                 w = TXT._last_widened[:, :len(r_)]
+>                 mx.eval(w)
+>                 ws.append((a, w))
+>             mx.eval(lg, states(cache), [x[-1] for x in TAP["x"]])
+>             P2ST["chunks"] += 1; P2ST["rows"] += len(r_)
+>     finally:
+>         TAP["on"] = False
+>         set_arm("slot")
+>     return cache, lg[0, -1], taps(), ws
+> 
+1060c1095,1100
+<     cache, last, T, ws = prefill(ids, mtp, chunk=PFCHUNK)
+---
+>     p2c_ = P2ST["chunks"]
+>     if P2MAX and len(ids) <= P2MAX:                      # R57_P2: this prompt through the decode's check path (LOSSY until gated)
+>         cache, last, T, ws = prefill_p2(ids, arm, mtp, P2ROWS)
+>     else:
+>         cache, last, T, ws = prefill(ids, mtp, chunk=PFCHUNK)
+>     p2c_ = P2ST["chunks"] - p2c_
+1597a1638
+>                 p2=p2c_ if P2MAX else None,          # R57_P2: this prompt's decode-path chunks (0 = it took the prefill)
+1693c1734
+<                          d7b=draft is DRAFT4, rlx=r.get("rlx"), spn=r.get("spn"), nwk=r.get("nwk"), pfs=r.get("pfs"), pfst=r.get("pfst"), pflm=r.get("pflm"), pfd=r.get("pfd")))   # Thu 18:5x / Fri 10:0x: relaxed / span / INERT
+---
+>                          d7b=draft is DRAFT4, rlx=r.get("rlx"), spn=r.get("spn"), nwk=r.get("nwk"), pfs=r.get("pfs"), pfst=r.get("pfst"), pflm=r.get("pflm"), pfd=r.get("pfd"), p2=r.get("p2")))   # Thu 18:5x / Fri 10:0x: relaxed / span / INERT

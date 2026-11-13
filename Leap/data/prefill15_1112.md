@@ -429,3 +429,17 @@ Onebuild has not run, so no arm's 45 GB peak was measured by it. The figures:
 - **Runner:** scripts/night/night_onebuild.sh. One quiet ticket, optionally queued behind another session's ticket
   (WAITFOR), gate 52 after the grant, then the per-run gates; it releases at once if the gate fails. Not armed yet: it
   waits for the next night's order.
+
+## 13. Onebuild night, Sat 14 Nov 00:30: NO RUN (NO-SWAP 47 GB at the grant, gate 52)
+
+- **What ran:** scripts/night/night_onebuild.sh v2 (armed Fri 15:53, pid 96697; BLOCKS "10k 30k", runs end by Sat 10:00).
+  - It queued its one quiet ticket at 00:30:22, while another session's training was still up (NO-SWAP 32 GB), and was granted at 00:30:37 (47 GB).
+  - After settling 30 s it saw NO-SWAP 47 < 52 (its lowest run gate) and released at 00:31:08 without a run, as designed (section 12).
+- **47 GB was the night's floor with nothing big running**, not a slow release:
+  - At 00:35, `top -o mem`: PyCharm 2.3 GB, the Claude app 1.1, Terminal 1.0 plus two older claude CLIs 1.5, chroma 0.9, Spotify 0.5. No orphan engines.
+  - vm_stat at 00:32: free 23.6 GB, file-backed 21.1, anonymous 16.0, wired 4.0, compressor 2.9 (holding 19.2 GB).
+  - Swap was 5.8 GB and flat.
+- **Why section 12's estimate missed:** its "50-52 GB after the first big runs" assumed onebuild follows other 45 GB runs, which push idle pages into the compressor. Tonight it went first, at the floor.
+- **Lesson:** on a weekday night with PyCharm and the Claude sessions open, onebuild must follow another 45 GB run (or wait for a PyCharm-closed night). Its 10K block needs 52 and its 30K block 53-56.
+- **Result:** no measurement and nothing to compare. Onebuild is counted out for tonight (the orchestrator was told at 00:4x).
+  The 1.2.1 release checks went next under their own ticket (data/pkg121_1113/README.md).

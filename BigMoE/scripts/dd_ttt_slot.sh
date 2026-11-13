@@ -29,7 +29,7 @@ avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|pur
 avail_min() { local a b c; a=$(avail_gb); sleep 20; b=$(avail_gb); sleep 20; c=$(avail_gb)
   [ $b -lt $a ] && a=$b; [ $c -lt $a ] && a=$c; echo $a; }
 swap_mb() { sysctl -n vm.swapusage | awk '{gsub("M","",$6); print int($6)}'; }
-others_quiet() { peer ls 2>/dev/null | grep "^- " | grep -oE "· (benchmarking|waiting for a quiet window)" | grep -c .; }
+others_quiet() { peer ls 2>/dev/null | grep "^- " | grep -oE "· (benchmarking|quiet lock lapsed|waiting for a quiet window)" | grep -c .; }   # lapsed = still held (Sat 14 Nov 01:0x)
 lid_closed() { ioreg -r -k AppleClamshellState -d 1 | grep -q '"AppleClamshellState" = Yes'; }
 health_act() { grep -q "Verdict: ACT" "$Q/HEALTH.md" 2>/dev/null; }
 gates_clear() { [ "$(others_quiet)" -eq 0 ] && ! lid_closed && ! health_act; }
@@ -39,6 +39,7 @@ run_job() {   # label MEM cmd...: under the shared lock, with the yield / swap /
   local lab=$1 mem=$2; shift 2
   echo "$$ $mem $lab" > "$SLOT_STATE/arm.mem"; slot_lock
   local s0; s0=$(swap_mb); Y=""
+  say "$lab: starts ($(gate_state))"
   taskpolicy -b "$@" >> "$RLOG" 2>&1 &
   local tp=$!
   while kill -0 $tp 2>/dev/null; do
@@ -71,7 +72,7 @@ for x in $ARMS; do
     [ -e "$STOP" ] && { say "STOP_SLOT: done"; exit 0; }
     need=$MEM; [ $phase = eval ] && need=12
     n=0
-    until gates_clear && [ "$(avail_min)" -ge $((need + 8)) ]; do
+    until gates_clear && [ "$(avail_min)" -ge $((need + 8)) ] && gates_clear; do   # the gates again after the 40-s read
       [ -e "$STOP" ] && { say "STOP_SLOT: done"; exit 0; }
       [ $((n % 30)) -eq 0 ] && say "$x $phase waits: $(gate_state); needs $((need + 8)) GB"
       n=$((n + 1)); sleep 60

@@ -1,0 +1,104 @@
+11-13 15:53:09 armed (pid 96885): 1.2.1 release checks of b830caf under one quiet ticket after pid 96697 exits; from 2026-11-14 00:30:00 (or /private/tmp/claude-501/-Users-kamen-OjoX/f2971937-6c95-4e86-a049-05beff6a8e32/scratchpad/agent/GO_night), queue until 2026-11-14 09:00:00, every part ends by 2026-11-14 10:00:00
+11-13 15:53:09 wait: waiting for pid 96697 (onebuild's runner) to exit
+11-14 00:31:27 queue the quiet ticket (PEER_QUEUE_TIMEOUT 30513 s; NO-SWAP 47 GB)
+queued #1; this returns when it's your turn and the Mac is quiet.
+your turn after 0s: quiet lock held until 03:01. Measure now, and `peer unlock` as soon as you're done.
+11-14 00:31:27 granted (NO-SWAP 47 GB); settle 30 s
+11-14 00:33:58 RESULT A SKIPPED: NO-SWAP 46 < 48 (its peak + 4)
+11-14 00:35:58 RESULT B SKIPPED: NO-SWAP 47 < 48 (its peak + 4)
+11-14 00:36:33 armed (pid 80364): 1.2.1 release checks of b830caf under one quiet ticket after pid 96885 exits; from 2026-11-14 00:30:00 (or /private/tmp/claude-501/-Users-kamen-OjoX/f2971937-6c95-4e86-a049-05beff6a8e32/scratchpad/agent/GO_night), queue until 2026-11-14 09:00:00, every part ends by 2026-11-14 10:00:00
+11-14 00:36:33 wait: waiting for pid 96885 (the v1 runner) to exit
+11-14 00:36:43 stopped by a signal
+11-14 00:36:43 ticket released
+11-14 00:36:43 exit (NO-SWAP 47 GB, swap 5813 MB)
+11-14 00:37:03 queue the quiet ticket (PEER_QUEUE_TIMEOUT 30177 s; NO-SWAP 47 GB)
+queued #1; this returns when it's your turn and the Mac is quiet.
+your turn after 0s: quiet lock held until 03:07. Measure now, and `peer unlock` as soon as you're done.
+11-14 00:37:03 granted (NO-SWAP 47 GB); settle 30 s
+11-14 00:37:33 == part G: stage 2 (32 GB configs, text on chat-32, chat.py + serve.py at 32) (NO-SWAP 47 GB, swap 5813 MB)
+11-14 00:40:23 RESULT G stage 2 (32 GB) rc 0: CLEAN-CLONE PASS
+        whole decode 28.9 tok/s | whole request 21.1 tok/s | first token 2.63 s (2.44-2.81) | lifetime peak 30.39 GB | 2 prompt(s), 409 tokens, process wall 35 s (load + warm-up included)
+    11-14 00:38:09   tokens vs exact-32_ar.json: 2/2 keys prefix-equal (rc 0)
+    11-14 00:38:09   closure: modules 834, outside the clone + stdlib: 0; files opened 3268, outside the allowed roots: 0 (rc 0)
+        whole decode 31.2 tok/s | whole request 19.4 tok/s | first token 2.86 s (2.73-2.98) | lifetime peak 31.07 GB | 2 prompt(s), 293 tokens, process wall 32 s (load + warm-up included)
+    11-14 00:38:43   tokens vs lossy-32_rli160.json: 2/2 keys prefix-equal with the reference's history (rc 0)
+    11-14 00:38:43   closure: modules 848, outside the clone + stdlib: 0; files opened 3302, outside the allowed roots: 0 (rc 0)
+        whole decode 45.6 tok/s | whole request 28.7 tok/s | first token 2.84 s (2.67-3.00) | lifetime peak 31.08 GB | 2 prompt(s), 440 tokens, process wall 32 s (load + warm-up included)
+    11-14 00:39:16   tokens vs chat-32_zs32.json: 2/2 keys prefix-equal with the reference's history (rc 0)
+    11-14 00:39:16   closure: modules 848, outside the clone + stdlib: 0; files opened 3302, outside the allowed roots: 0 (rc 0)
+        whole decode 40.1 tok/s | whole request 20.1 tok/s | first token 2.03 s (2.03-2.03) | lifetime peak 31.07 GB | 1 prompt(s), 82 tokens, process wall 21 s (load + warm-up included)
+    11-14 00:40:00   chat.py rc 0: [76 tokens | whole decode 42.8 tok/s | first token 3.32 s | lifetime peak 31.27 GB | drafter mtp, 2.41 tokens per check]
+    11-14 00:40:22   OpenAI stream: [DONE] 1, finish_reason 1; Anthropic stream: message_stop 1, text deltas 5
+    11-14 00:40:23   serve.py stopped on SIGTERM: 1 'stopped' line(s)
+11-14 00:40:24 == part H: stage 1 (24 GB configs, text on chat-24, chat.py + serve.py at 24) (NO-SWAP 50 GB, swap 5813 MB)
+11-14 00:41:50 RESULT H stage 1 (24 GB) rc 0: CLEAN-CLONE PASS
+        whole decode 29.9 tok/s | whole request 25.2 tok/s | first token 1.05 s (1.04-1.07) | lifetime peak 22.90 GB | 2 prompt(s), 333 tokens, process wall 23 s (load + warm-up included)
+    11-14 00:40:47   tokens vs lossy-24_w24p2.json: 2/2 keys prefix-equal with the reference's history (rc 0)
+    11-14 00:40:48   closure: modules 848, outside the clone + stdlib: 0; files opened 3300, outside the allowed roots: 0 (rc 0)
+        whole decode 29.7 tok/s | whole request 25.0 tok/s | first token 1.05 s (1.04-1.06) | lifetime peak 22.90 GB | 2 prompt(s), 333 tokens, process wall 23 s (load + warm-up included)
+    11-14 00:41:11   tokens vs chat-24_w24p2.json: 2/2 keys prefix-equal with the reference's history (rc 0)
+    11-14 00:41:11   closure: modules 848, outside the clone + stdlib: 0; files opened 3300, outside the allowed roots: 0 (rc 0)
+        whole decode 29.7 tok/s | whole request 23.9 tok/s | first token 0.63 s (0.63-0.63) | lifetime peak 22.90 GB | 1 prompt(s), 77 tokens, process wall 13 s (load + warm-up included)
+    11-14 00:41:38   chat.py rc 0: [75 tokens | whole decode 31.9 tok/s | first token 1.62 s | lifetime peak 23.05 GB | drafter mtp, 2.81 tokens per check]
+    11-14 00:41:49   OpenAI stream: [DONE] 1, finish_reason 1; Anthropic stream: message_stop 1, text deltas 4
+    11-14 00:41:50   serve.py stopped on SIGTERM: 1 'stopped' line(s)
+11-14 00:41:51 == part A: stage 3 (45 GB configs, text on chat-45, chat.py + serve.py at 45) (NO-SWAP 49 GB, swap 5813 MB)
+11-14 00:43:52 RESULT A stage 3 (45 GB) rc 0: CLEAN-CLONE PASS
+        whole decode 31.1 tok/s | whole request 22.0 tok/s | first token 2.73 s (2.62-2.85) | lifetime peak 41.50 GB | 2 prompt(s), 409 tokens, process wall 33 s (load + warm-up included)
+    11-14 00:42:24   tokens vs exact-45_ar.json: 2/2 keys prefix-equal (rc 0)
+    11-14 00:42:24   closure: modules 834, outside the clone + stdlib: 0; files opened 3269, outside the allowed roots: 0 (rc 0)
+        whole decode 35.4 tok/s | whole request 20.9 tok/s | first token 2.87 s (2.76-2.98) | lifetime peak 42.20 GB | 2 prompt(s), 293 tokens, process wall 31 s (load + warm-up included)
+    11-14 00:42:57   tokens vs lossy-45_rli256.json: 2/2 keys prefix-equal with the reference's history (rc 0)
+    11-14 00:42:57   closure: modules 848, outside the clone + stdlib: 0; files opened 3301, outside the allowed roots: 0 (rc 0)
+        whole decode 52.0 tok/s | whole request 45.9 tok/s | first token 0.52 s (0.52-0.52) | lifetime peak 42.35 GB | 2 prompt(s), 407 tokens, process wall 18 s (load + warm-up included)
+    11-14 00:43:16   tokens vs chat-45_p2.json: 2/2 keys prefix-equal with the reference's history (rc 0)
+    11-14 00:43:16   closure: modules 849, outside the clone + stdlib: 0; files opened 3303, outside the allowed roots: 0 (rc 0)
+        whole decode 46.8 tok/s | whole request 39.9 tok/s | first token 0.31 s (0.31-0.31) | lifetime peak 42.33 GB | 1 prompt(s), 85 tokens, process wall 11 s (load + warm-up included)
+    11-14 00:43:40   chat.py rc 0: [74 tokens | whole decode 47.9 tok/s | first token 0.93 s | lifetime peak 42.50 GB | drafter mtp, 2.42 tokens per check]
+    11-14 00:43:51   OpenAI stream: [DONE] 1, finish_reason 1; Anthropic stream: message_stop 1, text deltas 5
+    11-14 00:43:52   serve.py stopped on SIGTERM: 1 'stopped' line(s)
+11-14 00:43:52 == part B: P2 SMOKE: chat-45 on the 12 reference prompts, cap 256 (NO-SWAP 51 GB, swap 5813 MB)
+11-14 00:44:35 RESULT B P2 SMOKE 45 rc 0, check rc 0: 12/12 keys prefix-equal with the reference's history; first token median 0.48 s (0.22-0.65) over 12 prompts, P2 on 12, lifetime peak 42.34 GB; ran 00:43:52-00:44:35
+11-14 00:44:36 == part C: TOKEN CHECK 2: the gate's process 1, first 5 keys, cap 2048 (NO-SWAP 51 GB, swap 5813 MB)
+11-14 00:44:36   keys gpqad/rec0Arme2jcXQZnAW,gpqad/rec0yTRmO1o1xCA6H,gpqad/rec260hNUCEj109Dj,gpqad/rec4JrWy7Il8ho5vk,gpqad/rec4UqStf9WUVif1f; dec_gpqad.jsonl md5 5af744d92d462600d847745d32efa6ad copied in
+11-14 00:46:20 RESULT C TOKEN CHECK 2 rc 0: PASS: tokens equal the gate's rows on 5 / 5 keys; ran 00:44:36-00:46:20
+11-14 00:46:20 == part D: TOKEN CHECK 1: 1,972 tokens, 1.2.1 chat-45 vs 1.2.0 chat-45 (NO-SWAP 52 GB, swap 5813 MB)
+11-14 00:47:30 RESULT D TOKEN CHECK 1 rc 0 / 0: FAIL: tokens DIFFER (256 tokens; prompt [1972], p2 [0]); logits hashes DIFFER (2042 chars); peaks 1.2.1 lifetime peak 46.60 GB, 1.2.0 lifetime peak 46.78 GB
+11-14 00:47:30 == part E: serve.py --mem 45, cache on + CONV_CACHE_CHECK=1, five requests (NO-SWAP 52 GB, swap 5813 MB)
+    A1 long, first turn (miss): HTTP 200, prompt tokens 1972, wall 15.16 s
+    B1 short (P2): HTTP 200, prompt tokens 17, wall 1.31 s
+    A2 long, follow-up (hit): HTTP 200, prompt tokens 2062, wall 19.02 s
+    B2 short (P2): HTTP 200, prompt tokens 106, wall 1.67 s
+    A3 long, second follow-up (hit): HTTP 200, prompt tokens 2116, wall 17.5 s
+    five requests: HTTP [200, 200, 200, 200, 200], prompt tokens [1972, 17, 2062, 106, 2116]
+    00:47:56 done: 1972 prompt tokens -> 64 tokens, whole decode 46.4 tok/s, first token 13.7 s, peak 46.828818656 GB; cache miss c 0 (none), prefilled 1972, restore 0.0 ms, check 
+    00:47:57 done: 17 prompt tokens -> 64 tokens, whole decode 58.7 tok/s, first token 0.21 s, peak 46.828818656 GB
+    00:48:16 done: 2062 prompt tokens -> 34 tokens, whole decode 50.5 tok/s, first token 18.33 s, peak 47.045089208 GB; cache hit c 1024 (live), prefilled 1038, restore 39.67 ms, check PASS
+    00:48:18 done: 106 prompt tokens -> 64 tokens, whole decode 72.4 tok/s, first token 0.77 s, peak 47.045089208 GB
+    00:48:35 done: 2116 prompt tokens -> 51 tokens, whole decode 47.4 tok/s, first token 16.41 s, peak 47.214502816 GB; cache hit c 2048 (live), prefilled 68, restore 44.86 ms, check PASS
+11-14 00:48:35 RESULT E serve.py 45 + cache: five requests: HTTP [200, 200, 200, 200, 200], prompt tokens [1972, 17, 2062, 106, 2116]; cache checks PASS 2, FAIL 0; P2 requests: 2 short, 0 with cache statistics (want 0); errors in the server log 0
+11-14 00:48:36   serve.py stopped, port 8098 free
+11-14 00:48:36 == part F-len_300: chat-45 long-prompt peak, len_300 (NO-SWAP 52 GB, swap 5813 MB)
+11-14 00:48:57 RESULT F peak len_300 rc 0: prompt 289 tokens, P2 chunks 0, first token 4.75 s, 223 tokens at 50.0 tok/s, lifetime peak 44.89 GB; ran 00:48:36-00:48:57
+11-14 00:48:58 == part F-len_1k: chat-45 long-prompt peak, len_1k (NO-SWAP 52 GB, swap 5813 MB)
+11-14 00:49:19 RESULT F peak len_1k rc 0: prompt 965 tokens, P2 chunks 0, first token 6.97 s, 232 tokens at 51.7 tok/s, lifetime peak 46.07 GB; ran 00:48:58-00:49:19
+11-14 00:49:19 == part F-len_4k: chat-45 long-prompt peak, len_4k (NO-SWAP 52 GB, swap 5813 MB)
+11-14 00:50:02 RESULT F peak len_4k rc 0: prompt 3999 tokens, P2 chunks 0, first token 26.85 s, 256 tokens at 40.6 tok/s, lifetime peak 46.77 GB; ran 00:49:19-00:50:02
+11-14 00:52:02 RESULT F-prompt_10k SKIPPED: NO-SWAP 43 < 52 (its peak + 4; waited 120 s)
+11-14 00:54:03 RESULT I SKIPPED: NO-SWAP 44 < 53 (its peak + 4; waited 120 s)
+11-14 00:54:03 SUMMARY
+  RESULT G stage 2 (32 GB) rc 0: CLEAN-CLONE PASS
+  RESULT H stage 1 (24 GB) rc 0: CLEAN-CLONE PASS
+  RESULT A stage 3 (45 GB) rc 0: CLEAN-CLONE PASS
+  RESULT B P2 SMOKE 45 rc 0, check rc 0: 12/12 keys prefix-equal with the reference's history; first token median 0.48 s (0.22-0.65) over 12 prompts, P2 on 12, lifetime peak 42.34 GB; ran 00:43:52-00:44:35
+  RESULT C TOKEN CHECK 2 rc 0: PASS: tokens equal the gate's rows on 5 / 5 keys; ran 00:44:36-00:46:20
+  RESULT D TOKEN CHECK 1 rc 0 / 0: FAIL: tokens DIFFER (256 tokens; prompt [1972], p2 [0]); logits hashes DIFFER (2042 chars); peaks 1.2.1 lifetime peak 46.60 GB, 1.2.0 lifetime peak 46.78 GB
+  RESULT E serve.py 45 + cache: five requests: HTTP [200, 200, 200, 200, 200], prompt tokens [1972, 17, 2062, 106, 2116]; cache checks PASS 2, FAIL 0; P2 requests: 2 short, 0 with cache statistics (want 0); errors in the server log 0
+  RESULT F peak len_300 rc 0: prompt 289 tokens, P2 chunks 0, first token 4.75 s, 223 tokens at 50.0 tok/s, lifetime peak 44.89 GB; ran 00:48:36-00:48:57
+  RESULT F peak len_1k rc 0: prompt 965 tokens, P2 chunks 0, first token 6.97 s, 232 tokens at 51.7 tok/s, lifetime peak 46.07 GB; ran 00:48:58-00:49:19
+  RESULT F peak len_4k rc 0: prompt 3999 tokens, P2 chunks 0, first token 26.85 s, 256 tokens at 40.6 tok/s, lifetime peak 46.77 GB; ran 00:49:19-00:50:02
+  RESULT F-prompt_10k SKIPPED: NO-SWAP 43 < 52 (its peak + 4; waited 120 s)
+  RESULT I SKIPPED: NO-SWAP 44 < 53 (its peak + 4; waited 120 s)
+11-14 00:54:03 DONE
+11-14 00:54:03 ticket released
+11-14 00:54:03 exit (NO-SWAP 43 GB, swap 5813 MB)

@@ -5,7 +5,8 @@
 # Runs scripts/dd_capture.py (DLOG_SRC=magicoder, the n1112 continuation: it skips prompts it already has) under a SHARE
 # lock, never a quiet one:
 #  - start: after the pid AFTER_PID ends (EvalSuite's 45 GB P2 gate chain), then whenever the gates clear;
-#  - gates: no other session's quiet lock held or queued (lock segments on the "^- " lines of peer ls only), lid open,
+#  - gates: no other session's quiet lock held, lapsed or queued (lock segments on the "^- " lines of peer ls only: a
+#    held lock with nothing run under it for 8+ min shows as "quiet lock lapsed" and still counts), lid open,
 #    no HEALTH ACT, NO-SWAP >= the capture's peak + 8 GB;
 #  - yield: when a gate closes, touch the stop file: the capture ends at its next prompt boundary (median 14 s, p90 19 s per
 #    prompt on night 1). After 120 s a SIGTERM, after 60 s more a SIGKILL (a heat freeze can hold it stopped); its npz
@@ -32,7 +33,7 @@ Q="$HOME/.local/share/quiet"
 RESERVE=${RESERVE_GB:-0}
 avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 swap_mb() { sysctl -n vm.swapusage | awk '{gsub("M","",$6); print int($6)}'; }
-others_quiet() { peer ls 2>/dev/null | grep "^- " | grep -oE "· (benchmarking|waiting for a quiet window)" | grep -c .; }
+others_quiet() { peer ls 2>/dev/null | grep "^- " | grep -oE "· (benchmarking|quiet lock lapsed|waiting for a quiet window)" | grep -c .; }   # lapsed = still held (Sat 14 Nov 01:0x)
 lid_closed() { ioreg -r -k AppleClamshellState -d 1 | grep -q '"AppleClamshellState" = Yes'; }
 health_act() { grep -q "Verdict: ACT" "$Q/HEALTH.md" 2>/dev/null; }
 gates_clear() { [ "$(others_quiet)" -eq 0 ] && ! lid_closed && ! health_act; }

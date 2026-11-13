@@ -14,6 +14,12 @@
 #     eval as dd_ttt_slot.sh (share lock, yields to other sessions' quiet locks by SIGTERM: the run saves and EXITS 3,
 #     resumes when the gates clear; swap guard +2 GB; a phase starts only if NO-SWAP >= its MEM + 8 GB);
 #  3. resumes the capture (exec dd_capture_slot.sh at C 100) unless STOP_SLOT.
+# Quiet locks of others = the "· benchmarking", "· quiet lock lapsed" and "· waiting for a quiet window" segments on the
+# "^- " lines of peer ls (any unexpired quiet lock, held or queued). Sat 14 Nov 01:0x, the orchestrator's catch: peer shows
+# a held quiet lock as "quiet lock lapsed" once nothing has run under it for 8+ min and its session is under 10 % CPU (here
+# Leap's runner in a 120-s memory wait); the first gate missed that segment and restarted t30x2 at 00:50:57 inside Leap's
+# 1.2.1 ticket, which cost Leap its 10K / 30K peak tests. The gates are read again after the 40-s memory read, and every
+# job start is logged in slot.log ("<job>: starts ...").
 > (a quote from the project owner, kept private)
 # usage (a harness background task): OLD_PID=74726 bash scripts/dd_ttt_alone.sh [arms]   DRY=1: plan and gates only
 export PATH="$HOME/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:$PATH"
@@ -35,18 +41,20 @@ avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|pur
 avail_min() { local a b c; a=$(avail_gb); sleep 20; b=$(avail_gb); sleep 20; c=$(avail_gb)
   [ $b -lt $a ] && a=$b; [ $c -lt $a ] && a=$c; echo $a; }
 swap_mb() { sysctl -n vm.swapusage | awk '{gsub("M","",$6); print int($6)}'; }
-others_quiet() { peer ls 2>/dev/null | grep "^- " | grep -oE "· (benchmarking|waiting for a quiet window)" | grep -c .; }
+others_quiet() { peer ls 2>/dev/null | grep "^- " | grep -oE "· (benchmarking|quiet lock lapsed|waiting for a quiet window)" | grep -c .; }
 lid_closed() { ioreg -r -k AppleClamshellState -d 1 | grep -q '"AppleClamshellState" = Yes'; }
 health_act() { grep -q "Verdict: ACT" "$Q/HEALTH.md" 2>/dev/null; }
 gates_clear() { [ "$(others_quiet)" -eq 0 ] && ! lid_closed && ! health_act; }
 gate_state() { echo "quiet locks of others $(others_quiet), lid $(lid_closed && echo closed || echo open), health $(health_act && echo ACT || echo ok), NO-SWAP $(avail_gb) GB"; }
 ttt_running() { pgrep -f "scripts/dd_ttt[.]py" >/dev/null; }
 cap_running() { pgrep -f "scripts/dd_capture[.]py" >/dev/null; }
+saved_step() { local s; s=$(grep -oE '"step": [0-9]+' "$CKD/dd_$1.json" 2>/dev/null | head -1 | grep -oE '[0-9]+$'); echo "${s:-0}"; }
 
 run_job() {   # label MEM cmd...: under the shared lock, with the yield / swap / STOP guards; sets RC and Y (why it was stopped)
   local lab=$1 mem=$2; shift 2
   echo "$$ $mem $lab" > "$SLOT_STATE/arm.mem"; slot_lock
   local s0; s0=$(swap_mb); Y=""
+  say "$lab: starts${JOBNOTE:+ $JOBNOTE} ($(gate_state))"; JOBNOTE=""
   taskpolicy -b "$@" >> "$RLOG" 2>&1 &
   local tp=$!
   while kill -0 $tp 2>/dev/null; do
@@ -79,7 +87,7 @@ stop_capture() {   # its launcher first (so it cannot start a new try), then the
 
 say "start (pid $$; arms $ARMS; OLD_PID ${OLD_PID:-none}; GO file $GO; stop file $STOP)"
 if [ -n "$DRY" ]; then
-  for x in $ARMS; do say "DRY: $x: $(arm_flags $x); smoke guard $(smoke_mem $x) GB (needs NO-SWAP $(( $(smoke_mem $x) + 8 ))), train guard = ceil(smoke peak) + 2"; done
+  for x in $ARMS; do say "DRY: $x: $(arm_flags $x); smoke guard $(smoke_mem $x) GB (needs NO-SWAP $(( $(smoke_mem $x) + 8 ))), train guard = ceil(smoke peak) + 2; saved step $(saved_step $x)"; done
   say "DRY: now: GO $([ -e $GO ] && echo yes || echo no), old launcher $([ -n "$OLD_PID" ] && kill -0 $OLD_PID 2>/dev/null && echo running || echo gone), dd_ttt $(ttt_running && echo running || echo none), capture $(cap_running && echo running || echo none); $(gate_state)"
   say "(the lines above were a DRY=1 check, not a run)"; exit 0
 fi
@@ -102,7 +110,7 @@ for x in $ARMS; do
     [ -e "$STOP" ] && { say "STOP_SLOT: done (the capture stays stopped)"; exit 0; }
     need=$MEM; [ $phase = eval ] && need=12
     n=0
-    until gates_clear && [ "$(avail_min)" -ge $((need + 8)) ]; do
+    until gates_clear && [ "$(avail_min)" -ge $((need + 8)) ] && gates_clear; do   # the gates again after the 40-s read
       [ -e "$STOP" ] && { say "STOP_SLOT: done (the capture stays stopped)"; exit 0; }
       [ $((n % 30)) -eq 0 ] && say "$x $phase waits: $(gate_state); needs $((need + 8)) GB"
       n=$((n + 1)); sleep 60
@@ -124,6 +132,7 @@ for x in $ARMS; do
           say "$x smoke FAILED rc $RC (guard $MEM GB): $chk $(echo "$out" | tail -2 | tr '\n' ' ' | cut -c1-300): arm skipped"; break
         fi ;;
       train)
+        JOBNOTE="from saved step $(saved_step $x)"
         run_job "TTT30C $x alone: MEM $MEM" $MEM $PY scripts/dd_ttt.py train --run $x $BASE $F --peak-max $MEM
         say "$x train ended rc $RC${Y:+ ($Y)}: $(grep "^\[dd\]" "$RLOG" | tail -1 | cut -c1-160)"
         [ "$Y" = STOP ] && exit 0
