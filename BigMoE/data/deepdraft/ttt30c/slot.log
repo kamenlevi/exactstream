@@ -19,3 +19,26 @@
 11-13 15:36:42 alone: DRY: t30x4: --xb 30720; smoke guard 42 GB (needs NO-SWAP 50), train guard = ceil(smoke peak) + 2
 11-13 15:36:43 alone: DRY: now: GO no, old launcher running, dd_ttt running, capture running; quiet locks of others 0, lid open, health ok, NO-SWAP 17 GB
 11-13 15:36:43 alone: (the lines above were a DRY=1 check, not a run)
+11-13 15:37:30 alone: start (pid 83732; arms t30x2 t30x4; OLD_PID 74726; GO file data/deepdraft/ttt30c/GO_ALONE; stop file /Users/kamen/FableGod/deepdraft/STOP_SLOT)
+11-13 15:37:30 alone: waits for GO_ALONE and the old launcher / runs to end (quiet locks of others 0, lid open, health ok, NO-SWAP 16 GB)
+11-13 16:37:31 alone: waits for GO_ALONE and the old launcher / runs to end (quiet locks of others 0, lid open, health ok, NO-SWAP 17 GB)
+11-13 17:37:32 alone: waits for GO_ALONE and the old launcher / runs to end (quiet locks of others 0, lid open, health ok, NO-SWAP 17 GB)
+11-13 18:37:33 alone: waits for GO_ALONE and the old launcher / runs to end (quiet locks of others 0, lid open, health ok, NO-SWAP 17 GB)
+11-13 19:37:34 alone: waits for GO_ALONE and the old launcher / runs to end (quiet locks of others 0, lid open, health ok, NO-SWAP 19 GB)
+11-13 20:37:35 alone: waits for GO_ALONE and the old launcher / runs to end (quiet locks of others 0, lid open, health ok, NO-SWAP 18 GB)
+11-13 21:37:36 alone: waits for GO_ALONE and the old launcher / runs to end (quiet locks of others 0, lid open, health ok, NO-SWAP 18 GB)
+11-13 21:49:40 t30f train ended rc 0: [dd] DONE t30f: 4206 steps in 23536s; peak 15.8 GB
+11-13 22:07:34 t30f eval ended rc 0: {"run": "t30f", "rule": "code 23-30 >= 90 % and depth 0 within 1 pt of b5: CONTINUE; < 87 %: KILL", "b5_23_30": 0.8508450949642795, "run_23_30": 0.887262589301272, "b5_d0": 0.9767843137254902, "run_d0": 0.977411764705882
+11-13 22:07:34 t30x4: from phase smoke (--xb 30720, MEM 24 GB)
+11-13 22:07:39 launcher (pid 74726) stopped by the session at t30x4's start, before any job: its 24 GB guard was an estimate (t30x2's branch measured 22.4 GB at step 1; t30x4 projects near 36 GB); t30x2 and t30x4 re-planned with measured guards, capture off
+11-13 22:09:36 alone: GO: 11-13 22:08 GO by the session: t30f DONE 22:07:34 (train rc 0 at 21:49, eval rc 0) and Leap's onebuild (00:30) has not started. The orchestrator's order: 'If t30f ends before onebuild starts, you may start t30x2 alone right away', allowed because t30x2's yield on a quiet ticket ends the process (dd_ttt.py: SIGTERM -> saves and exits 3, memory freed).
+11-13 22:09:36 alone: capture launcher pid 21416 stopped (the capture is paused for the branch arms; resumes after them)
+11-13 22:09:36 after-gate waiter: both launchers ended
+11-13 22:09:41 alone: capture stopped: [dlog 22:09:39] stop file: stopping at a prompt boundary (resumable) [dlog 22:09:39] session: 785 prompts, 207927 answer tokens in 19244 s of decode (10.8 tok/s); totals {'code': 814989}, 44.20 GB on disk; footprint now 
+11-13 22:09:41 alone: t30x2: from phase smoke (--xb 10240, MEM 30 GB)
+11-13 22:11:02 alone: t30x2 smoke OK (peak 23.9 GB -> train guard 26 GB): [dd] smoke: b5's loss 0.3548715; ttt_loss_x at lambda 0 0.3548715 (kl 0.3548715, feature term 1.70996): EQUAL [dd] smoke: with the zero-init 10240-wide branch 0.3548715 vs b5 0.3548715: EQUAL [dd] DONE smk_t30x2: 3 steps in 24s; peak 23.9 GB [dd] smoke: saved optimizer groups ['b', 'x']; files removed 
+11-13 22:17:21 alone: start (pid 86999; arms t30x2 t30x4; OLD_PID 25521; GO file data/deepdraft/ttt30c/GO_ALONE; stop file /Users/kamen/FableGod/deepdraft/STOP_SLOT)
+11-13 22:17:21 alone: waits for GO_ALONE and the old launcher / runs to end (quiet locks of others 0, lid open, health ok, NO-SWAP 33 GB)
+11-13 22:17:26 sequencer 83732 replaced by the session (scripts/dd_ttt_alone.sh patched: a yield counts as a yield whatever the rc; rc 143 = a SIGTERM during dd_ttt's start, before its handler, e.g. in the <= 30 s gap between Leap's onebuild and its rel121_check ticket; the orchestrator's catch). t30x2's trainer 25521 gets a SIGTERM (saves, exits 3) and the new sequencer resumes it.
+11-13 22:18:21 alone: GO: 11-13 22:08 GO by the session: t30f DONE 22:07:34 (train rc 0 at 21:49, eval rc 0) and Leap's onebuild (00:30) has not started. The orchestrator's order: 'If t30f ends before onebuild starts, you may start t30x2 alone right away', allowed because t30x2's yield on a quiet ticket ends the process (dd_ttt.py: SIGTERM -> saves and exits 3, memory freed).
+11-13 22:18:21 alone: t30x2: from phase train (--xb 10240, MEM 26 GB)

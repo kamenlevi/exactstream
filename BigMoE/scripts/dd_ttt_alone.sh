@@ -128,8 +128,9 @@ for x in $ARMS; do
         say "$x train ended rc $RC${Y:+ ($Y)}: $(grep "^\[dd\]" "$RLOG" | tail -1 | cut -c1-160)"
         [ "$Y" = STOP ] && exit 0
         if [ $RC -eq 0 ]; then phase=eval
-        elif [ $RC -eq 3 ] && [ -n "$Y" ]; then sleep 120
         elif [ $RC -eq 4 ]; then say "$x: MLX peak over its $MEM GB guard: arm stopped (saved; a re-plan is needed)"; break
+        elif [ -n "$Y" ]; then sleep 120   # a yield, whatever the rc: 3 = saved and exited; 143 = the SIGTERM came during
+                                           # dd_ttt's start, before its handler (it writes nothing before it: the last save stands)
         else fails=$((fails + 1)); [ $fails -ge 2 ] && { say "$x: 2 failures without a yield: arm stopped"; break; }; sleep 120; fi ;;
       eval)
         run_job "TTT30C $x eval" 12 $PY scripts/dd_ttt.py eval --runs b5,t30b,${x}_s600,${x}_s1500,${x}_s3000,$x --out $D/$x

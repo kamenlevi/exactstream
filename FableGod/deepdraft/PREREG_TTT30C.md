@@ -102,3 +102,43 @@ of dlog/d1102mbpp; agreement by depth band over valid cells; kept per 32-row che
   - Each branch arm's guard is re-set from its own smoke before it starts.
   - t30x2 needs at least its 22.4 GB step-1 peak. t30x4's branch is 3x wider, so a linear projection puts it near
     36 GB. It runs with the capture off, not beside it.
+
+## Result: t30f (Fri 13 Nov 22:07): NO EFFECT, and every band is slightly below t30b
+t30f trained 4,206 steps (rc 0 at 21:49) and was scored in one process with b5 and t30b
+(data/deepdraft/ttt30c/t30f/eval.json; eval rc 0 at 22:07).
+- **Harness:** b5 and t30b re-score bit for bit as in a855212 (HumanEval+ 23-30 85.08 / 89.66; MBPP 63.34 / 72.13).
+- **The lines (HumanEval+ 23-30):**
+  - t30f scores 88.73 %, against t30b's 89.66 %: -0.93 pt.
+  - PAYS needs >= 90.66 %. HURTS is <= 88.66 %, so t30f lands 0.07 pt above the HURTS line.
+  - MBPP 23-30 is 71.44 against 72.13 (-0.69). Depth 0 is 97.74 against b5's 97.68 (+0.06, within 1 pt).
+  - **Verdict: NO EFFECT** (within a point of t30b).
+- **Every band on both sets is below t30b**, by 0.12 to 0.93 pt:
+
+  | band | HumanEval+ b5 / t30b / t30f | delta | MBPP b5 / t30b / t30f | delta |
+  |---|---|---|---|---|
+  | 0 | 97.68 / 97.90 / 97.74 | -0.16 | 93.46 / 94.01 / 93.89 | -0.12 |
+  | 7-10 | 90.51 / 93.10 / 92.51 | -0.59 | 74.70 / 79.61 / 79.00 | -0.61 |
+  | 15-22 | 86.85 / 91.04 / 90.38 | -0.66 | 66.78 / 74.38 / 73.89 | -0.49 |
+  | 23-30 | 85.08 / 89.66 / 88.73 | -0.93 | 63.34 / 72.13 / 71.44 | -0.69 |
+  | kept per 32-row check | 12.55 / 13.83 / 13.20 | -0.63 | 6.22 / 6.92 / 6.82 | -0.11 |
+
+- **The copies against t30b's copies at the same steps (information only), 23-30:**
+  - HumanEval+: +0.17 pt at step 600, -0.77 at 1,500, -0.78 at 3,000.
+  - MBPP: -0.77, -1.48, -1.15.
+  - The gap opens by step 1,500 and stays.
+- **The training KL, paired by step** (the same slices: pass seed 1113; t30f's logged 20-step mean total minus lambda x
+  its feature term, against t30b's loss):
+  - Steps 20-999: even (+0.1 %; t30f above in 27 of 49 logs).
+  - Steps 1,000-2,199: +3.7 % (above in 56 of 60).
+  - Steps 2,200-4,206: +4.4 % (above in 99 of 101).
+  - The orchestrator's own paired check agrees (+2-5 % from step 2,200).
+- **PLAN step 3:** 88.7 % is under 90 %, so not CONTINUE. The eval's own field reads INCONCLUSIVE (between 87 and 90).
+- **Training:** MLX peak 15.8 GB (t30b 15.6); the eval peaked at 10.1 GB. It ran beside the capture, so no timing is
+  claimed.
+- **The feature term** (the 20-step mean, at lambda 0.09164):
+  - 1.71 at step 1, 1.42 at 600, 1.11 at 1,500, 0.95 at 3,000, 0.93 at 3,500, 0.90 at 4,000 and 0.92 at 4,200.
+  - It fell by about half and was flat over the last 1,000 steps.
+- **What it means:**
+  - The PREREG keeps the feature loss for later runs only on a t30f PAYS, so later runs drop it.
+  - The capacity arms t30x2 and t30x4 run next, alone, with the capture paused. The "if nothing pays" reading waits for
+    them.

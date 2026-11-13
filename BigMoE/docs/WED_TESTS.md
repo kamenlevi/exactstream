@@ -1779,12 +1779,19 @@ The 125B is untouched. Same held-out windows and harness as t30a; agreement with
   moments and the step. Pooled cells only, one run per arm: a direction, not a significance claim. Heat pauses
   throughout; no timing claims.
 
-## Fri 13 Nov 15:13-: DEEPDRAFT step 3 third test, TTT30C (PREREG 22bf65a): smokes done, t30f training (in progress) (data/deepdraft/ttt30c/)
+## Fri 13 Nov 15:13-: DEEPDRAFT step 3 third test, TTT30C (PREREG 22bf65a): t30f NO EFFECT (-0.93 pt); t30x2 alone next (in progress) (data/deepdraft/ttt30c/)
 The arms are t30b's exact run plus one change each: t30f adds a feature loss, and t30x2 / t30x4 add a dense branch
 (capacity x2.1 / x4.4). The slot opened at 15:08, when EvalSuite's 45 GB P2 gate ended.
 - **t30x2 smoke:** both exact-equality checks EQUAL (the lambda-0 path and the zero-init branch each give b5's loss,
   0.3548715). The MLX peak was 22.4 GB at step 1, over its 20 GB guard, so the arm was skipped for a re-plan. The branch
   adds 6.8 GB to t30b's 15.6 GB.
 - **t30f smoke:** EQUAL, lambda 0.09164, peak 15.6 GB. Training since 15:16, beside the capture.
-- **Next:** t30x2, then t30x4 (a linear projection puts it near 36 GB), each with its guard re-set from its own smoke and
-  run with the capture off. No lines are read yet.
+- **t30f result (22:07): NO EFFECT, and every band is slightly below t30b.**
+  - HumanEval+ 23-30 is 88.73 % against t30b's 89.66 % (-0.93 pt; the HURTS line is <= 88.66, PAYS >= 90.66).
+  - MBPP 23-30 is 71.44 against 72.13. Depth 0 is 97.74 against b5's 97.68.
+  - All bands on both sets are 0.12-0.93 pt below t30b; the gap opens by step 1,500.
+  - b5 and t30b re-score bit for bit. The feature term fell from 1.71 to about 0.92. Later runs drop the feature loss.
+  - Details: the PREREG's "Result: t30f" section.
+- **Next (from 22:09):** t30x2, then t30x4 (a linear projection puts it near 36 GB), each with its guard re-set from its
+  own smoke and run with the capture paused. The capture stopped at a prompt boundary at 22:09 (44.2 GB, 815k code
+  tokens) and resumes after them.
