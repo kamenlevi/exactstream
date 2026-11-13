@@ -78,3 +78,9 @@ files were deleted in the 11-09 cleanup, so no new Strata timing can run without
 - **W24T, the clean ABBA timing at 24 GB (Thu 00:31, quiet lock): P2 median 1.12 s (0.82-1.91) vs the card's 3.11 s.**
   That is 23 % under Strata's 1.46 s on the same 12 prompts. P2 is gated PASS (EvalSuite 8adeb09), so it is a candidate
   for package 1.2, on Kamen's word.
+- **45 GB A/B (Fri 13 Nov 02:16-02:26, quiet lock, ABCCBA; data/p3/p3_report.txt): P2 v0 0.47 s median vs the shipped
+  45 GB chat's 2.44 s and Strata's 0.83 s on the same 12 prompts.**
+  - P2 here runs 16-row chunks. It is LOSSY (tokens 2/12). The 24 GB gate (13 rows) does not cover it, so it needs its
+    own same-scores gate at 45 GB before it ships.
+  - P3's fold is exact (12/12, 721/721 in both fold arms) but small at 45 GB: 2.44 -> 2.37 s median (-2.9 %), not the
+    -0.35 s estimated above.

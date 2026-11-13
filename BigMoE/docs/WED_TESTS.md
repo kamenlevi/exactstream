@@ -1727,3 +1727,27 @@ windows, depths 23-30 rose from 85.1 % to 87.3 %, between KILL (< 87) and CONTIN
 The gain grows with depth (7-10 +1.2, 15-22 +2.2, 23-30 +2.3 pt) and transfers: MBPP 23-30 rose from 63.3 % to 68.5 %. Kept
 per 32-row check went from 12.55 to 13.12 (HumanEval+) and from 6.22 to 6.54 (MBPP). The run used about 19 % of night 1's
 tokens, once. Next: about 3,000 steps (one full pass), pre-registered, with the curve at 600 / 1,500 / 3,000 steps.
+
+## Fri 13 Nov 02:16-02:26: the 45 GB first-token A/B: P2 v0 (LOSSY) 0.47 s median vs the shipped chat's 2.44 s and Strata's 0.83 s; P3's fold exact, -2.9 % (data/p3/p3_report.txt)
+ABCCBA under one quiet lock (NO-SWAP 50 GB), on the 12 IFEval prompts at CAP 256, one process per arm. The order: control
+(the 45 GB chat as shipped: zs + PF-D v4 + read-ahead), P3 fold, P2 plain twice, fold, control. Then FAST without and with
+the fold, and P2's verify scope (back to back, info only).
+
+| arm | first token, median | mean | range | tokens / logits hash vs control | SSD per prompt | peak |
+|---|---|---|---|---|---|---|
+| control (1st + 6th) | 2.44 s | 2.38 | 1.71-2.91 | 12/12, 721/721 | 9.6 GB | 43.70 GB |
+| + P3 fold, exact (2nd + 5th) | 2.37 s | 2.31 | 1.79-2.77 | 12/12, 721/721 | 9.6 GB | 43.70 GB |
+| P2 v0 plain, 16 rows, LOSSY (3rd + 4th) | 0.47 s | 0.43 | 0.23-0.66 | 2/12, 0/581 | 2.1 GB | 42.40 GB |
+| P2 v0 verify scope, LOSSY (9th) | 0.51 s | 0.47 | 0.25-0.67 | 2/12, 0/632 | 2.1 GB | 42.30 GB |
+| FAST + read-ahead, LOSSY (7th) | 1.89 s | 1.81 | 1.27-2.12 | (the FAST pair's own control) | 4.9 GB | 43.30 GB |
+| FAST + read-ahead + fold (8th) | 1.78 s | 1.72 | 1.25-2.06 | 12/12, 705/705 vs FAST | 4.9 GB | 43.10 GB |
+
+- **P2 at 45 GB: 0.47 s median, 0.36 s (43 %) under Strata's 0.83 s on these prompts.** The exact path is still about 2.9x
+  Strata's. P2 reads 2.1 GB per prompt instead of 9.6 GB.
+- **P2 is LOSSY** (tokens 2/12, as at 24 GB). The 24 GB same-scores gate (13-row chunks, EvalSuite 8adeb09) does not
+  cover the 45 GB setting (16-row chunks on the 45 GB chat), so it needs its own gate before it ships.
+- **P3's fold is exact** in both fold arms but small here: -2.9 % median (-0.07 s), against the "up to -0.35 s" estimate.
+  At 24 GB it gave -6 %. The FAST pair ran back to back, which favours the second arm, so its -5.8 % is not a clean figure.
+- **Validity.** No heat pause or freeze during the arms (one fan curve step at 02:19). The two controls agree (12/12,
+  721/721). Decode medians are 47.2-48.9 tok/s in all six alternated arms, but P2's answers differ (median 104 tokens
+  vs 160), so decode is not a matched comparison. Peaks are 42.3-43.7 GB, under 45.

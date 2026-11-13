@@ -1,0 +1,179 @@
+layer  0 piece 0 (6, 640, 320)      ==
+layer  0 piece 1 (6, 640, 40)       ==
+layer  0 piece 2 (6, 640, 40)       ==
+layer  0 piece 3 (6, 640, 320)      ==
+layer  0 piece 4 (6, 640, 40)       ==
+layer  0 piece 5 (6, 640, 40)       ==
+layer  0 piece 6 (6, 2560, 80)      ==
+layer  0 piece 7 (6, 2560, 10)      ==
+layer  0 piece 8 (6, 2560, 10)      ==
+layer 23 piece 0 (6, 640, 320)      ==
+layer 23 piece 1 (6, 640, 40)       ==
+layer 23 piece 2 (6, 640, 40)       ==
+layer 23 piece 3 (6, 640, 320)      ==
+layer 23 piece 4 (6, 640, 40)       ==
+layer 23 piece 5 (6, 640, 40)       ==
+layer 23 piece 6 (6, 2560, 80)      ==
+layer 23 piece 7 (6, 2560, 10)      ==
+layer 23 piece 8 (6, 2560, 10)      ==
+layer 47 piece 0 (6, 640, 320)      ==
+layer 47 piece 1 (6, 640, 40)       ==
+layer 47 piece 2 (6, 640, 40)       ==
+layer 47 piece 3 (6, 640, 320)      ==
+layer 47 piece 4 (6, 640, 40)       ==
+layer 47 piece 5 (6, 640, 40)       ==
+layer 47 piece 6 (6, 2560, 80)      ==
+layer 47 piece 7 (6, 2560, 10)      ==
+layer 47 piece 8 (6, 2560, 10)      ==
+PFD UNIT (kernel): PASS (0 differing words; 18 experts, 9 pieces each)
+PFD UNIT v3 assemble (8 A / 8 B / 8 C, shuffled rows): PASS (0 differing words)
+PFD UNIT v4 assemble (6 each of kinds 0 / 1 / 3 exact, 4 / 5 at 3 bits; shuffled): PASS (differing rows by kind {0: 0, 1: 0, 3: 0, 4: 0, 5: 0})
+PFD UNIT v4 with placeholders (kinds 0 / 3 exact; 0 / 4 / 5 FAST): PASS (0 differing rows)
+  staging none    : 20 rows, ==
+  staging partial : 24 rows, ==
+  staging overflow: 22 rows, ==
+PFD UNIT v4 staging (zero-copy reads, spare rows, overflow): PASS; counters h 17 / m 43
+  kernel: 2.5 ms for 96 experts = 0.026 ms per expert
+  ops: 83.8 ms for 96 experts = 0.873 ms per expert
+  kernel == ops on the 96: True
+layer  0 B: 6 rows of 720896 bytes + 8 spare: == stage_reads == the records
+layer  0 C: 7 rows of 2785280 bytes + 8 spare: == stage_reads == the records
+layer  0 C gather with a miss (row 7): == the records
+layer 23 B: 6 rows of 720896 bytes + 8 spare: == stage_reads == the records
+layer 23 C: 7 rows of 2785280 bytes + 8 spare: == stage_reads == the records
+layer 23 C gather with a miss (row 7): == the records
+layer 47 B: 6 rows of 720896 bytes + 8 spare: == stage_reads == the records
+layer 47 C: 7 rows of 2785280 bytes + 8 spare: == stage_reads == the records
+layer 47 C gather with a miss (row 7): == the records
+PFD FOLD UNIT: PASS (0 mismatches; 39 staged rows over 3 layers + 3 gathers)
+11-13 02:16:23 P3 start (pid 91310, NO-SWAP 51.0 GB, snapshot c477b60)
+11-13 02:17:49 p3c1 rc=0
+11-13 02:19:09 p3f1 rc=0
+11-13 02:19:54 p2p1 rc=0
+11-13 02:20:40 p2p2 rc=0
+11-13 02:22:05 p3f2 rc=0
+11-13 02:23:25 p3c2 rc=0
+11-13 02:24:41 p3fa rc=0
+11-13 02:25:56 p3ff rc=0
+11-13 02:26:46 p2v rc=0
+P3 (data/p3; snapshot c477b60; the 12 N45 IFEval prompts, zs, CAP 256, quiet): TTFT = pfs; PF-D timers per prompt (medians, s): tP the wrapped calls, tJ the folded id + forecast sync, tPred the forecast's own work, tB / tC the waits for read rows, tG the assemble eval (with the fold: inside tM), tM the call; tokens and logits hash vs the arm's control
+  p3c1 control: zs + PF-D v4 + read-ahead (the 45 GB chat as shipped), 1st: TTFT mean 2.43 s, median 2.51 (1.71-2.91); timers tP 1.994; tJ 0.000; tPred 0.442; tB 0.488; tC 0.135; tG 0.530; tM 0.266; folded forecasts 0; P2 chunks 0; SSD 9.6 GB per prompt; lifetime peak 43.70 GB
+      ifeval/1219: P 74, TTFT 2.71 s, tP 2.131
+      ifeval/1220: P 43, TTFT 2.48 s, tP 1.998
+      ifeval/1262: P 57, TTFT 2.67 s, tP 2.163
+      ifeval/1561: P 66, TTFT 2.54 s, tP 1.990
+      ifeval/2239: P 37, TTFT 1.71 s, tP 1.273
+      ifeval/2439: P 78, TTFT 2.91 s, tP 2.329
+      ifeval/2590: P 48, TTFT 2.19 s, tP 1.713
+      ifeval/2853: P 52, TTFT 2.30 s, tP 1.810
+      ifeval/2870: P 42, TTFT 2.05 s, tP 1.576
+      ifeval/3280: P 46, TTFT 2.64 s, tP 2.123
+      ifeval/3407: P 54, TTFT 2.11 s, tP 1.645
+      ifeval/374: P 101, TTFT 2.83 s, tP 2.260
+  p3f1 P3: + R57_PFD_FOLD=1, 2nd: TTFT mean 2.33 s, median 2.37 (1.79-2.73); timers tP 1.883; tJ 0.027; tPred 0.343; tB 0.673; tC 0.135; tG 0.000; tM 0.616; folded forecasts 564; P2 chunks 0; SSD 9.6 GB per prompt; tokens == p3c1 12/12, logits hash 721/721; lifetime peak 43.70 GB
+      ifeval/1219: P 74, TTFT 2.58 s, tP 2.030, tokens ==
+      ifeval/1220: P 43, TTFT 2.34 s, tP 1.887, tokens ==
+      ifeval/1262: P 57, TTFT 2.55 s, tP 2.060, tokens ==
+      ifeval/1561: P 66, TTFT 2.40 s, tP 1.879, tokens ==
+      ifeval/2239: P 37, TTFT 1.79 s, tP 1.336, tokens ==
+      ifeval/2439: P 78, TTFT 2.64 s, tP 2.093, tokens ==
+      ifeval/2590: P 48, TTFT 2.18 s, tP 1.707, tokens ==
+      ifeval/2853: P 52, TTFT 2.21 s, tP 1.760, tokens ==
+      ifeval/2870: P 42, TTFT 1.97 s, tP 1.512, tokens ==
+      ifeval/3280: P 46, TTFT 2.40 s, tP 1.946, tokens ==
+      ifeval/3407: P 54, TTFT 2.10 s, tP 1.649, tokens ==
+      ifeval/374: P 101, TTFT 2.73 s, tP 2.195, tokens ==
+  p2p1 P2 v0 (LOSSY): R57_P2=256, 16-row plain forwards under the decode arm, 3rd: TTFT mean 0.44 s, median 0.47 (0.26-0.64); timers tP 0.000; tJ 0.000; tPred 0.000; tB 0.000; tC 0.000; tG 0.000; tM 0.000; folded forecasts 0; P2 chunks 49; SSD 2.1 GB per prompt; tokens == p3c1 2/12, logits hash 0/581; lifetime peak 42.40 GB
+      ifeval/1219: P 74, TTFT 0.47 s, tP 0.000, tokens DIFF
+      ifeval/1220: P 43, TTFT 0.51 s, tP 0.000, tokens DIFF
+      ifeval/1262: P 57, TTFT 0.47 s, tP 0.000, tokens DIFF
+      ifeval/1561: P 66, TTFT 0.48 s, tP 0.000, tokens ==
+      ifeval/2239: P 37, TTFT 0.26 s, tP 0.000, tokens ==
+      ifeval/2439: P 78, TTFT 0.52 s, tP 0.000, tokens DIFF
+      ifeval/2590: P 48, TTFT 0.35 s, tP 0.000, tokens DIFF
+      ifeval/2853: P 52, TTFT 0.36 s, tP 0.000, tokens DIFF
+      ifeval/2870: P 42, TTFT 0.26 s, tP 0.000, tokens DIFF
+      ifeval/3280: P 46, TTFT 0.49 s, tP 0.000, tokens DIFF
+      ifeval/3407: P 54, TTFT 0.41 s, tP 0.000, tokens DIFF
+      ifeval/374: P 101, TTFT 0.64 s, tP 0.000, tokens DIFF
+  p2p2 P2 v0 (LOSSY): the same, 4th: TTFT mean 0.42 s, median 0.47 (0.23-0.66); timers tP 0.000; tJ 0.000; tPred 0.000; tB 0.000; tC 0.000; tG 0.000; tM 0.000; folded forecasts 0; P2 chunks 49; SSD 2.1 GB per prompt; tokens == p3c1 2/12, logits hash 0/581; lifetime peak 42.30 GB
+      ifeval/1219: P 74, TTFT 0.48 s, tP 0.000, tokens DIFF
+      ifeval/1220: P 43, TTFT 0.51 s, tP 0.000, tokens DIFF
+      ifeval/1262: P 57, TTFT 0.46 s, tP 0.000, tokens DIFF
+      ifeval/1561: P 66, TTFT 0.47 s, tP 0.000, tokens ==
+      ifeval/2239: P 37, TTFT 0.23 s, tP 0.000, tokens ==
+      ifeval/2439: P 78, TTFT 0.52 s, tP 0.000, tokens DIFF
+      ifeval/2590: P 48, TTFT 0.31 s, tP 0.000, tokens DIFF
+      ifeval/2853: P 52, TTFT 0.35 s, tP 0.000, tokens DIFF
+      ifeval/2870: P 42, TTFT 0.25 s, tP 0.000, tokens DIFF
+      ifeval/3280: P 46, TTFT 0.48 s, tP 0.000, tokens DIFF
+      ifeval/3407: P 54, TTFT 0.35 s, tP 0.000, tokens DIFF
+      ifeval/374: P 101, TTFT 0.66 s, tP 0.000, tokens DIFF
+  p3f2 P3: + R57_PFD_FOLD=1, 5th: TTFT mean 2.30 s, median 2.37 (1.79-2.77); timers tP 1.877; tJ 0.029; tPred 0.332; tB 0.670; tC 0.136; tG 0.000; tM 0.602; folded forecasts 564; P2 chunks 0; SSD 9.6 GB per prompt; tokens == p3c1 12/12, logits hash 721/721; lifetime peak 43.60 GB
+      ifeval/1219: P 74, TTFT 2.55 s, tP 2.009, tokens ==
+      ifeval/1220: P 43, TTFT 2.34 s, tP 1.876, tokens ==
+      ifeval/1262: P 57, TTFT 2.46 s, tP 1.990, tokens ==
+      ifeval/1561: P 66, TTFT 2.39 s, tP 1.878, tokens ==
+      ifeval/2239: P 37, TTFT 1.79 s, tP 1.328, tokens ==
+      ifeval/2439: P 78, TTFT 2.66 s, tP 2.114, tokens ==
+      ifeval/2590: P 48, TTFT 2.08 s, tP 1.629, tokens ==
+      ifeval/2853: P 52, TTFT 2.18 s, tP 1.745, tokens ==
+      ifeval/2870: P 42, TTFT 1.91 s, tP 1.464, tokens ==
+      ifeval/3280: P 46, TTFT 2.40 s, tP 1.953, tokens ==
+      ifeval/3407: P 54, TTFT 2.04 s, tP 1.583, tokens ==
+      ifeval/374: P 101, TTFT 2.77 s, tP 2.212, tokens ==
+  p3c2 control again, 6th: TTFT mean 2.32 s, median 2.40 (1.73-2.73); timers tP 1.893; tJ 0.000; tPred 0.403; tB 0.504; tC 0.135; tG 0.474; tM 0.268; folded forecasts 0; P2 chunks 0; SSD 9.6 GB per prompt; tokens == p3c1 12/12, logits hash 721/721; lifetime peak 43.70 GB
+      ifeval/1219: P 74, TTFT 2.60 s, tP 2.048, tokens ==
+      ifeval/1220: P 43, TTFT 2.41 s, tP 1.930, tokens ==
+      ifeval/1262: P 57, TTFT 2.53 s, tP 2.033, tokens ==
+      ifeval/1561: P 66, TTFT 2.39 s, tP 1.855, tokens ==
+      ifeval/2239: P 37, TTFT 1.73 s, tP 1.261, tokens ==
+      ifeval/2439: P 78, TTFT 2.67 s, tP 2.109, tokens ==
+      ifeval/2590: P 48, TTFT 2.15 s, tP 1.665, tokens ==
+      ifeval/2853: P 52, TTFT 2.26 s, tP 1.760, tokens ==
+      ifeval/2870: P 42, TTFT 1.92 s, tP 1.443, tokens ==
+      ifeval/3280: P 46, TTFT 2.46 s, tP 1.969, tokens ==
+      ifeval/3407: P 54, TTFT 2.03 s, tP 1.578, tokens ==
+      ifeval/374: P 101, TTFT 2.73 s, tP 2.167, tokens ==
+  p3fa FAST (LOSSY) + read-ahead, 7th (the FAST arms' own control): TTFT mean 1.81 s, median 1.89 (1.27-2.12); timers tP 1.417; tJ 0.000; tPred 0.202; tB 0.000; tC 0.400; tG 0.474; tM 0.231; folded forecasts 0; P2 chunks 0; SSD 4.9 GB per prompt; lifetime peak 43.30 GB
+      ifeval/1219: P 74, TTFT 2.06 s, tP 1.527
+      ifeval/1220: P 43, TTFT 1.99 s, tP 1.521
+      ifeval/1262: P 57, TTFT 1.99 s, tP 1.524
+      ifeval/1561: P 66, TTFT 1.89 s, tP 1.394
+      ifeval/2239: P 37, TTFT 1.27 s, tP 0.878
+      ifeval/2439: P 78, TTFT 2.07 s, tP 1.548
+      ifeval/2590: P 48, TTFT 1.69 s, tP 1.245
+      ifeval/2853: P 52, TTFT 1.66 s, tP 1.227
+      ifeval/2870: P 42, TTFT 1.47 s, tP 1.049
+      ifeval/3280: P 46, TTFT 1.89 s, tP 1.440
+      ifeval/3407: P 54, TTFT 1.59 s, tP 1.164
+      ifeval/374: P 101, TTFT 2.12 s, tP 1.606
+  p3ff FAST (LOSSY) + read-ahead + R57_PFD_FOLD=1, 8th: TTFT mean 1.72 s, median 1.78 (1.25-2.06); timers tP 1.324; tJ 0.018; tPred 0.179; tB 0.000; tC 0.401; tG 0.000; tM 0.590; folded forecasts 564; P2 chunks 0; SSD 4.9 GB per prompt; tokens == p3fa 12/12, logits hash 705/705; lifetime peak 43.10 GB
+      ifeval/1219: P 74, TTFT 2.03 s, tP 1.522, tokens ==
+      ifeval/1220: P 43, TTFT 1.81 s, tP 1.383, tokens ==
+      ifeval/1262: P 57, TTFT 2.06 s, tP 1.601, tokens ==
+      ifeval/1561: P 66, TTFT 1.80 s, tP 1.320, tokens ==
+      ifeval/2239: P 37, TTFT 1.25 s, tP 0.852, tokens ==
+      ifeval/2439: P 78, TTFT 1.93 s, tP 1.437, tokens ==
+      ifeval/2590: P 48, TTFT 1.54 s, tP 1.115, tokens ==
+      ifeval/2853: P 52, TTFT 1.57 s, tP 1.158, tokens ==
+      ifeval/2870: P 42, TTFT 1.50 s, tP 1.065, tokens ==
+      ifeval/3280: P 46, TTFT 1.75 s, tP 1.329, tokens ==
+      ifeval/3407: P 54, TTFT 1.49 s, tP 1.079, tokens ==
+      ifeval/374: P 101, TTFT 1.94 s, tP 1.451, tokens ==
+  p2v P2 v0 (LOSSY): R57_P2=256, 16-row verify chunks + full-accept commits, 9th: TTFT mean 0.47 s, median 0.51 (0.25-0.67); timers tP 0.000; tJ 0.000; tPred 0.000; tB 0.000; tC 0.000; tG 0.000; tM 0.000; folded forecasts 0; P2 chunks 61; SSD 2.1 GB per prompt; tokens == p3c1 2/12, logits hash 0/632; lifetime peak 42.30 GB
+      ifeval/1219: P 74, TTFT 0.51 s, tP 0.000, tokens DIFF
+      ifeval/1220: P 43, TTFT 0.54 s, tP 0.000, tokens DIFF
+      ifeval/1262: P 57, TTFT 0.51 s, tP 0.000, tokens DIFF
+      ifeval/1561: P 66, TTFT 0.52 s, tP 0.000, tokens ==
+      ifeval/2239: P 37, TTFT 0.25 s, tP 0.000, tokens ==
+      ifeval/2439: P 78, TTFT 0.54 s, tP 0.000, tokens DIFF
+      ifeval/2590: P 48, TTFT 0.34 s, tP 0.000, tokens DIFF
+      ifeval/2853: P 52, TTFT 0.39 s, tP 0.000, tokens DIFF
+      ifeval/2870: P 42, TTFT 0.29 s, tP 0.000, tokens DIFF
+      ifeval/3280: P 46, TTFT 0.62 s, tP 0.000, tokens DIFF
+      ifeval/3407: P 54, TTFT 0.44 s, tP 0.000, tokens DIFF
+      ifeval/374: P 101, TTFT 0.67 s, tP 0.000, tokens DIFF
+POOLED (ABCCBA): control TTFT median 2.44 s (mean 2.38), fold median 2.37 s (mean 2.31): -2.9 % median, -2.7 % mean
+POOLED (ABCCBA): P2 plain median 0.47 s (mean 0.43): -80.7 % median vs the control, -82.0 % mean; Strata at 45 GB on these prompts 0.83 s median
+11-13 02:26:46 report rc=0 (data/p3/p3_report.txt)
