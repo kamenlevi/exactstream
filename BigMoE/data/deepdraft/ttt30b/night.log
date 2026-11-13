@@ -1,0 +1,20 @@
+11-12 19:14:36 night n1113 chain start (pid 16847; capture last start Fri 12:30, hard stop Fri 13:30)
+11-12 19:14:36 step 1: P3 + P2 45 GB A/B via turn45 (window 02:15-04:00, PEAK 34, ticket 45 min)
+11-13 02:26:46 step 1 ended rc 0
+11-13 02:26:46 step 2: TTT30B train --run t30b --manifest data/deepdraft/ttt30b/split.json --pass-seed 1113 --save-at 600,1500,3000
+11-13 02:26:46 train waits: quiet locks of others 1, lid open, health ok, NO-SWAP 51 GB
+11-13 02:29:47 train (re)start: quiet locks of others 0, lid open, health ok, NO-SWAP 50 GB
+11-13 04:26:41 night n1113 chain b (pid 78079; steps 2-3 with the corrected others_quiet; capture last start Fri 12:30, hard stop Fri 13:30)
+11-13 04:26:41 step 2: TTT30B train --run t30b --manifest data/deepdraft/ttt30b/split.json --pass-seed 1113 --save-at 600,1500,3000
+11-13 04:26:41 step 3: DD_NIGHT=n1112 NOTAFTER=12:30 turn45.sh 24 548 ... dd_capture_night.sh
+11-13 04:26:41 night n1113 chain b end
+11-13 04:26:52 (the 4 lines above are chain b's DRY=1 check, not a run)
+11-13 04:27:12 train run ended rc 3 (yield 0): [dd] stopped at step 1271: saved
+11-13 04:27:24 night n1113 chain b (pid 78791; steps 2-3 with the corrected others_quiet; capture last start Fri 12:30, hard stop Fri 13:30)
+11-13 04:27:24 step 2: TTT30B train --run t30b --manifest data/deepdraft/ttt30b/split.json --pass-seed 1113 --save-at 600,1500,3000
+11-13 04:27:24 train (re)start: quiet locks of others 0, lid open, health ok, NO-SWAP 56 GB
+11-13 10:08:41 train run ended rc 0 (yield 0): [dd] DONE t30b: 4206 steps in 20463s; peak 15.6 GB
+11-13 10:08:41 eval start
+11-13 10:38:19 eval ended rc 0: {"run": "t30b", "rule": "code 23-30 >= 90 % and depth 0 within 1 pt of b5: CONTINUE; < 87 %: KILL", "b5_23_30": 0.8508450949642795, "run_23_30": 0.8965629900679561, "b5_d0": 0.9767843137254902, "run_d
+11-13 10:38:19 step 3: the capture continuation via turn45 (PEAK 24, ticket 176 min, last start 12:30, hard stop 13:30)
+11-13 10:38:58 chain b stopped by the session in step 3's 15-min gap (turn45 held 'gap 900 s', nothing queued or locked): the orchestrator's new order (Kamen 10:1x) runs EvalSuite's 45 GB P2 gate next; no capture today

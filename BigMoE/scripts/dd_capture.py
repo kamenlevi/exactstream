@@ -1,6 +1,8 @@
 """DEEPDRAFT capture = a copy of TrainLab sticky/dlog_capture.py (read-only source; BigMoE Thu 12 Nov, the orchestrator 00:0x):
 two changes only, DLOG_OUTD (default ~/FableGod/deepdraft/capture/<night>, never TrainLab) and DLOG_SRC=magicoder
-(~/datasets/deepdraft/magicoder/prompts_py_v1.jsonl from BigMoE scripts/dd_prompts.py). The original docstring follows.
+(~/datasets/deepdraft/magicoder/prompts_py_v1.jsonl from BigMoE scripts/dd_prompts.py). Fri 13 Nov (the day slot): DLOG_STOPFILE
+stops the run at the next prompt boundary while that file exists, and a torn index line no longer stops a resume. The
+original docstring follows.
 > (a quote from the project owner, kept private)
 125B's runs, MTP Head leads). Fable's E0 / E1 (~/FableGod/FINDINGS.md, MISSION 4 sec 4): the 125B's OWN answers in de / ru /
 ja, logged from the 45 GB default's own live loop, every verified row's training data kept for free.
@@ -57,6 +59,9 @@ CAP = int(os.environ.get("DLOG_MAXTOK", "384"))
 TARGET = int(os.environ.get("DLOG_TARGET", "30000"))     # answer tokens per language (E1 needs 20K; margin for a held-out cut)
 CAP_GB, MIN_FREE = float(os.environ.get("DLOG_CAP_GB", "8")), float(os.environ.get("DLOG_MIN_FREE_GB", "114"))
 BUDGET, HARD = int(os.environ.get("DLOG_BUDGET", "1500")), int(os.environ.get("DLOG_HARD", "1590"))
+STOPF = os.environ.get("DLOG_STOPFILE")                  # Fri 13 Nov (the orchestrator 10:4x, the day slot): while this file exists
+                                                         # the run stops at the next prompt boundary (resumable), so a yield to
+                                                         # another session's quiet lock loses no prompt
 LANGS = os.environ.get("DLOG_LANGS", "de,ru,ja").split(",")
 SRC = os.environ.get("DLOG_SRC", "mgsm")                 # 11-02: "codemath" = English code + math (HPD-2 / E2), see below
 if SRC == "codemath":
@@ -403,13 +408,18 @@ def save(key, lang, tmpl, ids, out, L):
 # ---------------------------------------------------------------- driver (resumable)
 done_tok = {l: 0 for l in LANGS}
 written = 0
+torn = 0
 if os.path.exists(IDX):
     for l in open(IDX):
-        d = json.loads(l)
+        try:
+            d = json.loads(l)
+        except ValueError:                               # a line cut by a kill mid-append (11-13): its file, if any, still counts
+            torn += 1                                    # as "have" below; only its token / byte totals are missed
+            continue
         if os.path.exists(os.path.join(OUTD, d["key"].replace("/", "__") + ".npz")):
             done_tok[d["lang"]] = done_tok.get(d["lang"], 0) + d["n"]; written += d["bytes"]
 have = {f[:-4].replace("__", "/") for f in os.listdir(OUTD) if f.endswith(".npz")}
-say(f"resume: {len(have)} prompts on disk, answer tokens {done_tok}, {written / 1e9:.2f} GB")
+say(f"resume: {len(have)} prompts on disk, answer tokens {done_tok}, {written / 1e9:.2f} GB" + (f"; {torn} torn index line(s) skipped" if torn else ""))
 it0 = next(x for x in ED.load("dec_math") if x["key"] == "gsm8k/708")
 out0, L0, r0 = run(list(it0["prompt_ids"]), 64)          # warm-up (discarded), as D-23; its log goes through save() once so a
 p0, onp0, nb0 = save("warmup/gsm8k708", "en", "-", list(it0["prompt_ids"]), out0, L0)   # format error stops here, in the first minute
@@ -425,6 +435,8 @@ n_new, t_dec, n_dec = 0, 0.0, 0
 for key, lang, tmpl, user in PLAN:
     if key in have:
         continue
+    if STOPF and os.path.exists(STOPF):
+        say("stop file: stopping at a prompt boundary (resumable)"); break
     if all(done_tok[l] >= TARGET for l in LANGS):
         say(f"every language has >= {TARGET} answer tokens: done"); break
     if done_tok[lang] >= TARGET:

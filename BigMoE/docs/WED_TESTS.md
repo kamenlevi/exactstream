@@ -1751,3 +1751,30 @@ the fold, and P2's verify scope (back to back, info only).
 - **Validity.** No heat pause or freeze during the arms (one fan curve step at 02:19). The two controls agree (12/12,
   721/721). Decode medians are 47.2-48.9 tok/s in all six alternated arms, but P2's answers differ (median 104 tokens
   vs 160), so decode is not a matched comparison. Peaks are 42.3-43.7 GB, under 45.
+
+## Fri 13 Nov 02:29-10:38: DEEPDRAFT step 3 second test, TTT30B (PREREG f341ed9): one full pass over capture night 1: INCONCLUSIVE on the lines (89.7 % at depths 23-30; CONTINUE >= 90), more data PAYS (+2.3 pt over t30a) (data/deepdraft/ttt30b/eval.json)
+The MTP head b5 was trained with t30a's recipe (D-22's chain to depth 30, KL to the 125B's top-32, accept-until-fail) for
+one full pass over night 1's Magicoder answers: 4,206 steps, every anchor once, against t30a's 600 random windows (~19 %).
+The 125B is untouched. Same held-out windows and harness as t30a; agreement with the 125B, in %:
+
+| head | HumanEval+ depth 0 | 7-10 | 15-22 | 23-30 | kept / 32 | MBPP depth 0 | 23-30 | kept / 32 |
+|---|---|---|---|---|---|---|---|---|
+| b5 (start) | 97.7 | 90.5 | 86.8 | 85.1 | 12.55 | 93.5 | 63.3 | 6.22 |
+| t30a (600 random-window steps, annealed) | 97.6 | 91.7 | 89.1 | 87.3 | 13.12 | 93.6 | 68.5 | 6.54 |
+| t30b after 600 steps (mid-schedule) | 97.6 | 89.9 | 86.1 | 84.2 | 11.81 | 93.5 | 64.7 | 6.14 |
+| t30b after 1,500 | 97.8 | 91.5 | 88.4 | 86.7 | 13.28 | 93.7 | 68.6 | 6.49 |
+| t30b after 3,000 | 97.8 | 92.8 | 90.2 | 88.7 | 13.62 | 93.9 | 70.9 | 6.76 |
+| **t30b, one pass (4,206)** | 97.9 | 93.1 | 91.0 | **89.7** | 13.83 | 94.0 | **72.1** | 6.92 |
+
+- **Lines: INCONCLUSIVE**, 0.34 pt short of CONTINUE (>= 90 % at 23-30 with depth 0 kept; depth 0 moved +0.2 pt).
+- **More data PAYS:** +2.3 pt over t30a at HumanEval+ 23-30 (line +1.0), and MBPP 23-30 72.1 % vs t30a's 68.5 %.
+- **The gain grows with depth** (HumanEval+ vs b5: +2.6 at 7-10, +4.2 at 15-22, +4.6 at 23-30; MBPP +8.8 at 23-30), and
+  kept per 32-row check rises 10-11 % on both sets.
+- **The curve still climbs at the end of the pass** (+1.0 pt over the last 1,206 steps), but those steps also finish the
+  anneal, so the end slope is not a clean data effect.
+- **Scale, roughly:** ~5.3x the data for +2.3 pt is about +1 pt per doubling; at that rate data alone does not reach
+  ~97 % at depth 30. Next: more capture nights, and the capacity side (PLAN step 3's carried state and the capacity
+  sweep), pre-registered first.
+- **Validity.** b5 and t30a re-score exactly as in t30a's eval. One resume at step 1,271 restored the weights, Adam's
+  moments and the step. Pooled cells only, one run per arm: a direction, not a significance claim. Heat pauses
+  throughout; no timing claims.
