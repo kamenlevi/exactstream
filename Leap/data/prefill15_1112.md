@@ -405,3 +405,27 @@ prof_ab's PIPE=0 runs.
     reduction order, so it is not exact. Head-chunking already failed bitwise (section 10).
 - A fanwatch heat freeze (01:33:23-01:34:24, fanwatch_0132_0134.txt) came after run 5's first token and decode. Its
   figures stand.
+
+## 12. Onebuild's gate, sized for a normal night (Fri 02:4x; the orchestrator 02:3x: margin under a quiet lock = peak + 4)
+
+Onebuild has not run, so no arm's 45 GB peak was measured by it. The figures:
+
+| arm | 10K peak | 30K peak | source |
+|---|---|---|---|
+| R0 = chat-45 with PF-D (shipped) | 47.46 GB | 48.56 GB | measured, BigMoE data/pfd_long (11-10) |
+| PF-D off at 45 GB | 45.17 GB | 46.65 GB | measured, same runs |
+| R1 = PF-B + SEGALL, unbounded | ~47.0 GB | ~52 GB | estimate: PF-D off + PF-B's extra over the default at 32 GB (+1.8 / +5.4 GB, data/prefill_1109.md) |
+| R2 / R3 (QD trims) | ~47 GB | ~49-50 GB | estimate: between R0 and R1 (the trim's purpose) |
+
+- **Per-run gates = peak + 4:** every 10K run 52; 30K R0 53; R3 and R2 54; R1 56.
+  - onebuild_45_runs.sh v2 applies them per run.
+  - Its 30K block now starts with R0, the lowest gate, and the reference R1-R3 are checked against: R0 R3 R2 R1, was
+    R3 R2 R1 R0.
+- **On a night like Fri 13 Nov** (50-52 GB after the first big runs, with PyCharm and the Claude sessions open), only the
+  10K block fits. It is still informative: bitwise vs PF-D past PF-B's known-exact 7.9K, and the first measured PF-B
+  peaks at 45 GB.
+- **The 30K block** needs 53-56 GB, a night with PyCharm closed; the orchestrator asks Kamen. A 54 GB night runs all but
+  30K R1.
+- **Runner:** scripts/night/night_onebuild.sh. One quiet ticket, optionally queued behind another session's ticket
+  (WAITFOR), gate 52 after the grant, then the per-run gates; it releases at once if the gate fails. Not armed yet: it
+  waits for the next night's order.
