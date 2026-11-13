@@ -2773,3 +2773,19 @@ AssertionError: native+p11+pad needs an ext from the lever-1 build
 [dlog 13:34:12] dd/mc_20986 [mc] P 238, 388 tokens, 22.7 tok/s, kept 5.86/check, on-path 1.0000, 16.1 MB; totals {'code': 607062}, 32.94 GB
 [dlog 13:34:12] stop file: stopping at a prompt boundary (resumable)
 [dlog 13:34:12] session: 10 prompts, 2588 answer tokens in 109 s of decode (23.8 tok/s); totals {'code': 607062}, 32.94 GB on disk; footprint now 20.0 GB, peak 21.5 GB; 166 s
+[dlog 15:08:18] plan: 35451 prompts (code 35451), Magicoder Python 35451 after the eval-overlap filter; target 50000000 answer tokens per language, cap 384 per answer, 80.0 GB / free >= 115.0 GB; -> /Users/kamen/FableGod/deepdraft/capture/n1112
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=34.2 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=94 C_l=112 per layer, 13.19 GB pools
+[dlog 15:08:20] E2: smallest base pool C_m 94 < 16 rows x 10: rows -> 9
+[dlog 15:08:20] E2: C 100, base pool C_m >= 94, rows per check 9, BIGMOE_MAXK 160
+[dlog 15:08:20] loaded in 1 s, 17.1 GB active; C 100; preset 45 (REF2-T 4433333333/3c, C_l 112, MAXK 160, build_next, L1-20 + cut 0.3; D-23's)
+[dlog 15:08:20] resume: 2287 prompts on disk, answer tokens {'code': 607062}, 32.94 GB
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+[dlog 15:08:26] warm-up (discarded): gsm8k/708 67 tokens, 21.1 tok/s, logged file OK (3.1 MB, on-path 1.0000) 
+[dlog 15:08:26] first prompt as tokenized: "<|im_start|>user\nYou are given a Python code snippet that is intended to calculate the sum of even numbers entered by the user. However, the code contains a logical error. Your task is to identify the error and fix the code to achieve the intended functionality.\n\nThe original code snippet is as follows:\n```python\ncont = 0\nfor n in range(1, 7):\n    n = int(input('Digite um Valor inteiro: '))\n    if n % 2 == 0:\n        soma = soma + n\n```\n\nYour task is to correct the code to calculate the sum of even numbers entered by the user. Additionally, you need to modify the code to prompt the user to enter a total of 6 integers and then output the sum of the even numbers among them.\n\nWrite a Python program that correctly implements the functionality described above.<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n"
+[dlog 15:08:33] dd/mc_36116 [mc] P 187, 59 tokens, 24.2 tok/s, kept 6.56/check, on-path 1.0000, 6.3 MB; totals {'code': 607121}, 32.94 GB
+[dlog 15:08:47] dd/mc_23530 [mc] P 232, 217 tokens, 22.1 tok/s, kept 3.68/check, on-path 1.0000, 11.6 MB; totals {'code': 607338}, 32.96 GB
+[dlog 15:08:56] dd/mc_10262 [mc] P 375, 108 tokens, 32.5 tok/s, kept 9.00/check, on-path 1.0000, 12.4 MB; totals {'code': 607446}, 32.97 GB
