@@ -56,7 +56,14 @@ def fuse_taps(head, P, Win, emb):
         k = TAPS["k"]; TAPS["k"] = k + 1                  # or a map's prediction of it) instead of the carried stand-in
         if k >= 1 and k % TAPS.get("K", 1) == 0:          # BLOCK (17:0x): refresh only every K depths (j = 1 + m K)
             n = Win.shape[1]; r0 = TAPS["a0"] + k
-            if TAPS.get("combo") is not None:             # COMBO5: [stand-in, tap 5 of the row] -> wd
+            if TAPS.get("RO") is not None:                # ROLLOUT (22:3x): z_k = A z_(k-1) + B e(ids[s + k]) + c, from the true anchor
+                RO = TAPS["RO"]
+                z = RO["z"][:n] @ RO["At"] + RO["EP"][TAPS["a0"] + k:TAPS["a0"] + k + n] @ RO["Bt"] + RO["c"]
+                RO["z"] = z
+                Win = (RO["mu"] + z @ RO["Vt"]).astype(Win.dtype)[None]
+            elif TAPS.get("stale"):                       # STALE: the true anchor stream wd_s at every depth
+                Win = TAPS["W0"][:, TAPS["a0"]:TAPS["a0"] + n].astype(Win.dtype)
+            elif TAPS.get("combo") is not None:           # COMBO5: [stand-in, tap 5 of the row] -> wd
                 CW, cxm, cym = TAPS["combo"]
                 Xc = mx.concatenate([Win[0].astype(mx.float32), TAPS["T5"][r0:r0 + n]], axis=-1)
                 Win = (((Xc - cxm) @ CW) + cym).astype(Win.dtype)[None]
@@ -381,6 +388,11 @@ def cmd_evalrep(a):
         items = sorted(glob.glob(os.path.join(T.TD, "dlog/d1102mbpp/dlog__mbpp*.npz")))[:100]
     FD = os.path.expanduser(a.featdir)
     TAPS["combo"] = None
+    if a.replace == "rollout":                          # ROLLOUT: the transition model + the bank's token embeddings
+        rm = np.load(a.ridge)
+        RO_mu, RO_V = rm["mu"].astype(np.float32), rm["V"].astype(np.float32)
+        RO_At, RO_Bt, RO_c, RO_Vt = mx.array(rm["A"].T), mx.array(rm["B"].T), mx.array(rm["c"]), mx.array(RO_V.T)
+        em = np.load(os.path.expanduser("~/datasets/deepdraft/ckpt/bank_emb.npz")); ROI, ROE = em["ids"], em["emb"].astype(np.float32)
     if a.replace in ("pred", "rawmap", "combo"):
         rg = np.load(a.ridge)
         Wm, xm, ym = mx.array(rg["W"]), mx.array(rg["xm"]), mx.array(rg["ym"])
@@ -405,6 +417,8 @@ def cmd_evalrep(a):
                 x["W"] = mx.array(np.asarray(np.load(os.path.join(FD, os.path.basename(f)))["wd"])).astype(mx.bfloat16)[None]
             if a.replace == "wd":
                 WR = x["W"]
+            elif a.replace in ("rollout", "stale"):
+                WR = None
             elif a.replace == "combo":
                 rz = np.load(os.path.join(FD, os.path.basename(f)))
                 TAPS["T5"] = mx.array(np.asarray(rz["raw"])[:, :2560]).astype(mx.float32)
@@ -420,6 +434,15 @@ def cmd_evalrep(a):
                 Hf = h_of(z, len(x["ids"]))[0].astype(mx.float32)
                 WR = (((Hf - xm) @ Wm) + ym).astype(mx.bfloat16)[None]
             gen = gen_code if a.set == "code" else int(z["gen"]); a0 = max(0, gen - 2)
+            TAPS["RO"], TAPS["stale"] = None, a.replace == "stale"
+            if a.replace == "stale":
+                TAPS["W0"] = x["W"]
+            if a.replace == "rollout":                    # the rollout state starts at PCA(the true anchor stream) of every anchor
+                W0 = np.asarray(x["W"][0].astype(mx.float32))
+                ids_ = np.asarray(x["ids"])
+                EP = ROE[np.searchsorted(ROI, ids_)]
+                TAPS["RO"] = {"z": mx.array((W0[a0:] - RO_mu) @ RO_V), "At": RO_At, "Bt": RO_Bt, "c": RO_c, "mu": mx.array(RO_mu),
+                              "Vt": RO_Vt, "EP": mx.array(EP)}
             TAPS["mode"], TAPS["WR"], TAPS["armed"], TAPS["k"], TAPS["a0"], TAPS["K"] = "replace", WR, True, 0, a0, a.refresh
             hits = T.chain_hits(lm, head, P, x, 31, a0)
             TAPS["armed"], TAPS["mode"] = False, "anchor"
@@ -432,7 +455,7 @@ def cmd_evalrep(a):
             kept += DD.kept_walk(rt, max(0, gen - 1 - a0))
             kept16 += kept_walk_n(rt, max(0, gen - 1 - a0), 15)
             mx.clear_cache()
-        key = f"{run}+{a.replace}" + (f"+{os.path.basename(a.ridge)[:-4]}" if a.replace in ("rawmap", "combo") else "") + (f"+k{a.refresh}" if a.refresh > 1 else "") + ("+bankctx" if a.ctx == "bank" else "")
+        key = f"{run}+{a.replace}" + (f"+{os.path.basename(a.ridge)[:-4]}" if a.replace in ("rawmap", "combo", "rollout") else "") + (f"+k{a.refresh}" if a.refresh > 1 else "") + ("+bankctx" if a.ctx == "bank" else "")
         R[key] = {f"{lo}-{hi}": band[(lo, hi)][0] / max(band[(lo, hi)][1], 1) for lo, hi in BANDS}
         R[key]["kept_per_32"] = float(np.mean(kept)) if kept else None
         R[key]["kept_per_16"] = float(np.mean(kept16)) if kept16 else None
@@ -451,7 +474,7 @@ def main():
     ap.add_argument("--tap-lr", dest="tap_lr", type=float, default=1e-5); ap.add_argument("--tag", default="tq2")
     ap.add_argument("--fresh-opt", dest="warm_opt", action="store_false", help="the void run's fresh Adam (tq_)")
     ap.add_argument("--frac", type=float, default=0.03); ap.add_argument("--peak-max", dest="peak_max", type=float, default=22.0)
-    ap.add_argument("--replace", choices=["wd", "pred", "rawwd", "rawmap", "combo"], default="wd"); ap.add_argument("--refresh", type=int, default=1); ap.add_argument("--set", choices=["mbpp", "code"], default="mbpp"); ap.add_argument("--ctx", choices=["set", "bank"], default="set"); ap.add_argument("--featdir", default="~/datasets/deepdraft/rawtaps"); ap.add_argument("--ridge", default=os.path.join(CKD, "ridge_h2wd.npz"))
+    ap.add_argument("--replace", choices=["wd", "pred", "rawwd", "rawmap", "combo", "rollout", "stale"], default="wd"); ap.add_argument("--refresh", type=int, default=1); ap.add_argument("--set", choices=["mbpp", "code"], default="mbpp"); ap.add_argument("--ctx", choices=["set", "bank"], default="set"); ap.add_argument("--featdir", default="~/datasets/deepdraft/rawtaps"); ap.add_argument("--ridge", default=os.path.join(CKD, "ridge_h2wd.npz"))
     ap.add_argument("--runs", default="t30b,tq2_C,tq2_T"); ap.add_argument("--out-name", dest="out_name", default="eval2.json")
     a = ap.parse_args()
     {"smoke": cmd_smoke, "train": cmd_train, "eval": cmd_eval, "evalrep": cmd_evalrep, "collect": cmd_collect}[a.cmd](a)

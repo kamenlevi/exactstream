@@ -45,6 +45,26 @@ don't care about that. I just need to get that."
 - A lever that changes the output (lossy) needs EvalSuite's same-scores gate before it counts, and Kamen's call to adopt.
 
 > (a quote from the project owner, kept private)
+The fresh state h_{s+j-1} gives the head two things its carried stand-in lacks:
+- **(a) RETRIEVAL.** Information pulled from the far prefix by attention in all 48 layers, which becomes relevant only
+  because of the new tokens (an identifier defined 200 tokens back, an open bracket, a call signature).
+  - The fix is to give the drafter lookups: a copy pointer / prompt-lookup over the context, or attention over the
+    target's KV cache of the verified prefix, which is computed anyway (prior art: GLIDE-with-CAPE).
+- **(b) COMPOSITION.** Deep processing of the new tokens themselves.
+  - The fix is a learned transition model that steps the state forward (ROLLOUT).
+- **(c) DIMENSION.** Maybe only a few directions of the state matter to the head. Then a small predictor only has to
+  regenerate k numbers per step.
+
+Fast tests, mostly no training:
+- **T1 COPYABILITY** (BigMoE, CPU): the share of oracle-fixable deep misses whose token appears earlier in the context
+  or is predicted by a prompt-lookup n-gram.
+- **T2 CONTEXT TRUNCATION** (Sandbox98, 2B): fresh states from the last K tokens only, accuracy vs K. Local -> (b);
+  needs full -> (a).
+- **T3 SUBSPACE** (BigMoE, REPLACE): true wd in its top-k PCs only, accuracy vs k -> (c).
+- **T4 ROLLOUT** (both): is the state's evolution Markov in (h_t, x_{t+1})?
+The method follows from which of (a) / (b) / (c) carries the gap.
+
+> (a quote from the project owner, kept private)
 - **Feature bank:** run the 125B once to store its states (taps {5,15,25,35,45} + wd, plus the top-32 log-probs on
   HumanEval+) for ~500 train answers + MBPP 100 + the HumanEval+ windows. Most screens then never touch the 125B, its
   heat or its SSD (BigMoE, after COMBO5).
@@ -252,6 +272,47 @@ don't care about that. I just need to get that."
   - So a learned stand-in needs noise-like errors, not exactness. The PROXY's R2 calibration must be per predictor
     family.
   - Screens now run on the sandbox (control + the t30f feature-loss transfer first), minutes each.
+- Sat 14 23:04: **T2 CONTEXT TRUNCATION (2B) = MIXED, and a DIRECTION** (Sandbox98 ed32994; MBPP-50, 3,857 anchors,
+  s30 unchanged).
+  - 23-30: chain 55.42 | the 2B over ONLY the drafted tokens (K = 0) 69.62 | K = 16 75.47 | K = 64 80.61 | K = 256
+    86.25 | full 87.71.
+  - Band 1-2: chain 78.1 | K = 0 17.5 | K = 64 79.4 | K = 256 86.8 | full 88.2.
+  - **Theory: the deep gap is COMPOSITION DEPTH.** The head already attends to every true prefix state, yet its ONE
+    layer composes the drafted tokens far worse than a 24-layer stack with no prefix at all (+14 pt at 23-30). Context
+    adds ~+5 pt per 4x window; the knee is 64-256 tokens. Retrieval of the far prefix matters little (K = 256 is -1.5).
+  - On the 125B, capacity tests added WIDTH (no effect / hurts). DEPTH is untested.
+  - **Next: a DEEPER drafter** (Sandbox98, ~1 h): the head's layer applied 2x (tied), then 2-3 untied zero-init residual
+    layers, TTT on pool2 re-annealed, against an in-batch control. Also time one drafter step at 1 / 2 / 3 layers.
+- Sat 14 22:5x: **ROLLOUT on the 2B = KILL** (Sandbox98 053eeaf), transfer match #5. Linear 20.86, +MLP 22.32, vs
+  chain 57.32 (stale 15.50, oracle 88.35). Even one step loses to the chain (66.8 vs 78.2 at band 1-2).
+  - **Theory:** a "no change" step has direction error 1.005 there, so consecutive top states are nearly orthogonal. The
+    next-token state is RECOMPUTED from context at every step, not a slowly drifting summary. No context-free stepper
+    can track it.
+  - Freshness must come from a context-aware computation: the drafter's own attention chain trained better (distill =
+    the provisional lead), cheap lookups (T1), or the target's prefix KV.
+  - Deep accuracy tends toward the drafter's standalone agreement with the target given true context.
+- Sat 14 22:4x: **ROLLOUT = PARTIAL** (BigMoE a8adf45; MBPP 23-30, t30b with the stand-in replaced).
+  - STALE anchor (wd_s at every depth): 16.00 (1-2: 54.08, 3-6: 25.15), kept 2.87.
+  - A linear PCA-512 transition rolled out from the true anchor: 23.08, kept 2.97.
+  - The chain gives 72.13; the oracle 93.63.
+  - Direction error: rollout 0.59 (1 step) -> 0.79 (30), stale 0.85 -> 1.04. k = 1024 doesn't help, so the linear step
+    is the limit.
+  - Read: composition of the new tokens is most of what depth needs. The head's own learned carry (72 %) is far better
+    than linear external dynamics (23 %). The 72 -> 94 gap is what the carry still misses. T1 / T3 / T2 decide whether
+    that is retrieval, composition depth or dimension.
+> (a quote from the project owner, kept private)
+  achieve in principle what we are chasing, not lo0ng tests".
+  - The sandbox's long-screen control drifted (-7.2 pt; overfitting a 120-answer pool), so its long screens are
+    provisional and stopped.
+  - **ROLLOUT** (125B on the BANK: BigMoE; 2B: Sandbox98, as a transfer pair; no head training): a learned
+    state-transition f(W_t, emb(tok_{t+1})) -> W_{t+1} (linear PCA ridge, then a small MLP) rolled out from the fresh
+    anchor along the drafted tokens, then REPLACE eval.
+  - Baselines: the chain, the oracle, and a stale anchor. +5 pt over the chain at 23-30 = the principle works.
+- Sat 14 22:1x: sandbox -> 125B transfer: 4 matches so far (the depth drop, the flat fresh-state oracle, early vs late
+  maps, feat NO EFFECT). Transfer checks asked for (TRANSFER.md): capacity x2 at the head lr (the 125B's depth-growing
+  +1.2 with a worse loss), and anchor fused taps.
+  - Parallel side-by-side runs buy little: one sandbox process keeps the GPU ~84 % busy. Use multi-arm runs.
+  - Rule: sandbox wins are filters. Confirm on the 125B before trusting them.
 - Sat 14 22:0x: **CAPQ read-out** (BigMoE 24e7758): CLOSED stands by its line, but the loss-only reading was wrong in
   kind.
   - t30x2c@200 vs t30bc@200 on MBPP 100, by band: 0 -0.09, 3-6 +0.20, 7-10 +0.44, 11-14 +0.85, 15-22 +1.00, 23-30 +1.20
