@@ -203,6 +203,45 @@ don't care about that. I just need to get that."
 - Sat 14 18:03: Leap recorded the trunk-refresh closure (4448350) and withdrew its microbench. From 18:0x Leap has
   route 3, the cheap check: cutting the per-check graph-build overhead (0.62 ms per layer even at 1 row). Exact stays
   bit-exact; GPU timings after the BANK or overnight.
+- Sat 14 18:1x: **the BANK is building** (BigMoE b889c90, 524 files, end ~20:05).
+  - The runtime path reproduces the n1112 and MBPP captures bit for bit (prompt AND answer rows).
+  - HumanEval+ warning: TrainLab's d16w windows do NOT match the runtime path (stored wd differs 10 % on prompt rows,
+    21 % on answer rows). Every HE+ number so far (t30b 89.66 at 23-30, all TTT30C HE+ lines) came from d16w features.
+    After the build, BigMoE re-scores t30b and b5 on HE+ with bank (runtime-path) features. Quote HE+ headlines with
+    that caveat until then.
+  - PROXY: bank_proxy.py (3e462ea). Its calibration is redone on the bank after the build.
+- Sat 14 18:1x: **Leap cheap check, screen 1** (518732e, data/week98/cheapcheck.md).
+  - The 16/32-row verify is GPU-bound (check ~ 30 + 2.47 ms per row at 45 GB), so graph caching saves ~0. Closed.
+  - The 1-row 0.62 ms per layer was GPU time; the CPU build is ~0.21 ms per layer.
+  - Exact bandwidth floors at 45 GB: 15.9 ms (1 row), 36.5 (16), 49.1 (32). A 32-row check today is ~90-97 ms
+    (estimated).
+  - The exact path to ~60 ms at 32 rows is GPU kernels: experts to floor, dense ~20 -> 13-14 ms. The ~23 ms target is
+    lossy-only (FAST track).
+  - **Rule of thumb:** a deep drafter beats plain 16-row checks only when kept/32 >= ~1.35-1.4 x kept/16. t30b on MBPP
+    is at 1.05; a 98 %-per-guess drafter would be at 1.69. The drafter decides the 32-row question; a faster check
+    speeds both loops.
+  - Next: Leap measures a real 32-row check (dense / experts / misses) after the BANK, under a quiet lock (~20:30).
+  - **Engine fact (Leap 18:3x): no exact single-pass 32-row check exists today.**
+    - The sync-free gate carries at most 185 ids per routing row, i.e. 18 rows at top-10 (bigmoe/gated.py MAXK <= 185).
+      Above 16 rows a check falls to the slot / prefill path (4-bit on every rank, outside REF2-T's certified 1-16 rows).
+    - So an exact 32-row check today is 2 x 16 gated passes, about 2x a 16-row check. No drafter pays at 2x: 98 % gives
+      1.69x.
+    - The ~60 ms exact 32-row check and the 1.35-1.4x rule both assume a gate widened to 320 ids in one pass. That is
+      item 1 of BigMoE's 32-row engine spec, ahead of the kernel work.
+    - Tonight's screen times 16 rows, 2 x 16 and 1 x 32 (slot), cold and warm, plus a dense-only pass, on exact-45 via
+      the R57_COPYPROBE hook (the loop stays byte-identical).
+- Sat 14 18:5x: **method catch (Sandbox98, results/lr_screen2.md):** the accept-until-fail training loss is
+  survival-weighted, so a better-chaining arm can show a HIGHER loss. Judge arms by read-outs (bands, kept/32) or
+  per-depth KL on fixed rows, never by cross-arm AUF loss.
+  - **CAPQ's CLOSED rested on the loss ratio alone, so it is not certain.** A read-out of t30x2c@200 vs a matched
+    t30b@200 on MBPP 100 is queued with BigMoE after the BANK and Leap's screen.
+  - The stop-line rule in RULES.md is fixed to use a quick read-out.
+  - Sandbox98 status at 19:00: Qwen3.5-2B + its native MTP head (121.7 MB fetched). lr screen -> base lr 1e-5 (native
+    kept/32 3.18, 23-30 only 1.7 %). The base drafter is training; the gate evals follow.
+- Sat 14 19:00: the BANK has 197 of 524 files, all bit-exact except the 24 HumanEval+ windows (expected, since d16w ≠ the
+  runtime path). Greedy holds 97.3-100 % there. ETA ~21:00 (the sandbox shares the GPU). Swap 7.15 GB (start 6.51).
+> (a quote from the project owner, kept private)
+  second-model generality proof. It starts only if he starts it.
 - **What that leaves for the week** (for NewIdeas / MTP Head at 01:00, as 15-min screens):
   1. A nonlinear or trained map from early taps to the deep stream. Linear explains only 41-51 %. If an MLP from
      <= 25 layers reaches R2 >= ~0.8 and REPLACE >= ~88, a half-trunk refresh is back in play. Taps for 100 train +

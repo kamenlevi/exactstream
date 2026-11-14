@@ -49,3 +49,22 @@ Written before the run. The orchestrator's design (15:1x), after t30x4 = HURTS a
     drafter sees and how fresh it is (FRESH-H next).
 - Caveat: 200 steps only see whether the bigger arm learns faster early, which Kamen's stop-line rule reads as enough.
   A late-blooming capacity gain isn't excluded, and isn't this week's bet.
+
+## Amendment 1 (Sat 14 Nov 19:0x, written before the read-out): the verdict moves to a read-out
+- **Sandbox98's catch, via the orchestrator (~/Sandbox98/results/lr_screen2.md):** the accept-until-fail training loss
+  is a survival-weighted mean of the per-depth KLs. An arm that chains better carries more rows into the deep,
+  high-KL depths, and can show a HIGHER loss while being better.
+  - So the paired loss ratio (1.016 over steps 101-200) is not a fair measure across arms, and CLOSED above is not
+    certain.
+- **The read-out:**
+  - Re-run t30b's first 200 steps as t30bc: the same b5 start, slices, seed 1113 and full-pass schedule, stopped at
+    step 200.
+  - Score t30bc@200 and t30x2c@200 in one dd_ttt.py eval on MBPP 100: the bands and kept per 32.
+- **Harness check:** t30bc's per-step losses must equal t30b's saved ones for steps 1-200. Training is deterministic
+  from the same start and slices. A mismatch is reported and the read-out still stands.
+- **Lines (MBPP 23-30, t30x2c - t30bc):**
+  - REOPENS: >= +1.0 pt, and kept per 32 >= +0.1.
+  - CLOSED stands: anything else.
+- Other verdicts today don't rest on cross-arm loss alone. TTT30C, TAPSQ2 and FRESH-H were decided on MBPP / HE+
+  read-outs; REPLACE-H, LAYERS and COMBO5 were eval-only.
+  - TTT30C's stop-line figures (+62.8 % / +18.4 %) are loss-based and information only.
