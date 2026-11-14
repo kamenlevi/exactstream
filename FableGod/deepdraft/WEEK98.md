@@ -247,6 +247,48 @@ don't care about that. I just need to get that."
   - So a learned stand-in needs noise-like errors, not exactness. The PROXY's R2 calibration must be per predictor
     family.
   - Screens now run on the sandbox (control + the t30f feature-loss transfer first), minutes each.
+- Sat 14 21:1x: **BANK + PROXY ready** (BigMoE 5786e5e; usage in ~/BigMoE/data/deepdraft/bank/PROXY.md).
+  - Ridge calibration, MBPP 23-30 (real REPLACE): tap5 46.11, 5+15 51.16, 5+15+25 59.69, tap45 91.96, all 91.88,
+    oracle 93.63. The direction error is the primary measure.
+  - **HE+ on the runtime path (the headline set):**
+    - t30b's own chain gives 89.65 at 23-30, so the headline holds (d16w gave 89.66).
+    - **The true stream at every drafted row gives 97.95 at depth 0 and 97.76 at 23-30, FLAT; kept/32 goes 13.77 ->
+      20.90.**
+    - The tap45 ridge gives 96.40, kept 18.06.
+  - **So the WEEK98 target on HE+ is concrete:** a learned stand-in that reaches the fresh-state oracle (~97.8 % flat),
+    plus a slightly better reader (+0.2-0.3 pt), meets >= 98 % per guess at depth 30. The tie ceiling is ~98.8 %.
+  - Caveat: HE+ ground truth is off the runtime path in 11 of 24 windows (0.3-2.7 % of rows).
+- Sat 14 21:06: **Leap screen 3 got no numbers.**
+  - lossy-24 exited rc 1 at start-up: the 24 GB loop refuses R57_ROWCAP with R57_WARMSPLIT. Leap's bug; the runner had
+    been tested only with fakes.
+  - exact-45 was skipped on its gate: NO-SWAP 34 vs 47 GB. The rest is anon ~29 GB of apps and sessions (Safari
+    WebContent ~6 GB, PyCharm 2 GB, idle Claude sessions).
+  - Earlier, the quiet ticket stalled 17 min (20:40-20:58) behind BigMoE's yielded-but-held share lock.
+  - Fix: a 24 GB probe redesign, a dry run against both real loops, b24 queued after CALIBRATION-DONE, and a45 only when
+    NO-SWAP >= 47 on two reads (window to 01:00, else tomorrow night).
+- Sat 14 20:26: Sandbox98 tapmlp (item 1, a zero-init MLP from the true tap-12 residual added to the stand-in) = NO
+  EFFECT by its +2 pt line. Small real gain: MBPP-50 23-30 +0.61 pt (p 0.002), HE-30 +0.82 (p 0.016). Tap-17 is a
+  breadth item: it's the trunk-refresh route, closed on cost.
+  - Sent to Sandbox98 for tonight (its lines): (1) ORACLE DISTILLATION, where the true-W drafter is the teacher and the
+    chain's head output is matched to it at every depth; (2) a state target in the head's fused input space; (3) a
+    noise-robust head + stand-in predictor.
+- Sat 14 20:21:25: **BANK-DONE**: all 524 files built, rc 0. Every n1112 / MBPP file is bit-exact against the source;
+  the 24 HE+ windows are on the runtime path (they differ from d16w by design). Calibration started 20:21:46 (proxy
+  rows: 31,805 train / 9,984 val). The fans ramp back to 3750 from 20:21:42.
+- Sat 14 20:13: **Sandbox98 ready** (git 6cb92ae; `./screen.sh NAME LEVER "LINE"`, 5-min paired screens, about +/-0.5 pt
+  resolution).
+  - First transfer check: feat (t30f's feature loss) = NO EFFECT, as on the 125B (MBPP 23-30 -0.26 pt, CI -0.71..+0.16).
+  - Findings:
+    1. The RMS-normalized direction error, not R2, orders all 7 predictors by read-out. It becomes the PROXY's
+       primary measure.
+    2. The AUF loss bias (above).
+    3. A converged head continued at 10x its final lr with a fresh Adam drifts the control 8 pt in 300 steps (2e-6
+       holds). Every screen checks its control.
+    4. An exact two-pass TTT gradient cuts the MLX peak from 5.8-7.8 to 2.5-3.4 GB. It may shrink the 125B's 24-39 GB
+       TTT runs; a 15-min screen for BigMoE / TrainLab.
+  - Ready: levers/tapmlp.py (item 1, a nonlinear early-tap map).
+  - To do (orchestrator): add ~/Sandbox98 to fanwatch's RES (needs a restart), and a private GitHub backup (asking
+    Kamen).
 - Sat 14 19:16: the BANK was restarted (fresh process, C 160, resuming at file 271), still bit-exact. Kamen turned on
   High Power Mode (~19:15). Pace ~25-30 ms/token, ETA ~20:40. No heat pauses 19:00-20:00.
 - Sat 14 19:00: the BANK has 197 of 524 files, all bit-exact except the 24 HumanEval+ windows (expected, since d16w ≠ the

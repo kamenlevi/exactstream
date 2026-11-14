@@ -76,3 +76,29 @@ faster without losing accuracy).
 - This proxy is still for wd-space predictors only (see SCOPE). A learned stand-in that lives in the head's own space is
   judged by the drafting eval. Sandbox98's result says it doesn't need to be exact; its errors need to look like noise,
   not bias.
+
+## The bank calibration (Sat 14 Nov 21:05; calibration.json, calibrate.log)
+- t30b on MBPP 100 with bank features, the stand-in replaced at every drafted row by each ridge map. Real REPLACE evals.
+  ne = direction error, the primary measure.
+
+| map (family ridge) | ne | R2 | shrink | r2_pc | r2_head | MBPP 23-30 | kept per 32 |
+|---|---|---|---|---|---|---|---|
+| tap5 | 0.646 | 0.384 | 0.42 | 0.62 | 0.17 | 46.11 | 2.85 |
+| tap5,tap15 | 0.621 | 0.422 | 0.48 | 0.67 | 0.24 | 51.16 | 3.08 |
+| tap5,tap15,tap25 | 0.580 | 0.497 | 0.55 | 0.75 | 0.32 | 59.69 | 3.50 |
+| tap45 | 0.340 | 0.829 | 0.84 | 0.96 | 0.84 | 91.96 | 11.26 |
+| all five taps | 0.330 | 0.838 | 0.84 | 0.96 | 0.86 | 91.88 | 11.14 |
+| oracle (the bank's wd) | 0 | 1 | 1 | 1 | 1 | 93.63 | 12.76 |
+
+- Within the ridge family every measure orders these the same way. tap45 and all five are a tie within noise. The ridge
+  maps shrink (0.42-0.84), and the shrink grows with the error.
+- The proxy itself: `bank_proxy.py ridge --inputs tap45` gives ne 0.340 -> predicted 91.9 (real 91.96), REPLACE-worthy.
+  - One ridge fit reads ~32K x (2560 per tap + 10240) rows and takes 1-5 min on 6 threads, not seconds. A custom
+    candidate with a cheaper fit is faster.
+- **HE+ on the runtime path** (the 24 windows, t30b, depth bands 0 -> 23-30):
+  - t30b's own chain on d16w's stored context: 97.90 -> 89.66, kept 13.83 (= the headline);
+  - its own chain on the bank's runtime-path context: 97.95 -> 89.65, kept 13.77. The headline holds;
+  - the oracle (runtime-path wd at every drafted row): 97.95 -> 97.76, flat, kept 20.90;
+  - the tap45 ridge map: 97.95 -> 96.40, kept 18.06.
+  - The HE+ ground truth itself is slightly off the runtime path: in 11 of 24 windows the 125B's runtime top-1 isn't the
+    window's next token on 0.3-2.7 % of answer rows.

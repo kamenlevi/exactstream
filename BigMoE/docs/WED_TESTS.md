@@ -1900,3 +1900,21 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
 - **t30b's exact kept per 16-row check on MBPP: 6.59.**
 - **Meaning:** early layers don't carry the deep state, and layer 45 costs a verify. The 98 % method has to make the
   drafter predict the deep state itself; the fresh-state oracle (93.6 %, flat with depth) shows a good stand-in pays.
+
+## Sat 14 Nov 18:05-21:05: DEEPDRAFT feature BANK + PROXY screen, for the night screens (data/deepdraft/bank/)
+- **BANK:** 524 files on the runtime path (24 HE+, MBPP 100, n1112 val 40 + train 360; 11 GB). The prompt goes through
+  the shipped prefill, the answer through verify calls. Saved: raw taps of layers 5/15/25/35/45 at full width, the trunk
+  stream, the 125B's top-32.
+  - All 498 MBPP + n1112 files equal their captures bit for bit.
+  - The 24 HE+ windows (d16w) don't: their stored stream differs 10-21 %, and in 11 windows the runtime top-1 isn't the
+    window's next token on 0.3-2.7 % of answer rows.
+- **PROXY (scripts/bank_proxy.py, PROXY.md):**
+  - A CPU filter for predictors of the trunk stream. The primary measure is the direction error (Sandbox98: it ranks
+    predictors where R2 doesn't), calibrated per family, with structure measures (shrink, bias, PCA R2, R2 in the head's
+    input space).
+  - Ridge calibration on MBPP 23-30: tap5 46.11, tap5+15 51.16, tap5+15+25 59.69, tap45 91.96, all 91.88, oracle 93.63.
+- **HE+ on the runtime path:**
+  - t30b's own chain 89.65 at 23-30, same as the headline 89.66;
+  - with the true stream at every drafted row, 97.76, flat with depth (band 0 97.95), kept per 32 13.77 -> 20.90;
+  - with the layer-45 map, 96.40.
+  - A fresh state takes the deep guesses to the first guess's ~98 %.

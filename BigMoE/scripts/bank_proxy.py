@@ -11,8 +11,9 @@ Inputs are the raw taps of a row (the mean of the 4 HC streams after layer L), t
 that row's wd. Rows are answer rows (gen - 1 .. n - 1): the rows the head reads at drafted positions.
 - Train rows: a fixed subsample (every 3rd answer row) of the bank's 360 train files.
 - Val rows: every answer row of its 40 val files.
-Output: held-out R2, the RMS-normalized relative error, and the predicted MBPP 23-30 from data/deepdraft/bank/
-calibration.json (monotone piecewise-linear in R2, flat beyond the ends). >= 88 predicted -> run the REPLACE eval.
+Output: held-out R2, the RMS-normalized relative (direction) error, and the predicted MBPP 23-30 from data/deepdraft/bank/
+calibration.json, monotone piecewise-linear in the DIRECTION ERROR (the primary measure; Sandbox98's proxy_check). >= 88
+predicted -> run the REPLACE eval.
 Scope: only predictors that output a wd estimate. A learned stand-in lives in the head's own space (t30b's carried
 stand-in has R2 -2.32 against wd yet drafts 72 % at depth), so it must be judged by the drafting eval itself.
 """
@@ -86,18 +87,21 @@ def structure(P, Y, k=64):
     return out
 
 
-def predict_acc(r2, family="ridge"):
+def predict_acc(ne, family="ridge"):
+    """the primary measure is the RMS-normalized direction error (Sandbox98's proxy_check, 11-14 20:1x: it orders all 7
+    predictors monotonically against the read-outs, R2 doesn't): accuracy, made non-increasing in the error, interpolated"""
     if not os.path.exists(CAL):
         return None, "no calibration yet"
-    pts = sorted([p for p in json.load(open(CAL))["points"] if p.get("family", "ridge") in (family, "oracle")], key=lambda p: p["r2"])
+    pts = sorted([p for p in json.load(open(CAL))["points"] if p.get("family", "ridge") in (family, "oracle") and "ne" in p],
+                 key=lambda p: p["ne"])
     if len(pts) < 2:
-        return None, f"no calibration for the family {family}"
-    xs = np.array([p["r2"] for p in pts]); ys = np.maximum.accumulate(np.array([p["mbpp_23_30"] for p in pts]))   # monotone
-    return float(np.interp(r2, xs, ys)), f"{family}: {len(pts)} calibration points, R2 {xs.min():.2f}-{xs.max():.2f}"
+        return None, f"no direction-error calibration for the family {family}"
+    xs = np.array([p["ne"] for p in pts]); ys = np.minimum.accumulate(np.array([p["mbpp_23_30"] for p in pts]))   # monotone
+    return float(np.interp(ne, xs, ys)), f"{family}: {len(pts)} points on the direction error {xs.min():.2f}-{xs.max():.2f}"
 
 
 def report(tag, r2, ne, t0, st=None, family="ridge"):
-    acc, note = predict_acc(r2, family)
+    acc, note = predict_acc(ne, family)
     verdict = "no calibration" if acc is None else ("REPLACE-worthy" if acc >= LINE else "below the line")
     print(f"[proxy] {tag}: held-out R2 {r2:.4f}, normalized error {ne:.4f}; predicted MBPP 23-30 "
           f"{'-' if acc is None else f'{acc:.1f}'} ({note}); {verdict} (line {LINE}); {time.time() - t0:.0f} s", flush=True)

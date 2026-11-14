@@ -1,0 +1,41 @@
+18:08:13 waits for the bank build's end
+18:26:38 waits for the bank build's end
+19:16:11 waits for the bank build's end (bank.log lines after      483)
+20:21:35 1. the proxy cache
+[proxy] tr: 31805 rows from 360 files -> /Users/kamen/datasets/deepdraft/bank/proxy
+[proxy] va: 9984 rows from 40 files -> /Users/kamen/datasets/deepdraft/bank/proxy
+20:21:46 2. the calibration maps
+[proxy] ridge tap5 (lambda 0.1 x mean diag): held-out R2 0.3839, normalized error 0.6455; predicted MBPP 23-30 - (no calibration yet); no calibration (line 88.0); 95 s
+[proxy]   structure: shrink 0.4205, r2_unshrunk -0.5854, bias 0.0019, r2_pc 0.6174, r2_rest 0.0566, r2_head 0.1743
+[proxy] ridge tap5,tap15 (lambda 0.1 x mean diag): held-out R2 0.4219, normalized error 0.6213; predicted MBPP 23-30 - (no calibration yet); no calibration (line 88.0); 114 s
+[proxy]   structure: shrink 0.4782, r2_unshrunk -0.3376, bias 0.0017, r2_pc 0.6690, r2_rest 0.0756, r2_head 0.2387
+[proxy] ridge tap5,tap15,tap25 (lambda 0.1 x mean diag): held-out R2 0.4966, normalized error 0.5800; predicted MBPP 23-30 - (no calibration yet); no calibration (line 88.0); 80 s
+[proxy]   structure: shrink 0.5526, r2_unshrunk 0.0069, bias 0.0018, r2_pc 0.7535, r2_rest 0.1366, r2_head 0.3208
+[proxy] ridge tap45 (lambda 0.01 x mean diag): held-out R2 0.8285, normalized error 0.3398; predicted MBPP 23-30 - (no calibration yet); no calibration (line 88.0); 39 s
+[proxy]   structure: shrink 0.8403, r2_unshrunk 0.7932, bias 0.0018, r2_pc 0.9555, r2_rest 0.6505, r2_head 0.8448
+[proxy] ridge tap5,tap15,tap25,tap35,tap45 (lambda 0.1 x mean diag): held-out R2 0.8383, normalized error 0.3299; predicted MBPP 23-30 - (no calibration yet); no calibration (line 88.0); 160 s
+[proxy]   structure: shrink 0.8391, r2_unshrunk 0.8071, bias 0.0017, r2_pc 0.9585, r2_rest 0.6699, r2_head 0.8566
+20:30:15 3-4. REPLACE evals (MBPP) and HE+ on the runtime path
+[rep] t30b+rawwd mbpp (kept/16 9.75): 0-0:94.01 1-2:93.93 3-6:93.82 7-10:93.77 11-14:93.73 15-22:93.75 23-30:93.63; kept/32 12.76
+[rep] t30b+rawmap+bank_ridge_tap45 mbpp (kept/16 9.09): 0-0:94.01 1-2:92.46 3-6:92.28 7-10:92.08 11-14:92.03 15-22:92.02 23-30:91.96; kept/32 11.26
+[rep] t30b+rawmap+bank_ridge_tap5 mbpp (kept/16 2.85): 0-0:94.01 1-2:50.77 3-6:48.84 7-10:47.97 11-14:47.44 15-22:46.78 23-30:46.11; kept/32 2.85
+[rep] t30b+rawmap+bank_ridge_tap5_tap15_tap25_tap35_tap45 mbpp (kept/16 9.04): 0-0:94.01 1-2:92.38 3-6:92.21 7-10:92.07 11-14:91.99 15-22:91.95 23-30:91.88; kept/32 11.14
+[rep] t30b+rawwd+bankctx code (kept/16 12.96): 0-0:97.95 1-2:97.94 3-6:97.93 7-10:97.90 11-14:97.87 15-22:97.82 23-30:97.76; kept/32 20.90
+[rep] t30b+rawmap+bank_ridge_tap45+bankctx code (kept/16 11.94): 0-0:97.95 1-2:96.84 3-6:96.73 7-10:96.65 11-14:96.60 15-22:96.52 23-30:96.40; kept/32 18.06
+[rep] t30b+rawmap+bank_ridge_tap5_tap15 mbpp (kept/16 3.08): 0-0:94.01 1-2:56.13 3-6:53.86 7-10:52.94 11-14:52.56 15-22:51.71 23-30:51.16; kept/32 3.08
+[rep] t30b+wd+k1000 code (kept/16 10.52): 0-0:97.90 1-2:96.39 3-6:94.47 7-10:93.10 11-14:92.16 15-22:91.04 23-30:89.66; kept/32 13.83
+20:40:19 a quiet lock of another session: SIGTERM to group 40055, rerun after
+[rep] t30b+rawmap+bank_ridge_tap5_tap15_tap25 mbpp (kept/16 3.50): 0-0:94.01 1-2:63.74 3-6:62.01 7-10:61.24 11-14:60.92 15-22:60.23 23-30:59.69; kept/32 3.50
+[rep] t30b+rawmap+bank_ridge_tap5_tap15_tap25 mbpp (kept/16 3.50): 0-0:94.01 1-2:63.74 3-6:62.01 7-10:61.24 11-14:60.92 15-22:60.23 23-30:59.69; kept/32 3.50
+[rep] t30b+wd+k1000+bankctx code (kept/16 10.62): 0-0:97.95 1-2:96.30 3-6:94.41 7-10:93.06 11-14:92.16 15-22:90.94 23-30:89.65; kept/32 13.77
+CAL tap5                             R2 0.3839 -> MBPP 23-30 46.11, kept 2.85
+CAL tap5_tap15                       R2 0.4219 -> MBPP 23-30 51.16, kept 3.08
+CAL tap5_tap15_tap25                 R2 0.4966 -> MBPP 23-30 59.69, kept 3.50
+CAL tap45                            R2 0.8285 -> MBPP 23-30 91.96, kept 11.26
+CAL tap5_tap15_tap25_tap35_tap45     R2 0.8383 -> MBPP 23-30 91.88, kept 11.14
+CAL oracle (the bank's wd)           R2 1.0000 -> MBPP 23-30 93.63, kept 12.76
+HEPLUS HE+ t30b own chain, d16w context (the eval's): 0-0:97.90 1-2:96.39 3-6:94.47 7-10:93.10 11-14:92.16 15-22:91.04 23-30:89.66; kept 13.83
+HEPLUS HE+ t30b own chain, runtime-path context: 0-0:97.95 1-2:96.30 3-6:94.41 7-10:93.06 11-14:92.16 15-22:90.94 23-30:89.65; kept 13.77
+HEPLUS HE+ oracle (runtime-path wd at drafted rows): 0-0:97.95 1-2:97.94 3-6:97.93 7-10:97.90 11-14:97.87 15-22:97.82 23-30:97.76; kept 20.90
+HEPLUS HE+ the {45} map, runtime-path context: 0-0:97.95 1-2:96.84 3-6:96.73 7-10:96.65 11-14:96.60 15-22:96.52 23-30:96.40; kept 18.06
+21:05:09 CALIBRATION-DONE
