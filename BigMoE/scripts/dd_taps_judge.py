@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
 """TAPSQ judge: the lines of docs/PREREG_DEEPDRAFT_TAPSQ_2026-11-14.md, from data/deepdraft/tapsq/tq_<arm>.json (per-step
 losses) and eval.json / eval_R.json (MBPP 100 depth bands with per-window counts).
-usage: dd_taps_judge.py [BASE CAND]   default C T (the test); R T after a pass (T against the shuffled-h control)"""
+usage: dd_taps_judge.py [BASE CAND [TAG]]   default C T tq; R T after a pass; TAG tq2 = the rerun (amendment 2)"""
 import json, math, os, sys
 import numpy as np
 
 D = os.path.expanduser("~/BigMoE/data/deepdraft/tapsq")
 base, cand = (sys.argv[1], sys.argv[2]) if len(sys.argv) > 2 else ("C", "T")
-b, c = (json.load(open(f"{D}/tq_{a}.json")) for a in (base, cand))
+tag = sys.argv[3] if len(sys.argv) > 3 else "tq"
+suf = tag[2:]                                                        # "" for tq (the void run), "2" for tq2
+b, c = (json.load(open(f"{D}/{tag}_{a}.json")) for a in (base, cand))
 ev = {}
-for f in ("eval.json", "eval_R.json"):
-    if os.path.exists(f"{D}/{f}"):
-        ev.update(json.load(open(f"{D}/{f}")))
+import glob
+for f in sorted(glob.glob(f"{D}/eval{suf}*.json")) if suf else [f"{D}/eval.json", f"{D}/eval_R.json"]:
+    if os.path.exists(f) and (suf or not os.path.basename(f).startswith("eval2")):
+        ev.update(json.load(open(f)))
+if "t30b" not in ev:   # the rerun scores t30b nowhere: its MBPP bands from ttt30b/eval.json (the eval is deterministic)
+    ev["t30b"] = json.load(open(os.path.expanduser("~/BigMoE/data/deepdraft/ttt30b/eval.json")))["t30b"]["mbpp"]
 
 
 def ratio(key, lo, hi):
@@ -27,7 +32,7 @@ for key, lab in (("loss", "all depths (the training loss)"), ("d1", "depth 1 (ba
         print(f"  {lab}, steps {lo + 1}-{hi}: {cand}/{base} = {r:.3f}; {cand} lower on {100 * fr:.0f} % of {n} steps")
 r_all, fr_all, _ = ratio("loss", 40, 80)
 
-kb, kc = f"tq_{base}", f"tq_{cand}"
+kb, kc = f"{tag}_{base}", f"{tag}_{cand}"
 pct = lambda v: 100 * v
 mb = None
 if kb in ev and kc in ev:
@@ -47,8 +52,14 @@ if kb in ev and kc in ev:
     p = min(1.0, 2 * sum(math.comb(n, k) for k in range(0, min(w, l) + 1)) / 2 ** n) if n else 1.0
     print(f"  23-30 by window: {cand} better on {w}, worse on {l} (two-sided sign test p {p:.3f})")
 
+valid = None
+if mb is not None and base == "C":   # amendment 2: the control must stay within 1 pt of t30b at 23-30
+    dc = pct(ev[kb]["23-30"] - ev["t30b"]["23-30"]); valid = abs(dc) <= 1.0
+    print(f"validity: {base} vs t30b at MBPP 23-30 {dc:+.2f} pt ({'OK' if valid else 'NOT OK'}, within 1 pt)")
 if mb is None:
     print("VERDICT: (no MBPP eval yet)")
+elif valid is False:
+    print("VERDICT: VOID (the control moved more than 1 pt from t30b at 23-30: the harness, not the taps)")
 else:
     v = ("PASS" if r_all <= 0.90 and fr_all >= 0.70 and mb >= 2.0
          else "KILL" if r_all >= 0.97 and mb <= 1.0 else "BETWEEN")

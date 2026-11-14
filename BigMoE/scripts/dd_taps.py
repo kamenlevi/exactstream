@@ -10,7 +10,8 @@ A quick test, not a run (docs/PREREG_DEEPDRAFT_TAPSQ_2026-11-14.md has the lines
 - Arms: C = t30b continues (head lr 1e-5 constant after a 10-step warm-up);
         T = C plus xb_tap, a zero-init Linear(2560 -> 2560) of h added to the fused input of every target row, the way the
             embedding term enters (each HC stream gets the same term); not on drafted rows (EAGLE-3's place). Own Adam,
-            lr 1e-4 (10x), each group's gradient clipped to norm 1 on its own;
+            lr 1e-5 (the head's; amendment 1: 1e-4 was pre-registered, the smoke showed one step at 1e-4 lifting the
+            loss 0.35 -> 3.78), each group's gradient clipped to norm 1 on its own;
         R = T fed h from a random other row of the same window (nonzero rows only): a new trainable path at 10x lr
             without the row's information (the orchestrator's control, run only if T passes).
 - Logged per step: the loss (accept-until-fail KL over depths 1-30, as b5 / t30b train), the depth-1 KL and the mean KL of
@@ -26,7 +27,7 @@ import numpy as np                                                   # noqa: E40
 import mlx.core as mx                                                # noqa: E402
 import mlx.nn as nn                                                  # noqa: E402
 import mlx.optimizers as optim                                       # noqa: E402
-from mlx.utils import tree_flatten                                   # noqa: E402
+from mlx.utils import tree_flatten, tree_unflatten                   # noqa: E402
 
 T, M = DD.T, DD.M
 CAP, CKD, BANDS = DD.CAP, DD.CKD, DD.BANDS
@@ -140,12 +141,13 @@ def cmd_smoke(a):
     gb, gx = groups(g)
     gn = float(mx.sqrt(sum((v ** 2).sum() for _, v in tree_flatten(gx))))
     print(f"[tq] smoke: loss {float(lv):.7f}; the tap's gradient norm {gn:.3e} ({'> 0' if gn > 0 else 'ZERO'})", flush=True)
-    optx = optim.Adam(learning_rate=1e-4)
+    tlr = a.lr * a.tap_lr_mult
+    optx = optim.Adam(learning_rate=tlr)
     gx, _ = optim.clip_grad_norm(gx, 1.0)
     optx.update(P, gx); mx.eval(P.parameters(), optx.state)
     l2 = float(loss_parts(lm, head, P, x)[0])
     wn = float(mx.abs(P.xb_tap.weight).max())
-    print(f"[tq] smoke: after one tap-only step at 1e-4: loss {l2:.7f} ({'CHANGED' if l2 != l0 else 'UNCHANGED'}), tap |w| max {wn:.2e}", flush=True)
+    print(f"[tq] smoke: after one tap-only step at {tlr:g} (full lr, no warm-up): loss {l2:.7f} ({'CHANGED' if l2 != l0 else 'UNCHANGED'}), tap |w| max {wn:.2e}", flush=True)
     xr = dict(x); xr["H"] = shuffle_rows(x["H"], np.random.default_rng(SEED))
     lr_ = float(loss_parts(lm, head, P, xr)[0])
     print(f"[tq] smoke: R's shuffled h -> loss {lr_:.7f} ({'DIFFERENT from T' if lr_ != l2 else 'SAME as T'})", flush=True)
@@ -154,7 +156,7 @@ def cmd_smoke(a):
 
 def cmd_train(a):
     t0 = time.time()
-    run = f"tq_{a.arm}"
+    run = f"{a.tag}_{a.arm}"
     rt, lm, head = M.load(a.frac)
     P = M.Trainable(head)
     load_start(P, a.arm in ("T", "R"))
@@ -162,18 +164,26 @@ def cmd_train(a):
     tr = split_files()
     sl = DD.pass_slices(tr, ROWS, SEED)[:a.steps]
     warm = lambda s: mx.minimum(1.0, (s + 1) / 10.0)
-    opt = optim.Adam(learning_rate=lambda s: a.lr * warm(s))
-    optx = optim.Adam(learning_rate=lambda s: a.lr * a.tap_lr_mult * warm(s)) if "xb_tap" in P else None
+    if a.warm_opt:   # amendment 2: the head continues on t30b's own Adam moments and step, at t30b's final lr (no restart)
+        opt = optim.Adam(learning_rate=a.lr)
+        opt.init(groups(P.trainable_parameters())[0])
+        opt.state = tree_unflatten(list(mx.load(os.path.join(CKD, f"dd_{START}_opt.safetensors")).items()))
+        opt.learning_rate = a.lr
+    else:            # the void run (tq_): fresh Adam (no bias correction) at a.lr after a 10-step warm-up
+        opt = optim.Adam(learning_rate=lambda s: a.lr * warm(s))
+    tap_lr = a.tap_lr if a.tap_lr is not None else a.lr * a.tap_lr_mult
+    optx = optim.Adam(learning_rate=lambda s: tap_lr * warm(s), bias_correction=a.warm_opt) if "xb_tap" in P else None
     rng = np.random.default_rng(SEED)
     cur = {}
     lossf = nn.value_and_grad(P, lambda: loss_parts(lm, head, P, cur["x"]))
     stop = {"now": False}
     signal.signal(signal.SIGTERM, lambda *_: stop.update(now=True))
-    st = {"run": run, "arm": a.arm, "start": START, "steps": a.steps, "seed": SEED, "lr": a.lr,
-          "tap_lr": a.lr * a.tap_lr_mult if optx is not None else None, "loss": [], "d1": [], "d24_30": [], "sec": []}
+    st = {"run": run, "arm": a.arm, "start": START, "steps": a.steps, "seed": SEED, "lr": a.lr, "warm_opt": a.warm_opt,
+          "tap_lr": tap_lr if optx is not None else None, "loss": [], "d1": [], "d24_30": [], "sec": []}
     ntr = sum(v.size for _, v in tree_flatten(P.trainable_parameters()))
     print(f"[tq] train {run}: {len(tr)} unseen files, {len(sl)} slices (seed {SEED}), depth {DEPTH}, rows {ROWS}, lr {a.lr}"
-          + (f", tap lr {a.lr * a.tap_lr_mult}" if optx is not None else "") + f"; {ntr / 1e6:.1f}M trainable; loaded in {time.time() - t0:.0f}s", flush=True)
+          + (f" ({'t30b' + chr(39) + 's Adam state' if a.warm_opt else 'fresh Adam'})")
+          + (f", tap lr {tap_lr} (fresh Adam, bias correction {a.warm_opt})" if optx is not None else "") + f"; {ntr / 1e6:.1f}M trainable; loaded in {time.time() - t0:.0f}s", flush=True)
     for i, (f_, b_, r_) in enumerate(sl):
         while os.path.exists(T.PAUSE) and not stop["now"]:
             time.sleep(1)
@@ -258,9 +268,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=["smoke", "train", "eval"])
     ap.add_argument("--arm", choices=["C", "T", "R"]); ap.add_argument("--steps", type=int, default=80)
-    ap.add_argument("--lr", type=float, default=1e-5); ap.add_argument("--tap-lr-mult", dest="tap_lr_mult", type=float, default=10.0)
+    ap.add_argument("--lr", type=float, default=1e-6); ap.add_argument("--tap-lr-mult", dest="tap_lr_mult", type=float, default=1.0)
+    ap.add_argument("--tap-lr", dest="tap_lr", type=float, default=1e-5); ap.add_argument("--tag", default="tq2")
+    ap.add_argument("--fresh-opt", dest="warm_opt", action="store_false", help="the void run's fresh Adam (tq_)")
     ap.add_argument("--frac", type=float, default=0.03); ap.add_argument("--peak-max", dest="peak_max", type=float, default=22.0)
-    ap.add_argument("--runs", default="t30b,tq_C,tq_T"); ap.add_argument("--out-name", dest="out_name", default="eval.json")
+    ap.add_argument("--runs", default="t30b,tq2_C,tq2_T"); ap.add_argument("--out-name", dest="out_name", default="eval2.json")
     a = ap.parse_args()
     {"smoke": cmd_smoke, "train": cmd_train, "eval": cmd_eval}[a.cmd](a)
 

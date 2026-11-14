@@ -81,3 +81,42 @@
 11-14 05:48:16 note by the session: t30x4/MARGIN 3 -> 2 (needs NO-SWAP 44 = guard 42 + 2): NO-SWAP sits at 44 GB since the smoke (free 38.7 + file-backed 5.3; the eval's file cache was evicted by the 38.9 GB smoke), swap flat at 5.77 GB through the smoke; the run's own guards stay (MLX peak 42 -> rc 4, swap +2 GB -> SIGTERM with a save).
 11-14 05:48:59 alone: TTT30C t30x4 alone: MEM 42: starts from saved step 0 (quiet locks of others 0, lid open, health ok, NO-SWAP 47 GB; needed 44 GB = 42 + margin 2)
 11-14 05:54:53 note by the session: CORRECTION to the 05:48:16 note (the orchestrator 05:5x): the smoke did not evict a file cache into a lower NO-SWAP (eviction turns file pages into free ones). 44-47 GB is the real floor; the 62 read at 05:44:18 was not real memory. Also NO-SWAP counted speculative pages twice (they sit inside file-backed): the formula is now free + purgeable + file-backed in all scripts. This sequencer keeps the old formula (~0.5 GB high now) until it ends; dd_capture_slot.sh after it reads the fix.
+11-14 14:13:59 after: start (pid 75742): waits for '[dd] DONE t30x4:' after run.log line      765; sequencer pid 73681
+11-14 15:03:51 after: t30x4 DONE seen: STOP_SLOT touched, so the sequencer exits before its eval and the capture
+11-14 15:03:59 alone: TTT30C t30x4 alone: MEM 42: STOP -> SIGTERM 80134
+11-14 15:03:59 alone: t30x4 train ended rc 0 (STOP): [dd] DONE t30x4: 4206 steps in 33289s; peak 39.2 GB
+11-14 15:03:59 after: sequencer gone, STOP_SLOT removed; t30x4 checkpoint: done 4206
+11-14 15:04:00 after: swap at the start 6611 MB (guard +2048)
+11-14 15:04:30 after: t30x4 verdict eval (t30b, t30x4): starts (NO-SWAP 42 GB, needs 20; quiet locks of others 0, lid open, health ok, NO-SWAP 42 GB, swap 6611 MB)
+11-14 15:05:15 after: TAPSQ smoke: starts (NO-SWAP 31 GB, needs 28; quiet locks of others 0, lid open, health ok, NO-SWAP 32 GB, swap 6611 MB)
+11-14 15:05:36 after: TAPSQ smoke ended rc 0
+11-14 15:05:36 after: TAPSQ smoke OK
+11-14 15:06:06 after: TAPSQ C: starts (NO-SWAP 31 GB, needs 28; quiet locks of others 0, lid open, health ok, NO-SWAP 31 GB, swap 6611 MB)
+11-14 15:15:06 after: t30x4 verdict eval (t30b, t30x4) ended rc 0
+11-14 15:15:06 after: VERDICT-EVAL ended rc 0
+11-14 15:16:54 after: TAPSQ C ended rc 0
+11-14 15:17:25 after: TAPSQ T: starts (NO-SWAP 30 GB, needs 28; quiet locks of others 0, lid open, health ok, NO-SWAP 31 GB, swap 6611 MB)
+11-14 15:18:59 capq: start (pid 3506): waits for dd_after_t30x4.sh's 'done:'
+11-14 15:25:20 after: TAPSQ T ended rc 0
+11-14 15:25:50 after: TAPSQ eval: starts (NO-SWAP 41 GB, needs 20; quiet locks of others 0, lid open, health ok, NO-SWAP 41 GB, swap 6603 MB)
+11-14 15:30:58 after: TAPSQ eval ended rc 0
+11-14 15:30:58 after: TAPSQ C vs T: VERDICT: KILL
+11-14 15:30:58 after: TAPSQ-DONE
+11-14 15:31:29 after: t30x4 info eval (b5 + copies): starts (NO-SWAP 41 GB, needs 20; quiet locks of others 0, lid open, health ok, NO-SWAP 41 GB, swap 6603 MB)
+11-14 15:35:31 taps2: start (pid 68441): swap 6603 MB (guard +2048)
+11-14 15:36:01 taps2: TAPSQ2 C: starts (NO-SWAP 29 GB, needs 28; quiet locks of others 0, lid open, health ok, NO-SWAP 29 GB, swap 6603 MB)
+11-14 15:49:12 taps2: TAPSQ2 C ended rc 0
+11-14 15:49:43 taps2: TAPSQ2 eval C: starts (NO-SWAP 26 GB, needs 20; quiet locks of others 0, lid open, health ok, NO-SWAP 26 GB, swap 6587 MB)
+11-14 15:52:29 after: t30x4 info eval (b5 + copies) ended rc 0
+11-14 15:52:29 after: INFO-EVAL ended rc 0
+11-14 15:52:30 after: done: the capture stays stopped until the session restarts it
+11-14 15:53:25 taps2: TAPSQ2 eval C ended rc 0
+11-14 15:53:25 taps2: TAPSQ2 validity: C vs t30b at MBPP 23-30 / 0: -0.07 -0.04 pt
+11-14 15:53:55 taps2: TAPSQ2 T: starts (NO-SWAP 33 GB, needs 28; quiet locks of others 0, lid open, health ok, NO-SWAP 33 GB, swap 6587 MB)
+11-14 16:02:47 taps2: TAPSQ2 T ended rc 0
+11-14 16:03:17 taps2: TAPSQ2 eval T: starts (NO-SWAP 33 GB, needs 20; quiet locks of others 0, lid open, health ok, NO-SWAP 33 GB, swap 6587 MB)
+11-14 16:05:10 taps2: TAPSQ2 eval T ended rc 0
+11-14 16:05:10 taps2: TAPSQ2 C vs T: VERDICT: KILL
+11-14 16:05:10 taps2: TAPSQ2-DONE: VERDICT: KILL; CAPQ next
+11-14 16:05:10 capq: start (pid 68441): waits for dd_after_t30x4.sh's 'done:'
+11-14 16:05:41 capq: t30x2c: starts from b5 (NO-SWAP 32 GB; quiet locks of others 0, lid open, health ok, NO-SWAP 32 GB, swap 6587 MB)

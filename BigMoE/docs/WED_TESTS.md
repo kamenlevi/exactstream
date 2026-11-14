@@ -1779,7 +1779,7 @@ The 125B is untouched. Same held-out windows and harness as t30a; agreement with
   moments and the step. Pooled cells only, one run per arm: a direction, not a significance claim. Heat pauses
   throughout; no timing claims.
 
-## Fri 13 Nov 15:13-: DEEPDRAFT step 3 third test, TTT30C (PREREG 22bf65a): t30f NO EFFECT (-0.93 pt), t30x2 NO EFFECT (-0.79 pt); t30x4 alone next (in progress) (data/deepdraft/ttt30c/)
+## Fri 13 Nov 15:13-: DEEPDRAFT step 3 third test, TTT30C (PREREG 22bf65a): t30f NO EFFECT (-0.93 pt), t30x2 NO EFFECT (-0.79 pt), t30x4 HURTS (-1.51 pt): nothing pays (data/deepdraft/ttt30c/)
 The arms are t30b's exact run plus one change each: t30f adds a feature loss, and t30x2 / t30x4 add a dense branch
 (capacity x2.1 / x4.4). The slot opened at 15:08, when EvalSuite's 45 GB P2 gate ended.
 - **t30x2 smoke:** both exact-equality checks EQUAL (the lambda-0 path and the zero-init branch each give b5's loss,
@@ -1804,5 +1804,52 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
   - About -0.7 pt per doubling of trainable parameters, against data's ~+1. b5 and t30b re-score bit for bit; MLX peak
     24.6 GB.
   - Details: the PREREG's "Result: t30x2" section.
-- **Next (from 05:43):** t30x4 (x4.4, 305.0M trainable). Its smoke passed both equality checks at a 38.9 GB peak; the
-  train guard is 42 GB. The capacity line (t30x4 - t30b >= +2.1 pt) is read after it.
+- **t30x4 result (Sat 14 Nov 15:15): HURTS.**
+  - x4.4, 305.0M trainable. It trained 4,206 steps alone, 05:48-15:03, at an MLX peak of 39.2 GB.
+  - HumanEval+ 23-30 is 88.14 % against t30b's 89.66 % (-1.51 pt; the HURTS line is 88.66). MBPP 23-30 is 70.01 against
+    72.13. Depth 0 is 97.85 (b5 97.68).
+  - All 16 band scores are below t30b. Capacity: -0.71 pt per doubling (t30x2 -0.7); the +2.1 pt line is not met.
+  - Paired by step, its training KL is above t30b's all the way: +1,052 % over steps 1-20, +65 % over 401-1,000, +7 %
+    over 3,001-4,206.
+  - Confound found later (TAPSQ's smoke): both capacity arms trained a zero-init branch at 10x lr. Under Adam that
+    moves every row's output at once, so the early spike grows with the width. The verdict reads "a bigger reader
+    trained this way hurts". A clean ~200-step retest at lr 1e-5 is queued under the 15-min rule.
+  - A stop line at 10-25 % of the steps would have read +62.8 % (t30x4) and +18.4 % (t30x2) and saved ~10 h.
+  - PREREG section "Result: t30x4".
+
+## Sat 14 Nov 15:0x-15:19: WEEK98 day-1 CEILING test (PREREG e4f9cd3): LEARNABLE (data/deepdraft/ceiling/)
+- **Goal (Kamen 15:0x):** by Sat 21 Nov, know the method that gets the drafter to >= 98 % per guess at every depth up to
+  30.
+- **Question:** do the 125B's own near-ties block that, or are t30b's misses learnable?
+- **Near-ties (top-1 vs top-2 < 0.25 nats):** 2.08 % of MBPP 100's answer rows, 2.03 % of the n1112 held-out. The answer
+  token is the 125B's argmax on 100.00 % of rows.
+- **t30b's misses on MBPP 100** (the harness re-gives the eval's 94.01 / 72.13):
+  - Band 0: 5.99 pt of misses, 1.13 pt on near-ties, 2.01 pt on rows the 125B was sure of (m >= 1 nat).
+  - Band 23-30: 27.87 pt of misses, 1.48 pt on near-ties, 21.12 pt on sure rows. 11.18 pt are on rows where the 125B's
+    top-1 was >= 55x its top-2; t30b misses 16.1 % of those at depth.
+  - The tie-limited ceiling is 98.76 %. Close-call acceptance adds only 0.2-1.7 pt at depth.
+- **Verdict:** LEARNABLE. The week goes to what the drafter sees and how fresh it is.
+  - The ~1.1-1.5 pt tie tax leaves ~0.8 pt for every other miss at exact 98 %.
+  - Close-call acceptance can take that tax back at the end.
+- PREREG_DEEPDRAFT_CEILING_2026-11-14.md, "Result".
+
+## Sat 14 Nov 15:05-16:05: DEEPDRAFT TAPSQ, a quick test of multi-layer taps (PREREG 4957a38): run 1 VOID, the rerun KILL (data/deepdraft/tapsq/)
+- **Question:** does the MTP head get deeper when it also reads the 125B's layers 5/15/25/35/45? The capture already
+  holds them, as DFlash2's fused 2560-wide input `h`.
+- **Design:** a warm start from t30b, 80 steps on the 795 n1112 files t30b never saw. C (no tap) vs T (+ a zero-init
+  2560 -> 2560 tap), then MBPP 100 bands.
+- **Amendment 1 (before T):** the tap's lr went 1e-4 -> 1e-5. One step at 1e-4 lifted the loss 0.35 -> 3.78: under Adam a
+  zero-init wide input moves every row's output at once.
+- **Run 1 is VOID:**
+  - The lines read KILL: T/C KL 1.36, MBPP 23-30 -0.92 pt.
+  - But the control collapsed: C fell 72.13 -> 58.26 at 23-30.
+  - A fresh Adam (no bias correction) at 10x t30b's final lr moved the head 1.82 % in 80 steps; t30b's whole run moved
+    it 2.88 %.
+- **Amendment 2:** the head continues on t30b's own Adam state at 1e-6. C must stay within 1 pt of t30b at 23-30
+  before T runs.
+- **The rerun (16:05): KILL.**
+  - The control stays at t30b (MBPP 23-30 -0.07 pt; its weights moved 0.04 %).
+  - T (+ the tap) is slightly worse everywhere: all-depth KL 1.08x C's over steps 41-80, MBPP 23-30 71.43 vs 72.06
+    (-0.63), per-window sign test p 0.91.
+  - DFlash2's fused taps don't help the MTP head in a short warm-started test.
+  - Next, as pre-registered: the raw 5 x 2560 taps (a re-prefill, ~20 min, the 125B alone), after CAPQ.

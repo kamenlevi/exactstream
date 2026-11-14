@@ -189,3 +189,77 @@ b5 and t30b (data/deepdraft/ttt30c/t30x2/eval.json; eval rc 0 at 05:43).
     below. Extra width does not pay at this data size.
   - t30x4 (x4.4) runs next, alone. Its smoke passed both equality checks at a 38.9 GB peak (05:44:58; train guard
     42 GB). The "if nothing pays" reading waits for it.
+
+## Result: t30x4 (Sat 14 Nov 15:15): HURTS; four times the capacity scores below t30b in every band
+t30x4 trained 4,206 steps alone, with the capture paused (from 05:48:59; done at 15:03:51, 33,289 s, no yield).
+> (a quote from the project owner, kept private)
+  (data/deepdraft/ttt30c/t30x4/eval.json, rc 0 at 15:15).
+  - b5 comes from a855212. t30b re-scores bit for bit there, every band on both sets, and the eval is deterministic.
+  - b5 and the 600 / 1,500 / 3,000 copies are scored after TAPSQ, information only (t30x4_info/).
+- **The lines (HumanEval+ 23-30):**
+  - t30x4 scores 88.14 %, against t30b's 89.66 %: -1.51 pt.
+  - HURTS is <= 88.66 %, so t30x4 lands 0.52 pt under the HURTS line.
+  - MBPP 23-30 is 70.01 against 72.13 (-2.11). Depth 0 is 97.85 against b5's 97.68 (+0.17, within 1 pt).
+  - **Verdict: HURTS.**
+- **All 16 band scores are below t30b:**
+
+  | band | HumanEval+ b5 / t30b / t30x4 | delta | MBPP b5 / t30b / t30x4 | delta |
+  |---|---|---|---|---|
+  | 0 | 97.68 / 97.90 / 97.85 | -0.05 | 93.46 / 94.01 / 93.71 | -0.30 |
+  | 7-10 | 90.51 / 93.10 / 92.19 | -0.91 | 74.70 / 79.61 / 78.15 | -1.46 |
+  | 15-22 | 86.85 / 91.04 / 89.62 | -1.42 | 66.78 / 74.38 / 72.74 | -1.64 |
+  | 23-30 | 85.08 / 89.66 / 88.14 | -1.51 | 63.34 / 72.13 / 70.01 | -2.11 |
+  | kept per 32-row check | 12.55 / 13.83 / 13.20 | -0.63 | 6.22 / 6.92 / 6.75 | -0.18 |
+
+- **The training KL, paired by step** (the same slices from pass seed 1113; the per-step losses saved with each run):
+
+  | steps | t30x2 over t30b | t30x4 over t30b |
+  |---|---|---|
+  | 1-20 | +203 % | +1,052 % |
+  | 21-100 | +95 % | +234 % |
+  | 101-400 | +30 % | +139 % |
+  | 401-1,000 | +19 % | +65 % |
+  | 1,001-2,000 | +7 % | +26 % |
+  | 2,001-3,000 | +4 % | +12 % |
+  | 3,001-4,206 | +1 % | +7 % (lower on 30 % of steps) |
+
+  - Neither arm ever catches up. The bigger branch starts further behind and stays further behind.
+- **PLAN step 3:** 88.14 % is under 90 %, so not CONTINUE.
+- **Capacity:** 305.0M / 69.1M = 2.14 doublings for -1.51 pt, -0.71 pt per doubling (t30x2: -0.7 pt per doubling). The
+  capacity line (t30x4 - t30b >= +2.1 pt) is not met.
+- **Training:**
+  - MLX peak 39.2 GB (smoke 38.9; guard 42). The eval peaked at 10.9 GB.
+  - It ran on battery 13:13-13:25 (the adapter was out; nothing stopped).
+  - A 7-min heat freeze came at 13:29-13:36, at the 3,750-rpm fan cap. FAN_CAP rose to 5,900 at 14:08.
+  - No timing is claimed.
+- **A confound found after the fact (TAPSQ's smoke, 15:05):**
+  - Both capacity arms trained their zero-init branch at 10x the head's lr. Under Adam (MLX's has no bias correction,
+    so step 1 is 3.16x lr), a zero-init wide input moves every row's output coherently by about lr x the input's L1 norm.
+  - In TAPSQ's smoke, one such step at 1e-4 lifted the loss 0.35 -> 3.78.
+  - That matches the arms' early losses: t30x4's 20-step mean 4.07, and +1,052 % over steps 1-20, scaling with the
+    branch width.
+  - So this verdict reads "a bigger reader trained this way hurts", not "capacity can't help".
+  - A clean retest goes next under the 15-min rule: the x2 branch at lr 1e-5, ~200 steps, against t30b's saved
+    per-step KL at matched steps. Its result -> action is written before it runs.
+- **The stop line, had it existed** (Kamen's 13:3x rule; 10-25 % of the steps = 421-1,052):
+  - t30x4 was +62.8 % over t30b and lower on 1 % of those steps; t30x2 was +18.4 % (lower on 20 %).
+  - A stop at step ~1,050 would have saved about 7 h of t30x4 (and about 3 h of t30x2) with the same conclusion.
+- **What it means:**
+  - Nothing in TTT30C paid: t30f NO EFFECT, t30x2 NO EFFECT, t30x4 HURTS.
+  - As pre-registered, the wall reads as what the reader can see, not its size. The multi-layer taps quick test (TAPSQ,
+    PREREG_DEEPDRAFT_TAPSQ_2026-11-14.md) is running now.
+  - The WEEK98 ceiling test (PREREG_DEEPDRAFT_CEILING_2026-11-14.md) asks how much of the gap to 98 % is the 125B's
+    own near-ties.
+- **Information only, scored at 15:52** (t30x4_info/eval.json):
+  - b5 re-scores bit for bit as in a855212, which confirms the verdict's use of a855212's b5.
+  - t30x4's copies against t30b's at the same steps, 23-30:
+
+    | step | HumanEval+ | MBPP |
+    |---|---|---|
+    | 600 | 71.51 vs 84.17 (-12.67) | 45.64 vs 64.69 (-19.05) |
+    | 1,500 | 84.15 vs 86.73 (-2.58) | 63.29 vs 68.58 (-5.28) |
+    | 3,000 | 87.31 vs 88.66 (-1.35) | 68.34 vs 70.95 (-2.61) |
+    | end | 88.14 vs 89.66 (-1.51) | 70.01 vs 72.13 (-2.11) |
+
+  - At step 600, t30x4 is far below even b5 (85.08 / 63.34): the early spike wrecked the head, and the rest of the
+    run recovered most of it. This fits the 10x-lr confound.

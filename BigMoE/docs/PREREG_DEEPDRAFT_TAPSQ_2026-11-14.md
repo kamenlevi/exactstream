@@ -71,3 +71,78 @@ Written before the run. Script: scripts/dd_taps.py. Data: data/deepdraft/tapsq/.
 > (a quote from the project owner, kept private)
   - Memory: an eval peaks ~10 GB, this ~16 GB, on the ~45 GB floor.
   - Neither run claims a timing, and the numbers here don't depend on speed.
+
+## Amendment 1 (Sat 14 Nov 15:08, after the smoke and before arm T starts; C is running and unaffected)
+- The smoke (15:05) passed all four checks, but its one tap-only step at the pre-registered 1e-4 lifted the loss
+  0.35 -> 3.78. The tap's |w| max was 3.16e-4: MLX's Adam has no bias correction, so step 1 is 3.16x lr.
+- Why so large: a zero-init 2560-wide input under Adam moves every weight by about lr x sign(g). The gradient is an outer
+  product (output error x h), so after one step every row's output moves coherently by about lr x sum|h| (~0.65 per
+  dimension at 1e-4). That swamps the fused input.
+  - The pre-registered reason for 10x ("at 1e-5 a zero-init path barely moves in 80 steps") was wrong: it moves plenty.
+  - The same mechanism likely shaped the capacity arms' early losses (t30x4's 20-step mean 4.07; t30x2 +95 % KL over steps
+    21-100). Both had zero-init branches at 10x lr.
+- So T (and R) use the tap lr 1e-5, the head's own, with the same 10-step warm-up and the separate clip. Nothing else
+  changes: C, the slices, the lines and the actions stay as written.
+- A one-step smoke at 1e-5 is logged before T starts (data/deepdraft/tapsq/run.log).
+
+## The first run (15:05-15:31): VOID. Its control collapsed, so the harness failed, not the taps
+- The lines read KILL: the all-depth KL ratio T/C was 1.364 over steps 41-80 (T lower on 8 %), and MBPP 23-30 was T
+  57.34 vs C 58.26 (-0.92 pt). But the control is not a control:
+  - C (t30b + 80 steps, no tap) fell from t30b's 72.13 to 58.26 at MBPP 23-30 (-13.87 pt), band 0 94.01 -> 93.06,
+    kept per 32 6.92 -> 5.51. The damage grows with depth.
+  - Weights: tq_C is 1.82 % from t30b (relative L2 over the head). t30b's whole 4,206-step run moved b5 only 2.88 %.
+  - Cause: a fresh Adam (MLX's, no bias correction) at 1e-5, 10x t30b's final lr (its cosine ends at 1e-6). Fresh
+    moments make every weight step about 1-3 x lr in a random walk, so 80 steps scramble a head annealed to 1e-6. T had
+    the same shock plus the tap's.
+- Two things checked and ruled out:
+  - The loss is dd_ttt.py's own (T.ttt_loss with accept-until-fail, depth 30, wdecay 0.97). The smoke's "24-30:
+    0.0000" means no anchor of slice 0 survived to depth 24: under accept-until-fail the deep depths train only on
+    chains still right. So the logged per-depth KL at 24-30 is survivor-biased and isn't a deep-accuracy measure (T's
+    0.43x there came with fewer, easier survivors).
+  - The save and load carry every weight (strict loads), and the slices use dd_ttt.py's pass_slices on the unseen
+    files.
+- Data kept as the record: tq_C.json, tq_T.json, eval.json, run.log (15:05-15:31).
+
+## Amendment 2 (15:4x, before the rerun): continue t30b properly, and a validity line
+- **Head:** continues on t30b's own Adam state (its moments and step 4,206) at t30b's final lr, 1e-6, constant. So C
+  should stay where t30b is.
+- **Tap:** a fresh Adam with bias correction (step 1 = lr, not 3.16 x lr), lr 1e-5 after a 10-step warm-up, its own clip.
+- **Validity line, first:** C must stay within 1 pt of t30b at MBPP 23-30 (72.13). If not, the rerun is VOID-HARNESS and T
+  doesn't run.
+- Runs tq2_C / tq2_T (/ tq2_R), evals eval2_*.json; scripts/dd_taps2.sh runs C -> its eval -> the validity line -> T -> its
+  eval -> the judge.
+- The lines and the actions are unchanged. The capacity retest (CAPQ) runs right after, not beside it.
+
+## Result, the rerun (Sat 14 Nov 16:05): KILL. DFlash2's fused taps don't help the MTP head in a short warm-started test
+- **Validity:**
+  - C (t30b's Adam state at 1e-6, 80 steps) stays at t30b: MBPP 23-30 72.06 vs 72.13 (-0.07 pt), band 0 -0.04, kept
+    per 32 6.94 vs 6.92.
+  - Its weights moved 0.04 % (the void run's C: 1.82 %).
+- **The lines:**
+  - The all-depth KL ratio T/C over steps 41-80 is 1.083, T lower on 15 % of the steps (1.041 over 21-40). The depth-1
+    KL ratio is 1.097.
+  - MBPP 23-30 is T 71.43 vs C 72.06 (-0.63 pt). Per window, T is better on 35 and worse on 37 (sign test p 0.91).
+  - **Verdict: KILL.** The ratio is >= 0.97 and the MBPP change is <= +1 pt.
+- **MBPP 100 bands (t30b / C / T):**
+
+  | band | t30b | C | T | T - C |
+  |---|---|---|---|---|
+  | 0 | 94.01 | 93.97 | 93.74 | -0.23 |
+  | 3-6 | 83.45 | 83.52 | 82.89 | -0.63 |
+  | 7-10 | 79.61 | 79.75 | 78.90 | -0.86 |
+  | 15-22 | 74.38 | 74.37 | 73.81 | -0.57 |
+  | 23-30 | 72.13 | 72.06 | 71.43 | -0.63 |
+  | kept per 32 | 6.924 | 6.939 | 6.762 | -0.18 |
+
+- The tap trained: |w| max 4.0e-4, rms 7.5e-5. T is slightly worse than C everywhere, so the tap adds noise rather than
+  information.
+- The per-depth KL at 24-30 (0.76 / 1.42) is survivor-biased under accept-until-fail, as noted, so it isn't read.
+- Training: C 787 s, T 530 s, MLX peaks 15.5 / 15.6 GB. No timing is claimed.
+- **Action, as pre-registered:** one more ~20-min test with the raw taps (5 x 2560 at full width, from a re-prefill of
+  ~50 training answers + the MBPP 100 eval answers), because DFlash2's fc was trained for DFlash2.
+  - If that is flat too, the multi-layer line closes for the MTP head.
+  - It needs the 125B loaded alone (~45 GB), so it runs after CAPQ, with its own result -> action written first.
+- **Reading with the CEILING test (LEARNABLE):**
+  - The depth misses are on tokens the 125B was sure of, 23+ tokens past the last verified context.
+  - Richer features of the verified context (taps) may not reach them. Fresher features inside the chain (a partial trunk
+    pass on drafted rows) are the other candidate the CEILING verdict names.
