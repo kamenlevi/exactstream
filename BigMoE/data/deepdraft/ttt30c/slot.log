@@ -57,3 +57,16 @@
 11-14 01:13:27 alone: start (pid 11862; arms t30x2 t30x4; OLD_PID none; GO file data/deepdraft/ttt30c/GO_ALONE; stop file /Users/kamen/FableGod/deepdraft/STOP_SLOT)
 11-14 01:13:27 alone: GO: 11-13 22:08 GO by the session: t30f DONE 22:07:34 (train rc 0 at 21:49, eval rc 0) and Leap's onebuild (00:30) has not started. The orchestrator's order: 'If t30f ends before onebuild starts, you may start t30x2 alone right away', allowed because t30x2's yield on a quiet ticket ends the process (dd_ttt.py: SIGTERM -> saves and exits 3, memory freed).
 11-14 01:13:27 alone: t30x2: from phase train (--xb 10240, MEM 26 GB)
+11-14 01:14:08 alone: TTT30C t30x2 alone: MEM 26: starts from saved step 1535 (quiet locks of others 0, lid open, health ok, NO-SWAP 47 GB)
+11-14 01:16:49 alone: TTT30C t30x2 alone: MEM 26: yield: quiet locks of others 1, lid open, health ok, NO-SWAP 43 GB -> SIGTERM 18701
+11-14 01:16:54 alone: t30x2 train ended rc 3 (yield: quiet locks of others 1, lid open, health ok, NO-SWAP 43 GB): [dd] stopped at step 1563: saved
+11-14 01:18:54 alone: t30x2 train waits: quiet locks of others 1, lid open, health ok, NO-SWAP 7 GB; needs 34 GB
+11-14 01:20:46 alone: start (pid 73037; arms t30x2 t30x4; OLD_PID none; GO file data/deepdraft/ttt30c/GO_ALONE; stop file /Users/kamen/FableGod/deepdraft/STOP_SLOT)
+11-14 01:20:46 alone: DRY: t30x2: --xb 10240; smoke guard 30 GB (needs NO-SWAP 38: margin 8), train guard 26 GB (from its smoke); saved step 1563
+11-14 01:20:46 alone: DRY: t30x4: --xb 30720; smoke guard 43 GB (needs NO-SWAP 46: margin 3), train guard = ceil(smoke peak) + 3; saved step 0
+11-14 01:20:46 alone: DRY: now: GO yes, old launcher gone, dd_ttt none, capture none; quiet locks of others 0, lid open, health ok, NO-SWAP 50 GB
+11-14 01:20:46 alone: (the lines above were a DRY=1 check, not a run)
+11-14 01:20:46 sequencer 11862 (bzitrikwn) stopped by the session at 01:1x while t30x2 was yielded (saved at step 1563; no trainer running), for t30x4's sizing (the orchestrator 01:2x: its smoke needed NO-SWAP 50, tonight's floor is 47-50): smoke guard 43, train guard ceil(smoke peak) + 3, start margin from $D/<arm>/MARGIN (t30x4: 3, else 8). The new sequencer starts now.
+11-14 01:20:47 alone: start (pid 73681; arms t30x2 t30x4; OLD_PID none; GO file data/deepdraft/ttt30c/GO_ALONE; stop file /Users/kamen/FableGod/deepdraft/STOP_SLOT)
+11-14 01:20:47 alone: GO: 11-13 22:08 GO by the session: t30f DONE 22:07:34 (train rc 0 at 21:49, eval rc 0) and Leap's onebuild (00:30) has not started. The orchestrator's order: 'If t30f ends before onebuild starts, you may start t30x2 alone right away', allowed because t30x2's yield on a quiet ticket ends the process (dd_ttt.py: SIGTERM -> saves and exits 3, memory freed).
+11-14 01:20:47 alone: t30x2: from phase train (--xb 10240, MEM 26 GB)

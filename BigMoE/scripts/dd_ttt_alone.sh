@@ -20,6 +20,14 @@
 # Leap's runner in a 120-s memory wait); the first gate missed that segment and restarted t30x2 at 00:50:57 inside Leap's
 # 1.2.1 ticket, which cost Leap its 10K / 30K peak tests. The gates are read again after the 40-s memory read, and every
 # job start is logged in slot.log ("<job>: starts ...").
+# Memory sizing (Sat 14 Nov 01:2x; the orchestrator: t30x4's smoke needed NO-SWAP 50 while tonight's floor with nothing big
+# running is 47-50 GB, so the Mac could idle until Kamen is up). Measured MLX peaks, smoke / train: t30b - / 15.6,
+# t30f 15.6 / 15.8, t30x2 23.9 / 24.6 GB, so the 10240-wide branch costs ~8.4 / ~9.0 GB and t30x4's (3x) projects to
+# ~40.7 / ~42.6 GB. Hence t30x4's smoke guard 43 (was 42: too close to the projection) and a train guard of ceil(smoke
+# peak) + 3 (was + 2; t30x2 went 23.9 -> 24.6 from smoke to train, and that gap grows with the branch). A phase starts
+# when NO-SWAP >= its guard + the arm's margin: $D/<arm>/MARGIN (GB, read at every check), else 8. t30x4's is 3: t30x2
+# (MLX peak 24.6 GB) lowered NO-SWAP by only 5-13 GB, swap stayed at 5.7-5.8 GB all night, and the swap guard (+2 GB:
+# the run saves and stops) still holds; so t30x4 needs 46 GB to smoke and 47-48 to train.
 > (a quote from the project owner, kept private)
 # usage (a harness background task): OLD_PID=74726 bash scripts/dd_ttt_alone.sh [arms]   DRY=1: plan and gates only
 export PATH="$HOME/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:$PATH"
@@ -36,7 +44,8 @@ GO=$D/GO_ALONE
 BASE="--manifest data/deepdraft/ttt30b/split.json --pass-seed 1113 --save-at 600,1500,3000"
 ARMS=${*:-"t30x2 t30x4"}
 arm_flags() { case $1 in t30x2) echo "--xb 10240";; t30x4) echo "--xb 30720";; t30f) echo "--feat";; esac; }
-smoke_mem() { case $1 in t30x2) echo ${SMOKE_MEM_t30x2:-30};; t30x4) echo ${SMOKE_MEM_t30x4:-42};; *) echo 20;; esac; }
+smoke_mem() { case $1 in t30x2) echo ${SMOKE_MEM_t30x2:-30};; t30x4) echo ${SMOKE_MEM_t30x4:-43};; *) echo 20;; esac; }
+margin() { local m; m=$(head -1 "$D/$1/MARGIN" 2>/dev/null | tr -d ' '); case $m in ''|*[!0-9]*) m=8;; esac; echo $m; }
 avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 avail_min() { local a b c; a=$(avail_gb); sleep 20; b=$(avail_gb); sleep 20; c=$(avail_gb)
   [ $b -lt $a ] && a=$b; [ $c -lt $a ] && a=$c; echo $a; }
@@ -54,7 +63,7 @@ run_job() {   # label MEM cmd...: under the shared lock, with the yield / swap /
   local lab=$1 mem=$2; shift 2
   echo "$$ $mem $lab" > "$SLOT_STATE/arm.mem"; slot_lock
   local s0; s0=$(swap_mb); Y=""
-  say "$lab: starts${JOBNOTE:+ $JOBNOTE} ($(gate_state))"; JOBNOTE=""
+  say "$lab: starts${JOBNOTE:+ $JOBNOTE} ($(gate_state); needed $NEEDGB)"; JOBNOTE=""
   taskpolicy -b "$@" >> "$RLOG" 2>&1 &
   local tp=$!
   while kill -0 $tp 2>/dev/null; do
@@ -87,7 +96,7 @@ stop_capture() {   # its launcher first (so it cannot start a new try), then the
 
 say "start (pid $$; arms $ARMS; OLD_PID ${OLD_PID:-none}; GO file $GO; stop file $STOP)"
 if [ -n "$DRY" ]; then
-  for x in $ARMS; do say "DRY: $x: $(arm_flags $x); smoke guard $(smoke_mem $x) GB (needs NO-SWAP $(( $(smoke_mem $x) + 8 ))), train guard = ceil(smoke peak) + 2; saved step $(saved_step $x)"; done
+  for x in $ARMS; do say "DRY: $x: $(arm_flags $x); smoke guard $(smoke_mem $x) GB (needs NO-SWAP $(( $(smoke_mem $x) + $(margin $x) )): margin $(margin $x)), train guard $([ -s $D/$x/MEM ] && echo "$(cat $D/$x/MEM) GB (from its smoke)" || echo "= ceil(smoke peak) + 3"); saved step $(saved_step $x)"; done
   say "DRY: now: GO $([ -e $GO ] && echo yes || echo no), old launcher $([ -n "$OLD_PID" ] && kill -0 $OLD_PID 2>/dev/null && echo running || echo gone), dd_ttt $(ttt_running && echo running || echo none), capture $(cap_running && echo running || echo none); $(gate_state)"
   say "(the lines above were a DRY=1 check, not a run)"; exit 0
 fi
@@ -110,11 +119,12 @@ for x in $ARMS; do
     [ -e "$STOP" ] && { say "STOP_SLOT: done (the capture stays stopped)"; exit 0; }
     need=$MEM; [ $phase = eval ] && need=12
     n=0
-    until gates_clear && [ "$(avail_min)" -ge $((need + 8)) ] && gates_clear; do   # the gates again after the 40-s read
+    until gates_clear && [ "$(avail_min)" -ge $((need + $(margin $x))) ] && gates_clear; do   # gates again after the 40-s read
       [ -e "$STOP" ] && { say "STOP_SLOT: done (the capture stays stopped)"; exit 0; }
-      [ $((n % 30)) -eq 0 ] && say "$x $phase waits: $(gate_state); needs $((need + 8)) GB"
+      [ $((n % 30)) -eq 0 ] && say "$x $phase waits: $(gate_state); needs $((need + $(margin $x))) GB ($need + margin $(margin $x))"
       n=$((n + 1)); sleep 60
     done
+    NEEDGB="$((need + $(margin $x))) GB = $need + margin $(margin $x)"
     case $phase in
       smoke)
         L0=$(wc -l < "$RLOG" 2>/dev/null || echo 0)
@@ -125,7 +135,7 @@ for x in $ARMS; do
         pk=$(echo "$out" | grep -oE "DONE smk_$x: .*peak [0-9.]+ GB" | grep -oE "peak [0-9.]+" | awk '{print $2}')
         if [ $RC -eq 0 ] && [ -n "$pk" ] && ! echo "$out" | grep -q DIFFERENT && echo "$out" | grep -q "smoke: b5's loss.*EQUAL" \
            && echo "$out" | grep -q "zero-init.*EQUAL"; then
-          MEM=$(awk -v p="$pk" 'BEGIN {c = int(p); if (c < p) c++; print c + 2}')
+          MEM=$(awk -v p="$pk" 'BEGIN {c = int(p); if (c < p) c++; print c + 3}')   # + 3 since Sat 01:2x (t30x2's was + 2)
           echo $MEM > $D/$x/MEM; touch $D/$x/SMOKE_OK; phase=train
           say "$x smoke OK (peak $pk GB -> train guard $MEM GB): $chk"
         else
