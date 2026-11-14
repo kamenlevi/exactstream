@@ -28,3 +28,24 @@ Written before the run. The orchestrator's design (15:1x), after t30x4 = HURTS a
 |---|---|---|
 | REOPENS | t30x2c <= 0.95 x t30b, lower on >= 60 % of the steps | Capacity reopens: pre-register a full x2 arm at lr 1e-5 with a stop line at 10-25 % of its steps vs t30b's per-step KL; x4 after it only if x2 pays. |
 | CLOSED | anything else (within 5 %, or above) | Capacity is closed for the week. The week's levers are what the drafter sees (taps, fresher features) and the ceiling's verdict. |
+
+## Result (Sat 14 Nov 16:31): CLOSED. At the head's lr, the x2 branch tracks t30b step for step
+- t30x2c trained from b5 for 201 steps alone (16:05:41-16:31:54; MLX peak 24.0 GB). It was stopped by a SIGTERM at step
+  200 and saved.
+- Paired by step against t30b's saved per-step KL:
+
+  | steps | t30x2c / t30b | t30x2c lower on | (t30x2 at 10x lr) |
+  |---|---|---|---|
+  | 1-20 | 1.024 | 50 % | +203 % |
+  | 21-100 | 1.004 | 52 % | +95 % |
+  | 101-200 | 1.016 | 46 % | +30 % (101-400) |
+
+- **Spike check:** 1.024 <= 1.20. The 10x-lr spike is gone, which confirms the confound found by TAPSQ's smoke.
+- **Line:** 1.016 over steps 101-200 (REOPENS needs <= 0.95 and lower on >= 60 %), so **CLOSED**.
+- **What it means:**
+  - Trained right, twice the reader learns no faster per step than t30b. Bigger models normally learn faster per
+    step, so size isn't the wall at this data size.
+  - Together with t30x2 / t30x4 (confounded, both below t30b) and CEILING = LEARNABLE, the week's levers are what the
+    drafter sees and how fresh it is (FRESH-H next).
+- Caveat: 200 steps only see whether the bigger arm learns faster early, which Kamen's stop-line rule reads as enough.
+  A late-blooming capacity gain isn't excluded, and isn't this week's bet.

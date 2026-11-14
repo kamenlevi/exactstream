@@ -129,5 +129,33 @@ don't care about that. I just need to get that."
      control, MBPP 23-30. It goes on if it recovers >= half the gap toward MBPP's lag-2 93.5.
   2. Then a re-prefill with raw taps on every row: per-layer freshness (what a cheap partial trunk pass buys), plus the
      anchor raw-taps item from the same data.
+- Sat 14 16:31: **CAPQ = CLOSED** (clean capacity retest). The x2 branch at lr 1e-5 has a clean start (steps 1-20 KL
+  1.024x t30b, against the 10x-lr arm's +203 %). Over steps 101-200 its KL is 1.016x t30b's, lower on 46 % (REOPENS
+  needed <= 0.95 on >= 60 %). Capacity is closed for the week. The lr confound explained the spikes, not the result.
+- Sat 14 16:44: **FRESH-H = FLAT**. The true fused h at every drafted row through a zero-init additive adapter (lr
+  1e-5, 80 steps) gives MBPP 23-30 70.09 vs C 72.06 (-1.97). WORKS needed 82.78.
+  - Read narrowly: the short adapter didn't learn to use a new input. Law 2's 93.5 % used the reader's native trunk
+    state (wd).
+  - Next (orchestrator -> BigMoE, no head training):
+    1. a TRUE-WD replacement eval, which should reproduce Law 2 in our harness;
+    2. a ridge map h -> wd (and later layer-L taps -> wd) fed as a replacement, giving the per-layer freshness curve
+       without adapter training.
+- Sat 14 16:52: **LEAD: REPLACE-H = CARRIES** (BigMoE cc53cb5, t30b unchanged, no training, MBPP 100).
+  - At 23-30, t30b's own chain gives 72.13. With the stand-in replaced by M(true h), a ridge from DFlash2's fused h to
+    wd (R2 0.80), it gives **91.20**. With the true wd (the gate, which reproduces Law 2) it gives 93.63.
+  - The M(h) bands are flat with depth: 94.01 / 91.78 / 91.60 / 91.46 / 91.34 / 91.28 / 91.20. Kept per 32 goes
+    6.92 -> 10.55 (oracle 12.76).
+  - Freshness is the lever, confirmed. Open: its cost, since h needs trunk layers up to 45 per drafted token.
+  - Next: the re-prefill (raw taps) gives the per-layer freshness curve ({5}, {5,15}, {5,15,25}, all) (BigMoE).
+    Leap prices a partial trunk pass per L at 45 / 24 GB, with the break-even kept per check.
+- Sat 14 17:01: **Leap's trunk pricing** (5bc983d, data/week98/README.md, trunk_price.txt).
+  - A fresh partial trunk pass PER drafted token doesn't pay: ~0.62 ms per layer even for 1 row (CPU graph build).
+    45 GB L 5 adds ~101 ms per check and needs kept 27.8 HE+ / 13.9 MBPP to break even; L >= 15 is impossible.
+  - BLOCK refresh does: a k-row pass costs about a 1-row pass. At 45 GB, k = 8: L5 +11 ms (break-even 15.3 / 7.7),
+    L15 +27 ms (17.6 / 8.8), L25 +43 ms (19.8 / 9.9), L45 +76 ms (24.3 / 12.2). L45 at k = 16 adds +23 ms (17.0 / 8.5).
+  - Side note: t30b at a 32-row check (~100 ms at 45 GB) gives ~138 / 69 tok/s, below the shipped 16-row lossy-45 loop's
+    164 / 113. The deep drafter also needs the cheap check.
+  - Next: the (L, k) block-refresh sweep in the REPLACE-H harness after LAYERS. The cheapest (L, k) over its break-even
+    is the method's cost-feasible point.
 > (a quote from the project owner, kept private)
   generality added (orchestrator).

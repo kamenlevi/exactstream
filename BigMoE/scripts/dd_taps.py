@@ -18,7 +18,9 @@ A quick test, not a run (docs/PREREG_DEEPDRAFT_TAPSQ_2026-11-14.md has the lines
   depths 24-30 (the eval's bands 0 and 23-29).
 - eval: MBPP 100 (d1102mbpp, which has h) depth bands per run, as dd_ttt.py's eval, plus per-window counts for a paired
   comparison. (The 24 HumanEval+ windows, d16w, have no h.)
-usage: dd_taps.py smoke | train --arm C|T|R [--steps 80] | eval --runs t30b,tq_C,tq_T
+usage: dd_taps.py smoke | train --arm C|T|R|F [--steps 80] | eval --runs t30b,tq2_C,tq2_T
+FRESH-H (16:1x, the orchestrator's step 1): arm F = the tap fed the TRUE h at every drafted row (depth >= 2), not
+at the target rows; run names ending _F are scored the same way.
 """
 import argparse, glob, json, os, signal, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -35,21 +37,40 @@ OUT = os.path.expanduser("~/BigMoE/data/deepdraft/tapsq")
 SPLIT = os.path.join(OUT, "split.json")
 PINNED = os.path.expanduser("~/BigMoE/data/deepdraft/ttt30b/split.json")
 START, DEPTH, ROWS, WDECAY, SEED, HW = "t30b", 30, 192, 0.97, 1114, 2560
-TAPS = {"H": None, "armed": False}
+TAPS = {"H": None, "armed": False, "mode": "anchor", "k": 0, "a0": 0}
 
 _fuse = T.fuse
 
 
 def fuse_taps(head, P, Win, emb):
-    """T.fuse, plus xb_tap(h) on the chain's first call (the target rows W); later calls (drafted rows) are unchanged"""
+    """T.fuse plus xb_tap(h).
+    - mode "anchor" (TAPSQ): on the chain's first call only, the target rows W.
+    - mode "fresh" (FRESH-H): on every later call, depth j's drafted rows, with the TRUE h of rows a0 + j - 1 onward. On
+      a correct chain (accept-until-fail) that is what a fresh trunk pass over the drafted tokens would give."""
+    if TAPS["armed"] and TAPS["mode"] == "replace":       # REPLACE (16:5x): depth j >= 2 reads rows of TAPS["WR"] (the true wd,
+        k = TAPS["k"]; TAPS["k"] = k + 1                  # or a map's prediction of it) instead of the carried stand-in
+        if k >= 1 and k % TAPS.get("K", 1) == 0:          # BLOCK (17:0x): refresh only every K depths (j = 1 + m K)
+            n = Win.shape[1]; r0 = TAPS["a0"] + k
+            Win = TAPS["WR"][:, r0:r0 + n].astype(Win.dtype)
+        return _fuse(head, P, Win, emb)
     out = _fuse(head, P, Win, emb)
-    if TAPS["armed"]:
-        TAPS["armed"] = False
-        if "xb_tap" in P and TAPS["H"] is not None:
-            B, n, Wd = out.shape
-            add = P.xb_tap(TAPS["H"][:, :n].astype(mx.float32))
-            out = (out.reshape(B, n, head._hc, -1) + add[:, :, None, :]).reshape(B, n, Wd)
-    return out
+    if not TAPS["armed"]:
+        return out
+    k = TAPS["k"]; TAPS["k"] = k + 1
+    if "xb_tap" not in P or TAPS["H"] is None:
+        return out
+    B, n, Wd = out.shape
+    if TAPS["mode"] == "anchor":
+        if k != 0:
+            return out
+        rows = TAPS["H"][:, :n]
+    else:
+        if k == 0:
+            return out
+        r0 = TAPS["a0"] + k                              # call k is depth j = k + 1, which reads row a0 + j - 1
+        rows = TAPS["H"][:, r0:r0 + n]
+    add = P.xb_tap(rows.astype(mx.float32))
+    return (out.reshape(B, n, head._hc, -1) + add[:, :, None, :]).reshape(B, n, Wd)
 
 
 T.fuse = fuse_taps                                                   # T.chain looks fuse up at call time
@@ -102,7 +123,7 @@ def win_at(f, b, r):
 
 def loss_parts(lm, head, P, x):
     """b5's training loss (T.ttt_loss with accept-until-fail), the taps armed when P has xb_tap -> (loss, per-depth KL)"""
-    TAPS["H"], TAPS["armed"] = x.get("H"), "xb_tap" in P
+    TAPS["H"], TAPS["armed"], TAPS["k"], TAPS["a0"] = x.get("H"), "xb_tap" in P, 0, x.get("a0", 0)
     loss, per = T.ttt_loss(lm, head, P, x, DEPTH, WDECAY, True)
     TAPS["armed"] = False
     return loss, mx.stack(per)
@@ -159,7 +180,8 @@ def cmd_train(a):
     run = f"{a.tag}_{a.arm}"
     rt, lm, head = M.load(a.frac)
     P = M.Trainable(head)
-    load_start(P, a.arm in ("T", "R"))
+    load_start(P, a.arm in ("T", "R", "F"))
+    TAPS["mode"] = "fresh" if a.arm == "F" else "anchor"
     P.freeze(); P.unfreeze()
     tr = split_files()
     sl = DD.pass_slices(tr, ROWS, SEED)[:a.steps]
@@ -230,6 +252,7 @@ def cmd_eval(a):
         set_tap(P, "xb_tap.weight" in wts)
         P.load_weights(list(wts.items())); mx.eval(P.parameters())
         shuf = run.endswith("_R")
+        TAPS["mode"] = "fresh" if run.endswith("_F") else "anchor"
         rng = np.random.default_rng(SEED + 1)
         band = {b: [0, 0] for b in BANDS}; per_win = []; kept = []
         for f in items:
@@ -240,7 +263,7 @@ def cmd_eval(a):
             H = h_of(z, len(x["ids"]))
             TAPS["H"] = shuffle_rows(H, rng) if shuf else H
             gen = int(z["gen"]); a0 = max(0, gen - 2)
-            TAPS["armed"] = "xb_tap" in P
+            TAPS["armed"], TAPS["k"], TAPS["a0"] = "xb_tap" in P, 0, a0
             hits = T.chain_hits(lm, head, P, x, 31, a0)
             TAPS["armed"] = False
             n = len(x["ids"]) - 1 - a0
@@ -264,17 +287,73 @@ def cmd_eval(a):
     json.dump(R, open(os.path.join(OUT, a.out_name), "w"))
 
 
+def cmd_evalrep(a):
+    """REPLACE (docs/PREREG_DEEPDRAFT_REPLACE_2026-11-14.md): t30b (or --runs) on MBPP 100 with the carried stand-in replaced
+    at every drafted row (depth >= 2) by the true wd (--replace wd: Law 2's setting) or by a ridge map of the true h
+    (--replace pred --ridge FILE). No head training."""
+    rt_, lm, head = M.load(a.frac)
+    P = M.Trainable(head)
+    items = sorted(glob.glob(os.path.join(T.TD, "dlog/d1102mbpp/dlog__mbpp*.npz")))[:100]
+    if a.replace in ("pred", "rawmap"):
+        rg = np.load(a.ridge)
+        Wm, xm, ym = mx.array(rg["W"]), mx.array(rg["xm"]), mx.array(rg["ym"])
+        cols = rg["cols"] if "cols" in rg.files else None
+    R = {}
+    for run in a.runs.split(","):
+        set_tap(P, False)
+        P.load_weights(os.path.join(CKD, f"dd_{run}.safetensors")); mx.eval(P.parameters())
+        band = {b: [0, 0] for b in BANDS}; kept = []
+        for f in items:
+            while os.path.exists(T.PAUSE):
+                time.sleep(1)
+            z = np.load(f)
+            x = {"W": mx.array(z["wd"]).astype(mx.bfloat16)[None], "ids": np.asarray(z["ids"], np.int32)}
+            if a.replace == "wd":
+                WR = x["W"]
+            elif a.replace in ("rawwd", "rawmap"):     # LAYERS: the re-prefilled wd, or a map of a layer set's raw taps
+                rz = np.load(os.path.join(os.path.expanduser("~/datasets/deepdraft/rawtaps"), os.path.basename(f)))
+                if a.replace == "rawwd":
+                    WR = mx.array(rz["wd"]).astype(mx.bfloat16)[None]
+                else:
+                    Xr = mx.array(np.asarray(rz["raw"])[:, cols]).astype(mx.float32)
+                    WR = (((Xr - xm) @ Wm) + ym).astype(mx.bfloat16)[None]
+            else:
+                Hf = h_of(z, len(x["ids"]))[0].astype(mx.float32)
+                WR = (((Hf - xm) @ Wm) + ym).astype(mx.bfloat16)[None]
+            gen = int(z["gen"]); a0 = max(0, gen - 2)
+            TAPS["mode"], TAPS["WR"], TAPS["armed"], TAPS["k"], TAPS["a0"], TAPS["K"] = "replace", WR, True, 0, a0, a.refresh
+            hits = T.chain_hits(lm, head, P, x, 31, a0)
+            TAPS["armed"], TAPS["mode"] = False, "anchor"
+            n = len(x["ids"]) - 1 - a0
+            rt = np.full((n, 31), -1, np.int8)
+            for j, (right, _am) in enumerate(hits):
+                rt[:len(right), j] = np.asarray(right).astype(np.int8)
+            for lo, hi in BANDS:
+                c = rt[:, lo:hi + 1]; band[(lo, hi)][0] += int((c == 1).sum()); band[(lo, hi)][1] += int((c >= 0).sum())
+            kept += DD.kept_walk(rt, max(0, gen - 1 - a0))
+            mx.clear_cache()
+        key = f"{run}+{a.replace}" + (f"+{os.path.basename(a.ridge)[:-4]}" if a.replace == "rawmap" else "") + (f"+k{a.refresh}" if a.refresh > 1 else "")
+        R[key] = {f"{lo}-{hi}": band[(lo, hi)][0] / max(band[(lo, hi)][1], 1) for lo, hi in BANDS}
+        R[key]["kept_per_32"] = float(np.mean(kept)) if kept else None
+        print(f"[rep] {key} mbpp: " + " ".join(f"{b}:{100 * v:.2f}" for b, v in R[key].items() if "-" in b)
+              + f"; kept/32 {R[key]['kept_per_32']:.2f}", flush=True)
+    R["mlx_peak_gb"] = mx.get_peak_memory() / 1e9
+    os.makedirs(OUT, exist_ok=True)
+    json.dump(R, open(os.path.join(OUT, a.out_name), "w"), indent=1)
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["smoke", "train", "eval"])
-    ap.add_argument("--arm", choices=["C", "T", "R"]); ap.add_argument("--steps", type=int, default=80)
+    ap.add_argument("cmd", choices=["smoke", "train", "eval", "evalrep"])
+    ap.add_argument("--arm", choices=["C", "T", "R", "F"]); ap.add_argument("--steps", type=int, default=80)
     ap.add_argument("--lr", type=float, default=1e-6); ap.add_argument("--tap-lr-mult", dest="tap_lr_mult", type=float, default=1.0)
     ap.add_argument("--tap-lr", dest="tap_lr", type=float, default=1e-5); ap.add_argument("--tag", default="tq2")
     ap.add_argument("--fresh-opt", dest="warm_opt", action="store_false", help="the void run's fresh Adam (tq_)")
     ap.add_argument("--frac", type=float, default=0.03); ap.add_argument("--peak-max", dest="peak_max", type=float, default=22.0)
+    ap.add_argument("--replace", choices=["wd", "pred", "rawwd", "rawmap"], default="wd"); ap.add_argument("--refresh", type=int, default=1); ap.add_argument("--ridge", default=os.path.join(CKD, "ridge_h2wd.npz"))
     ap.add_argument("--runs", default="t30b,tq2_C,tq2_T"); ap.add_argument("--out-name", dest="out_name", default="eval2.json")
     a = ap.parse_args()
-    {"smoke": cmd_smoke, "train": cmd_train, "eval": cmd_eval}[a.cmd](a)
+    {"smoke": cmd_smoke, "train": cmd_train, "eval": cmd_eval, "evalrep": cmd_evalrep}[a.cmd](a)
 
 
 if __name__ == "__main__":

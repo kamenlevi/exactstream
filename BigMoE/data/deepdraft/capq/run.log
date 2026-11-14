@@ -1,0 +1,26 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=28.8 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[dd] start from b5 (TrainLab ckpt d22_b5, read-only)
+[dd] train t30x2c: 2164 files (val 113 held out), 4206 steps, depth 30, rows 192, lr 1e-05, wdecay 0.97, AUF; 147.8M trainable; loaded in 1s; one pass = 4206 slices (572381 anchors), seed 1113; branch 10240 wide, lr x1.0
+[dd] step 1/4206 loss 0.3510 (mean of last 20 0.3510); 6.2s/step, peak 22.4 GB
+[dd] step 2/4206 loss 0.6041 (mean of last 20 0.4775); 8.0s/step, peak 23.9 GB
+[dd] step 3/4206 loss 0.2029 (mean of last 20 0.3860); 5.7s/step, peak 23.9 GB
+[dd] step 20/4206 loss 0.4475 (mean of last 20 0.3616); 6.4s/step, peak 24.0 GB
+[dd] step 40/4206 loss 0.2879 (mean of last 20 0.4326); 10.2s/step, peak 24.0 GB
+[dd] step 60/4206 loss 0.4525 (mean of last 20 0.4492); 10.4s/step, peak 24.0 GB
+[dd] step 80/4206 loss 0.3282 (mean of last 20 0.4187); 6.4s/step, peak 24.0 GB
+[dd] step 100/4206 loss 0.3074 (mean of last 20 0.3736); 10.0s/step, peak 24.0 GB
+[dd] step 120/4206 loss 0.3215 (mean of last 20 0.4290); 5.8s/step, peak 24.0 GB
+[dd] step 140/4206 loss 0.2715 (mean of last 20 0.4086); 6.8s/step, peak 24.0 GB
+[dd] step 160/4206 loss 0.3945 (mean of last 20 0.4120); 8.2s/step, peak 24.0 GB
+[dd] step 180/4206 loss 0.3511 (mean of last 20 0.3613); 6.6s/step, peak 24.0 GB
+[dd] step 200/4206 loss 0.4095 (mean of last 20 0.3819); 7.2s/step, peak 24.0 GB
+[dd] stopped at step 201: saved
+CAPQ: t30x2c vs t30b, paired by step, 200 steps
+  steps 1-20: t30x2c/t30b = 1.024; lower on 50 %
+  steps 21-100: t30x2c/t30b = 1.004; lower on 52 %
+  steps 101-200: t30x2c/t30b = 1.016; lower on 46 %
+spike check: steps 1-20 ratio 1.024 (<= 1.20); line: steps 101-200 ratio 1.016 (REOPENS <= 0.95, lower on >= 60 %: 46 %)
+CAPQ VERDICT: CLOSED

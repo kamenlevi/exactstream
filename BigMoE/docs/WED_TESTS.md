@@ -1853,3 +1853,29 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
     (-0.63), per-window sign test p 0.91.
   - DFlash2's fused taps don't help the MTP head in a short warm-started test.
   - Next, as pre-registered: the raw 5 x 2560 taps (a re-prefill, ~20 min, the 125B alone), after CAPQ.
+
+## Sat 14 Nov 16:05-16:31: DEEPDRAFT CAPQ, a clean capacity retest (PREREG 37447df): CLOSED (data/deepdraft/capq/)
+- **What ran:** t30x2's 2x branch at the head's lr (not 10x), 200 steps from b5 on t30b's slices and schedule. It is
+  compared with t30b's saved per-step KL.
+- **Spike gone:** 1.024x t30b over steps 1-20 (the 10x-lr t30x2: +203 %).
+- **Learning:** 1.004x over 21-100 and 1.016x over 101-200 (lower on 46 %). REOPENS needed <= 0.95, so CLOSED.
+- **Meaning:** trained right, twice the reader learns no faster than t30b, so capacity is closed for the week. The
+  TTT30C capacity verdicts were confounded by the 10x-lr spike; this retest settles it.
+
+## Sat 14 Nov 16:32-16:44: DEEPDRAFT FRESH-H, fresh trunk features inside the chain (PREREG 8396b94): FLAT, in fact worse (data/deepdraft/tapsq/)
+- **What ran:** TAPSQ2's valid harness. The zero-init tap was fed the TRUE fused h at every drafted row (what a fresh
+  trunk pass over correct drafts gives), against the control tq2_C, for 80 steps.
+- **Result:** MBPP 23-30 F 70.09 vs C 72.06 (-1.97 pt; per window 13 better / 64 worse, p < 0.001). Band 0 is
+  unchanged (+0.02), and the loss grows with depth.
+- **Meaning:** an additive input can't hand the head a fresh state; it perturbs the carried stand-in and compounds.
+  Next (eval-only): replace the stand-in with a linear map of the true h, and see how much of Law 2's 93.5 it
+  recovers.
+
+## Sat 14 Nov 16:49-16:53: DEEPDRAFT REPLACE-H, fresh state by replacement, no head training (PREREG 545c0ce): CARRIES (data/deepdraft/tapsq/)
+- **What ran:** t30b, unchanged, on MBPP 100, with its carried stand-in replaced at every drafted row by the true trunk
+  stream (the oracle) or by a linear ridge map of the true fused multi-layer h (validation R2 0.80).
+- **Oracle (the gate):** 93.63 % at 23-30, flat with depth. It reproduces Law 2, so the harness is valid.
+- **M(h): 91.20 % at 23-30**, against t30b's own 72.13. That is 89 % of the depth gap, with no head training. It is nearly
+  flat with depth (91.8 -> 91.2), and kept per 32 rises 6.92 -> 10.55.
+- **Meaning:** freshness is WEEK98's lever. The cost question is next: the re-prefill and a per-layer ridge (layer 5,
+  5+15, ...) give what a cheap partial trunk pass buys.
