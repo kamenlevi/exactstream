@@ -1,0 +1,107 @@
+Powered by MTPLX
+https://github.com/youssofal/mtplx
+config lossy-24 (configs/lossy-24.env), C 100, cap 256, snapshot w24p2, 4 prompt(s): humaneval/HumanEval/68, humaneval/HumanEval/16, humaneval/HumanEval/91, humaneval/HumanEval/6; drafter base incoai/Qwen3.8-Flash-Next-DFlash2 @ a22a174
+[transformers] PyTorch was not found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
+
+=== humaneval/HumanEval/68 [gate+t, code, drafter dfl] 256 tokens
+```python
+def pluck(arr):
+    """
+    "Given an array representing a branch of a tree that has non-negative integer nodes
+    your task is to pluck one of the nodes and return it.
+    The plucked node should be the node with the smallest even value.
+    If multiple nodes with the same smallest even value are found return the node that has smallest index.
+
+    The plucked node should be returned in a list, [ smalest_value, its index ],
+    If there are no even values or the given array is empty, return [].
+
+    Example 1:
+        Input: [4,2,3]
+        Output: [2, 1]
+        Explanation: 2 has the smallest even value, and 2 has the smallest index.
+
+    Example 2:
+        Input: [1,2,3]
+        Output: [2, 1]
+        Explanation: 2 has the smallest even value, and 2 has the smallest index. 
+
+    Example 3:
+        Input: []
+        Output: []
+    
+    Example 4:
+        Input: [5, 0, 3, 0, 4
+
+=== humaneval/HumanEval/16 [gate+t, code, drafter dfl] 81 tokens
+```python
+def count_distinct_characters(string: str) -> int:
+    """ Given a string, find out how many distinct characters (regardless of case) does it consist of
+    >>> count_distinct_characters('xyzXYZ')
+    3
+    >>> count_distinct_characters('Jerry')
+    4
+    """
+    return len(set(string.lower()))
+```
+
+=== humaneval/HumanEval/91 [gate+t, code, drafter dfl] 256 tokens
+```python
+def is_bored(S):
+    """
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word "I".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored("Hello world")
+    0
+    >>> is_bored("The sky is blue. The sun is shining. I love this weather")
+    1
+    """
+    import re
+    # Split the string by sentence delimiters (. ? !), but keep the delimiters
+    # We need to split on these characters and then check each sentence
+    # A simpler approach: split on the delimiters, then check each part
+    
+    # Split the string into sentences using regex to split on . ? !
+    # But we need to handle the case where the last sentence might not have a delimiter
+    # Let's use re.split to split on [.?!] and then filter out empty strings
+    
+    sentences = re.split(r'[.?!]', S)
+    
+    count = 0
+    for sentence in sentences:
+        # Strip whitespace
+        sentence
+
+=== humaneval/HumanEval/6 [gate+t, code, drafter dfl] 214 tokens
+```python
+from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """ Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """
+    groups = paren_string.split()
+    result = []
+    for group in groups:
+        max_depth = 0
+        current_depth = 0
+        for char in group:
+            if char == '(':
+                current_depth += 1
+                if current_depth > max_depth:
+                    max_depth = current_depth
+            elif char == ')':
+                current_depth -= 1
+        result.append(max_depth)
+    return result
+```
+
+whole decode 106.9 tok/s | whole request 40.6 tok/s | first token 2.56 s (2.13-5.06) | lifetime peak 23.91 GB | 4 prompt(s), 807 tokens, process wall 43 s (load + warm-up included)
+tokens: /Users/kamen/Leap/data/week98/cc3/b24/cli_1114_211646_tokens.json; log: /Users/kamen/Leap/data/week98/cc3/b24/cli_1114_211646.log; module manifest: /Users/kamen/Leap/data/week98/cc3/b24/cli_1114_211646_modules.json

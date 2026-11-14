@@ -1918,3 +1918,13 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
   - with the true stream at every drafted row, 97.76, flat with depth (band 0 97.95), kept per 32 13.77 -> 20.90;
   - with the layer-45 map, 96.40.
   - A fresh state takes the deep guesses to the first guess's ~98 %.
+
+## Sat 14 Nov 21:34-22:02: CAPQ read-out (amendment 1, 2d55517): CLOSED stands by the line; a small depth-growing capacity signal (data/deepdraft/capq/readout/)
+- **Why a read-out:** Sandbox98 found the AUF training loss is survival-weighted, so a better-chaining arm can read a
+  higher loss.
+- **What ran:** t30b's first 200 steps re-run (t30bc) vs the clean x2-capacity arm at 200 (t30x2c), both on MBPP 100.
+- **Result:** 23-30 58.18 -> 59.39 (+1.20); the gain grows with depth (+0.2 at 3-6, +0.85 at 11-14). Kept per 32
+  +0.04 (5.65 -> 5.69).
+  - REOPENS needed +1.0 AND kept +0.1, so CLOSED stands.
+  - But x2c's higher training loss (1.016x) hid a better deep read-out, exactly the survival-weighting effect.
+- The re-run isn't bitwise t30b (loss max abs diff 0.14). Training isn't exactly reproducible here.

@@ -54,6 +54,11 @@ don't care about that. I just need to get that."
 - **Paired small evals for screens:** e.g. 30 MBPP windows with a per-window sign test. The full set only confirms.
 - **Batches, not single tests:** write 5-10 screens at once, each with its result -> action line, and run them back to
   back in one runner. No agent turn between tests.
+> (a quote from the project owner, kept private)
+  the control measurably moves; below it, NO EFFECT means untested (Sandbox98's 300-step lesson).
+  - Screen at depth ~12 instead of 30 (~2.5x cheaper per step); confirm winners at 30.
+  - Train the control plus 2-3 levers in ONE process on shared slices.
+  - Continue the base's saved Adam state at its own lr (no drift).
 - **Parallel:** CPU screens across sessions while the GPU does one confirmation at a time. Fans up for SSD-heavy
   chains when Kamen OKs.
 
@@ -247,6 +252,39 @@ don't care about that. I just need to get that."
   - So a learned stand-in needs noise-like errors, not exactness. The PROXY's R2 calibration must be per predictor
     family.
   - Screens now run on the sandbox (control + the t30f feature-loss transfer first), minutes each.
+- Sat 14 22:0x: **CAPQ read-out** (BigMoE 24e7758): CLOSED stands by its line, but the loss-only reading was wrong in
+  kind.
+  - t30x2c@200 vs t30bc@200 on MBPP 100, by band: 0 -0.09, 3-6 +0.20, 7-10 +0.44, 11-14 +0.85, 15-22 +1.00, 23-30 +1.20
+    (58.18 -> 59.39). Kept/32 +0.043; REOPENS needed +1.0 AND +0.1.
+  - The AUF loss read 1.6 % WORSE while the deep read-out is better and the gain grows with depth: survival weighting,
+    confirmed.
+  - Capacity buys a small depth-growing gain (~+1 pt at 23-30 in 200 steps). It's tiny next to the oracle (+21.5 MBPP /
+    +8.1 HE+); not the week's bet, though it may compound with stand-in work.
+  - Harness: re-running t30b's first 200 steps today doesn't reproduce its saved losses bitwise (max abs 0.143). Paired
+    arms must run on the same code and day.
+  - BigMoE's night chain is done (BANK + PROXY, routing Step 0 to Leap 64c9d2d, CAPQ). The capture stays stopped.
+- Sat 14 21:33: **Sandbox98's three learned-stand-in screens** (36e531d; 300 steps at lr 2e-6; MBPP-50 / HE-30 23-30
+  against a control that held, 55.96 / 68.34):
+  - distill (KL to the head's own true-state output): -0.13 / -0.15, nothing moved;
+  - headfeat (stand-in pulled to the true state in head space): -1.50 (p 0.013) / -0.45, a real small LOSS;
+  - noisehead: n.s. at depth; depth 0 +0.29 (p < 0.05).
+  - **Budget caveat:** the control itself moved only +0.5 pt from s30 in 300 steps, so distill is UNTESTED, not
+    refuted. Rule: training levers need a budget at which the control measurably moves.
+  - Next (now, Sandbox98): re-train s30 with its Adam state saved, then 1,000-step screens continuing that state at the
+    base lr (distill first).
+- Sat 14 21:2x: **Leap screen 3, lossy-24 part** (4d9322e, data/week98/cc3/README.md; High Power Mode; within-run).
+  - The live 13-row check is 81.5 ms. Its split at 13 rows: dense 23.9 + experts/misses 53.7 (130 misses, 23.9 ms SSD).
+    Dense at 13 rows is CPU-bound (18 of 23 ms is graph build).
+  - Dense-only 32 rows: 181 ms. CORRECTED (Leap 21:3x, 76edc07): this is lossy-24's DENSE-N-RAM unpacking every dense
+    weight per call above 16 rows (counter: 2592 = 24 passes x 108 weights), not GDN / attention. Fix candidate: in
+    verify scope, run 17-32 rows as two 16-row native calls (exact per row, no unpack); not built until the 24 GB gate
+    carries 32 rows. exact-45 (no DNR) will show the real GDN / attention cost above 16 rows. A real 32-row pass on the
+    slot path: 2.81 s, mostly graph build.
+  - At 24 GB a 32-row check costs 34.5x a 13-row one. Even with a widened gate, the non-expert 32-row path alone is
+    2.2x a whole 13-row check. The 24 GB line keeps <= 13-row checks.
+  - Deep drafting needs real engine work for 17-32 rows: (1) a gate widened to 320 ids, (2) a GDN / attention path for
+    17-32 rows (now a time cost, not only memory), (3) kernels. That's next week's build, BigMoE's spec.
+  - exact-45 waits for 47 GB until 01:00.
 - Sat 14 21:1x: **BANK + PROXY ready** (BigMoE 5786e5e; usage in ~/BigMoE/data/deepdraft/bank/PROXY.md).
   - Ridge calibration, MBPP 23-30 (real REPLACE): tap5 46.11, 5+15 51.16, 5+15+25 59.69, tap45 91.96, all 91.88,
     oracle 93.63. The direction error is the primary measure.

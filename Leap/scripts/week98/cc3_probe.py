@@ -16,7 +16,16 @@ the same calls its warm split uses; the real check runs after the probe as alway
 that nothing leaked. Output: one JSON line per probe check to CC3_OUT.
 Env: CC3_OUT (jsonl path, required), CC3_PASSES (default "d1,d16,d32,s32"), CC3_S32 (real 32-row passes per prompt,
 default 1). A pass that raises is written to CC3_OUT with its error and re-raised: the run stops rather than go on
-with a cache that a half-built pass may have left inconsistent (the runner then retries with fewer passes)."""
+with a cache that a half-built pass may have left inconsistent (the runner then retries with fewer passes).
+v2 (21:1x, after screen 3's lossy-24 runs died at start-up: the 24 GB loop asserts R57_ROWCAP and R57_WARMSPLIT exclusive):
+  CC3_EVERY=N     with no warm split (WARMSPLIT 0), probe every Nth check itself (the loop's own rule: len(kept) >= 2 and
+                  len(kept) % N == 0). d16 is then the check's OWN rows (<= 13 at 24 GB). The stub passes load nothing, so
+                  the live check right after the probe is as cold as any: the report takes experts + misses = that live
+                  check (checks.json index ci, with its misses and SSD wait) - d16. The loop resets its fast gate (FG, QOM)
+                  after every check, so s32 here runs with FG off: no QOM, exact expert reads (labelled so).
+  CC3_REFLOOSE=1  if the run has left the REF2 row (lossy modes), still take 32 rows of REF2's continuation from the same
+                  position (realistic text, not this run's): the record says loose=True. ref_ok stays the strict test.
+  Every record carries trig ("wsp" / "own") and ci (the check's index = len(kept), its slot in checks.json)."""
 import json
 import os
 import time
@@ -29,7 +38,22 @@ def install(g):
     S["n_s32"] = int(os.environ.get("CC3_S32", "1"))
     S["passes"] = set(os.environ.get("CC3_PASSES", "d1,d16,d32,s32").split(","))
     S["keymap"] = None                                   # REFROWS is defined after the loop installs the probe: built at first use
+    S["every"] = int(os.environ.get("CC3_EVERY", "0") or 0)   # v2: own trigger when the loop runs no warm split
+    S["loose"] = os.environ.get("CC3_REFLOOSE") == "1"        # v2: REF2's continuation even after the run left REF2
     os.makedirs(os.path.dirname(S["out"]) or ".", exist_ok=True)
+
+
+def _trig(g, l):
+    if l.get("mtp"):
+        return None
+    if l.get("wsp"):
+        return "wsp"
+    ev = S["every"]
+    if ev and not g.get("WARMSPLIT"):
+        k = len(l.get("kept") or ())
+        if k >= 2 and k % ev == 0:
+            return "own"
+    return None
 
 
 def _key(name, g):
@@ -93,7 +117,8 @@ def _pass(g, l, rows, label, stub=False):
 
 
 def maybe(g, l):
-    if not l.get("wsp") or l.get("mtp"):
+    trig = _trig(g, l)
+    if trig is None:
         return 0.0
     key = _key(l.get("name"), g)
     if key is None:
@@ -101,15 +126,18 @@ def maybe(g, l):
     t_start = time.perf_counter()
     tok, dr, out = int(l["tok"]), [int(x) for x in l["dr"]], [int(x) for x in l["out"]]
     want = [int(x) for x in g["REFROWS"].get(key, {}).get("completion_ids", [])]
-    ref_ok = len(want) >= len(out) + 31 and want[:len(out)] == out
-    rec = dict(key=key, n=len(out), rows=len(dr) + 1, ref_ok=ref_ok, passes=[], err=None)
+    have = len(want) >= len(out) + 31
+    ref_ok = have and want[:len(out)] == out
+    loose = have and not ref_ok and S["loose"]
+    rec = dict(key=key, trig=trig, ci=len(l.get("kept") or ()), n=len(out), rows=len(dr) + 1, ref_ok=ref_ok, loose=loose,
+               passes=[], err=None)
     P = S["passes"]
     try:
         if "d1" in P:
             rec["passes"].append(_pass(g, l, [tok], "d1", stub=True))
         if "d16" in P:
             rec["passes"].append(_pass(g, l, [tok] + dr, "d16", stub=True))
-        if ref_ok:
+        if ref_ok or loose:
             r32 = [tok] + want[len(out):len(out) + 31]
             if "d32" in P:
                 rec["passes"].append(_pass(g, l, r32, "d32", stub=True))

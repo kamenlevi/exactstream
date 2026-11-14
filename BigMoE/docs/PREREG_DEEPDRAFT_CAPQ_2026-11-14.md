@@ -68,3 +68,30 @@ Written before the run. The orchestrator's design (15:1x), after t30x4 = HURTS a
 - Other verdicts today don't rest on cross-arm loss alone. TTT30C, TAPSQ2 and FRESH-H were decided on MBPP / HE+
   read-outs; REPLACE-H, LAYERS and COMBO5 were eval-only.
   - TTT30C's stop-line figures (+62.8 % / +18.4 %) are loss-based and information only.
+
+## Result of amendment 1, the read-out (Sat 14 Nov 22:02): CLOSED stands by the line, with a small depth-growing signal
+- t30bc (t30b's first 200 steps, re-run) and t30x2c@200 (the x2 branch at the head's lr) were scored in one MBPP 100 eval
+  (capq/readout/eval.json):
+
+  | band | t30bc@200 | t30x2c@200 | x2c - bc |
+  |---|---|---|---|
+  | 0 | 93.02 | 92.94 | -0.09 |
+  | 1-2 | 86.58 | 86.64 | +0.06 |
+  | 3-6 | 77.21 | 77.41 | +0.20 |
+  | 7-10 | 69.45 | 69.89 | +0.44 |
+  | 11-14 | 65.01 | 65.86 | +0.85 |
+  | 15-22 | 61.33 | 62.33 | +1.00 |
+  | 23-30 | 58.18 | 59.39 | +1.20 |
+  | kept per 32 | 5.649 | 5.692 | +0.043 |
+
+- **The lines:** 23-30 +1.20 pt meets the >= +1.0 half; kept +0.043 misses the >= +0.1 half. **CLOSED stands.**
+- **But the original reading was wrong in kind.**
+  - x2c's AUF loss was 1.6 % HIGHER than t30b's over steps 101-200, while its read-out is better at depth, growing
+    from +0.2 at 3-6 to +1.2 at 23-30.
+  - That is Sandbox98's survival-weighting effect: x2c carries more chains into the deep, high-KL depths.
+  - So at the head's lr, extra capacity gives a small, depth-growing gain at step 200 that the accepted length doesn't
+    yet show. Whether it grows over a full run is open. It isn't this week's bet: the fresh-state oracle is worth +21.5 pt
+    at 23-30 on MBPP and +8.1 on HE+.
+- **Harness check:** t30bc's per-step losses are not bitwise t30b's (max abs diff 0.143 over steps 1-200). The same code
+  from the same start doesn't reproduce a run exactly here: GPU reductions in the backward, or code drift since TTT30B.
+  t30bc is the paired control here, since both ran on today's code.
