@@ -19,6 +19,7 @@ noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /
 swap() { sysctl -n vm.swapusage | sed -E 's/.*used = ([0-9.]+)M.*/\1/' | cut -d. -f1; }
 procs() { ps -axo pid=,args= | awk '/[Pp]ython/ && /r57_screen_|run_map[.]py|fit_onecall[.]py|[ \/](chat|serve|run)[.]py( |$)/ && !/ awk / {printf "%s ", $1}'; }
 lid_closed() { ioreg -r -k AppleClamshellState -d 1 | grep -q '"AppleClamshellState" = Yes'; }
+pmode() { pmset -g | awk '/^ *powermode/ {print $2; exit}'; }   # v4 (the orchestrator 19:1x): 2 = High Power since ~19:15
 parts() { vm_stat | awk '/page size of/ {ps=$8} {v=$NF; sub("[.]","",v)} /^Pages free:/ {f=v} /^Pages purgeable:/ {p=v}
   /^File-backed pages:/ {fb=v} /^Pages speculative:/ {sp=v} /^Anonymous pages:/ {an=v} /^Pages occupied by compressor:/ {c=v}
   END {g=ps/1e9; printf "free %.1f + purgeable %.1f + file-backed %.1f (speculative %.1f inside); anon %.1f, compressor %.1f", f*g, p*g, fb*g, sp*g, an*g, c*g}'; }
@@ -47,7 +48,7 @@ if PEER_QUEUE_TIMEOUT=$TO peer lock quiet --queue 30m "Leap: WEEK98 cheap-check 
 else
   say "the ticket left the queue without a grant"; exit 0
 fi
-GR=$(date +%s); say "granted (NO-SWAP $(noswap) GB); settle 20 s"; sleep 20
+GR=$(date +%s); say "granted (NO-SWAP $(noswap) GB, power mode $(pmode)); settle 20 s"; sleep 20
 S0=$(swap); ( while :; do [ $(( $(swap) - S0 )) -gt 2048 ] && { echo "$(date +%T) SWAP GUARD: $(swap) MB" >> $LOG; kill -TERM $$; exit; }; sleep 5; done ) &
 GUARD=$!
 run() {   # run <tag> <gate GB> <est s> <config> <mem> <passes>
@@ -68,7 +69,8 @@ run() {   # run <tag> <gate GB> <est s> <config> <mem> <passes>
   done
   [ $ok = 1 ] || { say "SKIP $t: NO-SWAP below $gate (its peak + 4) on the lower of two reads 30 s apart; now $(noswap) GB ($(parts))"; RC=skip; return 1; }
   [ $(( $(date +%s) + est )) -gt $CUT ] && { say "SKIP $t: it could end after the cutoff (est $est s)"; RC=skip; return 1; }
-  say "run $t: $cfg-$mem, probe passes $pas (NO-SWAP $(noswap) GB, swap $(swap) MB)"
+  say "run $t: $cfg-$mem, probe passes $pas (NO-SWAP $(noswap) GB, swap $(swap) MB, power mode $(pmode))"
+  echo "power mode $(pmode) at $(date '+%m-%d %H:%M:%S')" > $D/${t}_pmode.txt
   rm -f $D/${t}_probe.jsonl
   ( cd /Users/kamen/Leap && exec env HOME=$H2 HF_HOME=$HFH $CL/.venv/bin/python $CL/run.py --config $cfg --mem $mem --keys $KEYS \
       --max-tokens 256 --env R57_WARMSPLIT=4 --env R57_COPYPROBE=1 --env R57_COPYPROBE_PY=$PROBE \

@@ -26,9 +26,10 @@ guarded() {   # run a command; while another session's quiet lock is held, lapse
     [ -n "$p" ] && { wait $p; return $?; }
   done
 }
-say "waits for the bank build's end"
-until grep -qE "BANK-DONE|the build stopped" "$BL" 2>/dev/null; do sleep 20; done
-grep -q "BANK-DONE" "$BL" || { say "the bank build stopped early: calibration not run"; exit 2; }
+B0=$(wc -l < "$BL" 2>/dev/null || echo 0)                # only the bank log's lines written after this runner started count
+say "waits for the bank build's end (bank.log lines after $B0)"
+until tail -n +$((B0 + 1)) "$BL" | grep -qE "BANK-DONE|the build stopped"; do sleep 20; done
+tail -n +$((B0 + 1)) "$BL" | grep -q "BANK-DONE" || { say "the bank build stopped early: calibration not run"; exit 2; }
 say "1. the proxy cache"
 guarded env VECLIB_MAXIMUM_THREADS=6 $PY scripts/bank_proxy.py cache >> "$LOG" 2>&1 || { say "cache failed"; exit 2; }
 say "2. the calibration maps"

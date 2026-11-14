@@ -238,6 +238,17 @@ don't care about that. I just need to get that."
   - The stop-line rule in RULES.md is fixed to use a quick read-out.
   - Sandbox98 status at 19:00: Qwen3.5-2B + its native MTP head (121.7 MB fetched). lr screen -> base lr 1e-5 (native
     kept/32 3.18, 23-30 only 1.7 %). The base drafter is training; the gate evals follow.
+- Sat 14 19:51: **Sandbox98 validity gate PASS** (~/Sandbox98/results/gate_report.md). Qwen3.5-2B with its MTP head
+  trained 30-deep (s30) reproduces the 125B's day-1 pattern.
+  - MBPP 23-30: chain 57.32 vs depth 0 88.54; true W at every depth 88.35, flat. HE: chain 70.31; true W 93.71.
+  - Maps from early taps are poor (L2 47.75, L12 59.19); late taps are good (L22 87.30, R2 0.93).
+  - **New:** the head tolerates UNBIASED noise far better than map error at the same R2. True W + noise at R2 ~0.75
+    gives 85.60, at ~0.51 gives 82.66; a ridge map at R2 0.44 gives 59.19.
+  - So a learned stand-in needs noise-like errors, not exactness. The PROXY's R2 calibration must be per predictor
+    family.
+  - Screens now run on the sandbox (control + the t30f feature-loss transfer first), minutes each.
+- Sat 14 19:16: the BANK was restarted (fresh process, C 160, resuming at file 271), still bit-exact. Kamen turned on
+  High Power Mode (~19:15). Pace ~25-30 ms/token, ETA ~20:40. No heat pauses 19:00-20:00.
 - Sat 14 19:00: the BANK has 197 of 524 files, all bit-exact except the 24 HumanEval+ windows (expected, since d16w ≠ the
   runtime path). Greedy holds 97.3-100 % there. ETA ~21:00 (the sandbox shares the GPU). Swap 7.15 GB (start 6.51).
 > (a quote from the project owner, kept private)

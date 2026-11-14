@@ -52,3 +52,27 @@ faster without losing accuracy).
   eval on MBPP 100 (bank features).
 - Today's points on the earlier, approximate features showed the shape: R2 0.41 -> 41.7, 0.45 -> 47.5, 0.51 -> 56.1,
   0.80 -> 91.2, 0.82 -> 91.6, 0.84 -> 91.5. Monotone, with a threshold near R2 0.8. The bank's own points replace them.
+
+## R2 alone is not enough: calibrate per family (Sandbox98's gate report, 11-14 19:51)
+- On Qwen3.5-2B, the head tolerates UNBIASED noise around the true state far better than map error at the same R2:
+  - true W + noise at R2 ~0.91 -> 87.34, ~0.75 -> 85.60, ~0.51 -> 82.66 at MBPP 23-30;
+  - a ridge map at R2 0.44 -> 59.19.
+  - The error's structure matters, not only its size.
+- So:
+  - Calibration points carry a `family` ("ridge" for the bank's ridge maps; others as they land). The prediction uses
+    only the same family's points, plus the oracle.
+  - A custom candidate sets `FAMILY = "..."` in its file. Until its family has >= 2 real REPLACE points, the proxy prints
+    no prediction, only the measures.
+- **Structure measures, printed with every candidate:**
+  - `shrink`: the slope of (P - mean) on (Y - mean). 1 = unbiased; ridge maps shrink toward the mean.
+  - `r2_unshrunk`: R2 after dividing that slope out.
+  - `bias`: the share of the squared error in the mean offset.
+  - `r2_pc` / `r2_rest`: R2 on the top 64 principal directions of wd, and on the remainder.
+  - `r2_head`: R2 in the head's own fused input (its input norm, then fc_hidden per HC stream). Printed once
+    ~/datasets/deepdraft/ckpt/head_in.npz is exported, after the bank.
+- On synthetic data: unbiased noise at R2 0.68 keeps r2_pc 0.97 with shrink 1.00; a pure 0.6x shrink gives shrink 0.60
+  and r2_unshrunk 1.00.
+- Which measure tracks the real REPLACE accuracy best is for the calibration points to show; read them together.
+- This proxy is still for wd-space predictors only (see SCOPE). A learned stand-in that lives in the head's own space is
+  judged by the drafting eval. Sandbox98's result says it doesn't need to be exact; its errors need to look like noise,
+  not bias.

@@ -34,6 +34,15 @@ for tag in TAGS:
     runs = json.load(open(rr[-1])) if rr else []
     txt = open(os.path.join(D, f"{tag}.txt")).read() if os.path.exists(os.path.join(D, f"{tag}.txt")) else ""
     agree = re.findall(r"tokens == REF2 row (\d+) / (\d+)", txt)
+    pmf = os.path.join(D, f"{tag}_pmode.txt")         # the orchestrator 19:1x: High Power Mode since ~19:15; compare within the run
+    pmode = open(pmf).read().strip() if os.path.exists(pmf) else "power mode ?"
+    live16 = []                                         # the in-run 16-row reference: this run's live checks at its full rows
+    for cf in sorted(glob.glob(os.path.join(D, tag, "cli_*_checks.json")))[-1:]:
+        for pr in json.load(open(cf)):
+            rows_, ck_ = pr.get("rows") or [], pr.get("ck") or []
+            if len(rows_) == len(ck_) and rows_:
+                top = max(rows_)
+                live16 += [c for r_, c in zip(rows_, ck_) if r_ == top]
     peak = re.findall(r"lifetime peak ([0-9.]+) GB", txt)
     W = {"cold16": [], "w1": [], "w4": [], "w8": [], "w16": [], "miss_cold": [], "miss_w16": [], "rows": []}
     for r in runs:
@@ -56,7 +65,8 @@ for tag in TAGS:
     errs = [p["err"] for p in probes if p.get("err")]
     m = {k: med(v) for k, v in W.items()}
     print(f"== {tag}: runs {len(runs)}, probe checks {len(probes)}, errors {len(errs)} {errs[:1]}; tokens == REF2 {agree}; "
-          f"peak {peak[-1] if peak else '-'} GB")
+          f"peak {peak[-1] if peak else '-'} GB; {pmode}")
+    print(f"   in-run reference: live checks at the full row count, median {f(med(live16))} ms (n {len(live16)}); compare only within this run")
     print(f"   warm split (n {len(W['cold16'])}, rows {f(m['rows'], 0)}): cold {f(m['cold16'])} ms (misses {f(m['miss_cold'], 0)}); "
           f"warm 1 / 4 / 8 / 16 rows {f(m['w1'])} / {f(m['w4'])} / {f(m['w8'])} / {f(m['w16'])} ms")
     print(f"   probe: dense-only 1 / 16 / 32 rows {f(pm.get('d1'))} / {f(pm.get('d16'))} / {f(pm.get('d32'))} ms; "

@@ -56,19 +56,53 @@ def score(P, Y):
     return r2, float(np.sqrt(((pn - yn) ** 2).sum() / (yn ** 2).sum()))
 
 
-def predict_acc(r2):
+def structure(P, Y, k=64):
+    """Sandbox98 (11-14 19:51): the head tolerates unbiased noise around the true state far better than map error at the
+    same R2 (true W + noise at R2 0.51 -> 82.7 at MBPP 23-30, a ridge map at 0.44 -> 59.2). So beside R2 the proxy reports:
+    shrink, the slope of (P - ym) on (Y - ym) (1 = unbiased; ridge maps shrink); r2_unshrunk, R2 after dividing that slope
+    out; bias, the share of the squared error in the mean offset; r2_pc, R2 on the top-k principal directions of Y (most of
+    the variance) and r2_rest on the remainder. With ~/datasets/deepdraft/ckpt/head_in.npz (the head's input norm weight +
+    fc_hidden) it also reports r2_head, the R2 in the head's own fused input space."""
+    Y = np.asarray(Y, np.float32); ym = Y.mean(0); Yc = Y - ym; Pc = P - ym; E = P - Y
+    shrink = float((Pc * Yc).sum() / (Yc * Yc).sum())
+    out = {"shrink": shrink, "r2_unshrunk": 1 - float(((Pc / max(shrink, 1e-6) - Yc) ** 2).sum()) / float((Yc ** 2).sum()),
+           "bias": float((E.mean(0) ** 2).sum() * len(E) / max((E ** 2).sum(), 1e-12))}
+    sub = Yc[:: max(1, len(Yc) // 4000)]
+    _, _, Vt = np.linalg.svd(sub, full_matrices=False); V = Vt[:k].T                     # [10240, k]
+    yp, ep = Yc @ V, E @ V
+    out["r2_pc"] = 1 - float((ep ** 2).sum()) / float((yp ** 2).sum())
+    out["r2_rest"] = 1 - float(((E - ep @ V.T) ** 2).sum()) / max(float(((Yc - yp @ V.T) ** 2).sum()), 1e-12)
+    hf = os.path.join(H("~/datasets/deepdraft/ckpt"), "head_in.npz")
+    if os.path.exists(hf):
+        h = np.load(hf); g, F = h["norm_w"].astype(np.float32), h["fc_hidden"].astype(np.float32)   # [10240], [2560, 2560]
+        hc, grouped = int(h["hc"]), bool(h["grouped"])
+        def head_in(X):
+            Xg = X.reshape(len(X), hc, -1) if grouped else X
+            Xn = (Xg / np.sqrt((Xg ** 2).mean(-1, keepdims=True) + float(h["eps"]))).reshape(len(X), -1)
+            Xn = Xn * (np.tile(g, hc) if g.shape[0] * hc == X.shape[1] else g)
+            return (Xn.reshape(len(X), hc, -1) @ F.T).reshape(len(X), -1)
+        HP, HY = head_in(P), head_in(Y); hm = HY.mean(0)
+        out["r2_head"] = 1 - float(((HP - HY) ** 2).sum()) / float(((HY - hm) ** 2).sum())
+    return out
+
+
+def predict_acc(r2, family="ridge"):
     if not os.path.exists(CAL):
         return None, "no calibration yet"
-    pts = sorted(json.load(open(CAL))["points"], key=lambda p: p["r2"])
+    pts = sorted([p for p in json.load(open(CAL))["points"] if p.get("family", "ridge") in (family, "oracle")], key=lambda p: p["r2"])
+    if len(pts) < 2:
+        return None, f"no calibration for the family {family}"
     xs = np.array([p["r2"] for p in pts]); ys = np.maximum.accumulate(np.array([p["mbpp_23_30"] for p in pts]))   # monotone
-    return float(np.interp(r2, xs, ys)), f"{len(pts)} calibration points, R2 {xs.min():.2f}-{xs.max():.2f}"
+    return float(np.interp(r2, xs, ys)), f"{family}: {len(pts)} calibration points, R2 {xs.min():.2f}-{xs.max():.2f}"
 
 
-def report(tag, r2, ne, t0):
-    acc, note = predict_acc(r2)
+def report(tag, r2, ne, t0, st=None, family="ridge"):
+    acc, note = predict_acc(r2, family)
     verdict = "no calibration" if acc is None else ("REPLACE-worthy" if acc >= LINE else "below the line")
     print(f"[proxy] {tag}: held-out R2 {r2:.4f}, normalized error {ne:.4f}; predicted MBPP 23-30 "
           f"{'-' if acc is None else f'{acc:.1f}'} ({note}); {verdict} (line {LINE}); {time.time() - t0:.0f} s", flush=True)
+    if st:
+        print("[proxy]   structure: " + ", ".join(f"{k} {v:.4f}" for k, v in st.items()), flush=True)
 
 
 def cmd_ridge(a):
@@ -85,9 +119,10 @@ def cmd_ridge(a):
         if best is None or r2 > best[0]:
             best = (r2, ne, lf, W)
     r2, ne, lf, W = best
+    st = structure((Xv - xm) @ W + ym, Yva)
     if a.save:
         np.savez(a.save, W=W, xm=xm, ym=ym, cols=np.concatenate([np.arange(TAPS[k] * 2560, (TAPS[k] + 1) * 2560) for k in names]))
-    report(f"ridge {a.inputs} (lambda {lf:g} x mean diag)", r2, ne, t0)
+    report(f"ridge {a.inputs} (lambda {lf:g} x mean diag)", r2, ne, t0, st, "ridge")
 
 
 def cmd_custom(a):
@@ -96,8 +131,9 @@ def cmd_custom(a):
     names = getattr(m, "INPUTS", list(TAPS))
     Xtr, Ytr = load("tr", names); Xva, Yva = load("va", names)
     model = m.fit(Xtr, np.asarray(Ytr, np.float32))
-    r2, ne = score(np.asarray(m.predict(model, Xva), np.float32), Yva)
-    report(f"custom {os.path.basename(a.py)} ({','.join(names)})", r2, ne, t0)
+    Pv = np.asarray(m.predict(model, Xva), np.float32)
+    r2, ne = score(Pv, Yva)
+    report(f"custom {os.path.basename(a.py)} ({','.join(names)})", r2, ne, t0, structure(Pv, Yva), getattr(m, "FAMILY", "custom"))
 
 
 if __name__ == "__main__":
