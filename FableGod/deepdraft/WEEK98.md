@@ -44,6 +44,19 @@ don't care about that. I just need to get that."
 - Results go to GitHub the same turn, with a one-line note to the orchestrator.
 - A lever that changes the output (lossy) needs EvalSuite's same-scores gate before it counts, and Kamen's call to adopt.
 
+> (a quote from the project owner, kept private)
+- **Feature bank:** run the 125B once to store its states (taps {5,15,25,35,45} + wd, plus the top-32 log-probs on
+  HumanEval+) for ~500 train answers + MBPP 100 + the HumanEval+ windows. Most screens then never touch the 125B, its
+  heat or its SSD (BigMoE, after COMBO5).
+- **Seconds-fast proxy:** score a candidate map or formula by held-out R2 / direction error against the true deep
+  state. Day 1's six points are monotone (0.41 -> 41.7 ... 0.82 -> 91.6, threshold near 0.8). Only proxy winners get
+  the ~5-min real eval. The proxy filters; it never decides.
+- **Paired small evals for screens:** e.g. 30 MBPP windows with a per-window sign test. The full set only confirms.
+- **Batches, not single tests:** write 5-10 screens at once, each with its result -> action line, and run them back to
+  back in one runner. No agent turn between tests.
+- **Parallel:** CPU screens across sessions while the GPU does one confirmation at a time. Fans up for SSD-heavy
+  chains when Kamen OKs.
+
 ## Day 1 first: the CEILING test (BigMoE)
 - How often is the 125B's own choice a near-tie (the top-1 vs top-2 margin, in bins)?
 - What share of t30b's misses at depth 0 and at depths 23-30 sit on near-ties?
@@ -157,5 +170,49 @@ don't care about that. I just need to get that."
     164 / 113. The deep drafter also needs the cheap check.
   - Next: the (L, k) block-refresh sweep in the REPLACE-H harness after LAYERS. The cheapest (L, k) over its break-even
     is the method's cost-feasible point.
+- Sat 14 17:46: **LAYERS = COSTLY** (BigMoE a856e7e).
+  - The gate is valid: the re-prefilled stream holds 93.64 at MBPP 23-30.
+  - Ridge(taps) -> stream, replacing the stand-in, MBPP 23-30:
+    - {5} 41.66 (R2 0.41);
+    - {5,15} 47.47;
+    - {5,15,25} 56.14 (R2 0.51);
+    - {45} 91.61 (R2 0.82);
+    - all five 91.52.
+  - Early-layer maps are WORSE than the stale chain (72.13): a poor reconstruction is worse than the head's own guess.
+  - The fresh state lives in the deep trunk, so a usable refresh is close to a full pass. Refreshing at L45 every k
+    tokens is nearly the same as VERIFYING every k tokens.
+  - BLOCK (L x k) is due ~18:15: does L45 at k = 16 clear 8.5 kept (45 GB)?
+- Sat 14 17:5x: **Leap closes trunk refresh as a speed lever** (fce1ca7).
+  - At L45, a refresh is a verify minus the bonus token and the early exit. MBPP at 45 GB: refreshing every 16 tops
+    out at ~89 tok/s (every 8 at ~62), both at the per-row bound of 10.98 kept. Plain 16-row checks with t30b give ~96,
+    and the shipped loop 112.7. Tying would need kept >= ~11.8.
+  - So the 98 % method must make the drafter predict the deep state itself.
+  - Leap's cheapest next screen (sent to BigMoE): ridge [the carried stand-in, the fresh tap {5}] -> wd. Refreshing L5
+    every 8 costs +11 ms (break-even MBPP 7.7).
+- Sat 14 18:0x: **COMBO5 = CLOSED** (BigMoE 7d6e935). Freshness from the trunk is closed for the week.
+  - Ridge [carried stand-in, tap 5] -> wd: R2 0.448. Refreshing every 8 gives MBPP 23-30 65.85, kept/32 6.50
+    (break-even 7.7); every depth 25.54.
+  - t30b's exact kept per 16-row check is 6.59, so Leap's L45 verdict stands.
+  - The head's carried stand-in, read as a wd estimate, has R2 -2.32. It lives in the head's own space, yet the head
+    drafts 72 % at depth from it.
+- **The week's method, from here: a learned better stand-in.** The drafter predicts the deep state itself. The
+  oracle (a fresh wd, 93.6 % flat with depth) shows the head can use a good state.
+  - The BANK (runtime-path taps + wd + top-32) and the PROXY (R2 -> predicted 23-30) are due ~22:00 (BigMoE).
+  - The proxy filters only wd-space predictors. Learned stand-ins in the head's own space are judged by the drafting
+    eval.
+- Sat 14 18:03: Leap recorded the trunk-refresh closure (4448350) and withdrew its microbench. From 18:0x Leap has
+  route 3, the cheap check: cutting the per-check graph-build overhead (0.62 ms per layer even at 1 row). Exact stays
+  bit-exact; GPU timings after the BANK or overnight.
+- **What that leaves for the week** (for NewIdeas / MTP Head at 01:00, as 15-min screens):
+  1. A nonlinear or trained map from early taps to the deep stream. Linear explains only 41-51 %. If an MLP from
+     <= 25 layers reaches R2 >= ~0.8 and REPLACE >= ~88, a half-trunk refresh is back in play. Taps for 100 train +
+     MBPP 100 files are already re-prefilled (BigMoE).
+  2. A learned refresher: train the drafter's own stand-in to track the true deep state (a feature loss against the
+     true wd at depth), judged by the same REPLACE-style held-out eval. t30f's feature term was NO EFFECT, so find out
+     why first (its weight, its target layer, which depths).
+  3. The cheap check (Leap): a 32-row verify at ~100 ms (45 GB) is CPU-graph-bound (0.62 ms per layer even at 1 row).
+     A compiled graph is the optimistic bound (0.39 ms per layer). A cheaper check makes frequent verification the
+     refresh.
+  4. Prior art for "a drafter that predicts the target's future hidden states" (NewIdeas' prior-art pass).
 > (a quote from the project owner, kept private)
   generality added (orchestrator).

@@ -74,3 +74,31 @@ Written before the run. After REPLACE-H (cc53cb5, CARRIES):
 - Features must come from the runtime path: the prompt prefilled on the 1,024-token grid, with decoded rows through the
   verify path. That is the exact re-prefill (prompt alone, then the answer through verify calls).
 - The LAYERS and BLOCK curves from the fast full-sequence prefill are fine for the shape, if their gate holds.
+
+## Result (Sat 14 Nov 17:46): COSTLY. The fresh state lives in the deep taps; early layers can't stand in for it
+- **Data:** the re-prefill at C 100, 200 files (100 train + MBPP 100), 3.8 GB. It ran 16:58-17:33, including a 14-min
+  heat pause at the 3750 cap; FAN_CAP 5900 from 17:11 with Kamen's OK.
+- **Gate:** the approximate oracle (t30b with the re-prefilled wd) holds 93.64 % at MBPP 23-30 (>= 90; the exact
+  oracle was 93.63), kept 12.80. The curve is read.
+- **The curve** (ridge per set: 90 train files, 51,461 rows; lambda on 10 validation files; t30b, no training):
+
+  | taps | trunk layers a pass needs | R2 | normalized error | MBPP 23-30 | share of the gap (72.13 -> 93.64) | kept per 32 |
+  |---|---|---|---|---|---|---|
+  | {5} | 5 | 0.405 | 0.659 | 41.66 | -142 % | 2.72 |
+  | {5, 15} | 15 | 0.446 | 0.635 | 47.47 | -115 % | 2.95 |
+  | {5, 15, 25} | 25 | 0.511 | 0.597 | 56.14 | -74 % | 3.32 |
+  | {45} | 45 | 0.823 | 0.356 | 91.61 | 91 % | 10.98 |
+  | all 5 | 45 | 0.837 | 0.341 | 91.52 | 90 % | 10.82 |
+
+  - Every set's bands are flat with depth: one fresh input per depth stops the compounding, good map or bad.
+  - The early-layer maps are WORSE than the stale stand-in (t30b's own chain is 72.13). A poor reconstruction of the
+    top stream is worse than the head's own guess.
+- **Verdict: COSTLY.** Only the sets reaching layer 45 recover >= 75 % of the gap. Layer 45 alone does it, with one
+  linear map.
+- **What it means:**
+  - A partial trunk pass must run ~45 of the trunk's layers to give a usable fresh state through a linear map. That is
+    nearly a full pass, so per drafted token it doesn't pay (Leap: L 45, k = 1, +764 ms per check).
+  - The BLOCK sweep (running now) asks whether refreshing every k = 2-16 drafted tokens, with L = 45, clears Leap's
+    break-even. Leap: at 45 GB, k = 16 needs 8.5 kept on MBPP; at 24 GB, 8.8.
+  - Beyond this harness: a better map from early layers (nonlinear, trained) is untested. A linear map from layers
+    5-25 explains only 41-51 % of the top stream's variance.

@@ -1879,3 +1879,24 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
   flat with depth (91.8 -> 91.2), and kept per 32 rises 6.92 -> 10.55.
 - **Meaning:** freshness is WEEK98's lever. The cost question is next: the re-prefill and a per-layer ridge (layer 5,
   5+15, ...) give what a cheap partial trunk pass buys.
+
+## Sat 14 Nov 16:58-17:46: DEEPDRAFT LAYERS, the per-layer freshness curve (PREREG a293386): COSTLY (data/deepdraft/tapsq/)
+- **What ran:** a re-prefill of 200 captured answers with raw taps of layers 5/15/25/35/45. Then a ridge map per tap set
+  -> the trunk stream, and t30b (no training) on MBPP 100 with its stand-in replaced by each map at every drafted row.
+- **Gate:** the re-prefilled stream holds 93.64 % at 23-30.
+- **MBPP 23-30 by tap set:**
+  - {5} 41.66, {5,15} 47.47, {5,15,25} 56.14: all worse than t30b's own 72.13, with R2 0.41-0.51;
+  - {45} alone 91.61, all five 91.52 (R2 0.82-0.84; 90-91 % of the gap; kept 10.8-11.0).
+- **Meaning:** the fresh state lives in the deep taps. A usable refresh needs ~45 trunk layers (nearly a full pass), so
+  per token it doesn't pay. Block refresh every k tokens (BLOCK, running) is the cost question.
+
+## Sat 14 Nov 17:50-18:02: DEEPDRAFT BLOCK (stopped) + COMBO5 (PREREG 76664ff): CLOSED. Freshness from the trunk is closed for WEEK98 (data/deepdraft/tapsq/)
+- **BLOCK (refresh every k drafted tokens):** stopped after 2 of 20 evals. Leap (fce1ca7) showed a refresh at L 45 is a
+  verify pass, so no k beats plain 16-row checks. The two done: {5} at k 2: 46.23 at 23-30; {5,15} at k 2: 52.44. Both
+  are below the stale chain.
+- **COMBO5:** a ridge [the head's carried stand-in, the cheap layer-5 tap] -> trunk stream, R2 0.448.
+  - Every 8 depths: MBPP 23-30 65.85, kept per 32 6.50 (break-even 7.7; t30b alone 6.92).
+  - Every depth: 25.54, kept 3.26.
+- **t30b's exact kept per 16-row check on MBPP: 6.59.**
+- **Meaning:** early layers don't carry the deep state, and layer 45 costs a verify. The 98 % method has to make the
+  drafter predict the deep state itself; the fresh-state oracle (93.6 %, flat with depth) shows a good stand-in pays.

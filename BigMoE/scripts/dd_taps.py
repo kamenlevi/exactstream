@@ -47,11 +47,21 @@ def fuse_taps(head, P, Win, emb):
     - mode "anchor" (TAPSQ): on the chain's first call only, the target rows W.
     - mode "fresh" (FRESH-H): on every later call, depth j's drafted rows, with the TRUE h of rows a0 + j - 1 onward. On
       a correct chain (accept-until-fail) that is what a fresh trunk pass over the drafted tokens would give."""
+    if TAPS["armed"] and TAPS["mode"] == "collect":       # COMBO5: keep the carried stand-in at chosen depths
+        k = TAPS["k"]; TAPS["k"] = k + 1
+        if k in TAPS["depths"]:
+            TAPS["buf"].append((k, Win[0].astype(mx.float32)))
+        return _fuse(head, P, Win, emb)
     if TAPS["armed"] and TAPS["mode"] == "replace":       # REPLACE (16:5x): depth j >= 2 reads rows of TAPS["WR"] (the true wd,
         k = TAPS["k"]; TAPS["k"] = k + 1                  # or a map's prediction of it) instead of the carried stand-in
         if k >= 1 and k % TAPS.get("K", 1) == 0:          # BLOCK (17:0x): refresh only every K depths (j = 1 + m K)
             n = Win.shape[1]; r0 = TAPS["a0"] + k
-            Win = TAPS["WR"][:, r0:r0 + n].astype(Win.dtype)
+            if TAPS.get("combo") is not None:             # COMBO5: [stand-in, tap 5 of the row] -> wd
+                CW, cxm, cym = TAPS["combo"]
+                Xc = mx.concatenate([Win[0].astype(mx.float32), TAPS["T5"][r0:r0 + n]], axis=-1)
+                Win = (((Xc - cxm) @ CW) + cym).astype(Win.dtype)[None]
+            else:
+                Win = TAPS["WR"][:, r0:r0 + n].astype(Win.dtype)
         return _fuse(head, P, Win, emb)
     out = _fuse(head, P, Win, emb)
     if not TAPS["armed"]:
@@ -287,31 +297,120 @@ def cmd_eval(a):
     json.dump(R, open(os.path.join(OUT, a.out_name), "w"))
 
 
+def kept_walk_n(rt, r0, cap):
+    """dd_ttt.kept_walk with at most `cap` drafts per check (15 = a 16-row check, 31 = the eval's 32-row check)"""
+    sub = rt[r0:]; out = []; p = 0
+    while p < sub.shape[0]:
+        k = 0
+        while k < cap and sub[p, k] == 1:
+            k += 1
+        out.append(k + 1); p += k + 1
+    return out
+
+
+def cmd_collect(a):
+    """COMBO5 (docs/PREREG_DEEPDRAFT_COMBO5_2026-11-14.md): t30b's own chain over the 100 re-prefilled training files.
+    At depths j = 2, 4, 8, 16, 24, 30 (every 2nd anchor) it pairs the carried stand-in + the row's raw tap 5 with the
+    row's re-prefilled wd, accumulates the normal equations (files 0-89) and keeps files 90-99 for lambda, then fits
+    ridge -> ~/datasets/deepdraft/ckpt/ridge_combo5.npz."""
+    t0 = time.time()
+    rt_, lm, head = M.load(a.frac)
+    P = M.Trainable(head)
+    set_tap(P, False); P.load_weights(os.path.join(CKD, f"dd_{START}.safetensors")); mx.eval(P.parameters())
+    RT = os.path.expanduser("~/datasets/deepdraft/rawtaps")
+    names = json.load(open(SPLIT))["train"][:100]
+    D_ = 12800
+    Sxx = np.zeros((D_, D_)); Sxy = np.zeros((D_, 10240)); sx = np.zeros(D_); sy = np.zeros(10240); n_ = 0
+    VA = []
+    for fi, nm in enumerate(names):
+        while os.path.exists(T.PAUSE):
+            time.sleep(1)
+        z = np.load(os.path.join(CAP, nm)); rz = np.load(os.path.join(RT, nm))
+        ids = np.asarray(z["ids"], np.int32); gen = int(z["gen"]); a0 = max(0, gen - 2)
+        x = {"W": mx.array(z["wd"]).astype(mx.bfloat16)[None], "ids": ids}
+        TAPS.update(mode="collect", armed=True, k=0, a0=a0, depths={1, 3, 7, 15, 23, 29}, buf=[])
+        T.chain_hits(lm, head, P, x, 31, a0)
+        TAPS["armed"], TAPS["mode"] = False, "anchor"
+        raw, wdr = np.asarray(rz["raw"]), np.asarray(rz["wd"])
+        Xs, Ys = [], []
+        for k, Win in TAPS["buf"]:
+            n = Win.shape[0]; sel = np.arange(0, n, 2); rows = a0 + k + sel
+            Xs.append(np.concatenate([np.array(Win)[sel], raw[rows, :2560].astype(np.float32)], axis=1))
+            Ys.append(wdr[rows].astype(np.float32))
+        TAPS["buf"] = []
+        X, Y = np.concatenate(Xs), np.concatenate(Ys)
+        if fi < 90:
+            Xm, Ym = mx.array(X), mx.array(Y)
+            Sxx += np.array(Xm.T @ Xm).astype(np.float64); Sxy += np.array(Xm.T @ Ym).astype(np.float64)
+            sx += X.sum(0); sy += Y.sum(0); n_ += len(X)
+        else:
+            VA.append((X, Y))
+        mx.clear_cache()
+    print(f"[combo] pairs: {n_} train rows from 90 files, {sum(len(v[0]) for v in VA)} validation rows; {time.time() - t0:.0f} s", flush=True)
+    xm_, ym_ = sx / n_, sy / n_
+    XtX = Sxx - n_ * np.outer(xm_, xm_); XtY = Sxy - n_ * np.outer(xm_, ym_)
+    dg = float(np.mean(np.diag(XtX))); best = None; res = {}
+    for lf in (1e-3, 1e-2, 1e-1):
+        W_ = np.linalg.solve(XtX + lf * dg * np.eye(D_), XtY).astype(np.float32)
+        num = den = num_n = den_n = 0.0; num0 = 0.0
+        for X, Y in VA:
+            pr = (X - xm_) @ W_ + ym_
+            num += float(((pr - Y) ** 2).sum()); den += float(((Y - ym_) ** 2).sum())
+            num0 += float(((X[:, :10240] - Y) ** 2).sum())
+            pn = pr / np.sqrt((pr ** 2).mean(-1, keepdims=True) + 1e-12); yn = Y / np.sqrt((Y ** 2).mean(-1, keepdims=True) + 1e-12)
+            num_n += float(((pn - yn) ** 2).sum()); den_n += float((yn ** 2).sum())
+        res[str(lf)] = {"r2": 1 - num / den, "rel_err_normalized": (num_n / den_n) ** 0.5, "r2_standin_as_is": 1 - num0 / den}
+        print(f"[combo] lambda {lf:g}: R2 {res[str(lf)]['r2']:.4f} (the stand-in as is: {res[str(lf)]['r2_standin_as_is']:.4f}); normalized error {res[str(lf)]['rel_err_normalized']:.4f}", flush=True)
+        if best is None or res[str(lf)]["r2"] > best[0]:
+            best = (res[str(lf)]["r2"], lf, W_)
+    r2, lf, W_ = best
+    np.savez(os.path.join(CKD, "ridge_combo5.npz"), W=W_, xm=xm_.astype(np.float32), ym=ym_.astype(np.float32))
+    json.dump({"rows": n_, "lambda_factor": lf, "val": res, "secs": time.time() - t0}, open(os.path.join(OUT, "combo5_fit.json"), "w"), indent=1)
+    print(f"[combo] best lambda {lf:g}: R2 {r2:.4f}; saved; {time.time() - t0:.0f} s", flush=True)
+
+
 def cmd_evalrep(a):
     """REPLACE (docs/PREREG_DEEPDRAFT_REPLACE_2026-11-14.md): t30b (or --runs) on MBPP 100 with the carried stand-in replaced
     at every drafted row (depth >= 2) by the true wd (--replace wd: Law 2's setting) or by a ridge map of the true h
     (--replace pred --ridge FILE). No head training."""
     rt_, lm, head = M.load(a.frac)
     P = M.Trainable(head)
-    items = sorted(glob.glob(os.path.join(T.TD, "dlog/d1102mbpp/dlog__mbpp*.npz")))[:100]
-    if a.replace in ("pred", "rawmap"):
+    if a.set == "code":                                   # BANK: the 24 HumanEval+ windows (d16w), as dd_ttt.py's eval reads them
+        items = sorted(glob.glob(os.path.join(T.TD, "d16w", "tf_code_HumanEval_*.npz")))
+    else:
+        items = sorted(glob.glob(os.path.join(T.TD, "dlog/d1102mbpp/dlog__mbpp*.npz")))[:100]
+    FD = os.path.expanduser(a.featdir)
+    TAPS["combo"] = None
+    if a.replace in ("pred", "rawmap", "combo"):
         rg = np.load(a.ridge)
         Wm, xm, ym = mx.array(rg["W"]), mx.array(rg["xm"]), mx.array(rg["ym"])
         cols = rg["cols"] if "cols" in rg.files else None
+        if a.replace == "combo":
+            TAPS["combo"] = (Wm, xm, ym)
     R = {}
     for run in a.runs.split(","):
         set_tap(P, False)
         P.load_weights(os.path.join(CKD, f"dd_{run}.safetensors")); mx.eval(P.parameters())
-        band = {b: [0, 0] for b in BANDS}; kept = []
+        band = {b: [0, 0] for b in BANDS}; kept = []; kept16 = []
         for f in items:
             while os.path.exists(T.PAUSE):
                 time.sleep(1)
             z = np.load(f)
-            x = {"W": mx.array(z["wd"]).astype(mx.bfloat16)[None], "ids": np.asarray(z["ids"], np.int32)}
+            if a.set == "code":
+                key_ = os.path.basename(f)[:-4]
+                x = T.window(key_); gen_code = T.gen_of(key_)
+            else:
+                x = {"W": mx.array(z["wd"]).astype(mx.bfloat16)[None], "ids": np.asarray(z["ids"], np.int32)}
+            if a.ctx == "bank":                                # BANK: the context stream from the bank's runtime path, not the set's own
+                x["W"] = mx.array(np.asarray(np.load(os.path.join(FD, os.path.basename(f)))["wd"])).astype(mx.bfloat16)[None]
             if a.replace == "wd":
                 WR = x["W"]
+            elif a.replace == "combo":
+                rz = np.load(os.path.join(FD, os.path.basename(f)))
+                TAPS["T5"] = mx.array(np.asarray(rz["raw"])[:, :2560]).astype(mx.float32)
+                WR = None
             elif a.replace in ("rawwd", "rawmap"):     # LAYERS: the re-prefilled wd, or a map of a layer set's raw taps
-                rz = np.load(os.path.join(os.path.expanduser("~/datasets/deepdraft/rawtaps"), os.path.basename(f)))
+                rz = np.load(os.path.join(FD, os.path.basename(f)))
                 if a.replace == "rawwd":
                     WR = mx.array(rz["wd"]).astype(mx.bfloat16)[None]
                 else:
@@ -320,7 +419,7 @@ def cmd_evalrep(a):
             else:
                 Hf = h_of(z, len(x["ids"]))[0].astype(mx.float32)
                 WR = (((Hf - xm) @ Wm) + ym).astype(mx.bfloat16)[None]
-            gen = int(z["gen"]); a0 = max(0, gen - 2)
+            gen = gen_code if a.set == "code" else int(z["gen"]); a0 = max(0, gen - 2)
             TAPS["mode"], TAPS["WR"], TAPS["armed"], TAPS["k"], TAPS["a0"], TAPS["K"] = "replace", WR, True, 0, a0, a.refresh
             hits = T.chain_hits(lm, head, P, x, 31, a0)
             TAPS["armed"], TAPS["mode"] = False, "anchor"
@@ -331,11 +430,13 @@ def cmd_evalrep(a):
             for lo, hi in BANDS:
                 c = rt[:, lo:hi + 1]; band[(lo, hi)][0] += int((c == 1).sum()); band[(lo, hi)][1] += int((c >= 0).sum())
             kept += DD.kept_walk(rt, max(0, gen - 1 - a0))
+            kept16 += kept_walk_n(rt, max(0, gen - 1 - a0), 15)
             mx.clear_cache()
-        key = f"{run}+{a.replace}" + (f"+{os.path.basename(a.ridge)[:-4]}" if a.replace == "rawmap" else "") + (f"+k{a.refresh}" if a.refresh > 1 else "")
+        key = f"{run}+{a.replace}" + (f"+{os.path.basename(a.ridge)[:-4]}" if a.replace in ("rawmap", "combo") else "") + (f"+k{a.refresh}" if a.refresh > 1 else "") + ("+bankctx" if a.ctx == "bank" else "")
         R[key] = {f"{lo}-{hi}": band[(lo, hi)][0] / max(band[(lo, hi)][1], 1) for lo, hi in BANDS}
         R[key]["kept_per_32"] = float(np.mean(kept)) if kept else None
-        print(f"[rep] {key} mbpp: " + " ".join(f"{b}:{100 * v:.2f}" for b, v in R[key].items() if "-" in b)
+        R[key]["kept_per_16"] = float(np.mean(kept16)) if kept16 else None
+        print(f"[rep] {key} {a.set} (kept/16 {R[key]['kept_per_16']:.2f}): " + " ".join(f"{b}:{100 * v:.2f}" for b, v in R[key].items() if "-" in b)
               + f"; kept/32 {R[key]['kept_per_32']:.2f}", flush=True)
     R["mlx_peak_gb"] = mx.get_peak_memory() / 1e9
     os.makedirs(OUT, exist_ok=True)
@@ -344,16 +445,16 @@ def cmd_evalrep(a):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["smoke", "train", "eval", "evalrep"])
+    ap.add_argument("cmd", choices=["smoke", "train", "eval", "evalrep", "collect"])
     ap.add_argument("--arm", choices=["C", "T", "R", "F"]); ap.add_argument("--steps", type=int, default=80)
     ap.add_argument("--lr", type=float, default=1e-6); ap.add_argument("--tap-lr-mult", dest="tap_lr_mult", type=float, default=1.0)
     ap.add_argument("--tap-lr", dest="tap_lr", type=float, default=1e-5); ap.add_argument("--tag", default="tq2")
     ap.add_argument("--fresh-opt", dest="warm_opt", action="store_false", help="the void run's fresh Adam (tq_)")
     ap.add_argument("--frac", type=float, default=0.03); ap.add_argument("--peak-max", dest="peak_max", type=float, default=22.0)
-    ap.add_argument("--replace", choices=["wd", "pred", "rawwd", "rawmap"], default="wd"); ap.add_argument("--refresh", type=int, default=1); ap.add_argument("--ridge", default=os.path.join(CKD, "ridge_h2wd.npz"))
+    ap.add_argument("--replace", choices=["wd", "pred", "rawwd", "rawmap", "combo"], default="wd"); ap.add_argument("--refresh", type=int, default=1); ap.add_argument("--set", choices=["mbpp", "code"], default="mbpp"); ap.add_argument("--ctx", choices=["set", "bank"], default="set"); ap.add_argument("--featdir", default="~/datasets/deepdraft/rawtaps"); ap.add_argument("--ridge", default=os.path.join(CKD, "ridge_h2wd.npz"))
     ap.add_argument("--runs", default="t30b,tq2_C,tq2_T"); ap.add_argument("--out-name", dest="out_name", default="eval2.json")
     a = ap.parse_args()
-    {"smoke": cmd_smoke, "train": cmd_train, "eval": cmd_eval, "evalrep": cmd_evalrep}[a.cmd](a)
+    {"smoke": cmd_smoke, "train": cmd_train, "eval": cmd_eval, "evalrep": cmd_evalrep, "collect": cmd_collect}[a.cmd](a)
 
 
 if __name__ == "__main__":
