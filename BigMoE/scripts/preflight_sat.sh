@@ -19,7 +19,7 @@ big_other() { [ -n "$PS_NOBIG" ] && return 1; [ "$(ps -axo rss= | awk '$1 > 5000
 say "pre-flight (sat) armed: waiting for no quiet lock and no other > 5 GB job, start by $LAST"
 nc=0                                                     # Fri 07:5x: clear for 3 polls in a row (90 s) and NO-SWAP >= 40 GB:
 while [ $nc -lt 3 ]; do                                  # the 07:55 try raced EvalSuite's E8 share run and hit the swap rule
-  if big_other || [ "$(vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}')" -lt "${PS_MINFREE:-40}" ]; then nc=0; else nc=$((nc + 1)); fi
+  if big_other || [ "$(vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}')" -lt "${PS_MINFREE:-40}" ]; then nc=0; else nc=$((nc + 1)); fi
   [ "$(date +%H%M)" -ge "$LAST" ] && { say "SKIPPED: not clear by $LAST"; exit 0; }
   [ $nc -lt 3 ] && sleep 30
 done

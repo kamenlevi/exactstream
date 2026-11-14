@@ -12,7 +12,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 D="$HOME/Leap/data/fcp"; SD="$D/snap"; mkdir -p "$SD" "$D/r57"; LOG="$D/fcp.log"
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" | tee -a "$LOG"; }
 PY="$HOME/BigMoE/.venv/bin/python"
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
 swap_mb() { sysctl -n vm.swapusage | awk '{for (i = 1; i <= NF; i++) if ($i == "used") {v = $(i + 2); sub("M", "", v); print int(v)}}'; }
 [ -z "$HAVE_LOCK" ] && [ -z "$FCP_DRY" ] && { say "fcp_run.sh runs inside Leap's quiet lock: HAVE_LOCK=1"; exit 1; }
 B="$HOME/BigMoE/scripts"

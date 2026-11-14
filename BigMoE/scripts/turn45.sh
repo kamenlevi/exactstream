@@ -19,7 +19,7 @@ MARGIN=${MARGIN:-8}                                     # GB over the peak after
 Q="$HOME/.local/share/quiet"
 LOG="$HOME/BigMoE/data/turn45.log"
 say() { echo "$(date +%H:%M:%S) [$WHY] $*" >> "$LOG"; }
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }   # NO-SWAP (the orchestrator 23:5x, RULES): free + speculative + purgeable + file-backed
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }   # NO-SWAP (the orchestrator 23:5x, RULES): free + purgeable + file-backed (speculative sits inside file-backed: the orchestrator 11-14 05:5x)
 busy45() { peer ls 2>/dev/null | grep -E "benchmarking: quiet lock|waiting for a quiet" | grep -v "BigMoE" | grep -ciE "45 GB|S45|STACK|C 224|C 256|C 288|C 192|C 160|R-59|45-route"; }
 why_blocked() { [ -e "$Q/PAUSE" ] && { echo "PAUSE"; return; }   # the first gate that holds, named (11-08: CHS4 hung 2 h silent)
   ioreg -r -k AppleClamshellState -d 1 | grep -q '"AppleClamshellState" = Yes' && { echo "lid closed"; return; }

@@ -25,7 +25,7 @@ BASE="--manifest data/deepdraft/ttt30b/split.json --pass-seed 1113 --save-at 600
 ARMS=${*:-"t30x2 t30f t30x4"}
 arm_flags() { case $1 in t30x2) echo "--xb 10240";; t30f) echo "--feat";; t30x4) echo "--xb 30720";; esac; }
 arm_mem() { case $1 in t30x2) echo 20;; t30f) echo 18;; t30x4) echo 24;; esac; }
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 avail_min() { local a b c; a=$(avail_gb); sleep 20; b=$(avail_gb); sleep 20; c=$(avail_gb)
   [ $b -lt $a ] && a=$b; [ $c -lt $a ] && a=$c; echo $a; }
 swap_mb() { sysctl -n vm.swapusage | awk '{gsub("M","",$6); print int($6)}'; }

@@ -6,7 +6,7 @@
 # The chosen C goes to the log line below and to TABLE_350's record.
 # usage: turn45's CMD (HAVE_LOCK=1 KEEP_LOCK=1 pass through). FLAT2_AVAIL=<GB> and FLAT2_DRY=1 work as in run_flat2.sh.
 LOG="$HOME/Leap/data/flat2_ladder.log"
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
 A=${FLAT2_AVAIL:-$(avail_gb)}
 CC=${FLAT2_C:-}
 if [ -z "$CC" ]; then

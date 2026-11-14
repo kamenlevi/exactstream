@@ -15,7 +15,7 @@ D=data/pfx; mkdir -p $D
 LOG="$PWD/$D/pfx.log"
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" >> "$LOG"; }
 PY=${PFX_PY:-$HOME/BigMoE/.venv/bin/python}
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
 A=${PFX_AVAIL:-$(avail_gb)}
 awk -v a="$A" 'BEGIN {exit !(a >= 47.2)}' || { say "NO-SWAP $A GB < 47.2: not run"; exit 0; }
 [ -n "$PFX_DRYRUN" ] || sleep 20

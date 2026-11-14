@@ -14,7 +14,7 @@
 # LAST. Usage: prof_qsa.sh <work dir> "<LAST YYYY-MM-DD HH:MM:SS>"
 W=$1; P2=/Users/kamen/Leap/scripts/prefill15/prof3; SO=/private/tmp/claude-501/-Users-kamen-OjoX/f2971937-6c95-4e86-a049-05beff6a8e32/scratchpad/agent/ext_ov_build/bigmoe_ext_ov.cpython-312-darwin.so; CL=/Users/kamen/Leap/release/cleanclone/cache/clone; LOG=$W/pipe3.log
 LAST=$(date -j -f "%Y-%m-%d %H:%M:%S" "$2" +%s)
-noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 swap() { sysctl -n vm.swapusage | sed -E 's/.*used = ([0-9.]+)M.*/\1/' | cut -d. -f1; }
 idle() { ioreg -c IOHIDSystem | awk '/HIDIdleTime/ {print int($NF/1000000000); exit}'; }
 procs() { ps -axo pid=,args= | awk '/[Pp]ython/ && /r57_screen_|[ \/](chat|serve|run)[.]py( |$)/ && !/ awk / {printf "%s ", $1}'; }

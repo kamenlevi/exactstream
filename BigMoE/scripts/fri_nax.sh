@@ -13,7 +13,7 @@ cd "${FN_ROOT:-$HOME/BigMoE}" || exit 1
 mkdir -p data/fnx data/r57/snap
 LOG="$PWD/data/fnx/fnx.log"
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" >> "$LOG"; }
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
 A=${FN_AVAIL:-$(avail_gb)}
 fits() { awk -v a="$A" -v n="$1" 'BEGIN {exit !(n <= a)}'; }
 CC=; for c in 224:45.2 208:43.1 192:41.0 176:38.9 160:36.7; do fits ${c#*:} && { CC=${c%%:*}; break; }; done

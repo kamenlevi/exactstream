@@ -19,7 +19,7 @@ LOG="$PWD/data/fsp/fsp.log"
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" >> "$LOG"; }
 FS_SPLIT99=${FS_SPLIT99-R57_QOM_SPLIT=0.99}; FS_SPLIT90=${FS_SPLIT90-R57_QOM_SPLIT=0.9}   # Leap's ref2 eb43fcc2: the switch acts on
 [ -n "$FS_SPLIT99" ] && [ -n "$FS_SPLIT90" ] || { say "REFUSED: FS_SPLIT99 / FS_SPLIT90 empty"; exit 2; }   # the one-call path
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
 A=${FS_AVAIL:-$(avail_gb)}
 fits() { awk -v a="$A" -v n="$1" 'BEGIN {exit !(n <= a)}'; }
 CC=; for c in 224:43.7 208:41.6 192:39.5 176:37.4 160:35.2 144:33.1 128:31.0; do fits ${c#*:} && { CC=${c%%:*}; break; }; done   # qall peak + 4

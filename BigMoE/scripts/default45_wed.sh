@@ -23,7 +23,7 @@ cd "$HOME/BigMoE" || exit 1
 mkdir -p data/d45
 LOG="$HOME/BigMoE/data/d45/d45.log"
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" >> "$LOG"; }
-noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 RUN="/bin/bash data/r57/snap/c45_runner_d45.sh"
 export C45_SCREEN=data/r57/snap/r57_screen_d45.py C45_DEADLINE=${D45_DEADLINE:-2400} C45_OUT="$HOME/BigMoE/data/d45"
 [ -s data/d45/ref14_tokens.json ] || { say "no data/d45/ref14_tokens.json: STOP"; exit 2; }

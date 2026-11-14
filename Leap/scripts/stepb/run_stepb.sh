@@ -12,7 +12,7 @@ cd "$(dirname "$0")" || exit 1
 PY=$HOME/BigMoE/.venv/bin/python
 OUT="$HOME/Leap/data/stepb/out"; mkdir -p "$OUT"; LOG="$OUT/run_stepb.log"
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" | tee -a "$LOG"; }
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
 swap_mb() { sysctl -n vm.swapusage | awk '{for (i = 1; i <= NF; i++) if ($i == "used") {v = $(i + 2); sub("M", "", v); print int(v)}}'; }
 tree() { echo "$1"; for c in $(pgrep -P "$1"); do tree "$c"; done; }
 [ -z "$HAVE_LOCK" ] && [ -z "$STEPB_DRY" ] && { say "run_stepb.sh runs inside Leap's quiet lock: HAVE_LOCK=1"; exit 1; }

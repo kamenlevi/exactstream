@@ -46,7 +46,14 @@ ARMS=${*:-"t30x2 t30x4"}
 arm_flags() { case $1 in t30x2) echo "--xb 10240";; t30x4) echo "--xb 30720";; t30f) echo "--feat";; esac; }
 smoke_mem() { case $1 in t30x2) echo ${SMOKE_MEM_t30x2:-30};; t30x4) echo ${SMOKE_MEM_t30x4:-43};; *) echo 20;; esac; }
 margin() { local m; m=$(head -1 "$D/$1/MARGIN" 2>/dev/null | tr -d ' '); case $m in ''|*[!0-9]*) m=8;; esac; echo $m; }
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+# NO-SWAP = free + purgeable + file-backed. Speculative pages sit inside file-backed (active + inactive + speculative +
+# throttled = file-backed + anonymous), so the old "free + speculative + purgeable + file-backed" counted them twice
+# (the orchestrator, Sat 14 Nov 05:5x). mem_parts logs the parts with every gate read.
+mem_parts() { vm_stat | awk 'function n(x) {sub("[.]$", "", x); return x + 0} /page size of/ {ps=$8}
+  /^Pages free:/ {f=n($NF)} /^Pages speculative:/ {s=n($NF)} /^Pages purgeable:/ {p=n($NF)} /^File-backed pages:/ {fb=n($NF)}
+  /^Anonymous pages:/ {an=n($NF)} /^Pages wired down:/ {w=n($NF)} /^Pages occupied by compressor:/ {c=n($NF)}
+  END {g=ps/1e9; printf "free %.1f + purg %.1f + file %.1f (spec %.1f inside); anon %.1f, wired %.1f, compr %.1f", f*g, p*g, fb*g, s*g, an*g, w*g, c*g}'; }
 avail_min() { local a b c; a=$(avail_gb); sleep 20; b=$(avail_gb); sleep 20; c=$(avail_gb)
   [ $b -lt $a ] && a=$b; [ $c -lt $a ] && a=$c; echo $a; }
 swap_mb() { sysctl -n vm.swapusage | awk '{gsub("M","",$6); print int($6)}'; }
@@ -54,7 +61,7 @@ others_quiet() { peer ls 2>/dev/null | grep "^- " | grep -oE "· (benchmarking|q
 lid_closed() { ioreg -r -k AppleClamshellState -d 1 | grep -q '"AppleClamshellState" = Yes'; }
 health_act() { grep -q "Verdict: ACT" "$Q/HEALTH.md" 2>/dev/null; }
 gates_clear() { [ "$(others_quiet)" -eq 0 ] && ! lid_closed && ! health_act; }
-gate_state() { echo "quiet locks of others $(others_quiet), lid $(lid_closed && echo closed || echo open), health $(health_act && echo ACT || echo ok), NO-SWAP $(avail_gb) GB"; }
+gate_state() { echo "quiet locks of others $(others_quiet), lid $(lid_closed && echo closed || echo open), health $(health_act && echo ACT || echo ok), NO-SWAP $(avail_gb) GB ($(mem_parts))"; }
 ttt_running() { pgrep -f "scripts/dd_ttt[.]py" >/dev/null; }
 cap_running() { pgrep -f "scripts/dd_capture[.]py" >/dev/null; }
 saved_step() { local s; s=$(grep -oE '"step": [0-9]+' "$CKD/dd_$1.json" 2>/dev/null | head -1 | grep -oE '[0-9]+$'); echo "${s:-0}"; }

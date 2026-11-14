@@ -15,7 +15,7 @@ OUT="$PWD/data/e24"; mkdir -p "$OUT"
 LOG="$OUT/e24.log"
 PY="$HOME/BigMoE/.venv/bin/python"
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" >> "$LOG"; }
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
 A=${E24_AVAIL:-$(avail_gb)}
 awk -v a="$A" 'BEGIN {exit !(a >= 30)}' || { say "NO-SWAP $A GB < 30: not run"; exit 0; }
 [ -n "$E24_DRYRUN" ] || sleep 20

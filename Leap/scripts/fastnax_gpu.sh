@@ -13,7 +13,7 @@ LOG="$HOME/Leap/data/fastnax_gpu.log"
 PY=$HOME/BigMoE/.venv/bin/python
 Q="$HOME/.local/share/quiet"
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" | tee -a "$LOG"; }
-avail() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+avail() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 swap_mb() { sysctl -n vm.swapusage | awk '{for (i = 1; i <= NF; i++) if ($i == "used") {v = $(i + 2); sub("M", "", v); print int(v)}}'; }
 NB=${FNX_NOTBEFORE:-202611060016}; NA=${FNX_NOTAFTER:-202611061100}
 say "FAST-NAX GPU checks armed (pid $$, from $NB, give up at $NA)"

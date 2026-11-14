@@ -35,7 +35,7 @@ LOG=$V/rel121_check.log; Q=$HOME/.local/share/quiet; H2=$V/home2; O=$V/out
 AFTER=${1:?AFTER pid}
 FROM=$(date -j -f "%Y-%m-%d %H:%M:%S" "${2:?FROM}" +%s); LAST=$(date -j -f "%Y-%m-%d %H:%M:%S" "${3:?LAST}" +%s)
 CUT=$(date -j -f "%Y-%m-%d %H:%M:%S" "${4:?CUTOFF}" +%s)
-noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 swap() { sysctl -n vm.swapusage | sed -E 's/.*used = ([0-9.]+)M.*/\1/' | cut -d. -f1; }
 idle() { ioreg -c IOHIDSystem | awk '/HIDIdleTime/ {print int($NF/1000000000); exit}'; }
 procs() { ps -axo pid=,args= | awk '/[Pp]ython/ && /r57_screen_|run_map[.]py|fit_onecall[.]py|[ \/](chat|serve|run)[.]py( |$)/ && !/ awk / {printf "%s ", $1}'; }

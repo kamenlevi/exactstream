@@ -22,7 +22,7 @@ D=data/chs; mkdir -p $D
 LOG="$PWD/$D/chs.log"
 say() { echo "$(date '+%m-%d %H:%M:%S') [$B] $*" >> "$LOG"; }
 PY=${CHS_PY:-$HOME/BigMoE/.venv/bin/python}
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
 END_E=$(date -j -f '%Y-%m-%d %H:%M' "$(date +%Y-%m-%d) ${CHS_END:-01:18}" +%s)
 [ $END_E -lt $(date +%s) ] && END_E=$((END_E + 86400))
 [ $((END_E - $(date +%s))) -gt 43200 ] && { say "CHS_END ${CHS_END:-01:18} is > 12 h away (passed?): not run"; exit 0; }

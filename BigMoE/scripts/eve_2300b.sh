@@ -9,7 +9,7 @@
 # 224 / 208 / 192 / 176 that fits at the grant (one C for all arms, so the ratios stay clean); lever 2 stays at C 160
 # (l2_wed.sh, ~35 GB with forecast reads on 14 prompts).
 cd "$HOME/BigMoE" || exit 1
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
 A=${EVE_AVAIL:-$(avail_gb)}; C=176
 for c in 224 208 192; do
   awk -v a="$A" -v c="$c" 'BEGIN {exit !(34.8 + 0.134 * (c - 160) + 4 <= a)}' && { C=$c; break; }

@@ -18,7 +18,7 @@ cd "$HOME/BigMoE" || exit 1
 LOG="$HOME/BigMoE/data/morning2_1104.log"
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" >> "$LOG"; }
 swap_gb() { sysctl -n vm.swapusage | awk '{gsub("M","",$6); print $6 / 1024}'; }
-noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 before() { [ "$(date +%H%M)" -lt "$1" ]; }
 SELF=data/r57/snap/morning2_1104_run.sh
 freeze() { cp scripts/r57_screen.py "data/r57/snap/r57_screen_$1.py" && cp scripts/c45_runner.sh "data/r57/snap/c45_runner_$1.sh"; }

@@ -13,7 +13,7 @@ mkdir -p data/d256
 LOG="$HOME/BigMoE/data/d256/d256.log"
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" >> "$LOG"; }
 swap_gb() { sysctl -n vm.swapusage | awk '{gsub("M","",$6); print $6 / 1024}'; }
-noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 cp scripts/r57_screen.py data/r57/snap/r57_screen_d256.py && cp scripts/c45_runner.sh data/r57/snap/c45_runner_d256.sh || exit 2
 RUN="/bin/bash data/r57/snap/c45_runner_d256.sh"
 export C45_SCREEN=data/r57/snap/r57_screen_d256.py C45_DEADLINE=${D256_DEADLINE:-1230} C45_OUT="$HOME/BigMoE/data/d256"

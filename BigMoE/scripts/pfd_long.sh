@@ -16,7 +16,7 @@ CL=$HOME/Leap/release/cleanclone/final/clone; cd $CL || exit 1
 PR=$HOME/Leap/data/prefill_1109
 ep() { date -j -f "%Y-%m-%d %H:%M:%S" "$1" +%s; }
 END=$(ep "2026-11-10 01:18:00"); L10=$(ep "2026-11-10 01:08:00"); L30=$(ep "2026-11-10 01:00:00")
-noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 swap() { sysctl -n vm.swapusage | sed -E 's/.*used = ([0-9.]+)M.*/\1/' | cut -d. -f1; }
 idle() { ioreg -c IOHIDSystem | awk '/HIDIdleTime/ {print int($NF/1000000000); exit}'; }
 other() { ps -axo pid=,comm=,args= | awk '$2 ~ /[Pp]ython/ && /[ \/](chat|serve)[.]py( |$)/ {printf "%s ", $1}'; }

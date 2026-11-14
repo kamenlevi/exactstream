@@ -23,7 +23,7 @@ SD=data/r57/snap/s5p
 [ -f "$SD/r57_screen_s5p.py" ] || { say "no S5' snapshot: not run"; exit 2; }
 git diff --quiet HEAD -- "$SD" data/r57/snap/frozen_s5p data/r57/snap/c45_runner_s5p.sh 2>/dev/null || { say "the S5' snapshot differs from its commit: not run"; exit 2; }
 SNAP=$(git log -1 --format=%h -- "$SD/r57_screen_s5p.py")
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
 A=${C30_AVAIL:-$(avail_gb)}
 awk -v a="$A" 'BEGIN {exit !(a >= 32)}' || { say "NO-SWAP $A GB < 32: not run"; exit 0; }
 [ -n "$C30_DRYRUN" ] || sleep 20

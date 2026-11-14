@@ -13,7 +13,7 @@ OUT="$HOME/Leap/data/stepb/gap_xpt.txt"
 PY=$HOME/BigMoE/.venv/bin/python
 WAITFOR=${WAITFOR:-bigmoe}
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" | tee -a "$OUT"; }
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
 ge() { awk -v a="$1" -v b="$2" 'BEGIN {exit !(a >= b)}'; }
 D=/Users/kamen/Fit12/data/scr/ex16/DONE
 say "gap_xpt start (pid $$, WAITFOR $WAITFOR${HAVE_LOCK:+, HAVE_LOCK: the lock was granted to a separate peer lock command}; NO-SWAP $(avail_gb) GB)"

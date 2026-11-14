@@ -31,18 +31,27 @@ say() { echo "$(date '+%m-%d %H:%M:%S') $*" >> "$LOG"; [ -n "$DRY" ] && echo "$*
 PY=$HOME/BigMoE/.venv/bin/python
 Q="$HOME/.local/share/quiet"
 RESERVE=${RESERVE_GB:-0}
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+# NO-SWAP = free + purgeable + file-backed. Speculative pages sit inside file-backed (active + inactive + speculative +
+# throttled = file-backed + anonymous), so the old "free + speculative + purgeable + file-backed" counted them twice
+# (the orchestrator, Sat 14 Nov 05:5x). A start reads the lower of two reads 30 s apart (avail_lo): one read right after
+# a big process exits can be high by many GB. mem_parts logs the parts with every gate read.
+avail_lo() { local a b; a=$(avail_gb); sleep 30; b=$(avail_gb); [ $b -lt $a ] && a=$b; echo $a; }
+mem_parts() { vm_stat | awk 'function n(x) {sub("[.]$", "", x); return x + 0} /page size of/ {ps=$8}
+  /^Pages free:/ {f=n($NF)} /^Pages speculative:/ {s=n($NF)} /^Pages purgeable:/ {p=n($NF)} /^File-backed pages:/ {fb=n($NF)}
+  /^Anonymous pages:/ {an=n($NF)} /^Pages wired down:/ {w=n($NF)} /^Pages occupied by compressor:/ {c=n($NF)}
+  END {g=ps/1e9; printf "free %.1f + purg %.1f + file %.1f (spec %.1f inside); anon %.1f, wired %.1f, compr %.1f", f*g, p*g, fb*g, s*g, an*g, w*g, c*g}'; }
 swap_mb() { sysctl -n vm.swapusage | awk '{gsub("M","",$6); print int($6)}'; }
 others_quiet() { peer ls 2>/dev/null | grep "^- " | grep -oE "· (benchmarking|quiet lock lapsed|waiting for a quiet window)" | grep -c .; }   # lapsed = still held (Sat 14 Nov 01:0x)
 lid_closed() { ioreg -r -k AppleClamshellState -d 1 | grep -q '"AppleClamshellState" = Yes'; }
 health_act() { grep -q "Verdict: ACT" "$Q/HEALTH.md" 2>/dev/null; }
 gates_clear() { [ "$(others_quiet)" -eq 0 ] && ! lid_closed && ! health_act; }
-gate_state() { echo "quiet locks of others $(others_quiet), lid $(lid_closed && echo closed || echo open), health $(health_act && echo ACT || echo ok), NO-SWAP $(avail_gb) GB"; }
+gate_state() { echo "quiet locks of others $(others_quiet), lid $(lid_closed && echo closed || echo open), health $(health_act && echo ACT || echo ok), NO-SWAP $(avail_gb) GB ($(mem_parts))"; }
 pick_c() { local a=$1; if [ "$a" -ge 52 ]; then echo 224; elif [ "$a" -ge 47 ]; then echo 192; elif [ "$a" -ge 42 ]; then echo 160;
   elif [ "$a" -ge 37 ]; then echo 128; elif [ "$a" -ge 32 ]; then echo 100; else echo 0; fi; }
 peak_gb() { echo $(( (237 + ($1 - 100) * 164 / 100 + 9) / 10 )); }     # ceil(23.7 + 0.164 (C - 100))
-want_c() { if [ -n "$DD_C" ]; then [ "$(avail_gb)" -ge $(( $(peak_gb $DD_C) + 8 )) ] && echo "$DD_C" || echo 0;
-  else pick_c $(( $(avail_gb) - RESERVE )); fi; }
+want_c() { if [ -n "$DD_C" ]; then [ "$(avail_lo)" -ge $(( $(peak_gb $DD_C) + 8 )) ] && echo "$DD_C" || echo 0;
+  else pick_c $(( $(avail_lo) - RESERVE )); fi; }
 
 say "slot start (pid $$; night $NIGHT; AFTER_PID ${AFTER_PID:-none}; $( [ -n "$DD_C" ] && echo "C $DD_C fixed" || echo "reserve $RESERVE GB" ); stop file $STOP)"
 if [ -n "$DRY" ]; then say "DRY: gates now: $(gate_state); C now $(want_c)"; exit 0; fi

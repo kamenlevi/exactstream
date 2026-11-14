@@ -16,7 +16,7 @@ export C45_SCREEN=data/r57/snap/r57_screen_pw.py C45_DEADLINE=${PW_DEADLINE:-143
 # PW_CS (11-03, the orchestrator: idle NO-SWAP is only 45-47 GB, so turns must peak <= ~41 GB): the Cs to run, e.g. "160 224";
 # the report's line moves to the largest C that ran (pre-registered C 256 -> C 224, set before the run)
 KEYS="humaneval/HumanEval/68,humaneval/HumanEval/91,humaneval/HumanEval/16,agent/bash18,agent/text23,agent/bash17"
-say "mission 20 start (pid $$, HAVE_LOCK=$HAVE_LOCK, NO-SWAP $(vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}') GB)"
+say "mission 20 start (pid $$, HAVE_LOCK=$HAVE_LOCK, NO-SWAP $(vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}') GB)"
 A=""
 for C in ${PW_CS:-160 256}; do
   A="$A pwc_$C:$C:R57_A6=ctl,R57_REFTOK= pww_$C:$C:R57_A6=warm,R57_REFTOK= pwc_${C}r:$C:R57_A6=ctl,R57_REFTOK= pww_${C}r:$C:R57_A6=warm,R57_REFTOK="

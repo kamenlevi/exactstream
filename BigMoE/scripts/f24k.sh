@@ -21,7 +21,7 @@ LOG="$PWD/$D/f24.log"
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" >> "$LOG"; }
 PY=${F24_PY:-$HOME/BigMoE/.venv/bin/python}
 SD=data/r57/snap/f24k
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
 A=${F24_AVAIL:-$(avail_gb)}
 awk -v a="$A" 'BEGIN {exit !(a >= 32)}' || { say "NO-SWAP $A GB < 32: not run"; exit 0; }
 [ -n "$F24_DRYRUN" ] || sleep 20

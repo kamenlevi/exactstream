@@ -142,3 +142,50 @@ t30f trained 4,206 steps (rc 0 at 21:49) and was scored in one process with b5 a
   - The PREREG keeps the feature loss for later runs only on a t30f PAYS, so later runs drop it.
   - The capacity arms t30x2 and t30x4 run next, alone, with the capture paused. The "if nothing pays" reading waits for
     them.
+
+## Result: t30x2 (Sat 14 Nov 05:43): NO EFFECT; twice the capacity is not better than t30b
+t30x2 trained 4,206 steps alone, with the capture paused (from 22:08; rc 0 at 05:27). It was scored in one process with
+b5 and t30b (data/deepdraft/ttt30c/t30x2/eval.json; eval rc 0 at 05:43).
+- **Harness:** b5 and t30b re-score bit for bit as in a855212, every band on both sets.
+- **The lines (HumanEval+ 23-30):**
+  - t30x2 scores 88.86 %, against t30b's 89.66 %: -0.79 pt.
+  - PAYS needs >= 90.66 %. HURTS is <= 88.66 %, so t30x2 lands 0.21 pt above the HURTS line.
+  - MBPP 23-30 is 71.57 against 72.13 (-0.55). Depth 0 is 97.88 against b5's 97.68 (+0.20, within 1 pt).
+  - **Verdict: NO EFFECT** (within a point of t30b).
+- **15 of the 16 band scores are below t30b**, by 0.01 to 0.79 pt. The one above is HumanEval+'s kept per 32-row check
+  (13.95 against 13.83):
+
+  | band | HumanEval+ b5 / t30b / t30x2 | delta | MBPP b5 / t30b / t30x2 | delta |
+  |---|---|---|---|---|
+  | 0 | 97.68 / 97.90 / 97.88 | -0.02 | 93.46 / 94.01 / 93.93 | -0.08 |
+  | 7-10 | 90.51 / 93.10 / 92.79 | -0.31 | 74.70 / 79.61 / 79.25 | -0.35 |
+  | 15-22 | 86.85 / 91.04 / 90.50 | -0.54 | 66.78 / 74.38 / 74.19 | -0.18 |
+  | 23-30 | 85.08 / 89.66 / 88.86 | -0.79 | 63.34 / 72.13 / 71.57 | -0.55 |
+  | kept per 32-row check | 12.55 / 13.83 / 13.95 | +0.12 | 6.22 / 6.92 / 6.91 | -0.01 |
+
+- **Against t30f** (the same harness; information only): t30x2 is 0.04-0.30 pt above t30f in every band shown above, on
+  both sets (23-30: +0.14 on HumanEval+, +0.13 on MBPP). Both arms are below t30b.
+- **The copies against t30b's copies at the same steps (information only), 23-30:**
+  - HumanEval+: -3.91 pt at step 600, -1.07 at 1,500, -0.35 at 3,000 (-0.79 at the end).
+  - MBPP: -3.72, -2.22, -1.06 (-0.55 at the end).
+  - The branch starts far behind and closes most of the gap by step 3,000, but never passes t30b.
+- **The training KL, paired by step** (the per-step losses saved with each run, on the same slices from pass seed 1113;
+  t30x2 has no feature term, so its loss is the KL):
+  - Step 1 is equal (0.35096): the branch starts at zero.
+  - t30x2 over t30b: +203 % over steps 1-20, +95 % over 21-100, +30 % over 101-400, +19 % over 401-1,000 and +6.5 %
+    over 1,001-2,199.
+  - Then +3.7 % over 2,200-3,000, +1.3 % over 3,001-3,600 and +1.1 % over 3,601-4,206 (lower on 289 of 606 steps).
+  - Over 2,200-4,206 it is +2.2 %; t30f was +4.4 % over the same steps.
+- **PLAN step 3:** 88.86 % is under 90 %, so not CONTINUE. The eval's own field reads INCONCLUSIVE (between 87 and 90).
+- **Capacity against data:** 147.7M / 69.1M = 1.10 doublings for -0.79 pt, about -0.7 pt per doubling, against data's
+  ~+1 pt per doubling. The capacity line (t30x4 - t30b >= +2.1 pt) is read after t30x4.
+- **Training:**
+  - MLX peak 24.6 GB (smoke 23.9; t30b 15.6). The eval peaked at 10.2 GB.
+  - It yielded three times to another session's quiet tickets. Each time it saved at steps 1,406, 1,535 and 1,563, and
+    resumed from its saved step (weights, Adam's moments and the step, on the same slice order).
+  - No timing is claimed.
+- **What it means:**
+  - On night 1's data, a 2.1x reader (78.6M more parameters, at 10x the learning rate) ends where t30b does or slightly
+    below. Extra width does not pay at this data size.
+  - t30x4 (x4.4) runs next, alone. Its smoke passed both equality checks at a 38.9 GB peak (05:44:58; train guard
+    42 GB). The "if nothing pays" reading waits for it.

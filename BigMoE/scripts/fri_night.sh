@@ -28,7 +28,7 @@ mkdir -p data/fri data/r57/snap
 LOG="$PWD/data/fri/fri.log"
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" >> "$LOG"; }
 swap_gb() { sysctl -n vm.swapusage | awk '{gsub("M","",$6); print $6 / 1024}'; }
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
 A=${FRI_AVAIL:-$(avail_gb)}
 fits() { awk -v a="$A" -v n="$1" 'BEGIN {exit !(n <= a)}'; }
 CC=; for c in 224:44.3 208:42.2 192:40.0 176:37.9 160:35.7 144:33.6 128:31.4; do   # Thu 23:4x: lower rungs (NO-SWAP 32.4 GB with apps closed; qall 31.2 / exact 31.7 GB at C 160, 0.134 per row)

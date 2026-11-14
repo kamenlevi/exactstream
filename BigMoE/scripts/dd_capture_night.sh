@@ -15,7 +15,7 @@ LOG=$D/night_$NIGHT.log
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" >> "$LOG"; }
 PY=$HOME/BigMoE/.venv/bin/python
 END=$(date -j -f "%Y-%m-%d %H:%M:%S" "$(date +%Y-%m-%d) ${DD_END:-13:30}:00" +%s)
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 swap_mb() { sysctl -n vm.swapusage | awk '{gsub("M","",$6); print int($6)}'; }
 # 00:2x (the orchestrator: Kamen's CLI sessions keep ~15 GB, NO-SWAP ~32-37 GB): the cache C from the measured room, peak [P]
 # ~ 23.7 GB at C 100 rising ~0.164 GB per C to ~44 at C 224, + 8 GB margin. Tokens and features do not depend on C.

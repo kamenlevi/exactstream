@@ -42,7 +42,7 @@ PY=${SN_PY:-$HOME/BigMoE/.venv/bin/python}
 EPY=${SN_EPY:-$HOME/EvalSuite/.venv/bin/python}           # EvalSuite's venv (evalplus): the MBPP test verdicts
 STACK=${SN_STACK-R57_NAX=1,REF2_NAX_1CQ=1,REF2_DN_KS=1,REF2_GDN_LAZY=1,D7BNAX_32=1,R57_FASTTAX=1}
 STACKR=${SN_STACKR-R57_NAX=1,REF2_NAX_1CQ=1,REF2_DN_KS=1,REF2_GDN_LAZY=1,D7BNAX_32=1,R57_FASTTAX=1,R57_RELAX_DELTA=0.5,R57_RELAX_SPAN=1}
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
 A=${SN_AVAIL:-$(avail_gb)}
 fits() { awk -v a="$A" -v n="$1" 'BEGIN {exit !(n <= a)}'; }
 CC=; for c in 224:44.0 208:41.9 192:39.7 176:37.6 160:35.4; do fits ${c#*:} && { CC=${c%%:*}; break; }; done   # Fri C 224 peaks 38.4-38.9 GB + 4

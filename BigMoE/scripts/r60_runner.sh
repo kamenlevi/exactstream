@@ -42,7 +42,7 @@ run() {  # run NAME TIMEOUT OUTFILE CMD...  (memory gate at most 30 s: the lock 
   return $rc
 }
 say "r60 start (CLAUDE_PID=$CLAUDE_PID)"
-noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 if [ -n "$R60_QUIET" ]; then                              # the quiet confirmation (NewIdeas: PASS -> one quiet run)
   PEER_QUEUE_TIMEOUT=21600 peer lock quiet --queue 15m "BigMoE R-60 confirmation: D-22 MTP head on the 24 GB stack, tok/s + official peak" >> "$LOG" 2>&1 || { say "no lock"; exit 1; }
   i=0

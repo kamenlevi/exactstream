@@ -19,7 +19,7 @@ if d.get("mode") != "quiet" or d.get("until", 0) <= time.time(): sys.exit(1)
 d["active_at"] = time.time(); t = "%s.tmp%d" % (p, os.getpid()); json.dump(d, open(t, "w")); os.replace(t, p)' "$LOCKF"; }
 say() { echo "$(date +%H:%M:%S) $*" >> "$LOG"; }
 source "$HOME/BigMoE/scripts/ssd_gate.sh"
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }   # NO-SWAP (the orchestrator 23:5x, RULES): free + speculative + purgeable + file-backed
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }   # NO-SWAP (the orchestrator 23:5x, RULES): free + purgeable + file-backed (speculative sits inside file-backed: the orchestrator 11-14 05:5x)
 run() {  # run NAME TIMEOUT OUTFILE CMD...  (memory gate at most 30 s: the lock is only 15 min)
   local name=$1 to=$2 of=$3; shift 3
   keepalive || { say "lost the lock before $name: stopping the batch"; exit 1; }

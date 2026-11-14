@@ -26,7 +26,7 @@ KEYS=$(sed -n 1p data/n45/keys.txt)
 [ "$(echo "$KEYS" | tr ',' '\n' | grep -c '^ifeval/')" = 12 ] || { say "W24FT not run: data/n45/keys.txt line 1 is not 12 IFEval keys"; exit 2; }
 PFD="R57_PFD=1,R57_PFD_V=4,R57_PFD_AHEAD=1"
 ARMS=${W24FT_ARMS:-"w3c1: w3d:$PFD w3f:$PFD,R57_PFD_FOLD=1 w3p:R57_P2=256 w3c2:"}   # 14:2x: W24FT_ARMS for extra arms
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 if [ -n "$W24FT_DRY" ]; then
   for a in $ARMS; do say "dry: ${a%%:*}_100 = card_w24d env ($(echo "$ENVL" | tr ',' '\n' | grep -c =) keys)${a#*:}+ [${a#*:}]"; done
   exit 0

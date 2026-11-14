@@ -15,7 +15,7 @@ D=data/rel; mkdir -p $D
 LOG="$PWD/$D/rel_rows.log"
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" >> "$LOG"; [ -z "$REL_DRY" ] || echo "$*"; }   # returns 0 (Mon 09:5x: was 1 outside dry runs, so the script ended rc=1)
 PY=$HOME/BigMoE/.venv/bin/python
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
 SD=data/r57/snap/$REL; SCR=$SD/r57_screen_$REL.py; RS=data/r57/snap/c45_runner_$REL.sh
 [ -f "$SCR" ] && [ -f "$RS" ] && [ -d data/r57/snap/frozen_$REL ] || { say "no frozen snapshot $REL (screen, runner, frozen tree): not run"; exit 2; }
 git diff --quiet HEAD -- "$SD" "data/r57/snap/frozen_$REL" "$RS" \

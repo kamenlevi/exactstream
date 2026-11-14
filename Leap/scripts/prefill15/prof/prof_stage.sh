@@ -7,7 +7,7 @@
 # free). Usage: prof_stage.sh <work dir>
 W=$1; P=/Users/kamen/Leap/scripts/prefill15/prof; CL=/Users/kamen/Leap/release/cleanclone/cache/clone; LOG=$W/prof.log
 LAST=$(date -j -f "%Y-%m-%d %H:%M:%S" "2026-11-11 13:30:00" +%s)
-noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 swap() { sysctl -n vm.swapusage | sed -E 's/.*used = ([0-9.]+)M.*/\1/' | cut -d. -f1; }
 procs() { ps -axo pid=,args= | awk '/[Pp]ython/ && /r57_screen_|[ \/](chat|serve|run)[.]py( |$)/ && !/ awk / {printf "%s ", $1}'; }
 say() { echo "$(date '+%H:%M:%S') $*" | tee -a $LOG; }

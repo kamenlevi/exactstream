@@ -48,7 +48,7 @@ say "deadlines: C 256 headline $D256_DEADLINE, C 224 trio $C224T_DEADLINE, DKV c
 # (qall 31.7 + 0.134 (C - 160) + 4: 224: 44.3, 208: 42.1, 192: 40.0, 176: 37.8), MG 4. DKV at C 224 (the exact default on
 # 14 prompts: 42.1 + 4.5 = 46.6) else C 160 (31.8 + 4.5 = 36.3; tokens do not depend on C), MG 4. The LOO as before (its
 # arms skip themselves below 50.5).
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
 A=${NT_AVAIL:-$(avail_gb)}
 fits() { awk -v a="$A" -v n="$1" 'BEGIN {exit !(n <= a)}'; }
 need() { awk -v b="$1" -v c="$2" 'BEGIN {printf "%.1f", b + 0.134 * (c - 160)}'; }

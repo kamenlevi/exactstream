@@ -12,7 +12,7 @@ cd "$HOME/Leap/scripts/stepb" || exit 1
 OUT="$HOME/Leap/data/stepb/gap_p220.txt"
 PY=$HOME/BigMoE/.venv/bin/python
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" | tee -a "$OUT"; }
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
 ge() { awk -v a="$1" -v b="$2" 'BEGIN {exit !(a >= b)}'; }
 [ -z "$HAVE_LOCK" ] && { say "gap_p220.sh runs inside Leap's quiet lock: HAVE_LOCK=1"; exit 1; }
 say "gap_p220 start (pid $$; NO-SWAP $(avail_gb) GB)"

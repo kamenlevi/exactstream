@@ -12,7 +12,7 @@ OUT="$HOME/BigMoE/data/cap45"; mkdir -p "$OUT"
 LOG="$OUT/cap45.log"
 PY="$HOME/BigMoE/.venv/bin/python"
 say() { echo "$(date +%H:%M:%S) $*" >> "$LOG"; }
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }   # NO-SWAP (the orchestrator 23:5x, RULES): free + speculative + purgeable + file-backed
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }   # NO-SWAP (the orchestrator 23:5x, RULES): free + purgeable + file-backed (speculative sits inside file-backed: the orchestrator 11-14 05:5x)
 say "cap45 start (CLAUDE_PID=$CLAUDE_PID)"
 mem_ok() { free=$(avail_gb); big=$(ps -axo rss= | awk '$1 > 20000000' | wc -l)
            [ ! -e "$HOME/.local/share/quiet/PAUSE" ] && [ "$free" -ge 50 ] && [ "$big" -eq 0 ]; }

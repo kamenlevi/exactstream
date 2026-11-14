@@ -18,7 +18,7 @@ mkdir -p data/fday data/r57/snap
 LOG="$PWD/data/fday/fmbpp.log"
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" >> "$LOG"; }
 STACK="R57_NAX=1,REF2_NAX_1CQ=1,REF2_DN_KS=1,REF2_GDN_LAZY=1,D7BNAX_32=1,R57_INERT=CD16,R57_FASTTAX=1"   # = tonight's STACK
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
 A=${FD_AVAIL:-$(avail_gb)}
 fits() { awk -v a="$A" -v n="$1" 'BEGIN {exit !(n <= a)}'; }
 CC=; for c in 224:44.0 208:41.9 192:39.7 176:37.6 160:35.4; do fits ${c#*:} && { CC=${c%%:*}; break; }; done   # Fri C 224 runs peaked 38.4-39.4 GB; stack ~40 + 4

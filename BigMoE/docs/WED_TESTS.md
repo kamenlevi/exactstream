@@ -1779,7 +1779,7 @@ The 125B is untouched. Same held-out windows and harness as t30a; agreement with
   moments and the step. Pooled cells only, one run per arm: a direction, not a significance claim. Heat pauses
   throughout; no timing claims.
 
-## Fri 13 Nov 15:13-: DEEPDRAFT step 3 third test, TTT30C (PREREG 22bf65a): t30f NO EFFECT (-0.93 pt); t30x2 alone next (in progress) (data/deepdraft/ttt30c/)
+## Fri 13 Nov 15:13-: DEEPDRAFT step 3 third test, TTT30C (PREREG 22bf65a): t30f NO EFFECT (-0.93 pt), t30x2 NO EFFECT (-0.79 pt); t30x4 alone next (in progress) (data/deepdraft/ttt30c/)
 The arms are t30b's exact run plus one change each: t30f adds a feature loss, and t30x2 / t30x4 add a dense branch
 (capacity x2.1 / x4.4). The slot opened at 15:08, when EvalSuite's 45 GB P2 gate ended.
 - **t30x2 smoke:** both exact-equality checks EQUAL (the lambda-0 path and the zero-init branch each give b5's loss,
@@ -1792,6 +1792,17 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
   - All bands on both sets are 0.12-0.93 pt below t30b; the gap opens by step 1,500.
   - b5 and t30b re-score bit for bit. The feature term fell from 1.71 to about 0.92. Later runs drop the feature loss.
   - Details: the PREREG's "Result: t30f" section.
-- **Next (from 22:09):** t30x2, then t30x4 (a linear projection puts it near 36 GB), each with its guard re-set from its
-  own smoke and run with the capture paused. The capture stopped at a prompt boundary at 22:09 (44.2 GB, 815k code
-  tokens) and resumes after them.
+- **From 22:09:** t30x2, then t30x4, each with its guard re-set from its own smoke and run with the capture paused. The
+  capture stopped at a prompt boundary at 22:09 (44.2 GB, 815k code tokens) and resumes after them.
+- **t30x2 result (Sat 14 Nov 05:43): NO EFFECT; twice the capacity is not better than t30b.**
+  - HumanEval+ 23-30 is 88.86 % against t30b's 89.66 % (-0.79 pt; HURTS <= 88.66, PAYS >= 90.66).
+  - MBPP 23-30 is 71.57 against 72.13. Depth 0 is 97.88 against b5's 97.68.
+  - 15 of the 16 band scores are 0.01-0.79 pt below t30b; HumanEval+'s kept per check is +0.12. It is 0.04-0.30 pt
+    above t30f in every band shown.
+  - The copies trail t30b's by 3.9 pt at step 600 and 0.35 pt at step 3,000. The paired training KL falls from +203 %
+    (steps 1-20) to +1.1 % (3,601-4,206).
+  - About -0.7 pt per doubling of trainable parameters, against data's ~+1. b5 and t30b re-score bit for bit; MLX peak
+    24.6 GB.
+  - Details: the PREREG's "Result: t30x2" section.
+- **Next (from 05:43):** t30x4 (x4.4, 305.0M trainable). Its smoke passed both equality checks at a 38.9 GB peak; the
+  train guard is 42 GB. The capacity line (t30x4 - t30b >= +2.1 pt) is read after it.

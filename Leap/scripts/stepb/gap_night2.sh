@@ -14,7 +14,7 @@ cd "$HOME/Leap/scripts/stepb" || exit 1
 OUT="$HOME/Leap/data/stepb/gap_night.txt"
 TL="$HOME/BigMoE/data/turn45.log"
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" | tee -a "$OUT"; }
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
 ge() { awk -v a="$1" -v b="$2" 'BEGIN {exit !(a >= b)}'; }
 N0=$(wc -l < "$TL" 2>/dev/null || echo 0)
 say "gap_night2 waiter start (pid $$; NO-SWAP $(avail_gb) GB; BigMoE's turn45.log at line $N0)"

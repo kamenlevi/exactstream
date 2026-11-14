@@ -20,7 +20,7 @@ Q="$HOME/.local/share/quiet"
 if [ "$(date +%H)" -lt 12 ]; then DAY=$(date +%Y-%m-%d); else DAY=$(date -v+1d +%Y-%m-%d); fi   # the morning this night ends
 ep() { date -j -f "%Y-%m-%d %H:%M:%S" "$DAY $1:00" +%s; }
 CAP_LAST=$(ep 12:30); CAP_END=$(ep 13:30)
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 others_quiet() { peer ls 2>/dev/null | grep -E "benchmarking: quiet lock|waiting for a quiet" | grep -v "BigMoE" | grep -c .; }
 lid_closed() { ioreg -r -k AppleClamshellState -d 1 | grep -q '"AppleClamshellState" = Yes'; }
 health_act() { grep -q "Verdict: ACT" "$Q/HEALTH.md" 2>/dev/null; }

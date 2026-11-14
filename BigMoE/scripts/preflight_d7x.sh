@@ -7,7 +7,7 @@ export PATH="$HOME/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:$P
 cd "$HOME/BigMoE" || exit 1
 mkdir -p data/pf3 data/r57/snap
 LOG="$PWD/data/pf3/pf3.log"; say() { echo "$(date '+%m-%d %H:%M:%S') $*" >> "$LOG"; }
-nsw() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+nsw() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 busy() { [ "$(ps -axo rss= | awk '$1 > 5000000' | wc -l | tr -d ' ')" -gt 0 ] || [ "$(nsw)" -lt 40 ] \
   || peer ls 2>/dev/null | grep -qE 'benchmarking: quiet lock|waiting for a quiet window' \
   || peer ls 2>/dev/null | grep -E 'shared run' | grep -qE 'MEM ([5-9]|[1-9][0-9]+) GB'; }

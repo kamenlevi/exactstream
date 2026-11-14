@@ -22,7 +22,7 @@ PY=${GB_PY:-$HOME/BigMoE/.venv/bin/python}
 SD=data/r57/snap/s5
 git diff --quiet HEAD -- "$SD" data/r57/snap/frozen_s5 data/r57/snap/c45_runner_s5.sh 2>/dev/null || { say "the S5 snapshot differs from its commit: not run"; exit 2; }
 SNAP=$(git log -1 --format=%h -- "$SD/r57_screen_s5.py")
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
 A=${GB_AVAIL:-$(avail_gb)}
 awk -v a="$A" 'BEGIN {exit !(a >= 47.2)}' || { say "NO-SWAP $A GB < 47.2: C 256 does not fit, not run"; exit 0; }
 [ -n "$GB_DRYRUN" ] || sleep 20

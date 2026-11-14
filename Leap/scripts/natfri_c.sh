@@ -23,7 +23,7 @@ PY=${NATFRI_PY:-$HOME/BigMoE/.venv/bin/python}
 REF=$HOME/BigMoE/data/d45/ref14_tokens.json
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" | tee -a "$LOG"; }
 swap_gb() { sysctl -n vm.swapusage | awk '{gsub("M","",$6); print $6 / 1024}'; }
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
 K="humaneval/HumanEval/68,humaneval/HumanEval/91,humaneval/HumanEval/16,humaneval/HumanEval/6,math500/test/prealgebra/1640.json"
 K="$K,math500/test/algebra/694.json,math500/test/algebra/1282.json,gsm8k/708,ifeval/1220,ifeval/1561,multi/de3,multi/zh15"
 K="$K,agent/bash18,agent/text23"                                  # dkv_thu.sh's ref14 keys (BigMoE 6adad93+)

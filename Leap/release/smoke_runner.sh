@@ -9,7 +9,7 @@ W=${1:?work dir}; START=${2:?start epoch}; LAST=${3:?last start epoch}; TAG=${4:
 export PATH="$HOME/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:$PATH"
 LOG="$W/runner.log"; Q="$HOME/.local/share/quiet"
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" >> "$LOG"; }
-noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 desc() { local c; for c in $(pgrep -P "$1"); do desc "$c"; echo "$c"; done; }   # descendants by PID, deepest first
 swap_gb() { sysctl -n vm.swapusage | awk '{gsub("M","",$6); printf "%.2f", $6 / 1024}'; }
 [ -x "$W/clone/.venv/bin/python" ] || { say "no prepared clone in $W: NOT STARTED"; exit 2; }

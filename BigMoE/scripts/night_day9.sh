@@ -24,7 +24,7 @@ CHREF="$HOME/BigMoE/data/r57/chat23_ref_tokens.json:gate+t"
 CHAT="ifeval/1220,ifeval/1561,ifeval/3280,multi/ar21,multi/ar22,multi/bg0,multi/bg2,multi/de3,multi/de4,multi/es10,multi/es11"
 CHAT="$CHAT,multi/fr7,multi/fr8,multi/ja18,multi/ja19,multi/ru12,multi/ru13,multi/zh15,multi/zh16,agent/text23,agent/bash17"
 PRIOR="$HOME/BigMoE/data/seed45/prior45.npz"
-say "night start (pid $$, HAVE_LOCK=$HAVE_LOCK, NO-SWAP $(vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}') GB)"
+say "night start (pid $$, HAVE_LOCK=$HAVE_LOCK, NO-SWAP $(vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}') GB)"
 MG=4 C45_ARMS="c45l_300:300 c45l_320:320" $RUN
 say "group 1 (C 300 / 320) rc=$?"
 R57_KEYS=$CHAT MG=6 C45_ALARM=900 C45_REFTOK=$CHREF C45_ARMS="chA_256:256 chB_256:256:R57_CHATSW=1" $RUN

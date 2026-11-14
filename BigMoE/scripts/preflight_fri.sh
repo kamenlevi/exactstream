@@ -36,7 +36,7 @@ P="R57_LAYSZ=0,BIGMOE_TIER_CL=64"
 U="$P,BIGMOE_EXT_BUILD=build_qom,R57_FAST=U3C,R57_U3C_LEN=1,R57_REFTOK="
 QA="$P,BIGMOE_EXT_BUILD=build_qom,R57_REFTOK=,R57_FAST=QOM,R57_D17=1,R57_D7B=code,R57_HC8=1,REF2_HC8_FAST=1,R57_DNR=1,R57_HCB=1"
 QA="$QA,REF2_SMALL_NATIVE=1,R57_D7BNAX=1,REF2_OOO_1C=1"
-say "pre-flight start (pid $$, NO-SWAP $(vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}') GB)"
+say "pre-flight start (pid $$, NO-SWAP $(vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}') GB)"
 for a in "pu3c $FS $U" "pqall $FS $QA" "ps99 $FS $QA,R57_QOM_SPLIT=0.99" \
          "pqallr $RS $QA,R57_RELAX_DELTA=0.5,R57_RELAX_LOG=$PWD/data/pf/relax.jsonl" \
          "pspan $RS $QA,R57_RELAX_SPAN=1,R57_RELAX_LOG=$PWD/data/pf/span.jsonl" "pexr $FS $P,R57_VTIER="; do

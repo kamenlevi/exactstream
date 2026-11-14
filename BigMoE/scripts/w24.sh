@@ -22,7 +22,7 @@ RUN=${W24_RUN:-w24}                                    # W24b: W24_RUN=w24b -> d
 LOG="$PWD/$D/w24.log"
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" >> "$LOG"; [ -z "$W24_DRY" ] || echo "$*"; }
 PY=$HOME/BigMoE/.venv/bin/python
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%.1f", s*ps/1e9}'; }
 SD=data/r57/snap/w24; SCR=$SD/r57_screen_w24.py; RS=data/r57/snap/c45_runner_rel1.sh; FR=data/r57/snap/frozen_rel1
 [ -f "$SCR" ] && [ -f "$RS" ] && [ -d "$FR" ] || { say "no w24 snapshot (screen, runner, frozen tree): not run"; exit 2; }
 git diff --quiet HEAD -- "$SD" "$FR" "$RS" && [ -z "$(git ls-files --others --exclude-standard -- "$SD" "$FR" "$RS")" ] \

@@ -18,7 +18,7 @@ ENVL=$(sed -n 2p $F | sed 's/,R57_QOM_SETS=humaneval,mbpp,lcb6$//')     # the ru
 echo "$ENVL" | grep -q 'R57_QOM_SETS' && { say "W24e not run: R57_QOM_SETS left in the env line"; exit 2; }   # sets go below
 KEYS="gpqad/recnTTKdBzfuoZ7w7,lcb6/abc394_g,lcb6/abc400_g,lcb6/arc192_a,gpqad/rec6sE2CRtD4drtHg,lcb6/3705"
 ARMS="pc1024:1024 pc512:512 pc256:256 pc1024b:1024"
-avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+avail_gb() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 if [ -n "$W24E_DRY" ]; then
   for a in $ARMS; do say "dry: ${a%%:*}g_100 = card_w24d env ($(echo "$ENVL" | tr ',' '\n' | grep -c =) keys) + R57_PFCHUNK=${a#*:}; keys $KEYS"; done
   exit 0

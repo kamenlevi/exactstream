@@ -23,7 +23,7 @@ cd "$HOME/BigMoE" || exit 1
 mkdir -p data/u3c
 LOG="$HOME/BigMoE/data/u3c/u3c.log"
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" >> "$LOG"; }
-noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 PY="$HOME/BigMoE/.venv/bin/python"
 # the orchestrator Wed 07:5x: after the morning block, Breakthrough's screen 4 (NewIdeas', ~20 min, shared) goes first; 5b
 # starts only after Breakthrough's "screen 4 done" (rm data/u3c/HOLD then) and only if it still ends by 12:55

@@ -15,7 +15,7 @@
 # after it (est 420 s per 10K run, 900 s per 30K run). BLOCKS (default "10k 30k") picks the blocks. Before each run: no engine and NO-SWAP >= its gate, else that run is skipped;
 # swap +2 GB stops. Usage: [BLOCKS="10k"] onebuild_45_runs.sh <work dir with prompt_10k.txt and prompt_30k.txt>
 W=$1; CL=/Users/kamen/Leap/release/cleanclone/cache/clone; HOOK=/Users/kamen/Leap/scripts/prefill15/onebuild/hook; LOG=$W/onebuild.log
-noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 swap() { sysctl -n vm.swapusage | sed -E 's/.*used = ([0-9.]+)M.*/\1/' | cut -d. -f1; }
 procs() { ps -axo pid=,args= | awk '/[Pp]ython/ && /r57_screen_|run_map[.]py|fit_onecall[.]py|[ \/](chat|serve|run)[.]py( |$)/ && !/ awk / {printf "%s ", $1}'; }
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" | tee -a $LOG; }
