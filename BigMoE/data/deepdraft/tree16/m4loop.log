@@ -1,0 +1,24 @@
+17:05:28 M4LOOP slice 0-3 start (NO-SWAP 20 GB, swap 7204.38 MB)
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=26.3 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (1320628 > 262144). Running this sequence through the model will result in indexing errors
+TREE16-M4LOOP Sun 15 Nov 17:05:32: MLX 0.32.2; slice 0-3 (GGGA; PLE at 1); N 200; 6.7 GB active
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  P 1024: AR 200 tokens (4 s); chain control 28 checks, bad rows 0 dense / 0 past 2048; TREE 60 checks ({'chain': 47, 'tree': 13}, side paths 12, fallback 0), bad rows 0 dense / 0 past 2048 -> BITWISE
+  P 1990: AR 200 tokens (4 s); chain control 28 checks, bad rows 0 dense / 0 past 2048; TREE 27 checks ({'chain': 6, 'tree': 1}, side paths 0, fallback 20), bad rows 0 dense / 0 past 2048 -> BITWISE
+TREE16-M4LOOP verdict: ALL BITWISE (tree loop == REF2 AR on every kept row, 32 s, peak 8.7 GB)
+17:06:09 M4LOOP slice 0-3 rc 0
+17:06:09 M4LOOP slice 4-7 start (NO-SWAP 22 GB, swap 7204.38 MB)
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (1320628 > 262144). Running this sequence through the model will result in indexing errors
+TREE16-M4LOOP Sun 15 Nov 17:06:13: MLX 0.32.2; slice 4-7 (GGGA; PLE none); N 200; 6.6 GB active
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  P 1024: AR 200 tokens (3 s); chain control 28 checks, bad rows 0 dense / 0 past 2048; TREE 60 checks ({'chain': 47, 'tree': 13}, side paths 12, fallback 0), bad rows 0 dense / 0 past 2048 -> BITWISE
+  P 1990: AR 200 tokens (3 s); chain control 28 checks, bad rows 0 dense / 0 past 2048; TREE 27 checks ({'chain': 6, 'tree': 1}, side paths 0, fallback 20), bad rows 0 dense / 0 past 2048 -> BITWISE
+TREE16-M4LOOP verdict: ALL BITWISE (tree loop == REF2 AR on every kept row, 15 s, peak 8.6 GB)
+17:06:30 M4LOOP slice 4-7 rc 0
+17:06:30 M4LOOP-DONE

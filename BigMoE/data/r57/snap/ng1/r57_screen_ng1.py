@@ -2112,7 +2112,8 @@ for n_p, (s, key) in enumerate(PICK):
         RUNS.append(dict(key=key, arm=arm, type=typ, bad=r["bad"], cut=r["cut"], P=len(ids),
                          **{k_: r[k_] for k_ in ("drafter", "hist", "a6", "n", "tps", "tpsw", "kept", "checks", "cyc", "ck",
                                                  "drf", "miss", "io", "mb", "mpk", "mem", "copy", "fast", "pf", "lh", "inert")},
-                         d7b=draft is DRAFT4, replay=None if r.get("replay") is None else {k_: v_ for k_, v_ in r["replay"].items() if k_ != "pos"}, rlx=r.get("rlx"), **({"close_call": r["close_call"]} if r.get("close_call") is not None else {}), spn=r.get("spn"), nwk=r.get("nwk"), pfs=r.get("pfs"), pfst=r.get("pfst"), pflm=r.get("pflm"), pfd=r.get("pfd"), p2=r.get("p2")))   # Thu 18:5x / Fri 10:0x: relaxed / span / INERT
+                         d7b=draft is DRAFT4, replay=None if r.get("replay") is None else {k_: v_ for k_, v_ in r["replay"].items() if k_ != "pos"}, rlx=r.get("rlx"), **({"close_call": r["close_call"]} if r.get("close_call") is not None else {}), spn=r.get("spn"), nwk=r.get("nwk"), pfs=r.get("pfs"), pfst=r.get("pfst"), pflm=r.get("pflm"), pfd=r.get("pfd"), p2=r.get("p2"),
+                         **{k_: r[k_] for k_ in ("ngx",) if r.get(k_) is not None}))   # Thu 18:5x / Fri 10:0x: relaxed / span / INERT (ng1: + the n-gram receipt)
                                                          # stats were computed but never written (the pre-flight's MISSING)
         m = min(len(want), r["n"])
         agree = same(r["out"], want)

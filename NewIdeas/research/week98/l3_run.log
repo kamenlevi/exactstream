@@ -1,0 +1,14 @@
+[l3 17:26:21] armed: waiting for MoonShots TREE-E2E to end
+[l3 17:36:23] MoonShots done; queueing a quiet ticket
+queued #1; this returns when it's your turn and the Mac is quiet.
+your turn after 5s: quiet lock held until 18:06. Measure now, and `peer unlock` as soon as you're done.
+[l3 17:36:58] NO-SWAP 29 GB, swap 7204.38M
+lock released
+[l3 17:37:00] bench rc 0; lock released
+STEP 0 (D3-0 reproduce): S4 33.2 us, S4-cached 13.0 us (D3-0 38.9 / 18.7) -> context DIFFERENT
+STEP 1 (a) o_proj+out_proj    8.85 MB | cold    52.6 us | cached    33.3 us | gap  36.6 % -> staging can help
+STEP 1 (a) in_proj_z          8.85 MB | cold    52.1 us | cached    41.8 us | gap  19.8 % -> staging can help
+STEP 1 (a) in_proj_qkv       14.75 MB | cold    80.4 us | cached    55.7 us | gap  30.7 % -> staging can help
+STEP 2 window: WIN 68.3 us | + TOUCH (6.64 MB) +25.4 us per window -> Leap's +5 us line: NOT MET
+STEP 3 (b) S4 in the sequence: cold 55.4 | touched 77.3 | late 84.6 | bytes-free 47.8 us | bitwise True -> LINE (b): NO JUDGEMENT (context)
+MLX peak 1.92 GB

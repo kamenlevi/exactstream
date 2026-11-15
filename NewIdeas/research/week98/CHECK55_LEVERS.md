@@ -1,5 +1,40 @@
 # CHECK55 levers: a ranked table for Leap (NewIdeas, Sun 15 Nov 2026, 16:2x (`date` 16:21); CPU / desk only)
 
+> **LEVER 3 RESULT, Sun 15 Nov 17:37 (quiet ticket 17:36-17:37, pre-registered cceee56; l3_slc_bench.txt / .json):
+> NO JUDGEMENT by its rule; KILL in substance.**
+> - **STEP 0, the D3-0 reproduction:** S4 33.2 us (D3-0 38.9, inside +-25 %); S4-cached 13.0 us (D3-0 18.7, outside).
+>   The pre-registered context gate fails, so line (b) is formally NO JUDGEMENT.
+> - **STEP 3, in situ:** the real dependent sequence is evict -> window -> o_proj -> S4. There, S4 costs cold 55.4 us vs
+>   bytes-free 47.8 us: only 7.6 us (14 %) of each read is byte-bound, against 52 % in D3-0's independent-call
+>   throughput mode.
+>   - The ceiling is <= 0.73 ms per 16-row check (96 reads), not the 1.9 ms in this table.
+>   - The touch as built is not hidden: touched 77.3 us and late 84.6 us vs cold 55.4. The window costs +25.4 us per
+>     touch, about its whole 6.64 MB read (Leap's +5 us line is NOT MET), with bits equal.
+> - **Read:**
+>   - Even a perfectly hidden touch buys <= 0.73 ms per check. That is under any line worth a better-version search (a
+>     smaller-grid touch behind a longer window), so lever 3 is closed by its ceiling, not by one configuration.
+>   - STEP 1's throughput-mode gaps for qmm16c (o_proj 36.6 %, in_proj_z 19.8 %, in_proj_qkv 30.7 %) shrink the same way
+>     on a dependent path. Staging the projections is not pursued either.
+> - **Track A without lever 3:** 16 rows ~57-58 ms (Leap's central) minus lever 2 if it lands (-2.7 est).
+
+> **LEAP'S CORRECTIONS, Sun 15 Nov 17:23 (`date`):**
+> - Two of Leap's four 16-row levers were closed at 14:3x (Leap README ATT-HCHUNK, QMVW16):
+>   - qmv_wide on more threadgroups: **KILL**. MLX's own launch is already at or near the best (4.12 vs 4.33 ms per
+>     16-row check).
+>   - attention's 12 head chunks as 2 calls: **PARKED**. Only 2-head chunks are bitwise at both 16 and 32 rows.
+> - Leap's track A is therefore hc_b (~-1) + N-2560 per-group partials (-1..-1.5, not built) + step 2 (~-2). **Leap's
+>   honest REF2-T central at 16 rows is ~57-58 ms**, unless levers 2 and 3 here land. My ~53-56 counted -3..-4.5 for the
+>   three levers, of which only one is left.
+> - **Track B's contract bench (7 + 8) is Leap's** (Mon by day): S4's partition size as a parameter; qmm16c / qmm16n at a
+>   fixed ks per shape; M 1 / 16 / 32; GB/s cold plus the row bit test across M.
+> - **Lever 2 (MoE dense side)** is Breakthrough's optional piece 2. Its owner is the orchestrator's call.
+> - **Lever 3's microbench** is NewIdeas' (Leap: YES), after MoonShots' TREE-E2E (~19:30) and before 22:30. Its harness
+>   follows Leap's barrier notes:
+>   - MLX puts a barrier before any kernel that reads an earlier output, so the touch hides behind ONE kernel per
+>     barrier interval;
+>   - the eviction step includes o_proj / out_proj's weights;
+>   - the stub is a real latency-bound kernel.
+
 > **CORRECTION, Sun 15 Nov 16:25 (`date`), after the orchestrator's 16:3x check.**
 > - **Lever 1's premise was wrong.** ISO2 (BM:docs/WED_TESTS.md:2042, Sun 03:07-03:10) was an ENGINE A/B on a GPU-bound
 >   A16 check: quiet, 4 configs rotated within each of 12 rounds. neither 64.1 / gdnb 64.3 / dense (REF2_DENSE_NATIVE)

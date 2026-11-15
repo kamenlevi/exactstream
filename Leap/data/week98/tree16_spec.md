@@ -183,3 +183,10 @@ against mx.matmul bitwise, as the qv_wide k_lanes were.
   - Section 4's fast path is fixed: k < T only, since MTPLX's commit skips the replay on a full accept and tree_verify's
     GDN state is not meaningful.
 - Sun 15:2x (BigMoE): M3 ALL BITWISE again on the trimmed route (b) (8b1ff70), live imports, both slices (T2 73 / 73).
+- Sun 17:0x (BigMoE 7f4b4e0): M4 integration freezes L1-L3 at de7fcc0 (snapshot t16b, R57_TREE16=1, file hashes in
+  runs.json). Slice loop: 200-token decodes with random trees, every kept row bitwise vs REF2's 1-row AR (layers 0-3
+  with B2, 4-7). Changes to tree16 / tree_att / tree_gdn are announced to BigMoE first.
+- Sun 17:4x (Leap): B3 wired through tree16.QSA_TREE[0] (set by the caller; BigMoE from its snapshot copy). With the slot
+  set: a history-only stock indexer call, then qsa_tree.tree_select per node, and tree_att.tree_sdpa(sel=...) with
+  route_b_mask inlined. With the slot unset: de7fcc0's path. ALL BITWISE: route (b) unchanged; slice 4-7 with the slot
+  unset; slice 0-3 + B2 + B3 at P 1024 / 3000 / 3002 (453 nodes, 20 live selections).

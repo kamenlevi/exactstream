@@ -1,0 +1,46 @@
+{
+ "smoke": true,
+ "step0": {
+  "S4_us": 61.5,
+  "S4_cached_us": 57.0,
+  "context_ok": false
+ },
+ "step1": {
+  "o_proj+out_proj": {
+   "MB": 8.85,
+   "cold_us": 272.1,
+   "cached_us": 628.0,
+   "gap": -1.308,
+   "verdict": "DROP (gap < 15 %)"
+  },
+  "in_proj_z": {
+   "MB": 8.85,
+   "cold_us": 236.8,
+   "cached_us": 194.3,
+   "gap": 0.179,
+   "verdict": "staging can help"
+  },
+  "in_proj_qkv": {
+   "MB": 14.75,
+   "cold_us": 224.5,
+   "cached_us": 214.2,
+   "gap": 0.046,
+   "verdict": "DROP (gap < 15 %)"
+  }
+ },
+ "step2": {
+  "win_us": 380.7,
+  "touch_extra_us": 20.7,
+  "line_5us": false
+ },
+ "step3": {
+  "cold_us": 651.6,
+  "touched_us": 448.2,
+  "late_us": 385.0,
+  "bytes_free_us": 394.8,
+  "bitwise": true,
+  "touched_ok": false,
+  "late_ok": true,
+  "verdict": "NO JUDGEMENT (context)"
+ }
+}

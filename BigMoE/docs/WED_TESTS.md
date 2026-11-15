@@ -2223,3 +2223,91 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
 - **Re-run 15:06-15:10 on Leap's new route (b)** (8b1ff70: heads batched per kv head + one pv_tree tail step per
   root-to-leaf path), live imports as M4 will use them: both slices T1 ALL BITWISE, T2 73 / 73 again (50 s / 129 s;
   peak 8.1 / 8.2 GB).
+
+## Sun 15 Nov 16:5x-17:06: TREE16 M4 loop integration (snapshot t16b) + a slice LOOP test: a multi-check decode with tree checks == REF2's AR on every kept row, ALL BITWISE on both slices (scripts/tree16_loop.py, scripts/tree16_m4loop.py; data/deepdraft/tree16/m4loop_{0-3,4-7}.json)
+- **Context:** M4 is the engine arm, tree-16 vs t30b's chain-16, on the 125B (the orchestrator pulled it from Thursday
+  toward Tuesday night). This is its integration plus a daytime exactness test. The A/B itself needs a 45 GB night.
+- **The integration:**
+  - scripts/tree16_loop.py has one function per phase, the same ones the screen and the test call:
+    - verify = B1's tree_meta + Leap's tree_verify;
+    - accept = the walk (path, bonus, the path's tokens);
+    - commit = M2's tree_commit;
+    - pairs = the accepted (stream, next token) pairs for t30b's MTP history;
+    - fits = the tree path only while the QSA indexer still selects every block. MTPLX's "update_only" holds while
+      last_nb <= 2048 / 4, so the line is a + T <= 2044; past it the check runs as a chain (B3 lifts this).
+  - Snapshot t16b is a fresh deep freeze plus t16a's screen plus 12 anchored hooks under R57_TREE16=1:
+    - the freeze: Leap de7fcc0 (incl. week98/tree16.py, route (b)), Breakthrough 35aacf4's tree16 dir (B1 + B2),
+      TrainLab a98ed8c;
+    - R57_TREE16=1 needs R57_MTP_ALL=1 and runs exact checks only (FAST / RELAX / SPAN / QOM_MTP / INERT / REPLAY off);
+    - the import chain resolves entirely inside the snapshot, and the screen's sys.path order is kept.
+  - runs.json "t16" per run: checks, kept per check (all / main chain only), side-path accepts, commit kinds, chain
+    fallbacks, draft / commit ms, and provenance (file hashes + HEADs).
+- **The slice loop test** runs three decodes from one prefill, on Leap's slice load with ref2 + the exact CFG forms:
+  - **R:** REF2's AR (1-row verify + commit keep 1), 200 tokens.
+  - **C:** a chain control in the loop's own 16-row form. Drafts = R's tokens, one made wrong at a random depth.
+  - **T:** the tree loop through tree16_loop.
+    - Per check, a random tree (chain, bushy, random; T 2-16) carries R's continuation on a random path (main chain or
+      side branch), cut at a random depth.
+    - Siblings never carry the token the walk wants, so the path is planned.
+  - **Checks:** every kept row's logits and widened stream (sha1) == R's; the path == the planned one; tokens == R's;
+    pairs == R's streams.
+  - **Contexts:**
+    - P 1024: dense throughout.
+    - P 1990: tree checks right below 2,044, then the chain fallback. R and C run past 2,048, where QSA selects blocks.
+- **Results** (both slices draw the same shapes, since the seeds are equal):
+  - layers 0-3 (the PLE layer at 1, B2): **0 bad rows.** 32 s, peak 8.7 GB.
+    - P 1024: 60 tree checks (47 chain fast-path commits, 13 tree replays, 12 side-path accepts).
+    - P 1990: 7 tree checks + 20 chain fallbacks.
+    - The chain control (28 checks per context): 0 bad rows, past 2,048 included.
+  - layers 4-7 (no PLE): the same counts, **0 bad rows**. 15 s, peak 8.6 GB.
+- **Not covered by day:**
+  - the full model: 48 layers, the 45 GB stream path with tree rows, t30b's real drafts, the MTP history from tree
+    pairs (a pairs bug would cost acceptance, not exactness).
+  - That is the night run: t16b arm C (chain-16) vs arm T (tree-16) on the same keys. Out identical = exact on the real
+    model; plus kept per check and the whole-decode wall.
+- **Sun 17:1x-17:2x, M4's A/B pre-registered and its runner tested** (docs/TREE16_M4_PREREG.md; scripts/m4_night.sh;
+  scripts/tree16_m4ab.py). The slot is Monday night, first in the order: 23:05 to a hard end at 00:25, C1 T1 T2 C2,
+  gated on Sunday night's M1.
+  - Head test: all four runs reach the model load.
+  - Stub simulations of the whole runner:
+    - all four runs, with the tree16_m4ab verdict on the stub outputs;
+    - a stop at a process boundary;
+    - the hard end mid-run: the watchdog stopped the job, released the ticket and wrote the marker last.
+  - The simulation found a launch bug in every runner of mine from today: `( env VARS exec python ... )`. env cannot run
+    the builtin exec, so every job would have exited with rc 127. That includes tonight's night1115b / c (M1 + ng1);
+    night1115d (fixed, simulated end to end) was armed 17:20.
+  - Also fixed before tonight: the t16a / ng1 screens never wrote their m1t / ngx records into runs.json (72b5f46,
+    8a9e240).
+
+## Sun 15 Nov 17:42-17:44: TREE16 + B3 (per-node QSA selection above 2K) in the loop: the slice LOOP test at P 1024 / 2030 / 3000 is ALL BITWISE on both slices (scripts/tree16_m4loop.py M4L_B3=1; data/deepdraft/tree16/m4loop_{0-3,4-7}_b3.json)
+- **Context:** B3 landed at 17:3x-17:4x:
+  - Breakthrough's qsa_tree.py (bd0695c: 900 / 900 masks; 281470d: e2e at 3K);
+  - Leap's QSA_TREE slot in tree16 / tree_att (d6b5884; the slot unset = de7fcc0's path).
+  - The orchestrator 17:3x: Monday's M4 keeps t16b (its contexts stay below 2,044, so B3 never runs there). B3 goes into
+    t16c after it.
+  - This test uses the LIVE pieces (Leap d6b5884, Breakthrough d138471: qsa_tree 6c678555c857) and does not touch t16b.
+- **What changed in my loop code (live scripts only):**
+  - tree16_loop.install(qsa=True) puts qsa_tree in the slot. fits() then lets every check be a tree check (no chain
+    fallback past 2,044).
+  - The test takes M4L_B3=1 and M4L_P (contexts). With B3, rows past 2,048 count toward the verdict too.
+- **The test:** the same three decodes as before (REF2 AR, the chain control, the tree loop with random teacher-forced
+  trees incl. side branches), 200 tokens per context.
+  - P 1024: dense throughout.
+  - P 2030: crosses the dense line in the first checks.
+  - P 3000: B3 selects on every check.
+- **Results:** every kept row's logits and widened stream == REF2's AR, bitwise, everywhere.
+  - layers 0-3 (PLE via B2 + B3): 74 s, peak 9.3 GB.
+    - P 1024: 60 tree checks, B3 dense on all 60 (the history-only indexer call keeps the bits).
+    - P 2030: B3 live on 58 / 60.
+    - P 3000: B3 live on 60 / 60.
+    - Every context: 47 main-chain fast-path commits, 13 tree replays (12 side paths), 0 fallbacks.
+    - The chain control (28 checks per context): 0 bad rows.
+  - layers 4-7: the same counts, all bitwise. 27 s, peak 9.2 GB.
+- **What it settles (Leap's question 17:4x):**
+  - With the slot set, tree_verify's history-only indexer call writes raw keys and pooled blocks in node order.
+  - tree_commit gathers the raw keys in path order and caps pooled_len at L // 4. The next check's indexer call then
+    rebuilds the committed blocks before B3 (or the stock selector) reads them.
+  - Over 60 consecutive checks at 3K, that composition is bitwise. This is Breakthrough's T2-at-3K probe, over a
+    multi-check decode.
+- **Next (after Monday's M4):** cut t16c with the slot and qsa_tree frozen, then run a full-model long-context arm,
+  pre-registered and on its own ticket.

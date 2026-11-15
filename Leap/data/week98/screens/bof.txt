@@ -1,0 +1,27 @@
+
+BOF Sun 15 Nov 18:05:36: MLX 0.32.2; quiet ticket
+gdn_qz 16384 x 2560: bitwise vs qmm16c ks 1 (configs, incl. random padding): TERM 0: 4 / 4; TERM 1: 4 / 4; TERM 2: 0 / 4; TERM 3: 0 / 4
+o_out 2560 x 6144: bitwise vs qmm16c ks 1 (configs, incl. random padding): TERM 0: 4 / 4; TERM 1: 4 / 4; TERM 2: 0 / 4; TERM 3: 0 / 4
+qsa_qkv 13312 x 2560: bitwise vs qmm16c ks 1 (configs, incl. random padding): TERM 0: 4 / 4; TERM 1: 4 / 4; TERM 2: 0 / 4; TERM 3: 0 / 4
+sh_down 2560 x 640: bitwise vs qmm16c ks 1 (configs, incl. random padding): TERM 0: 4 / 4; TERM 1: 4 / 4; TERM 2: 0 / 4; TERM 3: 0 / 4
+lm_head 248320 x 2560: bitwise vs qmm16c ks 1 (configs, incl. random padding): TERM 0: 4 / 4; TERM 1: 4 / 4; TERM 2: 0 / 4; TERM 3: 0 / 4
+TERM variants bitwise on every shape and config: [0, 1]
+  gdn_qz   x36: ks 1   117.7 us | bof4x1 114.6 bof8x1 116.0 bof8x2 126.6 bof16x1 126.1 | best bof4x1 114.6 | contract ks 4 105.4
+  o_out    x48: ks 1    85.6 us | bof4x1 48.0 bof8x1 53.6 bof8x2 58.1 bof16x1 65.9 | best bof4x1 48.0 | contract ks 4 45.7
+  qsa_qkv  x12: ks 1   110.7 us | bof4x1 103.6 bof8x1 102.3 bof8x2 110.3 bof16x1 111.1 | best bof8x1 102.3 | contract ks 4 95.1
+
+BOF Sun 15 Nov 18:08:41: MLX 0.32.2; quiet ticket (rerun: shared down's contract ks)
+gdn_qz 16384 x 2560: bitwise vs qmm16c ks 1 (configs, incl. random padding): TERM 0: 4 / 4; TERM 1: 4 / 4; TERM 2: 0 / 4; TERM 3: 0 / 4
+o_out 2560 x 6144: bitwise vs qmm16c ks 1 (configs, incl. random padding): TERM 0: 4 / 4; TERM 1: 4 / 4; TERM 2: 0 / 4; TERM 3: 0 / 4
+qsa_qkv 13312 x 2560: bitwise vs qmm16c ks 1 (configs, incl. random padding): TERM 0: 4 / 4; TERM 1: 4 / 4; TERM 2: 0 / 4; TERM 3: 0 / 4
+sh_down 2560 x 640: bitwise vs qmm16c ks 1 (configs, incl. random padding): TERM 0: 4 / 4; TERM 1: 4 / 4; TERM 2: 0 / 4; TERM 3: 0 / 4
+lm_head 248320 x 2560: bitwise vs qmm16c ks 1 (configs, incl. random padding): TERM 0: 4 / 4; TERM 1: 4 / 4; TERM 2: 0 / 4; TERM 3: 0 / 4
+TERM variants bitwise on every shape and config: [0, 1]
+  gdn_qz   x36: ks 1   115.6 us | bof4x1 114.5 bof8x1 116.3 bof8x2 127.4 bof16x1 126.8 | best bof4x1 114.5 | contract ks 4 104.3
+  o_out    x48: ks 1    85.9 us | bof4x1 48.6 bof8x1 54.0 bof8x2 58.3 bof16x1 65.9 | best bof4x1 48.6 | contract ks 4 46.0
+  qsa_qkv  x12: ks 1   107.0 us | bof4x1 103.0 bof8x1 101.4 bof8x2 106.9 bof16x1 107.2 | best bof8x1 101.4 | contract ks 4 93.6
+  sh_down  x48: ks 1    10.8 us | bof4x1 7.4 bof8x1 7.7 bof8x2 9.2 bof16x1 7.8 | best bof4x1 7.4 | contract ks 4 7.2
+  lm_head  x 1: ks 1  1612.7 us | bof4x1 1454.0 bof8x1 1582.6 bof8x2 1719.4 bof16x1 1716.0 | best bof4x1 1454.0 | contract ks 4 1425.2
+per 16-row check over the 5 shapes: REF2-T ks 1 11.70 ms -> BOF (TERM 0, bitwise) 9.48 (-2.22); the contract's ks (4; 10 for shared down) 8.85 (for reference)
+BOF verdict (pre-registered): PASS (>= 1.5 ms); standalone, the transfer rule applies
+done in 1 s; peak 1.33 GB

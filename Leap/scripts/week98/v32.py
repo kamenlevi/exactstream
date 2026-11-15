@@ -110,19 +110,21 @@ def _moe(key):
         if ST["moe1"] and RF.CFG["experts"] and not a and not kw:
             # V32_MOE1: the experts as ONE 17-32-row call (the union read once), through ref2's own resident expert
             # kernels (each (row, expert) pair in its own tile row, so per row the same arithmetic as a <= 16-row call):
-            # experts_nax for the fused gate-up class, experts_split for the unfused SwitchGLU (ref2's _split_call)
+            # experts_nax for the fused gate-up class, experts_split for the unfused SwitchGLU (ref2's _split_call).
+            # D8 (Sun 17:5x): their segments held ALL of an expert's pairs in one 16-row tile, so at 17-32 rows an
+            # expert picked by > 16 rows lost its 17th+ pairs (zeros); moe32's capped segments (<= 16 pairs per tile)
+            from moe32 import experts_nax_cap, experts_split_cap
             lead, k = x.shape[:-1], indices.shape[-1]
             x2, i2 = x.reshape(rows, x.shape[-1]), indices.reshape(rows, k).astype(mx.int32)
             y = None
             if key == "sw" and hasattr(self, "gu_weight"):
-                from qmmg25 import experts_nax
-                y = experts_nax(x2, (self.gu_weight, self.gu_scales, self.gu_biases),
-                                (self.down_proj.weight, self.down_proj.scales, self.down_proj.biases), i2,
-                                RF.CFG["experts_cfg_a"], RF.CFG["experts_cfg_b"])
+                y = experts_nax_cap(x2, (self.gu_weight, self.gu_scales, self.gu_biases),
+                                    (self.down_proj.weight, self.down_proj.scales, self.down_proj.biases), i2,
+                                    RF.CFG["experts_cfg_a"], RF.CFG["experts_cfg_b"])
             elif key == "swb" and hasattr(self, "gate_proj"):
                 W = [RF._q4(self.gate_proj), RF._q4(self.up_proj), RF._q4(self.down_proj)]
                 if all(w is not None for w in W):
-                    y = RF.experts_split(x2, *W, i2)
+                    y = experts_split_cap(x2, *W, i2, RF.CFG["experts_cfg_a"], RF.CFG["experts_cfg_b"])
             if y is not None:
                 CNT["moe1"] += 1
                 return y.reshape(*lead, k, -1)

@@ -1,0 +1,17 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=19.1 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+C8 REFC Sun 15 Nov 17:51:14: MLX 0.32.2; slice GGGAGGGAGGGA, 18.5 GB active; SB 4; dense_native False
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (1320628 > 262144). Running this sequence through the model will result in indexing errors
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+bits: contract b1 16 / 32 rows; contract b2 16 / 16 rows; REF2-T b1 16 / 32 rows; REF2-T b2 16 / 16 rows
+12 layers, 14 rounds, SB 4 (contexts 1024 -> 1536); ms per check (python build inside):
+  A16      23.70 ms (build  12.34 ms) = 1.000 x A16
+  A16c     22.64 ms (build  12.01 ms) = 0.955 x A16
+  C32o     32.67 ms (build  17.02 ms) = 1.379 x A16
+  C32oc    31.03 ms (build  16.31 ms) = 1.309 x A16
+  paired: A16c - A16 -1.181 ms [-3.262, +4.542]; C32oc - C32o -1.084 ms [-1.192, -0.847]; refc counts over the timed checks {'c16': 1204, 'c32': 602, 's4': 672, 's4x2': 336, 's4g': 0}
+C8 REFC verdict (pre-registered): bits (b1) contract NOT BITWISE (a bug: no verdict); T16 0.73 (of -1.61 ms), T32 0.69 (of -1.57 ms) -> no verdict
+done in 15 s; peak 20.4 GB

@@ -1,0 +1,38 @@
+
+CB1 Sun 15 Nov 17:35:57: MLX 0.32.2; pools 128 MB per shape; 7 rounds; quiet ticket
+gdn_qz N 16384 (pool 16384) K 2560: 6 copies; bits 50 / 50 configs x checks; contract vs fp32 max err 3.05e-03 x max|y|
+  timed 32 forms in 4 s
+gdn_ba N 96 (pool 96) K 2560: 971 copies; bits 30 / 30 configs x checks; contract vs fp32 max err 3.18e-03 x max|y|
+  timed 20 forms in 2 s
+gdn_qzba N 16480 (pool 16512) K 2560: 6 copies; bits 50 / 50 configs x checks; contract vs fp32 max err 3.47e-03 x max|y|
+  timed 30 forms in 4 s
+o_out N 2560 (pool 2560) K 6144: 16 copies; bits 55 / 55 configs x checks; contract vs fp32 max err 3.19e-03 x max|y|
+  timed 35 forms in 4 s
+qsa_qkv N 13312 (pool 13312) K 2560: 8 copies; bits 50 / 50 configs x checks; contract vs fp32 max err 2.50e-03 x max|y|
+  timed 32 forms in 4 s
+sh_cat N 1281 (pool 1344) K 2560: 70 copies; bits 50 / 50 configs x checks; contract vs fp32 max err 4.36e-03 x max|y|
+  timed 32 forms in 4 s
+sh_down N 2560 (pool 2560) K 640: 146 copies; bits 35 / 35 configs x checks; contract vs fp32 max err 2.96e-03 x max|y|
+  timed 23 forms in 2 s
+lm_head N 248320 (pool 248320) K 2560: 1 copies; bits 40 / 40 configs x checks; contract vs fp32 max err 3.13e-03 x max|y|
+  timed 22 forms in 3 s
+hc_down N 324 K 10240 bf16: 21 copies; bits 16 / 16; vs fp32 max err 2.06e-03 x max|y|
+
+per call (us), cold, dependent chain; GB/s in brackets (DRAM ~276 measured, floor line 280)
+shape       n |        REF2-T 16        REF2-T 32 | joint ks:          16-row form          32-row form | best 16 / best 32 (form)
+gdn_qz     36 |     118.5 [ 199]     143.2 [ 165] | ks  4:    N4n1   100.3 [ 235]    a4n1   139.9 [ 169] | N5n1 98.4 / a4n1 139.9
+gdn_ba     36 |       7.9 [  18]       9.8 [  14] | ks 10:   c10n1     6.3 [  22]   a10n1     9.4 [  15] | c10n1 6.3 / a10n1 9.4
+gdn_qzba   36 |                -                - | ks  4:    N4n1   101.8 [ 233]    a4n1   140.4 [ 169] | N5n1 100.5 / a4n1 140.4
+o_out      48 |      87.1 [ 102]     112.1 [  79] | ks  4:    N4n2    43.7 [ 203]    a4n2    53.7 [ 165] | N6n2 37.7 / a4n2 53.7
+qsa_qkv    12 |     108.4 [ 177]     133.5 [ 144] | ks  4:    N4n2    90.4 [ 212]    a4n1   124.6 [ 154] | N1n2 82.0 / a2n1 122.1
+sh_cat     48 |      32.0 [  58]      54.3 [  34] | ks  5:    c5n1    13.6 [ 136]    a5n1    18.7 [  99] | N8n1 13.2 / a5n1 18.7
+sh_down    48 |      11.0 [  84]      11.2 [  82] | ks 10:   c10n1     7.0 [ 131]   a10n1    10.3 [  89] | N5n2 7.0 / a2n2 10.2
+lm_head     1 |    1653.7 [ 216]    2076.2 [ 172] | ks  4:    c4n1  1457.5 [ 245]    a4n2  2018.4 [ 177] | c4n1 1457.5 / a2n2 1985.8
+hc_down    97 | PS 4096: 49.1 / 49.5 [135 / 134] PS 2048: 33.5 / 36.9 [198 / 180] PS 1024: 31.8 / 39.2 [209 / 169] PS 512: 35.2 / 40.3 [189 / 165] PS 256: 37.6 / 44.8 [177 / 148] | joint PS 2048
+
+per check (ms, this set: 7 four-bit kinds + HC down; router / indexer 8-bit, HC up, PLE, experts not in it):
+  16 rows: REF2-T 18.52 -> contract 12.54 (-5.98); b | a folded into the in-proj: yes (242.2 vs 255.9 us per 16 + 32-row pair)
+  32 rows: REF2-T 22.52 -> contract 16.11 (-6.41)
+  M = 1 (AR, chat, the commit's 1-row calls): the contract pads to 16, so it costs the 16-row time; today's REF2-T 1-row path also pads to 16 (18.52 ms over this set) -> the contract's 1-row line holds iff its 16 does
+CB1 verdict (pre-registered; standalone, the transfer rule applies): bits ALL BITWISE; 16 rows PASS (-5.98 ms; PASS <= -4.0, KILL > -2.0); 32 rows PASS (-6.41 ms; PASS <= -6.0, KILL > -3.0)
+done in 30 s; peak 0.90 GB

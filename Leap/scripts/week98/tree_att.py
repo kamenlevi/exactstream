@@ -212,9 +212,20 @@ def pv_tree(a, v, L, anc, depth, T, k_rule=None):
 BATCH_HEADS = [True]        # True (default since TREE16-TIME 15:00): one scores matmul / gather / softmax / pv_tree per kv head (bits: tree_att_test)
 
 
-def tree_sdpa(q, k, v, scale, L, anc, depth, T, ref2):
+def _b3_mask(sel, Kr):
+    """B3's per-node selection [T, L + 16] (qsa_tree.tree_select) in this msk layout: 16 rows (padding = copies of the
+    last node) x Kr columns (False past L + 16). The same ops as Breakthrough's qsa_tree.route_b_mask, inlined."""
+    T, W = int(sel.shape[0]), int(sel.shape[1])
+    m = sel if T == 16 else mx.concatenate([sel, mx.repeat(sel[T - 1:T], 16 - T, axis=0)], axis=0)
+    if Kr > W:
+        m = mx.concatenate([m, mx.zeros((16, Kr - W), dtype=mx.bool_)], axis=1)
+    return m[:, :Kr]
+
+
+def tree_sdpa(q, k, v, scale, L, anc, depth, T, ref2, sel=None):
     """q [1, 24, T, 256] (the nodes' queries, RoPE'd at their depths); k / v [1, 2, L + T, 256] (cache, then the T nodes
-    in node order). Contexts with every cache block selected (<= 2,048 tokens; B3's per-node masks above). Per AR class
+    in node order). sel: B3's per-node selection (qsa_tree.tree_select: a bool [T, L + 16], each node's mask in its chain
+    column order) above ~2K tokens, None when every cache key is selected (the mask is then built here). Per AR class
     (keys L + depth + 16, as ref2 classes a 16-row check's rows): MLX's own scores (q * scale @ k^T, 2-head chunks as
     MTPLX's plan), each node's columns gathered into its chain order, MLX's where + precise softmax at the class's run
     length, then pv_tree. Returns [1, 24, T, 256]."""
@@ -249,7 +260,8 @@ def tree_sdpa(q, k, v, scale, L, anc, depth, T, ref2):
                     idx[n, cpos] = cpos if cpos < L + T else L       # masked: any valid column
         for n in range(T, 16):                            # padding rows: copies of the last node's row (discarded)
             idx[n], msk[n] = idx[T - 1], msk[T - 1]
-        idx_m, msk_m = mx.array(idx), mx.array(msk)
+        idx_m = mx.array(idx)
+        msk_m = mx.array(msk) if sel is None else _b3_mask(sel, Kr)             # B3: [16, Kr] in this msk layout
         q16 = q if T == 16 else mx.concatenate([q, mx.repeat(q[:, :, T - 1:T], 16 - T, axis=2)], axis=2)
         qs = q16 * mx.array(scale, q.dtype)
         if BATCH_HEADS[0]:                                # all of a kv head's query heads in one op each (TREE16-TIME)
@@ -265,8 +277,8 @@ def tree_sdpa(q, k, v, scale, L, anc, depth, T, ref2):
                 y = pv_tree(prp[0].reshape(gq * 16, Kp), vjp, L, anc, depth, T, k_rule=Kr)    # [gq * 16, D]
                 outs.append(y.reshape(gq, 16, D)[:, :T])
             oc = mx.concatenate(outs, axis=0).reshape(1, HQ, T, D)
-            sel = mx.array([cls[n] == c for n in range(T)])[None, None, :, None]
-            out = oc if out is None else mx.where(sel, oc, out)
+            sel_c = mx.array([cls[n] == c for n in range(T)])[None, None, :, None]
+            out = oc if out is None else mx.where(sel_c, oc, out)
             continue
         heads = []
         for j in range(HK):
@@ -283,6 +295,6 @@ def tree_sdpa(q, k, v, scale, L, anc, depth, T, ref2):
                 y = pv_tree(rows.reshape(2 * 16, Kp), vjp, L, anc, depth, T, k_rule=Kr)   # [32, D]
                 heads.append(y.reshape(2, 16, D)[:, :T])
         oc = mx.stack(heads, axis=0).reshape(1, HQ, T, D)
-        sel = mx.array([cls[n] == c for n in range(T)])[None, None, :, None]
-        out = oc if out is None else mx.where(sel, oc, out)
+        sel_c = mx.array([cls[n] == c for n in range(T)])[None, None, :, None]
+        out = oc if out is None else mx.where(sel_c, oc, out)
     return out

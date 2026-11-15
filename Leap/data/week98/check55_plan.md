@@ -109,3 +109,115 @@ question with Kamen; EvalSuite is pricing the re-certification. The detailed pri
 - E2: A16 / C32 split / C32 one-pass with REF2_SEAM_HI=32;
 - E3: Breakthrough's engine profile with its hook;
 - E4: only if needed, a clean DENSE-N + mr2 re-run.
+
+## UPDATE Sun 17:1x: NewIdeas' lever table, the work split, the 16-row central corrected
+NewIdeas' desk pass (~/NewIdeas/research/week98/CHECK55_LEVERS.md, c2620a9) ranks track A (REF2-T) and track B (next
+week's reference contract) levers.
+- **Two of the 16-row levers above are closed** (screens README, 14:3x):
+  - (a) qmv_wide with more threadgroups: KILL (QMVW16: MLX's launch is already near-best).
+  - attention's 12 head chunks as 2 calls: parked (ATT-HCHUNK: only 2-head chunks are bitwise at both 16 and 32 rows).
+- **So the 16-row central under REF2-T is ~57-58 ms, not ~55.** Left: hc_b (~-1), lever (b) qmm16c N-2560 per-group
+  partials (-1..-1.5, to build), step 2 (~-2). NewIdeas' levers 2 (MoE dense side as ~2 exact dispatches, -2.7 est)
+  and 3 (HC SLC staging, -1..-1.9 est) could bring it to ~53-55. NewIdeas' transfer rule applies to every lever: a
+  standalone or slice gain counts only after a paired engine A/B (ISO2: DENSE-N +0.7 ms on the engine). The 32-row
+  figure waits on C7c (tonight).
+- **Work split:**
+  - lever 3 (HC SLC staging): NewIdeas, microbenches Sun evening (Leap's kernels read-only), then a slice A/B;
+  - track-B contract bench (levers 7 + 8): Leap, Mon by day. S4 with the partition size as a parameter; qmm16c /
+    qmm16n at a fixed ks per shape; M = 1 / 16 / 32; cold GB/s and the row bit test across M;
+  - lever 2 (MoE dense side): Breakthrough's optional piece 2 above; the orchestrator assigns it;
+  - DENSE-N and the GDNB re-test: conditional on tonight's engine profile.
+
+## CB1 PRE-REGISTERED (Sun 17:3x, before any run): the reference-contract bench (track B, NewIdeas' levers 6-8)
+scripts/week98/cb1.py. Standalone kernels, cold weights (>= 128 MB pools per shape), dependent chains of a check's
+calls, forms round-robin, median of 7 rotated rounds, on a quiet ticket. First a smoke under a share lock (bits and every
+code path).
+- **The set:** 7 four-bit kinds at the real shapes and per-check counts, plus the HC read's down GEMM.
+  - GDN qkv | z (16,384 x 2,560, x36); GDN b | a (96, x36), or folded into the in-proj (16,480);
+  - o_proj + out_proj (2,560 x 6,144, x48); the QSA qkv_fused (13,312, x12);
+  - the shared cat (1,281, x48); shared down (2,560 x 640, x48); lm_head (x1);
+  - HC down = S4 (324 x 10,240 bf16, x97).
+  - Not in it: the 8-bit router / indexer, HC up, PLE, the experts.
+- **The contract per shape:** one ks (the K-chunk), the same at 16 and 32 rows (picked on the 16 + 32 sum), any nt or
+  layout; one partition size for S4.
+  - 32 rows use a new one-weight-pass kernel with the K split (qmm16c2a_ks).
+  - REF2-T's forms are the baseline: qmm16c ks 1, MLX's padded call, S4 at 4,096; v32one's forms at 32 rows.
+- **Lines (ms per check over this set):**
+  - 16 rows: PASS if >= 4.0 saved; BETWEEN 2.0-4.0; KILL if < 2.0.
+  - 32 rows: PASS if >= 6.0 saved; BETWEEN 3.0-6.0; KILL if < 3.0.
+  - Bits: every config bitwise across M = 1 / 16 / 32, nt and layout. Any failure is a bug: no verdict until it's fixed.
+- **Prediction:** 16 rows -5..-7 ms. The parts:
+  - o_proj / out_proj at ks 6: ~115 -> ~45 us, about -3.3;
+  - S4 at PS 1,024: ~39 -> ~26 us, -1.2;
+  - b | a folded into the in-proj: -0.8;
+  - the shared cat: -0.5;
+  - the in-proj at ks 2: -0.4.
+  32 rows: -6..-10 ms.
+- **What it decides:**
+  - PASS: the contract's dense side is worth the one re-certification on its own. Next: a slice A/B (the transfer
+    rule), then the production kernels and next week's certification plan.
+  - KILL: track B rides only on HC + attention by key lists.
+
+## CB1 RESULT (Sun 17:36): PASS on both lines, ALL BITWISE (screens README 'CB1')
+- **Per check over the set, standalone:**
+  - 16 rows: 18.52 -> 12.54 ms (-5.98);
+  - 32 rows: 22.52 -> 16.11 (-6.41).
+- **Per-shape contract:**
+  - ks 4 for the in-proj, o_proj / out_proj, QSA and lm_head;
+  - ks 5 for the shared cat, ks 10 for shared down;
+  - b | a folded into the in-proj;
+  - S4 at PS 2,048.
+- **So the contract's dense side is worth the one re-certification on its own** (the decision rule above), subject to
+  the transfer rule.
+- **Next:**
+  1. a slice A/B, A16 and C32, with an opt-in contract installer over ref2;
+  2. a native-layout 32-row twin of qmm16c2a_ks;
+  3. next week's re-certification plan, together with the HC / attention levers.
+
+## C8 REFC PRE-REGISTERED (Sun 17:4x, before any run): does CB1's gain carry into a real check? (the transfer rule)
+scripts/week98/c8_refc.py, with refc.py (an opt-in installer of the contract's forms over ref2 + v32 + v32one; ck.py
+holds the kernels). It runs C7c's slice and harness (12 layers, SB 4, own caches, rotated rounds) with four arms:
+A16 / A16c (16 rows, REF2-T / contract) and C32o / C32oc (32 rows, step 1 complete, REF2-T / contract).
+- **Bits first:**
+  - (b1) one 32-row check == two 16-row checks, every logits row, for the contract and for REF2-T (the control);
+  - (b2), info only: 16 one-row checks == one 16-row check.
+- **Expected:** CB1's per-call savings times the slice's calls give -1.61 ms per 16-row check and -1.57 per 32-row.
+  That is an upper bound: refc runs MLX's layout, while CB1's joint picks took the native layout on 3 shapes.
+- **Lines:**
+  - (b1) not bitwise under the contract -> a bug, no verdict;
+  - T16 = -median(A16c - A16) / 1.61 >= 0.5 -> PASS: the contract arms join Monday night's E2;
+  - 0.25-0.5 -> BETWEEN: an E2 arm only if the slot has room;
+  - < 0.25 -> KILL: no engine arm, profile first.
+- **Prediction:** T16 0.6-0.8, T32 0.6-0.9; (b2) bitwise for both.
+
+## BOF PRE-REGISTERED (Sun 17:5x, before any run): lever (b) as a blocked ordered fold (track A, REF2-T's own bits)
+scripts/week98/bof.py (qmm16bof) + bof_bench.py.
+- **Correction to lever (b) as first written** ("per-group terms in parallel, then an ordered sum"): it can't keep all
+  terms. o_proj would need 16 x 2,560 x 96 fp32 terms per call, 15.7 MB, about twice its weight bytes.
+- **BOF instead:**
+  - BS simdgroups per 32-column tile each compute one 64-weight group's term: the same MMA, row sums and term
+    expression as qmm16c.
+  - The terms of a block of BS x RG groups go to threadgroup memory (<= 32 KB).
+  - Simdgroup 0 folds them in group order before the next block. That is qmm16c ks 1's fold, so the bits should be
+    REF2-T's, if the term compiles the same way: four TERM spellings are tested.
+- **Lines:**
+  - no TERM variant bitwise on all 5 ks-1 shapes -> KILL;
+  - saving per 16-row check over the 5 shapes >= 1.5 ms -> PASS (a ref2 switch, a slice A/B Monday, then E1);
+  - 0.5-1.5 BETWEEN; < 0.5 KILL.
+- **Prediction:** TERM 0 bitwise; o_proj / out_proj 87 -> 50-60 us, in-proj 118 -> 105-110; total -1.8..-2.5 ms.
+
+## C8 REFC RESULT (Sun 18:02): PASS, SD == AR end to end under the contract (screens README 'C8 REFC v2')
+- **The slice:** -1.31 ms per 16-row check, -1.05 per 32-row; transfer T16 0.81, T32 0.67 against CB1's upper bounds.
+- **Engine estimate:** roughly -4 ms per check at both sizes, against today's REF2-T central of ~57-58 / ~76.
+- **Next:** A16c and C32oc join E2 on the engine (Monday night, my 00:30-02:15 slot), as same-run timing arms. The engine
+  path needs a check first: K-73's shared_cat and the head may bypass refc's matmul hook. I'll head-test which contract
+  forms fire on the real loop.
+- The re-certification itself (a new exact reference) stays Kamen's call, next week.
+
+## BOF RESULT (Sun 18:08): PASS with REF2-T's own bits (screens README 'BOF')
+- **The result:** -2.22 ms per 16-row check standalone over the 5 ks-1 shapes. The contract's forms on the same shapes
+  give -2.85, so most of the dense gain needs no reference change.
+- **Track A moves:** with BOF, the REF2-T central at 16 rows drops by its engine transfer, about -1.5 ms at C8's ratio,
+  so ~56-57.
+- **Track B's remaining edge on the dense side:** S4's partitions (-1.5 standalone), the shared cat (-0.9), the in-proj
+  (-0.4); plus HC up and attention later.

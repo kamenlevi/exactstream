@@ -1,0 +1,28 @@
+
+BOF Sun 15 Nov 18:05:36: MLX 0.32.2; quiet ticket
+gdn_qz 16384 x 2560: bitwise vs qmm16c ks 1 (configs, incl. random padding): TERM 0: 4 / 4; TERM 1: 4 / 4; TERM 2: 0 / 4; TERM 3: 0 / 4
+o_out 2560 x 6144: bitwise vs qmm16c ks 1 (configs, incl. random padding): TERM 0: 4 / 4; TERM 1: 4 / 4; TERM 2: 0 / 4; TERM 3: 0 / 4
+qsa_qkv 13312 x 2560: bitwise vs qmm16c ks 1 (configs, incl. random padding): TERM 0: 4 / 4; TERM 1: 4 / 4; TERM 2: 0 / 4; TERM 3: 0 / 4
+sh_down 2560 x 640: bitwise vs qmm16c ks 1 (configs, incl. random padding): TERM 0: 4 / 4; TERM 1: 4 / 4; TERM 2: 0 / 4; TERM 3: 0 / 4
+lm_head 248320 x 2560: bitwise vs qmm16c ks 1 (configs, incl. random padding): TERM 0: 4 / 4; TERM 1: 4 / 4; TERM 2: 0 / 4; TERM 3: 0 / 4
+TERM variants bitwise on every shape and config: [0, 1]
+  gdn_qz   x36: ks 1   117.7 us | bof4x1 114.6 bof8x1 116.0 bof8x2 126.6 bof16x1 126.1 | best bof4x1 114.6 | contract ks 4 105.4
+  o_out    x48: ks 1    85.6 us | bof4x1 48.0 bof8x1 53.6 bof8x2 58.1 bof16x1 65.9 | best bof4x1 48.0 | contract ks 4 45.7
+  qsa_qkv  x12: ks 1   110.7 us | bof4x1 103.6 bof8x1 102.3 bof8x2 110.3 bof16x1 111.1 | best bof8x1 102.3 | contract ks 4 95.1
+Traceback (most recent call last):
+  File "/Users/kamen/Leap/scripts/week98/bof_bench.py", line 134, in <module>
+    r = bench(forms, K, cnt, D, 3000 + si)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/Leap/scripts/week98/bof_bench.py", line 83, in bench
+    mx.eval(run_chain(fn, X, 2, 0, D))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/Leap/scripts/week98/bof_bench.py", line 56, in run_chain
+    y = fn(x, (off + j) % D)
+        ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/Leap/scripts/week98/bof_bench.py", line 131, in <lambda>
+    forms = {"ref_ks1": lambda x, i: qmm16c(x, *C[i]), "contract_ks4": lambda x, i: qmm16c(x, *C[i], ks=4)}
+                                                                                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/Leap/scripts/qmm16.py", line 328, in qmm16c
+    assert M <= 16 and N % (32 * nt) == 0 and K % (64 * ks) == 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

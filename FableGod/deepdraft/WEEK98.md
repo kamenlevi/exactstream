@@ -41,6 +41,44 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Sun 15 17:38: **Leap CB1: the track-B REFERENCE CONTRACT passes both pre-registered lines, ALL BITWISE**
+  (pre-registered 8746000 at 17:30, smoke 8aecdaa, run 17:35:57 on a quiet ticket, result 58c2439; verified from
+  screens/cb1.txt).
+  - What it measured: 7 dense four-bit kinds at the 125B's real shapes and counts, plus the HC down GEMM, each with one
+    fixed K-chunk per shape, against REF2-T's forms. Cold weights.
+  - Bits: every config bitwise across M = 1 / 16 / 32, nt and layout. So SD == AR holds by construction under the new
+    reference. 1-row calls pad to 16, so AR speeds up the same way.
+  - Per check over this set:
+    - 16 rows 18.52 -> 12.54 ms (-5.98; line PASS <= -4.0);
+    - 32 rows 22.52 -> 16.11 (-6.41; line PASS <= -6.0).
+  - The biggest part is o_proj / out_proj at a 4-way K split, 87 -> 44 us per call (-2.1 ms); then the HC read at
+    2,048-key partitions (-1.5), the shared cat (-0.9) and the in-proj (-0.65).
+  - Standalone only. By the transfer rule (DN-KS kept ~55 % on the engine), expect ~-3 ms on the engine.
+  - Next: a slice A/B via an opt-in installer, then a native-layout 32-row kernel.
+  - So next week's one re-certification has a tested contract. HC up and attention by key lists come on top.
+- Sun 15 17:37 (`date`) **NewIdeas: L3 HC SLC STAGING = KILL in substance** (NO JUDGEMENT by its pre-registered context
+  gate; quiet 17:36-17:37; NewIdeas 471a068, research/week98/l3_slc_bench.txt).
+  - D3-0 reproduced at 33.2 / 13.0 us (vs 38.9 / 18.7; the cached figure is outside +-25 %).
+  - In situ (evict -> window -> o_proj -> S4), S4 is only 14 % byte-bound: cold 55.4 vs bytes-free 47.8 us. So the
+    ceiling is <= 0.73 ms per 16-row check, and the touch was not hidden (+25.4 us per window). Closed by its ceiling.
+  - Track A at 16 rows stays Leap's ~57-58 ms, minus lever 2 (the MoE dense side, -2.7 est) if it lands.
+- Sun 15 17:3x: **TREE16 B3 DONE (Breakthrough), ahead of its Tue-Wed date. The exact tree check is now ALL BITWISE end
+  to end above 2K context** (verified by the orchestrator from the logs).
+  - Bit test (pre-registered cef6107, result bd0695c): 900 / 900 nodes' per-node QSA selection masks == their path
+    chain rows, over 11 trees x 6 contexts (L 3000-3003, 2036, 2044). Today's stock node-order mask differs on 548 / 888,
+    so the test can fail.
+  - End to end (281470d): Leap's tree_verify + B1 + B2 + B3 on layers 0-3 at P 3000 / 3002. Logits + hidden of all 302
+    nodes over 20 trees == their path chains.
+  - Integration:
+    - Leap wires in two small hooks;
+    - B3 joins the NEXT snapshot after Monday, with Breakthrough's T2 probe at 3K on its own ticket;
+    - Monday's M4 keeps its frozen t16b. Its keys (81-367-token prompts + 256 new) never pass a + T = 2044.
+  - **17:45 BigMoE (648826b, verified):** TREE16 + B3 in the decode loop on both slices, ALL BITWISE.
+    - 200-token decodes at P 1024 / 2030 / 3000; every kept row == REF2 AR.
+    - B3 was live on 58 / 60 checks at P 2030 and 60 / 60 at P 3000; side paths 12; the chain control was clean.
+    - t16b was untouched.
+    - Next: t16c after Monday, then a pre-registered full-model long-context arm on its own ticket.
+  - Breakthrough moves on to CHECK55 lever 2.
 - Sun 15 16:4x: **MoonShots TREE-E2E: the exact tree check works in REAL decoding** (2B + s30; MoonShots 7471145;
   verified by the orchestrator from week98/tree/tree_result.json).
   - Setup: EAGLE-2 tree-16 vs chain-16, 16 rows per check, path-batched, one batch shape (B = 16) for every target
@@ -76,6 +114,22 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
   5. The contract's bench (3 shapes x chunk x M = 1 / 16 / 32, the bit test across M).
   - Track A in total: ~52-55 / ~70-76 ms at 16 / 32 rows. **Re-totalled 16:25 without lever 1 / GDNB: ~53-56 /
     ~68-76.** Track B adds ~-11 / -16 (Leap's ~45 / ~62).
+  - **CORRECTED 17:1x (Leap):** the re-total still counted Leap's levers (a) and (c), which Leap closed at 14:3x
+    (QMVW16 KILL; ATT-HCHUNK parked).
+    - 16 rows under REF2-T: **~57-58 ms**, from hc_b ~-1, lever (b) -1..-1.5 (not built yet) and step 2 ~-2.
+    - **~53-55** only if NewIdeas' lever 2 (MoE dense side, -2.7) and lever 3 (HC SLC staging, -1..-1.9) pass
+      paired engine A/Bs.
+    - **17:37: lever 3 is KILLED in substance** (NewIdeas 471a068; quiet ticket 17:36-17:37, after MoonShots' T32;
+      verified from l3_slc_bench.txt).
+      - In situ, S4 is only 14 % byte-bound (cold 55.4 vs bytes-free 47.8 us), so the ceiling is <= 0.73 ms.
+      - The touch was not hidden (+25.4 us per window; touched S4 77.3 us).
+      - So the 16-row check this week is ~55 ms if lever 2 lands, else ~57-58.
+    - The 32-row figure waits for C7c tonight.
+  - Owners (17:2x):
+    - lever 3 microbenches: NewIdeas tonight, one quiet ticket after MoonShots' T32 (~19:30), done by 22:30, Leap's
+      kernels read-only;
+    - the contract bench (7 + 8): Leap, Mon by day;
+    - lever 2: Breakthrough after B3 (its piece 2), first read in tonight's engine profile; Leap integrates.
 - Sun 15 16:1x (orchestrator): **NewIdeas takes a desk-only CHECK55 research pass** (its offer, accepted; Goal B has
   equal priority).
   - Two tracks:
@@ -605,9 +659,44 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
     1. Leap a45 (~30 min);
     2. Leap C7c (end marker C7C_DONE);
     3. BigMoE's full-model M1 check, then the ng1 bit test (end marker NIGHT1115_BIGMOE_DONE);
+       - **Now night1115d, pid 22759, armed 17:20:53.**
+         - It fixes a launch bug in b / c: they launched jobs as "( env VARS exec python ... )". env cannot run the
+           builtin exec, so every job would have hit rc 127 at once. The marker would then have released EvalSuite
+           early, and M4 would have dropped.
+         - Found by BigMoE's stub simulation of the whole runner (7626e74). Tonight's other runners were scanned by the
+           orchestrator: no such line.
+         - M4's runner (scripts/m4_night.sh, pid 37703) is armed for Monday 23:05.
+           - It runs only on "#3 M1 rc 0: PASS".
+           - Its marker is M4_1116_BIGMOE_DONE.
+           - Pre-registered in docs/TREE16_M4_PREREG.md before any run.
+       - (Earlier) Runner night1115c, pid 31180, armed 17:13. It has the same gates as night1115b; only ng1's verdict
+         changed.
+       - Before anything ran, two verdict bugs were fixed: the M1 and ng1 records never reached runs.json (72b5f46,
+         8a9e240). M1 would have read FAIL even with every check matching.
+       - The old runner was killed while waiting, so no marker was written. Verified 17:1x.
     4. EvalSuite's chain: tier-0a, then lx45cc1 both orders (~00:30 -> ~06:30; fallback start 01:30), writing
        CHAIN_1116_END;
     5. Breakthrough's engine profile (deadline Mon 15:00, heat episodes dropped).
+  - **Mon 16 night, ADDED 17:1x (orchestrator): BigMoE's TREE16 M4 engine A/B goes FIRST**:
+    - when: ~23:05, after the 23:00 apps quit (the Monday quit runner is still to be armed, Monday by day);
+    - what: one quiet ticket, NO-SWAP >= 36 GB, t16b chain-16 vs tree-16, C T T C, 8 HumanEval + 8 MBPP keys, C 160,
+      256 tokens, ~30 min; pass = tree tokens == chain tokens on every key, then tok/s and kept per check;
+    - hard end 00:25 with an end marker;
+    - **ORDER CHANGED 17:2x (orchestrator):**
+      1. M4;
+      2. Leap's E1-E4 from 00:30 (hard end ~02:15, an end marker on any end);
+      3. EvalSuite's close-call arms, gated on Leap's marker.
+      Why: the check has equal top priority and the close-call is the side track. Timing A/Bs need the cool early
+      night; quality arms can spill into Tuesday morning. Leap, EvalSuite and BigMoE were told.
+    - Leap's slot (17:3x): 00:30 -> HARD END 02:15.
+      - The end marker ~/Leap/data/week98/screens/E1E4_1117_DONE is written on any end; EvalSuite gates on it, with a
+        fallback of its choice.
+      - Order: E2 first (the 32-row engine number), then E1, then E3; E4 only if the one-pass fails.
+      - It waits for M4's end marker and 00:30. If M4 is dropped (no marker and no BigMoE lock), it starts at 00:30.
+      - BigMoE sends Leap its marker path when it arms.
+    - it waits for tonight's full-model M1 check: if M1 fails, the slot is dropped.
+    - Built: M4 loop test ALL BITWISE on both slices (BigMoE 7f4b4e0, verified: P 1024 and 1990, side paths, the
+      chain fallback, 0 bad rows).
   - (Original draft) Sun 15 night: Leap's a45 (exact-45 timing) 21:00 -> ~01:00; then EvalSuite tier 0a REPLAY calibration (~1.5 h;
     PREREG_lossygate amendment 2, eba6d3c; BigMoE's four envs on rpl1 03be8b3, dry runs clean); then the close-call base
     lx45cc1 (lossy-45 as shipped, on snapshot cc1) cached in both orders (~1.7 h) -> done ~04:15 Mon.
