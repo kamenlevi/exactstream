@@ -20,7 +20,9 @@ SEEDS = (1, 2, 3)
 C16 = [("gdn qkv|z (R-83 qz)", 16384, 2560), ("gdn out_proj / att o_proj", 2560, 6144), ("att q_proj", 12288, 2560),
        ("shared down", 2560, 640), ("ple key", 10240, 2560), ("ple value", 2560, 2560), ("lm_head", 248320, 2560)]
 MLXS = [("gdn b|a (R-83 ba)", 96, 2560, 4), ("att k / v_proj", 512, 2560, 4), ("indexer qk", 640, 2560, 4),
-        ("router (8-bit)", 512, 2560, 8), ("shared gate|up|gate (K-73)", 1281, 2560, 4)]
+        ("router (8-bit)", 512, 2560, 8), ("shared gate|up|gate (K-73)", 1281, 2560, 4),
+        ("8-bit 640 (attention layer)", 640, 2560, 8), ("shared_expert_gate N 1 (4-bit)", 1, 2560, 4),
+        ("N 1 (8-bit)", 1, 2560, 8), ("N 48 (4-bit)", 48, 2560, 4)]
 
 
 def say(s):
@@ -51,9 +53,11 @@ for name, N, K in C16:
     mx.random.seed(N + K)
     wq, s, b = mx.quantize(mx.random.normal((N, K), dtype=mx.bfloat16) * 0.02, group_size=64, bits=4)
     mx.eval(wq, s, b)
-    res = score({"qmm16c2": lambda xm: one32.qmm16c2(xm, wq, s, b)}, lambda x16: qmm16c(x16, wq, s, b), K)
-    g, t = res["qmm16c2"]
-    say(f"  {name:28s} N {N:6d} K {K:5d}: qmm16c2 {g:4d} / {t:4d} -> {'OK' if g == t else 'NO'}")
+    res = score({"qmm16c2": lambda xm: one32.qmm16c2(xm, wq, s, b), "qmm16c2a": lambda xm: one32.qmm16c2a(xm, wq, s, b),
+                 "qmm16c2i": lambda xm: one32.qmm16c2i(xm, wq, s, b)},
+                lambda x16: qmm16c(x16, wq, s, b), K)
+    say(f"  {name:28s} N {N:6d} K {K:5d}: " + ", ".join(
+        f"{f} {g:4d} / {t:4d} -> {'OK' if g == t else 'NO'}" for f, (g, t) in res.items()))
     del wq, s, b
 for name, N, K, bits in MLXS:
     mx.random.seed(N + K + bits)
@@ -61,6 +65,7 @@ for name, N, K, bits in MLXS:
     mx.eval(wq, s, b)
     q = lambda xx: mx.quantized_matmul(xx, wq, s, b, transpose=True, group_size=64, bits=bits)
     res = score({"qmvw32 kl8": lambda xm: one32.qmvw32(xm, wq, s, b, bits, 8),
+                 "qmvw32 kl8 vpt32": lambda xm: one32.qmvw32(xm, wq, s, b, bits, 8, 32),
                  "qmv32": lambda xm: one32.qmv32(xm, wq, s, b, bits), "mlx raw": q}, q, K)
     say(f"  {name:28s} N {N:6d} K {K:5d} {bits}-bit: " + ", ".join(
         f"{f} {g:4d} / {t:4d} -> {'OK' if g == t else 'NO'}" for f, (g, t) in res.items()))

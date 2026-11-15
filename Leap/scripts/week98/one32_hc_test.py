@@ -46,10 +46,15 @@ for M in (17, 20, 24, 31, 32):
             r2 = LK.hc_read(g, wcat, pad(h[:, 16:], 16), None if p is None else tuple(pad(t[:, 16:], 16) for t in p),
                             rows=16, fuse_gate=True)
             ref = [mx.concatenate([u, v[:, :M - 16]], axis=1) for u, v in zip(r1, r2)]
-            got = one32.hc_read32b(g, wcat, pad(h, 32), None if p is None else tuple(pad(t, 32) for t in p))
-            got = [x[:, :M] for x in got]
-            mx.eval(ref, got)
-            bad = [nm for nm, u, v in zip(("mixed", "written", "inject"), ref, got) if not bool(mx.all(u == v).item())]
+            bad = []
+            for form in ("2", "2i"):
+                one32.S4_FORM[0] = form
+                got = one32.hc_read32b(g, wcat, pad(h, 32), None if p is None else tuple(pad(t, 32) for t in p))
+                got = [x[:, :M] for x in got]
+                mx.eval(ref, got)
+                bad += [f"{nm}({form})" for nm, u, v in zip(("mixed", "written", "inject"), ref, got)
+                        if not bool(mx.all(u == v).item())]
+            one32.S4_FORM[0] = "2"
             res.append(("p" if with_p else "-") + ("ok" if not bad else "DIFF " + "/".join(bad)))
             ok_all &= not bad
     say(f"  M {M:2d}: " + ", ".join(res))

@@ -1,0 +1,50 @@
+weight bytes per class, layers 0-11 + head (MB) and the floor at 280 GB/s (ms):
+  att_core                 0.0 MB    0.000 ms
+  att_proj                89.3 MB    0.319 ms
+  embed_gathered         357.6 MB    1.277 ms
+  gdn_core                 0.7 MB    0.003 ms
+  gdn_proj               293.2 MB    1.047 ms
+  hc                     317.0 MB    1.132 ms
+  head_lm                357.6 MB    1.277 ms
+  head_mixer              13.1 MB    0.047 ms
+  moe_experts_all      16986.9 MB   60.668 ms
+  moe_router              16.7 MB    0.060 ms
+  moe_shared              33.2 MB    0.119 ms
+  ple                     65.7 MB    0.235 ms
+  ple_gathered             0.0 MB    0.000 ms
+A16: class | GPU ms (pass K, scaled) | weight floor ms | GPU / floor
+  dense projections     2.81   1.366     2.1x
+  HC                    2.61   1.132     2.3x
+  MoE dense side        1.23   0.178     6.9x
+  head                  1.89   1.324     1.4x
+  PLE                   0.60   0.235     2.6x
+  GDN core              0.55   0.003   206.5x
+  attention core        0.88   0.000  53328.6x
+  MoE experts          11.27   8.882    1.27x  (routed union 75.0 / layer)
+C32: class | GPU ms (pass K, scaled) | weight floor ms | GPU / floor
+  dense projections     5.95   1.366     4.4x
+  HC                    3.25   1.132     2.9x
+  MoE dense side        1.89   0.178    10.6x
+  head                  3.79   1.324     2.9x
+  PLE                   0.82   0.235     3.5x
+  GDN core              1.11   0.003   419.2x
+  attention core        1.83   0.000  110941.0x
+  MoE experts          15.79  12.849    1.23x  (routed union 108.4 / layer)
+A16k: class | GPU ms (pass K, scaled) | weight floor ms | GPU / floor
+  dense projections     2.82   1.366     2.1x
+  HC                    2.59   1.132     2.3x
+  MoE dense side        1.04   0.178     5.8x
+  head                  1.85   1.324     1.4x
+  PLE                   0.61   0.235     2.6x
+  GDN core              0.54   0.003   205.8x
+  attention core        0.88   0.000  53224.6x
+  MoE experts          11.16   8.875    1.26x  (routed union 74.9 / layer)
+C32k: class | GPU ms (pass K, scaled) | weight floor ms | GPU / floor
+  dense projections     5.92   1.366     4.3x
+  HC                    3.22   1.132     2.8x
+  MoE dense side        1.68   0.178     9.4x
+  head                  3.86   1.324     2.9x
+  PLE                   0.81   0.235     3.4x
+  GDN core              1.11   0.003   419.2x
+  attention core        1.83   0.000  111048.9x
+  MoE experts          15.74  12.844    1.23x  (routed union 108.4 / layer)

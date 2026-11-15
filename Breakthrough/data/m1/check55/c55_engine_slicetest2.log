@@ -1,0 +1,37 @@
+mtlprof: 13 hooks on AGXG17XFamilyComputeContext / AGXG17XFamilyCommandBuffer / AGXG17SDevice
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=24.9 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+C55 engine: setup done (v32one installed off; vocab 248320; 12 layers; PLE timer on ref2._ORIG; ref2 sb_first True ple_late True seam_hi 16)
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+C55 dd__mc_27921: 32-row kernels built on prompt tokens before the cold check
+C55 dd__mc_27921: same-token rounds done in 1 s; bits (rows equal / rows) {'C32sb_vs_C32': (32, 32), 'C32one_vs_C32': (32, 32), 'C32cpu_vs_C32': (32, 32), 'C32h1_vs_C32': (0, 32), 'A16cpu_vs_A16': (16, 16)} (C32h1 is not exact: info)
+C55 pass K dd__mc_27921: done; bits vs the timing pass {'A16': [(16, 16)], 'C32': [(32, 32)]}
+C55 fresh: 2 windows done
+C55 engine profile (Sun 15 Nov 11:30): exact-45 loop, C 160; medians per check (ms)
+| arm | phase | n | wall | CPU build | CPU encode (SB) | CPU read + commit | GPU busy | GPU idle | GPU first start | dispatches | misses | SSD ms | PLE stage ms (wall / CPU) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| A16 | same | 2 | 22.21 | 4.01 | 2.89 | 1.65 | 21.20 | 1.01 | 0.48 | 1042 | 0 | 0.00 | 0.45 / 0.45 |
+| C32 | same | 2 | 36.37 | 6.10 | 5.44 | 2.67 | 32.98 | 3.39 | 3.00 | 1934 | 0 | 0.00 | 0.53 / 0.53 |
+| C32sb | same | 2 | 34.66 | 6.48 | 4.78 | 2.66 | 33.15 | 1.51 | 0.58 | 1934 | 0 | 0.00 | 0.57 / 0.57 |
+| C32one | same | 2 | 29.60 | 4.17 | 3.61 | 2.09 | 28.64 | 0.96 | 0.43 | 1160 | 0 | 0.00 | 0.55 / 0.55 |
+| A16cpu | same | 2 | 22.70 | 5.98 | 2.74 | 1.55 | 21.17 | 1.52 | 0.84 | 1042 | 0 | 0.00 | 0.46 / 0.46 |
+| C32cpu | same | 2 | 37.61 | 8.41 | 4.93 | 2.73 | 32.80 | 4.81 | 3.59 | 1934 | 0 | 0.00 | 0.52 / 0.52 |
+| C32h1 | same | 2 | 34.36 | 6.34 | 5.30 | 2.73 | 31.00 | 3.36 | 2.84 | 1931 | 0 | 0.00 | 0.54 / 0.54 |
+| C32 | cold32 | 1 | 45.77 | 7.22 | 5.64 | 2.91 | 33.73 | 12.04 | 11.62 | 1934 | 0 | 0.00 | 9.08 / 1.60 |
+| A16 | fresh_cold | 2 | 26.09 | 4.43 | 3.31 | 1.79 | 21.25 | 4.83 | 0.58 | 1042 | 0 | 0.00 | 3.66 / 0.90 |
+| A16 | fresh_warm | 2 | 21.79 | 3.62 | 2.91 | 1.61 | 20.76 | 1.03 | 0.42 | 1042 | 0 | 0.00 | 0.39 / 0.39 |
+| A16 | fresh_warm2 | 2 | 21.14 | 3.36 | 2.60 | 1.41 | 20.22 | 0.92 | 0.43 | 1042 | 0 | 0.00 | 0.40 / 0.40 |
+paired per round and window (same tokens), median [IQR] ms of wall; GPU busy delta:
+  C32sb - C32: wall -1.72 [-2.02, -1.41] over 2; GPU busy +0.16
+  C32one - C32: wall -6.77 [-6.94, -6.61] over 2; GPU busy -4.34
+  C32one - C32sb: wall -5.06 [-5.53, -4.59] over 2; GPU busy -4.51
+  C32cpu - C32: wall +1.23 [+1.01, +1.45] over 2; GPU busy -0.18
+  A16cpu - A16: wall +0.48 [+0.15, +0.81] over 2; GPU busy -0.03
+  C32h1 - C32: wall -2.01 [-2.39, -1.63] over 2; GPU busy -1.99
+  C32 - A16: wall +14.16 [+13.91, +14.42] over 2; GPU busy +11.78
+fresh 16-row checks, cold - warm per window (n 2): wall +4.30 ms [IQR +4.20, +4.40]; PLE stage +3.27 ms; SSD +0.00 ms; misses +0
+bits: {'dd__mc_27921': {'C32sb_vs_C32': (32, 32), 'C32one_vs_C32': (32, 32), 'C32cpu_vs_C32': (32, 32), 'C32h1_vs_C32': (0, 32), 'A16cpu_vs_A16': (16, 16)}}
+pass K dd__mc_27921: bits vs timing [[(16, 16)], [(32, 32)]]
+SLICETEST DONE

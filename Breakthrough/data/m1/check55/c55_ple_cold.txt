@@ -1,0 +1,20 @@
+PLE n-gram staging, cold vs warm (Breakthrough CHECK55, Sun 11:2x): all arms check the same new tokens each round, so
+the round's FIRST arm reads the rows' pages cold from the SSD-backed n-gram table; later arms find them warm.
+first-in-round vs later, per arm: median wall ms (n) | median GPU first start ms
+c55_1105: arms ['A16', 'C32', 'A16k', 'C32k'], 12 rounds
+  A16     first  31.01 (3) | later  22.93 (9) | cold cost +8.09 ms | GPU start first  0.43 vs later  0.45
+  C32     first  49.40 (3) | later  37.42 (9) | cold cost +11.97 ms | GPU start first 14.13 vs later  2.65
+  A16k    first  28.47 (3) | later  22.86 (9) | cold cost +5.61 ms | GPU start first  0.31 vs later  0.38
+  C32k    first  46.53 (3) | later  36.75 (9) | cold cost +9.78 ms | GPU start first 10.96 vs later  2.32
+c55_ko_1110: arms ['A16', 'C32', 'A16cpu', 'C32cpu', 'C32h1'], 20 rounds
+  A16     first  27.94 (4) | later  22.95 (16) | cold cost +4.98 ms | GPU start first  0.44 vs later  0.37
+  C32     first  45.68 (4) | later  37.65 (16) | cold cost +8.03 ms | GPU start first 11.50 vs later  2.53
+  A16cpu  first  27.22 (4) | later  23.36 (16) | cold cost +3.86 ms | GPU start first  0.67 vs later  0.76
+  C32cpu  first  47.73 (4) | later  38.66 (16) | cold cost +9.07 ms | GPU start first 12.24 vs later  3.21
+  C32h1   first  45.39 (4) | later  35.92 (16) | cold cost +9.47 ms | GPU start first 11.44 vs later  2.50
+c55_sb_1116: arms ['A16', 'C32', 'C32sb'], 20 rounds
+  A16     first  27.11 (7) | later  22.36 (13) | cold cost +4.75 ms | GPU start first  0.40 vs later  0.36
+  C32     first  45.13 (7) | later  37.08 (13) | cold cost +8.06 ms | GPU start first 10.80 vs later  2.37
+  C32sb   first  43.01 (6) | later  35.09 (14) | cold cost +7.92 ms | GPU start first  0.47 vs later  0.49
+pass S, warm pairs only (A16 first in the round): C32sb - C32 median -1.99 ms, range [-2.28, -1.47] over 7 rounds
+pass S, each arm cold (first in its round): C32 45.13 ms vs C32sb 43.01 ms -> -2.13

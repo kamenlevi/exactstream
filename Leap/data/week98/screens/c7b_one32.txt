@@ -1,0 +1,20 @@
+C3 (one weight pass + seams 32): ALL BITWISE
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=29.0 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+C7b Sun 15 Nov 11:24:45: MLX 0.32.2; slice GGGAGGGAGGGA, 18.5 GB active; SB 4; dense_native False
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (1320628 > 262144). Running this sequence through the model will result in indexing errors
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+12 layers, 14 rounds, SB 4 (contexts 1024 -> 1536); ms per check (python build inside):
+  A16      23.07 ms (build  12.18 ms, 0.53 of it) = 1.000 x A16
+  C32s     37.70 ms (build  22.01 ms, 0.58 of it) = 1.634 x A16
+  C32o1    33.38 ms (build  18.26 ms, 0.55 of it) = 1.447 x A16
+  C32w     38.59 ms (build  20.21 ms, 0.52 of it) = 1.673 x A16
+  C32o     36.40 ms (build  18.80 ms, 0.52 of it) = 1.578 x A16
+  per-round medians [IQR] x A16: C32s 1.628 [1.549-1.760]; C32o1 1.451 [1.371-1.521]; C32w 1.620 [1.579-1.726]; C32o 1.566 [1.520-1.641]
+  paired attribution / A16: weight pass (C32o1 - C32w) -0.219 [-0.240--0.108]; seams to 32 (C32w - C32o) 0.053 [0.045-0.073]; all of step 1 (C32s - C32o) 0.020 [0.013-0.064]
+  v32one counts over the timed C32o checks: {'qmm16c2': 1176, 'qmvw32': 2394, 'qmm_split': 0, 'hc1': 1008, 'hc_split': 42, 'gdn1': 378, 'gdn_split': 0, 'att1': 126, 'att_split': 42, 'vsdpa32': 126}; matmuls still split (shape: calls): {}; v32 wrappers: {'qmm': 854, 'lin': 112, 'gr': 392, 'att': 42, 'gdn': 126, 'moe': 0, 'moeblk': 672, 'moe1': 672, 'tierblk': 0, 'mr2': 0}
+C7b verdict (pre-registered): R32o 1.566 -> neither paid on the slice (> 1.45): profile before E2
+done in 8 s; peak 20.2 GB

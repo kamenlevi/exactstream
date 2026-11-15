@@ -1,0 +1,92 @@
+C55 Sun 15 Nov 11:04:32: MLX 0.32.2; slice GGGAGGGAGGGA (12 layers), 18.5 GB active; SB 4; gdn_body False; K-73r arms True; vocab 248320
+bits: K-73r block vs MTPLX's stock block, rows bitwise {'A16': (0, 16), 'C32': (0, 32)} (info only)
+calibration: one flush of one tiny kernel costs 10.7 us thread CPU; its command buffer 2.3 us GPU (p10 2.1) over 301 buffers
+pass T: 12 rounds x 4 arms (contexts 1024 -> 1632); medians per check
+| arm | wall | fwd / read / commit | CPU build | CPU encode (SB) | CPU read | CPU commit | GPU busy (fwd / read / commit) | GPU idle | GPU first start | dispatches | barriers | encoders | cmd buffers | floor |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| A16 | 23.37 | 12.69 / 10.32 / 0.16 | 3.66 | 2.86 | 1.43 | 0.14 | 21.98 (11.50 / 10.25 / 0.00) | 0.90 | 0.44 | 1105 | 572 | 52 | 85 | 12.36 |
+| C32 | 38.16 | 23.05 / 14.78 / 0.18 | 5.79 | 4.46 | 2.11 | 0.16 | 34.61 (19.64 / 14.72 / 0.00) | 3.43 | 3.13 | 2060 | 760 | 67 | 108 | 16.32 |
+| A16k | 23.13 | 12.34 / 10.48 / 0.15 | 3.34 | 2.36 | 1.16 | 0.12 | 21.64 (11.37 / 10.41 / 0.00) | 0.83 | 0.38 | 1033 | 554 | 49 | 77 | 12.35 |
+| C32k | 36.97 | 22.17 / 14.91 / 0.18 | 4.91 | 3.86 | 2.02 | 0.16 | 34.34 (19.46 / 14.84 / 0.00) | 3.37 | 3.01 | 1916 | 736 | 67 | 108 | 16.32 |
+pass K A16 (4 rounds; per check) | class | dispatches | GPU ms | GPU ms net | build ms | encode ms (flushes) | flushes | cmd buffers |
+|   other | 7.0 | 0.08 | 0.07 | 0.82 | 0.21 | 88.0 | 5.0 |
+|   ple | 22.0 | 0.62 | 0.62 | 0.07 | 0.09 | 1.0 | 1.0 |
+|   hc_read | 120.0 | 2.61 | 2.56 | 0.56 | 0.76 | 24.0 | 24.0 |
+|   hc_write | 12.0 | 0.06 | 0.03 | 0.06 | 0.19 | 12.0 | 12.0 |
+|   gdn_proj | 27.0 | 2.09 | 2.03 | 0.21 | 0.43 | 27.0 | 27.0 |
+|   gdn_core | 63.0 | 0.56 | 0.54 | 0.45 | 0.44 | 36.0 | 18.0 |
+|   att_proj | 15.0 | 0.78 | 0.75 | 0.11 | 0.24 | 15.0 | 15.0 |
+|   att_core | 337.5 | 0.90 | 0.88 | 0.57 | 0.90 | 18.0 | 11.0 |
+|   moe_router | 36.0 | 0.37 | 0.34 | 0.19 | 0.26 | 12.0 | 12.0 |
+|   moe_experts | 312.0 | 11.52 | 11.42 | 0.39 | 1.26 | 12.0 | 63.2 |
+|   moe_shared | 60.0 | 0.67 | 0.62 | 0.36 | 0.49 | 24.0 | 24.0 |
+|   moe_tail | 84.0 | 0.22 | 0.19 | 0.14 | 0.39 | 36.0 | 12.0 |
+|   head_mixer | 11.0 | 0.16 | 0.16 | 0.03 | 0.05 | 1.0 | 1.0 |
+|   head_lm | 1.0 | 1.76 | 1.76 | 0.01 | 0.02 | 1.0 | 2.0 |
+|   read | 2.0 | 0.06 | 0.06 | 0.04 | 0.00 | 0.0 | 1.0 |
+|   commit | 0.0 | 0.00 | 0.00 | 0.14 | 0.00 | 0.0 | 2.0 |
+|   total | 1109.5 | 22.46 | 22.04 | 4.15 | 5.71 | 307.0 | 230.2 | (pass K counter 1109.5 dispatches per check; pass T 1105 dispatches, GPU busy 21.98 ms)
+    dispatches per layer: -:head_lm 1.0, -:head_mixer 11.0, -:other 5.0, A:att_core 112.5, A:att_proj 5.0, A:hc_read 10.0, A:hc_write 1.0, A:moe_experts 26.0, A:moe_router 3.0, A:moe_shared 5.0, A:moe_tail 7.0, G:gdn_core 7.0, G:gdn_proj 3.0, G:hc_read 10.0, G:hc_write 1.0, G:moe_experts 26.0, G:moe_router 3.0, G:moe_shared 5.0, G:moe_tail 7.0, G:ple 2.4
+pass K C32 (4 rounds; per check) | class | dispatches | GPU ms | GPU ms net | build ms | encode ms (flushes) | flushes | cmd buffers |
+|   other | 7.0 | 0.05 | 0.04 | 0.98 | 0.18 | 88.0 | 5.0 |
+|   ple | 28.0 | 0.85 | 0.85 | 0.06 | 0.07 | 1.0 | 1.0 |
+|   hc_read | 384.0 | 3.17 | 3.12 | 1.19 | 1.47 | 24.0 | 24.0 |
+|   hc_write | 24.0 | 0.17 | 0.15 | 0.09 | 0.21 | 12.0 | 12.0 |
+|   gdn_proj | 54.0 | 4.46 | 4.35 | 0.44 | 0.84 | 54.0 | 54.0 |
+|   gdn_core | 144.0 | 1.14 | 1.08 | 0.82 | 0.98 | 63.0 | 45.0 |
+|   att_proj | 30.0 | 1.66 | 1.60 | 0.21 | 0.44 | 30.0 | 30.0 |
+|   att_core | 691.5 | 1.88 | 1.83 | 0.99 | 1.71 | 33.0 | 27.2 |
+|   moe_router | 72.0 | 0.56 | 0.53 | 0.26 | 0.32 | 12.0 | 12.0 |
+|   moe_experts | 312.0 | 16.26 | 16.15 | 0.38 | 1.26 | 12.0 | 64.8 |
+|   moe_shared | 204.0 | 1.11 | 1.06 | 0.63 | 0.73 | 24.0 | 24.0 |
+|   moe_tail | 84.0 | 0.27 | 0.25 | 0.12 | 0.39 | 36.0 | 12.0 |
+|   head_mixer | 24.0 | 0.27 | 0.27 | 0.05 | 0.06 | 1.0 | 1.0 |
+|   head_lm | 4.0 | 3.64 | 3.63 | 0.02 | 0.06 | 1.0 | 5.0 |
+|   read | 2.0 | 0.14 | 0.14 | 0.03 | 0.00 | 0.0 | 1.0 |
+|   commit | 0.0 | 0.00 | 0.00 | 0.17 | 0.00 | 0.0 | 2.0 |
+|   total | 2064.5 | 35.63 | 35.04 | 6.44 | 8.75 | 391.0 | 320.0 | (pass K counter 2064.5 dispatches per check; pass T 2060 dispatches, GPU busy 34.61 ms)
+    dispatches per layer: -:head_lm 4.0, -:head_mixer 24.0, -:other 5.0, A:att_core 230.5, A:att_proj 10.0, A:hc_read 32.0, A:hc_write 2.0, A:moe_experts 26.0, A:moe_router 6.0, A:moe_shared 17.0, A:moe_tail 7.0, G:gdn_core 16.0, G:gdn_proj 6.0, G:hc_read 32.0, G:hc_write 2.0, G:moe_experts 26.0, G:moe_router 6.0, G:moe_shared 17.0, G:moe_tail 7.0, G:ple 3.1
+pass K A16k (4 rounds; per check) | class | dispatches | GPU ms | GPU ms net | build ms | encode ms (flushes) | flushes | cmd buffers |
+|   other | 7.0 | 0.08 | 0.07 | 0.77 | 0.19 | 88.0 | 5.0 |
+|   ple | 22.0 | 0.62 | 0.62 | 0.06 | 0.07 | 1.0 | 1.0 |
+|   hc_read | 120.0 | 2.60 | 2.55 | 0.54 | 0.74 | 24.0 | 24.0 |
+|   hc_write | 12.0 | 0.06 | 0.03 | 0.06 | 0.18 | 12.0 | 12.0 |
+|   gdn_proj | 27.0 | 2.09 | 2.03 | 0.21 | 0.41 | 27.0 | 27.0 |
+|   gdn_core | 63.0 | 0.56 | 0.54 | 0.41 | 0.42 | 36.0 | 18.0 |
+|   att_proj | 15.0 | 0.79 | 0.76 | 0.11 | 0.23 | 15.0 | 15.0 |
+|   att_core | 337.5 | 0.90 | 0.88 | 0.55 | 0.92 | 18.0 | 11.0 |
+|   moe_router | 24.0 | 0.32 | 0.30 | 0.16 | 0.24 | 24.0 | 12.0 |
+|   moe_experts | 312.0 | 11.43 | 11.32 | 0.39 | 1.19 | 24.0 | 63.2 |
+|   moe_shared | 36.0 | 0.56 | 0.54 | 0.26 | 0.27 | 12.0 | 12.0 |
+|   moe_tail | 48.0 | 0.18 | 0.15 | 0.11 | 0.28 | 24.0 | 12.0 |
+|   head_mixer | 11.0 | 0.16 | 0.16 | 0.03 | 0.04 | 1.0 | 1.0 |
+|   head_lm | 1.0 | 1.74 | 1.73 | 0.01 | 0.02 | 1.0 | 2.8 |
+|   read | 2.0 | 0.07 | 0.07 | 0.04 | 0.00 | 0.0 | 1.0 |
+|   commit | 0.0 | 0.00 | 0.00 | 0.14 | 0.00 | 0.0 | 2.0 |
+|   total | 1037.5 | 22.15 | 21.75 | 3.85 | 5.22 | 307.0 | 219.0 | (pass K counter 1037.5 dispatches per check; pass T 1033 dispatches, GPU busy 21.64 ms)
+    dispatches per layer: -:head_lm 1.0, -:head_mixer 11.0, -:other 5.0, A:att_core 112.5, A:att_proj 5.0, A:hc_read 10.0, A:hc_write 1.0, A:moe_experts 26.0, A:moe_router 2.0, A:moe_shared 3.0, A:moe_tail 4.0, G:gdn_core 7.0, G:gdn_proj 3.0, G:hc_read 10.0, G:hc_write 1.0, G:moe_experts 26.0, G:moe_router 2.0, G:moe_shared 3.0, G:moe_tail 4.0, G:ple 2.4
+pass K C32k (4 rounds; per check) | class | dispatches | GPU ms | GPU ms net | build ms | encode ms (flushes) | flushes | cmd buffers |
+|   other | 7.0 | 0.05 | 0.04 | 0.94 | 0.18 | 88.0 | 5.0 |
+|   ple | 28.0 | 0.83 | 0.83 | 0.05 | 0.08 | 1.0 | 1.0 |
+|   hc_read | 384.0 | 3.13 | 3.08 | 1.15 | 1.50 | 24.0 | 24.0 |
+|   hc_write | 24.0 | 0.18 | 0.15 | 0.09 | 0.20 | 12.0 | 12.0 |
+|   gdn_proj | 54.0 | 4.43 | 4.32 | 0.43 | 0.82 | 54.0 | 54.0 |
+|   gdn_core | 144.0 | 1.14 | 1.08 | 0.80 | 0.93 | 63.0 | 45.0 |
+|   att_proj | 30.0 | 1.65 | 1.58 | 0.21 | 0.44 | 30.0 | 30.0 |
+|   att_core | 691.5 | 1.88 | 1.83 | 0.91 | 1.73 | 33.0 | 29.0 |
+|   moe_router | 60.0 | 0.51 | 0.49 | 0.23 | 0.31 | 24.0 | 12.0 |
+|   moe_experts | 312.0 | 16.16 | 16.06 | 0.38 | 1.27 | 24.0 | 64.8 |
+|   moe_shared | 108.0 | 0.95 | 0.92 | 0.42 | 0.39 | 12.0 | 12.0 |
+|   moe_tail | 48.0 | 0.26 | 0.24 | 0.11 | 0.28 | 24.0 | 12.0 |
+|   head_mixer | 24.0 | 0.27 | 0.26 | 0.05 | 0.07 | 1.0 | 1.0 |
+|   head_lm | 4.0 | 3.70 | 3.69 | 0.02 | 0.05 | 1.0 | 5.0 |
+|   read | 2.0 | 0.14 | 0.14 | 0.03 | 0.00 | 0.0 | 1.0 |
+|   commit | 0.0 | 0.00 | 0.00 | 0.17 | 0.00 | 0.0 | 2.0 |
+|   total | 1920.5 | 35.27 | 34.71 | 5.99 | 8.25 | 391.0 | 309.8 | (pass K counter 1920.5 dispatches per check; pass T 1916 dispatches, GPU busy 34.34 ms)
+    dispatches per layer: -:head_lm 4.0, -:head_mixer 24.0, -:other 5.0, A:att_core 230.5, A:att_proj 10.0, A:hc_read 32.0, A:hc_write 2.0, A:moe_experts 26.0, A:moe_router 5.0, A:moe_shared 9.0, A:moe_tail 4.0, G:gdn_core 16.0, G:gdn_proj 6.0, G:hc_read 32.0, G:hc_write 2.0, G:moe_experts 26.0, G:moe_router 5.0, G:moe_shared 9.0, G:moe_tail 4.0, G:ple 3.1
+floors: A16 dense 0.97 GB + experts 2.49 GB (union 75.0 / layer) = 12.36 ms; C32 dense 0.97 GB + experts 3.60 GB (union 108.4 / layer) = 16.32 ms; A16k dense 0.97 GB + experts 2.48 GB (union 74.9 / layer) = 12.35 ms; C32k dense 0.97 GB + experts 3.60 GB (union 108.4 / layer) = 16.32 ms
+top kernels, A16 (pass T, dispatches per check): steel_gemm_fused_nax_nt_bfloat16_bfloat16_bm64_bn128_bk2 63.0; affine_qmv_wide_bfloat16_t_gs_64_b_4_nv_4_kl_8_batch_0 51.0; block_softmax_precise_bfloat16 48.0; sn_copybfloat16bfloat16 41.5; gg1_copybfloat16bfloat16 41.0; steel_gemm_splitk_accum_bfloat16_float32 37.0; g2_Selectbfloat16 36.0; steel_gemm_splitk_nax_nn_bfloat16_float32_bm64_bn64_bk25 36.0; g3_Multiplybfloat16 36.0; arangeint32 30.0; custom_kernel_leap_qmmg25__bfloat16_t_2560_640_4_1_160_b 24.0; gg1_copybool_bool_ 24.0; custom_kernel_leapk_s4_324_10240_4__bfloat16_t_bfloat16_ 24.0; g2_copybfloat16bfloat16 24.0
+top kernels, C32 (pass T, dispatches per check): gg1_copybfloat16bfloat16 376.0; steel_gemm_fused_nax_nt_bfloat16_bfloat16_bm64_bn128_bk2 126.0; affine_qmv_wide_bfloat16_t_gs_64_b_4_nv_4_kl_8_batch_0 102.0; block_softmax_precise_bfloat16 84.0; g3_Multiplybfloat16 84.0; steel_gemm_splitk_accum_bfloat16_float32 74.0; g2_Selectbfloat16 72.0; steel_gemm_splitk_nax_nn_bfloat16_float32_bm64_bn64_bk25 72.0; custom_kernel_leapk_s4_324_10240_4__bfloat16_t_bfloat16_ 48.0; g2_copybfloat16bfloat16 48.0; custom_kernel_leapk_accum_gate__bfloat16_t_324_3_16_320_ 48.0; custom_kernel_leapk_tail_4_2560__bfloat16_t_2560_4_40960 48.0; sn_copybfloat16bfloat16 46.5; arangeint32 36.0
+top kernels, A16k (pass T, dispatches per check): steel_gemm_fused_nax_nt_bfloat16_bfloat16_bm64_bn128_bk2 63.0; sn_copybfloat16bfloat16 41.5; gg1_copybfloat16bfloat16 41.0; steel_gemm_splitk_accum_bfloat16_float32 37.0; block_softmax_precise_bfloat16 36.0; g2_Selectbfloat16 36.0; steel_gemm_splitk_nax_nn_bfloat16_float32_bm64_bn64_bk25 36.0; g3_Multiplybfloat16 36.0; arangeint32 30.0; affine_qmv_wide_bfloat16_t_gs_64_b_4_nv_4_kl_8_batch_0 27.0; custom_kernel_leap_qmmg25__bfloat16_t_2560_640_4_1_160_b 24.0; gg1_copybool_bool_ 24.0; custom_kernel_leapk_s4_324_10240_4__bfloat16_t_bfloat16_ 24.0; g2_copybfloat16bfloat16 24.0
+top kernels, C32k (pass T, dispatches per check): gg1_copybfloat16bfloat16 328.0; steel_gemm_fused_nax_nt_bfloat16_bfloat16_bm64_bn128_bk2 126.0; g3_Multiplybfloat16 84.0; steel_gemm_splitk_accum_bfloat16_float32 74.0; block_softmax_precise_bfloat16 72.0; g2_Selectbfloat16 72.0; steel_gemm_splitk_nax_nn_bfloat16_float32_bm64_bn64_bk25 72.0; affine_qmv_wide_bfloat16_t_gs_64_b_4_nv_4_kl_8_batch_0 54.0; custom_kernel_leapk_s4_324_10240_4__bfloat16_t_bfloat16_ 48.0; g2_copybfloat16bfloat16 48.0; custom_kernel_leapk_accum_gate__bfloat16_t_324_3_16_320_ 48.0; custom_kernel_leapk_tail_4_2560__bfloat16_t_2560_4_40960 48.0; sn_copybfloat16bfloat16 46.5; arangeint32 36.0
+done in 10 s; peak 20.2 GB

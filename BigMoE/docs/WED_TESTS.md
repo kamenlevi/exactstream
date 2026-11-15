@@ -2158,3 +2158,37 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
   - In dd_ceiling's cells (mbpp100 / heplus24) `rank` is the DRAFT's rank in the 125B's top-32.
   - The head's own top-2 is 96.53 % (HE+) / 96.40 % (MBPP). A #2 branch recovers 57 % / 65 % of check-start misses,
     not all of them.
+
+## Sun 15 Nov 11:08-11:26: TREE, t30b drafts REAL best-first EAGLE-2 trees, off-path nodes included, for MTP Head's S9b open unknown (scripts/dd_tree.py; data/deepdraft/ceiling/tree_t30b_{heplus24,mbppbank}.{npz,json})
+- **Why (the orchestrator 11:0x):** S9b priced EAGLE-2-16 as a same-cost exact win on the 125B (x1.131 MBPP / x1.053 HE+
+  vs chain-16, from TOPK). It had one unknown: the head's confidence OFF the true path, under a wrong sibling (proxy band
+  x1.056-1.221 / x1.017-1.107; worst case x0.909 / 0.932).
+- **What:** the drafter head alone (no 125B), at EVERY anchor of the bank's HE+ 24 / MBPP 100 windows (6,375 / 15,641;
+  a_walk_start flags the chain-32 walk's 461 / 2,253 check starts).
+  - Best-first by path probability, top-8 children per node, 32 nodes per anchor. The first N pops are the best N-node
+    tree for every N <= 32.
+  - Each node runs t30b's depth-j step fed its own token with its parent's carried state at position s + d + 1. It
+    attends to the true pairs u <= s plus its own ancestors' chain entries: dd_d22_ttt.chain restricted to one path, so
+    nodes under a wrong sibling are real head outputs.
+  - Per node: parent, depth, token, path_p, y, on_true and its own top-8 + probabilities.
+- **Checks:**
+  - --selftest: tree_attn == the chain's ttt_attn, bitwise on full rows and per padded row in fp32. Gathers match
+    numpy. Best-first pops == the brute-force top-32 path probabilities, non-increasing, parents first.
+  - Roots == TOPK's band 0 bitwise (6,375 / 15,641).
+  - True-path nodes reproduce TOPK's teacher-forced cells (band d + 1): top-1 identical 99.996 % (124,896 / 140,196
+    nodes), top-8 sets 99.30 / 99.94 %, median p1 difference 0, max 0.11 / 0.055 (TF32 / bf16 noise at near-ties).
+  - 80 s / 213 s; MLX peak 11.2 / 11.7 GB.
+  - MBPP ran in 4 resumable parts: others' short quiet locks killed the one-piece run twice; dd_guard yields.
+- **Preview** (paired at the same anchors, NOT a tree walk; kept per check = accepted + 1; chain-K = K drafts, tree-N =
+  N nodes, both K / N + 1 rows):
+
+  | | chain-15 | tree-15 | chain-31 | tree-31 |
+  |---|---|---|---|---|
+  | MBPP, walk starts | 6.48 | 7.15 (+10.3 %) | 6.94 | 8.72 (+25.6 %) |
+  | MBPP, all anchors | 7.61 | 8.18 (+7.6 %) | 8.38 | 10.01 (+19.4 %) |
+  | HE+, walk starts | 9.42 | 9.83 (+4.3 %) | 13.82 | 15.01 (+8.6 %) |
+  | HE+, all anchors | 12.59 | 12.82 (+1.8 %) | 20.33 | 21.01 (+3.4 %) |
+
+  - At 16 rows the real tree sits inside S9b's proxy band on both sets (MBPP x1.103, HE+ x1.043 at the walk starts).
+  - At 32 rows the tree uses the budget the chain wastes past its first miss: MBPP +26 %.
+  - MTP Head prices the real walk from these files (S9c).

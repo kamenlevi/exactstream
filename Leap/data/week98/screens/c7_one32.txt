@@ -1,0 +1,17 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=29.1 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+C7 Sun 15 Nov 11:13:11: MLX 0.32.2; slice GGGAGGGAGGGA, 18.5 GB active; SB 4; dense_native False
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (1320496 > 262144). Running this sequence through the model will result in indexing errors
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+12 layers, 14 rounds, SB 4 (contexts 1024 -> 1536); ms per check (python build inside):
+  A16      23.00 ms (build  12.25 ms, 0.53 of it) = 1.000 x A16
+  B2x16    46.25 ms (build  23.71 ms, 0.51 of it) = 2.011 x A16
+  C32s     37.95 ms (build  22.06 ms, 0.58 of it) = 1.650 x A16
+  C32o     33.08 ms (build  18.32 ms, 0.55 of it) = 1.438 x A16
+  per-round medians [IQR]: R32s 1.574 [1.515-1.718]; R32o 1.430 [1.351-1.526]; saving (C32s - C32o) / A16 0.172 [0.117-0.201]
+  v32one counts over the timed C32o checks: {'qmm16c2': 392, 'qmvw32': 588, 'qmm_split': 210, 'hc1': 336, 'hc_split': 14, 'gdn1': 126, 'gdn_split': 0, 'att1': 42, 'att_split': 42, 'vsdpa32': 42}; matmuls still split (shape: calls): {(1, 2560, 4, 64, 'affine', 'mlx.core.bfloat16', 'biases'): 168, (640, 2560, 8, 64, 'affine', 'mlx.core.bfloat16', 'biases'): 42}; v32 wrappers: {'qmm': 1064, 'lin': 56, 'gr': 364, 'att': 42, 'gdn': 126, 'moe': 0, 'moeblk': 336, 'moe1': 336, 'tierblk': 0, 'mr2': 0}
+C7 verdict (pre-registered): R32o 1.430 -> PARTIAL (1.35-1.50): find what is still split
+done in 7 s; peak 20.2 GB

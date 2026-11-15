@@ -1,0 +1,27 @@
+Sun 11:15:14 gate pre-lock: avail 33.1 GB, swap 10341.00 MB
+queued #1; this returns when it's your turn and the Mac is quiet.
+your turn after 5s: quiet lock held until 11:55. Measure now, and `peer unlock` as soon as you're done.
+Sun 11:15:39 gate after grant + settle: avail 44.7 GB, swap 10341.00 MB;  powermode            2
+mtlprof: 13 hooks on AGXG17XFamilyComputeContext / AGXG17XFamilyCommandBuffer / AGXG17SDevice
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=29.0 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+C55 Sun 15 Nov 11:15:41: MLX 0.32.2; slice GGGAGGGAGGGA (12 layers), 18.5 GB active; SB 4; gdn_body False; K-73r arms False; vocab 248320
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (1320496 > 262144). Running this sequence through the model will result in indexing errors
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+bits: C32sb (SB_FIRST + PLE_LATE at 32 rows) vs C32, rows bitwise (32, 32); seams fired (b, d) 1, 1
+calibration: one flush of one tiny kernel costs 11.3 us thread CPU; its command buffer 2.3 us GPU (p10 2.1) over 301 buffers
+pass X (knock-outs): 20 rounds x 3 arms, order rotated; per check medians, paired deltas per round
+| arm | wall | CPU total | GPU busy | GPU idle | dispatches |
+|---|---|---|---|---|---|
+| A16 | 23.31 | 6.55 | 21.80 | 0.79 | 1105 |
+| C32 | 38.09 | 11.24 | 34.37 | 2.82 | 2060 |
+| C32sb | 35.75 | 11.29 | 34.23 | 0.93 | 2060 |
+  C32sb - C32: GPU first start -2.03 ms (median 0.48 vs 2.54)
+  C32sb - C32: wall -1.99 ms [IQR -9.91, +2.41]; CPU -0.30; GPU busy -0.14
+done in 7 s; peak 20.1 GB
+wrote /Users/kamen/Breakthrough/data/m1/check55/c55_sb_1116.json / .txt
+Sun 11:15:49 exit 0; swap 10341.00 MB (start 10341.00)
+lock released

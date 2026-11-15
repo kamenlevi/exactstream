@@ -216,6 +216,7 @@ CFG = {"dense_min_n": 1024, "experts": True, "experts_cfg_a": (4, 1), "experts_c
        "sb_first": os.environ.get("REF2_SB_FIRST") == "1",   # PLAN 220 seam (b): layer 0's output sent before layer 1 (default off)
        "ple_late": os.environ.get("REF2_PLE_LATE") == "1",   # PLAN 220 seam (d): the PLE stage at layer 1, not before layer 0 (default off)
        "commit_sub": int(os.environ.get("REF2_COMMIT_SUB", "0") or 0),   # PLAN 220 seam (e): send the commit's GDN replays every N (0 off)
+       "seam_hi": int(os.environ.get("REF2_SEAM_HI", "16") or 16),   # seams (b) / (d) fire on 5..seam_hi-row passes; 32 covers v32's 17-32-row checks (Breakthrough pass S 2757be6: bitwise, -2.0 ms per 32-row check); default 16 = unchanged
        "tier_chunk": os.environ.get("REF2_TIER_CHUNK") == "1",   # F24: a tier call whose expert union exceeds the slots runs in row groups (default off)
        "tier_chunk_cap": int(os.environ.get("REF2_TIER_CHUNK_CAP", "0") or 0),   # test only: group at this union cap (0: the pools' own)
        "hc8_fold": os.environ.get("REF2_HC8_FOLD") == "1",   # CHAT-150 G1 / B1: HC8 reads with <= 4 rows fold K2 into K3 (hc8f; bitwise; default off)
@@ -1781,11 +1782,12 @@ _CSUB = []                                             # (e): the commit's repla
 
 def _dec_call(self_, x, *a, **k):
     """PLAN 220 seams (b) / (d) (CFG sb_first / ple_late; installed only when one is on). At the PLE-carrying layer
-    (layer 1 here; the only DecoderLayer with .ple) of a 5-16-row pass outside the commit: (b) layer 0's output goes to
+    (layer 1 here; the only DecoderLayer with .ple) of a 5-16-row pass (5..CFG seam_hi; REF2_SEAM_HI=32 adds v32's
+    17-32-row checks) outside the commit: (b) layer 0's output goes to
     the GPU first (mx.async_eval: MTPLX's cadence sends after layer 1 with SB 2), so the GPU works while Python stages
     and builds; (d) the PLE rows MTPLX's _forward deferred are staged now, with the same inputs and the same history
     (layer 0 does not touch layer 1's cache), so the same values. Scheduling only: bitwise."""
-    if _ON[0] and getattr(self_, "ple", None) is not None and not _IN_COMMIT[0] and 5 <= x.shape[1] <= 16:
+    if _ON[0] and getattr(self_, "ple", None) is not None and not _IN_COMMIT[0] and 5 <= x.shape[1] <= CFG["seam_hi"]:
         if CFG["sb_first"]:
             mx.async_eval(x)
             COUNTS["sb_first"] += 1
@@ -1802,7 +1804,7 @@ def _ple_stage(self_, input_ids, cache, state_idx):
     if _PLE_DEFER[0] is not None:                      # a deferral its forward never consumed: drop it (that forward took
         _PLE_DEFER[0] = None                           # MTPLX's exact graph path for the rows)
         COUNTS["ple_late_stale"] += 1
-    if _ON[0] and CFG["ple_late"] and not _IN_COMMIT[0] and 5 <= input_ids.shape[1] <= 16:
+    if _ON[0] and CFG["ple_late"] and not _IN_COMMIT[0] and 5 <= input_ids.shape[1] <= CFG["seam_hi"]:
         _PLE_DEFER[0] = (self_, (input_ids, cache, state_idx))
         return None
     return _ORIG["ple_stage"](self_, input_ids, cache, state_idx)

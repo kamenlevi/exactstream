@@ -1,0 +1,21 @@
+SELF-CHECK mbppbank: cells layout == certify98, chain-32 6.92 vs 6.92 -> PASS
+SELF-CHECK mbppbank tree dump: anchors == cells' depth-0 anchors in 100 / 100 windows; a_walk_start == the chain-32 walk's starts in 100 / 100; first pop path_p vs TOPK depth-0 top-1: max |diff| 0.00e+00 over 15641 roots
+  mbpp REAL EAGLE-2-16: 7.487 = x1.136 chain-16 [1.115, 1.157]; S9b proxy 7.452 (real / proxy 1.005); paired at the 2259 chain-32 walk starts x1.103
+  mbpp REAL EAGLE-2-32: 9.031 = x1.371 chain-16 [1.348, 1.394]; S9b proxy 8.979 (real / proxy 1.006); paired at the 2259 chain-32 walk starts x1.345
+  mbpp: chain-16 6.588, chain-32 6.924 (x1.051)
+SELF-CHECK heplus24: cells layout == certify98, chain-32 13.77 vs 13.77 -> PASS
+SELF-CHECK heplus24 tree dump: anchors == cells' depth-0 anchors in 24 / 24 windows; a_walk_start == the chain-32 walk's starts in 24 / 24; first pop path_p vs TOPK depth-0 top-1: max |diff| 0.00e+00 over 6375 roots
+  he REAL EAGLE-2-16: 11.263 = x1.060 chain-16 [1.025, 1.093]; S9b proxy 11.184 (real / proxy 1.007); paired at the 463 chain-32 walk starts x1.043
+  he REAL EAGLE-2-32: 16.263 = x1.531 chain-16 [1.468, 1.601]; S9b proxy 15.977 (real / proxy 1.018); paired at the 463 chain-32 walk starts x1.593
+  he: chain-16 10.625, chain-32 13.769 (x1.296)
+
+VERDICTS (pre-registered, EXACT): NET SAME-COST WIN = real EAGLE-2-16 / chain-16 >= 1.03 x 1.021 (= 1.052) with the CI above 1.021, both sets; 32 ROWS PAY = real EAGLE-2-32 / chain-16 >= R32 (c32 = 1.0: no 32-node overhead given), both sets
+  real EAGLE-2-16 x1.136 / x1.060 -> NET SAME-COST WIN
+  real EAGLE-2-32 x1.371 / x1.531 vs R32 1.625 -> no
+  real EAGLE-2-32 x1.371 / x1.531 vs R32 1.3 -> PAYS
+
+THROUGHPUT vs chain-16 (kept/check / cost; the 16-node tree at Leap's c16 1.006 .. 1.021; 32 rows at R32, c32 1.0)
+  mbpp R32 1.625: chain-16 x1.000, tree-16 x1.113..1.130, chain-32 x0.647, tree-32 x0.843 -> best tree-16
+  mbpp R32 1.3: chain-16 x1.000, tree-16 x1.113..1.130, chain-32 x0.808, tree-32 x1.054 -> best tree-16
+  he R32 1.625: chain-16 x1.000, tree-16 x1.038..1.054, chain-32 x0.797, tree-32 x0.942 -> best tree-16
+  he R32 1.3: chain-16 x1.000, tree-16 x1.038..1.054, chain-32 x0.997, tree-32 x1.177 -> best tree-32

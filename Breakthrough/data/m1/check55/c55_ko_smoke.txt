@@ -1,0 +1,14 @@
+C55 Sun 15 Nov 11:08:38: MLX 0.32.2; slice GGGA (4 layers), 6.7 GB active; SB 4; gdn_body False; K-73r arms False; vocab 248320
+calibration: one flush of one tiny kernel costs 10.6 us thread CPU; its command buffer 2.3 us GPU (p10 2.1) over 301 buffers
+pass X (knock-outs): 3 rounds x 5 arms, order rotated; per check medians, paired deltas per round
+| arm | wall | CPU total | GPU busy | GPU idle | dispatches |
+|---|---|---|---|---|---|
+| A16 | 10.49 | 3.41 | 9.69 | 0.99 | 397 |
+| C32 | 20.61 | 4.89 | 15.33 | 3.13 | 730 |
+| A16cpu | 12.86 | 5.34 | 9.86 | 2.54 | 397 |
+| C32cpu | 20.33 | 6.83 | 15.59 | 4.81 | 730 |
+| C32h1 | 16.76 | 4.76 | 13.81 | 2.86 | 727 |
+  A16cpu - A16: wall +1.88 ms [IQR +1.67, +3.21]; CPU +1.95; GPU busy +0.19
+  C32cpu - C32: wall +1.48 ms [IQR -2.53, +2.03]; CPU +1.91; GPU busy +0.16
+  C32h1 - C32: wall -2.47 ms [IQR -6.32, -1.72]; CPU -0.84; GPU busy -1.52
+done in 4 s; peak 8.2 GB

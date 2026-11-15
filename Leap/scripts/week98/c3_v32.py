@@ -76,6 +76,9 @@ if os.environ.get("V32_GDN32") == "1":                  # build step 2: GDN proj
 if os.environ.get("V32_HC32") == "1":                   # build step 4: the HC read at 32 rows in one pass (hc32.py)
     import hc32
     hc32.install(v32, ref2)
+if os.environ.get("V32_ONE") == "1":                    # CHECK55 step 1: one dispatch per op at 17-32 rows (v32one.py)
+    import v32one
+    v32one.install(v32, ref2)
 say(f"C3 {time.strftime('%a %d %b %H:%M:%S')}: MLX {mx.__version__}; slice {KINDS} (PLE layer {PLE_L}), "
     f"{mx.get_active_memory() / 1e9:.1f} GB active, loaded in {time.time() - t00:.0f} s; ref2 forms on: "
     f"{sorted(k for k, v in ref2.CFG.items() if v is True)}")
@@ -142,6 +145,8 @@ say("T1 forward: one M-row verify (v32) vs <= 16-row verifies of the same rows (
 for M in (32, 17, 24, 31):
     c1 = prefill()
     v32.CNT.update({k: 0 for k in v32.CNT})
+    if "v32one" in sys.modules:
+        sys.modules["v32one"].CNT.update({k: 0 for k in sys.modules["v32one"].CNT})
     lv = verify(c1, P, M)
     cnt = dict(v32.CNT)
     c2 = prefill()
@@ -152,7 +157,8 @@ for M in (32, 17, 24, 31):
     eq, tot, d = cmp(lv, lr)
     allok &= eq == tot
     extra = (f"; v32mr2 {dict(sys.modules['v32mr2'].CNT)}" if "v32mr2" in sys.modules else "") + \
-        (f"; hc32 {dict(sys.modules['hc32'].CNT)}" if "hc32" in sys.modules else "")
+        (f"; hc32 {dict(sys.modules['hc32'].CNT)}" if "hc32" in sys.modules else "") + \
+        (f"; v32one {dict(sys.modules['v32one'].CNT)}" if "v32one" in sys.modules else "")
     say(f"  M {M}: rows bitwise {eq} / {tot} (max |diff| {d:.3g}); v32 wrappers fired {cnt}{extra}")
     del c1, c2
 
@@ -174,6 +180,6 @@ for k in (1, 9, 16, 17, 24, 31):
 rc = {k: v for k, v in ref2.counts().items() if v}
 say(f"ref2 forms that ran (counts): {rc}")
 say(f"C3 verdict: {'ALL BITWISE' if allok else 'NOT BITWISE -> bisect the op first'} (V32_MOE1={os.environ.get('V32_MOE1', '')}, "
-    f"V32_MR2={os.environ.get('V32_MR2', '')}, V32_GDN32={os.environ.get('V32_GDN32', '')}, "
+    f"V32_MR2={os.environ.get('V32_MR2', '')}, V32_GDN32={os.environ.get('V32_GDN32', '')}, V32_ONE={os.environ.get('V32_ONE', '')}, "
     f"REF2_DENSE_NATIVE={os.environ.get('REF2_DENSE_NATIVE', '')}); v32 counts at the end {dict(v32.CNT)}")
 say(f"done in {time.time() - t00:.0f} s; peak {mx.get_peak_memory() / 1e9:.1f} GB")

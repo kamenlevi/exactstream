@@ -41,6 +41,99 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Sun 15 11:46 (`date`) **NewIdeas: SHORT RANKING, exact first (Kamen ~10:4x).** Replaces my 11:46 entry, which ranked
+  lossy first and kept the levers that are now closed.
+  1. **Trees, exact: THE lead.** Tree-16 now (net ~+11-13 % MBPP / +4-5 % HE+, S9c); tree-32 once R32 is ~1.3. The #2
+     branch at a check start is the only exact way to get "the 125B's own pass on the corrected token". It also fits
+     S6: ~90 % of check-start misses sit on near-ties, which a branch covers and no reader can predict. Build split:
+     Leap kernels, Breakthrough metadata, BigMoE the loop; lands ~Thu.
+  2. **CHECK55 (Goal B, equal priority):** R32 to ~1.3 is also the tree's lever (tree-32 x1.371 / 1.531 kept).
+  3. **S5b** (Sandbox98, running): the 2B reading the 125B's wd through gated cross-attention. Keep it as a screen only:
+     near-ties cap any reader.
+  4. **2B audit as a tree-branch proposer:** only if MoonShots' ANE route makes the 1.06 GB pass ~free; else parked.
+  5. **Lossy side track:** close-call delta 1 / delta 2 + the RUNAWAY guard, Monday-night gate.
+  - Closed: training levers (WALKW, ACCSET, margin loss), 1c / data scaling, chain depth, ALLROWS, kNN, a separate
+    1-row bonus pass (trees do it inside the check). DFlash2 as a corrector is parked.
+  - **CORRECTION:** my 03:0x root-tree numbers are VOID: roottree.py misread `rank` (BigMoE). The margin ceilings stand
+    (they use right + m only).
+  - **Queue flags:**
+    - (i) Wednesday's CERTIFY98 capture measures per-guess 98 %, but the exact lead raises kept/32. Add a tree-16
+      kept/32-under-the-walk read-out to the same capture, so it measures what ships.
+    - (ii) Missing CPU screens on BigMoE's TREE dumps (analysis-only, fine during the pause): the tree shape at check
+      starts (root width vs depth, by the head's margin), and trees x close-call, to see whether their gains add on the
+      lossy line.
+    - (iii) Leap's 32-node tree overhead is unpriced, and tree-32's pay line needs it.
+- Sun 15 11:4x: **KAMEN'S ANSWERS** (question box he asked for):
+  - **Exact reference switch: NEXT week**, after Saturday's certification. This week TREE16 uses attention route (b).
+  - **45 GB nights: apps quit (force-quit OK) on both nights, but ONLY AFTER 23:00.**
+    - Tonight's chain shifts ~2 h: a45 23:00 -> ~03:00, tier-0a ~03:00 -> 04:30, lx45cc1 ~04:30 -> 06:15, then
+      Breakthrough's profile (deadline 09:00). Leap and EvalSuite were told to re-arm.
+    - Monday night is unchanged (apps closed from 23:00, runs from Tue 00:30).
+  - **Sandbox98 private GitHub backup: yes** (scripts + results only, scanned for private strings).
+  - NewIdeas: Kamen pressed Esc (~11:37); it runs again and was briefed on today's state.
+  - TREE16 build split approved (Leap L1-L3, Breakthrough B1-B3, BigMoE M1-M4; spec by Mon 10:00; engine arm Thu
+    night).
+- Sun 15 11:5x: **EvalSuite prices re-certifying a new exact reference** (e48b106; estimate, nothing run).
+  - Cost: ~4 h to certify (+1.6-3.3 h if IFX stage 2 runs) plus ~6 h to rebase the pinned runs, i.e. ~10 h of
+    big-test time (one weekday window or two shared nights), plus ~4-5 h of EvalSuite's time.
+  - A Tue-Wed switch redoes tonight's tier-0a (1.5 h). The close-call verdicts stand. Wed's CERTIFY98 capture is
+    unaffected, but the capture and the Thu-Fri engine check must share ONE engine build.
+  - CAUTION: a switch moves every same-scores comparator. REF2-T -> NAX6 moved HE+ by -3.33 pt and flipped a verdict.
+    Quote every "vs exact" with its reference.
+  - Orchestrator's recommendation to Kamen: yes to the bandwidth reference (~45 / ~62 ms vs ~55 / ~76), but NEXT week,
+    after Saturday's certification on NAX6-N.
+    - This week: today's reference, Leap's steps 1-2, and trees exact via route (b) (the ~1-day P·V port).
+    - Tonight's tier-0a stays as booked.
+- Sun 15 11:28: **MTP Head S9c: REAL t30b EAGLE-2 trees confirm it. A 16-node tree is a NET SAME-COST WIN on the
+  125B, exact: +13.6 % (MBPP) / +6.0 % (HE+) kept per check vs chain-16** (BigMoE's real tree dump b198498, every
+  anchor; pre-registered TrainLab 06d09a6 + 48b0e47, result fa3ce76; data/sb98/tree_real125.txt).
+  - Real tree walk: tree-16 x1.136 [1.115, 1.157] / x1.060 [1.025, 1.093]. This is above the net line 1.052 (3 % over
+    Leap's tree overhead +1.3 ms on a 62 ms check). HE+ is narrow.
+  - tree-32 x1.371 / 1.531: it does not pay at R32 1.625; it pays at R32 1.3 (no 32-node overhead priced yet).
+  - Throughput:
+    - R32 1.625: tree-16 is the best everywhere, at x1.113-1.130 (MBPP) / x1.038-1.054 (HE+).
+    - R32 1.3: tree-16 stays the best on MBPP; tree-32 is the best on HE+ (x1.177).
+  - S9b's off-path proxy was accurate: real / proxy is 1.005-1.018, slightly pessimistic.
+  - All checks pass: the anchors, the walk starts, the roots (bitwise vs TOPK), and chain-32 = 6.92 / 13.77.
+- Sun 15 11:4x (orchestrator):
+  - **Leap's revised exact-check estimate:**
+    - under today's reference REF2-T: ~55 ms (16 rows) / ~76 (32);
+    - with a re-certified bandwidth reference: ~45 / ~62. That means HC split-K on more partitions, per-row-key
+      attention and parallel small projections; SD == AR stays bitwise.
+    - Kamen is asked; EvalSuite is pricing the re-certification.
+  - **BigMoE on cold PLE:** the exact-45 loop does NOT prefetch drafted tokens' n-gram rows, so cold 3-grams pay
+    their stage in the critical path.
+    - MTPLX's prefetch_rows_np already does it, bitwise by construction.
+    - Approved, opt-in and default off, on a NEW snapshot so tonight's pinned runs stay byte-identical: (a) a
+      hot-hit / miss receipt in runs.json; (b) R57_NGRAM_PREFETCH=1, as a night arm beside Breakthrough's
+      fresh-token profile.
+- Sun 15 11:2x (orchestrator): **CHECK55 progress on the 12-layer slice, both verified from commits:**
+  - Leap C7 (4817ad2): the one-dispatch 32-row check = 1.430 x A16 (v32's split 1.574), PARTIAL by its line (<= 1.35).
+  - Breakthrough pass S (2757be6): SB_FIRST + PLE_LATE widened to 17-32 rows, bitwise, -2.0 ms per 32-row check
+    (~0.085 x A16). Together the slice's 32-row check is near ~1.35x A16 (from 1.63).
+  - Lead (open): cold PLE n-gram staging costs +5-8 / +8-12 ms per check when the tokens' rows aren't in the page
+    cache.
+    - BigMoE was asked whether the real loop prefetches drafted tokens' n-gram rows.
+    - Breakthrough adds a fresh-token arm to tonight's ~04:15 full-engine profile.
+    - If the loop pays it, prefetch during drafting hides ~5-10 % of a check, exactly.
+- Sun 15 11:1x: **Breakthrough CHECK55 step 0: the exact check is GPU-BOUND, not dispatch / CPU-bound** (Leap's C6 slice,
+  12 layers, exact-45 32-row config, quiet; in-process Metal hook, no xctrace; ~/Breakthrough/docs/CHECK55_PROFILE.md, f425a3b).
+  - Measured: GPU busy 94 % / 91 % of wall at 16 / 32 rows; CPU 0.35 / 0.33, hidden behind it. A16 23.37 ms, C32 38.16
+    (x1.633). C6's "build 0.54 / 0.62" was the forward call's wall time, which includes waiting on the GPU.
+  - Causal checks: +2 ms of CPU moves the wall +0.32 / +0.80 ms; reading the LM head once instead of twice moves it
+    -1.55 ms (GPU -1.60).
+  - The 17-row step, +14.8 ms:
+    - experts' union +4.5 (bytes);
+    - 2 x 16 double reads: projections +3.1, head +1.9;
+    - second-chunk cores +2.8;
+    - a late GPU start: ref2's SB_FIRST / PLE_LATE fire only at 5-16 rows (an exact fix, under test).
+  - The dense side runs 2-10x its weight floor; the experts 1.23-1.27x. Engine-scaled, that predicts ~60 / ~100 ms
+    vs the measured 61-64 / 99-102.
+  - What changes in CHECK55:
+    - step 1's value is GPU time (one weight pass for projections + head first);
+    - step 2 is re-priced to ~-2 ms;
+    - dense-side kernel efficiency at 16 rows becomes the big lever (hc_b + GDNB first);
+    - piece 2 (MoE dense side) does not qualify (5-6 % of GPU).
 - Sun 15 11:00 (orchestrator): S9b verified (tree_eagle125.txt: self-checks pass; EAGLE-2-16 x1.131 [1.109, 1.152] /
   x1.053 [1.018, 1.087]). The tree check is now the exact drafter-side lead.
   - Leap's tree-verify estimate (TREE16, route (b)) is ~+0.4-1.3 ms on ~62 ms, inside the 1.053x break-even.
@@ -395,6 +488,15 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
     - Added Sun 15 10:3x (orchestrator): the delta-2 arm ccx45cc1d2 (amendment 3b, 5d72210; ~1.7 h in both orders)
       runs right after delta 1 the same night, in the weekday big-test window (Tue 00:30 -> 15:00). Both arms carry
       the new RUNAWAY guard (amendment 3a). NewIdeas may reorder when it's back.
+    - Added Sun 15 11:1x (orchestrator): Sunday night after the close-call base (~04:15 Mon): Breakthrough's
+      full-engine check profile (~10 min, ~35 GB; gate + NAX6 / OOO covered). Leap was asked what exact engine A/Bs
+      to book in Monday night's window after the close-call arms (hc_b + GDNB in the 45 preset; a clean C32m / mr2).
+    - Booked Sun 15 11:3x: Leap's exact engine A/Bs, Monday night (Tue 00:30 -> 15:00), after the close-call arms.
+      Exact-45 loop, C 160, quiet ticket, NO-SWAP 45 GB, ~50 min:
+      - E1: 16-row levers (base / +hc_b / +GDNB / passed new levers; tokens + logits == base first);
+      - E2: 32 rows (A16 / C32 split / C32 one-pass, bitwise then G32T timing);
+      - E3: Breakthrough's hook profile on the E2 arms;
+      - E4: C32m clean, only if the MLX-layout weight pass fails.
   - Wed 18 night: BigMoE's CERTIFY98 fresh-set capture (~3-4 h).
   - Thu 19 - Fri 20 nights: the proof runs.
   - To ask Kamen in the morning: close apps for Sunday night from 21:00.

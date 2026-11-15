@@ -1,14 +1,18 @@
-ONE32-TEST Sun 15 Nov 10:59:58: MLX 0.32.2
-  gdn qkv|z (R-83 qz)          N  16384 K  2560: qmm16c2  372 /  372 -> OK
-  gdn out_proj / att o_proj    N   2560 K  6144: qmm16c2  372 /  372 -> OK
-  att q_proj                   N  12288 K  2560: qmm16c2  372 /  372 -> OK
-  shared down                  N   2560 K   640: qmm16c2  372 /  372 -> OK
-  ple key                      N  10240 K  2560: qmm16c2  372 /  372 -> OK
-  ple value                    N   2560 K  2560: qmm16c2  372 /  372 -> OK
-  lm_head                      N 248320 K  2560: qmm16c2  372 /  372 -> OK
-  gdn b|a (R-83 ba)            N     96 K  2560 4-bit: qmvw32 kl8  372 /  372 -> OK, qmv32    0 /  372 -> NO, mlx raw  183 /  372 -> NO
-  att k / v_proj               N    512 K  2560 4-bit: qmvw32 kl8  372 /  372 -> OK, qmv32    0 /  372 -> NO, mlx raw  183 /  372 -> NO
-  indexer qk                   N    640 K  2560 4-bit: qmvw32 kl8  372 /  372 -> OK, qmv32    0 /  372 -> NO, mlx raw  183 /  372 -> NO
-  router (8-bit)               N    512 K  2560 8-bit: qmvw32 kl8  372 /  372 -> OK, qmv32  345 /  372 -> NO, mlx raw  183 /  372 -> NO
-  shared gate|up|gate (K-73)   N   1281 K  2560 4-bit: qmvw32 kl8  372 /  372 -> OK, qmv32    0 /  372 -> NO, mlx raw  183 /  372 -> NO
-done in 1 s; peak 4.2 GB
+ONE32-TEST Sun 15 Nov 11:27:07: MLX 0.32.2
+  gdn qkv|z (R-83 qz)          N  16384 K  2560: qmm16c2  372 /  372 -> OK, qmm16c2a  372 /  372 -> OK, qmm16c2i  372 /  372 -> OK
+  gdn out_proj / att o_proj    N   2560 K  6144: qmm16c2  372 /  372 -> OK, qmm16c2a  372 /  372 -> OK, qmm16c2i  372 /  372 -> OK
+  att q_proj                   N  12288 K  2560: qmm16c2  372 /  372 -> OK, qmm16c2a  372 /  372 -> OK, qmm16c2i  372 /  372 -> OK
+  shared down                  N   2560 K   640: qmm16c2  372 /  372 -> OK, qmm16c2a  372 /  372 -> OK, qmm16c2i  372 /  372 -> OK
+  ple key                      N  10240 K  2560: qmm16c2  372 /  372 -> OK, qmm16c2a  372 /  372 -> OK, qmm16c2i  372 /  372 -> OK
+  ple value                    N   2560 K  2560: qmm16c2  372 /  372 -> OK, qmm16c2a  372 /  372 -> OK, qmm16c2i  372 /  372 -> OK
+  lm_head                      N 248320 K  2560: qmm16c2  372 /  372 -> OK, qmm16c2a  372 /  372 -> OK, qmm16c2i  372 /  372 -> OK
+  gdn b|a (R-83 ba)            N     96 K  2560 4-bit: qmvw32 kl8  372 /  372 -> OK, qmvw32 kl8 vpt32  372 /  372 -> OK, qmv32    0 /  372 -> NO, mlx raw  183 /  372 -> NO
+  att k / v_proj               N    512 K  2560 4-bit: qmvw32 kl8  372 /  372 -> OK, qmvw32 kl8 vpt32  372 /  372 -> OK, qmv32    0 /  372 -> NO, mlx raw  183 /  372 -> NO
+  indexer qk                   N    640 K  2560 4-bit: qmvw32 kl8  372 /  372 -> OK, qmvw32 kl8 vpt32  372 /  372 -> OK, qmv32    0 /  372 -> NO, mlx raw  183 /  372 -> NO
+  router (8-bit)               N    512 K  2560 8-bit: qmvw32 kl8  372 /  372 -> OK, qmvw32 kl8 vpt32  372 /  372 -> OK, qmv32  345 /  372 -> NO, mlx raw  183 /  372 -> NO
+  shared gate|up|gate (K-73)   N   1281 K  2560 4-bit: qmvw32 kl8  372 /  372 -> OK, qmvw32 kl8 vpt32  372 /  372 -> OK, qmv32    0 /  372 -> NO, mlx raw  183 /  372 -> NO
+  8-bit 640 (attention layer)  N    640 K  2560 8-bit: qmvw32 kl8  372 /  372 -> OK, qmvw32 kl8 vpt32  372 /  372 -> OK, qmv32  311 /  372 -> NO, mlx raw  183 /  372 -> NO
+  shared_expert_gate N 1 (4-bit) N      1 K  2560 4-bit: qmvw32 kl8  372 /  372 -> OK, qmvw32 kl8 vpt32  372 /  372 -> OK, qmv32   73 /  372 -> NO, mlx raw  281 /  372 -> NO
+  N 1 (8-bit)                  N      1 K  2560 8-bit: qmvw32 kl8  372 /  372 -> OK, qmvw32 kl8 vpt32  372 /  372 -> OK, qmv32  372 /  372 -> OK, mlx raw  276 /  372 -> NO
+  N 48 (4-bit)                 N     48 K  2560 4-bit: qmvw32 kl8  372 /  372 -> OK, qmvw32 kl8 vpt32  372 /  372 -> OK, qmv32    0 /  372 -> NO, mlx raw  183 /  372 -> NO
+done in 2 s; peak 4.2 GB

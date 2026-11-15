@@ -49,3 +49,63 @@ All numbers below are estimates [est] unless marked measured [M]. The profile (s
   exact kernel with its own bit test vs K-73's chain. Leap and BigMoE would integrate it.
 - **Not the padding-free 17-31-row path.** The cost past 16 rows is the second chunk's launches, not padding, and
   step 1 makes any 17-32-row length one launch anyway.
+
+## REVISED Sun 11:3x, after Breakthrough's step 0 (f425a3b, ~/Breakthrough/docs/CHECK55_PROFILE.md) and C7
+**What changed.**
+- The exact check is GPU-bound: GPU busy 94 % / 91 % of the wall at 16 / 32 rows. CPU (build + encode) is ~0.35 of the
+  wall and hidden beneath the GPU work. +2 ms of CPU moves the wall only +0.3 / +0.8 ms.
+- So removing dispatches saves only their GPU share, ~2 us each: step 2 drops to ~-2 ms.
+- My 10:5x central (~45 / ~60) assumed a CPU-bound check and is withdrawn.
+
+**GPU by class at A16** (12-layer slice; x = vs the class's weight floor at 280 GB/s):
+
+| class | ms | x floor |
+|---|---:|---:|
+| experts | 11.27 | 1.27 |
+| dense projections | 2.81 | 2.1 |
+| HC | 2.61 | 2.3 |
+| head | 1.89 | 1.4 |
+| MoE dense side | 1.04-1.23 | 6-7 |
+| attention core | 0.88 | - |
+| PLE | 0.60 | - |
+| GDN core | 0.55 | - |
+
+**The 17-row step** (+14.8 ms on the slice):
+
+| part | ms |
+|---|---:|
+| experts (union 75 -> 108) | +4.5 |
+| dense weights read twice | +3.1 |
+| head read twice | +1.9 |
+| second-chunk cores | +2.8 |
+| a late GPU start (the seams fired only at <= 16 rows) | +2.7 |
+
+**Order now:**
+1. **32 rows, step 1 complete:**
+   - one-dispatch cores (v32one, C7: 1.574 -> 1.430 x A16);
+   - one weight pass for the projections and the head (qmm16c2a, qmv_wide at 32 vectors; bitwise);
+   - seams to 32 rows (ref2 seam_hi, opt-in; Breakthrough pass S: -2.0 ms).
+   C7b times them. Expected: C32 99-102 -> ~84 ms on the engine; the rest above A16 is the expert union's bytes.
+2. **16-row dense side, exact levers:**
+   - hc_b (built, ~-1 ms); GDNB (built, ~0 in ISO2);
+   - MLX's small-shape kernel (qmv_wide) launched with more threadgroups (per-row bits depend only on k_lanes):
+     -1..-1.5;
+   - qmm16c's low-parallelism N-2560 shapes with per-group terms in parallel and an ordered sum: -1..-1.5, if the
+     compiled arithmetic can be matched;
+   - attention's 12 head chunks as 2 calls, if MLX's fallback stays M-invariant: -1..-1.5, bit test first.
+3. **Step 2,** the dispatch diet: ~-2 ms of GPU.
+
+**Revised central (today's reference, REF2-T):**
+- 16 rows ~55 ms (exact ceiling ~52); 32 rows ~76 ms.
+- The rest is pinned by the reference's own kernel arithmetic: the HC read's split-K partitions (2.3x its floor,
+  ~10 ms of an engine 16-row check) and MLX's small-shape kernels.
+
+**A re-certified reference built for bandwidth** (HC split-K on more partitions, attention by per-row key lists,
+small projections on a parallel kernel; SD == AR stays bitwise) would allow ~45 / ~62. The orchestrator has the
+question with Kamen; EvalSuite is pricing the re-certification. The detailed price is on hold until he answers.
+
+**Engine A/Bs booked:** Monday night (Tue 00:30-15:00, WEEK98 SLOTS):
+- E1: 16-row levers;
+- E2: A16 / C32 split / C32 one-pass with REF2_SEAM_HI=32;
+- E3: Breakthrough's engine profile with its hook;
+- E4: only if needed, a clean DENSE-N + mr2 re-run.

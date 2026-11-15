@@ -364,7 +364,7 @@ def hc_read32b(g, wcat, hyper, pending=None):
                                 grid=(rows * hc * 256, 1, 1), threadgroup=(256, 1, 1),
                                 output_shapes=[(rows, hcd)], output_dtypes=[BF])
         written = hyper
-    cs, NP = s4_partials2(normed.reshape(1, rows, hcd), wcat)
+    cs, NP = (s4_partials2i if S4_FORM[0] == "2i" else s4_partials2)(normed.reshape(1, rows, hcd), wcat)
     N = int(wcat.shape[0])
     assert N == lowrank + hc, (N, lowrank, hc)
     mix, inject = hc32._ACCUM_GATE32(inputs=[cs, k["tab"]], template=[("T", BF), ("N", N), ("NP", NP), ("ROWS", rows),
@@ -375,3 +375,189 @@ def hc_read32b(g, wcat, hyper, pending=None):
                          ("NOUT", rows * width)], grid=(rows * width, 1, 1), threadgroup=(256, 1, 1),
                          output_shapes=[(rows, width)], output_dtypes=[BF])
     return mixed.reshape(*lead, width), written, inject.reshape(*lead, hc)
+
+
+# ---- qmm16c2a: qmm16c for 17-32 rows with ONE weight pass (Breakthrough's step-0 profile: the check is GPU-bound and
+# 2 x 16 reads every dense weight twice, +3.1 ms dense / +1.9 ms head on the 12-layer slice; qmm16c2's two row tiles
+# are separate threadgroups, so it reads them twice too). Here each lane decodes its weight fragment (ct_b) once per
+# 16-value sub-step and runs the MMA for both row tiles: tile 0 (rows fm, fm + 8) and tile 1 (rows 16 + fm, 24 + fm),
+# each with its own A fragment, accumulator, row sums and output rows, so each tile's arithmetic is qmm16c's (KS 1,
+# REF2's call) by construction.
+_SRC2A = r"""
+    constexpr int G = 64;
+    const uint lane = thread_index_in_simdgroup;
+    const uint nt = simdgroup_index_in_threadgroup % NT;
+    const int n0 = (threadgroup_position_in_grid.x * NT + nt) * 32;
+    const short qid = lane >> 2;
+    const short fm = ((qid & 4) | ((lane >> 1) & 3));
+    const short fq = ((qid & 2) | (lane & 1));
+
+    constexpr auto desc = mpp::tensor_ops::matmul2d_descriptor(16, 32, 16, false, true, true,
+        mpp::tensor_ops::matmul2d_descriptor::mode::multiply_accumulate);
+    mpp::tensor_ops::matmul2d<desc, metal::execution_simdgroup> op;
+    auto ct_a = op.template get_left_input_cooperative_tensor<T, T, float>();
+    auto ct_a2 = op.template get_left_input_cooperative_tensor<T, T, float>();
+    auto ct_b = op.template get_right_input_cooperative_tensor<T, T, float>();
+    auto ct_c = op.template get_destination_cooperative_tensor<metal::remove_addrspace_t<decltype(ct_a)>,
+                                                               metal::remove_addrspace_t<decltype(ct_b)>, float>();
+    auto ct_c2 = op.template get_destination_cooperative_tensor<metal::remove_addrspace_t<decltype(ct_a)>,
+                                                                metal::remove_addrspace_t<decltype(ct_b)>, float>();
+    float acc[16], acc2[16];
+    for (short i = 0; i < 16; i++) { acc[i] = 0.0f; acc2[i] = 0.0f; }
+
+    constexpr int KW = K_C / 8, KG = K_C / G;
+    const device uint32_t* wr[4];
+    for (short r = 0; r < 4; r++) wr[r] = w + (size_t)(n0 + (r >> 1) * 16 + fm + (r & 1) * 8) * KW + 2 * fq;
+    const device T* sc_ = scales + (size_t)(n0 + 4 * fq) * KG;
+    const device T* bi_ = biases + (size_t)(n0 + 4 * fq) * KG;
+    const device T* xr0 = x + (size_t)fm * K_C + 16 * fq;
+    const device T* xr1 = x + (size_t)(fm + 8) * K_C + 16 * fq;
+    const device T* xr2 = x + (size_t)(16 + fm) * K_C + 16 * fq;
+    const device T* xr3 = x + (size_t)(24 + fm) * K_C + 16 * fq;
+
+    for (int k0 = 0; k0 < K_C; k0 += G) {
+        const int g = k0 / G;
+        uint32_t wv[4][2];
+        for (short r = 0; r < 4; r++) { wv[r][0] = wr[r][k0 / 8]; wv[r][1] = wr[r][k0 / 8 + 1]; }
+        for (short i = 0; i < 16; i++) { ct_c[i] = 0.0f; ct_c2[i] = 0.0f; }
+        float xs0 = 0.0f, xs1 = 0.0f, xs2 = 0.0f, xs3 = 0.0f;
+        const device T* x0 = xr0 + k0;
+        const device T* x1 = xr1 + k0;
+        const device T* x2 = xr2 + k0;
+        const device T* x3 = xr3 + k0;
+        for (short s = 0; s < 4; s++) {
+            for (short j = 0; j < 4; j++) {
+                const T a0 = x0[4 * s + j], a1 = x1[4 * s + j];
+                const T a2 = x2[4 * s + j], a3 = x3[4 * s + j];
+                ct_a[j] = a0; ct_a[4 + j] = a1;
+                ct_a2[j] = a2; ct_a2[4 + j] = a3;
+                xs0 += static_cast<float>(a0); xs1 += static_cast<float>(a1);
+                xs2 += static_cast<float>(a2); xs3 += static_cast<float>(a3);
+            }
+            for (short r = 0; r < 4; r++) {
+                const uint32_t word = wv[r][s >> 1];
+                const short base = (r >> 1) * 8 + (r & 1) * 4;
+                for (short j = 0; j < 4; j++)
+                    ct_b[base + j] = as_type<T>((ushort)(0x4300u | ((word >> (16 * (s & 1) + 4 * j)) & 0xFu)));
+            }
+            op.run(ct_a, ct_b, ct_c);
+            op.run(ct_a2, ct_b, ct_c2);
+        }
+        xs0 += simd_shuffle_xor(xs0, 1); xs0 += simd_shuffle_xor(xs0, 8);
+        xs1 += simd_shuffle_xor(xs1, 1); xs1 += simd_shuffle_xor(xs1, 8);
+        xs2 += simd_shuffle_xor(xs2, 1); xs2 += simd_shuffle_xor(xs2, 8);
+        xs3 += simd_shuffle_xor(xs3, 1); xs3 += simd_shuffle_xor(xs3, 8);
+        for (short bk = 0; bk < 2; bk++)
+            for (short j = 0; j < 4; j++) {
+                const size_t o = (size_t)(16 * bk + j) * KG + g;
+                const float s_ = static_cast<float>(sc_[o]);
+                const float b_ = static_cast<float>(bi_[o]) - 128.0f * s_;
+                const short i0 = bk * 8 + j, i1 = bk * 8 + 4 + j;
+                acc[i0] = acc[i0] + (s_ * ct_c[i0] + b_ * xs0);
+                acc[i1] = acc[i1] + (s_ * ct_c[i1] + b_ * xs1);
+                acc2[i0] = acc2[i0] + (s_ * ct_c2[i0] + b_ * xs2);
+                acc2[i1] = acc2[i1] + (s_ * ct_c2[i1] + b_ * xs3);
+            }
+    }
+    for (short i = 0; i < 16; i++) {
+        const int m = fm + 8 * ((i & 7) >> 2);
+        const int n = n0 + (i >> 3) * 16 + 4 * fq + (i & 3);
+        y[(size_t)m * N_C + n] = static_cast<T>(acc[i]);
+        y[(size_t)(16 + m) * N_C + n] = static_cast<T>(acc2[i]);
+    }
+"""
+
+
+@lru_cache(None)
+def _k2a():
+    return mx.fast.metal_kernel(name="leap_one32_qmm16c2a", input_names=["x", "w", "scales", "biases"],
+                                output_names=["y"], source=_SRC2A, header=Q16._HDR)
+
+
+def qmm16c2a(x, w, scales, biases, nt=1):
+    """qmm16c (KS 1) for 17-32 rows with one weight pass: both 16-row tiles from each decoded weight fragment"""
+    M, K = x.shape
+    N = w.shape[0]
+    assert 16 < M <= HI and N % (32 * nt) == 0 and K % 64 == 0
+    xp = x if M == HI else mx.concatenate([x, mx.zeros((HI - M, K), x.dtype)], 0)
+    (y,) = _k2a()(inputs=[xp, w, scales, biases], template=[("T", x.dtype), ("K_C", K), ("N_C", N), ("NT", nt)],
+                  grid=(N // 32 * 32, 1, 1), threadgroup=(32 * nt, 1, 1), output_shapes=[(HI, N)],
+                  output_dtypes=[x.dtype])
+    return y[:M]
+
+
+# ---- interleaved two-tile forms (after C7b: qmm16c2a's paired tiles halved the threadgroups and lost 0.22 x A16).
+# qmm16c2 and s4_partials2 put the row tile on the grid's y axis, so all of tile 0's threadgroups run before tile 1's
+# and the second weight read comes from DRAM. Here the row tile is the fastest-varying threadgroup index: the two
+# threadgroups of a column tile are neighbours, run together, and the second read is a cache hit, with qmm16c2's
+# parallelism kept. Only the threadgroup -> (column tile, row tile) mapping changes: bitwise by construction.
+def _src2i():
+    s = Q16._SRC3
+    subs = [("    const int n0 = (threadgroup_position_in_grid.x * NT + nt) * 32;\n",
+             "    const uint mt = threadgroup_position_in_grid.x % 2;          // one32: the 16-row tile (interleaved)\n"
+             "    const int n0 = ((threadgroup_position_in_grid.x / 2) * NT + nt) * 32;\n"),
+            ("const device T* xr0 = x + (size_t)fm * K_C + 16 * fq;",
+             "const device T* xr0 = x + (size_t)(mt * 16 + fm) * K_C + 16 * fq;"),
+            ("const device T* xr1 = x + (size_t)(fm + 8) * K_C + 16 * fq;",
+             "const device T* xr1 = x + (size_t)(mt * 16 + fm + 8) * K_C + 16 * fq;"),
+            ("        y[(size_t)m * N_C + n] = static_cast<T>(acc[i]);",
+             "        y[(size_t)(mt * 16 + m) * N_C + n] = static_cast<T>(acc[i]);")]
+    for old, new in subs:
+        assert s.count(old) == 1, old
+        s = s.replace(old, new)
+    return s
+
+
+@lru_cache(None)
+def _k2i():
+    return mx.fast.metal_kernel(name="leap_one32_qmm16c2i", input_names=["x", "w", "scales", "biases"],
+                                output_names=["y"], source=_src2i(), header=Q16._HDR)
+
+
+def qmm16c2i(x, w, scales, biases, ks=1, nt=1):
+    """qmm16c for 17-32 rows in one dispatch, the two row tiles' threadgroups interleaved (second read from cache)"""
+    M, K = x.shape
+    N = w.shape[0]
+    assert 16 < M <= HI and N % (32 * nt) == 0 and K % (64 * ks) == 0
+    xp = x if M == HI else mx.concatenate([x, mx.zeros((HI - M, K), x.dtype)], 0)
+    (y,) = _k2i()(inputs=[xp, w, scales, biases], template=[("T", x.dtype), ("K_C", K), ("N_C", N), ("KS", ks), ("NT", nt)],
+                  grid=(N // 32 * 32 * ks * 2, 1, 1), threadgroup=(32 * ks * nt, 1, 1), output_shapes=[(HI, N)],
+                  output_dtypes=[x.dtype])
+    return y[:M]
+
+
+def _s4_src2i():
+    import leapk as LK
+    s = LK._S4_SRC
+    subs = [("    const int tg = int(threadgroup_position_in_grid.x);\n",
+             "    const int mt = int(threadgroup_position_in_grid.x) % 2;      // one32: the 16-row tile (interleaved)\n"
+             "    const int tg = int(threadgroup_position_in_grid.x) / 2;\n"),
+            ("    const device T* Ap = x + k0;\n", "    const device T* Ap = x + size_t(mt) * 16 * GK + k0;\n"),
+            ("    device float* Cp = cs + size_t(part) * 16 * GN + c_col;\n",
+             "    device float* Cp = cs + (size_t(part) * 32 + size_t(mt) * 16) * GN + c_col;\n")]
+    for old, new in subs:
+        assert s.count(old) == 1, old
+        s = s.replace(old, new)
+    return s
+
+
+_S42IK = {}
+
+
+def s4_partials2i(a, w, pf=4):
+    """s4_partials2 with the row tiles' threadgroups interleaved"""
+    import leapk as LK
+    N, K = w.shape
+    PS = 4096
+    NP, NT = (K + PS - 1) // PS, (N + 31) // 32
+    key = (N, K, pf)
+    if key not in _S42IK:
+        _S42IK[key] = mx.fast.metal_kernel(
+            name=f"leap_one32_s4x2i_{N}_{K}_{pf}", input_names=["x", "w"], output_names=["cs"], source=_s4_src2i(),
+            header=LK._nax_header() + "\n" + LK.consts(GN=N, GK=K, GPS=PS, GNP=NP, GNT=NT, GPF=pf))
+    (cs,) = _S42IK[key](inputs=[a, w], template=[("T", mx.bfloat16)], grid=(32 * NT * NP * 2, 1, 1),
+                        threadgroup=(32, 1, 1), output_shapes=[(NP, 32, N)], output_dtypes=[mx.float32])
+    return cs, NP
+
+
+S4_FORM = ["2"]                                          # hc_read32b's S4: "2" (tile on y) or "2i" (interleaved)

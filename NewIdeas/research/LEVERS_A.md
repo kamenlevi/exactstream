@@ -4,6 +4,24 @@ NewIdeas, Sun 15 Nov 2026, 01:1x (`date`). It builds on reports/Deep drafting an
 published negative is read as a hypothesis about that paper's setup, not a veto (Kamen 01:0x). Prior-art lines come from
 quick searches: "untested" means not found, not proven new.
 
+## STATE Sun 15 Nov 11:47 (`date`): this supersedes the ranking below (kept for the record)
+Kamen ~10:4x: chase the EXACT drafter, with the check at equal priority; lossy close-call is the side track.
+- **The wall:** kept/32 is lost at depths 0-14 right after a miss. There the 125B itself is unsure, and ~90 % of
+  check-start misses sit on its near-ties (MTP Head S6). No reader predicts those.
+- **Exact lead = TREES** (MTP Head S9c on BigMoE's real t30b trees): tree-16 x1.136 (MBPP) / x1.060 (HE+) kept vs
+  chain-16 at the same rows, net ~+11-13 / +4-5 %. Tree-32 pays once CHECK55 brings R32 to ~1.3. The build lands ~Thu.
+- **Ranking now:** 1 trees; 2 CHECK55; 3 S5b as a screen only; 4 the 2B audit as a tree-branch proposer, only via the
+  ANE; 5 lossy close-call (side track).
+- **Results of tonight's screens:**
+  - S1 DF-TF KILL: strict HE+ 23-30 88.1, TF kept 11.76 vs native 11.46.
+  - 1c KILL as screened; data scaling is closed.
+  - S5 VOID, S5b building.
+  - S4 depth KILL (every init).
+  - ALLROWS and kNN closed.
+  - Training levers (WALKW, ACCSET, margin loss) closed.
+- **Correction:** research/week98/roottree.txt is VOID (the cells' `rank` field is not the head's rank). The margin
+  ceilings (margin_ceilings.txt) stand.
+
 ## What the spec forces (numbers from WEEK98.md and TRIED)
 - **The spec.** >= 98 % per guess to depth 30. Reads <= ~0.5 GB of weights per 32-token block. Compute is hidden or
   trivial, which leaves ~2-4 ms of drafting per block at 400 exact.

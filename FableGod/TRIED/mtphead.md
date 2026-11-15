@@ -163,3 +163,4 @@ Verdicts come from results. Where a line says "pre-registered", that names the t
 - Sun 15 Nov 10:35 S9b EAGLE-2 on the 125B pre-registered (waiting for BigMoE's t30b top-3 dump).
 - Sun 15 Nov 10:58 S9b EAGLE-2 on the 125B (CPU, BigMoE's top-8 dump): EAGLE-2-16 x1.131 / x1.053 vs chain-16 exact -> SAME-COST WIN (central proxy; band 1.056-1.221 / 1.017-1.107; worst x0.91/0.93); EAGLE-2-32 x1.363 / 1.504 -> pays at R32 1.3 only; break-even tree verify 1.131x / 1.053x a 16-row chain. S9's 125B numbers void (rank field = draft's rank in the 125B's top-32).
 - Sun 15 Nov 11:00 S9c pre-registered (real EAGLE-2 trees, waiting for BigMoE's head-only tree dump).
+- Sun 15 Nov 11:28 S9c REAL EAGLE-2 trees (BigMoE b198498, t30b, every anchor; CPU walk): tree-16 x1.136 [1.115,1.157] / x1.060 [1.025,1.093] vs chain-16 exact -> NET SAME-COST WIN (line 1.052 at Leap's c16 1.021); tree-32 x1.371 / 1.531 -> pays at R32 1.3 only; proxy bias 1.005-1.018 (S9b's proxy accurate).

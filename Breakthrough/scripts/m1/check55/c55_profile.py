@@ -50,7 +50,10 @@ SMOKE = len(sys.argv) > 1 and sys.argv[1] == "smoke"
 SBN = int(os.environ.get("C55_SB", "4"))
 ROUNDS = 3 if SMOKE else int(os.environ.get("C55_ROUNDS", "12"))
 KROUNDS = 2 if SMOKE else int(os.environ.get("C55_KROUNDS", "4"))
-K73R = os.environ.get("C55_K73R", "1") == "1"
+SB32 = os.environ.get("C55_SB32") == "1"              # pass S: ref2's SB_FIRST + PLE_LATE seams widened to 17-32 rows
+KO = os.environ.get("C55_KO") == "1" or SB32          # the causal knock-outs (pass X): +CPU spin, LM head as one call
+K73R = os.environ.get("C55_K73R", "1") == "1" and not KO
+SPIN_MS = float(os.environ.get("C55_SPIN_MS", "2.0"))
 GDNB = os.environ.get("C55_GDNB") == "1"
 TAG = os.environ.get("C55_TAG", "c55_" + time.strftime("%H%M") + ("_smoke" if SMOKE else ""))
 OUT = os.path.expanduser("~/Breakthrough/data/m1/check55")
@@ -142,6 +145,63 @@ def _k73r_block(self, x):
 
 
 Q.SparseMoeBlock.__call__ = _k73r_block
+
+XO = {"head1": False, "spin": 0.0, "sb32": False}
+_QMM_V32 = mx.quantized_matmul
+
+
+def _qmm_ko(*a, **k):
+    if XO["head1"] and int(a[1].shape[0]) == VOCAB:      # KO: the LM head as ONE 32-row MLX call (ref2 -> stock MLX above 16
+        return v32._W["qmm"](*a, **k)                    # rows; not exact, timing only): one read of the 358 MB head
+    return _QMM_V32(*a, **k)
+
+
+mx.quantized_matmul = _qmm_ko
+_DEC0 = Q.DecoderLayer.__call__
+
+
+def _dec_spin(self, *a, **k):
+    if XO["spin"] > 0:                                   # KO: extra Python CPU per layer (thread-CPU busy loop)
+        t = time.thread_time()
+        while time.thread_time() - t < XO["spin"]:
+            pass
+    return _DEC0(self, *a, **k)
+
+
+Q.DecoderLayer.__call__ = _dec_spin
+_DEC1 = Q.DecoderLayer.__call__
+
+
+def _dec_sb32(self_, x, *a, **k):
+    """pass S: ref2 _dec_call's seams (b) SB_FIRST and (d) PLE_LATE at 17-32 rows (ref2 itself: 5-16 rows only)"""
+    if (XO["sb32"] and 17 <= int(x.shape[1]) <= 32 and ref2._ON[0] and getattr(self_, "ple", None) is not None
+            and not ref2._IN_COMMIT[0]):
+        if ref2.CFG["sb_first"]:
+            mx.async_eval(x)
+            SBN_CNT[0] += 1
+        if ref2._PLE_DEFER[0] is not None:
+            emb_, args_ = ref2._PLE_DEFER[0]
+            ref2._PLE_DEFER[0] = None
+            ref2._ORIG["ple_stage"](emb_, *args_)
+            SBN_CNT[1] += 1
+    return _DEC1(self_, x, *a, **k)
+
+
+SBN_CNT = [0, 0]
+Q.DecoderLayer.__call__ = _dec_sb32
+_STAGE0 = Q.NGramEmbedding.stage
+
+
+def _stage_sb32(self_, input_ids, cache, state_idx):
+    """pass S: ref2 _ple_stage's deferral at 17-32 rows"""
+    if (XO["sb32"] and 17 <= int(input_ids.shape[1]) <= 32 and ref2._ON[0] and ref2.CFG["ple_late"]
+            and not ref2._IN_COMMIT[0]):
+        ref2._PLE_DEFER[0] = (self_, (input_ids, cache, state_idx))
+        return None
+    return _STAGE0(self_, input_ids, cache, state_idx)
+
+
+Q.NGramEmbedding.stage = _stage_sb32
 
 # ---- attribution machinery (pass K only; inert otherwise)
 CLASSES = ["other", "ple", "hc_read", "hc_write", "gdn_proj", "gdn_core", "att_proj", "att_core", "moe_router",
@@ -406,6 +466,12 @@ def check(cache, pos, n, rec=False):
 ARMS = {"A16": (16, False), "C32": (32, False)}
 if K73R:
     ARMS.update({"A16k": (16, True), "C32k": (32, True)})
+if KO and not SB32:
+    ARMS.update({"A16cpu": (16, False), "C32cpu": (32, False), "C32h1": (32, False)})
+if SB32:
+    ARMS.update({"C32sb": (32, False)})
+XO_ARM = {"A16cpu": dict(spin=1e-3 * SPIN_MS / NL), "C32cpu": dict(spin=1e-3 * SPIN_MS / NL), "C32h1": dict(head1=True),
+          "C32sb": dict(sb32=True)}
 C = {a: prefill() for a in ARMS}
 POS = {a: P for a in ARMS}
 
@@ -415,7 +481,10 @@ def run_arm(a, rec=False):
     BLK["k73"] = k73
     ARMTAG[0] = 32 + list(ARMS).index(a)
     c, p = C[a], POS[a]
+    XO.update(head1=False, spin=0.0, sb32=False)
+    XO.update(XO_ARM.get(a, {}))
     r = check(c, p, n, rec)
+    XO.update(head1=False, spin=0.0, sb32=False)
     if n < 32:                                           # untimed: keep pace (32 tokens per round), outside attribution
         was = ATTR[0]
         ATTR[0] = False
@@ -444,6 +513,24 @@ for i in range(2):                                       # warm-up (and the shar
     for a in ARMS:
         run_arm(a)
 BITS = {}
+if SB32:
+    def logits_sb(a, on):
+        XO["sb32"] = on
+        sn = CS.snapshot_untrimmable_cache_lazy(C[a])
+        with verify_scope():
+            lg = model(mx.array([ids[POS[a]:POS[a] + 32]]), cache=C[a]).astype(mx.float32)
+        mx.eval(lg)
+        CS.rollback_after_verify(C[a], sn, 32)
+        mx.eval(states(C[a]))
+        XO["sb32"] = False
+        return lg
+    c0_ = SBN_CNT[:]
+    l0, l1 = logits_sb("C32", False), logits_sb("C32", True)
+    eq = mx.all(l0 == l1, axis=-1)
+    mx.eval(eq)
+    BITS["C32sb_vs_C32"] = (int(np.array(eq).sum()), int(eq.shape[-1]))
+    say(f"bits: C32sb (SB_FIRST + PLE_LATE at 32 rows) vs C32, rows bitwise {BITS['C32sb_vs_C32']}; seams fired (b, d) "
+        f"{SBN_CNT[0] - c0_[0]}, {SBN_CNT[1] - c0_[1]}")
 if K73R:
     for a in ("A16", "C32"):
         l0, l1 = logits_once(a, False), logits_once(a, True)
@@ -525,6 +612,38 @@ for i, a in enumerate(names):                            # per arm (tag 32 + i),
     for sl in np.nonzero(tp)[0]:
         agg[SLOTNAME.get(int(sl), "?")] = agg.get(SLOTNAME.get(int(sl), "?"), 0) + int(tp[sl])
     KERN_ARM[a] = {k: v / ROUNDS for k, v in agg.items()}   # per timed check
+
+# ---- KO report (pass X): paired per-round deltas against the base arm, then stop (no pass K)
+if KO:
+    m_ = lambda v: 1e3 * v
+    say(f"pass X (knock-outs): {ROUNDS} rounds x {len(names)} arms, order rotated; per check medians, paired deltas per round")
+    say("| arm | wall | CPU total | GPU busy | GPU idle | dispatches |")
+    say("|---|---|---|---|---|---|")
+    for a in names:
+        s_ = ST_T[a]
+        cpu_ = s_["cpu_build"] + s_["cpu_enc_sb"] + s_["cpu_read"] + s_["cpu_commit"]
+        say(f"| {a} | {m_(s_['wall']):.2f} | {m_(cpu_):.2f} | {m_(s_['gpu']):.2f} | {m_(s_['idle']):.2f} | {s_['disp']:.0f} |")
+    KOD = {}
+    for a, b in ((("C32sb", "C32"),) if SB32 else (("A16cpu", "A16"), ("C32cpu", "C32"), ("C32h1", "C32"))):
+        for f in ("wall", "gpu"):
+            d_ = np.array(RAW_T[a][f]) - np.array(RAW_T[b][f])
+            KOD[f"{a}-{b}:{f}"] = (m_(np.median(d_)), m_(np.percentile(d_, 25)), m_(np.percentile(d_, 75)))
+        cpu_a = np.array(RAW_T[a]["cpu_build"]) + np.array(RAW_T[a]["cpu_enc_sb"]) + np.array(RAW_T[a]["cpu_read"])
+        cpu_b = np.array(RAW_T[b]["cpu_build"]) + np.array(RAW_T[b]["cpu_enc_sb"]) + np.array(RAW_T[b]["cpu_read"])
+        d_ = cpu_a - cpu_b
+        KOD[f"{a}-{b}:cpu"] = (m_(np.median(d_)), m_(np.percentile(d_, 25)), m_(np.percentile(d_, 75)))
+        d_ = np.array(RAW_T[a]["gpu_first"]) - np.array(RAW_T[b]["gpu_first"])
+        KOD[f"{a}-{b}:gpu_first"] = (m_(np.median(d_)), m_(np.percentile(d_, 25)), m_(np.percentile(d_, 75)))
+        say(f"  {a} - {b}: GPU first start {KOD[a + '-' + b + ':gpu_first'][0]:+.2f} ms (median {m_(ST_T[a]['gpu_first']):.2f} vs "
+            f"{m_(ST_T[b]['gpu_first']):.2f})")
+        say(f"  {a} - {b}: wall {KOD[a + '-' + b + ':wall'][0]:+.2f} ms [IQR {KOD[a + '-' + b + ':wall'][1]:+.2f}, "
+            f"{KOD[a + '-' + b + ':wall'][2]:+.2f}]; CPU {KOD[a + '-' + b + ':cpu'][0]:+.2f}; GPU busy {KOD[a + '-' + b + ':gpu'][0]:+.2f}")
+    say(f"done in {time.time() - t00:.0f} s; peak {mx.get_peak_memory() / 1e9:.1f} GB")
+    json.dump(dict(tag=TAG, when=time.strftime("%a %d %b %Y %H:%M:%S"), ko=True, sb32=SB32, bits=BITS, sbn_cnt=SBN_CNT, spin_ms=SPIN_MS, rounds=ROUNDS, T=ST_T, T_raw=RAW_T,
+                   deltas=KOD, kernels_T_arm=KERN_ARM, log=LOG), open(os.path.join(OUT, TAG + ".json"), "w"), indent=1, default=str)
+    open(os.path.join(OUT, TAG + ".txt"), "w").write("\n".join(LOG) + "\n")
+    say(f"wrote {OUT}/{TAG}.json / .txt")
+    sys.exit(0)
 
 # ---- pass K
 install_attr()

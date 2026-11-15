@@ -4547,3 +4547,42 @@ Line (EXACT, both sets):
 Result -> action:
 - NET WIN: the exact route. Hand Leap the measured kept gain.
 - Otherwise: report the real numbers and the proxy's bias.
+
+### S9c amendment 1 (Sun 15 Nov 11:09, before the data exists; BigMoE sent the layout)
+- The dump holds EVERY anchor: 32 best-first nodes each, with the first n pops being the best n-node tree. So the real
+  tree WALK is computed directly and judged. The paired-at-chain-walk-starts ratio is reported beside it.
+- Budget: an N-row check = N - 1 drafted nodes (chain-N's convention). accepted = max{d + 1 : on_true, node < N - 1},
+  else 0; kept = accepted + 1.
+- Exact mode only. The dump's on_true is the exact y match.
+- Checks:
+  - the dump's anchors = the cells' depth-0 anchors per window;
+  - a_walk_start = the chain-32 walk's starts;
+  - each root's first pop path_p = TOPK's depth-0 top-1 p.
+
+## WEEK98 S9c RESULT (Sun 15 Nov 11:28): REAL t30b EAGLE-2-16 = NET SAME-COST WIN on the 125B (exact): x1.136 / x1.060 kept vs chain-16
+Data: BigMoE b198498, tree_t30b_{heplus24,mbppbank}.npz: real best-first EAGLE-2 trees of t30b at every anchor (6,375 /
+15,641 x 32 nodes). Script sb98/tree_real125.py (CPU, 5 s). Outputs: data/sb98/tree_real125.{txt,json}.
+Self-checks, all PASS:
+- cells layout = certify98; chain-32 = 6.92 / 13.77;
+- the dump's anchors = the cells' depth-0 anchors in 100 / 100 and 24 / 24 windows;
+- a_walk_start = the chain-32 walk's starts in every window;
+- each root's first-pop path_p = TOPK's depth-0 top-1 (max |diff| 0);
+- the S9b proxy recomputed here equals S9b (7.452 / 11.184 at 16; 8.979 / 15.977 at 32).
+Real tree WALK, exact (kept/check vs chain-16, MBPP / HE+):
+- EAGLE-2-16: 7.487 / 11.263 = x1.136 [1.115, 1.157] / x1.060 [1.025, 1.093].
+  - By the line (>= 1.052, CI above 1.021): NET SAME-COST WIN on both sets. HE+ is narrow (CI low end 1.025).
+- EAGLE-2-32: 9.031 / 16.263 = x1.371 / x1.531. It does not pay at R32 1.625; it PAYS at R32 1.3 (c32 1.0, no 32-node
+  overhead given yet).
+- Proxy bias (real / S9b proxy): 1.005 / 1.007 at 16 rows and 1.006 / 1.018 at 32. The off-path proxy was accurate and
+  slightly pessimistic, so S9b's band was conservative.
+- Paired at the chain-32 walk's starts (2,259 / 463): x1.103 / 1.043 at 16 and x1.345 / 1.593 at 32. These agree with
+  BigMoE's preview.
+Throughput vs chain-16 (the 16-node tree at Leap's +0.4..1.3 ms = c16 1.006..1.021):
+- R32 1.625: tree-16 is the best on both sets, at x1.113..1.130 (MBPP) / x1.038..1.054 (HE+).
+- R32 1.3: tree-16 is the best on MBPP (x1.113..1.130; tree-32 x1.054). tree-32 is the best on HE+ (x1.177;
+  tree-16 x1.038..1.054).
+Action (as pre-registered): the exact route. Hand Leap the measured kept gain: +13.6 % (MBPP) / +6.0 % (HE+) per check
+at 16 nodes, and x1.371 / x1.531 at 32.
+Caveats:
+- Teacher-forced along the true path. Real head outputs elsewhere (BigMoE: TF32 / bf16 noise at near-ties).
+- Engine pricing: Leap's GDN-fork tree verify. The 32-node tree overhead is not priced yet.
