@@ -1,0 +1,17 @@
+SELF-CHECK table == core.chain_table on mbpp_100.npz: PASS
+s30 mbpp: exact kept/32 4.3190, walk-strict 0-14 75.58 %; close-call: d0.5 4.786 (29.9 changed/1K, strict 76.89 %); d1 5.243 (52.4 changed/1K, strict 79.10 %); d2 6.252 (93.1 changed/1K, strict 82.31 %)
+SELF-CHECK table == core.chain_table on humaneval_HumanEval_1.npz: PASS
+s30 he: exact kept/32 6.2390, walk-strict 0-14 84.60 %; close-call: d0.5 6.648 (13.1 changed/1K, strict 85.31 %); d1 7.146 (26.8 changed/1K, strict 85.85 %); d2 7.903 (45.6 changed/1K, strict 86.82 %)
+mhx_cf mbpp: exact kept/32 4.3918, walk-strict 0-14 76.20 %; close-call: d0.5 4.865 (28.8 changed/1K, strict 77.78 %); d1 5.348 (54.3 changed/1K, strict 79.32 %); d2 6.263 (91.5 changed/1K, strict 82.14 %)
+mhx_cf he: exact kept/32 6.1998, walk-strict 0-14 85.23 %; close-call: d0.5 6.687 (14.7 changed/1K, strict 85.81 %); d1 7.192 (28.3 changed/1K, strict 86.43 %); d2 7.887 (45.1 changed/1K, strict 87.39 %)
+
+pairs vs the control s30 (kept/32 diff [window bootstrap 95 % CI], sign test p over windows):
+  mhx_cf mbpp delta 0: 4.319 -> 4.392 (+0.073, +1.7 %) [-0.012, +0.161] p 1 (23+/23-); changed/1K 0.0 -> 0.0
+  mhx_cf mbpp delta 0.5: 4.786 -> 4.865 (+0.079, +1.7 %) [-0.023, +0.179] p 0.755 (22+/19-); changed/1K 29.9 -> 28.8
+  mhx_cf mbpp delta 1: 5.243 -> 5.348 (+0.105, +2.0 %) [-0.018, +0.230] p 0.766 (24+/21-); changed/1K 52.4 -> 54.3
+  mhx_cf mbpp delta 2: 6.252 -> 6.263 (+0.010, +0.2 %) [-0.149, +0.166] p 0.878 (20+/22-); changed/1K 93.1 -> 91.5
+  mhx_cf he delta 0: 6.239 -> 6.200 (-0.039, -0.6 %) [-0.199, +0.097] p 1 (12+/11-); changed/1K 0.0 -> 0.0
+  mhx_cf he delta 0.5: 6.648 -> 6.687 (+0.039, +0.6 %) [-0.117, +0.187] p 0.442 (16+/11-); changed/1K 13.1 -> 14.7
+  mhx_cf he delta 1: 7.146 -> 7.192 (+0.045, +0.6 %) [-0.153, +0.221] p 0.701 (15+/12-); changed/1K 26.8 -> 28.3
+  mhx_cf he delta 2: 7.903 -> 7.887 (-0.016, -0.2 %) [-0.234, +0.194] p 0.541 (10+/14-); changed/1K 45.6 -> 45.1
+VERDICT mhx_cf (delta-1 walk vs s30): NO EFFECT: MBPP +0.105 (p 0.766), HE +0.045; exact kept/32 MBPP +0.073, HE -0.039

@@ -41,6 +41,33 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Sun 15 09:0x (orchestrator): S7 ACCSET verified (TrainLab data/sb98/accset_RESULT.txt; confirm NO EFFECT, MBPP +0.105
+  kept/32, p 0.77).
+  - Next on the lossy road: **MoonShots J(CC)**, a 2B end-to-end quality pre-screen of close-call. pass@1 on
+    HumanEval+ / MBPP tests, exact vs delta 1 vs delta 2, paired, plus changed tokens per 1K by span type.
+  - If delta 2 holds on the 2B (a harsh proxy: more near-ties than the 125B), EvalSuite can add a delta 2 arm to
+    Monday's gate. delta 2 is worth +32 % / +46 % kept vs +22 / +23 % at delta 1.
+- Sun 15 09:00: **MTP Head S7 ACCSET = KILL at the confirm: training the head for the close-call accept set adds
+  nothing measurable** (Sandbox98; pre-registered TrainLab af0ffee, result 153899d; data/sb98/accset_RESULT.txt).
+  - Lever: per depth, KL + 1 x (-log of the head's mass in the target's delta set), optionally keeping rows alive while
+    the head's #1 is in the set.
+  - Screen (400 steps vs n1, kept/32 on the delta-1 walk):
+    - cs1 (delta 1 + close-call survival): PROMISING, MBPP +0.115 (p 0.023). But its exact kept/32 rose +0.075 too.
+    - cs1k (the loss alone): NO EFFECT, MBPP +0.017.
+    - cs2 (delta 2): NO EFFECT, MBPP +0.110 (p 0.060).
+  - Confirm (cs1 at s30's recipe, 1,889 steps) vs s30, delta-1 walk: MBPP 5.243 -> 5.348 (+2.0 %, p 0.77, CI incl. 0);
+    HE +0.6 %; exact +0.073 / -0.039. Changed tokens per 1K: 52.4 -> 54.3 / 26.8 -> 28.3.
+  - So the lossy gain belongs to the rule itself, and the exact-trained head is the right one to measure it with. On the
+    sandbox the rule at delta 1 lifts s30 by +21 % (MBPP) / +15 % (HE), vs Breakthrough's +23 % / +22 % on the 125B.
+  - Not tested: LAM other than 1, an argmax-margin loss, the 125B's head.
+- Sun 15 08:2x: **Sandbox98 QAT follow-up MIX (4/8-bit by sensitivity) = BETWEEN** (c5b1ea1; pre-registered d7e11e2):
+  fc + k_proj + o_proj at 8-bit, the rest QAT 4-bit g32; body 44 MB (~54 MB per step with the 8K context list).
+  - kept/32 vs the 8-bit body, MBPP-50 / HE-30: +1.42 / -1.79 % (list +1.39 / -1.92 %); plain QAT g32 -2.80 / -2.25 %.
+    MBPP passes, HE-30 misses the 1 % line by 0.8-0.9. The second halves flip (MBPP -0.90, HE +1.74 %): averaged over
+    both halves MIX sits within ~0.3 % of the bar on both sets.
+  - Sensitivity pass on s30: o_proj alone at 4-bit costs -2.77 % (7 % of the weights), down_proj -1.50, fc -0.97,
+    k_proj -0.91, the rest -0.2..-0.8.
+  - Next: LSQ (learned group scales, 38 MB) is running, then FLOOR.
 - Sun 15 08:1x (orchestrator): S6 CSM verified from its files. In flight:
   - **MTP Head: ACCEPT-SET training** (its own R-61N follow-up from 11-01, never run; non-exact, FAST track).
     - The head is trained so its #1 lands in the close-call accept set at delta 1 (2 optional).

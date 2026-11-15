@@ -4203,3 +4203,82 @@ orchestrator's queue and was not run. The exploratory cut lowers it further:
   spans, not information missing at check starts.
 - Close calls (m < 2 nats) hold ~90 % of the check-start misses, so lossy close-call acceptance targets them directly.
 - Exact options stay as worded: the 125B's own pass on the bonus token, or more rows per check.
+
+## WEEK98 S7 ACCSET: accept-set training for close-call acceptance (pre-registered Sun 15 Nov 08:12)
+Ask: the orchestrator, 08:1x. FAST track, non-exact. It follows up R-61N (11-01), which was never run. Why: S6 CSM puts
+~90 % of check-start misses on the 125B's close calls, and Breakthrough's delta sweep used a head trained for exact.
+Lever (sb98/levers/accset_base.py, arm files accset1 / accset1k / accset2):
+- Per depth, loss = Sandbox98's KL_top (unchanged) + LAM x the row mean of -log sum_{t in A} p_d(t).
+- A = {t in the target's stored top-32 : lp_top1 - lp_t <= delta}. LAM = 1.
+- SURV: a training row stays in the chain while the head's #1 equals the true token or lies in A, so training follows
+  the close-call walk. Without SURV, rows leave at the first exact miss, as now.
+- Mechanism: core._KLG['vg'] is wrapped once, as levers/allrows.py does. Sandbox98's code is unmodified.
+Arms: 400 steps from native on dn_n1's recipe (base files, seed 1114, depth 30, fresh Adam, 400-step cosine; same
+slices and order):
+- cs1: delta 1, SURV.
+- cs1k: delta 1, exact survival. It isolates the loss term.
+- cs2: delta 2, SURV (the optional delta).
+- Control: mhc2a_n1 (= dn_n1 exactly). Reference: s30.
+Read-out (sb98/cc_readout.py): MBPP-50 + HE-30, the teacher-forced chain at depth 31 as core.chain_table builds it.
+- Self-check: its table must equal core.chain_table cell for cell on each set's first window. n1's exact kept/32 must
+  equal evalx's (4.0764 / 5.7914).
+- Walks: exact, and close-call at delta 0.5 / 1 / 2. A wrong cell is accepted when the target's log-prob of the head's
+  #1 is within delta of its top-1, from the stored top-32. This is a teacher-forced upper bound, as in Breakthrough's
+  closecall_walk.py.
+- Per walk: kept/32, changed tokens per 1K kept, walk-strict 0-14.
+- Pairs (arm - control): a window bootstrap CI and a sign test over windows.
+Screen line (cs1 and cs1k on the delta-1 walk; cs2 on the delta-2 walk):
+- PROMISING: MBPP-50 kept/32 >= +0.10 vs n1 with sign p < 0.05, and HE-30 not below n1.
+- HURTS: MBPP-50 <= -0.10 with p < 0.05.
+- NO EFFECT: otherwise.
+- Beside every lift, not judged: the exact kept/32 and the changed-token rate.
+Result -> action:
+- cs1 or cs1k PROMISING: the confirm runs on its own. The arm with the larger MBPP delta-1 lift trains at the full
+  budget from native (s30's recipe: 1,889 steps, one arm, ~15 min); the control is s30 (deterministic).
+  - Confirm line: delta-1 close-call kept/32 vs s30 >= +0.10 on MBPP-50 with p < 0.05, and HE-30 not below.
+  - PASS: report a lossy-track drafter lever (its quality gate is EvalSuite's real-decoding code-only gate).
+  - Otherwise: report the confirm's numbers as BETWEEN or KILL.
+- Neither PROMISING: stop and report NO EFFECT or HURTS. A head trained for exact is as good under the rule at 400
+  steps; no confirm.
+- cs2 PROMISING alone: report it; no automatic confirm (delta 2 is not gated).
+Guards and disk:
+- run_paused.sh: share lock MEM 5 GB (measured 4.1 GB for two arms); training runs as cs1 + cs1k, then cs2 alone.
+  Pause in quiet windows; kill on NO-SWAP < 6 GB or swap +2 GB.
+- The read-out caps MLX (limit_memory 4.5, clear_cache per window).
+- Scratch tag mhx: the arms reuse the WALKW / CARRY scratch files (mhx_ww / mw / a1, renamed). Nothing is added or
+  deleted.
+
+## WEEK98 S7 ACCSET RESULT (Sun 15 Nov 09:00): screen PROMISING (cs1), confirm vs s30 = KILL (no consistent lift)
+Runs: sb98/accset.sh, 08:15-08:59 under share locks, with no pauses and no guard events. Outputs in data/sb98:
+accset_runner.log, accset_RESULT.txt, accset_read.log / accset_screen.json, accset_conf_read.log / accset_confirm.json,
+and the three train logs.
+Self-checks: the read-out's table equals core.chain_table on each set's first window (PASS). n1's exact kept/32 equals
+evalx's (4.0764 / 5.7914).
+Screen, 400 steps vs n1, MBPP-50 / HE-30 kept/32:
+- cs1 (delta 1, SURV): PROMISING. Delta-1 walk: MBPP 4.890 -> 5.005 (+0.115, CI +0.028..+0.202, p 0.023); HE
+  6.571 -> 6.739 (+0.168).
+  - Its EXACT kept/32 rose almost as much: +0.075 on MBPP (p 0.003), +0.069 on HE. At 400 steps the lift is mostly a
+    general training effect of the close-call survival (more rows train at depth), not a close-call-specific one.
+- cs1k (delta 1, exact survival): NO EFFECT. Delta-1 walk MBPP +0.017 (p 0.45), HE +0.094; exact +0.044 / +0.073.
+  The loss term alone does nothing measurable.
+- cs2 (delta 2, SURV): NO EFFECT by the line. Delta-2 walk MBPP +0.110 (p 0.060), HE +0.178; exact +0.068 / +0.043.
+- Reference s30 vs n1, delta-1 walk: +0.353 / +0.576. The full budget is worth ~3x any lever here.
+Confirm (cs1's lever at s30's recipe, 1,889 steps from native, one arm, 1,360 s) vs s30:
+- Delta-1 walk: MBPP 5.243 -> 5.348 (+0.105, +2.0 %, CI -0.018..+0.230, p 0.77, 24+/21-); HE 7.146 -> 7.192 (+0.045,
+  +0.6 %, CI -0.153..+0.221).
+- Exact: MBPP 4.319 -> 4.392 (+0.073, p 1.0, 23+/23-); HE 6.239 -> 6.200 (-0.039).
+- Delta 2: MBPP +0.010, HE -0.016. Delta 0.5: +0.079 / +0.039.
+- Changed tokens per 1K kept at delta 1: MBPP 52.4 -> 54.3, HE 26.8 -> 28.3.
+- By the pre-registered line this is not a PASS: the MBPP lift has p 0.77 and both CIs include 0. Verdict: KILL. A head
+  trained for the accept set keeps no more under the close-call walk than s30, which was trained for exact.
+- The part specific to the rule, (delta-1 lift) - (exact lift), is +0.03 (MBPP) and +0.08 (HE) kept/32. It comes with
+  +1.5 to +1.9 changed tokens per 1K.
+Side readings:
+- On the sandbox, the close-call rule itself at delta 1 lifts s30's kept/32 by +21.4 % (MBPP, 4.319 -> 5.243) and
+  +14.5 % (HE, 6.239 -> 7.146), at 52 / 27 changed per 1K kept. Breakthrough's 125B numbers are +23.1 % / +21.8 %.
+- Better heads gain more from the rule: +0.924 kept/32 for s30 vs +0.814 for n1 (MBPP, delta 1).
+Action: report to the orchestrator.
+- The lossy gain is the rule's, measured with the exact-trained head (Breakthrough's sweep stands). Training the head
+  for the rule adds nothing measurable.
+- Not tested: LAM other than 1, a loss aimed at the argmax (a margin between the best in-set and best out-of-set
+  logit) instead of set mass, and the 125B's head.
