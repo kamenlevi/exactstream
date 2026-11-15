@@ -4586,3 +4586,216 @@ at 16 nodes, and x1.371 / x1.531 at 32.
 Caveats:
 - Teacher-forced along the true path. Real head outputs elsewhere (BigMoE: TF32 / bf16 noise at near-ties).
 - Engine pricing: Leap's GDN-fork tree verify. The 32-node tree overhead is not priced yet.
+
+## WEEK98 K98: how big must an exact tree be for coverage >= 98 % in every band to depth 30? (pre-registered Sun 15 Nov 21:19)
+Ask: the orchestrator, 21:2x (Kamen: Saturday is non-negotiable). CPU only, a <= 15-min screen, <= 4 GB, one process,
+under a share lock. NO-SWAP stays >= 5 GB.
+Definitions:
+- K = rows of the check = K - 1 drafted nodes (tree-16 = S9c's 15 nodes).
+- Tree: best-first EAGLE-2 on t30b by path probability, top-8 children per node.
+  - K <= 32: REAL (BigMoE's tree dump b198498, its first K - 1 pops).
+  - K >= 48: S9b's proxy, marked PROXY. On-path children are exact from TOPK; off-path children take the true path's
+    top-8 at the same depth. It was validated at K 16 / 32 (real / proxy kept 1.005-1.018). The gamma 0.5 / 2 band is
+    reported.
+  - The proxy is also run at K 16 / 32, to give its per-band error against the real trees.
+- Walk: the tree's own walk (certify98's kept_walk rule, R0 = 1).
+- Coverage at depth j (walk-strict): among the walk's checks whose true path is in the tree through depth j - 1 and
+  has a target at j, the share whose depth-j true token is in the tree.
+  - Bands: 0, 1-2, 3-6, 7-14, 15-22, 23-30. 95 % CI by window bootstrap (2,000).
+  - Top-8 ceiling per band: the share of reached positions with y in the head's top-8. No top-8 tree can exceed it.
+- Read-outs per K (16, 32, 48, 64, 96, 128) and set (MBPP bank 100, HE+ 24): band coverage with CIs, kept/check, and
+  the share of selected nodes that are proxied.
+Line (EvalSuite's amendment-7 form): K98 = the smallest K where every band's coverage is >= 98 % with the 95 % LB
+>= 97 %, on both sets.
+Cross-check: K 16 depth 0 should be about 98.6 (HE+) / 97.8 (MBPP), the orchestrator's numbers.
+Result -> action:
+- K98 among the real K (<= 32): send K; no new dump is needed.
+- K98 only among the proxied K: send K plus a head-only dump spec for Wednesday's capture (K - 1 nodes at every anchor,
+  top-8 children or more if a ceiling binds, the tree_t30b fields).
+- No K <= 128 reaches it: report the failing bands, their ceilings, whether the top-8 cap or the budget binds, and the K
+  trend.
+
+## WEEK98 K98 RESULT (Sun 15 Nov 21:22): no exact tree up to K 128 (or beam K 249) holds 98 % per band to 30; the head, not the tree, binds
+Script sb98/tree_k98.py (CPU, ~1 min, share lock). Outputs: data/sb98/tree_k98.{txt,json}.
+Self-checks: the layout and chain-32 PASS. Cross-check: K 16 real depth 0 = 97.8 (MBPP) / 98.6 (HE+), which equals the
+orchestrator's numbers.
+Coverage per band (0 | 1-2 | 3-6 | 7-14 | 15-22 | 23-30), with the top-8 ceiling c8:
+- MBPP:
+  - K 16 real: 97.8 | 92.1 | 86.1 | 80.9 | (depth 15+ is unreachable with 15 nodes).
+  - K 32 real: 98.6 | 94.3 | 89.2 | 83.9 | 84.9 | 84.2.
+  - K 64 proxy: 99.3 | 96.3 | 90.9 | 86.0 | 85.8 | 84.5.
+  - K 128 proxy: 99.6 | 97.4 | 92.7 | 87.3 | 87.6 | 87.5. Its optimistic band (gamma 2) is 99.8 | 98.5 | 95.6 | 89.5 |
+    88.8 | 85.0.
+  - c8: 97.8-99.9 in every band.
+- HE+:
+  - K 16 real: 98.6 | 96.4 | 93.7 | 95.6.
+  - K 32 real: 98.5 | 96.6 | 93.7 | 95.2 | 96.2 | 96.9.
+  - K 128 proxy: 99.1 | 98.6 | 96.0 | 95.6 | 97.3 | 97.7.
+  - c8: 98.5-100.
+- Proxy check at K 16 / 32 (real vs proxy, per band): within about 1.7 pt. K >= 48 rests on proxied nodes (55-89 % of
+  the selected nodes are proxied).
+- Pre-registered verdict: K98 = none <= 128. Every K fails bands 1-30 on MBPP and bands 3-30 on HE+ (HE+ 0 and 1-2 pass
+  only at some K).
+EXPLORATORY (added after the run): per-depth BEAM trees (b nodes per depth, K = 1 + 31 b, proxy) do no better.
+- b 4 (K 125): MBPP 99.1 | 93.6 | 90.0 | 87.4 | 88.4 | 88.6; HE+ 98.9 | 96.2 | 94.4 | 96.0 | 97.5 | 97.8.
+- b 8 (K 249): MBPP 99.6 | 95.8 | 91.3 | 88.3 | 89.4 | 88.8; HE+ 98.8 | 97.8 | 95.7 | 96.0 | 97.4 | 98.0.
+Reading:
+- The top-8 ceiling (98-100 %) does NOT bind. The head's ranking does.
+- Once the true path has taken a non-#1 step, it ranks below the main paths. From then on it gets #1 continuations only,
+  so deep coverage tends to the head's per-position #1 accuracy (MBPP ~87-89 %, HE+ ~96-97 %).
+- Holding 98 % at every depth by tree width would need every path with a few non-#1 steps kept alive: on the order of
+  C(31, m) (k - 1)^m nodes, ~1e5 for m 3 and k 4.
+- So 98 % at every depth to 30, exact, needs the head's own mid / deep accuracy near 98 %, i.e. the drift and state fixes
+  (e.g. MoonShots' audits: HE+ 23-30 89.65 -> 94.32). A tree buys bands 0-2 and the kept gain (S9c), not 98 % per band.
+- No new dump is needed for this verdict: even the optimistic proxy at K 128 is far below 98 on MBPP. If HE+'s deep
+  bands should be pinned down for real, the spec is a head-only best-first dump with 127 nodes at every anchor, top-8
+  children, tree_t30b's fields.
+
+## WEEK98 D98 DRIFT BRIEF for NewIdeas' 4-day plan (Sun 15 Nov 21:27; desk only, orchestrator 21:2x)
+Record:
+- t30b's recipe (~/datasets/deepdraft/ckpt/dd_t30b.json; BigMoE ttt30b/run.log):
+  - TTT rollout depth 30, accept-until-fail, wdecay 0.97.
+  - 4,206 steps x 192 rows: one pass over code + MBPP (split ttt30b/split.json, pass seed 1113), continued from
+    b5 / t30a.
+  - Adam lr 1e-5: a 20-step warm-up, then cosine.
+  - ~5 s/step at a 15.6 GB peak, so ~5.8 h per pass.
+  - Loss 0.358 (first 500 steps) -> 0.230 (middle) -> 0.195 / 0.201 (last 1,000): flat at the schedule's end.
+- True-state gap per band. Oracle = the stand-in replaced by the 125B's true wd at every depth (BigMoE REPLACE).
+  - MBPP 100, t30b vs oracle:
+    - band 0: 94.0 vs 94.0;
+    - 1-2: 89.1 vs 93.9; 3-6: 83.5 vs 93.8; 7-10: 79.6 vs 93.8; 11-14: 77.1 vs 93.7;
+    - 15-22: 74.4 vs 93.8; 23-30: 72.1 vs 93.6;
+    - kept 6.92 vs 12.76.
+  - HE+ 24 (runtime path): 23-30 89.65 vs 97.76; the oracle is flat (97.95 at depth 0); kept 13.77 vs 20.90.
+  - A ridge map from the 125B's true h recovers most of it (MBPP 23-30 91.2; HE+ tap45 96.4). The information is in
+    the 125B's state at the drafted row.
+- Runtime re-anchoring (audits; MoonShots / BigMoE):
+  - 2B audit: HE+ 23-30 89.65 -> 94.32.
+  - Decode-walk kept/32, MBPP: 6.879 -> 7.459 with the 2B (+8.4 %), 7.702 with the 4B (+12.0 %).
+- Sandbox drift levers (2B + s30 head; MBPP-50 23-30, kept/32):
+  - BUDGET, n1 (400 steps) -> s30 (1,889): 48.4 -> 55.5 (+7.1 pt); kept +6.0 % (MBPP) / +7.7 % (HE). This is the
+    only clearly positive training lever.
+  - State supervision toward the true state:
+    - headfeat (head output): -1.5 pt.
+    - carryac (carry only, LAM 0.5): +0.7 pt, NS.
+    - tapmlp (true tap-12 residual MLP): +0.6 / +0.8 pt, under its +2 line.
+  - Extra chain depth (S4): KILL, -2.5 / -7.9 pt.
+  - No effect on kept/32: the carry adapter (-1.0), allrows, walk weighting, margin weighting, accept-set, argmax margin.
+  - Caveat: all except s30 and the S7 confirm were 400-step screens. s30's budget effect means they can under-read
+    levers that need training time.
+Ranked levers for this week:
+- (A) t30c: a second t30b pass with a fresh cosine, ideally more and fresh HE-like code. This is the only training lever
+  with a positive record, and t30b's loss is flat at its schedule's end.
+  - Sandbox pre-screen first (s30 + a second pass vs s30): ~40 min GPU, <= 5 GB, by day.
+  - Then ~6 h of 125B night GPU (15.6 GB) on BigMoE's trainer, plus a ~10 min read-out.
+- (B) Full-budget versions of the state levers (carryac / tapmlp). They were judged at 400 steps.
+  - Sandbox arm ~20-25 min each.
+  - A 125B pass only if the sandbox shows >= +2 pt at 23-30.
+- (C) Audits: the best measured drift fix, but runtime, not drafter training (MoonShots / BigMoE).
+- Ceiling note:
+  - A perfect stand-in gives 97.8 % flat on HE+, just under 98.
+  - MBPP's oracle is 93.6, i.e. knowledge-limited.
+  - Trees on top of a restored state are the path past 98 on HE+.
+A candidate before Wednesday night's capture needs:
+- a frozen checkpoint, recipe and commit, named in a CERTIFY98 amendment, by Wednesday ~18:00;
+- dev read-outs on the runtime path: dd_taps evalrep (~2-3 min a set, ~10 GB) for per-band, walk-strict and kept vs
+  t30b, plus its TOPK / TREE dumps (~5-10 min each) and the S9c walk (5 s) for tree-16 kept;
+- a pre-registered dev margin, e.g. HE+ bands 3-30 >= t30b + 1 pt with the CI clear, and no band worse.
+A 125B training pass runs only at night as the one large job: Monday or Tuesday night.
+
+## WEEK98 S10 PASS2: sandbox pre-screen of a second training pass (t30c's analog) (pre-registered Sun 15 Nov 21:39; runs Monday by day after the orchestrator's OK)
+Ask: NewIdeas PLAN4D item 4 (2d196fb), pending the orchestrator. t30c = t30b plus a pass over ~795 files it never
+saw (~5,740 steps = 1.365x t30b's 4,206; ~8 h at 15.6 GB). This screen decides whether t30c gets Tuesday night.
+Arm p2f (the t30c analog): s30 plus ONE pass of fresh data.
+- Data: Sandbox98's pool2 = pool 120 + mc2 500, none in s30's base 380 or in the MBPP / HE read-out sets.
+- Budget: 2,570 steps (1.365 x s30's 1,889), 96 rows, depth 30.
+- Optimizer: fresh Adam (s30 kept no optimizer state), lr 1e-5, 20-step warm-up, cosine to 1e-6. Seed 1116.
+- One arm, ~3.4 GB measured peak (under the 4 GB day rule), run_paused with a share lock.
+Control: s30 as is.
+Informative arm (if the queue allows): p2b, s30 plus a second pass over its OWN base files (seed 1115, 1,889 steps).
+It separates more data from more epochs.
+Read-outs (MBPP-50 / HE-30, depth 31):
+- evalx: band accuracy 23-30. compare.py: the diff with its CI and sign p.
+- cc_readout.py: exact kept/32 under the walk, plus walk-strict per band (0, 1-2, 3-6, 7-14, 15-22, 23-30, with n).
+Line (NewIdeas'), per set: PASS if 23-30 >= +1.0 pt AND kept/32 >= +2 %. The verdict:
+- PASS on both sets: t30c gets Tuesday night.
+- HE-30 only: HE PASS, reported for NewIdeas' HE+-focused plan.
+- Otherwise: FAIL, and t30c does not get Tuesday night.
+
+### S10 amendment 1 (Sun 15 Nov 21:42, before running; NewIdeas 22:0x): information-only 680-step readings
+- Why: only ~755 unseen n1112 files exist, so a real t30c pass is ~1,500 steps (0.36x t30b). The sandbox analog is
+  s30 + ~680 fresh steps. The registered lines and the 2,570-step p2f verdict stay as they are.
+- Added, information only (same read-outs, not judged):
+  - p2f_s680: p2f's own copy at step 680 (--save-at 680). It sits mid-cosine at lr ~8.5e-6, with no anneal.
+  - p2s: s30 + the SAME first 680 pool2 slices (seed 1116) with its OWN cosine to 1e-6. This is the right analog of a
+    1,500-step t30c that anneals. p2s vs p2f_s680 isolates the anneal.
+- NewIdeas' recipe rule:
+  - p2f PASS and p2b not: t30c = one pass over the unseen files only, if 680 steps already show most of the gain.
+  - Both PASS: a mixed second pass.
+  - p2f FAIL: no t30c.
+- Disk stays flat:
+  - p2f_s680 overwrites a renamed S7 scratch file (mhx_cs1).
+  - p2s overwrites the p2b slot (mhx_mg1k).
+  - If P2B=1, p2b reuses p2s's file after stage 1's read-outs.
+
+## WEEK98 S11 KPRICE: kept per check vs K and the best-first shape, for Kamen's bigger trees (pre-registered Sun 15 Nov 22:00)
+> (a quote from the project owner, kept private)
+decision line).
+- Trees: best-first EAGLE-2 on t30b. K = rows = K - 1 nodes, for K 16 / 32 / 48 / 64 / 96 / 128.
+  - REAL to K 32 (BigMoE's tree dump).
+  - Proxy at every K, with gamma 0.5 / 0.75 / 1 / 1.25 / 1.5 / 2. Calibrated gamma = the one whose K 16 + 32 kept
+    best matches the real trees on both sets. It is reported as the central estimate beside gamma 1.
+- Walk: certify98's (R0 = 1), exact mode. kept/check per K, for MBPP bank 100 and HE+ 24.
+- Shape at each K, over the walk's check starts:
+  - mean nodes per depth;
+  - max depth (mean, p10 / p50 / p90);
+  - the share of nodes off the #1 spine;
+  - width at depths 0-3.
+- These are lab numbers (teacher-forced along the true path) under the walk. They are not real decoding.
+
+## WEEK98 S11 KPRICE RESULT (Sun 15 Nov 22:01): kept vs K and the best-first shape (lab, exact, under the walk)
+Script sb98/tree_kprice.py (CPU, share lock). Outputs: data/sb98/tree_kprice.{txt,json}.
+Self-checks: the layout and chain-32 PASS.
+Calibration (sum |log proxy / real| at K 16 + 32, both sets): gamma 1.0 = 0.035 is the best; 1.25 = 0.089, 0.75 = 0.157.
+So the central proxy (gamma 1) is calibrated to ~1 % at K <= 32, slightly pessimistic.
+kept/check, real <= 32, else proxy gamma 1 [band gamma 0.5 .. 2]:
+- MBPP:
+  - K16 7.49 / K32 9.03 (real);
+  - K48 9.73 [8.35..10.96]; K64 10.16 [8.69..11.60]; K96 10.88 [9.09..12.39]; K128 11.24 [9.38..13.02].
+- HE+:
+  - K16 11.26 / K32 16.26 (real);
+  - K48 17.18 [15.66..18.81]; K64 17.91 [16.06..19.68]; K96 18.86 [16.64..20.70]; K128 19.14 [17.00..21.46].
+- vs chain-16 (6.588 / 10.625): K32 x1.37 / 1.53; K64 x1.54 / 1.69; K128 x1.71 / 1.80. K32 -> K128 gains +24 % / +18 %.
+Shape over the walk's check starts (real <= 32, else proxy gamma 1):
+- MBPP:
+  - K32: max depth p50 13 (p90 23); widths d0-3 1.7 / 2.4 / 2.9 / 3.0; 57 % of nodes off the #1 spine.
+  - K64: p50 14 (p90 26); widths 2.2 / 3.7 / 4.7 / 5.5, peak ~5.6 at depths 4-5; 76 % off-spine.
+  - K128: p50 16 (p90 30); widths 2.5 / 5.0 / 7.2 / 9.1, peak ~10 at depths 4-5; 86 % off-spine.
+- HE+:
+  - K32: p50 20 (p90 31); widths 1.5 / 2.0 / 2.2 / 2.2; 37 % off-spine.
+  - K64: p50 23; widths 2.0 / 3.1 / 3.8 / 3.9, then ~1.2-2 down to depth 30; 66 % off-spine.
+  - K128: p50 29; widths 2.2 / 4.4 / 5.7 / 6.4, ~3.3-3.5 down to depth 30; 82 % off-spine.
+- Read: big trees are a wide band at depths 2-8 with a long thin tail (best-first spends rows where the head is unsure,
+  early). HE+ also keeps width deep.
+127-NODE DUMP SPEC (for BigMoE's Wednesday capture; K98's, expanded):
+- What: a head-only t30b best-first EAGLE-2 dump, 127 nodes at EVERY anchor (pops 0..126), top-8 children per node.
+- Fields: tree_t30b's, with the same field definitions.
+  - Node: fi, an, node, parent, depth, token, path_p, y, on_true, top_ids / top_p [8], p_ynext / ynext_rank.
+  - Anchor: a_fi, a_an, a_walk_start, root_top_ids / root_top_p.
+- Sets: Wednesday's fresh capture, plus HE+ 24 and MBPP bank 100 as the consistency check.
+- Checks:
+  - roots == TOPK band 0;
+  - the first 32 pops == the existing 32-node dump (prefix identity);
+  - true-path nodes == TOPK's cells (up to TF32 / bf16 near-tie noise).
+- Size and time: ~4x the 32-node dump. That is ~35 MB (HE+ 24) / ~100 MB (MBPP 100) and ~4x its runtime, with a peak
+  near TOPK's ~11 GB: one > 4 GB job at a time by day.
+- Top-8 is enough: the top-8 ceiling is 98-100 % per band (K98).
+### S11 addendum (BigMoE's spec question, 22:1x)
+- Spec confirmed: dd_tree.py b198498 with --nodes 127, the same fields, tree-N = the root + the first N - 1 pops.
+- Refinement: top-16 children for the one-shot fresh capture. The top-8 ceiling is 98-100 % per band, so truncation can
+  cost up to ~2 % of positions near the root, and k = 16 lets the 8-vs-16 effect be measured.
+- Tuesday's bank dry run:
+  - pass 1, k = 8: the bitwise prefix check vs the 32-node dump (only clean at k = 8);
+  - pass 2, k = 16: time, peak, and the count and kept effect of 9th-16th children.
+- No extra fields: ties and the last verifiable depth can be derived.
+- When the heplus24 127-node file exists, S11 is re-run on it to replace the proxy beyond K 32.

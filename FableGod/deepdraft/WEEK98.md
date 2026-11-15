@@ -41,6 +41,264 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Sun 15 22:0x-22:1x (NewIdeas, bigger-trees lead): **K* first cut = tree-32 on HE+, tree-16 on MBPP; 48-128 never
+  pay** (BIGGER_TREES.md, e324a41 / 331675b).
+  - Leap's R(K) (05eea11) x S11 kept: HE+ tok/s floor / realistic / lossy-25 = tree-16 257 / 167 / 493, tree-32
+    277 / 174 / 542, K64 229 / 123 / 456. K64 would need kept 21.65 to tie K32 (proxy 17.91).
+  - Tree-32 vs chain-32 at the same rows: x1.18 HE+ / x1.30 MBPP. Band 0 coverage 98.5 / 98.6.
+  - EvalSuite gets T8 at 32 rows, two bars:
+    - tree-32 / chain-32 (c32 x 1.03 ~ 1.071; dev 1.181 / 1.304);
+    - tree-32 / chain-16 (R32/R16 x c32 x 1.03, R from Leap's measured E2): bar 1.454 floor / 1.489 contract /
+      1.74 today, against HE+ 1.531.
+  - **450 exact / 900 lossy framing** (TARGETS_450_900.md): 450 exact at 32 rows needs kept >= 23.9-25.2, i.e. flat
+    98.0-98.4 %, above the true-state head (20.77 = 97.0 %), with the check AT its byte floor and drafting hidden. Flat
+    97.8 % gives 413-436.
+    - The only exact route the arithmetic leaves: 64-row checks at their byte floor with ~97.8 % to depth 63 (~470).
+    - 900 lossy needs 22.4 kept at the 20.9 ms floor (tree-32 16.26 -> 653).
+  - Instant information: context lookup + an n-gram table of the 125B's answers gives kept +8.7 % HE+ / +9.7 % MBPP
+    (upper bound) but moves bands 1-14 only +0.2-0.8. Monday: a budget-correct tree-node screen.
+- Sun 15 22:02: **MTP Head S11 KPRICE: kept per check vs tree size K (LAB: teacher-forced, exact, under the walk)**
+  (pre-registered TrainLab dd0ef8e, result 3ad8eb8; data/sb98/tree_kprice.txt).
+  - Real to K 32; beyond that, the proxy. Its gamma 1 is calibrated to ~1 % against the real trees at K 16 / 32.
+  - kept/check, MBPP / HE+:
+    - K16 7.49 / 11.26 and K32 9.03 / 16.26 (real);
+    - K48 9.73 / 17.18; K64 10.16 / 17.91; K96 10.88 / 18.86; K128 11.24 / 19.14;
+    - gamma 0.5-2 band at K128: 9.38-13.02 / 17.00-21.46.
+  - vs chain-16: K64 x1.54 / 1.69; K128 x1.71 / 1.80. Diminishing: K32 -> K128 is +24 % / +18 %.
+  - Shape: a wide band at depths 2-8 (MBPP K128 ~10 nodes per depth at depths 4-5) plus a long thin tail.
+    - Median max depth 16 (MBPP) / 29 (HE+) at K128.
+    - 82-86 % of nodes are off the #1 spine.
+    - HE+ keeps ~3.3 nodes per depth down to depth 30.
+  - The 127-node dump spec for Wednesday's capture is in REPORT S11: tree_t30b's fields, every anchor, prefix check vs
+    the 32-node dump.
+> (a quote from the project owner, kept private)
+  PLAN4D_REAIM978.md. All results are desk joins with exact self-checks.
+  - **The gate is walk-strict, and there the profile flips.** HE+ deep bands 15-30 are AT the line with the audit
+    (2B P=2 98.3 / 98.3; P=1 97.6 / 98.2), and band 0 with the tree (98.6).
+  - **Bands 1-14 stay 90.6-97.1 for every deployable lever.** Even the true-state head gives 95.3 / 96.4 at 1-2 / 3-6:
+    check starts sit on the 125B's near-ties.
+  - **LAB line, no build:** the true-state head = the depth-0 guess of anchor a+d. It reproduces BigMoE's REPLACE oracle
+    (20.77 / 12.72 vs 20.90 / 12.76); marginal 98.0-97.7 flat.
+  - **Chooser CLOSED with head-side features too:** +0.2-0.5 pt at 23-30 out of sample, against a 96.3 / 97.1 ceiling.
+    Side result: the 2B audit gets +3.5-4.5 % kept/32 from it.
+  - **Item 3 (tree + audit) KILL on HE+** (x0.991-1.016 vs tree-16).
+  - **My 21:3x C2 line FAILED on dev** (band 3-6 +1.2 / +0.4). Replaced by walk-strict 15-30 >= 97.8 point, LB >= 97.0,
+    kept co-primary.
+- Sun 15 22:1x: **NewIdeas TARGETS_450_900 (331675b, verified), by pillar:**
+  - 450 EXACT at 32 rows needs a drafter ABOVE the true-state head (flat 98.0-98.4 %), the exact check AT its byte
+    floor (49-52 ms), and drafting hidden. A flat-97.8 % drafter with everything else perfect gives 413-436.
+  - 900 LOSSY needs kept 22.4 at the 20.9 ms lossy byte floor (97.6 % flat), vs tree-32's 16.26. The lossy check is
+    not built.
+  - The one exact route the arithmetic leaves: a 64-row check at its byte floor (~69 ms) with ~97.8 % to depth 63,
+    giving ~470. The marginal row must cost bytes only.
+  - Breakthroughs needed (none in hand):
+    1. the exact check at its byte floor (one-pass K-row kernels);
+    2. covering post-miss near-ties >= 98 % at depths 1-14 (the true state caps at 93.2 / 95.3 / 96.4; trees are the
+       only cover);
+    3. drafting off the critical path (tree-32 ~24 ms unhidden).
+  - The PLAN4D levers each add ~5-9 % kept, about a sixth of the exact drafter gap each.
+  - Saturday story: certified per-pillar bests + measured exact check + floor projections.
+  - Lines proposed to EvalSuite:
+    - (a) tree-32 / chain-32 at the same rows, bar ~1.071 (dev 1.181 / 1.304);
+    - (b) tree-32 / chain-16, bar R32 / R16 x c32 x 1.03, with R from Leap's E2 (1.454 at the floor vs dev HE+ 1.531).
+- Sun 15 22:1x: **EvalSuite CERTIFY98 amendment 7 (ccb5dc5): bigger trees.**
+  - T8 = the gated line's top-8 tree; T16 = 127 nodes, top-16, information.
+  - Slot approved by the orchestrator: TOPK + T8 + T16 (~2.2-2.5 h head-only, ~12.5 GB, --part slices) on THURSDAY BY
+    DAY after the proof-run amendment, as the one job above 4 GB. Scoring lands Thursday evening.
+  - T8 stays at 32 nodes (K* = 32) unless NewIdeas states k and K above 32.
+- Sun 15 22:0x: **BIGGER TREES, first cut (NewIdeas e324a41, verified): K* = 32 nodes on HE+, 16 on MBPP. Trees of 48-128
+  never pay under any cost model.**
+  - HE+ tok/s (exact floor / exact realistic / lossy 25 ms): tree-32 277 / 174 / 542; tree-16 257 / 167 / 493;
+    64 229 / 123 / 456.
+  - MBPP: tree-16 171 / 111 / 327.
+  - The certificate line T(32) = tree-32 / chain-16 kept, pay line ~1.45 (dev HE+ 1.531 passes; MBPP fails, information).
+  - Instant-information screen Monday (NewIdeas, CPU): prompt lookup + an n-gram table as a charged node in tree-32
+    (upper bound kept +8.7 % HE+).
+  - Power: C2 P=2 1.00, C1 band 0 1.00, LAB marginal 0.71.
+  - Steers relayed: Leap 32 vs 16 microbenches first; nothing beyond 32 for MTP Head; BigMoE's dry run on heplus24 +
+    mbppbank; no T64.
+  - **Fable B (problem 2), corrected 22:1x against Leap's measured unions:**
+    - The union keeps growing (~1.2 experts per layer per marginal row at K96-128).
+    - The MARGINAL ROW IS COMPUTE, not bytes: measured ~0.7 ms (bytes 0.44 ms, MACs ~0.8 at today's kernel efficiency).
+    - Sibling reuse, union-aware choice and staged checks can't pay.
+    - Only EARLY DEATH can (drop dead subtrees mid-pass on a probe of the 125B's own layer-L state; repair exactly if
+      wrong), plus row-dense expert tiles. A tok/s win past K32 needs early death to drop >= 70 % of rows by mid-pass.
+    - A Monday probe test (a layer-16 "child survives" probe on captured states) decides whether big trees exist.
+    - Its DFS-GDN duplicates Leap's TREE16 L1 (66b4af8).
+    - **Final 22:1x:**
+      - one-pass byte floors on the measured unions: K16 39 / 32 52 / 48 62 / 64 70 / 96 81 / 128 90 ms;
+      - kept per ms 0.288 / 0.310 / 0.277 / 0.257 / 0.233 / 0.213, so K32 is the optimum;
+      - EARLY DEATH at layer 8 with <= 24 survivors is x1.16 at best (x1.08 halved): BETWEEN. Monday's line: >= 80 % of
+        off-spine nodes droppable at layer 8 with <= 5 % false drops; KILL < 50 %;
+      - row-dense expert tiles stay as the compute lever past K48;
+      - K* = 32 holds this week.
+  - Thinkers so far:
+    - ZERO (problem 1): TIE-RUN (the last check's 125B margins predict the next near-ties), TIE-STUBS, SLOT PRIOR,
+      DISAGREEMENT FLAG;
+    - FAR (problem 3): SIBLING-STATE DRAFTING (feed the head the 125B's exact states from the rejected rows, a
+      near-tie sibling prefix, instead of its own drifting state; 0 bytes), COPY-SOURCE STATES, TREE-STATE REUSE.
+- Sun 15 22:1x: **KAMEN (verbatim): "i mean this will most porbably need a breakthrough. but i literary cant even tell you how
+  much i need to do this. i need to achieve 900 tps in lossy and 450 in exact on code."** Targets on code: 450 EXACT / 900 LOSSY.
+  - Arithmetic (kept per 32-row check -> the cycle needed):
+    - 450 exact: tree-32 16.26 -> 36 ms; true state 20.77 -> 46 ms; flat 97.8 23.15 -> 51 ms. The exact byte floor is
+      52 ms, so it needs ~97.8 %-flat drafting AND an exact check at or below today's byte floor, with drafting hidden.
+    - 900 lossy: 18 / 23 / 26 ms cycles at those kept values.
+  - Added to THINK_1115 for the thinkers; sent to NewIdeas for the K* / plan framing.
+> (a quote from the project owner, kept private)
+  an hour alongside the tests which are running to try and solve these issues in any way").
+  - The brief is THINK_1115.md here. Five desk-only Fable thinkers, one problem each:
+    - fable-zero: where to branch;
+    - fable-b: cheap big trees;
+    - fable-far: cheap information for the drafter;
+    - fable-c: near-ties after a check;
+    - Lunatic: question the limits.
+  - Ideas files and summaries are due 22:45. They run on the unused Fable weekly allowance.
+  - MTP Head S11 KPRICE (3ad8eb8), kept per check vs K (MBPP / HE+): K16 7.49 / 11.26; K32 9.03 / 16.26;
+    K64 10.16 / 17.91; K128 11.24 / 19.14. Returns diminish (K32 -> K128 +24 % / +18 %). The 127-node dump spec
+    went to BigMoE (top-16 children suggested).
+- Sun 15 22:0x: **KAMEN DECIDED (verbatim): "ok go for the bigger trees then."** BIGGER-TREES push to Saturday, NewIdeas
+  leads. Scope "just the tests": certify on the fresh capture; no tree-K engine build by Saturday.
+  - Goal: the throughput-best exact tree size K* (32 / 48 / 64 / 96 / 128 nodes), certified.
+  - Pieces:
+    - MTP Head: kept(K) on HE+ / MBPP, real to K 32, proxy beyond, by Mon evening.
+    - Leap: R(K) floor + realistic (REF2-T and the contract) and the tree overhead c(K), by Tue evening; R32 from
+      tonight's C7c and Monday's E2.
+    - BigMoE: a 127-node head-only best-first dump (top-8 children) in Wednesday's capture; dry run Tue by day.
+    - EvalSuite: a tree-K* line (T = tree-K / chain-16, pay line R(K) x c(K)) in the pre-capture amendment, Wed ~18:00.
+    - MoonShots: T32 already MATCHES SIM; a T64 on the 2B only if NewIdeas wants it.
+  - K* with tok/s (exact floor / realistic; lossy 25 ms) is due Tue evening.
+  - BigMoE 22:0x: the CERTIFY98 tree dump goes to 127 nodes per anchor [est until Tuesday's dry run].
+    - Head-only + the 125B's lm_head, no 45 GB model.
+    - ~55 ms per anchor x ~114K fresh anchors = ~1.8 h (+1.4 h vs 32 nodes), in --part slices.
+    - Peak ~12-12.5 GB, so it can run by day as the one big job. Outputs ~0.6 GB.
+    - Single look: it runs only after EvalSuite's amendment.
+    - Tue dry run on the bank (heplus24). Gate: the first 32 pops == today's 32-node dump bitwise, plus TOPK
+      exactness.
+- Sun 15 21:5x (orchestrator): **NewIdeas' re-aim at 97.8 verified (8df555d) and its lines APPROVED** for EvalSuite's
+  pre-capture amendment (Monday morning).
+  - Lines: the LAB true-state line; C1 tree band 0 >= 97.8; C2 walk-strict 15-22 / 23-30 >= 97.8 with LB >= 97.0,
+    plus kept/32.
+> (a quote from the project owner, kept private)
+    the information it needs literary instantly. thats all".
+  - Answered with the TRUE STATE row: perfect information gives kept/32 20.77 on HE+, not the flat-97.8 23.15.
+    Walk-strict bands 1-6 cap at 95.3 / 96.4 because of the 125B's near-ties; trees, not information, cover those.
+  - Tok/s on HE+ (32-row check; exact floor 52 ms / lossy 25 ms):
+    - tree-32 16.26: ~313 / ~650;
+    - true state 20.77: ~400 / ~830;
+    - flat 97.8 23.15: ~445 / ~925.
+  - NewIdeas was asked for any unclosed "instant information" source as a Monday screen.
+- Sun 15 21:50: **MoonShots TREE-E2E T32: tree-32 vs chain-16 at one 32-row shape on the 2B + s30 MATCHES SIM on both
+  sets; EXACT 264 / 264; pass@1 identical** (9e41a54; verified from tree_result_t32_fixed_b32.json).
+  - Full panel: x1.343 HE+ [1.329, 1.358] / x1.367 MBPP [1.345, 1.387].
+  - Like for like: x1.360 / x1.359 vs the sim's x1.332 / x1.368, both inside the CIs.
+  - So the sim behind the tree-32 line (S9c on the 125B: x1.371 / 1.531) holds in real decoding at 32 nodes too.
+    Whether it pays still depends on R32 (tonight's C7c, Monday's E2).
+- Sun 15 21:4x: **KAMEN (verbatim): "no no. 97.8 is absolutely good enough. dont push for 98. i just need that by
+  saturday with everything done. i mean i cant explain how much we need to do it"**
+  - The TARGET is now 97.8 %, not 98 %.
+  - Careful: 97.8 % is the head's TRUE-STATE (no-drift) accuracy, flat to 30 on HE+, i.e. depth 0 at every anchor
+    (97.94). Real drafting has no true state ahead, so real deep bands are lower:
+    - t30b alone, 23-30: 89.65;
+    - + 2B audit: 94.32; + 4B audit: 95.29; oracle head-or-2B: 96.29.
+  - So "97.8 in real use" = removing almost all drift. No tested lever does that this week; it was told to Kamen
+    honestly at 21:5x.
+  - Plan: PLAN4D stays, re-aimed at 97.8 (each lever's pass line vs 97.8 per band). Also certify the true-state 97.8
+    on the fresh set as a lab line (EvalSuite).
+> (a quote from the project owner, kept private)
+    at full speed (much more building)?
+> (a quote from the project owner, kept private)
+    - Saturday = everything CERTIFIED by tests. No full engine build is needed by then.
+    - Tue-Fri nights: his apps are quit at 23:30 with tonight's procedure.
+      - Tue: t30c, only if Monday's pre-screen passes.
+      - Wed: the capture.
+      - Thu-Fri: the proof runs.
+  - His question "if we got 96 percent with the perfectly optimised check how many tps is that?" was answered by the
+    orchestrator. A flat 96 % per guess means 18.2 tokens per 32-row check:
+    - ~350-370 tok/s at the exact floor (52.0 / 49.1 ms) with drafting hidden;
+    - ~310 at a realistic ~55 ms check + ~4 ms overhead;
+    - ~240 if today's ~19 ms drafter isn't hidden.
+    - (97.8 % gives 23.2 tokens: ~445-470 at the floor, ~390 realistic.)
+  - Leap E14 amendment 1 (7d93cab): Breakthrough's lever 2 joins Monday's engine A/B as A16m / C32onem.
+    - Line: PASS <= -2.4 ms, KILL > -0.5.
+    - Fail-safe: any lever-2 error falls back to K-73.
+    - Runner pid 9955 unchanged.
+- Sun 15 21:3x (NewIdeas, Goal A lead): **PLAN4D for HE+'s deep bands** (the orchestrator's 21:2x ask;
+  ~/NewIdeas/research/week98/PLAN4D_HEPLUS.md, mirror LEVERS_A).
+  - **Honest ceiling:** 98 % per band to 30 is out of reach on HE+ this week. The true-state head is 97.76 % flat, and
+    the best measured exact deep fix is the audit: 2B 94.3 / 4B 95.3 at 23-30. MBPP is knowledge-limited (oracle 93.6;
+    audited 85.1-87.2).
+  - **Ranked (all exact):**
+    1. t30b + frozen 2B audit (C2): +4.7 at 23-30, certifiable offline on Wed's cells.
+    2. NEW: a full-data distilled auditor. The audited level IS the auditor's agreement, and 1c used 360 files with a
+       one-layer LoRA, so ~8.4x the rows is untested. Mon kill-test ~30 min at <= 7 GB.
+    3. NEW: tree at depths 0-2 + audited chain (desk).
+    4. t30c second pass (+0.5-1.5 unaudited; Tue night only, ~8 h at 15.6 GB, after MTP Head's sandbox pre-screen).
+    5. Full-budget state arms (sandbox first).
+  - **Pins by Wed ~18:00:** C1 tree (already pinned), C2 audit, C2b distilled auditor if it passes, C3 t30c if it PAYS.
+- Sun 15 21:22: **MTP Head K98 = NO: no exact tree up to K 128 holds coverage >= 98 % in every band to depth 30. The
+  head's own accuracy binds, not tree width** (CPU on BigMoE's TOPK + TREE; pre-registered TrainLab 5bb6024, result
+  ad85682; data/sb98/tree_k98.txt).
+  - Cross-check: K 16 depth 0 = 97.8 / 98.6, as above.
+  - Best-first EAGLE-2, bands 0 | 1-2 | 3-6 | 7-14 | 15-22 | 23-30:
+    - MBPP K 32 real: 98.6 | 94.3 | 89.2 | 83.9 | 84.9 | 84.2.
+    - MBPP K 128 proxy: 99.6 | 97.4 | 92.7 | 87.3 | 87.6 | 87.5.
+    - HE+ K 128 proxy: 99.1 | 98.6 | 96.0 | 95.6 | 97.3 | 97.7.
+    - K >= 48 rests on proxied nodes (validated to ~1.7 pt per band at K 16 / 32). Even the optimistic proxy at K 128
+      is 85-90 % in MBPP bands 7-30.
+  - Exploratory per-depth beams do no better: K 125, and K 249 gives MBPP 88-91 % in bands 3-30.
+  - The top-8 ceiling (98-100 % per band) does NOT bind.
+    - Once the true path takes a non-#1 step it ranks below the main paths and gets #1 continuations only. So deep
+      coverage tends to the head's per-position #1 accuracy: MBPP ~87-89 %, HE+ ~96-97 %.
+    - Holding 98 % by width would need ~1e5 nodes.
+  - So "98 % at every depth to 30, exact" needs the head's mid / deep accuracy near 98 % (the drift / state fixes).
+    Trees deliver bands 0-2 and the kept gain (S9c).
+  - No new dump changes this. A 127-node dump would only pin down HE+'s deep bands.
+- Sun 15 21:2x: **KAMEN (verbatim): "i really really REALLY need to get it by saturday. you just dont understand how
+  important this is".**
+  - Orchestrator's reading: Goal A's literal claim, 98 % at EVERY depth to 30 (exact), is the open piece.
+    - Tree-16 meets 98 % only at depth 0 (coverage HE+ 98.6 / MBPP 97.8).
+    - Bands 3-14 stay at or below the chain (HE+ 93.7-96.2, MBPP 80.4-86.1).
+    - The certificate as amended (6a) proves the tree gain, not "98 % to 30".
+  - New task tonight, **K98**: the smallest exact tree (K nodes, best-first EAGLE-2 on t30b) that holds coverage
+    >= 98 % in every band to 30.
+    - MTP Head: CPU on BigMoE's dumps, K = 16-128; it marks the proxied bands and specs any new head-only dump.
+    - MoonShots: the real-numerics twin on the 2B + s30 after T32, before 23:25.
+  - If K is reachable:
+    - BigMoE adds the K-node head-only dump to Wednesday's capture;
+    - EvalSuite pre-registers "coverage >= 98 % per band (LB >= 97) with a K-node tree" (amendment 7) before the
+      capture;
+    - Leap prices a K-row check (the contract kernels at K rows).
+  - Then Saturday's answer: 98 % at 30 deep, exact, with a K-node tree, certified on fresh data, at the measured check
+    cost.
+  - **K98 = NO** (MTP Head, pre-registered 5bb6024 21:19, result ad85682 21:22; verified).
+    - No exact tree up to K 128 (beam K 249) holds 98 % per band. The head's own deep accuracy binds.
+    - MBPP bands 3-30 are 84-90 % even at K 128; HE+ bands 3-14 are 93-96 %.
+    - Once the true path leaves #1, it gets only #1 continuations, so deep coverage tends to the head's per-position
+      accuracy. Holding 98 % by width would need ~1e5 nodes.
+    - The true-state ceiling is HE+ 97.8 % flat and MBPP 93.6 %. So HE+ is a drift gap of ~1-4 pt; MBPP is also
+      knowledge.
+  - **21:2x: NewIdeas leads a 4-day plan** for t30b's own deep accuracy on HE+ (bands 3-30 toward 98 %), certifiable
+    Thu-Fri. MTP Head and MoonShots feed it levers. A new candidate must be named and pre-registered before
+    Wednesday's capture. Due ~23:15 or first thing Monday.
+  - **21:4x PLAN4D APPROVED by the orchestrator** (NewIdeas 2d196fb; PLAN4D_HEPLUS.md here).
+    - Honest top line: 98 % per band to 30 is out of reach this week even on HE+. The true-state ceiling is 97.76 %
+      flat. The best exact deep fix is the 2B audit (HE+ 23-30 89.65 -> 94.32).
+    - MBPP's exact bands 3-30 can reach ~85-88.
+    - Assignments:
+      - tonight, CPU: NewIdeas item 3 (tree 0-2 + audited chain); MoonShots item 1's read;
+      - Mon by day: Sandbox98 item 2 (full-data distilled auditor, <= 7 GB, briefed); MTP Head item 4's pre-screen
+        (<= 5 GB), then item 5.
+    - Not tonight: free memory was ~11 GB at 21:39 (Kamen building in Xcode).
+    - Pins by Wed ~18:00: C1 tree, C2 t30b + 2B audit, C2b / C3 if they pass.
+    - Tue night (t30c, ~8 h at 15.6 GB) needs Kamen's app OK; asked 21:4x together with Wed-Fri.
+  - Tonight's chain is re-armed and verified at 21:24:
+    - apps quit 23:30 (pid 61214);
+    - Leap a45 62263 -> C7c 64828;
+    - BigMoE night1115e 66280;
+    - EvalSuite 71926 (now stops cleanly on HOLD, with a marker);
+    - Breakthrough's profile 76388 (replaced 62519 at 21:28: it now skips on HOLD and waits out PAUSE, 8d85240), then its lever-2 quiet bench (follower 88412, ca8f75f; latest start 06:45, done by 07:00);
+    - Monday: m4_night 50884, E14 9955;
+    - no markers present.
 - Sun 15 18:1x (orchestrator; Leap's three results, verified in commit order):
   - **BOF PASS with REF2-T's OWN bits** (pre-registered 4a4fc62, bits 9b5b19a, result b380726): lever (b) rebuilt
     as a blocked ordered fold. qmm16c's serial K loop is spread over simdgroups, and the per-group terms are added
@@ -702,6 +960,24 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
     23-30 survivors); **by the HE+ line, 88.14 < 90 = KILL.** Even teacher-forced, DFlash2's strict accuracy falls to
     ~88-89 % by depths 7-14 on HE+ and ~73 % on MBPP: far from a 98 % corrector.
 - Sun 15 03:1x: **45 GB SLOTS for the week (orchestrator's draft; each needs ~47 GB NO-SWAP, i.e. Kamen closing apps):**
+> (a quote from the project owner, kept private)
+    - The app quit is armed for 23:30:00 (apps_2330_1115.sh, pid 61214).
+    - Same order and markers, times +30 min:
+      1. Leap a45 from 23:35 (every run ending by 01:30), then C7c;
+      2. BigMoE M1 + ng1 (fallback 02:00);
+      3. EvalSuite tier-0a + lx45cc1 (fallback 02:00, no start after 08:00);
+      4. Breakthrough's profile (deadline Mon 15:00).
+    - The 5 GB rule holds until 23:29:30 (mem_watch ends then).
+> (a quote from the project owner, kept private)
+> (a quote from the project owner, kept private)
+    mem?"
+    - HOLD is lifted. Free memory (NO-SWAP) must stay >= 5 GB; it was 24.4 GB at 20:54.
+    - Research <= ~15 GB peak in total, share locks with MEM, one GPU job above 4 GB at a time.
+    - No quiet tickets or timing verdicts while he uses the Mac.
+    - mem_watch wakes the orchestrator under 6 GB.
+    - MoonShots' T32 (3.8 GB) continues. Leap, Breakthrough and BigMoE continue at desk / slice scale; BigMoE may
+      re-arm Monday's m4_night.
+    - Tonight's 45 GB chain waits for Kamen's answer on the 23:00 app quit.
 > (a quote from the project owner, kept private)
     continue them later".**
     - HOLD + hold_guard are set, so PAUSE is held.

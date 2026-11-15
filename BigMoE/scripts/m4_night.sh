@@ -2,8 +2,11 @@
 # TREE16 M4 engine A/B, Monday night 16 -> 17 Nov (the orchestrator, Sun 17:1x: FIRST in the order, 23:05 -> HARD END 00:25,
 # stopping at a process boundary; one quiet ticket; NO-SWAP >= 36 GB; C T T C; gated on Sunday night's M1 PASS; an end
 # marker on any end, like night1115b). Pre-registration: docs/TREE16_M4_PREREG.md. Analysis: scripts/tree16_m4ab.py.
-# - Waits for Mon 23:05 (after the 23:00 apps quit). Gate: "#3 M1 rc 0: PASS" in data/r57/night1115.log, else the slot is
-#   dropped (status in the log + marker; the orchestrator is told by hand).
+# - Waits for Mon 23:05 (after the 23:00 apps quit). M1 CONDITION (the orchestrator Sun 20:5x, after the 18:52 HOLD took
+#   Sunday night's runs): with "#3 M1 rc 0: PASS" in data/r57/night1115.log the A/B starts at once; without it, M1 (t16a,
+#   the same 3 keys, tag t16am1w) runs FIRST under the same ticket; on M1 FAIL (or rc != 0) the runner stops (marker).
+# - PAUSE (the orchestrator 21:0x): waited out up to the latest start that still fits (23:35 with M1 needed, 23:50 with a
+#   Sunday-night PASS; between runs, the next run's latest start). HOLD / the lid closed / HEALTH ACT stop at once.
 # - Runs C1 T1 T2 C2 on snapshot t16b (arm T = R57_TREE16=1), one process each. A run starts only if its expected length
 #   (the last run's, first guess 12 min, + 10 %) ends by 00:25; a watchdog stops the runner at 00:25 sharp anyway.
 # - On ANY end: the running job stopped and waited for, the ticket released, tree16_m4ab.py on whatever ran, then the
@@ -21,9 +24,14 @@ ENVA=$(sed -n 2p data/stack/x45rpl1_env.txt | tr ',' ' ')
 KEYS=humaneval/HumanEval/68,humaneval/HumanEval/16,humaneval/HumanEval/91,humaneval/HumanEval/6,humaneval/HumanEval/79,humaneval/HumanEval/19,humaneval/HumanEval/161,humaneval/HumanEval/17,mbpp/2,mbpp/13,mbpp/16,mbpp/17,mbpp/19,mbpp/28,mbpp/29,mbpp/30
 COMMON="R57_PRESET=45 R57_REPS=1 R57_WARM=1 R57_CHATSW=1 R57_MTP_ALL=1 R57_MTP_CKPT=$HOME/datasets/deepdraft/ckpt/dd_t30b.safetensors R57_KEYS=$KEYS"
 SCREEN=data/r57/snap/t16b/r57_screen_t16b.py
+M1KEYS=humaneval/HumanEval/1,mbpp/16,ifeval/1219              # Sunday night's M1 (night1115d #3), verbatim
+M1ENV="R57_PRESET=45 R57_REPS=1 R57_WARM=1 R57_TAG=t16am1w R57_KEYS=$M1KEYS R57_CHATSW=1 R57_MTP_ALL=1 R57_MTP_CKPT=$HOME/datasets/deepdraft/ckpt/dd_t30b.safetensors R57_TREE16_M1TEST=1"
+M1SCREEN=data/r57/snap/t16a/r57_screen_t16a.py
 ORDER="C1 T1 T2 C2"
 armenv() { case $1 in C*) echo "R57_TAG=${2:-t16b}$1";; T*) echo "R57_TAG=${2:-t16b}$1 R57_TREE16=1";; esac; }
 if [ "${M4_HEADTEST:-0}" = 1 ]; then
+  out=$(env $ENVA ${M1ENV/R57_TAG=t16am1w/R57_TAG=t16am1whead} .venv/bin/python scripts/headtest_r57.py $M1SCREEN 160 128 2>&1 | tail -1)
+  case "$out" in *"reached the model load"*) echo "M1 PASS (t16a, the in-window fallback)";; *) echo "M1 FAIL: $out";; esac
   for r in $ORDER; do
     out=$(env $ENVA $COMMON $(armenv $r t16bhead) .venv/bin/python scripts/headtest_r57.py $SCREEN 160 256 2>&1 | tail -1)
     case "$out" in *"reached the model load"*) echo "$r PASS ($(armenv $r))";; *) echo "$r FAIL: $out";; esac
@@ -51,26 +59,61 @@ cleanup() { [ -n "$GUARD" ] && kill $GUARD 2>/dev/null; [ -n "$WD" ] && kill $WD
               say "END: $STATUS (marker $MK written after the runs exited and the ticket was released; NO-SWAP $(noswap) GB, swap $(swapmb) MB)"
             fi; }
 trap cleanup EXIT; trap 'STATUS="$STATUS; stopped by a signal"; exit 1' INT TERM
-stop_checks() { [ -e $Q/HOLD ] && { STATUS="$STATUS; STOP: HOLD"; exit 0; }
-                [ -e $Q/PAUSE ] && { STATUS="$STATUS; STOP: PAUSE"; exit 0; }
-                lid_closed && { STATUS="$STATUS; STOP: lid closed"; exit 0; }
-                grep -q "Verdict: ACT" $Q/HEALTH.md 2>/dev/null && { STATUS="$STATUS; STOP: HEALTH ACT"; exit 0; }; }
+stop_checks() { # $1 = the latest time (epoch) to wait out a PAUSE (the orchestrator 21:0x, as Leap 5a32a17: a PAUSE is usually
+                # fanwatch's transient heat pause); HOLD, the lid closed and HEALTH ACT end the runner at once
+  local dl=${1:-0}
+  [ -e $Q/HOLD ] && { STATUS="$STATUS; STOP: HOLD"; exit 0; }
+  lid_closed && { STATUS="$STATUS; STOP: lid closed"; exit 0; }
+  grep -q "Verdict: ACT" $Q/HEALTH.md 2>/dev/null && { STATUS="$STATUS; STOP: HEALTH ACT"; exit 0; }
+  if [ -e $Q/PAUSE ]; then
+    say "PAUSE present: waiting it out until $(date -r $dl '+%H:%M:%S') at the latest"
+    while [ -e $Q/PAUSE ] && [ "$(date +%s)" -lt $dl ]; do
+      sleep 10
+      [ -e $Q/HOLD ] && { STATUS="$STATUS; STOP: HOLD (during a PAUSE)"; exit 0; }
+      lid_closed && { STATUS="$STATUS; STOP: lid closed (during a PAUSE)"; exit 0; }
+    done
+    [ -e $Q/PAUSE ] && { STATUS="$STATUS; STOP: PAUSE still present at $(date -r $dl '+%H:%M:%S') (the latest start)"; exit 0; }
+    say "PAUSE cleared"
+  fi; }
 rm -f $MK
-say "armed: waits for Mon 23:05; gate: Sunday night's M1 PASS; C1 T1 T2 C2 on t16b; hard end 00:25"
+say "armed: waits for Mon 23:05; M1 condition (a Sunday-night PASS -> the A/B, else M1 first); a PAUSE is waited out to 23:35 (M1 needed) / 23:50; C1 T1 T2 C2 on t16b; hard end 00:25"
 while [ "$(date +%s)" -lt $START ]; do sleep 30; done
-grep -q "#3 M1 rc 0: PASS" data/r57/night1115.log || { STATUS="Sunday night's M1 is not PASS (night1115.log): the slot is dropped"; exit 6; }
-STATUS="M1 PASS"
-stop_checks
+if grep -q "#3 M1 rc 0: PASS" data/r57/night1115.log; then M1OK=1; STATUS="Sunday night's M1 PASS"
+else M1OK=0; STATUS="no Sunday-night M1 PASS: M1 runs first in the window"; fi
+say "$STATUS"
+if [ $M1OK = 1 ]; then LATEST=$(( HARD - 2100 )); else LATEST=$(( HARD - 3000 )); fi   # the latest start that still fits: 23:50 / 23:35
+stop_checks $LATEST
 [ "$(date +%s)" -lt $HARD ] || { STATUS="$STATUS; past the hard end before the ticket"; exit 7; }
 say "queue the quiet ticket (NO-SWAP $(noswap) GB)"
 PEER_QUEUE_TIMEOUT=$(( HARD - $(date +%s) )) peer lock quiet --queue 80m "BigMoE M4: TREE16 engine A/B (t16b C T T C), exact-45 at C 160, MEM 32 GB, hard end 00:25" >> $L 2>&1 \
   || { STATUS="$STATUS; the quiet ticket left the queue without a grant: not run"; exit 4; }
 LOCKED=1; say "granted; settle 20 s"; sleep 20
-stop_checks
+stop_checks $LATEST
 ( while [ "$(date +%s)" -lt $HARD ]; do sleep 5; done; echo "$(date '+%m-%d %H:%M:%S') HARD END 00:25: stopping" >> $L; kill -TERM $$ ) & WD=$!
 ok=0; for i in $(seq 1 20); do a=$(noswap); sleep 30; b=$(noswap); say "  gate 36: reads $a / $b GB"; [ $a -ge 36 ] && [ $b -ge 36 ] && { ok=1; break; }; done
 [ $ok = 1 ] || { STATUS="$STATUS; NO-SWAP below 36 GB for 10 min under the ticket: not run"; exit 3; }
 s0=$(swapmb); ( while :; do [ $(( $(swapmb) - s0 )) -gt 2048 ] && { echo "$(date +%T) SWAP GUARD: $(swapmb) MB" >> $L; kill -TERM $$; exit; }; sleep 5; done ) & GUARD=$!
+if [ $M1OK = 0 ]; then                                   # the M1 condition: t16a, Sunday night's #3 verbatim (tag t16am1w)
+  [ $(( $(date +%s) + 660 )) -le $HARD ] || { STATUS="$STATUS; no room for M1 before the hard end"; exit 7; }
+  say "M1 start (t16a in the window; NO-SWAP $(noswap) GB)"
+  rm -f data/r57/t16am1w_runs.json; RAN=1
+  ( exec env $ENVA $M1ENV .venv/bin/python $M1SCREEN 160 128 ) >> data/r57/t16a_m1.log 2>&1 &
+  CP=$!; wait $CP; RC=$?; CP=""
+  M1V=$(python3 - <<'PY' 2>&1
+import json
+try:
+    R = json.load(open("data/r57/t16am1w_runs.json"))
+except Exception as e:
+    print(f"no runs.json ({e})"); raise SystemExit
+ok = bool(R) and all((r.get("m1t") or {}).get("checks", 0) > 0 and r["m1t"]["match"] == r["m1t"]["checks"] for r in R)
+print(("PASS " if ok else "FAIL ") + "; ".join(f"{r['key']}: {r.get('m1t')}" for r in R))
+PY
+)
+  say "M1 (in the window) rc $RC: $M1V"; STATUS="$STATUS; M1 rc $RC ${M1V:0:160}"
+  case "$M1V" in PASS*) [ $RC = 0 ] || { STATUS="$STATUS; M1 rc $RC: the A/B is not run"; exit 6; };;
+                 *) STATUS="$STATUS; M1 not PASS: the A/B is not run"; exit 6;; esac
+  stop_checks $(( HARD - 720 * 11 / 10 ))                # a PAUSE: waited out while C1 can still start
+fi
 EST=720                                                  # a first guess of one run (s): load + warm-up + 16 keys x 256 tokens
 for r in $ORDER; do
   [ $(( $(date +%s) + EST * 11 / 10 )) -le $HARD ] || { STATUS="$STATUS; stopped before $r at a process boundary (~$EST s per run, hard end 00:25)"; break; }
@@ -81,5 +124,5 @@ for r in $ORDER; do
   EST=$(( $(date +%s) - t0 ))
   say "run $r rc $RC ($EST s)"; STATUS="$STATUS; $r rc $RC"
   [ $RC = 0 ] || { STATUS="$STATUS; stopped after $r rc $RC"; exit 5; }
-  stop_checks
+  stop_checks $(( HARD - EST * 11 / 10 ))                # a PAUSE: waited out while the next run can still start
 done

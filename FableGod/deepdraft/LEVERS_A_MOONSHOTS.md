@@ -412,6 +412,38 @@ kept/32 exactly (MBPP 6.924, HE+ 13.769).
   check-start depth 0 on HE+. The information there is specific to the 125B, right after it overrode the drafter. A
   same-family LM doesn't carry it.
 
+**K, correction and full bands (Sun 22:0x; PLAN4D item 1, re-derived; week98/walkstrict_bands.py, walkstrict_bands.json;
+TRUE-STATE (lab) numbers):**
+- **Correction:** checkstart.py's walk-strict counted a no-target cell (the walk hitting an answer's end) as reached,
+  i.e. as a miss. Excluding it (MTP Head's K98 definition, and NewIdeas' tree_audit.py) gives:
+  - HE+ t30b d0 92.0 (was 91.58; 2 cells);
+  - MBPP 89.7 (was 89.46; 6 cells).
+  - kept/32 is unaffected, and the reading above stands.
+- **Full bands under the decode walk (32-row checks).** This independently re-derives NewIdeas' tree_audit.py
+  (PLAN4D_REAIM978.md, 8df555d) to the printed digit.
+
+| HE+ 24, walk-strict | 0 | 1-2 | 3-6 | 7-10 | 11-14 | 15-22 [LB] | 23-30 [LB] | kept/32 |
+|---|---|---|---|---|---|---|---|---|
+| t30b | 92.0 | 91.5 | 92.4 | 94.3 | 96.6 | 96.7 [95.9] | 97.7 [96.7] | 13.769 |
+| 2B audit P = 1 | 92.7 | 90.6 | 92.8 | 95.2 | 96.6 | 97.6 [96.6] | 98.2 [97.4] | 14.456 |
+| 2B audit P = 2 | 92.7 | 91.0 | 93.2 | 94.8 | 97.1 | **98.3** [97.5] | **98.3** [97.5] | 15.000 |
+| 2B audit P = inf | 92.4 | 90.8 | 93.3 | 95.0 | 96.7 | 98.7 [98.0] | 99.4 [98.7] | 15.179 |
+| 4B audit P = 1 | 93.0 | 92.1 | 94.0 | 95.1 | 96.7 | 97.5 [96.5] | 98.2 [97.3] | 15.399 |
+
+- **MBPP 100** (same columns, no LB):
+  - t30b 89.7 / 86.0 / 85.6 / 84.0 / 86.1 / 87.3 / 86.8 (6.924);
+  - 2B P = 1 88.5 / 86.7 / 87.4 / 86.1 / 86.4 / 88.9 / 87.9 (7.427);
+  - 2B P = 2 88.1 / 86.2 / 87.2 / 87.5 / 88.2 / 91.5 / 89.9 (7.671);
+  - 2B P = inf 87.9 / 86.1 / 87.2 / 87.9 / 89.6 / 93.2 / 93.6 (7.911);
+  - 4B P = 1 88.9 / 88.0 / 87.9 / 85.9 / 87.2 / 88.8 / 89.0 (7.713).
+- LB = the window-clustered 95 % lower bound (2,000 window resamples, seed 1115).
+- **Reading:**
+  - Walk-strict deep bands are conditioned on reaching depth 15+ (only easy stretches survive 15 straight guesses), so
+    even t30b alone sits at 96.7 / 97.7.
+  - Against NewIdeas' re-aimed C2 line (15-22 and 23-30 point >= 97.8 AND LB >= 97.0):
+    - 2B P = 2 passes on dev, 0.5 pt over 97.8 on the point and 0.5 over 97.0 on the LB, on both bands;
+    - P = 1 and the 4B fail at 15-22.
+
 **L, RESULT (03:3x; week98/checkstart_L.py): KILL.** The in-answer correction cache broke every hit it touched (MBPP
 893 / 893, HE+ 82 / 82). It fixed only 3 / 274 (MBPP) and 2 / 42 (HE+) check-start misses, and kept/32 fell (MBPP
 6.92 -> 5.34, HE+ 13.77 -> 12.50). A (previous token, draft) pair recurs mostly where the draft is right. Corrections don't
@@ -919,6 +951,88 @@ above). T32 needs twice the head calls of T16 per check; this run measures kept/
   - Peak footprint with v2: 3.17-3.25 GB at B = 32 (MLX peak 2.84 GB); 2.39 GB at B = 16.
   - The MLX cache limit is set to 0.25 GB (SB_CACHE_GB; no effect on numerics). The guard kills at 4 GB.
 - No line changes. Full run started 17:03 (tree/run32.log), with the stop rule at 22:15 and quiet-ticket yielding on.
+
+**TREE-E2E T32, RESULT (21:4x; week98/tree/tree_result_t32_fixed_b32.json, score32.log, gaps_c16_16_vs_32.json): MATCHES
+SIM on both sets; EXACT 264 / 264; pass@1 identical.**
+- **The run:**
+  - 17:03-21:44 in one process; all 264 keys in both arms, so the 22:15 stop rule never fired;
+  - 76,619 tokens per arm, peak footprint 3.26 GB (guard exit 0, no swap growth);
+  - it yielded 10 times to other sessions' quiet windows (~1 min each);
+  - the orchestrator's HOLD (18:52, Kamen closing the laptop) parked it in Sandbox98's PAUSE file at a key boundary
+    (180 / 264) until the partial lift (20:55).
+  - No line changes.
+
+| set | C16@32 kept/check | T32@32 kept/check | T32 / C16 [95 % CI] | like for like: the sim's keys, checks within 512 | S9 sim (eagle2-32 / chain-16) | line |
+|---|---|---|---|---|---|---|
+| HE+ (164) | 5.945 (7,723 checks) | 7.985 (5,750) | **x1.343** [1.329, 1.358] | 5.784 -> 7.864, **x1.360** [1.328, 1.390] (30 keys) | 5.971 -> 7.951, x1.332 [1.300, 1.357] | MATCHES SIM (inside the CI) |
+| MBPP (100) | 4.984 (6,108) | 6.812 (4,469) | **x1.367** [1.345, 1.387] | 4.394 -> 5.970, **x1.359** [1.333, 1.384] (50 keys) | 4.280 -> 5.856, x1.368 [1.346, 1.390] | MATCHES SIM (inside the CI) |
+
+- Both arms commit the same 76,619 tokens. T32 needs 10,219 checks and C16@32 needs 13,831 (x1.353 fewer, pooled).
+  - The kept totals sum to 76,355 (45,911 + 30,444). The other 264 tokens are the prefill tokens, one per key, as in
+    T16.
+- **Full panel, S9's SAME-COST WIN test** (>= 1.03 with the CI above 1, both arms at 32 rows): passes on both sets.
+  - The CI half-widths are 1.1 % (HE+) / 1.5 % (MBPP). The whole panel ran, so the subset rule wasn't needed.
+- **T32 vs T16** (kept/check, paired by key; T16 ran at B = 16, so the texts can differ at near-ties):
+  - HE+ 6.933 -> 7.985, x1.152 [1.121, 1.181];
+  - MBPP 5.864 -> 6.812, x1.162 [1.079, 1.245].
+
+**Exactness:**
+- **EXACT:** T32@32 equals C16@32 token for token on 264 / 264 answers.
+- **The 16-vs-32 batch-shape floor:** C16@32 differs from C16@16 on 120 / 264 answers (144 identical).
+  - At the 120 first differences, the 2B's top-2 gap (read by a third numerics, one [1, S] forward; tree_gaps.py,
+    1.9 GB) is at most 0.375 logits (median 0.125; 57 are exact bf16 ties).
+  - The two runs' tokens are the 2B's top 2 in 117 / 120.
+  - So every difference is a near-tie flip caused by the batch shape, like T16's floor against arm0 (142 / 264, max
+    0.375).
+  - Against J(CC)'s batch-1 arm0, both T32 arms are identical on 118 / 264.
+
+| pass@1 (264 keys, paired) | HE+ (164) | MBPP (100) | pooled | vs C16@32 |
+|---|---|---|---|---|
+| C16@32 | 43.90 | 25.00 | 36.74 | - |
+| T32@32 | 43.90 | 25.00 | 36.74 | **0.00 (0 / 0, p 1.0): identical** |
+| C16@16 (TREE-E2E, for the floor) | 43.29 | 29.00 | 37.88 | |
+
+- C16@32 vs C16@16 is -1.14 pooled (5 / 8 discordant, exact McNemar p 0.58; MBPP -4.0, 2 / 6, p 0.29). That's batch-shape
+  numerics only: against arm0, C16@32 is 0.00 (8 / 8, p 1.0).
+
+**Self-checks:**
+- (a) PASS on both sets. C16@32 like for like: HE+ 5.784 vs the sim's chain-16 5.971 (0.969); MBPP 4.394 vs 4.280
+  (1.027).
+- (b) PASS (smoke at B = 32, as pre-registered): see amendment 1.
+- (c) PASS on every check of the full run: 0 bad of 13,831 (C16@32) and 10,219 (T32@32). T16's stated deviation applies:
+  the reference is the same-numerics committed text.
+
+**Shape (no line):**
+
+| arm | paths per check | depth | checks accepting 0 drafts | all drafts (15 / 31) | off the #1 path | target steps per check | head calls per check | decode time |
+|---|---|---|---|---|---|---|---|---|
+| C16@32 | 1 | 15 | 13.1 % (HE+ 11.5, MBPP 15.2) | 7.0 % | - | 5.53 | 15 | 3,954 s |
+| T32@32 | 8.64 (8.18 / 9.23) | 12.07 (12.66 / 11.31) | 3.9 % (3.7 / 4.3) | 0.46 % | 49.3 % (49.1 / 49.5), 7.42 kept on them | 7.49 | 31 | 4,316 s |
+
+- Mean accepted drafts per check: C16@32 4.52, T32 6.47 (HE+ 4.97 -> 7.03, MBPP 4.01 -> 5.85).
+- Decode time is not a speed result: the run held a share lock beside other jobs, through 10 yields, and both arms step
+  one token per target forward at B = 32.
+
+**Reading:**
+- **The sim prices the 32-node tree right on the 2B too.** Like for like, the real gain sits inside the sim's band on both
+  sets (x1.360 vs x1.332; x1.359 vs x1.368). With T16, both tree sizes the sim priced now match it in real decoding.
+- **At the same 32-row shape, tree-32 keeps x1.34-1.37 over the chain.** The sim's chain-32 gains only x1.01-1.05 over
+  chain-16, so the extra rows pay as breadth, not depth:
+  - about half of T32's checks (49 %) accept a path off the #1 path;
+  - checks that accept nothing fall from 13.1 % to 3.9 %.
+- **Exact and quality-neutral:** 264 / 264 identical, and pass@1 identical. The only text changes come from the batch
+  shape (16 vs 32 rows), and all of them are near-ties.
+- **Against T16:** x1.15-1.16 more kept per check, for twice the head calls (31 vs 15) and a 32-row check. So 32 rows beat
+  16 only where that costs less than ~1.15x a 16-row check. The cost side is Leap's K-row pricing; this run makes no
+  speed claim.
+- **Not shown here:** speed; the 125B (S9c's real t30b trees: EAGLE-2-32 x1.371 / x1.531 vs chain-16).
+- **Novelty (for the papers):** no new method (EAGLE-2 trees; tree verification is lossless by construction).
+  Engineering: the same-shape exactness protocol and the real-vs-sim check at two tree sizes.
+- **Files:**
+  - scripts: week98/tree_decode.py (fork / select v2, --rows, --stop-at, quiet-ticket yield), tree_score.py,
+    tree_gaps.py, jcc_guard.sh;
+  - outputs: tree/c16_fixed_b32.jsonl, t32_fixed_b32.jsonl, tree_result_t32_fixed_b32.json, scores.json, score32.log,
+    gaps_c16_16_vs_32.json, gaps32.log, run32.log.
 
 ## Ranked (final, 01:3x)
 1. **The 2B audits and repairs the head's deep tokens: CONFIRMED on HE+** (D). On MBPP, the frozen schedule was chosen

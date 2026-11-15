@@ -26,6 +26,15 @@ Usage: [BigMoE venv] BIGMOE_MAXK=160 BIGMOE_PRED_LINES=4 BIGMOE_PF_JIT=1 BIGMOE_
 import os as _c55os, sys as _c55sys                      # C55 / E14
 _c55sys.path.insert(0, _c55os.path.expanduser("~/Leap/scripts/week98/e14"))
 _c55sys.path.insert(1, _c55os.path.expanduser("~/BigMoE/scripts"))
+E14_L2, E14_L2N, E14_L2ERR = [False], [0], []           # E14: lever 2 on / calls / errors (e14_engine sets E14_L2 per arm)
+
+
+def _e14_md():                                           # E14: Breakthrough's moe_dense, read-only, appended (no shadowing)
+    d_ = _c55os.path.expanduser("~/Breakthrough/scripts/m1/check55")
+    if d_ not in _c55sys.path:
+        _c55sys.path.append(d_)
+    import moe_dense
+    return moe_dense
 import ctypes, json, os, sys, threading, time
 os.environ.pop("MTPLX_FUSED_GATE_UP", None)            # the streamed engine has no fused gate | up
 os.environ.pop("BIGMOE_TIER", None)
@@ -415,10 +424,22 @@ if os.environ.get("K73_EXACT") == "1":                  # K-73 (Leap 11-01, ~/Le
                 or x.ndim < 2 or int(np.prod(x.shape[:-1])) > 16 or not self.norm_topk_prob):
             return _fb(self, x)
         K73N[0] += 1
-        inds, scores = router_fused(self.gate(x), self.top_k)   # R-70: bitwise == softmax .. argsort .. take chain
+        l2 = False
+        if E14_L2[0]:                                       # E14 (Leap, Sun 21:3x): CHECK55 lever 2 (Breakthrough's moe_dense,
+            try:                                            # bitwise == the pair below, 108 / 108). Any error falls back to
+                inds, scores, g, s = _e14_md().dense_pre(self, x)   # the pair and is recorded for the report; the first
+                if E14_L2N[0] == 0:                         # call (a warm-up round) is evaluated here, so a kernel build
+                    mx.eval(inds, scores, g, s)             # error is caught too
+                E14_L2N[0] += 1
+                l2 = True
+            except Exception as e_:
+                E14_L2ERR.append(repr(e_)[:300])
+        if not l2:
+            inds, scores = router_fused(self.gate(x), self.top_k)   # R-70: bitwise == softmax .. argsort .. take chain
         if EM.STATE.capture is not None:
             EM.STATE.capture.setdefault(bm["L"], []).append(inds)
-        g, s = shared_cat(self, x)                              # R-74: == shared_expert_gate(x), shared_expert(x), bitwise
+        if not l2:
+            g, s = shared_cat(self, x)                              # R-74: == shared_expert_gate(x), shared_expert(x), bitwise
         bm["tier"]["scores"], bm["tier"]["shared"] = scores, s   # OOO's spins wait behind the shared expert, as before
         PR["cur"] = bm["L"] if PR["on"] else None              # R57_PREROUTE: OOO's combine stashes L's partial sums
         try:

@@ -6,11 +6,14 @@
 #      tools/replay_unset_check.py; S3 p2x45rpl1, lossycalx45rpl1, then m1bx45rpl1 (MEM 47) on those margins. m1b goes
 #      last, with its own 90-min cutoff, so a memory shortfall cannot hold up the base.
 #   2. The close-call BASE lx45cc1 (amendment 3): forward, then reverse if the forward completed.
-# Start: BigMoE's end marker (newer than the arming), or from 01:30 with no other session's lock above 5 GB. Either is
-# read twice, 30 s apart. No start after 08:00. Runner 64 then gates each process on NO-SWAP memory and takes its share
-# lock, behind any quiet lock or queue. Cutoffs: 09:30 for the calibration, 14:00 for the base (apps closed until 15:00).
-# EVERY end writes results/CHAIN_1116_END, after the runner and its children exit and peer unlock. Breakthrough starts
-# on it; never touch its GO file. Stop the chain by pid only: it then stops its runner and the runner's children.
+# Start: BigMoE's end marker (newer than the arming), or from 02:00 with no other session's lock above 5 GB. Either is
+# read twice, 30 s apart, and neither starts while HOLD, PAUSE or a shut lid (no external display) holds. No start
+# after 08:00. Runner 64 then gates each process on NO-SWAP memory and takes its share lock, behind any quiet lock or
+# queue, and waits out PAUSE and a shut lid itself. A HOLD before or during a run stops the chain, the runner and its
+# children too. Cutoffs: 09:30 for the calibration, 14:00 for the base (apps closed until 15:00).
+# EVERY end writes results/CHAIN_1116_END, after the runner and its children exit and peer unlock; a HOLD stop says so.
+# Breakthrough starts on it; never touch its GO file. Stop the chain by pid only, with a plain kill (TERM): it then
+# stops its runner and the runner's children. kill -9 skips the marker.
 # CHAIN_DRY=1: every runner call as a dry run (CARD_DRY=1); no wait, no GPU, no marker.
 #   CHAIN_MYPID=<this session's Claude pid> [CHAIN_DRY=1] tools/night1116_chain.sh
 export PATH="$HOME/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:$PATH"
@@ -19,8 +22,9 @@ DRY=${CHAIN_DRY:-0}; L=results/night1116_chain.log; END=results/CHAIN_1116_END
 MYPID=${CHAIN_MYPID:?set CHAIN_MYPID to this session s Claude pid}
 MARK=$HOME/BigMoE/data/deepdraft/bank/NIGHT1115_BIGMOE_DONE
 ep() { date -j -f "%Y-%m-%d %H:%M:%S" "$1:00" +%s; }
-FALLBACK=$(ep "2026-11-16 01:30"); LATEST=$(ep "2026-11-16 08:00")
+FALLBACK=$(ep "2026-11-16 02:00"); LATEST=$(ep "2026-11-16 08:00")
 CALCUT="2026-11-16 09:30"; BASECUT="2026-11-16 14:00"; ARMED=$(date +%s)
+Q=${CHAIN_QDIR:-$HOME/.local/share/quiet}                  # HOLD and PAUSE live here; CHAIN_QDIR: tests only
 BMS=$HOME/BigMoE/data/stack; EXACT=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2
 RPL=data/r57/snap/rpl1=0fb256faba39d467950e5c451b751c6d3b347786,data/r57/snap/frozen_rpl1=db72c3c1367e2c68f9a1365ed8d6137fce6c8af6,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f
 CC=data/r57/snap/cc1=85a88a46a945b3a4d21cc2c6fb216372fa549eab,data/r57/snap/frozen_cc1=ec97bdbb7ac3ba7fdd1cdf845762e4957d6b4c06,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f
@@ -41,7 +45,7 @@ finish() {
 }
 trap finish EXIT
 trap 'STATUS="stopped by a signal during: $STATUS"; exit 143' TERM INT
-biglock() {     # another live session's lock above 5 GB: quiet, "MEM n" with n >= 6, or GPU >= 30 (a lapsed one counts)
+biglock() {     # another live session's lock above 5 GB: quiet, "MEM n" with n >= 6, or no MEM and GPU >= 30 (a lapsed one counts)
   python3 - "$MYPID" <<'BL'
 import glob, json, os, re, sys, time
 for f in glob.glob(os.path.expanduser("~/.claude-peers/locks/*.json")):
@@ -55,39 +59,58 @@ for f in glob.glob(os.path.expanduser("~/.claude-peers/locks/*.json")):
     if not d.get("mode") or d.get("until", 0) < time.time():
         continue
     m = re.search(r"MEM (\d+)", d.get("why", ""))
-    if d["mode"] == "quiet" or (m and int(m.group(1)) >= 6) or d.get("gpu", 0) >= 30:
+    if d["mode"] == "quiet" or (m and int(m.group(1)) >= 6) or (not m and d.get("gpu", 0) >= 30):
         print(f"{pid} {d['mode']} gpu {d.get('gpu')}: {d.get('why', '')[:90]}"); sys.exit(0)
 sys.exit(1)
 BL
 }
-startok() {     # 0 = go: BigMoE's marker newer than the arming, or past 01:30 with no other lock above 5 GB
+held() {        # 0 = held: Kamen's HOLD, the PAUSE file, or the lid shut with no external display (runner 64's lid_shut)
+  [ -e "$Q/HOLD" ] && { HELD="HOLD"; return 0; }
+  [ -e "$Q/PAUSE" ] && { HELD="PAUSE"; return 0; }
+  ioreg -r -k AppleClamshellState -d 4 2>/dev/null | grep -m1 '"AppleClamshellState"' | grep -q Yes || return 1
+  (( $(system_profiler SPDisplaysDataType -detailLevel mini 2>/dev/null | grep -c "Resolution:") > 1 )) && return 1
+  HELD="the lid shut, no external display"; return 0
+}
+startok() {     # 0 = go: not held, and BigMoE's marker newer than the arming or past 02:00 with no other lock above 5 GB
+  held && return 1
   if [ -e "$MARK" ] && [ "$(stat -f %m "$MARK")" -ge "$ARMED" ]; then
     WHY="BigMoE's end marker ($(head -c 100 "$MARK" | tr '\n' ' '))"; return 0
   fi
-  if [ "$(date +%s)" -ge "$FALLBACK" ] && ! biglock > /dev/null; then WHY="the 01:30 fallback, no other lock above 5 GB"; return 0; fi
+  if [ "$(date +%s)" -ge "$FALLBACK" ] && ! biglock > /dev/null; then WHY="the 02:00 fallback, no other lock above 5 GB"; return 0; fi
   return 1
 }
 run() {         # label, the run's TG (for its DONE file), then runner 64's K=V settings; the runner is a stoppable child
   local lab=$1 tg=$2 rc; shift 2
+  [ -e "$Q/HOLD" ] && { STATUS="stopped by HOLD before: $STATUS"; say "HOLD: $lab not started"; exit 8; }
   say "$lab: $*"
   env CARD_DRY="$DRY" "$@" tools/day_runner64.sh >> results/night1116_chain_runner.out 2>&1 &
-  RPID=$!; wait "$RPID"; rc=$?; RPID=""
+  RPID=$!
+  while kill -0 "$RPID" 2>/dev/null; do     # a HOLD mid-run: the finish trap stops the runner and its children
+    [ -e "$Q/HOLD" ] && { STATUS="stopped by HOLD during: $STATUS"; say "HOLD: stopping $lab"; exit 8; }
+    sleep 15
+  done
+  wait "$RPID"; rc=$?; RPID=""
   say "$lab: rc $rc; $(cut -c1-220 "results/CARD_${tg}_DONE" 2>/dev/null)"
   return "$rc"
 }
 say "chain (pid $$$([ "$DRY" = 1 ] && echo ', DRY'); session $MYPID): calibration (cutoff $CALCUT), then the base (cutoff $BASECUT)"
 if [ "$DRY" != 1 ]; then
-  say "waits for $MARK (newer than the arming) or the 01:30 fallback; no start after 08:00"
-  n=0
+  say "waits for $MARK (newer than the arming) or the 02:00 fallback; no start while HOLD, PAUSE or a shut lid, nor after 08:00"
+  n=0; lasth=""
   while :; do
+    h=$(held && echo "$HELD")
+    if [ "$h" != "$lasth" ]; then
+      if [ -n "$h" ]; then say "held: $h (no start while held)"; else say "no longer held"; fi
+      lasth=$h
+    fi
     if startok; then
       w1=$WHY; sleep 30
       if startok; then say "start: $w1; read again 30 s later: $WHY"; break; fi
       say "the start condition did not hold 30 s later: waiting"
     fi
-    [ "$(date +%s)" -lt "$LATEST" ] || { STATUS="no start by 08:00 (no marker, or another lock above 5 GB): no run"; say "$STATUS"; exit 6; }
+    [ "$(date +%s)" -lt "$LATEST" ] || { STATUS="no start by 08:00 (${h:+held: $h; }no marker, or another lock above 5 GB): no run"; say "$STATUS"; exit 6; }
     n=$((n + 1))
-    [ $((n % 30)) = 0 ] && say "waiting: $([ -e "$MARK" ] && echo 'the marker predates the arming' || echo 'no marker yet'); $(biglock | head -1)"
+    [ $((n % 30)) = 0 ] && say "waiting: ${h:+held: $h; }$([ -e "$MARK" ] && echo 'the marker predates the arming' || echo 'no marker yet'); $(biglock | head -1)"
     sleep 60
   done
   say "free NO-SWAP $(.venv/bin/python -c "import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()))") GB; swap $(sysctl -n vm.swapusage | awk '{print $3}')"

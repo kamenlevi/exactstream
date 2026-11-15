@@ -1,0 +1,38 @@
+# CERTIFY98 amendment 7: certify98_tree.py checks (Sun 2026-11-15 22:1x; sha256 e1f136513ec18522)
+## dev verdict (information)
+HE+: 24 windows; tree dump k 8, 32 nodes; chain-16 10.625, chain-32 13.769 (= certify98 kept/32)
+  tree-16: 11.263 kept per check = x1.060 chain-16 (one-sided 95 % lower bound x1.031; se of log 0.0162)
+  tree-32: 16.263 kept per check = x1.531 chain-16 (one-sided 95 % lower bound x1.470; se of log 0.0234)
+  tree-64 / tree-128: n/a (the dump has 32 nodes)
+  coverage chain-16 by band: 0-0 93.33  1-2 93.46  3-6 93.99  7-10 95.36  11-14 96.94
+  coverage tree-16 by band: 0-0 98.23  1-2 96.16  3-6 93.20  7-10 94.60  11-14 96.08
+  HE+: PASS
+MBPP: 100 windows; tree dump k 8, 32 nodes; chain-16 6.588, chain-32 6.924 (= certify98 kept/32)
+  tree-16: 7.487 kept per check = x1.136 chain-16 (one-sided 95 % lower bound x1.119; se of log 0.0093)
+  tree-32: 9.031 kept per check = x1.371 chain-16 (one-sided 95 % lower bound x1.351; se of log 0.0086)
+  tree-64 / tree-128: n/a (the dump has 32 nodes)
+  coverage chain-16 by band: 0-0 89.72  1-2 86.27  3-6 85.64  7-10 83.51  11-14 85.13
+  coverage tree-16 by band: 0-0 97.61  1-2 91.92  3-6 85.73  7-10 80.07  11-14 78.52
+  MBPP: PASS
+CERTIFY98 TREE-16: PASS (HE+ T 1.060 [LB 1.031]; MBPP T 1.136 [LB 1.119]; bars: LB >= 1.025, T >= 1.05575)
+## (a) the HE+ dump relabelled k = 16 as a gated input: must VOID
+  CHECK FAILED: the line reads a top-8 tree; this dump has k = 16 (information only)
+CERTIFY98 TREE-16: VOID (a check failed) (HE+ T 1.060 [LB 1.031]; MBPP T 1.136 [LB 1.119]; bars: LB >= 1.025, T >= 1.05575)
+## (b) one node missing: must fail the node-count check
+short: 24 windows; tree dump k 8, 32 nodes; chain-16 10.625, chain-32 13.769 (= certify98 kept/32)
+  tree-16: 11.263 kept per check = x1.060 chain-16 (one-sided 95 % lower bound x1.031; se of log 0.0162)
+  tree-32: 16.263 kept per check = x1.531 chain-16 (one-sided 95 % lower bound x1.470; se of log 0.0234)
+  tree-64 / tree-128: n/a (the dump has 32 nodes)
+  coverage chain-16 by band: 0-0 93.33  1-2 93.46  3-6 93.99  7-10 95.36  11-14 96.94
+  coverage tree-16 by band: 0-0 98.23  1-2 96.16  3-6 93.20  7-10 94.60  11-14 96.08
+  CHECK FAILED: the dump does not hold exactly 32 nodes at each of its 6375 anchors
+rc 1
+## (c) 127 nodes, 95 off-path nodes padded per anchor: tree-64 = tree-128 = all 32 original nodes
+n127: 24 windows; tree dump k 8, 127 nodes; chain-16 10.625, chain-32 13.769 (= certify98 kept/32)
+  tree-16: 11.263 kept per check = x1.060 chain-16 (one-sided 95 % lower bound x1.031; se of log 0.0162)
+  tree-32: 16.263 kept per check = x1.531 chain-16 (one-sided 95 % lower bound x1.470; se of log 0.0234)
+  tree-64: 16.473 kept per check = x1.550 chain-16 (one-sided 95 % lower bound x1.486; se of log 0.0247)
+  tree-128: 16.473 kept per check = x1.550 chain-16 (one-sided 95 % lower bound x1.486; se of log 0.0247)
+  coverage chain-16 by band: 0-0 93.33  1-2 93.46  3-6 93.99  7-10 95.36  11-14 96.94
+  coverage tree-16 by band: 0-0 98.23  1-2 96.16  3-6 93.20  7-10 94.60  11-14 96.08
+rc 0

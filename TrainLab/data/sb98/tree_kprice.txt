@@ -1,0 +1,21 @@
+SELF-CHECK mbppbank: layout == certify98, chain-32 6.92 == 6.92; real trees loaded
+SELF-CHECK heplus24: layout == certify98, chain-32 13.77 == 13.77; real trees loaded
+calibration (sum |log proxy / real| at K 16 + 32, both sets): g0.5 0.3270, g0.75 0.1568, g1.0 0.0353, g1.25 0.0885, g1.5 0.1776, g2.0 0.2902 -> calibrated gamma 1.0
+
+KEPT PER CHECK vs K (lab, exact, under the walk); real <= 32; proxy central = calibrated gamma; band = gamma 0.5 .. 2
+  mbpp: K16 real 7.49, proxy 7.45 [6.96..8.04] | K32 real 9.03, proxy 8.98 [7.92..10.10] | K48 proxy 9.73 [8.35..10.96] | K64 proxy 10.16 [8.69..11.60] | K96 proxy 10.88 [9.09..12.39] | K128 proxy 11.24 [9.38..13.02]
+  he: K16 real 11.26, proxy 11.18 [10.81..11.76] | K32 real 16.26, proxy 15.98 [15.00..17.32] | K48 proxy 17.18 [15.66..18.81] | K64 proxy 17.91 [16.06..19.68] | K96 proxy 18.86 [16.64..20.70] | K128 proxy 19.14 [17.00..21.46]
+
+SHAPE at each K (over the walk's check starts; real <= 32, else the calibrated proxy):
+  mbpp K16: max depth mean 10.3 (p10 6 / p50 10 / p90 15); off the #1 spine 35 % of nodes; widths d0-3 [1.44, 1.76, 1.89, 1.77]; nodes per depth 1.4 1.8 1.9 1.8 1.6 1.3 1.1 1.0 0.8 0.6 0.5 0.4 0.3 0.2 0.2
+  mbpp K32: max depth mean 14.5 (p10 8 / p50 13 / p90 23); off the #1 spine 57 % of nodes; widths d0-3 [1.74, 2.43, 2.87, 3.0]; nodes per depth 1.7 2.4 2.9 3.0 2.9 2.6 2.3 2.1 1.9 1.5 1.3 1.1 0.9 0.8 0.6 0.5 0.4 0.4 0.3 0.2 0.2 0.2 0.1 0.1 0.1 0.1 0.0 0.0 0.0 0.0 0.0
+  mbpp K48: max depth mean 14.3 (p10 7 / p50 13 / p90 24); off the #1 spine 69 % of nodes; widths d0-3 [1.95, 3.24, 4.0, 4.38]; nodes per depth 2.0 3.2 4.0 4.4 4.4 4.1 3.7 3.4 3.0 2.6 2.1 1.8 1.5 1.3 1.0 0.8 0.7 0.6 0.5 0.4 0.3 0.3 0.2 0.2 0.1 0.1 0.1 0.1 0.1 0.0 0.0
+  mbpp K64: max depth mean 15.3 (p10 8 / p50 14 / p90 26); off the #1 spine 76 % of nodes; widths d0-3 [2.16, 3.71, 4.73, 5.46]; nodes per depth 2.2 3.7 4.7 5.5 5.6 5.4 4.9 4.5 4.1 3.6 3.0 2.6 2.2 1.9 1.6 1.3 1.1 0.9 0.8 0.7 0.5 0.5 0.4 0.3 0.2 0.2 0.2 0.1 0.1 0.1 0.1
+  mbpp K96: max depth mean 16.5 (p10 8 / p50 15 / p90 28); off the #1 spine 83 % of nodes; widths d0-3 [2.35, 4.42, 6.04, 7.28]; nodes per depth 2.3 4.4 6.0 7.3 7.9 7.9 7.5 7.0 6.4 5.7 4.9 4.2 3.6 3.1 2.6 2.3 2.0 1.7 1.4 1.2 1.0 0.8 0.7 0.6 0.5 0.4 0.3 0.3 0.3 0.2 0.2
+  mbpp K128: max depth mean 17.3 (p10 9 / p50 16 / p90 30); off the #1 spine 86 % of nodes; widths d0-3 [2.52, 4.97, 7.24, 9.08]; nodes per depth 2.5 5.0 7.2 9.1 10.0 10.1 9.8 9.3 8.5 7.7 6.8 6.0 5.1 4.4 3.8 3.3 2.8 2.5 2.2 1.8 1.5 1.3 1.1 1.0 0.8 0.7 0.6 0.5 0.4 0.4 0.3
+  he K16: max depth mean 12.5 (p10 7 / p50 15 / p90 15); off the #1 spine 19 % of nodes; widths d0-3 [1.28, 1.44, 1.47, 1.38]; nodes per depth 1.3 1.4 1.5 1.4 1.2 1.1 1.0 1.0 0.9 0.8 0.8 0.7 0.7 0.6 0.6
+  he K32: max depth mean 20.7 (p10 8 / p50 20 / p90 31); off the #1 spine 37 % of nodes; widths d0-3 [1.55, 1.97, 2.21, 2.24]; nodes per depth 1.5 2.0 2.2 2.2 2.0 1.8 1.7 1.5 1.4 1.3 1.2 1.2 1.1 1.0 0.9 0.8 0.7 0.7 0.6 0.6 0.6 0.5 0.5 0.5 0.4 0.4 0.4 0.4 0.3 0.3 0.3
+  he K48: max depth mean 20.8 (p10 8 / p50 23 / p90 31); off the #1 spine 56 % of nodes; widths d0-3 [1.88, 2.87, 2.96, 3.11]; nodes per depth 1.9 2.9 3.0 3.1 2.9 2.8 2.5 2.2 2.0 1.9 1.8 1.7 1.5 1.4 1.4 1.3 1.2 1.1 0.9 1.0 0.9 0.9 0.9 0.8 0.8 0.8 0.7 0.7 0.7 0.6 0.6
+  he K64: max depth mean 21.3 (p10 8 / p50 23 / p90 31); off the #1 spine 66 % of nodes; widths d0-3 [1.97, 3.13, 3.8, 3.88]; nodes per depth 2.0 3.1 3.8 3.9 3.7 3.6 3.3 2.8 2.6 2.4 2.2 2.1 2.0 1.9 1.7 1.6 1.5 1.4 1.4 1.4 1.3 1.3 1.3 1.3 1.3 1.3 1.3 1.2 1.2 1.2 1.2
+  he K96: max depth mean 22.3 (p10 8 / p50 26 / p90 31); off the #1 spine 76 % of nodes; widths d0-3 [2.12, 3.88, 4.72, 5.24]; nodes per depth 2.1 3.9 4.7 5.2 5.2 5.1 4.6 4.1 3.5 3.4 3.2 3.1 3.0 2.9 2.7 2.5 2.5 2.5 2.3 2.3 2.2 2.2 2.2 2.2 2.2 2.3 2.3 2.3 2.3 2.4 2.4
+  he K128: max depth mean 22.9 (p10 9 / p50 29 / p90 31); off the #1 spine 82 % of nodes; widths d0-3 [2.17, 4.36, 5.66, 6.45]; nodes per depth 2.2 4.4 5.7 6.4 6.6 6.6 6.0 5.3 4.5 4.2 4.1 4.1 3.9 3.9 3.7 3.6 3.6 3.4 3.3 3.3 3.2 3.2 3.3 3.3 3.3 3.3 3.3 3.4 3.4 3.5 3.5

@@ -368,3 +368,49 @@
   - last line `CERTIFY98 TREE-16: PASS | BETWEEN | FAIL | VOID (...)`.
   - On the dev sets (information): PASS on both (HE+ T 1.060 [LB 1.031]; MBPP 1.136 [1.119]).
   - Edge tests: T 1.0557 FAILs, 1.0558 passes, LB 1.0249 gives BETWEEN. TREE-REPRODUCE still passes.
+
+## Amendment 7 (Sun 2026-11-15 22:1x, before any capture or candidate): bigger trees; a 127-node, top-16 TREE pass
+> (a quote from the project owner, kept private)
+  dump spec, asked for a fresh-set TREE dump of 127 nodes per anchor, so tree-32 / 64 / 128 are measured on fresh data.
+  Fresh data is one-shot. MTP Head also asked for top-16 children: K98 puts the top-8 ceiling at 98-100 % of reached
+  positions, and a tree-64 / 128 can reach a 9th-16th child near the root.
+- **The TREE passes** (scripts/dd_tree.py, best-first by path probability; anchors are TOPK's depth-0 cells; TOPK's
+  layout stays frozen at 9f49e03):
+  - **T8:** top-8 children, the tree registered in amendments 5, 6 and 6a. It is the tree line's only input; tree-16
+    reads its first 15 pops.
+    - 32 nodes, as in amendment 5. If the tree-K line (NewIdeas, due Wed ~18:00) reads top-8 trees beyond 32 nodes,
+      T8 becomes 127 nodes.
+    - A best-first tree's first n pops do not depend on the budget. BigMoE checks this bitwise on Tuesday's bank
+      pass: a 127-node top-8 pass on heplus24 must equal today's 32-node dump in its first 32 pops.
+  - **T16:** top-16 children, 127 nodes (MTP Head's spec). The per-node top_ids / top_p are 16 wide. Its check against
+    TOPK compares the first 8.
+    - INFORMATION: tree-N at k = 16, and MTP Head's top-8 truncation count.
+    - A top-16 tree's first 15 pops can differ from the top-8 tree's, since a 9th-16th child near the root can
+      outrank a deep node. So the tree-16 line never reads T16.
+    - The tree-K line may read T16 if it is filed on top-16 trees before the proof-run amendment.
+  - Both passes come from the same sitting as TOPK, after the proof-run amendment (amendment 5's single look). That
+    amendment lists the final passes and their arguments.
+- **The scorer:** tools/certify98_tree.py reads tree-N for N = 16, 32, 64 and 128 wherever the dump holds the first
+  N - 1 pops (`nodes` >= N - 1). It also checks that every anchor holds exactly `nodes` nodes.
+  - `verdict` VOIDs the tree line if a gated dump's k is not 8.
+  - Chain-N stays at 16 and 32, since TOPK holds 32 depths.
+  - Tests: TREE-REPRODUCE still passes (max |diff| 0.0005), and the dev verdict is unchanged (PASS; HE+ T 1.060
+    [LB 1.031], MBPP 1.136 [1.119]).
+  - A dump relabelled k = 16 VOIDs the verdict. A dump with one node missing fails the node-count check.
+  - A 127-node dump padded with off-path nodes reads tree-64 = tree-128 = all 32 original nodes.
+- **The capture's generation length:**
+  - Each answer is decoded to EOS on the runtime path, capped at the dev captures' 512 tokens: d1102mbpp ran with
+    DLOG_MAXTOK=512 (TrainLab turns/e2_cap.sh). Its 375 answers averaged 139 tokens, max 524; the 8 longest end at
+    516-524, the cap plus the last check's overshoot.
+  - The anchors are about the answer tokens: ~105-120K (HumanEval+ ~35-37K, MBPP ~42-47K at the bank's density,
+    everyday ~25-30K).
+- **The dump manifest:** dumps_sha256.json beside the outputs. It is separate from files_sha256.json, which the
+  proof-run amendment freezes before any dump exists.
+  - It holds files_sha256.json's sha256; the candidate checkpoint's sha256; BigMoE's commit, dd_topk.py's and
+    dd_tree.py's sha256s and their arguments (k, nodes, parts); and one sha256 per output file.
+  - EvalSuite copies it to results/certify98/ and commits it before scoring. The scorer runs only on files whose sha256
+    match it, and the RESULT quotes it.
+- **The window** (the orchestrator decides): TOPK + T8 + T16 take ~2.2-2.5 h head-only at ~12.5 GB peak (BigMoE's
+  estimate; Tuesday's bank passes measure it), in --part slices.
+  - Proposed: Thursday by day, right after the proof-run amendment, as the one job above 4 GB. Scoring is then done
+    Thursday evening, before the night's proof run.

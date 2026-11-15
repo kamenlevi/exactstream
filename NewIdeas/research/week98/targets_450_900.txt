@@ -1,0 +1,32 @@
+Targets on code (Kamen 22:1x): 450 tok/s EXACT, 900 tok/s LOSSY. tok/s = kept / (check + overhead + unhidden drafting).
+Overhead 4 ms (commit replay + seams, WEEK98 spec); drafting HIDDEN unless stated.
+
+A. kept per 32-row check NEEDED for each target, by check time (and its flat per-guess equivalent):
+  450 exact  check byte floor 49.1          49.1 ms -> kept >=  23.9 (flat 98.03 %)
+  450 exact  check byte floor 52.0          52.0 ms -> kept >=  25.2 (flat 98.40 %)
+  450 exact  check contract ~86 [est]       86.2 ms -> kept >=  40.6 (> 32 rows: impossible at 32)
+  450 exact  check today G32T ~100         100.8 ms -> kept >=  47.1 (> 32 rows: impossible at 32)
+  900 lossy  check lossy floor 20.9         20.9 ms -> kept >=  22.4 (flat 97.57 %)
+  900 lossy  check lossy goal 25            25.0 ms -> kept >=  26.1 (flat 98.64 %)
+
+B. kept per 32-row check TODAY (dev replay = real decoding per kept_walk; LAB = not deployable) and its flat equivalent:
+  chain-32 (t30b)                       13.77  flat-equivalent 93.62 %
+  + 2B audit P=2 (chain-32)             15.00  flat-equivalent 94.38 %
+  + lookup UB (chain-32)                14.96  flat-equivalent 94.36 %
+  tree-32 (EAGLE-2)                     16.26  flat-equivalent 95.07 %
+  chain-32 + close-call d1 (LOSSY) ~    16.77  flat-equivalent 95.33 %
+  LAB true state (chain-32)             20.77  flat-equivalent 97.00 %
+  flat 97.8 %                           23.15  flat-equivalent 97.80 %
+
+C. tok/s grid (drafting hidden, +4 ms): kept x check
+                                          exact floor 49.1    exact floor 52.0  exact contract ~86    exact today ~100    lossy floor 20.9            lossy 25
+  chain-32 (t30b)                                      259                 246                 153                 131                 553                 475
+  + 2B audit P=2 (chain-32)                            282                 268                 166                 143                 602                 517
+  + lookup UB (chain-32)                               282                 267                 166                 143                 601                 516
+  tree-32 (EAGLE-2)                                    306                 290                 180                 155                 653                 561
+  chain-32 + close-call d1 (LOSSY) ~                   316                 299                 186                 160                 673                 578
+  LAB true state (chain-32)                            391                 371                 230                 198                 834                 716
+  flat 97.8 %                                          436                 413                 257                 221                 930                 798
+
+D. Unhidden drafting: tree-32 ~20.8 levels x ~1.15 ms = ~24 ms; chain-32 31 steps x ~1.15 = ~36 ms (Leap P2 standalone);
+   today's chain head reads 5.4 GB per block (>= 19 ms). Exact floor 52 + 4 + 24: tree-32 -> 203 tok/s.

@@ -263,3 +263,58 @@ is a new test with its own line.
 - **Monday:** BOF joins E1 and BOF2-O joins E2's C32 arm, next to the contract arms.
 - **Revised REF2-T central [est], subject to the engine A/B:** 16 rows ~57-58 -> ~55-56; 32 rows (C7c tonight, then
   E2) ~76 -> ~74.
+
+## E14 PRE-REGISTERED (Sun 20:5x, before any run): Monday night's engine A/Bs, E1-E2 + the contract
+- **Setup:**
+  - scripts/week98/e14/: e14_loop.py (a copy of Breakthrough's C55 loop, itself BigMoE's r57_screen_fast.py with the C55
+    hooks), e14_engine.py (the arms), e14_env.sh (G32T's env), run_e14.sh (the slot runner).
+  - Exact-45 loop, C 160, MAXK 320, quiet ticket.
+  - G32T's 3 windows; 2 warm-up + 16 timed rounds per window, the arms rotated. Each check is on a rollback to the
+    window's prefill (the same tokens: warm n-gram rows). Wall per check: verify + read + commit.
+- **Arms:**
+  - A16: REF2-T 16 rows.
+  - C32: v32's split.
+  - C32one: v32one + seams to 32.
+  - C32oneB: C32one + BOF2 on o_proj / out_proj.
+  - A16b: BOF.
+  - A16h: hc_b toggled on.
+  - A16c / C32c: the reference contract (refc).
+- **Bits first, on every window** (a failing pair voids that arm's verdict):
+  - C32one, C32oneB == C32 (32 / 32);
+  - A16b, A16h == A16 (16 / 16);
+  - C32[:16] == A16 (REF2-T's SD == AR at 32 rows);
+  - C32c[:16] == A16c (the contract's own).
+  - A16c differs from A16 by design.
+- **Lines** (medians of per-round paired values over the 3 windows x 16 rounds; [est] = my prior):
+
+| pair | measure | PASS | BETWEEN | KILL | prediction |
+|---|---|---|---|---|---|
+| E2 step 1: C32one / A16 | ratio | <= 1.35 (step 1 meets its target) | 1.35-1.45 (partial) | > 1.45 (profile before the tree-32 line) | 1.40-1.50 |
+| C32 / A16 (reference) | ratio | info (G32T: 1.625) | | | 1.55-1.65 |
+| BOF: A16b - A16 | ms | <= -1.25 | -1.25..-0.5 | > -0.5 | -1.5..-2.5 [est -2.5] |
+| BOF2-O: C32oneB - C32one (its own line) | ms | <= -1.0 | -1.0..-0.4 | > -0.4 | -1..-2 [est -2] |
+| hc_b: A16h - A16 | ms | <= -0.5 | -0.5..-0.2 | > -0.2 | -0.5..-1 |
+| contract 16: A16c - A16 | ms | <= -2.0 | -2.0..-0.8 | > -0.8 | -2.5..-4 [est -4] |
+| contract 32: C32c - C32one | ms | <= -2.0 | -2.0..-0.8 | > -0.8 | -2..-4 [est -4] |
+
+- **Use:**
+  - The exact arms (BOF, BOF2-O, hc_b) PASS -> into ref2 behind switches for the exact-45 path, after BigMoE's review.
+  - The contract arms are evidence for Kamen's reference switch next week (adoption is his call). The report's
+    per-form counts show which contract shapes fired on the engine (the shared cat may not).
+
+## E14 AMENDMENT 1 (Sun 21:4x, before any run): CHECK55 lever 2 (Breakthrough's MoE dense side) joins E14
+- **What:** A16m / C32onem = A16 / C32one with Breakthrough's moe_dense.dense_pre in place of K-73's router_fused +
+  shared_cat pair (bitwise, 108 / 108 in its own test, 412f1bc / 3ae46ba).
+  - <= 16 rows: an E14 patch in e14_loop.py's _exact_block (the E14_L2 flag).
+  - 17-32 rows: e14_engine._tier_block_l2 wraps v32._tier_block at runtime; v32.py is not edited.
+  - Any error falls back to the pair and is reported.
+- **Wiring, desk-tested** (e14_l2_mock.py: a mock block at the 125B's shapes, ref2 + v32 + v32one,
+  data/week98/e14/l2_mock.txt): bitwise vs v32's _tier_block at 32 / 24 rows and vs the K-73 pair in the loop's
+  _exact_block at 16 / 9 rows; no errors, no fallbacks. The head test passes with moe_dense imported (its source
+  checksums match).
+- **Bits on the engine:** A16m == A16; C32onem == C32.
+- **Lines:**
+  - A16m - A16: the orchestrator's -0.05 ms per layer x 48 layers -> PASS <= -2.4 ms; BETWEEN -2.4..-0.5; KILL > -0.5.
+  - C32onem - C32one: reported (Breakthrough's doc reports 32 rows).
+- **Prediction:** A16m - A16 -0.3..-2.0 ms (Breakthrough's desk timing: -7..-42 us per layer), so most likely BETWEEN.
+- 10 arms; the latest start (02:15) and the 03:00 hard end are unchanged.

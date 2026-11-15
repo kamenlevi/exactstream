@@ -1,0 +1,16 @@
+one-pass byte floor: K16 10.9 GB 39 ms (0.288 kept/ms), K32 14.7 GB 52 ms (0.310 kept/ms), K48 17.3 GB 62 ms (0.277 kept/ms), K64 19.5 GB 70 ms (0.257 kept/ms), K96 22.7 GB 81 ms (0.233 kept/ms), K128 25.1 GB 90 ms (0.213 kept/ms)
+
+early death: dead subtrees leave the batch after layer L; S survivors; repair pass = a check of S rows (46 ms at S 24)
+   K    L    S   GB   byte ms  kept/ms  vs K32 one-pass  break-even false-drop rate
+  64    8   24   13.9     49.7    0.360           x1.16  18 %
+  64    8   32   15.5     55.3    0.324           x1.04  5 %
+  64   16   24   15.0     53.7    0.333           x1.08  9 %
+  64   16   32   16.3     58.2    0.308           x0.99  none
+  64   24   24   16.2     57.7    0.310           x1.00  0 %
+  64   24   32   17.1     61.0    0.293           x0.95  none
+ 128    8   24   14.9     53.1    0.361           x1.16  19 %
+ 128    8   32   16.4     58.7    0.326           x1.05  6 %
+ 128   16   24   16.9     60.4    0.317           x1.02  3 %
+ 128   16   32   18.2     64.9    0.295           x0.95  none
+ 128   24   24   19.0     67.7    0.283           x0.91  none
+ 128   24   32   19.9     71.1    0.269           x0.87  none

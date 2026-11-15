@@ -58,3 +58,27 @@ re-frozen (t16c) and this file says so before the run. runs.json "t16" records e
 
 **Analysis.** scripts/tree16_m4ab.py (committed with this file, tested on fake runs) -> data/deepdraft/tree16/m4ab.json.
 The runner calls it on any end.
+
+## Amendment 1 (Sun 15 Nov 21:0x, before any run; the orchestrator 20:5x)
+
+The orchestrator's HOLD at 18:52 (Kamen closing the laptop) stopped Sunday night's runner, so the M1 gate may have no
+verdict by Monday 23:05. The runner (scripts/m4_night.sh) now applies an **M1 condition** instead of dropping the slot:
+- **If data/r57/night1115.log has "#3 M1 rc 0: PASS":** C1 T1 T2 C2 start at once, as booked.
+- **Otherwise:** M1 runs FIRST under the same ticket, as Sunday night's #3 verbatim: t16a, keys HumanEval/1, mbpp/16,
+  ifeval/1219, C 160, 128 tokens, tag t16am1w.
+  - On PASS (every check's tree main chain == the greedy chain, rc 0): C1 T1 T2 C2 follow.
+  - On FAIL or rc != 0: the runner stops (no A/B) and writes the end marker.
+- **Hard end:** unchanged at 00:25, so Leap's slot starts at 00:30 on the marker.
+
+**A window cut short** (by the hard end, heat, HOLD / PAUSE or the swap guard, e.g. only C1 T1 T2):
+- The token-identity pass rule applies to the runs that ran (it needs at least one C and one T run).
+- Timing from an unbalanced set (fewer than two runs per arm) is information only, flagged ORDER-BIASED, and not a
+  verdict.
+- This was already the rule above. The amendment states it for heat cuts too.
+
+**Tested before arming:**
+- Head test: M1 + the four runs reach the model load.
+- Stub simulations of the three branches:
+  - S1: PASS line present, straight to C1 T1 T2 C2;
+  - S2: no line, M1 PASS, then the A/B;
+  - S3: no line, M1 FAIL, stop with the marker, no A/B.

@@ -205,9 +205,10 @@
   - Then freeze the manifest and file the proof-run amendment, naming the candidate and its pins.
 - **Thu 19 - Fri 20:** score the one candidate (minutes). Run the engine check on >= 20 HumanEval+ fresh windows (~30
   min of GPU).
-  - The candidate's single pass is BigMoE's TOPK + TREE dump (head only, ~12 GB, ~45-60 min), run only after the
-    proof-run amendment (PREREG amendment 5). certify98.py scores the TOPK file, which equals the cells files on the dev
-    sets. Tree-16 kept/32 under the walk is information.
+  - The candidate's single pass is BigMoE's TOPK + TREE dumps (head only, ~12.5 GB), run only after the proof-run
+    amendment (PREREG amendments 5 and 7). certify98.py scores the TOPK file, which equals the cells files on the dev
+    sets. The top-8 TREE pass feeds the tree line. A 127-node, top-16 pass reads tree-32 / 64 / 128 as information.
+    All of it takes ~2.2-2.5 h, in slices.
 - **Sat 21:** the verdict.
 
 ## 8. The v1' confirm (item 2: plan only, not run)

@@ -1,6 +1,8 @@
 """CERTIFY98's tree read-out: kept tokens per check of a best-first EAGLE-2 tree vs a chain, each under its own decode walk.
 CPU only. Reads BigMoE's TOPK and TREE dumps of one run on one set (scripts/dd_topk.py 9f49e03, scripts/dd_tree.py
-b198498: at every anchor, 32 best-first nodes, top-8 children, on_true = the node's token is y under a true-path parent).
+b198498: at every anchor, `nodes` best-first nodes with top-`k` children, on_true = the node's token is y under a
+true-path parent). The dev dumps have 32 nodes and k 8. Amendment 7's fresh dumps have 127 nodes, so tree-64 and tree-128
+read out too, and k = 8 (the line's tree) or 16 (information only).
   .venv/bin/python tools/certify98_tree.py <topk.npz> <tree.npz> [--label L]
   .venv/bin/python tools/certify98_tree.py reproduce      # MTP Head's S9c (TrainLab fa3ce76) on the two dev sets
 Definitions (MTP Head's sb98/tree_real125.py, the same walk as certify98.kept_walk, R0 = 1):
@@ -16,7 +18,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import certify98 as C                                    # noqa: E402
 
 CE = os.path.expanduser("~/BigMoE/data/deepdraft/ceiling")
-NS = (16, 32)
+NS = (16, 32, 64, 128)    # tree-N reads the first N - 1 pops, where the dump has them (amendment 7: 127-node dumps)
+NC = (16, 32)             # chain-N: TOPK holds 32 depths
+K_LINE = 8                # the tree line's tree has top-8 children (amendments 6 / 7); a k = 16 dump is information only
 COVB = ((0, 0), (1, 2), (3, 6), (7, 10), (11, 14))                 # coverage bands: a 16-row check reaches depth 14
 C16 = 1.025      # the 16-node tree check's cost vs a chain-16 check: Leap TREE16-TIME v2 (a968cfe, quiet, paired), amendment 6a
 NET = 1.03       # the line's net margin: PASS needs T >= NET x C16 and the lower bound >= C16 (PREREG_certify98 6 / 6a)
@@ -40,22 +44,27 @@ def chain_acc(rt, N):
 
 
 def load(topk, tree):
-    """per window: rt (certify98's layout), the depth-0 anchors in row order, and the tree's accepted counts per N"""
+    """per window: rt (certify98's layout), the depth-0 anchors in row order, and the tree's accepted counts per N;
+    also the N the dump can read (nodes >= N - 1), its k and its node count"""
     W = C.windows(topk)
     t, z = np.load(topk), np.load(tree)
+    ns = [N for N in NS if int(z["nodes"]) >= N - 1]
     dep, fi, row = t["depth"], t["fi"], t["row"]
     st = np.flatnonzero((dep == 0) & np.append(True, dep[:-1] != 0)); en = np.append(st[1:], len(dep))
     out, bad = [], []
+    _, per = np.unique(z["fi"].astype(np.int64) * (1 << 32) + z["an"], return_counts=True)
+    if len(per) != len(z["a_an"]) or (per != int(z["nodes"])).any() or int(z["node"].max()) != int(z["nodes"]) - 1:
+        bad.append(f"the dump does not hold exactly {int(z['nodes'])} nodes at each of its {len(z['a_an'])} anchors")
     sel = z["on_true"].astype(bool)
     zfi, zan, znode, zdep = z["fi"][sel], z["an"][sel], z["node"][sel], z["depth"][sel]
     for (rt, _), a, b in zip(W, st, en):
         f = int(fi[a]); an = row[a:b][dep[a:b] == 0] - 1          # the anchor = the cell's row - 1, as in the dumps
         rowof = {int(x): i for i, x in enumerate(an)}
-        acc = {N: np.zeros(rt.shape[0], np.int64) for N in NS}
+        acc = {N: np.zeros(rt.shape[0], np.int64) for N in ns}
         m = zfi == f
         for x, nd, d in zip(zan[m], znode[m], zdep[m]):
             r = rowof[int(x)]
-            for N in NS:
+            for N in ns:
                 if nd < N - 1:
                     acc[N][r] = max(acc[N][r], int(d) + 1)
         ga = np.sort(z["a_an"][z["a_fi"] == f])
@@ -68,7 +77,7 @@ def load(topk, tree):
         if not np.array_equal(np.flatnonzero(flags), np.array([p for p in s32 if p < rt.shape[0] - 1])):
             bad.append(f"window fi {f}: a_walk_start is not the chain-32 walk")
         out.append({"rt": rt, "acc": acc})
-    return out, bad
+    return out, bad, ns, int(z["k"]), int(z["nodes"])
 
 
 def coverage(W, accf, cap=15):
@@ -95,15 +104,17 @@ def ratio(T, Cc):
 
 
 def score(topk, tree):
-    W, bad = load(topk, tree)
-    R = {"windows": len(W), "bad": bad}
-    for N in NS:
+    W, bad, ns, k, nodes = load(topk, tree)
+    R = {"windows": len(W), "bad": bad, "ns": ns, "k": k, "nodes": nodes}
+    for N in NC:
         Cn = np.array([walk(chain_acc(X["rt"], N))[:2] for X in W], float)
-        Tn = np.array([walk(X["acc"][N])[:2] for X in W], float)
         R[f"chain{N}"] = float(Cn[:, 0].sum() / Cn[:, 1].sum())
+        R[f"_c{N}"] = Cn
+    for N in ns:
+        Tn = np.array([walk(X["acc"][N])[:2] for X in W], float)
         R[f"tree{N}"] = float(Tn[:, 0].sum() / Tn[:, 1].sum())
-        R[f"_c{N}"], R[f"_t{N}"] = Cn, Tn
-    for N in NS:
+        R[f"_t{N}"] = Tn
+    for N in ns:
         r, se, lcb = ratio(R[f"_t{N}"], R["_c16"])
         R[f"tree{N}_vs_chain16"] = {"r": r, "se_log": se, "lcb95": lcb}
     kept32 = C.summary(C.windows(topk))["kept_per_32"]["mean"]
@@ -119,11 +130,14 @@ def score(topk, tree):
 
 
 def show(R, label):
-    print(f"{label}: {R['windows']} windows; chain-16 {R['chain16']:.3f}, chain-32 {R['chain32']:.3f} (= certify98 kept/32)")
-    for N in NS:
+    print(f"{label}: {R['windows']} windows; tree dump k {R['k']}, {R['nodes']} nodes; chain-16 {R['chain16']:.3f}, "
+          f"chain-32 {R['chain32']:.3f} (= certify98 kept/32)")
+    for N in R["ns"]:
         x = R[f"tree{N}_vs_chain16"]
         print(f"  tree-{N}: {R[f'tree{N}']:.3f} kept per check = x{x['r']:.3f} chain-16 (one-sided 95 % lower bound "
               f"x{x['lcb95']:.3f}; se of log {x['se_log']:.4f})")
+    if len(R["ns"]) < len(NS):
+        print(f"  tree-{' / tree-'.join(str(N) for N in NS if N not in R['ns'])}: n/a (the dump has {R['nodes']} nodes)")
     for lab in ("chain16", "tree16"):
         n, d = R[f"cov_{lab}"]
         print(f"  coverage {lab[:-2]}-16 by band: " + "  ".join(f"{lo}-{hi} {100 * n[lo:hi + 1].sum() / d[lo:hi + 1].sum():.2f}"
@@ -136,7 +150,7 @@ def reproduce():
     ok = True
     for tag, kpc, rat, c16 in REPRO:
         R = score(f"{CE}/topk_t30b_{tag}.npz", f"{CE}/tree_t30b_{tag}.npz"); show(R, tag)
-        diffs = [abs(R[f"tree{N}"] - kpc[N]) for N in NS] + [abs(R[f"tree{N}_vs_chain16"]["r"] - rat[N]) for N in NS] \
+        diffs = [abs(R[f"tree{N}"] - kpc[N]) for N in kpc] + [abs(R[f"tree{N}_vs_chain16"]["r"] - rat[N]) for N in kpc] \
             + [abs(R["chain16"] - c16)]
         good = max(diffs) < 0.0006 and not R["bad"]                  # S9c prints 3 decimals
         print(f"  vs S9c: max |diff| {max(diffs):.4f} -> {'PASS' if good else 'FAIL'}")
@@ -159,7 +173,10 @@ def verdict(argv):
     sets = [("HE+", argv[0], argv[1]), ("MBPP", argv[2], argv[3])] + ([("everyday", argv[4], argv[5])] if len(argv) == 6 else [])
     labs, bad, parts = {}, False, []
     for name, tk, tr in sets:
-        R = score(tk, tr); show(R, name)
+        R = score(tk, tr)
+        if R["k"] != K_LINE:
+            R["bad"].append(f"the line reads a top-{K_LINE} tree; this dump has k = {R['k']} (information only)")
+        show(R, name)
         x = R["tree16_vs_chain16"]; labs[name] = label(x); bad |= bool(R["bad"])
         print(f"  {name}: {labs[name]}{' (reported, never gated)' if name == 'everyday' else ''}")
         parts.append(f"{name} T {x['r']:.3f} [LB {x['lcb95']:.3f}]")

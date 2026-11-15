@@ -1,0 +1,24 @@
+tok/s, drafting hidden, overhead 4 ms; tree check = R(K) x c(K) x 62 ms; lossy = 25 ms x Rfloor(K)/Rfloor(32) x c(K)
+K = tree nodes + bonus rows (K16 = EAGLE-2-16, K32 = tree-32); kept K > 32 is S11's proxy [est]; R above 32 rows is Leap's [est]
+
+he:   K   kept    floor  realistic  lossy25   (chain-16 / chain-32 rows for reference)
+        16  11.26      257        167      493
+        32  16.26      277        174      542
+        48  17.23      248        143      492
+        64  17.91      229        123      456
+        96  18.63      203         96      408
+       128  19.14      186         80      375
+  chain-16  10.62      248        161      474
+  chain-32  13.77      243        153      475
+  K* (argmax): floor K32, realistic K32, lossy K32
+
+mbpp:   K   kept    floor  realistic  lossy25   (chain-16 / chain-32 rows for reference)
+        16   7.49      171        111      327
+        32   9.03      154         96      301
+        48   9.69      140         80      277
+        64  10.16      130         70      259
+        96  10.79      117         56      236
+       128  11.24      109         47      220
+  chain-16   6.59      154        100      294
+  chain-32   6.92      122         77      239
+  K* (argmax): floor K16, realistic K16, lossy K16

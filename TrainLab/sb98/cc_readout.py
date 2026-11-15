@@ -72,14 +72,14 @@ def walk(rt, dl, r0, delta):
     if delta > 0:
         acc[(rt == 0) & (dl >= -delta)] = 1
     sub, ex = acc[r0:], rt[r0:]
-    kept, changed, strict = [], 0, np.zeros((2, 15))
+    kept, changed, strict = [], 0, np.zeros((2, 31))              # S10: walk-strict to depth 30 (0-14 as before)
     p = 0
     while p < sub.shape[0]:
         k = 0
         while k < min(31, sub.shape[1]) and sub[p, k] == 1:
             changed += int(ex[p, k] == 0)
             k += 1
-        for j in range(min(15, k + 1, sub.shape[1])):
+        for j in range(min(31, k + 1, sub.shape[1])):
             if sub[p, j] >= 0:
                 strict[1, j] += 1; strict[0, j] += int(sub[p, j] == 1)
         kept.append(k + 1); p += k + 1
@@ -98,7 +98,7 @@ for ri, run in enumerate(RUNS):
     D = C.load_drafter(run)
     for st, nw in SETS:
         per = {d: [] for d in DELTAS}                              # per window: (kept sum, checks, changed)
-        strict = {d: np.zeros((2, 15)) for d in DELTAS}
+        strict = {d: np.zeros((2, 31)) for d in DELTAS}
         for wi, f in enumerate(files(st, nw)):
             rt, dl, gen, a0 = table(D, f)
             if ri == 0 and wi == 0:
@@ -115,11 +115,14 @@ for ri, run in enumerate(RUNS):
         res = {}
         for d in DELTAS:
             P = np.array(per[d], float)
-            ws = strict[d][0] / np.maximum(strict[d][1], 1)
+            ws = (strict[d][0] / np.maximum(strict[d][1], 1))[:15]
+            wb = {f"{lo}-{hi}": [float(strict[d][0, lo:hi + 1].sum() / max(strict[d][1, lo:hi + 1].sum(), 1)),
+                                 int(strict[d][1, lo:hi + 1].sum())]
+                  for lo, hi in ((0, 0), (1, 2), (3, 6), (7, 14), (15, 22), (23, 30))}
             res[f"{d:g}"] = {"kept_per_32": float(P[:, 0].sum() / P[:, 1].sum()),
                              "changed_per_1k": float(1000 * P[:, 2].sum() / P[:, 0].sum()),
                              "walk_strict_0_14": ws.round(4).tolist(), "walk_strict_mean": float(ws.mean()),
-                             "per_window": P.tolist()}
+                             "walk_strict_bands": wb, "per_window": P.tolist()}
         R[f"{run}|{st}"] = res
         refv = REF.get(st) if ri == 0 else None
         print(f"{run} {st}: exact kept/32 {res['0']['kept_per_32']:.4f}" + (f" (evalx {refv})" if refv else "")

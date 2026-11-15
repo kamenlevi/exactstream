@@ -1,0 +1,17 @@
+t30b chain [K]                             kept/32 14.44 | 52 ms:  278 tok/s | 59.5 ms (floor + 7.5 overhead):  243 | 25 ms:   578
+true state [K]                             kept/32 21.67 | 52 ms:  417 tok/s | 59.5 ms (floor + 7.5 overhead):  364 | 25 ms:   867
+flat 97.8                                  kept/32 23.15 | 52 ms:  445 tok/s | 59.5 ms (floor + 7.5 overhead):  389 | 25 ms:   926
+flat 98.0                                  kept/32 23.81 | 52 ms:  458 tok/s | 59.5 ms (floor + 7.5 overhead):  400 | 25 ms:   952
+true state, bands 0-6 lifted to 97.8       kept/32 24.87 | 52 ms:  478 tok/s | 59.5 ms (floor + 7.5 overhead):  418 | 25 ms:   995
+tree-16 bands 0-2 + true state beyond      kept/32 23.34 | 52 ms:  449 tok/s | 59.5 ms (floor + 7.5 overhead):  392 | 25 ms:   934
+true state, band 0 only lifted to 98.6     kept/32 22.87 | 52 ms:  440 tok/s | 59.5 ms (floor + 7.5 overhead):  384 | 25 ms:   915
+true state, bands 0-6 perfect (100)        kept/32 28.40 | 52 ms:  546 tok/s | 59.5 ms (floor + 7.5 overhead):  477 | 25 ms:  1136
+chain, bands 7-30 at true state            kept/32 17.52 | 52 ms:  337 tok/s | 59.5 ms (floor + 7.5 overhead):  295 | 25 ms:   701
+true state, bands 7-30 at chain            kept/32 17.66 | 52 ms:  340 tok/s | 59.5 ms (floor + 7.5 overhead):  297 | 25 ms:   706
+
+-- lossy close-call acceptance at bands 0-6 (near-perfect there), deep bands as named; x0.956 = calibration of the
+   product rule to the measured kept (13.77 / 14.44, 20.77 / 21.67)
+bands 0-6 at 99.5, deep = t30b chain       kept/32 22.26 (cal. 21.28) | 25 ms:   851 tok/s | 20 ms:  1064
+bands 0-6 at 99.5, deep = chain + audit    kept/32 23.23 (cal. 22.21) | 25 ms:   888 tok/s | 20 ms:  1110
+bands 0-6 at 99.5, deep = true state       kept/32 27.56 (cal. 26.35) | 25 ms:  1054 tok/s | 20 ms:  1317
+all bands 99.0 (close calls everywhere)    kept/32 27.50 (cal. 26.29) | 25 ms:  1052 tok/s | 20 ms:  1315

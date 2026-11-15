@@ -10,6 +10,9 @@ Kamen ~10:4x: chase the EXACT drafter, with the check at equal priority; lossy c
   check-start misses sit on its near-ties (MTP Head S6). No reader predicts those.
 - **Exact lead = TREES** (MTP Head S9c on BigMoE's real t30b trees): tree-16 x1.136 (MBPP) / x1.060 (HE+) kept vs
   chain-16 at the same rows, net ~+11-13 / +4-5 %. Tree-32 pays once CHECK55 brings R32 to ~1.3. The build lands ~Thu.
+- **Sun 21:3x PLAN4D (HE+ deep bands, 4 days):** research/week98/PLAN4D_HEPLUS.md. 98 % per band to 30 is out of
+  reach on HE+ this week (true-state head 97.76 flat). Exact ranking for the deep bands: 1 the 2B audit (+4.7 at 23-30),
+  2 a full-data distilled auditor (NEW), 3 tree at 0-2 + audited chain (NEW), 4 t30c (Tue night), 5 state arms.
 - **Ranking now:** 1 trees; 2 CHECK55; 3 S5b as a screen only; 4 the 2B audit as a tree-branch proposer, only via the
   ANE; 5 lossy close-call (side track).
 - **Results of tonight's screens:**

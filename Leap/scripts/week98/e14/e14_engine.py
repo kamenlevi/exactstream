@@ -29,11 +29,47 @@ import mlx.core as mx
 
 REC = []
 S = dict(ok=False, bits={}, notes=[])
-ALL = ["A16", "C32", "C32one", "C32oneB", "A16b", "A16h", "A16c", "C32c"]
+ALL = ["A16", "C32", "C32one", "C32oneB", "A16b", "A16h", "A16c", "C32c", "A16m", "C32onem"]
 ARMS = [a for a in os.environ.get("E14_ARMS", ",".join(ALL)).split(",") if a]
 assert ARMS and all(a in ALL for a in ARMS) and "A16" in ARMS, ARMS
 PAIRS = [("C32", "A16", "ratio"), ("C32one", "A16", "ratio"), ("C32one", "C32", "diff"), ("C32oneB", "C32one", "diff"),
-         ("A16b", "A16", "diff"), ("A16h", "A16", "diff"), ("A16c", "A16", "diff"), ("C32c", "C32one", "diff")]
+         ("A16b", "A16", "diff"), ("A16h", "A16", "diff"), ("A16c", "A16", "diff"), ("C32c", "C32one", "diff"),
+         ("A16m", "A16", "diff"), ("C32onem", "C32one", "diff")]
+# Amendment 1 (Sun 21:3x): A16m / C32onem = A16 / C32one with CHECK55 lever 2, Breakthrough's moe_dense.dense_pre in place
+# of K-73's router_fused + shared_cat pair (bitwise, 108 / 108): <= 16 rows in e14_loop's _exact_block (E14_L2), 17-32
+# rows through the _tier_block wrapper below. Any error falls back to the pair and is reported.
+L2 = dict(on=False, n=0, err=[])
+
+
+def _tier_block_l2(self, x, kind):
+    """v32._tier_block with lever 2 for the K-73 kind (the same body otherwise; v32 Sun 02:4x)"""
+    v32 = S["v32"]
+    if not (L2["on"] and kind == "k73"):
+        return S["tier0"](self, x, kind)
+    try:
+        md = S["G"]["_e14_md"]()
+        inds, scores, g, s = md.dense_pre(self, x)
+        if L2["n"] == 0:
+            mx.eval(inds, scores, g, s)                  # the first call (a warm-up round): a kernel build error is caught
+    except Exception as e:
+        L2["err"].append(repr(e)[:300])
+        return S["tier0"](self, x, kind)
+    L2["n"] += 1
+    from glue_fused import moe_tail
+    bm = self.switch_mlp._bm
+    EM = sys.modules.get("evalsuite.model")
+    if EM is not None and getattr(EM.STATE, "capture", None) is not None:
+        EM.STATE.capture.setdefault(bm["L"], []).append(inds)
+    bm["tier"]["scores"], bm["tier"]["shared"] = scores, s
+    try:
+        y = self.switch_mlp(x, inds)
+    finally:
+        bm["tier"].pop("scores", None)
+        bm["tier"].pop("shared", None)
+    if y.ndim == inds.ndim + 1:
+        y = (y * scores[..., None]).sum(axis=-2)
+    v32.CNT["tierblk"] += 1
+    return moe_tail(y, g, s, exp="precise")
 
 
 def _say(G, s):
@@ -55,7 +91,9 @@ def setup(G):
     v32one.ON[0] = refc.ON[0] = bofi.ON[0] = False
     bofi.TABLE32[(2560, 6144)] = (4, 1)                # BOF2 on o_proj / out_proj at 17-32 rows, gated by bofi.ON
     S.update(v32one=v32one, refc=refc, bofi=bofi, seam0=int(ref2.CFG.get("seam_hi", 16)),
-             hcb0=bool(ref2.CFG.get("hc_b", False)), vocab=int(model.language_model.lm_head.weight.shape[0]))
+             hcb0=bool(ref2.CFG.get("hc_b", False)), vocab=int(model.language_model.lm_head.weight.shape[0]),
+             v32=v32, G=G, tier0=v32._tier_block)
+    v32._tier_block = _tier_block_l2                   # amendment 1: lever 2 at 17-32 rows (off unless an m arm runs)
     S["ok"] = True
     _say(G, f"E14: setup done (arms {ARMS}; v32one / refc / bofi installed off; seam_hi {S['seam0']}; hc_b {S['hcb0']}; "
             f"vocab {S['vocab']})")
@@ -63,12 +101,16 @@ def setup(G):
 
 def knobs(G, arm):
     ref2 = G["ref2"]
-    one = arm in ("C32one", "C32oneB", "C32c")
+    one = arm in ("C32one", "C32oneB", "C32c", "C32onem")
     ref2.CFG["seam_hi"] = 32 if one else S["seam0"]
     S["v32one"].ON[0] = one
     S["bofi"].ON[0] = arm in ("A16b", "C32oneB")
     S["refc"].ON[0] = arm in ("A16c", "C32c")
     ref2.CFG["hc_b"] = (not S["hcb0"]) if arm == "A16h" else S["hcb0"]
+    m = arm in ("A16m", "C32onem")                     # amendment 1: lever 2 (<= 16 rows: the loop's flag; 17-32: L2)
+    L2["on"] = m
+    if "E14_L2" in G:
+        G["E14_L2"][0] = m
 
 
 def check(G, P, toks, n, arm, key, phase, rnd=-1):
@@ -127,7 +169,8 @@ def window(G, key, P, S0, gids, gen, Greq, first):
                 LG[a] = lg
     b = {}
     for x, y, rows in (("C32one", "C32", None), ("C32oneB", "C32", None), ("A16b", "A16", None), ("A16h", "A16", None),
-                       ("C32", "A16", 16), ("C32c", "A16c", 16), ("A16c", "A16", None)):
+                       ("C32", "A16", 16), ("C32c", "A16c", 16), ("A16c", "A16", None), ("A16m", "A16", None),
+                       ("C32onem", "C32", None)):
         if x in LG and y in LG:
             A, B = (LG[x][:rows], LG[y][:rows]) if rows else (LG[x], LG[y])
             b[f"{x}_vs_{y}" + (f"[:{rows}]" if rows else "")] = cmp(A, B)
@@ -165,6 +208,8 @@ def finish(G):
                     f"[IQR {lo:+.3f}, {hi:+.3f}] over {len(xs)} paired rounds")
     S["pairs"] = out
     _say(G, f"  forms fired over the run: bofi {dict(S['bofi'].CNT)}; refc {dict(S['refc'].CNT)}; v32one {dict(S['v32one'].CNT)}")
+    _say(G, f"  lever 2 (amendment 1): <= 16 rows calls {G.get('E14_L2N', ['n/a'])[0]}, errors {G.get('E14_L2ERR', [])[:3]}; "
+            f"17-32 rows calls {L2['n']}, errors {L2['err'][:3]} (an error falls back to K-73's pair: that arm then times the base)")
     dump(G)
 
 
