@@ -182,3 +182,4 @@ against mx.matmul bitwise, as the qv_wide k_lanes were.
     chain; T2 73 / 73 (tree_commit + probe == chain commit + probe).
   - Section 4's fast path is fixed: k < T only, since MTPLX's commit skips the replay on a full accept and tree_verify's
     GDN state is not meaningful.
+- Sun 15:2x (BigMoE): M3 ALL BITWISE again on the trimmed route (b) (8b1ff70), live imports, both slices (T2 73 / 73).

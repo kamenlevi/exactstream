@@ -18,6 +18,8 @@ import certify98 as C                                    # noqa: E402
 CE = os.path.expanduser("~/BigMoE/data/deepdraft/ceiling")
 NS = (16, 32)
 COVB = ((0, 0), (1, 2), (3, 6), (7, 10), (11, 14))                 # coverage bands: a 16-row check reaches depth 14
+C16 = 1.025      # the 16-node tree check's cost vs a chain-16 check: Leap TREE16-TIME v2 (a968cfe, quiet, paired), amendment 6a
+NET = 1.03       # the line's net margin: PASS needs T >= NET x C16 and the lower bound >= C16 (PREREG_certify98 6 / 6a)
 REPRO = (("mbppbank", {16: 7.487, 32: 9.031}, {16: 1.136, 32: 1.371}, 6.588),
          ("heplus24", {16: 11.263, 32: 16.263}, {16: 1.060, 32: 1.531}, 10.625))   # TrainLab data/sb98/tree_real125.txt
 
@@ -143,9 +145,35 @@ def reproduce():
     return 0 if ok else 1
 
 
+def label(x):
+    """the tree line per set (amendments 6 / 6a): PASS, BETWEEN (point clears, bound short) or FAIL (point short)"""
+    if x["r"] < NET * C16:
+        return "FAIL"
+    return "PASS" if x["lcb95"] >= C16 else "BETWEEN"
+
+
+def verdict(argv):
+    """verdict <he topk> <he tree> <mbpp topk> <mbpp tree> [<everyday topk> <everyday tree>]: the gated line on HE+ and MBPP"""
+    if len(argv) not in (4, 6):
+        print(verdict.__doc__); return 2
+    sets = [("HE+", argv[0], argv[1]), ("MBPP", argv[2], argv[3])] + ([("everyday", argv[4], argv[5])] if len(argv) == 6 else [])
+    labs, bad, parts = {}, False, []
+    for name, tk, tr in sets:
+        R = score(tk, tr); show(R, name)
+        x = R["tree16_vs_chain16"]; labs[name] = label(x); bad |= bool(R["bad"])
+        print(f"  {name}: {labs[name]}{' (reported, never gated)' if name == 'everyday' else ''}")
+        parts.append(f"{name} T {x['r']:.3f} [LB {x['lcb95']:.3f}]")
+    g = [labs["HE+"], labs["MBPP"]]
+    overall = "VOID (a check failed)" if bad else "PASS" if g == ["PASS", "PASS"] else "FAIL" if "FAIL" in g else "BETWEEN"
+    print(f"CERTIFY98 TREE-16: {overall} ({'; '.join(parts)}; bars: LB >= {C16}, T >= {NET * C16:.5f})")
+    return 0
+
+
 def main(argv):
     if argv[:1] == ["reproduce"]:
         return reproduce()
+    if argv[:1] == ["verdict"]:
+        return verdict(argv[1:])
     if len(argv) < 2:
         print(__doc__); return 2
     lab = argv[argv.index("--label") + 1] if "--label" in argv else os.path.basename(argv[1])

@@ -2220,3 +2220,6 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
     Tonight, in the orchestrator's order.
   - Contexts > 2K need B3 (Mon-Tue).
   - M4 loop integration, for Tuesday night's engine arm.
+- **Re-run 15:06-15:10 on Leap's new route (b)** (8b1ff70: heads batched per kv head + one pv_tree tail step per
+  root-to-leaf path), live imports as M4 will use them: both slices T1 ALL BITWISE, T2 73 / 73 again (50 s / 129 s;
+  peak 8.1 / 8.2 GB).

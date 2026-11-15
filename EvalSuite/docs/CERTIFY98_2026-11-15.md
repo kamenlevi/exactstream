@@ -155,8 +155,8 @@
     or 0.81 in the stress case.
 - **Everyday text:** reported with the same statistics, never gated.
 - **The tree line (PREREG amendment 6):** T = tree-16 kept per check / chain-16 kept per check, each under its own walk.
-  PASS needs LB(T) >= 1.021 and T >= 1.052 on both HumanEval+ and MBPP. Walk-strict coverage per band is reported beside
-  it, and for a chain it equals the accuracy gated above.
+  PASS needs LB(T) >= 1.025 (the measured tree-check cost, amendment 6a) and T >= 1.03 x 1.025, on both HumanEval+ and
+  MBPP. Walk-strict coverage per band is reported beside it, and for a chain it equals the accuracy gated above.
 - **Always reported:**
   - each band's point estimate and lower bound;
   - the margin bins;

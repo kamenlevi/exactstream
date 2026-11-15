@@ -342,3 +342,29 @@
   - TREE's own checks (amendment 5) gate the read-out: if any fails, the line is VOID and the chain certificate stands.
 - **The statement, if PASS** (NewIdeas' wording): "Exact. The verified 16-node tree covers the 125B's token at x % per
   position (per band), and keeps T x more tokens per check than the chain, at a check cost at most 2.1 % higher."
+
+## Amendment 6a (Sun 2026-11-15 15:2x, before any capture data): the tree line's bars follow the MEASURED tree-check cost
+- **Why (the orchestrator 15:1x):** Leap measured the 16-node tree check's real cost (TREE16-TIME v2, a968cfe; quiet
+  ticket, 24 rotated rounds, paired against chain-16 within each run).
+  - Its batched-heads form costs +0.129 ms [-0.008, +0.249] on a 4-layer slice. Engine-scaled with the per-path tail,
+    that is +1.55 ms, or +2.5 % of a ~62 ms chain-16 check (v1 measured +4.0 %).
+  - So c16 = 1.025, not the 1.021 that amendment 6 used. Leap's interval scales to about -0.2 % .. +4.8 %.
+- **The change:** amendment 6 defines both bars from c16: a net win at 95 % confidence, plus a 3 % net margin over it.
+  This amendment keeps that rule and puts in the measured cost:
+  - **PASS:** LB(T) >= 1.025 AND T >= 1.03 x 1.025 = 1.05575;
+  - **BETWEEN:** T >= 1.05575 but LB(T) < 1.025;
+  - **FAIL:** T < 1.05575.
+  - Overall, and per set, as in amendment 6. Judged on unrounded numbers.
+  - c16 is fixed here, at the last measurement before any data. A later engine trim does not move the bars; the
+    certificate states the cost at the time beside T.
+- **Power** (the dev standard errors scaled to the fresh windows, as in amendment 6):
+  - HumanEval+: 0.72 at the dev T 1.060 (it was 0.87 at the old bars); 0.00 if the truth is the dev's low end, 1.027.
+  - MBPP: 1.00, including at its dev low end 1.116.
+  - Keeping the point bar at 1.052 would hold 0.87, but the "3 % net" claim would quietly become 2.6 %. The bars follow
+    the cost instead, so the claim keeps its meaning.
+- **The scorer now prints the verdict:**
+  - `tools/certify98_tree.py verdict <HE+ topk> <HE+ tree> <MBPP topk> <MBPP tree> [<everyday topk> <everyday tree>]`;
+  - constants C16 = 1.025, NET = 1.03;
+  - last line `CERTIFY98 TREE-16: PASS | BETWEEN | FAIL | VOID (...)`.
+  - On the dev sets (information): PASS on both (HE+ T 1.060 [LB 1.031]; MBPP 1.136 [1.119]).
+  - Edge tests: T 1.0557 FAILs, 1.0558 passes, LB 1.0249 gives BETWEEN. TREE-REPRODUCE still passes.
