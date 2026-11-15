@@ -486,6 +486,87 @@ kdump_stats.
 - **So:** the information for the hard first guess isn't in any row the check already computes. It needs the 125B's own
   pass on the bonus token, i.e. the next check itself. A partial pass would cost ~0.6 ms per layer, plus head training.
 
+## J(CC). Close-call acceptance end to end on the 2B: a quality pre-screen (orchestrator 09:0x; pre-registered 09:0x, before any code ran)
+
+**Question:** does R1(delta), the engine's close-call accept rule, keep pass@1 when the drafter's near-tie picks are
+committed in real decoding?
+- EvalSuite gates delta 1 on the 125B Monday night (ccx45cc1; PREREG_lossygate amendment 3).
+- Delta 2 lifts teacher-forced kept/32 by +32 % (HE+) and +46 % (MBPP) on the 125B (Breakthrough's
+  CLOSECALL_ACCEPT_PRICE.md), but it has no quality data.
+
+**Setup:**
+- Target Qwen3.5-2B (mlx-community 4-bit, Sandbox98's). Drafter s30 (Sandbox98's native MTP head trained 30 deep).
+  sb/core.py is imported read-only.
+- 32-row checks: 31 drafts plus the bonus.
+  - Drafts are made lazily, one per committed token. A draft at depth k reads only tokens already committed, so the
+    committed text equals block drafting's.
+  - The target runs one pass per committed token (batch 1, mlx_lm's cache), so the delta-0 arm is the 2B's own greedy.
+- **Rule** = relax_delta.relaxed_k, the engine's code in ccx45cc1:
+  - a draft is kept while it equals its row's argmax, or logit(d) - max logit >= -delta;
+  - every row may relax;
+  - the first row not kept commits its argmax, and after 31 kept drafts the bonus row's argmax is committed.
+- **Arms:** delta 0 (exact), 1 and 2 nats.
+- **Panel:** EvalSuite's code panel, 264 keys in tools/lossy_panel.json's `code` order.
+  - HumanEval+ 164 (humaneval 60 + humanevalx 104; task ids disjoint, checked) and MBPP 100.
+  - Prompts: the items' `user` text in the 2B's chat template, thinking off (as Sandbox98's capture, sb/gen.chat_ids).
+  - Caps: the items' max_tokens (768 / 1024). An answer stops at an end token.
+- **Scoring:** EvalSuite's own scorers, imported read-only (`python -I -B`, nothing written there):
+  - HE+: evalsuite/decode_report.score_humaneval (evalplus base + plus tests; humanevalx scored as HumanEval+);
+  - MBPP: tools/mbpp_score.py (the 3 asserts, an isolated child, 10 s).
+
+**Lines** (per delta, against the exact arm, paired by key):
+- **HOLDS:** the pooled (264) drop is <= 1.0 pt AND the exact McNemar p > 0.2, AND neither set loses with p < 0.05.
+- **FAILS:** the arm is lower with p < 0.05 pooled, OR the pooled drop is > 3 pt (EvalSuite's code screening line).
+- **BETWEEN:** otherwise.
+
+**Reported, with no line:**
+- Changed tokens (R1-only commits) per 1K generated tokens, by where they land: code / comment / docstring / other
+  string / prose outside the fence.
+  - The class is the span tracker's state at the token's first non-blank character. Whitespace tokens in code count as
+    code.
+- Answers whose text differs from exact, the length ratio, and answers cut at the cap.
+- Real kept per 32-row check and its lift over exact, beside Breakthrough's teacher-forced lifts on the 125B.
+- The discordant keys, with the class of the first changed token.
+
+**Dose-matched reading** (the read-across to the 125B, because the 2B is less sure):
+- The 125B's teacher-forced code-token exposure is HE+ 4.1 / 5.8 and MBPP 8.1 / 12.8 per 1K kept at delta 1 / 2.
+- The 2B arm whose code exposure lands nearest those is read as that 125B delta's proxy.
+- If the 2B's delta 1 already exceeds the 125B's delta-2 exposure, a 2B delta 1 that HOLDS supports delta 2 on the 125B.
+
+**Self-checks** (otherwise the loop is wrong):
+- (a) The delta-0 arm's kept/32 lands within +-15 % of s30's teacher-forced chain read-out on these sets (Sandbox98
+  gate.json: MBPP 4.42, HE 6.43 on its 60 keys). The HE keys differ, and real vs teacher-forced numerics differ.
+- (b) On 3 MBPP + 3 HE answers of the delta-0 arm, the loop's drafts equal the teacher-forced chain's (C.chain on the
+  full-forward W of the same answer) at >= 99 % of drafted positions. Differences can only be bf16 / fp32 near-ties.
+
+**Caveats, stated before the run:**
+- The 2B is a harsh proxy. It is less sure than the 125B, so R1 fires more often per 1K. A HOLD here is strong news for
+  the 125B, and a FAIL is weak evidence against it.
+- Each arm is one deterministic greedy draw.
+- Power: with ~10-15 % discordant keys, a true -3 pt loss reaches p < 0.05 only part of the time. The line is a screen;
+  EvalSuite's gate decides.
+
+**Budget:**
+- One process per arm. A capped smoke run measures the peak first, and the share lock is sized to it.
+- Total <= 5 GB while Sandbox98's 6 GB QAT job runs, a NO-SWAP kill (swap +1 GB over the start), and the MLX cache is
+  cleared between keys.
+- ~70K tokens per arm, estimated at 20-40 min.
+
+**Smoke (09:1x):**
+- Self-check (b) PASS: 3,431 / 3,464 = 99.05 % of drafts equal the teacher-forced chain's.
+- Peak footprint 2.1-2.9 GB per process, ~39-52 tok/s, ~435 tokens per key (~115K per arm).
+- So the run is ~50 min per arm. Exact and delta 2 started 09:14; delta 1 waits for Sandbox98's 6 GB job to end.
+
+**Amendment 1 (09:2x, before any arm finished; seen so far: the first 9 keys of delta 2 vs exact): a numerics control
+arm.**
+- **Why:** a diagnostic found that the batch-1 exact arm differs from Sandbox98's own capture of the same 2B greedy
+  (mlx_lm BatchGenerator, same prompts) in 8 of 9 answers. The first difference falls 5-262 tokens in: near-tie
+  numerics alone move the 2B's greedy.
+- **The arm:** exact greedy of the same 2B through BatchGenerator (Sandbox98's sb/gen.greedy_batch, batch 8 per set),
+  with the same prompts, chat template and caps.
+- **Use:** its pass@1 delta and discordance against the batch-1 exact arm are the 2B's paired noise floor under a
+  numerics-only change. They are reported beside each delta. The registered lines don't change.
+
 ## Ranked (final, 01:3x)
 1. **The 2B audits and repairs the head's deep tokens: CONFIRMED on HE+** (D). On MBPP, the frozen schedule was chosen
    on those rows (C). Training-free.

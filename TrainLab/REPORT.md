@@ -4282,3 +4282,57 @@ Action: report to the orchestrator.
   for the rule adds nothing measurable.
 - Not tested: LAM other than 1, a loss aimed at the argmax (a margin between the best in-set and best out-of-set
   logit) instead of set mass, and the 125B's head.
+
+## WEEK98 S8 RERANK GATE: is there room for any re-ranking loss under the close-call rule? (pre-registered Sun 15 Nov 09:27)
+Why: S7 found that set-mass training adds nothing measurable. The ask cited R-61N's chat oracle: any of the drafter's
+top-3 inside the set forgave 49 % of first misses, vs 18 % from top-1. If the head's #2 / #3 often sit in the accept
+set where #1 misses, a loss that targets the argmax (a margin between the best in-set and best out-of-set logit) could
+still convert them. If they don't, the rule's misses are far misses and no training objective can convert them.
+Test (sb98/cc_oracle.py, s30, MBPP-50 + HE-30, read-out only, ~3 min GPU): the read-out table with the head's top-3
+per cell.
+- Oracle walks: a cell is accepted when any of the head's top-k (k = 1, 2, 3) is the true token or in A_1 (delta 1).
+- At each terminating miss of the delta-1 walk: the share where #2, or #2 or #3, is in A_1 or the true token.
+- H3 = (top-3 oracle kept/32) / (delta-1 walk kept/32) - 1, on MBPP-50.
+Result -> action:
+- H3 >= +30 % and the #2 share at terminating misses >= 40 %: room. Screen an argmax-margin loss (400 steps vs n1, S7's
+  line), pre-registered as S8b before it runs.
+- H3 < +10 % or #2 share < 20 %: far misses. Close the train-for-the-rule family on the sandbox; report.
+- Between: report the numbers; no screen.
+
+## WEEK98 S8 RERANK GATE RESULT (Sun 15 Nov 09:37): ROOM (screen S8b)
+s30, sb98/cc_oracle.py (data/sb98/rerank_gate.{txt,json}).
+- Self-check: the top-1 table equals core.chain_table (PASS). Exact top-1 and delta-1 top-1 kept/32 equal S7's
+  cc_readout values (4.319 / 6.239 and 5.243 / 7.146).
+- Oracle walks, kept/32 (MBPP-50 / HE-30):
+  - Exact: top-1 4.319 / 6.239; top-2 6.682 / 9.636; top-3 8.297 / 12.152.
+  - Delta-1 IN (the true token or in A_1): top-1 5.243 / 7.146; top-2 8.208 / 11.190 (+56.5 / +56.6 %); top-3
+    10.472 / 14.052 (H3 +99.7 / +96.6 %).
+- At the delta-1 walk's terminating misses (2,137 / 1,062): #2 is IN at 51.8 / 51.7 %; #2 or #3 at 69.5 / 71.5 %.
+- By the rule (H3 >= +30 % and the #2 share >= 40 %): ROOM. A perfect re-ranker inside the head's top-3 would double
+  close-call kept/32. Next: the argmax-margin screen S8b, pre-registered before it runs.
+
+## WEEK98 S8b MARGIN: an argmax-margin loss for the close-call rule (pre-registered Sun 15 Nov 09:38)
+Why: S8 found ROOM. Where the delta-1 walk misses, s30's #2 is IN at 52 % (true token or A_1). S7's set-mass loss did
+not move the argmax; this loss targets it directly.
+Lever (sb98/levers/margin_base.py, arm files margin1 / margin1k):
+- Per depth, loss = KL_top (unchanged) + LAM x the masked row mean of relu(GAMMA - (z_in - z_out)).
+- z is the head's logits. IN = the true token or A_1. z_in = the max over IN; z_out = the max over every other token
+  (taken from the head's top-34, which always holds one). LAM 1, GAMMA 1 (logit units).
+- The term is zero on rows whose best IN logit already leads by GAMMA. On the others it raises the best IN logit and
+  lowers the best OUT one.
+- SURV and the wrapper mechanism are as in S7.
+Arms (400 steps from native on dn_n1's recipe, in one process):
+- mg1: SURV. Its comparator is S7's cs1 (the same survival rule with the set-mass loss), which strips the general
+  400-step survival effect S7 found.
+- mg1k: exact survival. Its comparator is n1.
+Read-out: cc_readout.py on n1, mg1, mg1k and cs1 (with the extra pair mg1 vs cs1).
+Screen line (delta-1 walk, MBPP-50 / HE-30):
+- PROMISING: MBPP kept/32 >= +0.10 vs the arm's comparator with sign p < 0.05, and HE not below.
+- HURTS and NO EFFECT: as in S7.
+Result -> action:
+- Either arm PROMISING: the confirm runs on its own. The arm with the larger MBPP lift trains at s30's recipe (1,889
+  steps) and is judged vs s30 by S7's confirm line. PASS: report a lossy-track lever. Otherwise: BETWEEN or KILL.
+- Neither PROMISING: stop and report. The train-for-the-rule family then closes on the sandbox: both the set-mass loss
+  and the argmax-margin loss were tried, so the plain KL already gets what training can here.
+Guards as in S7. Scratch: mg1 / mg1k reuse mhx_cs1k / mhx_cf (S7's arms, already recorded); the confirm reuses the
+other arm's file.

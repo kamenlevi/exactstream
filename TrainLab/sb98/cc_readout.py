@@ -24,6 +24,7 @@ NS = int(os.environ.get("SMOKE", "0"))
 SETS = (("mbpp", NS or 50), ("he", NS or 30))
 REF = dict(kv.split("=") for kv in os.environ.get("REF", "").split(",") if "=" in kv)
 JUDGE = {k: float(v) for k, v in (kv.split("=") for kv in os.environ.get("JUDGE", "").split(",") if "=" in kv)}
+PAIRS = [tuple(x.split(":")) for x in os.environ.get("PAIRS", "").split(",") if ":" in x]   # extra pairs 'run:ctl' -> CMP keys 'run@ctl|set|delta'; JUDGE may name them as 'run@ctl=delta'
 
 
 def files(d, n):
@@ -131,25 +132,33 @@ for ri, run in enumerate(RUNS):
 rng = np.random.default_rng(1115)
 CMP, VER = {}, {}
 ctl = RUNS[0]
-print(f"\npairs vs the control {ctl} (kept/32 diff [window bootstrap 95 % CI], sign test p over windows):")
-for run in RUNS[1:]:
+
+
+def pair(run, base, label):
     for st, _ in SETS:
         for d in DELTAS:
-            A = np.array(R[f"{ctl}|{st}"][f"{d:g}"]["per_window"]); B = np.array(R[f"{run}|{st}"][f"{d:g}"]["per_window"])
+            A = np.array(R[f"{base}|{st}"][f"{d:g}"]["per_window"]); B = np.array(R[f"{run}|{st}"][f"{d:g}"]["per_window"])
             ka, kb = A[:, 0].sum() / A[:, 1].sum(), B[:, 0].sum() / B[:, 1].sum()
             idx = rng.integers(0, len(A), (5000, len(A)))
             bs = B[idx, 0].sum(1) / B[idx, 1].sum(1) - A[idx, 0].sum(1) / A[idx, 1].sum(1)
             w = B[:, 0] / B[:, 1] - A[:, 0] / A[:, 1]
             npos, nneg = int((w > 0).sum()), int((w < 0).sum())
-            CMP[f"{run}|{st}|{d:g}"] = {"diff": float(kb - ka), "rel": float(kb / ka - 1),
-                                        "ci95": np.percentile(bs, [2.5, 97.5]).tolist(), "p_sign": sign_p(npos, nneg),
-                                        "n_pos": npos, "n_neg": nneg}
-            c = CMP[f"{run}|{st}|{d:g}"]
-            print(f"  {run} {st} delta {d:g}: {ka:.3f} -> {kb:.3f} ({c['diff']:+.3f}, {100 * c['rel']:+.1f} %) "
+            c = CMP[f"{label}|{st}|{d:g}"] = {"diff": float(kb - ka), "rel": float(kb / ka - 1),
+                                              "ci95": np.percentile(bs, [2.5, 97.5]).tolist(),
+                                              "p_sign": sign_p(npos, nneg), "n_pos": npos, "n_neg": nneg}
+            print(f"  {label} {st} delta {d:g}: {ka:.3f} -> {kb:.3f} ({c['diff']:+.3f}, {100 * c['rel']:+.1f} %) "
                   f"[{c['ci95'][0]:+.3f}, {c['ci95'][1]:+.3f}] p {c['p_sign']:.3g} ({npos}+/{nneg}-); changed/1K "
-                  f"{R[f'{ctl}|{st}'][f'{d:g}']['changed_per_1k']:.1f} -> {R[f'{run}|{st}'][f'{d:g}']['changed_per_1k']:.1f}")
+                  f"{R[f'{base}|{st}'][f'{d:g}']['changed_per_1k']:.1f} -> {R[f'{run}|{st}'][f'{d:g}']['changed_per_1k']:.1f}")
+
+
+print(f"\npairs vs the control {ctl} (kept/32 diff [window bootstrap 95 % CI], sign test p over windows):")
+for run in RUNS[1:]:
+    pair(run, ctl, run)
+for run, base in PAIRS:
+    print(f"\nextra pair {run} vs {base}:")
+    pair(run, base, f"{run}@{base}")
 for run, d in JUDGE.items():                                       # the pre-registered screen line
-    mb, he = CMP[f"{run}|mbpp|{d:g}"], CMP[f"{run}|he|{d:g}"]
+    mb, he = CMP[f"{run}|mbpp|{d:g}"], CMP[f"{run}|he|{d:g}"]       # run may be 'arm@comparator' (an extra pair)
     if mb["diff"] >= 0.10 and mb["p_sign"] < 0.05 and he["diff"] >= 0:
         call = "PROMISING"
     elif mb["diff"] <= -0.10 and mb["p_sign"] < 0.05:
@@ -158,7 +167,7 @@ for run, d in JUDGE.items():                                       # the pre-reg
         call = "NO EFFECT"
     VER[run] = {"call": call, "delta": d, "mbpp_diff": mb["diff"], "mbpp_p": mb["p_sign"], "he_diff": he["diff"],
                 "exact_mbpp_diff": CMP[f"{run}|mbpp|0"]["diff"], "exact_he_diff": CMP[f"{run}|he|0"]["diff"]}
-    print(f"VERDICT {run} (delta-{d:g} walk vs {ctl}): {call}: MBPP {mb['diff']:+.3f} (p {mb['p_sign']:.3g}), HE "
+    print(f"VERDICT {run} (delta-{d:g} walk vs {run.split('@')[1] if '@' in run else ctl}): {call}: MBPP {mb['diff']:+.3f} (p {mb['p_sign']:.3g}), HE "
           f"{he['diff']:+.3f}; exact kept/32 MBPP {VER[run]['exact_mbpp_diff']:+.3f}, HE {VER[run]['exact_he_diff']:+.3f}",
           flush=True)
 json.dump({"runs": RUNS, "res": R, "cmp": CMP, "verdict": VER}, open(OUT, "w"), indent=1)
