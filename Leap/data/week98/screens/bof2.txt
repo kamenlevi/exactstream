@@ -1,0 +1,15 @@
+
+BOF2 Sun 15 Nov 18:20:56: MLX 0.32.2; quiet ticket
+gdn_qz 16384 x 2560: BOF2 bitwise vs qmm16c ks 1 halves and REF2-T's 32-row form, M 32 / 24: 4 / 4
+o_out 2560 x 6144: BOF2 bitwise vs qmm16c ks 1 halves and REF2-T's 32-row form, M 32 / 24: 4 / 4
+qsa_qkv 13312 x 2560: BOF2 bitwise vs qmm16c ks 1 halves and REF2-T's 32-row form, M 32 / 24: 4 / 4
+sh_down 2560 x 640: BOF2 bitwise vs qmm16c ks 1 halves and REF2-T's 32-row form, M 32 / 24: 4 / 4
+lm_head 248320 x 2560: BOF2 bitwise vs qmm16c ks 1 halves and REF2-T's 32-row form, M 32 / 24: 4 / 4
+  gdn_qz   x36: REF2-T 32-row   143.7 us | bof2_2x1 181.5 bof2_4x1 194.5 bof2_8x1 221.0 bof2_4x2 206.9 | best bof2_2x1 181.5 | contract 140.5
+  o_out    x48: REF2-T 32-row   113.1 us | bof2_2x1 97.2 bof2_4x1 73.6 bof2_8x1 85.0 bof2_4x2 100.6 | best bof2_4x1 73.6 | contract 54.2
+  qsa_qkv  x12: REF2-T 32-row   135.2 us | bof2_2x1 144.7 bof2_4x1 165.0 bof2_8x1 185.4 bof2_4x2 187.8 | best bof2_2x1 144.7 | contract 124.5
+  sh_down  x48: REF2-T 32-row    10.7 us | bof2_2x1 11.7 bof2_4x1 10.0 bof2_8x1 12.4 bof2_4x2 15.5 | best bof2_4x1 10.0 | contract 10.0
+  lm_head  x 1: REF2-T 32-row  2079.6 us | bof2_2x1 2486.0 bof2_4x1 2881.2 bof2_8x1 3447.0 bof2_4x2 3030.2 | best bof2_2x1 2486.0 | contract 2085.8
+per 32-row check over the 5 shapes: REF2-T 14.82 ms -> BOF2 (bitwise) 14.77 (-0.04); the contract 11.72
+BOF2 verdict (pre-registered): KILL (< 0.5 ms); standalone, the transfer rule applies
+done in 1 s; peak 1.33 GB

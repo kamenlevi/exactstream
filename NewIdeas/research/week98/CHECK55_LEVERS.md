@@ -1,5 +1,18 @@
 # CHECK55 levers: a ranked table for Leap (NewIdeas, Sun 15 Nov 2026, 16:2x (`date` 16:21); CPU / desk only)
 
+> **CONTRACT BENCH RESULT (Leap CB1, 58c2439; ~/Leap/data/week98/screens/README.md 'CB1'; recorded 18:38 `date`): PASS on
+> both lines, ALL BITWISE.**
+> - 376 bit checks across M = 1 / 16 / 32, nt, and both layouts.
+> - Standalone, cold, quiet, per check over 7 dense kinds + the HC down GEMM: **16 rows -5.98 ms, 32 rows -6.41 ms**.
+> - Chunks by shape (C was NOT one size):
+>   - ks 4 for in-proj / o_proj / out_proj / QSA / lm_head: K-chunk 640 at K 2,560, and 1,536 for o_proj at K 6,144;
+>   - ks 5 for the shared cat, ks 10 for the shared down;
+>   - b | a folded into the in-proj;
+>   - S4 at PS 2,048.
+> - S4's gain is occupancy (partitions), not bytes: 49 -> 34 us per read in a dependent chain. That agrees with lever 3's
+>   in-situ 14 % byte-bound finding.
+> - TRANSFER RULE: standalone, so it counts only after the engine A/B that comes with next week's re-certification.
+
 > **LEVER 3 RESULT, Sun 15 Nov 17:37 (quiet ticket 17:36-17:37, pre-registered cceee56; l3_slc_bench.txt / .json):
 > NO JUDGEMENT by its rule; KILL in substance.**
 > - **STEP 0, the D3-0 reproduction:** S4 33.2 us (D3-0 38.9, inside +-25 %); S4-cached 13.0 us (D3-0 18.7, outside).

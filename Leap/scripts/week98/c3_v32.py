@@ -33,7 +33,7 @@ def say(s):
 
 
 MD = os.path.expanduser("~/BigMoE/models/bare")
-NL = 4
+NL = int(os.environ.get("C3_NL", "4"))                   # D8 audit (Sun 18:1x): 12 to re-test the fixed experts at depth
 orig = mu.load_model
 
 

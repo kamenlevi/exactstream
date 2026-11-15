@@ -41,6 +41,55 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Sun 15 18:1x (orchestrator; Leap's three results, verified in commit order):
+  - **BOF PASS with REF2-T's OWN bits** (pre-registered 4a4fc62, bits 9b5b19a, result b380726): lever (b) rebuilt
+    as a blocked ordered fold. qmm16c's serial K loop is spread over simdgroups, and the per-group terms are added
+    back in the original order.
+    - Bitwise vs REF2-T on all 5 shapes x 4 configs.
+    - -2.22 ms per 16-row check standalone; o_proj / out_proj 85.9 -> 48.6 us.
+    - That is 78 % of the contract's dense gain on the same shapes, with no reference change.
+    - Next: an opt-in installer, a slice A/B, then an E1 arm Monday night.
+  - **C8: the contract carries to the 12-layer slice** (pre-registered b147947, PASS 5457853, run after the D8 fix):
+    - -1.31 ms per 16-row check, -1.05 per 32-row; transfer 0.81 / 0.67 of CB1;
+    - under the contract, a 32-row check == 2 x 16-row and 16 one-row == one 16-row, every logits row, so SD == AR
+      holds end to end under the new reference;
+    - the contract arms join E2.
+  - **D8, FIXED 574060e:** the slice's one-call resident experts at 17-32 rows dropped every (row, expert) pair past
+    16 per expert, leaving zeros.
+    - The engine is not affected: NAX6's grouping caps at 16 pairs by design (969eac1).
+    - Slice timings stand. Slice 32-row BIT verdicts made before the fix (C7 / v32one, pass S) get re-run on the
+      fixed slice before E2, or each is shown unaffected (asked 18:1x).
+    - **AUDIT DONE 18:16 (6a8a257, verified):**
+      - C3b and C3-ONE were re-run on the fixed path at 4 and 12 layers: ALL BITWISE. Their old verdicts held only
+        because no expert passed 16 of 32 rows on those inputs.
+      - Cleared with reasons:
+        - pass S (both arms share the expert path);
+        - unit tests with no experts;
+        - the engine runs (NAX6 groups at <= 16);
+        - timing-only runs.
+      - C8 v1 is void (v2 replaces it).
+  - **C9, BOF in a real check on the 12-layer slice** (pre-registered 0a8c085, result 9007c6e):
+    - exact: 32 / 32 logits rows == REF2-T;
+    - the whole-wall pair is -0.30 ms, T 0.46 -> BETWEEN by its line (IQR +-5 ms; the Python build is half the
+      slice's wall);
+    - after the build, -0.49 ms with a tight IQR (info only).
+    - The engine arm (E1, Monday night) decides.
+  - Monday order, Leap's proposal: E2 (R32), then the contract arms (A16c / C32c), then E1 (hc_b + BOF), then E3.
+  - **18:32 C9b + C10b PASS, exact with REF2-T's own bits** (re-tests pre-registered 2a7f0a8 with unchanged lines,
+    result 136ddc1; verified in commit order):
+    - BOF at 16 rows: -0.752 ms per slice check (IQR -0.85 / -0.65, T 1.14).
+    - BOF2 on o_proj / out_proj at 32 rows: -0.497 ms (IQR -0.58 / -0.42, T 1.06).
+    - Why the re-tests: in C9 / C10 the first arm of each round read the PLE n-gram rows cold, giving +-5-8 ms of
+      whole-wall noise. The fix is one untimed warm check per round (IQR ~0.2 ms). C9 BETWEEN and C10 KILL stay in the
+      record as registered.
+    - Caution: BOF2-O is a post-hoc subset (the 5-shape BOF2 was a KILL, 578279c) and then a re-test. Treat it as a
+      lead. Its engine arm needs its own pre-registered line.
+    - Engine-scaled [est]: about -2.5 ms (16 rows) / -2 ms (32 rows). The REF2-T central is ~55-56 / ~74; Monday's
+      engine arms decide.
+  - Estimates: REF2-T 16 rows ~56-57 ms with BOF's expected engine share (~-1.5). The contract adds ~-2..-3 on the
+    engine, attention later.
+  - Monday slot: Leap's hard end moves 02:15 -> 03:00, ordered by value (E2 first: its R32 decides the tree-32 line).
+    EvalSuite's fallback moves to ~03:15. Leftovers go to Tue night, which needs Kamen's OK for an app quit.
 - Sun 15 17:38: **Leap CB1: the track-B REFERENCE CONTRACT passes both pre-registered lines, ALL BITWISE**
   (pre-registered 8746000 at 17:30, smoke 8aecdaa, run 17:35:57 on a quiet ticket, result 58c2439; verified from
   screens/cb1.txt).
@@ -653,6 +702,18 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
     23-30 survivors); **by the HE+ line, 88.14 < 90 = KILL.** Even teacher-forced, DFlash2's strict accuracy falls to
     ~88-89 % by depths 7-14 on HE+ and ~73 % on MBPP: far from a 98 % corrector.
 - Sun 15 03:1x: **45 GB SLOTS for the week (orchestrator's draft; each needs ~47 GB NO-SWAP, i.e. Kamen closing apps):**
+> (a quote from the project owner, kept private)
+    continue them later".**
+    - HOLD + hold_guard are set, so PAUSE is held.
+    - The waiting runners were killed with kill -9, so no markers were written (checked):
+      - Leap cc3_runner (12190) + c7c_night (65117);
+      - BigMoE night1115d (22759) + m4_night (37703);
+      - EvalSuite night1116_chain (71626);
+      - Breakthrough run_c55_engine (51312).
+    - The 23:00 apps quit is stopped (APPS_2300_STOP).
+    - MoonShots' T32 is paused between keys by PAUSE (0 % CPU) and asked to stop at a key boundary.
+    - On his "continue": rm HOLD, then each owner re-arms the same chain in the same order with new times. The 23:00
+      apps quit only holds if he is back before 23:00.
   - **SUPERSEDED for Sun night, 15:0x (orchestrator):** apps quit at 23:00 (apps_2300_1115.sh, pid 33477; force-quit
     OK; Claude / Terminal / Finder / Spotify kept). Fans capped at 4,350 rpm, so heat stretches runs ~1.9x.
     ONE ORDER, so the memory-gated waiters don't start together:
@@ -688,6 +749,7 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
       3. EvalSuite's close-call arms, gated on Leap's marker.
       Why: the check has equal top priority and the close-call is the side track. Timing A/Bs need the cool early
       night; quality arms can spill into Tuesday morning. Leap, EvalSuite and BigMoE were told.
+    - **18:1x: Leap's hard end is now 03:00** (more arms: BOF, the contract arms). EvalSuite's fallback is ~03:15.
     - Leap's slot (17:3x): 00:30 -> HARD END 02:15.
       - The end marker ~/Leap/data/week98/screens/E1E4_1117_DONE is written on any end; EvalSuite gates on it, with a
         fallback of its choice.

@@ -221,3 +221,45 @@ scripts/week98/bof.py (qmm16bof) + bof_bench.py.
   so ~56-57.
 - **Track B's remaining edge on the dense side:** S4's partitions (-1.5 standalone), the shared cat (-0.9), the in-proj
   (-0.4); plus HC up and attention later.
+
+## C9 BOF PRE-REGISTERED (Sun 18:1x, before any run): does BOF carry into a real check?
+scripts/week98/c9_bof.py with bofi.py (the opt-in BOF installer; no ref2 edit). The 12-layer slice, A16 vs A16b (BOF on
+o_proj / out_proj, QSA, shared down, lm_head), 24 rotated rounds.
+- **Bits:** A16b's logits == A16's on every row.
+- **Expected:** -0.66 ms per 16-row slice check (bof_bench's per-call savings x the slice's calls).
+- **Lines:** logits not bitwise -> a bug, no verdict; T = -median(A16b - A16) / 0.66 >= 0.5 -> PASS (an E1 arm Monday
+  night); 0.25-0.5 BETWEEN; < 0.25 KILL.
+- **Prediction:** T 0.6-0.9.
+
+## BOF2 PRE-REGISTERED (Sun 18:1x, before any run): BOF's 32-row twin (REF2-T's bits, one weight pass)
+bof.qmm16bof2 + bof2_bench.py. Same 5 shapes as BOF; the baseline is REF2-T's 32-row forms (v32one: qmm16c2a ks 1 for
+N x K >= 8M, else qmm16c2).
+- **Lines:**
+  - not bitwise (vs qmm16c ks 1 per half and vs REF2-T's 32-row form, at 32 and 24 rows) -> KILL;
+  - saving per 32-row check over the 5 shapes >= 1.5 ms -> PASS (with BOF into E2's C32 arm);
+  - 0.5-1.5 BETWEEN; < 0.5 KILL.
+- **Prediction:** o_proj / out_proj 112 -> 55-65 us; total -2..-3 ms.
+
+## C10 BOF2-O PRE-REGISTERED (Sun 18:2x, before any run): BOF2 on o_proj / out_proj only, 32 rows
+scripts/week98/c10_bof2o.py (bofi.TABLE32). This pick came after BOF2's data (o_proj / out_proj 113.1 -> 73.6 us), so it
+is a new test with its own line.
+- **Expected:** -0.47 ms per 32-row slice check (12 calls x 39.5 us).
+- **Lines:** logits not bitwise -> a bug; T >= 0.5 -> PASS (into E2's C32 arm); 0.25-0.5 BETWEEN; < 0.25 KILL.
+- **Prediction:** T 0.6-0.9.
+
+## C9b / C10b PRE-REGISTERED (Sun 18:2x, before any run): C9 / C10 without the cold-read confound
+- **What changes:** an untimed check of each round's tokens on a throwaway cache before the timed arms (C9_WARM = 1,
+  the default now). C9 (BETWEEN, T 0.46) and C10 (KILL, T -0.05) stand as registered.
+- **Lines, the same as C9 / C10:**
+  - bits;
+  - whole-wall T = -median(paired) / expected (C9b 0.66 ms, C10b 0.47 ms);
+  - >= 0.5 PASS (C9b: an E1 arm; C10b: into E2's C32 arm); 0.25-0.5 BETWEEN; < 0.25 KILL.
+- **Prediction:** the whole-wall pairs close to C9 / C10's after-build pairs (-0.49 / -0.28 ms), so T ~0.7 / ~0.6.
+
+## C9b / C10b RESULT (Sun 18:32): both PASS (screens README 'C9b + C10b')
+- **BOF at 16 rows:** -0.75 ms per slice check (T 1.14).
+- **BOF2 on o_proj / out_proj at 32 rows:** -0.50 ms (T 1.06).
+- Both are REF2-T's own bits, so no reference change. Engine-scaled about -2.5 / -2 ms [est].
+- **Monday:** BOF joins E1 and BOF2-O joins E2's C32 arm, next to the contract arms.
+- **Revised REF2-T central [est], subject to the engine A/B:** 16 rows ~57-58 -> ~55-56; 32 rows (C7c tonight, then
+  E2) ~76 -> ~74.

@@ -1,0 +1,14 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=24.5 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+C10 BOF2-O Sun 15 Nov 18:24:59: MLX 0.32.2; slice GGGAGGGAGGGA, 18.5 GB active; SB 4; dense_native False
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (1320628 > 262144). Running this sequence through the model will result in indexing errors
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+bits: C32ob logits == C32o on 32 / 32 rows (one 32-row check); BOF2 calls 12
+12 layers, 24 rounds, SB 4 (contexts 1024 -> 1856); ms per 32-row check:
+  C32o    33.59 ms (after the Python build  14.43 ms)
+  C32ob   33.71 ms (after the Python build  14.19 ms)
+  paired C32ob - C32o: whole +0.025 ms [-8.333, +8.084]; after the build -0.276 ms [-0.326, -0.205]; BOF2 calls over the timed checks 288
+C10 BOF2-O verdict (pre-registered): bits BITWISE; T -0.05 (of -0.47 ms) -> KILL
+done in 7 s; peak 20.2 GB

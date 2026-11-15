@@ -1,0 +1,15 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=23.2 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+C9 BOF Sun 15 Nov 18:14:12: MLX 0.32.2; slice GGGAGGGAGGGA, 18.5 GB active; SB 4; dense_native False
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (1320628 > 262144). Running this sequence through the model will result in indexing errors
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+bits: A16b logits == A16 on 32 / 32 rows (two 16-row checks); BOF calls 50
+12 layers, 24 rounds, SB 4 (contexts 1024 -> 1856); ms per 16-row check:
+  A16     24.62 ms (after the Python build  10.86 ms)
+  A16b    23.38 ms (after the Python build  10.50 ms)
+  paired A16b - A16: whole -0.302 ms [-5.603, +4.295]; after the build -0.491 ms [-0.582, -0.368]; BOF calls over the timed checks 1200
+C9 BOF verdict (pre-registered): bits BITWISE; T 0.46 (of -0.66 ms) -> BETWEEN
+done in 9 s; peak 20.2 GB
