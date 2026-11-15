@@ -96,7 +96,13 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - Sun 15 23:4x (orchestrator, both verified): **two night results.**
   - **Leap C7c MEETS step 1** (937d6c9). The one-pass exact 32-row check is 1.345 x A16 on the 12-layer slice
     (IQR 1.286-1.364; line <= 1.35), down from 1.632 split. The slice tracks the engine (split 1.632 vs G32T 1.625).
-    - With R32 ~1.35, tree-32 beats tree-16 on HE+ by ~+6 % (16.26 / (1.345 x 1.04) vs 11.26 / 1.025). MBPP stays tree-16.
+    - ~~With R32 ~1.35, tree-32 beats tree-16 on HE+ by ~+6 %~~ **WITHDRAWN 00:4x (Leap).** On the ENGINE the one-pass
+      32-row check is 1.480 x A16 (C32one 90.46 / A16 61.11 ms, Breakthrough's profile). The slice compresses ratios:
+      ~half of its check is Python build, and experts are a smaller share there.
+      - HE+ tree-32 vs tree-16: one pass -1.7 % (166.0 vs 169.0 tok/s); today's split -12.5 %; the contract -3.7 %.
+      - Break-even: C32 <= 88.7 ms (the seams' -2.15 brings it to ~88.3, i.e. a tie).
+      - The biggest 32-row excess is the experts: 50.65 ms vs a 40.2 ms byte floor.
+      - Engine-calibrated costs v2 went to NewIdeas (305f315).
     - E2 (Tue 00:30) gives the engine number.
   - **BigMoE M1 PASS: tree DRAFTING on the FULL 125B** (t16a in real decoding with the live MTP head; night1115.log #3,
     a9fc848).
@@ -344,7 +350,7 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
     - BigMoE night1115e 66280;
     - EvalSuite 71926 (now stops cleanly on HOLD, with a marker);
     - Breakthrough's profile 76388 (replaced 62519 at 21:28: it now skips on HOLD and waits out PAUSE, 8d85240), then its lever-2 quiet bench (follower 88412, ca8f75f; latest start 06:45, done by 07:00);
-    - Monday: m4_night 50884, E14 9955;
+    - Monday: m4_night 50884, E14 11089 (re-armed 00:3x with 8 arms, lever 2 dropped, amendment 2 26456b0);
     - no markers present.
 - Sun 15 18:1x (orchestrator; Leap's three results, verified in commit order):
   - **BOF PASS with REF2-T's OWN bits** (pre-registered 4a4fc62, bits 9b5b19a, result b380726): lever (b) rebuilt
@@ -1023,6 +1029,34 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
       - every run ENDS by 06:45 (no start after ~06:00);
       - otherwise it skips to a school-day slot.
       - Armed 23:48: pid 29218 (a45_last.sh 06:00 / 06:45), marker A45_1116_DONE. Verified.
+    - **00:2x Mon: EvalSuite's chain STALLED on memory.** Its tier-0a process has waited since ~00:01 for 49 GB NO-SWAP
+      (need 45 + 4) at 40-45 GB.
+      - The orchestrator wrote Breakthrough's manual GO (00:23). The engine profile (39 GB gate) took its quiet ticket
+        at 00:24:32; then the lever-2 bench, then a45.
+      - EvalSuite keeps waiting (cutoffs 08:00 / 09:30 / 14:00). The compressor effect may let it fit after.
+      - If the close-call base can't run tonight, Monday's close-call arms slip (side track).
+    - **00:2x-00:3x:**
+      - Breakthrough's engine profile ABORTED 20 s in (rc 134, no data). Its warm-up forward on 32 prompt tokens needed
+        179 experts at layer 0, over the tier's C 175, and BigMoE's ext aborts on that; the resident slice couldn't
+        catch it.
+        - Fix: warm on a span that fits the window's gate_req, plus BIGMOE_OVERFLOW_FLAG=1.
+        - It re-runs tonight after its head test + stub sim (it fits at ~42.7 GB vs its 39 GB gate). Cutoffs: start
+          by 06:00, end by 06:45. Else Monday by day while Kamen is away.
+      - **CHECK55 LEVER 2 KILLED** by its own pre-registered quiet line: dense_pre is SLOWER than K-73's chain, +30.3
+        us / layer at 16 rows (line <= -50), +9.8 at 32. Bits held. The pieces only reach parity.
+        - E14's A16m / C32onem arms are to be dropped (Breakthrough's advice, the orchestrator agrees; Leap decides).
+      - a45's runner (8663) waits on 47 GB and EvalSuite on 49, at ~42.7 GB NO-SWAP.
+    - **00:42 Breakthrough's FULL-ENGINE CHECK55 profile DONE** (fixed d9be614; rc 0, peak 30.8 GB, bitwise, no check
+      flagged):
+      - GPU-bound on the engine: busy 97.8 % at A16 (59.75 of 61.11 ms), 96.6 % at C32 (98.57 of 102.09). +2 ms of CPU
+        moves the wall +0.17 / +0.13.
+      - Leap's v32one at 32 rows: -11.64 ms [IQR -11.85, -11.42]. Seams to 32: -2.15. Both bitwise. LM head as one call:
+        -1.49 (not exact).
+      - So the engine C32 after step 1 is ~88.3 ms, R32 ~1.445 (the slice read 1.345). The 17-row step's experts
+        (+16.9 ms) are untouched by step 1.
+      - At R32 1.445, tree-32 ~ tree-16 on HE+. E2 (Tue) is the clean number.
+      - A16 by class: experts 33.7 ms (52 %), HC read 9.4, GDN proj 8.3, attention proj 3.0, MoE dense side 3.8 (5.9 %).
+      - Cold first check after a prefill: +74.9 ms (SSD 70.1, 364 misses). A cold 32-row check: 335 ms.
     - The app quit is armed for 23:30:00 (apps_2330_1115.sh, pid 61214).
     - Same order and markers, times +30 min:
       1. Leap a45 from 23:35 (every run ending by 01:30), then C7c;

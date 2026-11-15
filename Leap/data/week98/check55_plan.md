@@ -329,6 +329,11 @@ is a new test with its own line.
   is skipped tonight.
 - **Next:** E2 (E14's C32one / A16 on the engine, Tue 00:30) as booked. Bigger trees: R(32) one-pass ~1.35-1.40 on the
   engine [est] replaces the first cut's 1.43-1.46 until E2 lands.
+- **ENGINE, Mon 00:42 (Breakthrough's CHECK55 engine profile):**
+  - C32one / A16 = 1.480 (90.46 / 61.11 ms, bitwise; C32 1.671), so the line above (~1.35-1.40 [est]) is WITHDRAWN;
+  - by E2's pre-registered line that reads > 1.45 ("profile before the tree-32 line"), and the profile is exactly
+    what Breakthrough just ran;
+  - E14 keeps C32one as the base for C32oneB / C32c.
 
 ## C7d R24 PRE-REGISTERED (Sun 23:5x, before any run): what a 24-row exact check costs (bigger trees, NewIdeas' R(24))
 scripts/week98/c7d_r24.py (the docstring has the full design).
@@ -353,3 +358,20 @@ scripts/week98/c7d_r24.py (the docstring has the full design).
   | < 0.03 | R(24) := R(32) (a 24-row tree pays only through kept) |
 - **When:** Monday by day, in a slot the orchestrator gives: smoke at 4 layers (share lock, ~7 GB), then 12 layers (quiet
   ticket, ~21 GB, ~1 min). EvalSuite's chain may hold the Mac to 09:30-14:00.
+
+## E14 AMENDMENT 2 (Mon 00:3x, before any run): lever 2's arms dropped
+- **Why:** lever 2 missed its own pre-registered quiet line (Breakthrough, quiet ticket Mon 00:26, bench_moe_dense.py
+  chain,mine on layers 0 / 24 / 47, 7 rotated rounds):
+  - mine - chain is +30.3 us per layer at 16 rows (line <= -50) and +9.8 at 32 rows;
+  - every round has it slower; the end states are bitwise.
+  - On the engine that is ~+1.5 ms per 16-row check, so A16m / C32onem cannot pass Amendment 1's line (<= -2.4 ms).
+  - Breakthrough recommended the drop and the orchestrator agreed (00:3x).
+  - Data: ~/Breakthrough/data/m1/check55/lever2/l2_bench_quiet.txt and l2_pieces_quiet.txt.
+- **Change:** E14 re-armed with E14_ARMS = A16, C32, C32one, C32oneB, A16b, A16h, A16c, C32c (8 arms). The runner is
+  pid 11089; the old pid 9955 got TERM, and its marker was cleared by the re-arm.
+  - Unchanged: the windows, rounds, gate 39 GB, start Tue 00:30, latest start 02:15, hard end 03:00.
+  - Unchanged files: e14_env.sh's default list still has 10 arms; the env override sets 8. No E14 file was edited.
+- **Lever 2's wiring stays installed and inert:** e14_loop's _exact_block runs it only with E14_L2 on, and
+  _tier_block_l2 only in an m arm. The head test still imports moe_dense from Breakthrough's check55 folder, so
+  Breakthrough keeps that module importable to Tue 03:00.
+- **All other lines as pre-registered (E14, Sun 20:5x).** About 20 % less run time per window.

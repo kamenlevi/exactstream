@@ -1,0 +1,27 @@
+C55 engine profile (Mon 16 Nov 00:42): exact-45 loop, C 160; medians per check (ms)
+heat (fanwatch): 0 episode(s) in the run; 0 checks overlapped -> dropped, and 0 same-token round(s) dropped whole (ok)
+overflow guard (BIGMOE_OVERFLOW_FLAG=1): 0 check(s) flagged -> dropped
+| arm | phase | n | wall | CPU build | CPU encode (SB) | CPU read + commit | GPU busy | GPU idle | GPU first start | dispatches | misses | SSD ms | PLE stage ms (wall / CPU) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| A16 | same | 48 | 61.11 | 11.75 | 12.43 | 1.47 | 59.75 | 1.15 | 0.44 | 3607 | 0 | 0.00 | 0.42 / 0.42 |
+| C32 | same | 48 | 102.09 | 18.91 | 19.78 | 2.26 | 98.57 | 3.55 | 2.88 | 6821 | 0 | 0.00 | 0.53 / 0.53 |
+| C32sb | same | 48 | 99.89 | 19.31 | 20.12 | 2.25 | 98.48 | 1.41 | 0.56 | 6821 | 0 | 0.00 | 0.63 / 0.63 |
+| C32one | same | 48 | 90.46 | 12.16 | 14.10 | 1.68 | 89.28 | 1.15 | 0.43 | 4022 | 0 | 0.00 | 0.60 / 0.60 |
+| A16cpu | same | 48 | 61.19 | 13.76 | 12.48 | 1.48 | 59.82 | 1.33 | 0.52 | 3607 | 0 | 0.00 | 0.41 / 0.41 |
+| C32cpu | same | 48 | 102.11 | 21.13 | 19.90 | 2.29 | 98.57 | 3.71 | 2.97 | 6821 | 0 | 0.00 | 0.54 / 0.54 |
+| C32h1 | same | 48 | 100.61 | 19.19 | 19.98 | 2.29 | 97.15 | 3.51 | 2.82 | 6818 | 0 | 0.00 | 0.53 / 0.53 |
+| C32 | cold32 | 3 | 334.76 | 27.19 | 45.22 | 6.73 | 324.63 | 14.24 | 12.78 | 6821 | 1337 | 257.24 | 10.24 / 1.33 |
+| A16 | fresh_cold | 12 | 138.55 | 16.15 | 24.62 | 3.23 | 131.89 | 4.47 | 0.60 | 3607 | 364 | 70.09 | 6.99 / 1.00 |
+| A16 | fresh_warm | 12 | 62.77 | 12.52 | 15.73 | 1.83 | 61.32 | 1.46 | 0.47 | 3607 | 0 | 0.00 | 0.48 / 0.48 |
+| A16 | fresh_warm2 | 12 | 62.28 | 12.03 | 12.64 | 1.54 | 61.19 | 1.14 | 0.43 | 3607 | 0 | 0.00 | 0.47 / 0.47 |
+paired per round and window (same tokens), median [IQR] ms of wall; GPU busy delta:
+  C32sb - C32: wall -2.15 [-2.39, -1.97] over 48; GPU busy -0.13
+  C32one - C32: wall -11.64 [-11.85, -11.42] over 48; GPU busy -9.25
+  C32one - C32sb: wall -9.41 [-9.67, -9.27] over 48; GPU busy -9.16
+  C32cpu - C32: wall +0.13 [-0.10, +0.54] over 48; GPU busy +0.02
+  A16cpu - A16: wall +0.17 [+0.08, +0.24] over 48; GPU busy +0.03
+  C32h1 - C32: wall -1.49 [-1.66, -1.21] over 48; GPU busy -1.39
+  C32 - A16: wall +38.27 [+37.98, +41.10] over 48; GPU busy +35.90
+fresh 16-row checks, cold - warm per window (n 12): wall +74.92 ms [IQR +49.95, +109.52]; PLE stage +6.53 ms; SSD +70.09 ms; misses +364
+bits: {'dd__mc_27921': {'C32sb_vs_C32': (32, 32), 'C32one_vs_C32': (32, 32), 'C32cpu_vs_C32': (32, 32), 'C32h1_vs_C32': (0, 32), 'A16cpu_vs_A16': (16, 16)}, 'dd__mc_2753': {'C32sb_vs_C32': (32, 32), 'C32one_vs_C32': (32, 32), 'C32cpu_vs_C32': (32, 32), 'C32h1_vs_C32': (0, 32), 'A16cpu_vs_A16': (16, 16)}, 'dd__mc_28056': {'C32sb_vs_C32': (32, 32), 'C32one_vs_C32': (32, 32), 'C32cpu_vs_C32': (32, 32), 'C32h1_vs_C32': (0, 32), 'A16cpu_vs_A16': (16, 16)}}
+pass K dd__mc_27921: bits vs timing [[(16, 16), (16, 16), (16, 16)], [(32, 32), (32, 32), (32, 32)]]

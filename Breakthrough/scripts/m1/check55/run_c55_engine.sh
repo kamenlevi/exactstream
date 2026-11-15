@@ -10,7 +10,9 @@
 # the night chain ~1.9x, apps stay closed to 15:00 on school days). The wall cap is 60 min (fanwatch freezes count on it).
 cd ~/Breakthrough || exit 9
 H=~/Breakthrough/scripts/m1/check55
-D=${C55_D:-~/Breakthrough/data/m1/check55/engine}         # C55_D / C55_E / C55_Q: overrides for a dry simulation only
+D=${C55_D:-~/Breakthrough/data/m1/check55/engine}         # C55_D / C55_E / C55_Q / C55_JOB: overrides for a dry simulation only
+# Mon 00:3x (after the 00:25 abort): the ticket queues only up to LATEST and a ticket granted after LATEST skips; C55_JOB
+# replaces the run's command in a simulation (a stub job).
 mkdir -p "$D"
 L=$D/run_c55_engine.log
 say() { echo "$(date '+%a %H:%M:%S') $*" >> "$L"; }
@@ -57,9 +59,9 @@ stop_checks "after the trigger"
 source "$H/c55_engine_env.sh"
 if ! ~/BigMoE/.venv/bin/python -I -B "$H/c55_headtest.py" >> "$L" 2>&1; then say "SKIP: the head test failed (log above)"; exit 5; fi
 say "head test PASS; queueing a quiet ticket"
-export PEER_QUEUE_TIMEOUT=21600
 while true; do
   stop_checks "before the ticket"
+  export PEER_QUEUE_TIMEOUT=$(( LATEST - $(date +%s) > 60 ? LATEST - $(date +%s) : 60 ))   # Mon 00:3x: queue only to LATEST
   peer lock quiet --queue 40m "Breakthrough: CHECK55 full-engine profile (exact-45 loop C 160, MEM ~31 GB, ~5 min)" >> "$L" 2>&1 \
     || { say "SKIP: quiet lock not granted"; exit 3; }
   LOCKED=1
@@ -68,6 +70,7 @@ while true; do
   if [ -e "$Q/PAUSE" ]; then say "PAUSE under the ticket: released, waiting it out, then queueing again"; peer unlock >/dev/null 2>&1; LOCKED=0; continue; fi
   break
 done
+[ "$(date +%s)" -gt $LATEST ] && quit "SKIP: the ticket came after the latest start $(date -r $LATEST '+%a %H:%M')"
 a=$(ns)
 say "quiet granted; NO-SWAP $a GB; power: $(pmset -g | grep -iE 'powermode|lowpowermode' | tr -s ' ' | paste -sd ';' -)"
 end=$(( $(date +%s) + 600 ))
@@ -77,7 +80,8 @@ while [ "$a" -lt 39 ]; do
   sleep 20; a=$(ns)
 done
 sw0=$(swmb)
-~/BigMoE/.venv/bin/python -I -B "$H/r57_c55.py" 160 256 > >(grep --line-buffered -vE "^\[(tokenizer|mtplx|qwen4_exp|moe-sorted)" >> "$L") 2>&1 &
+if [ -n "${C55_JOB:-}" ]; then JOB=($C55_JOB); else JOB=(~/BigMoE/.venv/bin/python -I -B "$H/r57_c55.py" 160 256); fi
+"${JOB[@]}" > >(grep --line-buffered -vE "^\[(tokenizer|mtplx|qwen4_exp|moe-sorted)" >> "$L") 2>&1 &
 py=$!
 cap=$(( $(date +%s) + 3600 ))
 while kill -0 $py 2>/dev/null; do

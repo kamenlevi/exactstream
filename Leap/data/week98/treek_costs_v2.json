@@ -1,0 +1,55 @@
+{
+ "source": "Leap ~/Leap/data/week98/treek_costs_v2.json (scripts/week98/treek_price2.py), Mon 16 Nov 00:5x: R(K) recalibrated on the ENGINE (Breakthrough's CHECK55 engine profile, Mon 00:42, a082f8c: A16 61.11, C32 102.09, C32one 90.46 ms; per-class pass K). Replaces v1, whose 32-row one-pass value (C7c's slice 1.345) does not hold on the engine (1.480). 32 rows measured; other K [est].",
+ "A16_ms": 61.11,
+ "overhead_ms": 4.0,
+ "lossy32_ms": 25.0,
+ "lossy_floor32_ms": 20.9,
+ "R": {
+  "floor": {
+   "16": 0.639,
+   "24": 0.76,
+   "32": 0.858,
+   "48": 1.013,
+   "64": 1.138,
+   "96": 1.323,
+   "128": 1.465
+  },
+  "today": {
+   "16": 1.0,
+   "24": 1.521,
+   "32": 1.668,
+   "48": 2.235,
+   "64": 2.767,
+   "96": 3.748,
+   "128": 4.677
+  },
+  "onepass": {
+   "16": 1.0,
+   "24": 1.335,
+   "32": 1.478,
+   "48": 1.886,
+   "64": 2.259,
+   "96": 2.927,
+   "128": 3.544
+  },
+  "contract": {
+   "16": 0.935,
+   "24": 1.27,
+   "32": 1.413,
+   "48": 1.82,
+   "64": 2.194,
+   "96": 2.862,
+   "128": 3.478
+  }
+ },
+ "c": {
+  "16": 1.025,
+  "24": 1.035,
+  "32": 1.04,
+  "48": 1.055,
+  "64": 1.07,
+  "96": 1.09,
+  "128": 1.11
+ },
+ "note": "today = REF2-T as the engine runs it (16-row calls; G32T measured 1.625 at 32 rows, this profile 1.671). onepass = step 1 complete (v32one's forms + seams to 32); beyond 32 rows it assumes one-pass K-row forms with the 16->32 per-tile growth of the non-expert part. The experts scale with the measured union at ~1.26 x their byte floor (engine). contract = onepass - 4 ms [est]. c(K) = midpoints of Leap's first-cut ranges."
+}

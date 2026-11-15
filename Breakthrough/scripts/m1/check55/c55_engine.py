@@ -113,7 +113,8 @@ def check(G, P, toks, n, arm, key, phase, rnd=-1):
     knobs(G, arm if arm in TAGS else "A16")
     sn = CS.snapshot_untrimmable_cache_lazy(P)
     mx.synchronize()
-    MP.tag(TAGS.get(arm, 40))
+    o0 = G["BG"].ext.overflow_count()                    # BIGMOE_OVERFLOW_FLAG=1 (the env): an over-C gate call is flagged,
+    MP.tag(TAGS.get(arm, 40))                            # not aborted; a flagged check is garbage and the report drops it
     s0 = np.array(stats(), np.float64)
     c0 = MP.counts()
     S["enc"] = 0.0
@@ -134,9 +135,12 @@ def check(G, P, toks, n, arm, key, phase, rnd=-1):
     t3, w3, u3 = MP.now(), time.perf_counter(), time.thread_time()
     c1 = MP.counts()
     d = np.array(stats(), np.float64) - s0
+    ovf = int(G["BG"].ext.overflow_count() - o0)
+    if ovf:
+        _say(G, f"C55 {key} {arm} {phase} round {rnd}: OVERFLOW flagged ({ovf} gate calls over C): this check is dropped")
     MP.tag(63)
     knobs(G, "A16")
-    REC.append(dict(arm=arm, key=key, phase=phase, round=rnd, n=n, tt=(tt0, time.time()), t=(t0, tf, tr, t3), w=(w1 - w0, w2 - w1, w3 - w2),
+    REC.append(dict(arm=arm, key=key, phase=phase, round=rnd, n=n, ovf=ovf, tt=(tt0, time.time()), t=(t0, tf, tr, t3), w=(w1 - w0, w2 - w1, w3 - w2),
                     u=(u1 - u0, u2 - u1, u3 - u2), enc_f=enc_f, enc_all=S["enc"], c={k: c1[k] - c0[k] for k in c1},
                     cb=(c0["ncb"], c1["ncb"]), misses=float(d[0]), ssd_ms=1e3 * float(d[1]), slow_ms=1e3 * float(d[2]),
                     ple=(1e3 * S["ple_w"], 1e3 * S["ple_u"], S["ple_n"])))
@@ -154,19 +158,41 @@ def cmp(a, b):
     return int(np.array(e).sum()), int(e.shape[0])
 
 
+def warm_span(key, gen, n=32):
+    """the latest prompt span [s, s + n) whose distinct experts per layer (the routes file) fit the window's own gate_req,
+    the bound G32TEST takes from the check rows (gen .. gen + 36), which the tier's C covers. Mon 00:25: the first engine
+    attempt warmed on the prompt's last 32 rows, which nobody had screened: 179 experts at layer 0 > C 175, and BigMoE's ext
+    aborted (bigmoe_ext.cpp ensure()). Returns (s, its max distinct, gate_req); s is None when no span fits."""
+    R = np.load(os.path.expanduser(f"~/datasets/deepdraft/routes/{key}.npz"))["routes"]
+    mu = lambda a, b: max(len(np.unique(R[a:b, l])) for l in range(R.shape[1]))
+    req = mu(gen, gen + 36)
+    for s in range(gen - n, -1, -1):
+        m = mu(s, s + n)
+        if m <= req:
+            return s, m, req
+    return None, None, req
+
+
 def cold(G, key, P, S0, gids, gen):
     """the window's first check right after its prefill (before G32TEST's bitwise pair): fresh tokens, cold PLE rows and
     expert misses as a real check meets them"""
     setup(G)
     if not S.get("k32warm"):                             # the process's first 32-row forward builds its kernels (one-time;
-        knobs(G, "C32")                                  # 96 ms on the slice test): build them on the prompt's own last 32
-        with G["ref2"].verify_scope(G["model"]):         # tokens (their n-gram rows are warm from the prefill), roll back,
-            lgw = G["model"](mx.array([gids[gen - 32:gen]]), cache=P)   # then the cold check on fresh tokens
-        mx.eval(lgw[0].astype(mx.float32))
-        back(G, P, S0, 32)
-        knobs(G, "A16")
-        S["k32warm"] = True
-        _say(G, f"C55 {key}: 32-row kernels built on prompt tokens before the cold check")
+        s, m, req = warm_span(key, gen)                  # 96 ms on the slice test): build them on prompt tokens that fit the
+        if s is None:                                    # tier (their n-gram rows are warm from the prefill), roll back, then
+            _say(G, f"C55 {key}: no prompt span fits gate_req {req}: 32-row kernels NOT pre-built (this cold check includes them)")
+        else:                                            # the cold check on fresh tokens
+            knobs(G, "C32")
+            o0 = G["BG"].ext.overflow_count()
+            with G["ref2"].verify_scope(G["model"]):
+                lgw = G["model"](mx.array([gids[s:s + 32]]), cache=P)
+            mx.eval(lgw[0].astype(mx.float32))
+            o1 = G["BG"].ext.overflow_count()
+            back(G, P, S0, 32)
+            knobs(G, "A16")
+            S["k32warm"] = True
+            _say(G, f"C55 {key}: 32-row kernels built on prompt tokens {s}..{s + 31} (routes: <= {m} distinct experts a layer, "
+                    f"gate_req {req}; overflow flags {o1 - o0}) before the cold check")
     check(G, P, gids[gen:gen + 32], 32, "C32", key, "cold32")
     back(G, P, S0, 32)
 
@@ -489,12 +515,13 @@ def dump(G, final=False):
 def report(G, path):
     Rall = [r for r in REC if "gpu" in r]
     hot_rounds = {(r["key"], r["round"]) for r in Rall if r.get("hot") and r["phase"] == "same"}
-    R = [r for r in Rall if not r.get("hot") and not (r["phase"] == "same" and (r["key"], r["round"]) in hot_rounds)]
+    R = [r for r in Rall if not r.get("hot") and not r.get("ovf") and not (r["phase"] == "same" and (r["key"], r["round"]) in hot_rounds)]
     m = lambda v: float(np.median(v)) if len(v) else float("nan")
     hs = S.get("heat", {})
     L = [f"C55 engine profile ({time.strftime('%a %d %b %H:%M')}): exact-45 loop, C 160; medians per check (ms)",
          f"heat (fanwatch): {len(hs.get('intervals', []))} episode(s) in the run; {hs.get('dropped', 0)} checks overlapped -> dropped, "
-         f"and {len(hot_rounds)} same-token round(s) dropped whole ({hs.get('status')})"]
+         f"and {len(hot_rounds)} same-token round(s) dropped whole ({hs.get('status')})",
+         f"overflow guard (BIGMOE_OVERFLOW_FLAG=1): {sum(1 for r in REC if r.get('ovf'))} check(s) flagged -> dropped"]
     L.append("| arm | phase | n | wall | CPU build | CPU encode (SB) | CPU read + commit | GPU busy | GPU idle | GPU first start | "
              "dispatches | misses | SSD ms | PLE stage ms (wall / CPU) |")
     L.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")

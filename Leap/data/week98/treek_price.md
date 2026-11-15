@@ -79,3 +79,36 @@ part, and it carries a memory cost.
   - At C7c's 1.345: 179 vs 167 tok/s (+7.5 %).
   - At today's 1.625: 150 vs 167.
   - So the one-pass 32-row check is what makes tree-32 pay.
+
+## CORRECTION Mon 00:5x: on the ENGINE the one-pass 32-row check is 1.480 x A16, so tree-32 does NOT pay yet (costs v2)
+Data: data/week98/treek_costs_v2.json and treek_price2.txt (scripts/week98/treek_price2.py).
+- **The engine measurement:** Breakthrough's CHECK55 engine profile (Mon 00:42, quiet ticket, 48 pairs per arm, a082f8c):
+  - A16 61.11 ms, C32 (split) 102.09, C32one (step 1 complete) 90.46, all bitwise;
+  - so R(32) one pass is **1.480** on the engine, not C7c's 1.345 on the slice;
+  - the slice compresses ratios: its check is ~half Python build, and its experts are a smaller share.
+- **Per class on the engine (pass K, split path):**
+  - the experts go 33.71 -> 50.65 ms from 16 to 32 rows, x1.50: exactly the measured union ratio, at ~1.26 x their byte
+    floor (not 1.04, as the first cut assumed);
+  - the rest goes 30.62 -> 54.36 split and ~45.1 one pass (+47 % per extra 16-row tile).
+- **The recalibrated model (engine basis; only the 32-row values are measured):**
+
+  | K | 16 | 24 | 32 | 48 | 64 | 96 | 128 |
+  |---|---|---|---|---|---|---|---|
+  | floor / A16 | 0.639 | 0.760 | 0.858 | 1.013 | 1.138 | 1.323 | 1.465 |
+  | split (today) | 1.000 | 1.521 | 1.668 | 2.235 | 2.767 | 3.748 | 4.677 |
+  | one pass | 1.000 | 1.335 | **1.478** | 1.886 | 2.259 | 2.927 | 3.544 |
+  | contract | 0.935 | 1.270 | 1.413 | 1.820 | 2.194 | 2.862 | 3.478 |
+- **HE+ with NewIdeas' model** (kept 16.26 vs 11.26, c 1.04 / 1.025, 4 ms overhead):
+
+  | 32-row check | tree-16 | tree-32 | difference |
+  |---|---|---|---|
+  | one pass | 169.0 | 166.0 | -1.7 % |
+  | split (today) | 169.0 | 147.8 | -12.5 % |
+  | contract | 180.0 | 173.3 | -3.7 % |
+
+  The contract speeds the 16-row check by as much in ms, so it helps tree-16 more.
+- **Break-even:** R(32) <= 1.451, i.e. the one-pass 32-row check <= 88.7 ms (-1.7 ms from today's).
+  - The 32-row levers left:
+    - BOF2-O, exact, -2 ms engine est, but BOF speeds A16 too;
+    - the experts at 32 rows: 50.65 ms vs a 40.2 ms floor, the biggest excess;
+    - the LM head as one 32-row call (-1.49 ms, not exact).

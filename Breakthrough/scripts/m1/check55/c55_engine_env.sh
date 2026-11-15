@@ -7,3 +7,7 @@ export R57_G32TEST=dd__mc_27921,dd__mc_2753,dd__mc_28056 R57_G32TIME=16 R57_G32T
 export C55_FRESH=dd__mc_27623,dd__mc_27904,dd__mc_27743,dd__mc_27516,dd__mc_27703,dd__mc_27360,dd__mc_28205,dd__mc_27384,dd__mc_27440,dd__mc_27933,dlog__mbpp13,dd__mc_27173
 export C55_PASSK=1 C55_KROUNDS=3 C55_SPIN_MS=2.0
 unset REF2_SEAM_HI
+# Mon 00:3x (after the 00:25 abort, docs/CHECK55_PROFILE.md "Engine run"): a gate call over the tier's C is flagged, not
+# aborted (bigmoe_ext.cpp ensure(); nothing else reads the flag). c55_engine.check() reads overflow_count() around each
+# check and the report drops any flagged check. The kernel warm-up now uses a prompt span that fits (c55_engine.warm_span).
+export BIGMOE_OVERFLOW_FLAG=1

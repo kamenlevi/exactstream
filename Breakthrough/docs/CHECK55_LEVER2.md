@@ -144,3 +144,44 @@ l2_diag_rough1.txt.
 - The quiet-window verdict times dense_pre's default (moe_dense.DEFAULT_A = rv 16, rr 4, rp 2, sgn 4) + B + moe_tail
   against the chain, as in section 4 (bench_moe_dense.py "chain,mine").
 - No other config enters the verdict. The variants of section 6 are reported as information only.
+
+## 8. RESULT: the quiet-window verdict MISSED (Mon 16 Nov 00:26, quiet ticket, power mode 2, NO-SWAP 43 GB)
+Run by run_l2_quiet.sh right after the engine profile's attempt (the orchestrator's slot). Data:
+data/m1/check55/lever2/l2_bench_quiet.txt (THE verdict: bench_moe_dense.py, 7 rounds, 16 passes per graph, forms
+"chain,mine" as section 7 fixed them), l2_pieces_quiet.txt (information), run_l2_quiet.log. Both ran under the ticket,
+10 s in all. The files' first line still says "ROUGH, shared Mac": that is a fixed label in the scripts, not the conditions.
+
+| rows | K-73's chain, GPU us / layer | mine (dense_pre's default + B), GPU us / layer | mine - chain | per round (mine - chain, us) |
+|---|---|---|---|---|
+| 16 | 64.0 | 94.4 | **+30.3** | +33 +44 +33 +30 +27 +28 +29 |
+| 32 | 106.1 | 116.0 | +9.8 | +7 +7 +10 +6 +10 +10 +10 |
+
+- **Verdict: MISSED.** The line was mine - chain <= -50 us per layer at 16 rows; mine is slower in every round.
+- **Bits held:** the end states are bitwise equal across the forms at both lengths.
+- **The pieces** (information; min us per call, 96 chained calls per graph, 9 rounds):
+
+| piece | 16 rows | 32 rows |
+|---|---|---|
+| MLX's two calls (8-bit router + R-74's 4-bit concat); at 32 rows, two halves | 44.0 | 85.2 |
+| A, the default (16:4:2:4) | 49.6 | 95.0 (median 124.6) |
+| A 4:4:2:4 | 44.5 | 126.9 |
+| K-73's B side (router_fused + swiglu + qmm16c + the g copy) | 7.7 | 8.9 |
+| B | 2.8 | 5.5 |
+
+**Reading.**
+- Even the pieces, the most favourable reading, give no path to -50 us. At 16 rows, the default A + B is 52.4 us against
+  the chain's 51.7; with A 4:4:2:4 it would be 47.3 (-4.4 us).
+- The whole-chain bench charges mine ~30 us per layer more than its pieces add up to. The chain matches its pieces
+  (64.0 = 51.7 + a ~12 us tail); mine does not (94.4 vs ~64). This is not explained, and it is not needed for the verdict.
+- Both forms' per-round GPU times fall through the run (chain 92 -> 58, mine 125 -> 87): the GPU clock was still rising
+  on the short graphs. The rotation spreads that over both forms, and the gap holds in the last rounds (+28, +29).
+- Section 6's rough gain came from the piece bench on a shared GPU. The rough whole-chain benches (l2_bench_rough1-2)
+  already had mine slower at 16 rows (+16; +8..+49 by config), and I set them aside as noise. On a quiet GPU the sign
+  is clear.
+
+**Consequence.**
+- Lever 2 is killed by its pre-registered line.
+- Told the orchestrator and Leap (00:3x). My recommendation to Leap is to drop E14's A16m / C32onem arms: at ~+30 us x
+  48 layers they would cost ~+1.5 ms per 16-row check. Leap's 7d93cab stays inert while E14_L2 is unset.
+- What stays: the exact construction (108 / 108 bitwise) and kernel B, -4.9 us per layer in the pieces. B alone is worth
+  ~0.2 ms per check at best, so it is not proposed.

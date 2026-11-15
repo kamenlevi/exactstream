@@ -73,10 +73,21 @@ def prefill(ids, want_w=False, chunk=1024):
     return cache, None, None, None
 
 
-OUT = os.path.expanduser("~/Breakthrough/data/m1/check55/engine_slicetest")
+OUT = os.path.expanduser(os.environ.get("C55_ST_OUT", "~/Breakthrough/data/m1/check55/engine_slicetest"))
 os.makedirs(OUT, exist_ok=True)
+OVC = [0]                                                # Mon 00:4x: a stand-in for the ext's overflow_count(); from call
+OVAT = int(os.environ.get("C55_ST_OVF_AT", "0") or 0)    # C55_ST_OVF_AT on it reads 1, so the check whose second read that
+                                                         # is gets flagged (even calls = a check's after-read): tests the drop
+
+
+def ovf_count():
+    OVC[0] += 1
+    return 1 if OVAT and OVC[0] >= OVAT else 0
+
+
 G = dict(model=model, ref2=ref2, v32=v32, CS=CS, Q=Q, states=states, stats=lambda: np.zeros(6), set_arm=lambda a: None,
-         prefill=prefill, PFCHUNK=1024, SW_=[], BG=types.SimpleNamespace(MAXK=320), BS=types.SimpleNamespace(GATE_N=[0]),
+         prefill=prefill, PFCHUNK=1024, SW_=[], BG=types.SimpleNamespace(MAXK=320, ext=types.SimpleNamespace(overflow_count=ovf_count)),
+         BS=types.SimpleNamespace(GATE_N=[0]),
          say=lambda s: print(s, flush=True), OUT=OUT, TAG="c55slice")
 for key in os.environ["R57_G32TEST"].split(","):
     bz = np.load(os.path.expanduser(f"~/datasets/deepdraft/bank/{key}.npz"))

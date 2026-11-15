@@ -1,0 +1,31 @@
+--- armed Sun 21:45 (the orchestrator 21:4x: right after tonight's engine profile, hard end 07:00, no ticket before 23:30)
+Sun 21:45:59 armed (pid 88412): waits for the profile runner pid 76388 to exit; window Sun 23:30 .. latest start Mon 06:45
+Mon 00:26:01 profile runner 76388 exited; its last line: Mon 00:25:12 C55-ENGINE-DONE rc 134; swap 6900 MB (start 6900)
+queued #1; this returns when it's your turn and the Mac is quiet.
+your turn after 0s: quiet lock held until 00:41. Measure now, and `peer unlock` as soon as you're done.
+Mon 00:26:21 quiet granted; NO-SWAP 43 GB; power:  powermode 2
+mtlprof: 13 hooks on AGXG17XFamilyComputeContext / AGXG17XFamilyCommandBuffer / AGXG17SDevice
+LEVER2 BENCH (ROUGH, shared Mac) Mon 16 Nov 00:26:22: layers (0, 24, 47), 16 passes per graph, 7 rounds; forms ['chain', 'mine']
+  rows 16: end states bitwise equal across forms: True
+    chain              GPU    64.0 us / layer (wall    71.5); vs chain:    +0.0 us; rounds GPU us 92 73 68 64 60 58 58
+    mine               GPU    94.4 us / layer (wall   106.9); vs chain:   +30.3 us; rounds GPU us 125 117 101 94 87 86 87
+  rows 32: end states bitwise equal across forms: True
+    chain              GPU   106.1 us / layer (wall   126.4); vs chain:    +0.0 us; rounds GPU us 109 109 106 110 106 106 106
+    mine               GPU   116.0 us / layer (wall   127.4); vs chain:    +9.8 us; rounds GPU us 116 116 116 116 116 116 116
+Mon 00:26:26 bench_moe_dense.py rc 0
+mtlprof: 13 hooks on AGXG17XFamilyComputeContext / AGXG17XFamilyCommandBuffer / AGXG17SDevice
+LEVER2 PIECES (ROUGH, shared Mac) Mon 16 Nov 00:26:26: 96 chained calls per graph, 9 rounds, layers (0, 24, 47) rotating
+  rows 16:
+    mlx 2 calls                  min   44.0 us  median   44.3 us per call
+    A 16:4:2:4                   min   49.6 us  median   50.9 us per call
+    A 4:4:2:4                    min   44.5 us  median   44.7 us per call
+    K-73 B-side (4)              min    7.7 us  median    8.3 us per call
+    B                            min    2.8 us  median    2.9 us per call
+  rows 32:
+    mlx 2 calls x2 halves        min   85.2 us  median   85.4 us per call
+    A 16:4:2:4                   min   95.0 us  median  124.6 us per call
+    A 4:4:2:4                    min  126.9 us  median  128.8 us per call
+    K-73 B-side (4 + halves)     min    8.9 us  median    9.8 us per call
+    B                            min    5.5 us  median    5.6 us per call
+Mon 00:26:31 piece_moe_dense.py rc 0
+Mon 00:26:31 L2-QUIET-DONE
