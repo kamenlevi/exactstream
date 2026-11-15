@@ -41,6 +41,41 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Sun 15 08:1x (orchestrator): S6 CSM verified from its files. In flight:
+  - **MTP Head: ACCEPT-SET training** (its own R-61N follow-up from 11-01, never run; non-exact, FAST track).
+    - The head is trained so its #1 lands in the close-call accept set at delta 1 (2 optional).
+    - Line: kept/32 under the close-call walk vs s30 under that walk, with the changed-token rate beside it.
+    - Why: ~90 % of check-start misses sit on the 125B's close calls (CSM), and the delta sweep above used an
+      exact-trained drafter.
+  - **Sandbox98: three single-arm QAT screens**: mixed 4/8-bit, learned group scales, higher lr floor.
+  - Not now: MTP Head's depth-0-only extra step. Closing the whole ~3 pt residual at depth 0 gives ~+3 % kept against
+    ~2 % cost, so the net is <= ~+1 %.
+- Sun 15 08:02: **MTP Head S6 CSM: the check-start dip is mostly close calls** (CPU read-out of t30b's cells, no
+  training; pre-registered TrainLab 968ccfc, result 67649e7; data/w98/csm_*.txt). Sets: HE+ 24, and BigMoE's MBPP bank
+  100 (read-only).
+  - Depth 0 at the walk's check starts vs other anchors: HE+ 91.97 vs 98.40 %, MBPP 89.70 vs 94.69 %.
+  - Matching on the 125B's top-1 margin explains 54 % of the gap on HE+ (CI 38-76) and 40 % on MBPP (CI 28-54):
+    BETWEEN by the rule.
+    - Check starts land on close calls (m < 2 nats) more often than other anchors: 16.9 vs 5.4 % (HE+), 23.8 vs 16.9 %
+      (MBPP).
+    - The rest is a ~3 pt residual at equal margin, only at m < 4; at m >= 4, starts are within 1.1 pt of other anchors.
+  - Exploratory cuts:
+    - Of the misses at check starts, 92 % (HE+) and 88 % (MBPP) fall on rows where the 125B's margin is under 2 nats.
+    - There is no dip after a full accept (99-100 %); the dip is all at after-miss starts (89.2-89.3 %).
+    - The residual is largest (4.7-6.5 pt) when the missed row was wrong even from a fresh anchor: hard rows run in a row,
+      so this is general drafter accuracy, not missing information at check starts.
+  - Read: lossy close-call acceptance targets ~90 % of the check-start misses directly. Exact options stay as worded.
+    The depth-0-only extra-step screen is ranked below the queue and was not run.
+- Sun 15 07:2x: **Sandbox98 QAT 4-bit chain head at FULL budget, group 32 = BETWEEN** (7b14cd8; pre-registered a298c0d):
+  from the native head over s30's 1,889 steps, ctl + qat matched arms (the ctl reproduces s30 exactly).
+  - kept/32 vs the 8-bit body with the same list, MBPP-50 / HE-30: QAT 4-bit g32 -2.80 / -2.25 % (8K context list
+    -2.35 / -1.77 %); post-training 4-bit g32 -4.15 / -6.59 %, g64 -8.28 / -10.88 %. QAT recovers 32 % / 66 % of the g32
+    loss; the held-out second halves agree (-2.45 / -2.36 %). The line (within 1 % in all four cells) is missed by 0.8-1.8.
+  - The ~48 MB form (38 MB body + 8K context list) keeps 4.143 / 6.076 vs the 8-bit full head's 4.350 / 6.269
+    (-4.8 / -3.1 %); the 8-bit body + list (~74 MB) keeps 4.242 / 6.185 (-2.5 / -1.3 %).
+  - At the halfway stop line the 4-bit head read level with the 8-bit body (MBPP -0.03 %, CI +-1.5); -2.8 % by the end,
+    so the gap opens in the anneal, or the halfway read was lucky.
+  - Open, each <= 20 min single-arm vs s30: mixed 4/8-bit by sensitivity, learned group scales, a higher QAT lr floor.
 - Sun 15 06:3x (orchestrator): **WALKW = NO EFFECT** (MTP Head, verified from TrainLab data/sb98/walkw_compare.txt).
   - Check-start weighting (ww): kept/32 +0.019 MBPP-50 (p 0.31) / +0.069 HE-30 (p 0.09).
   - Margin weighting (mw): -0.084 / -0.100.

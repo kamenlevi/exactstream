@@ -4148,3 +4148,58 @@ loses chat hits.
   - Exact options left: a sequential 125B row on the bonus token (~0.6 ms per layer partial pass), or more rows per check
     if a 64-row tree is cheap. Lossy close-call acceptance is the direct one.
   - The training-side verdict stands: training weight doesn't move the check-start gap.
+
+## WEEK98 S6 CSM: is the check-start dip hardness or missing information? (pre-registered Sun 15 Nov 07:58)
+Question: at the walk's check starts, t30b's depth 0 is 91.6 % right on HE+ vs 97.9 % elsewhere (EvalSuite). Are
+check starts just positions where the 125B itself is less sure (a hardness effect: no drafter-side fix), or does the
+drafter miss more there even at equal 125B confidence (an information or capacity gap at depth 0, which a depth-0-only
+extra step, run once per check, might close)?
+Test (CPU only, no training, < 5 min): data/w98/cells_t30b_heplus.npz (24 HE+ windows, runtime-path bank context).
+Walk each window as the engine does (accept to the first miss; the next check starts k + 1 anchors later; start at the
+second depth-0 anchor, as walk_diag.py does). Depth-0 cells: check starts vs other anchors, binned by m (the 125B's
+top-1 margin at the predicted row; bins 0-0.5-1-2-4-8-inf nats). Margin-matched rate = the other anchors' per-bin
+accuracy weighted by the starts' bin mix. Share explained = (other - matched) / (other - starts).
+Result -> action:
+- share >= 2/3: hardness. Close drafter-side depth-0 levers (capacity, data weight); the only exact fix is the 125B's
+  own pass on the bonus token; lossy close-call acceptance is the direct one. Report to the orchestrator, stop.
+- share <= 1/3: an information or capacity gap at equal confidence. Next: a <= 20-min sandbox screen of a depth-0-only
+  extra layer (copy init, own lr, 400 steps vs n1, judged by kept/32 + walk-strict), priced first as one extra head
+  layer per check.
+- between: report both readings; the depth-0 screen ranks below the orchestrator's queue.
+Caveat: m is the 125B's margin, so this measures hardness for the 125B, not for the drafter.
+
+## WEEK98 S6 CSM RESULT (Sun 15 Nov 08:02): BETWEEN on both sets
+Script sticky/w98_cs_margin.py (CPU, < 1 min). Sets: the pre-registered HE+ cells (24 windows), plus BigMoE's
+cells_t30b_mbppbank.npz (100 MBPP windows, read-only; anchor = row - depth - 1, which equals the stored anchor on HE+).
+Outputs: data/w98/csm_heplus.{txt,json} and data/w98/csm_mbppbank.{txt,json}.
+- Depth 0 at the walk's check starts vs other anchors:
+  - HE+: 91.97 % (n 461) vs 98.40 % (n 5,890); EvalSuite's 91.6 vs 97.9 reproduces within 0.5.
+  - MBPP: 89.70 % (n 2,253) vs 94.69 % (n 13,288).
+- Share of the gap explained by the 125B's margin (95 % CIs from a 2,000-draw window bootstrap):
+  - HE+: 53.7 % (CI 37.9-75.9).
+  - MBPP: 40.2 % (CI 28.3-53.9).
+- Residual at equal margin:
+  - HE+: 2.98 pt (CI 0.71-5.04).
+  - MBPP: 2.99 pt (CI 1.80-4.18).
+- By the rule this is BETWEEN on both sets, and both readings hold:
+  - About half the dip is the 125B's own uncertainty. Check starts land on rows with m < 2 nats more often than other
+    anchors: 16.9 vs 5.4 % on HE+, 23.8 vs 16.9 % on MBPP.
+  - The other half is a ~3 pt residual at equal margin. It sits only at m < 4 nats; at m >= 4 nats starts are within
+    1.1 pt of other anchors on both sets.
+EXPLORATORY (not pre-registered, same script):
+- Of the depth-0 misses at check starts, 91.9 % (HE+) and 88.4 % (MBPP) are on rows with m < 2 nats.
+- After-miss starts carry the whole dip:
+  - First starts are 100 / 100 % right; starts after a full accept are 99.0 % (n 101) / 100 % (n 13).
+  - After a miss: 89.29 % (n 336) / 89.16 % (n 2,140), with residuals 3.94 / 3.15 pt at equal margin.
+- Hard rows cluster:
+  - Bonus row wrong at depth 0 even from a fresh anchor: the next row is 81.13 % (n 106) / 84.75 % (n 741) right,
+    residual 6.50 / 4.73 pt.
+  - Bonus row right at depth 0 (the miss came from depth): 93.04 % (n 230) / 91.49 % (n 1,399), residual
+    2.76 / 2.31 pt.
+ACTION (as pre-registered for BETWEEN): report both readings. The depth-0-only extra-step screen ranks below the
+orchestrator's queue and was not run. The exploratory cut lowers it further:
+- There is no check-start gap after a full accept.
+- The residual follows rows that are hard for the drafter even from a fresh anchor. That is drafter accuracy in hard
+  spans, not information missing at check starts.
+- Close calls (m < 2 nats) hold ~90 % of the check-start misses, so lossy close-call acceptance targets them directly.
+- Exact options stay as worded: the 125B's own pass on the bonus token, or more rows per check.

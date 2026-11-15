@@ -5,7 +5,16 @@
 # frequent quiet windows ended S4's first run at step 9). Exits with CMD's exit code.
 source "$HOME/Sandbox98/scripts/guard_lib.sh"      # quiet_others, noswap, swap_mb (read-only use)
 name=$1 log=$2 mins=$3; shift 3
-lk() { peer lock share ${mins}m --cpu 200 --gpu 25 "MTP Head: $name, MEM ${MEMGB:-6} GB" >/dev/null 2>&1; }
+lk() {   # logs the lock's reply and exit code (06:06: the old silent call may have failed unseen); 3 tries, 30 s apart
+  local i out rc
+  for i in 1 2 3; do
+    out=$(peer lock share ${mins}m --cpu 200 --gpu 25 "MTP Head: $name, MEM ${MEMGB:-6} GB" 2>&1); rc=$?
+    echo "$(date +%H:%M:%S) lock try $i rc $rc: $(printf '%s' "$out" | tr '\n' ' ' | cut -c1-200)"
+    [ $rc -eq 0 ] && return 0
+    sleep 30
+  done
+  echo "$(date +%H:%M:%S) LOCK FAILED 3x for $name: running without a share lock"; return 1
+}
 until [ "$(quiet_others)" -eq 0 ] && [ "$(noswap)" -ge 12 ] && [ ! -f "$HOME/.local/share/quiet/PAUSE" ]; do sleep 20; done
 lk
 echo "$(date +%H:%M:%S) start $name (swap $(swap_mb) MB, NO-SWAP $(noswap) GB)"
