@@ -41,8 +41,85 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Sun 15 16:4x: **MoonShots TREE-E2E: the exact tree check works in REAL decoding** (2B + s30; MoonShots 7471145;
+  verified by the orchestrator from week98/tree/tree_result.json).
+  - Setup: EAGLE-2 tree-16 vs chain-16, 16 rows per check, path-batched, one batch shape (B = 16) for every target
+    step. 264 keys; pre-registered in LEVERS_A before any code ran.
+  - EXACT 264 / 264 token for token, so pass@1 is identical (HE+ 43.29 / MBPP 29.00).
+  - Kept per check:
+    - HE+ x1.148 [1.135, 1.160]: 6.041 -> 6.933, the same 46,275 tokens in 7,660 -> 6,675 checks;
+    - MBPP x1.188 [1.175, 1.201]: 4.935 -> 5.864.
+  - Like for like with the sim (its keys, first 512 tokens): x1.166 / x1.216 vs the sim's x1.139 / x1.198. MATCHES
+    SIM; real is slightly better on HE+.
+  - So the sim method behind S9c and CERTIFY98's tree line holds in real decoding. The 2B's gain is larger than the
+    125B's because its drafter is weaker. This checks the method, not the 125B's size.
+  - Side finding: on stock MLX kernels the batch shape alone (B >= 2 vs B = 1) flips 142 / 264 answers, all at
+    near-ties (top-2 gap <= 0.375). The 125B is not exposed:
+    - REF2 pads every step to one 16-row shape, AR included (R-40);
+    - R57_REPLAY and TREE16 are bitwise;
+    - at 32 rows, C32 must stay == 2 x 16 (CHECK55's one-pass rule).
+  - Next: T32 (tree-32 vs chain-16, both at one shape B = 32), approved for this evening, pre-registered first.
+    - It is the real-decoding check for a possible tree-32 line: S9c gives tree-32 x1.531 kept on HE+ vs x1.060 for
+      tree-16.
+    - That line pays if tonight's C7c and Monday's E2 bring R32 near 1.3.
+- Sun 15 16:22 (`date`) **NewIdeas: CHECK55 RESEARCH PASS for Leap** (Goal B; CPU / desk; NewIdeas
+  research/week98/CHECK55_LEVERS.md, 09ee3d7). A ranked table: track A (REF2-T) / B (next week's reference), priced
+  from Breakthrough's class times, TRIED-tagged, each lever with its kill-test. Top 5:
+  1. DENSE-N re-test (A, bitwise, built): -1.9 ms at A16. ISO2's ~0 was measured while the check was CPU-bound.
+     **CORRECTED 16:25 (c2620a9):** wrong. ISO2 was a rotated A/B on the engine with the check GPU-bound: +0.7 ms.
+     Lever 1 and the GDNB re-test are CONDITIONAL on tonight's engine profile.
+  2. MoE dense side as ~2 exact dispatches (A): -2.7 / -5 ms.
+  3. **HC SLC staging (A, new):** stage the next HC read's ~6.65 MB mixers during the latency-bound kernels; ceiling
+     -1.9 ms from D3-0's cold / cached gap.
+  4. **Track B reference CONTRACT:** a fixed K-chunk independent of M, code-MMA order, an ordered fp32 reduce, so we
+     re-certify once and later kernels stay bitwise. It enables projections and HC at ~1.3x their floors.
+  5. The contract's bench (3 shapes x chunk x M = 1 / 16 / 32, the bit test across M).
+  - Track A in total: ~52-55 / ~70-76 ms at 16 / 32 rows. **Re-totalled 16:25 without lever 1 / GDNB: ~53-56 /
+    ~68-76.** Track B adds ~-11 / -16 (Leap's ~45 / ~62).
+- Sun 15 16:1x (orchestrator): **NewIdeas takes a desk-only CHECK55 research pass** (its offer, accepted; Goal B has
+  equal priority).
+  - Two tracks:
+    - (A) levers exact under REF2-T this week: same per-output arithmetic order, batch-invariant;
+    - (B) the design of next week's re-certified bandwidth reference: fixed split-K partitions that don't depend on M
+      and a fixed-order reduce, for the dense GEMMs and the HC read at 16-32 rows, so SD == AR stays bitwise. Get it
+      right before re-certifying once.
+  - Output: a ranked table (ms per engine check + the cheapest kill-test for each lever), top 3-5 to Leap by ~21:00.
+    Passes can join Monday night's E1 (Tue 00:30).
+  - Leap decides what to build. No GPU from 22:30.
+  - **DONE 16:21** (NewIdeas 09ee3d7, ~/NewIdeas/research/week98/CHECK55_LEVERS.md; verified by the orchestrator):
+    - Track A:
+      - MoE dense side as ~2 exact dispatches: -2.7 / -5 ms [est];
+      - NEW: HC SLC staging, where a touch kernel warms the next HC read's mixers during latency-bound windows:
+        ceiling -1..-1.9 ms [est], from D3-0's cold / cached gap;
+      - Leap's own list.
+    - Track B: one REFERENCE CONTRACT for every dense GEMM, the HC read and the head:
+      - a fixed K-chunk that doesn't depend on M;
+      - the code-MMA order inside a chunk;
+      - an ordered fp32 sum of the chunk partials;
+      - one bf16 rounding.
+      Any later kernel that honours it stays bitwise, so we re-certify once. Its bench (one afternoon) picks the chunk per
+      shape. With it the dense side drops a further ~-11 / -16 ms (16 / 32 rows), which reaches Leap's ~45 / ~62.
+    - **CORRECTED 16:3x by the orchestrator.** Lever 1 (a DENSE-N re-test, -1.9 ms [est]) rested on "ISO2 was measured
+      while the check was CPU-bound". That is wrong:
+      - ISO2 was a rotated A/B on the engine (BigMoE WED_TESTS.md:2042): DENSE-N +0.7 ms, GDNB +0.2;
+      - the check was GPU-bound then too. The profile only corrected how C6 had been read.
+      So lever 1 and the GDNB re-test wait for tonight's full-engine profile: either the engine is GPU-bound and they
+      don't transfer, or the gate's CPU service hides every GPU lever. NewIdeas re-totals and re-sends to Leap.
+    - **Fixed 16:25** (NewIdeas c2620a9, verified):
+      - lever 1 and the GDNB re-test are CONDITIONAL;
+      - a TRANSFER RULE: a standalone or slice gain counts only after a paired engine A/B;
+      - SLC ~24 MB is now [est] (Leap's KNEE measured 2-8 MB re-reads at 2.3-3.2 TB/s, 12 MB 1.1 TB/s);
+      - track A re-totalled to 16 rows ~53-56 ms, 32 rows ~68-76 (conservative: the listed items sum to ~51-56 /
+        ~62-72).
+      - Leap's new order: HC SLC staging, the MoE dense side, its own list without GDNB, then the track B contract.
 - Sun 15 14:46 (`date`) **NewIdeas: DRAFT TREE LINE for CERTIFY98** (sent to EvalSuite; NewIdeas research/week98/TREE_LINE.md;
   dev numbers from tree_coverage.py on BigMoE's real t30b tree dumps).
+  - **SUPERSEDED by CERTIFY98 amendments 6 / 6a** (EvalSuite c915da9, 598d5fb; agreed):
+    - a delta-method LB (CR1, t(K-1));
+    - each method under its own walk;
+    - coverage in certify98's walk convention (HE+ depth 0 93.33 -> 98.23, MBPP 89.72 -> 97.61);
+    - Leap's measured c16 1.025, so PASS = LB >= 1.025 AND T >= 1.05575 (strict 3 % net); HE+ power 0.72, MBPP 1.00;
+    - candidate t30b CONFIRMED (dd_t30b.safetensors, sha256 790c42db...215d502).
   - **Candidate:** t30b + EAGLE-2-16. **Statistic:** T = tree-16 / chain-16 kept per check under the walk.
     **Uncertainty:** a window-clustered bootstrap.
   - **Line** (HE+ and MBPP; everyday reported only):

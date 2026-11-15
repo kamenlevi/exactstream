@@ -630,6 +630,296 @@ arm.**
 - **Files:** week98/jcc_decode.py, jcc_batch.py, jcc_score.py, jcc_prescore.py, jcc_guard.sh;
   jcc/arm{0,1,2,B}.jsonl, scores.json, jcc_result.json.
 
+## TREE-E2E. The exact tree check in real decoding on the 2B (orchestrator 14:4x; pre-registered 14:5x, before any code ran)
+
+**Question:** does s30's best-first EAGLE-2 tree, verified by the 2B in real decoding, keep more tokens per check than
+the 16-row chain, stay exact, and keep pass@1?
+- Kamen chose the exact drafter (Sun morning), so trees are the exact lead. MTP Head's S9 priced them teacher-forced
+  with an off-path proxy: an off-path node takes the true path's top-3 at its depth (TrainLab REPORT "WEEK98 S9
+  TREE-DYN", sb98/tree_price.py eagle2()).
+  - s30 exact, 16 rows: MBPP-50 4.280 -> 5.128 (x1.198 [1.176, 1.219]); HE-30 5.971 -> 6.802 (x1.139 [1.104, 1.175]).
+  - S9c on the 125B (real t30b trees): x1.136 / x1.060.
+- Nobody has decoded with a tree yet.
+
+**Setup:**
+- Target, drafter, panel, prompts and caps are J(CC)'s:
+  - Qwen3.5-2B 4-bit and s30, with sb/core.py read-only;
+  - 264 keys (HE+ 164, MBPP 100);
+  - each item's max_tokens; an answer stops at an end token.
+- **Rows:** 16 per check = the bonus row + 15 draft nodes, as the sim's chain-16 / tree-16 (N - 1 = 15 nodes). The
+  ask's "16 nodes" are these 16 rows.
+- **Arms:**
+  - **C16:** s30's greedy chain of 15 drafts (depth 1, then 14 deeper steps).
+  - **T16:** best-first EAGLE-2, the sim's eagle2() run on the head's real distributions:
+    - a heap of nodes ordered by path score (the product of the head's softmax probabilities along the path), top-3
+      children per node; pop until 15 nodes;
+    - a popped node's children come from the head run on that node's own path: deeper with the node's token, attending
+      to the true pairs <= the anchor plus the node's own ancestors' chain entries;
+    - no proxy anywhere; slot 0 = the argmax on ties; heap ties broken by the rank sequence, as the sim.
+  - **T32 (optional):** 31 nodes, beside the sim's x1.368 / x1.332. It runs only if the main arms are done by ~19:00,
+    the GPU is free, and the batch rule below makes it comparable token for token.
+- **Verify** (one code path for every arm; Leap's route (a)): each root-to-leaf path is its own chain in a batch of rows.
+  1. The 2B's cache at the check start is forked to B rows (attention KV plus the GDN conv and recurrent states).
+  2. The 2B steps all rows one token per forward ([B, 1]): offset 0 feeds the bonus; offset j feeds each path's j-th
+     token.
+  3. Accept the longest path prefix that matches the 2B's argmax at every offset. Commit those drafts plus the 2B's
+     argmax after them (the new bonus), cut at an end token or the cap.
+  4. The accepted row's cache becomes the new cache. Stepping stops at the offset where the last matching row ends, so
+     nothing is rolled back.
+- **Batch shape (rule fixed now; a smoke probe picks the branch):**
+  - The probe compares a [B, 1] step's row 0 with a [1, 1] step from the same cache, bitwise (logits and the post-norm
+    hidden), for B in {2, 4, 8, 15, 16, 31, 32}, at contexts of ~300, ~800 and ~1,250 tokens.
+  - **If every row is bitwise equal:** B = each check's path count, with no padding. Every arm must then also equal
+    J(CC)'s batch-1 exact arm (jcc/arm0.jsonl) token for token.
+  - **Otherwise:** one fixed B for every target step of every arm, 16 rows (paths padded by repeating path 0). C16 and T16
+    then share their numerics exactly. T32 is skipped. The arm0 comparison is reported as the batch-shape noise floor.
+- **Why stepped, not one pass:** on the 2B with MLX's stock kernels, a one-pass [B, L] verify runs other kernels than the
+  one-token decode (SDPA, the GDN chunk path). Its numerics then depend on where each check starts, so a tree and a chain
+  could never match token for token, and near-tie flips would look like tree bugs.
+  - Stepping makes each committed token's numerics independent of the tree and of the check boundaries.
+  - This tests the tree logic, the per-path state fork and the commit. The one-pass bitwise kernel at 125B scale is Leap's
+    CHECK55. Speed is not measured here: a check costs m + 1 target steps.
+
+**Reported:**
+1. kept/check per set: committed tokens per check = accepted + 1, over every check including the last one cut by the
+   stop, as the sim's walk counts it.
+   - The T16 / C16 ratio (sums per set) with a paired answer bootstrap (10,000 draws, fixed seed), beside the sim's.
+   - Like for like with the sim: its keys (MBPP-50 / HE-30) and checks that start within the first 512 answer tokens
+     (the capture's cap).
+2. Exactness:
+   - T16 vs C16, token ids per answer;
+   - both vs jcc/arm0.jsonl (batch-1 greedy).
+   - The first differing position of any mismatch, with the 2B's top-2 gap there.
+3. pass@1 per arm, with EvalSuite's scorers read-only (as J(CC)), and McNemar vs C16.
+
+Also reported, with no line:
+- tree shape: depth, leaves (paths) per check;
+- the share of checks whose accepted path leaves the #1 path (a sibling rescue);
+- the accepted-depth histogram;
+- target steps and head calls per check;
+- wall time.
+
+**Lines:**
+- **EXACT:** T16 equals C16 token for token on 264 / 264. Any mismatch is a FAIL (a tree-code bug), reported with its
+  first position and the top-2 gap there.
+- **GAIN SURVIVES:** T16 / C16 kept/check >= 1.03 on both sets, with the 95 % CI above 1 (S9's SAME-COST WIN line).
+- **MATCHES SIM:** on the sim's keys within 512 tokens, the sim's ratio lies inside the real ratio's 95 % CI or below
+  it. **BELOW SIM:** the CI lies entirely below the sim's ratio.
+- **pass@1:** identical by construction when EXACT holds. A difference is a FAIL.
+
+**Self-checks:**
+- (a) C16's real kept/check on the sim's keys within 512 tokens lands within +-10 % of the sim's chain-16 (MBPP 4.280,
+  HE 5.971). The texts differ (BatchGenerator greedy vs one-token steps), so they cannot be exact.
+- (b) My deeper-with-a-token equals sb.core.deeper bitwise on the same inputs. In smoke checks the tree's all-#1 path
+  equals the chain's drafts at the same anchor (bitwise), as deep as the tree goes.
+- (c) In smoke checks, the path-batched verify's accepted count equals the longest prefix of each path that matches the
+  next committed tokens of a lazy batch-1 reference (J(CC)'s loop) at the same check start.
+
+**Caveats, stated before the run:**
+- This is a correctness and kept/check test, not a speed test. Pricing a one-pass tree verify is Leap's.
+- The sim read Sandbox98's capture: BatchGenerator greedy, cap 512, MBPP-50 / HE-30. This run decodes 264 keys with
+  one-token steps and the items' caps, so ratios can move with the text. The like-for-like row addresses that.
+- s30 is the 2B's head. Its tree gain is not the 125B's (S9c: x1.136 / x1.060).
+- Each arm is one deterministic greedy draw.
+
+**Budget:**
+- One process per arm. A full-length smoke run measures the peak first, and the share lock is sized to it.
+- jcc_guard.sh adds a footprint and NO-SWAP kill. The MLX cache is cleared between keys.
+- Expected < 4 GB, so it stays under the by-day one-job-over-5-GB line.
+- ~77K tokens per arm (J(CC)'s exact arm: 2,643 s), so ~45-70 min per arm.
+- Scripts: ~/MoonShots/week98/tree_decode.py and tree_score.py. Outputs: week98/tree/.
+
+**Batch-shape probe (14:5x; tree/probe.json, probe.log, probe_v1.*):**
+- One-token stepping through the fork code (B = 1) reproduces J(CC)'s exact arm token for token on its longest answer
+  (mbpp/215, 1,024 tokens, teacher-forced). A B = 1 fork equals the original cache bitwise.
+- **Rows are NOT batch-invariant:**
+  - for every B >= 2, a [B, 1] step's row 0 differs from the [1, 1] step;
+  - max |logit diff| is 0.22-0.47 at contexts 300 / 800 / 1,203;
+  - the diffs are identical within kernel groups: B 2-8, B 15-16 and B 31-32.
+- **Within one shape, rows are exact copies:**
+  - every row equals row 0 for the same input (24 / 24);
+  - row 0 does not change with the other rows' tokens (21 / 21).
+- **So, by the rule:**
+  - B = 16 is fixed for C16 and T16, with paths padded by copies of path 0;
+  - T32 is skipped;
+  - C16 vs arm0 is the batch-shape noise floor;
+  - EXACT stays a clean bug test.
+- ms per step, beside BigMoE's 80 % GPU job (so loose): B 1 ~6-12, B 16 ~22-24, B 32 ~28-30.
+
+**Smoke (15:0x; 7 keys, both arms, --selfcheck; tree/smoke_*.log, tree/*_smoke.jsonl):**
+- Self-check (b) PASS:
+  - my deeper-with-a-token equals sb.core.deeper bitwise at 5,908 / 5,908 depths;
+  - the tree's all-#1 path equals the chain drafted at the same anchor in 422 / 422 checks.
+- Self-check (c) PASS on the smoke: 0 bad checks of 491 (C16) and 422 (T16).
+- The padded copy rows equal row 0 at every step (2,520 / 2,520 per arm).
+- EXACT on the smoke: T16 equals C16 on 7 / 7. Both differ from arm0 on the same 5 keys, at the same first positions:
+  that is the batch-shape floor.
+- Peak footprint 3.5-3.6 GB (MLX peak 2.53 GB); 16-30 tok/s beside BigMoE's GPU job.
+- T16 per check: 4.5 paths, depth 8.3, 15 head calls, ~6 target steps; 36 % of checks accept off the #1 path.
+- Smoke kept/check (7 keys, not judged): T16 / C16 x1.15 (HE) and x1.20 (MBPP).
+
+**Amendment 1 (15:0x, logistics only, before the full run):** one process runs C16 and T16 key by key, instead of one
+process per arm. If a run stops early (heat pause, the 23:00 app quit), the two arms still cover the same keys. No line
+changes. Full run started 15:08 (tree/run.log).
+
+**TREE-E2E, RESULT (16:4x; week98/tree/tree_result.json, score.log, gaps_c16_vs_arm0.json): EXACT 264 / 264; GAIN
+SURVIVES on both sets; MATCHES SIM on both; pass@1 identical.**
+- The run finished at 16:40: 264 keys per arm, 78,985 tokens per arm, 5,625 s in one process, peak footprint 3.8 GB,
+  no pause.
+
+| set | C16 kept/check | T16 kept/check | T16 / C16 [95 % CI] | like for like: the sim's keys, checks within 512 | S9 sim | lines |
+|---|---|---|---|---|---|---|
+| HE+ (164) | 6.041 (7,660 checks) | 6.933 (6,675) | **x1.148** [1.135, 1.160] | 5.745 -> 6.698, **x1.166** [1.142, 1.188] (30 keys) | 5.971 -> 6.802, x1.139 [1.104, 1.175] | GAIN SURVIVES; MATCHES SIM (the sim's ratio sits below the CI) |
+| MBPP (100) | 4.935 (6,575) | 5.864 (5,533) | **x1.188** [1.175, 1.201] | 4.259 -> 5.177, **x1.216** [1.195, 1.236] (50 keys) | 4.280 -> 5.128, x1.198 [1.176, 1.219] | GAIN SURVIVES; MATCHES SIM (inside the CI) |
+
+- Both arms commit the same 78,985 tokens. T16 needs 12,208 checks and C16 14,235 (x1.166 fewer, pooled).
+- Bookkeeping (added 16:5x, after the orchestrator's check): the checks' kept totals sum to 78,721 (46,275 + 32,446).
+  The other 264 tokens are one per key: each answer's first token is the 2B's argmax at the end of the prefill,
+  committed before the first check. On every key of both arms, n = 1 + the sum of kept.
+
+**Exactness:**
+- **EXACT:** T16 equals C16 token for token on 264 / 264 answers.
+- **The batch-shape noise floor:** both arms differ from J(CC)'s batch-1 exact arm (arm0) on the same 142 / 264 keys
+  (HE+ 68 / 164, MBPP 74 / 100), at the same first positions (median 119, range 5-726).
+  - At those 142 first differences, the 2B's top-2 gap (read by a third numerics, one [1, S] forward) is at most 0.375
+    logits (median 0.125; 56 are exact bf16 ties).
+  - The two arms' tokens are the 2B's top 2 in 136 / 142 cases, and within 0.25 of the top-1 in the other 6.
+  - So every divergence from arm0 is a near-tie flip caused by the batch shape. None is a logic difference.
+
+| pass@1 (264 keys, paired) | HE+ (164) | MBPP (100) | pooled | vs C16 | vs arm0 |
+|---|---|---|---|---|---|
+| C16 (B = 16) | 43.29 | 29.00 | 37.88 | - | +1.14 (7 / 4, p 0.55) |
+| T16 (B = 16) | 43.29 | 29.00 | 37.88 | **0.00 (0 / 0, p 1.0): identical** | +1.14 (7 / 4, p 0.55) |
+| arm0 (J(CC) exact, B = 1) | 41.46 | 29.00 | 36.74 | | - |
+
+- The +1.14 against arm0 is batch-shape numerics only (J(CC)'s numerics control: +0.76).
+
+**Self-checks:**
+- (a) PASS on both sets. C16 like for like: HE+ 5.745 vs the sim's chain-16 5.971 (0.962); MBPP 4.259 vs 4.280
+  (0.995). The smoke's HE+ 0.865 came from 4 keys.
+- (b) PASS (smoke, as pre-registered): see the smoke block.
+- (c) PASS on every check of the full run: 0 bad of 14,235 (C16) and 12,208 (T16).
+  - **Deviation, stated:** as run, (c) checks each check's paths against the committed text at the same numerics
+    (B = 16), not against a lazy batch-1 reference.
+  - Under the fixed-shape branch, a batch-1 reference has other numerics. It would flag the 142 near-tie flips above,
+    not logic. EXACT 264 / 264 covers the same-numerics greedy reference.
+
+**Shape (no line):**
+
+| arm | paths per check | depth | checks accepting 0 drafts | all 15 | off the #1 path | target steps per check | head calls per check | wall time |
+|---|---|---|---|---|---|---|---|---|
+| C16 | 1 | 15 | 13.5 % (HE+ 11.6, MBPP 15.7) | 6.9 % | - | 5.54 | 15 | 2,834 s |
+| T16 | 4.16 (HE+ 3.89, MBPP 4.49) | 8.8 (9.3 / 8.2) | 4.3 % (4.0 / 4.6) | 5.7 % | 36.6 % (33.8 / 40.0), 5.66 kept on them | 6.46 | 15 | 2,758 s |
+
+- Mean accepted drafts per check: C16 4.56, T16 5.48.
+- Wall time is not a speed result. Both arms step one token per target forward at B = 16 (~28 tok/s beside BigMoE's GPU
+  job), so a check costs m + 1 steps in either arm.
+
+**Reading:**
+- **The exact tree check works end to end on the 2B.** A best-first EAGLE-2 tree of 15 nodes, verified path by path,
+  commits exactly the chain's text. It keeps x1.148 (HE+) / x1.188 (MBPP) more tokens per check, and pass@1 is
+  identical.
+- **The sim priced it right.** Like for like, the real gain is at the sim's (MBPP, inside the CI) or a little above it
+  (HE+, overlapping CIs). The off-path proxy did not overprice trees on the 2B.
+- **Where the gain comes from:**
+  - the root's top 3 cut the checks that accept nothing from 13.5 % to 4.3 %;
+  - 36.6 % of checks accept a path off the #1 path.
+- **For Saturday's certificate:** "exact" has to mean equal to the greedy decode at the same numerics.
+  - On the 2B with MLX's stock kernels, the batch shape alone flips 142 / 264 answers at near-ties (<= 0.375 logits).
+  - So the certificate needs one shape for every target step, or a batch-invariant kernel (Leap's CHECK55 bitwise
+    one-pass).
+- **Not shown here:**
+  - speed (the one-pass tree verify is Leap's CHECK55);
+  - the 125B's gain (S9c on real t30b trees: x1.136 / x1.060);
+  - T32, skipped by the batch rule. A comparable T32 needs C16 rerun at B = 32 too (~2 h for both arms).
+- **Novelty (for the papers):** the method is published (EAGLE-2 trees; tree verification is lossless by construction).
+  Ours is engineering: an exactness test that tells tree-logic bugs from batch-shape flips, plus the real-vs-sim check.
+- **Files:**
+  - scripts: week98/tree_decode.py, tree_score.py, tree_gaps.py, jcc_guard.sh;
+  - outputs: tree/c16_fixed.jsonl, t16_fixed.jsonl, scores.json, tree_result.json, score.log, gaps_c16_vs_arm0.json,
+    run.log, probe.json.
+
+## TREE-E2E T32. Tree-32 vs chain-16 at one 32-row shape (orchestrator 16:5x: "T32: YES, this evening"; pre-registered 16:5x, before any T32 code ran)
+
+**Question:** does s30's best-first EAGLE-2 tree with 31 nodes keep as many more tokens per check over the 15-draft
+chain as the 2B's own sim priced?
+- The sim (S9, TrainLab data/sb98/tree_price.txt, s30 exact, off-path proxy, 32 rows = the bonus + 31 nodes):
+  - eagle2-32 vs chain-16, MBPP-50: 4.280 -> 5.856 = x1.368 [1.346, 1.390];
+  - HE-30: 5.971 -> 7.951 = x1.332 [1.300, 1.357].
+  - For scale: the sim's chain-32 is only x1.009 / x1.045 over chain-16.
+
+**Setup:** TREE-E2E's target, drafter, panel, prompts, caps, verify code and scorer, except:
+- **One shape: B = 32 rows for every target step of both arms.** The probe put B 31-32 in another kernel group than
+  B 15-16, so C16 is rerun at B = 32. The B = 16 arms are not reused for the line.
+- **Arms:**
+  - **C16@32:** s30's 15-draft chain, padded to 32 rows by copies;
+  - **T32@32:** best-first EAGLE-2 with 31 nodes, top-3 per node, the same heap and tie rules as T16. At most 31
+    paths, padded to 32 by copies of path 0.
+- One process runs both arms key by key, in panel order. The order interleaves the sets (every prefix holds HE+ and
+  MBPP at ~62 / 38), so an early stop leaves a balanced subset.
+- **Stop rule:** all 264 keys if time allows, with a hard stop at 22:15 (finish by 22:30; tonight's quiet chain starts
+  at 23:00). After a stop, the keys both arms hold are scored. That subset counts only if each set's T32 / C16 95 % CI
+  half-width is <= 3 % (the orchestrator's rule); otherwise the result is INCOMPLETE.
+
+**Lines:**
+- **MATCHES SIM (the line), per set:** on the sim's keys (MBPP-50 / HE-30) and checks that start within the first 512
+  answer tokens, the sim's ratio lies inside the real T32 / C16 ratio's 95 % CI or below it.
+  - **BELOW SIM:** the CI lies entirely below the sim's ratio.
+  - The CI comes from the paired answer bootstrap (10,000 draws, seed 1115), as for T16.
+- **EXACT:** T32@32 equals C16@32 token for token on every key run. Any mismatch is a FAIL (a tree-code bug), reported
+  with its first position and the 2B's top-2 gap there.
+- **pass@1:** identical by construction when EXACT holds. A difference is a FAIL.
+
+**Also reported, with no line:**
+- the full-panel T32 / C16 ratio with its CI, and S9's SAME-COST WIN test on it (>= 1.03 with the CI above 1);
+- T32 vs T16 kept/check, as context for whether 32 rows pay on the 2B. T16 ran at B = 16, so the texts can differ at
+  near-ties; kept/check is still paired by key;
+- the 16-vs-32 batch-shape floor: C16@32 vs C16@16, answers changed and the top-2 gaps at the first differences;
+- shape (paths, depth, sibling rescues, the accepted-depth histogram), target steps and head calls per check, wall time.
+
+**Self-checks:**
+- (a) C16@32 like for like within +-10 % of the sim's chain-16 (MBPP 4.280, HE 5.971).
+- (b) Smoke at B = 32:
+  - deeper-with-a-token equals sb.core.deeper bitwise;
+  - the tree's all-#1 path equals the chain at the same anchor;
+  - the padded copy rows equal row 0 at every step.
+- (c) Offline, every check: no path matches the committed text (same numerics) further than the accepted count.
+
+**Guards and budget:**
+- A full-length smoke (mbpp/215's 1,024 tokens, both arms, --selfcheck) measures the peak first. The share lock carries
+  that MEM; target <= 4 GB footprint. If the smoke's peak is over 4 GB, the MLX cache limit is lowered before the run.
+- One process, jcc_guard.sh footprint and NO-SWAP kill.
+- Yield: before each key the runner checks for another session's quiet lock or a queued quiet ticket. If either
+  exists, it waits (peer wait) until the Mac is clear. Heat pauses go through Sandbox98's PAUSE file as before.
+- Time: B = 32 steps cost ~28-30 ms vs ~22-24 at B = 16 (probe, beside BigMoE). T32 needs ~31 head calls per check.
+  Expected ~2 h for both arms on 264 keys, plus pauses.
+
+**Caveats:** TREE-E2E's, plus: B = 32 numerics differ from B = 16, so C16@32 is not C16@16 token for token (the floor
+above). T32 needs twice the head calls of T16 per check; this run measures kept/check, not cost.
+
+**T32 smoke and amendment 1 (17:0x, memory only, before the full run; tree/smoke32*.log, v2check16.log):**
+- First smoke (mbpp/265): at 32 rows its answer ends at 211 tokens (at 16 rows it ran to the cap), so it was not full
+  length. The second smoke used two keys that run to the cap in arm0 and C16@16 alike: HumanEval/126 (768) and
+  mbpp/228 (1,024).
+- Self-checks at B = 32 PASS:
+  - deeper-with-a-token bitwise at 4,920 / 4,920 depths;
+  - the all-#1 path equals the chain in 164 / 164 checks;
+  - the padded copy rows equal row 0 at every step (both arms);
+  - T32 equals C16 on both keys.
+- **Memory:** the peak footprint was 4.27-4.29 GB, over the 4 GB budget.
+  - Cause: select() kept the next row as slices of the R-row buffers. MLX slices are views, so the whole R-row KV and
+    GDN buffers stayed alive through the next check. On top of that, the first step of each check grew the forked KV
+    buffer by a copy.
+  - **Fix (tree_decode.py fork / select v2):**
+    - select() gathers the kept row into its own buffers (mx.take) and evaluates it at once;
+    - fork() builds the R-row KV buffer at offset + 256 positions, the buffer that first step would have built (same
+      values, same strides).
+  - **Check:** v2 reproduces v1's outputs exactly (answer ids and every per-check record) on both smoke keys at
+    B = 32 (both arms) and on HumanEval/1 at B = 16 (C16 and T16, 768 tokens each).
+  - Peak footprint with v2: 3.17-3.25 GB at B = 32 (MLX peak 2.84 GB); 2.39 GB at B = 16.
+  - The MLX cache limit is set to 0.25 GB (SB_CACHE_GB; no effect on numerics). The guard kills at 4 GB.
+- No line changes. Full run started 17:03 (tree/run32.log), with the stop rule at 22:15 and quiet-ticket yielding on.
+
 ## Ranked (final, 01:3x)
 1. **The 2B audits and repairs the head's deep tokens: CONFIRMED on HE+** (D). On MBPP, the frozen schedule was chosen
    on those rows (C). Training-free.
