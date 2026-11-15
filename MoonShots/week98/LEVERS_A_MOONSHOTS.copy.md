@@ -486,6 +486,150 @@ kdump_stats.
 - **So:** the information for the hard first guess isn't in any row the check already computes. It needs the 125B's own
   pass on the bonus token, i.e. the next check itself. A partial pass would cost ~0.6 ms per layer, plus head training.
 
+## J(CC). Close-call acceptance end to end on the 2B: a quality pre-screen (orchestrator 09:0x; pre-registered 09:0x, before any code ran)
+
+**Question:** does R1(delta), the engine's close-call accept rule, keep pass@1 when the drafter's near-tie picks are
+committed in real decoding?
+- EvalSuite gates delta 1 on the 125B Monday night (ccx45cc1; PREREG_lossygate amendment 3).
+- Delta 2 lifts teacher-forced kept/32 by +32 % (HE+) and +46 % (MBPP) on the 125B (Breakthrough's
+  CLOSECALL_ACCEPT_PRICE.md), but it has no quality data.
+
+**Setup:**
+- Target Qwen3.5-2B (mlx-community 4-bit, Sandbox98's). Drafter s30 (Sandbox98's native MTP head trained 30 deep).
+  sb/core.py is imported read-only.
+- 32-row checks: 31 drafts plus the bonus.
+  - Drafts are made lazily, one per committed token. A draft at depth k reads only tokens already committed, so the
+    committed text equals block drafting's.
+  - The target runs one pass per committed token (batch 1, mlx_lm's cache), so the delta-0 arm is the 2B's own greedy.
+- **Rule** = relax_delta.relaxed_k, the engine's code in ccx45cc1:
+  - a draft is kept while it equals its row's argmax, or logit(d) - max logit >= -delta;
+  - every row may relax;
+  - the first row not kept commits its argmax, and after 31 kept drafts the bonus row's argmax is committed.
+- **Arms:** delta 0 (exact), 1 and 2 nats.
+- **Panel:** EvalSuite's code panel, 264 keys in tools/lossy_panel.json's `code` order.
+  - HumanEval+ 164 (humaneval 60 + humanevalx 104; task ids disjoint, checked) and MBPP 100.
+  - Prompts: the items' `user` text in the 2B's chat template, thinking off (as Sandbox98's capture, sb/gen.chat_ids).
+  - Caps: the items' max_tokens (768 / 1024). An answer stops at an end token.
+- **Scoring:** EvalSuite's own scorers, imported read-only (`python -I -B`, nothing written there):
+  - HE+: evalsuite/decode_report.score_humaneval (evalplus base + plus tests; humanevalx scored as HumanEval+);
+  - MBPP: tools/mbpp_score.py (the 3 asserts, an isolated child, 10 s).
+
+**Lines** (per delta, against the exact arm, paired by key):
+- **HOLDS:** the pooled (264) drop is <= 1.0 pt AND the exact McNemar p > 0.2, AND neither set loses with p < 0.05.
+- **FAILS:** the arm is lower with p < 0.05 pooled, OR the pooled drop is > 3 pt (EvalSuite's code screening line).
+- **BETWEEN:** otherwise.
+
+**Reported, with no line:**
+- Changed tokens (R1-only commits) per 1K generated tokens, by where they land: code / comment / docstring / other
+  string / prose outside the fence.
+  - The class is the span tracker's state at the token's first non-blank character. Whitespace tokens in code count as
+    code.
+- Answers whose text differs from exact, the length ratio, and answers cut at the cap.
+- Real kept per 32-row check and its lift over exact, beside Breakthrough's teacher-forced lifts on the 125B.
+- The discordant keys, with the class of the first changed token.
+
+**Dose-matched reading** (the read-across to the 125B, because the 2B is less sure):
+- The 125B's teacher-forced code-token exposure is HE+ 4.1 / 5.8 and MBPP 8.1 / 12.8 per 1K kept at delta 1 / 2.
+- The 2B arm whose code exposure lands nearest those is read as that 125B delta's proxy.
+- If the 2B's delta 1 already exceeds the 125B's delta-2 exposure, a 2B delta 1 that HOLDS supports delta 2 on the 125B.
+
+**Self-checks** (otherwise the loop is wrong):
+- (a) The delta-0 arm's kept/32 lands within +-15 % of s30's teacher-forced chain read-out on these sets (Sandbox98
+  gate.json: MBPP 4.42, HE 6.43 on its 60 keys). The HE keys differ, and real vs teacher-forced numerics differ.
+- (b) On 3 MBPP + 3 HE answers of the delta-0 arm, the loop's drafts equal the teacher-forced chain's (C.chain on the
+  full-forward W of the same answer) at >= 99 % of drafted positions. Differences can only be bf16 / fp32 near-ties.
+
+**Caveats, stated before the run:**
+- The 2B is a harsh proxy. It is less sure than the 125B, so R1 fires more often per 1K. A HOLD here is strong news for
+  the 125B, and a FAIL is weak evidence against it.
+- Each arm is one deterministic greedy draw.
+- Power: with ~10-15 % discordant keys, a true -3 pt loss reaches p < 0.05 only part of the time. The line is a screen;
+  EvalSuite's gate decides.
+
+**Budget:**
+- One process per arm. A capped smoke run measures the peak first, and the share lock is sized to it.
+- Total <= 5 GB while Sandbox98's 6 GB QAT job runs, a NO-SWAP kill (swap +1 GB over the start), and the MLX cache is
+  cleared between keys.
+- ~70K tokens per arm, estimated at 20-40 min.
+
+**Smoke (09:1x):**
+- Self-check (b) PASS: 3,431 / 3,464 = 99.05 % of drafts equal the teacher-forced chain's.
+- Peak footprint 2.1-2.9 GB per process, ~39-52 tok/s, ~435 tokens per key (~115K per arm).
+- So the run is ~50 min per arm. Exact and delta 2 started 09:14; delta 1 waits for Sandbox98's 6 GB job to end.
+
+**Amendment 1 (09:2x, before any arm finished; seen so far: the first 9 keys of delta 2 vs exact): a numerics control
+arm.**
+- **Why:** a diagnostic found that the batch-1 exact arm differs from Sandbox98's own capture of the same 2B greedy
+  (mlx_lm BatchGenerator, same prompts) in 8 of 9 answers. The first difference falls 5-262 tokens in: near-tie
+  numerics alone move the 2B's greedy.
+- **The arm:** exact greedy of the same 2B through BatchGenerator (Sandbox98's sb/gen.greedy_batch, batch 8 per set),
+  with the same prompts, chat template and caps.
+- **Use:** its pass@1 delta and discordance against the batch-1 exact arm are the 2B's paired noise floor under a
+  numerics-only change. They are reported beside each delta. The registered lines don't change.
+
+**J(CC), RESULT (10:1x; week98/jcc/jcc_result.json, score_out.txt): delta 1 HOLDS; delta 2 FAILS, on HE+.**
+
+| arm vs exact (264 keys, paired) | HE+ (164) | MBPP (100) | pooled | arm-only / exact-only | McNemar p | line |
+|---|---|---|---|---|---|---|
+| exact (batch 1) | 41.46 | 29.00 | 36.74 | - | - | - |
+| **delta 1** | 42.07 (+0.61, p 1.0) | 30.00 (+1.0, p 1.0) | 37.50 (**+0.76**) | 23 / 21 | 0.88 | **HOLDS** |
+| **delta 2** | 32.32 (**-9.15**, 11 / 26, p 0.020) | 28.00 (-1.0, p 1.0) | 30.68 (**-6.06**) | 22 / 38 | 0.052 | **FAILS** (drop > 3 pt; HE+ lower at p < 0.05) |
+| control B (exact, batched numerics) | 40.24 (-1.22) | 33.00 (+4.0) | 37.50 (+0.76) | 18 / 16 | 0.86 | (noise floor) |
+
+**Behaviour** (R1-only commits = committed non-top-1 drafts; per 1K generated tokens):
+
+| arm | R1 per 1K | code | comment | docstring | string | kept per check (lift) | lift without capped answers | length ratio | cap hits (exact 26) | answers changed |
+|---|---|---|---|---|---|---|---|---|---|---|
+| delta 1, HE+ | 27.3 | 7.5 | 15.0 | 4.5 | 0.3 | 7.46 (+19.9 %) | +9.1 % | 1.07 | 21 (14) | 141 / 164 |
+| delta 1, MBPP | 42.5 | 7.4 | 11.0 | 22.8 | 1.2 | 6.27 (+20.9 %) | +19.2 % | 0.95 | 10 (12) | 100 / 100 |
+| delta 2, HE+ | 41.4 | 12.5 | 21.6 | 6.4 | 0.8 | 9.88 (+59.0 %) | +23.7 % | 1.16 | 33 (14) | 151 / 164 |
+| delta 2, MBPP | 63.3 | 12.9 | 18.5 | 30.3 | 1.7 | 9.56 (+84.3 %) | +45.4 % | 1.13 | 17 (12) | 100 / 100 |
+| control B | 0 | - | - | - | - | - | - | 1.00 | 28 | 207 / 264 |
+
+- Prose outside the fence takes ~0 R1 commits.
+- The 125B's teacher-forced kept/32 lifts (Breakthrough): delta 1 HE+ +21.8 / MBPP +23.1 %; delta 2 +32.3 / +46.5 %.
+
+**Self-checks:**
+- (b) PASS: 99.05 % (smoke).
+- Divergence check PASS: in all 264 keys of each delta arm, the first token that differs from exact is the arm's first
+  R1 commit.
+- (a): HE PASS (6.22 vs the read-out's 6.43, ratio 0.97). MBPP **FAILS its pre-registered +-15 %** (5.19 vs 4.42,
+  ratio 1.17).
+  - Like for like (the read-out's own window: checks ending by token 512, the capture's cap), MBPP is 4.53 vs 4.42.
+  - So the excess comes from answers past 512 tokens (loops, which are easy to draft), not from the loop logic.
+  - Answer identity with Sandbox98's capture (batched greedy) in the first 512 tokens: HE 18 / 60, MBPP 8 / 100. This
+    is the numerics sensitivity that amendment 1 controls for.
+
+**Reading:**
+- **Delta 1 is inside the 2B's noise.** It has +0.76 pooled with 44 discordant keys; the numerics-only control has
+  +0.76 with 34.
+  - Its real kept-per-check lift (+21 %) equals the 125B's teacher-forced lift (+22-23 %). On HE+ about half of it
+    comes from answers that run to the cap (+9 % without them).
+- **Delta 2 fails on HE+ by a mechanism, not by noise:**
+  - 23 HE+ answers newly run to the 768 cap (4 stop running to it), and 8 of the 26 losses end at the cap.
+  - The first R1 commit in 15 of the 26 losses is a docstring token: the 2B rewrites the docstring, and the code
+    follows the rewrite (J(A)'s steering).
+  - MBPP holds at delta 2 (-1.0, p 1.0).
+- **Dose-matched to the 125B** (code-token R1 per 1K): the 125B's teacher-forced exposure is HE+ 4.1 / 5.8 and MBPP
+  8.1 / 12.8 at delta 1 / 2.
+  - On HE+, the 2B's delta 1 (code 7.5, all 27.3) already exceeds the 125B's delta 2 (5.8, 22.3), and it HOLDS. By the
+    pre-registered reading, that supports delta 2 on the 125B for HE+.
+  - On MBPP, the 2B's delta 2 (12.9, 63.3) matches the 125B's delta 2 (12.8, 61.9), and MBPP holds there.
+  - The 2B's HE+ failure sits at ~2x the 125B's delta-2 code dose.
+  - The 125B's exposures are teacher-forced and the 2B's are real decoding, so the match is approximate.
+- **So, for Monday:**
+  - A delta-2 arm on the 125B is plausible, not established. The 2B can't stand in for it at matched dose on both
+    sets with one delta.
+  - The failure mode to gate is runaway length. Watch cap hits and loops (decode_report's truncation and loop rows)
+    beside pass@1.
+  - Docstring rewrites are the main lossy entry point. A docstring / comment guard would cut it.
+- **Caveats:**
+  - One deterministic draw per arm on a weak model (pass@1 HE+ 41 / MBPP 29).
+  - The 2B's exact answers already change in 78 % of keys under numerics alone.
+  - The "without capped answers" lifts and the loss mechanism are exploratory, not pre-registered.
+- **Files:** week98/jcc_decode.py, jcc_batch.py, jcc_score.py, jcc_prescore.py, jcc_guard.sh;
+  jcc/arm{0,1,2,B}.jsonl, scores.json, jcc_result.json.
+
 ## Ranked (final, 01:3x)
 1. **The 2B audits and repairs the head's deep tokens: CONFIRMED on HE+** (D). On MBPP, the frozen schedule was chosen
    on those rows (C). Training-free.

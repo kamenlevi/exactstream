@@ -4336,3 +4336,214 @@ Result -> action:
   and the argmax-margin loss were tried, so the plain KL already gets what training can here.
 Guards as in S7. Scratch: mg1 / mg1k reuse mhx_cs1k / mhx_cf (S7's arms, already recorded); the confirm reuses the
 other arm's file.
+
+## WEEK98 S8b MARGIN RESULT (Sun 15 Nov 10:08): NO EFFECT, both arms; the train-for-the-rule family closes on the sandbox
+Runs: sb98/margin.sh, 09:40-10:07 under share locks, with no pauses and no guard events. Outputs in data/sb98:
+margin_runner.log, margin_RESULT.txt, margin_read.log / margin_screen.json, margin_train.log.
+Self-checks: PASS, and n1 equals evalx. S7's cs1 re-read gives S7's numbers to the digit (exact 4.1517, delta 1 5.005).
+Screen, 400 steps, kept/32 on the delta-1 walk (MBPP-50 / HE-30):
+- mg1k (margin, exact survival) vs n1: MBPP 4.890 -> 4.880 (-0.010, p 0.65), HE 6.571 -> 6.538 (-0.033).
+  Exact -0.012 / +0.017. NO EFFECT.
+- mg1 (margin + SURV) vs S7's cs1 (set mass + SURV): MBPP -0.073 (p 0.135), HE -0.124. Exact -0.028 / -0.009.
+  NO EFFECT. Against n1 it is +0.042 / +0.044, below cs1's +0.115 / +0.168.
+- Changed tokens per 1K are unchanged within ~1.
+Action (as pre-registered): stop. The train-for-the-rule family closes on the sandbox.
+- The set-mass loss (S7) and the argmax-margin loss (S8b) are both NO EFFECT. That holds even though the head's #2 is
+  IN at 52 % of the delta-1 walk's misses (S8): the plain KL already gets what training can here.
+- The #2 / #3 headroom is large: the top-2 oracle is +57 % under delta 1, and the exact top-2 oracle +55 %. These
+  losses cannot turn it into a better #1. Cashing it needs more candidates verified per check (trees or extra rows,
+  NewIdeas' root-tree pricing), or a ranker that reads information the head lacks.
+- Not tested: LAM or GAMMA other than 1, and the 125B's head.
+
+## WEEK98 S9 TREE-DYN: a dynamic #2 tree under a fixed row budget (pre-registered Sun 15 Nov 10:14)
+Ask: the orchestrator, 10:2x. CPU pricing on the 125B cells, with s30 as a cross-check. Why: S8 showed the head's #2
+holds the miss at ~52 %, and NewIdeas' ROOT TREE branched only at depth 0.
+Data:
+- 125B (t30b, runtime-path context): BigMoE's cells_t30b_mbppbank.npz (100 windows) and cells_t30b_heplus24.npz
+  (24 windows), read-only. Per cell: right, rank (where the true token sits in the head's list; 1 = #2, 2 = #3) and
+  dlp (the 125B's log-prob gap of the head's #1).
+  - These cells do NOT hold the head's own confidence (p1, p2), so on the 125B only policies that need no confidence
+    are priced, plus the oracle.
+- s30 (sandbox): MBPP-50 + HE-30. A read-out (sb98/tree_cells.py, GPU, share lock) saves the same fields plus the
+  head's top-3 log-probs and each top-3 token's IN status (delta 1).
+Model (teacher-forced; exact along the true path): a tree is a main chain of D nodes plus branches. A branch at main
+depth d is the head's #2 (or #2 and #3) with its own sub-chain, L nodes per sibling.
+- Rows: rows = 1 + D + B x (w - 1) x L <= N, for budgets N = 16 and 32. The chain-N reference is certify98's
+  kept_walk with cap N - 1 (R0 = 1).
+- A check's true path dies at the main chain's first miss k. A branch placed at k whose sibling is right carries it on
+  through the sub-chain's cells (the table's cells: the sub-chain then feeds the true token).
+- kept = accepted + 1, and the walk moves on by kept.
+- Exact mode: #1 right; a sibling is right when rank = its slot.
+- Delta-1 mode: #1 is accepted when right or dlp >= -1. On the 125B a sibling counts only when it is the true token
+  (its gap is unknown), so delta-1 tree gains there are a LOWER bound. On s30 both versions are reported.
+- After an accepted near-tie, the continuation reads the true path's cells (the teacher-forced upper bound, as in
+  Breakthrough's J(A)).
+Policies:
+- STATIC: branches at main depths 0 .. B-1. Realizable without confidence.
+- DYN (s30 only): branch at the earliest main depths whose head confidence is below tau, up to B branches. Confidence
+  is p1 or the log gap p1/p2. Exact along the true path: the decision at the first miss uses only depths at or before
+  it.
+- ORACLE: one branch with every spare row, placed exactly at the first miss when a sibling is right. It is the
+  ceiling for any single-level placement.
+- Parameters (D, L, B, w, tau) are chosen on the OTHER set (MBPP <-> HE). The ORACLE takes its best D in-set.
+- The 125B DYN estimate = STATIC + e x (ORACLE - STATIC), with e = s30's (DYN - STATIC) / (ORACLE - STATIC). It is
+  reported, not judged.
+Line (per mode, on both sets of a model, kept/check):
+- SAME-COST WIN: tree-16 >= 1.03 x chain-16, with the paired window-bootstrap 95 % CI of the ratio above 1.
+- 32 ROWS PAY: tree-32 / chain-16 >= 1.625 (R32). 17-31 rows cost about a 32-row check.
+- Judged on the 125B by STATIC; on s30 by STATIC and DYN.
+Result -> action:
+- A realizable pass on the 125B: send it to the orchestrator for Leap's price.
+- Only the ORACLE passes: report the gap a confidence signal must close (and s30's e).
+- The ORACLE fails a line: that line closes for single-level #2 / #3 trees.
+Engine caveat: the 125B is hybrid GDN / attention. A tree verify needs the recurrent (GDN) state forked per branch
+path and tree attention masks. Nothing here prices that; Leap prices it if the screen passes.
+
+## WEEK98 S9 TREE-DYN RESULT (Sun 15 Nov 10:26): no realizable pass on the 125B; only the oracle passes 16 rows; the 32-row line closes for single-level trees
+Scripts: sb98/tree_cells.py (s30 read-out, GPU, 10:17-10:19, share lock) and sb98/tree_price.py (CPU, 5 s). Outputs:
+data/sb98/tree_s30_{mbpp,he}.npz and tree_price.{txt,json}.
+Self-checks, all PASS:
+- The 125B layout equals certify98's; chain-32 reproduces 6.92 (MBPP) / 13.77 (HE+).
+- s30's table equals core.chain_table; chain-32 equals S7's read-out (4.319 / 6.239).
+- 42 s30 windows differ between "#1 IN" and "right-or-gap" on 767 cells in all, from fp16 dlp rounding at the 1-nat edge.
+  The delta-1 #1 rule uses dlp, as on the 125B.
+Pre-registered verdicts (kept/check vs chain-16, MBPP / HE):
+- 125B, STATIC (branches at the first depths):
+  - Exact: tree-16 x1.001 / 0.933; tree-32 x1.067 / 1.087.
+  - Delta 1: x0.990 / 0.958; x1.080 / 1.255.
+  - No SAME-COST WIN, no 32 ROWS PAY.
+- s30, DYN (confidence-gated, single level): exact x1.105 / 1.025 (HE CI includes 1); 32 rows x1.224 / 1.212. Delta 1
+  x1.062 / 1.003. No pass.
+- ORACLE: the fixed-D form as first run was not a ceiling (it always spent a row on a branch; HE+ delta 1 was x0.978).
+  The verdicts below use two forms added after the run: the fixed-D oracle allowing no branch, and the per-check
+  oracle (main chain 0..k plus every spare node on one branch at the first miss).
+  - Per-check oracle on the 125B: exact tree-16 x1.395 / 1.181; tree-32 x1.542 / 1.685. Delta 1 x1.268 / 1.096;
+    x1.466 / 1.647.
+  - So only the oracle passes the 16-row line. It FAILS the 32-row line on MBPP (exact and delta 1), so by the rule the
+    32-row line closes for single-level #2 / #3 trees.
+- Reference: chain-32 / chain-16 is x1.051 / 1.296 exact and x1.076 / 1.387 delta 1. Without a tree, the 32-row check
+  is far from paying.
+ADDED AFTER THE RUN (not pre-registered, not judged):
+- SEQ, the Sequoia-style optimal static tree (top-(N-1) true-path rank prefixes at the other set's chain-N check starts):
+  - The 125B: x1.000 / 1.000 at 16 rows (it never branches: the #1 path's prefixes are always more frequent).
+  - At 32 rows: x1.051 / 1.200 exact; x1.076 / 1.301 delta 1.
+  - Static trees cannot use the #2 headroom.
+- Multi-level oracle (a perfect #2 / #3 tree that rescues every rescuable miss, paying +1 row per #2 rescue and +2 per
+  #3 for the wrong siblings a real tree must hold): the ceiling for ANY such tree.
+  - The 125B exact: 16 rows x1.597 / 1.217; 32 rows x2.077 / 1.917.
+  - The 125B delta 1: x1.368 / 1.105; x1.759 / 1.763.
+- EAGLE-2-style dynamic tree (s30 only: best-first selection of the N - 1 nodes with the highest head path probability,
+  top-3 per node). Off-path nodes use the true path's top-3 probabilities at the same depth (proxy).
+  - s30 exact: 16 rows x1.198 / 1.139 (CIs above 1); 32 rows x1.368 / 1.332.
+  - s30 delta 1: x1.092 / 1.068; x1.249 / 1.264.
+  - Its share f of the multi-level oracle's gain is 0.24-0.40 exact and 0.14-0.31 delta 1.
+- The 125B EAGLE-2 estimate (chain-16 x (1 + f x (multi-oracle - 1)), f from s30):
+  - Exact: 16 rows ~x1.17 (MBPP) / ~x1.05 (HE+); 32 rows ~x1.43 / ~x1.31.
+  - Delta 1: 16 rows ~x1.06 / ~x1.02; 32 rows ~x1.23 / ~x1.22.
+Reading:
+- No tree makes the 32-row check pay. Realizable trees reach x1.43 at best (estimate), and even the single-level
+  ceiling fails on MBPP. Only a perfect multi-level tree passes.
+- The one lead is a 16-ROW EAGLE-2-style tree at the same row count as chain-16: ~+17 % (MBPP) / ~+5 % (HE+) kept
+  exact, as an estimate. It rests on the off-path proxy and on s30's f carrying over to t30b.
+  - To confirm it directly: the 125B head's own top-3 probabilities along the walk (a GPU dump on BigMoE's harness).
+  - To make it real: Leap's price for a 16-node tree verify on the hybrid model (GDN state forked per branch path, tree
+    attention mask). Only if that is about the 16-row chain's 61-64 ms does the gain hold.
+
+## WEEK98 S9b EAGLE-2 ON THE 125B (pre-registered Sun 15 Nov 10:35, before the data exists)
+Ask: the orchestrator, 10:4x. Kamen decided the drafter's 98 % stays EXACT, so S9's 16-node EAGLE-2 lead is the main
+exact route. The data is BigMoE's t30b top-3 tokens and probabilities along the walk (MBPP bank 100, HE+ 24). Leap is
+pricing the tree verify itself (GDN state forked per path).
+Pricing: sb98/tree_price.py's machinery on the 125B, now with the head's own top-3 probabilities.
+- EAGLE-2-style tree: best-first selection of the N - 1 highest path-probability nodes, top-3 per node. Off-path nodes
+  use the true path's top-3 at the same depth (the dump covers the true path only).
+- Proxy band: off-path probabilities raised to the power 0.5 (more confident, so they crowd the true path:
+  pessimistic) and 2 (optimistic). Judged on the central proxy; the band is reported.
+- Also: the confidence-gated single-level DYN on the 125B, with parameters from the other set.
+- References: S9's chain-16, chain-32 and oracles. Budgets N = 16 and 32 (17-31 rows cost about a 32-row check).
+Self-checks:
+- The dump's true-token slot equals the cells' rank where both exist.
+- Chain-32 reproduces 6.92 / 13.77.
+- The top-3 probabilities are sorted and sum to <= 1.
+Line (EXACT mode, judged on both sets; delta 1 reported, not judged):
+- SAME-COST WIN: EAGLE-2-16 >= 1.03 x chain-16, with the paired window-bootstrap 95 % CI of the ratio above 1.
+- 32 ROWS PAY: EAGLE-2-32 / chain-16 >= R32, at R32 = 1.625 (today) and 1.3 (Leap's target).
+- Throughput: the best of chain-16, EAGLE-2-16, chain-32, EAGLE-2-32 at each R32 (kept/check / cost, cost 16 = 1,
+  cost 32 = R32), as the gain over chain-16.
+- Break-even: the most a 16-node tree verify may cost relative to the 16-row chain = EAGLE-2-16 / chain-16.
+Result -> action:
+- SAME-COST WIN: the main exact route. Send Leap the break-even tree-verify cost.
+- Otherwise: report the numbers. The S9 estimate (~x1.17 / ~x1.05) is then replaced by the direct reading.
+
+### S9b amendment 1 (Sun 15 Nov 10:55, before running; data received)
+- Data: BigMoE 9f49e03, ~/BigMoE/data/deepdraft/ceiling/topk_t30b_{heplus24,mbppbank}.npz. Top-8 (not top-3) head
+  tokens and probabilities per cell, teacher-forced (each cell is the head's distribution at the on-true-path node).
+  y_rank is y's rank in the head's order.
+  - bf16 ties (y_rank 0 but right False: 329 HE+ cells) count as y = #2 at equal p, as BigMoE advises.
+- EAGLE-2 expands up to 8 children per node.
+  - Exact, not proxied: every node whose parent is on the true path.
+  - Proxied: only descendants of a wrong sibling. Band: proxy power 0.5 (pessimistic) and 2 (optimistic), plus a hard
+    WORST case where each wrong sibling grows a #1 chain with no decay. That is the lower bound BigMoE states.
+- Delta 1 on the 125B: #1 is accepted via the cells' dlp. A sibling is accepted only when it is y (a lower bound).
+- S9 CORRECTION (BigMoE, 11:2x): in cells_t30b_{heplus24,mbppbank}.npz, 'rank' is the DRAFT's rank in the 125B's
+  top-32, not y's rank in the head's order. NewIdeas' roottree.py and S9 both read it as the latter.
+  - So S9's 125B tree numbers are VOID: STATIC, SEQ, the oracles, and the EAGLE-2 / DYN estimates built on them.
+    Among wrong cells the two fields agree on only 3,798 of 7,216 (HE+) and 23,431 of 42,422 (MBPP) y = #2 cases.
+  - S9's s30 numbers stand (my own read-out holds y's slot in the head's top-3).
+  - S9b recomputes the 125B part from y_rank.
+
+## WEEK98 S9b RESULT (Sun 15 Nov 10:58): EAGLE-2-16 = SAME-COST WIN on the 125B (exact, central proxy); 32 rows pay only at R32 1.3
+Script sb98/tree_eagle125.py (CPU, 19 s). Outputs: data/sb98/tree_eagle125.{txt,json}.
+Self-checks, all PASS:
+- The layout equals certify98's; cells and topk agree (depth / fi / row / right).
+- Chain-32 reproduces 6.92 / 13.77, both from the cells and from y_rank.
+- walk_start equals the chain-32 walk's starts in 100 / 100 and 24 / 24 windows.
+- bf16 ties (1,978 MBPP, 329 HE+) are taken as y = #2.
+EXACT, judged (kept/check vs chain-16, MBPP / HE+):
+- EAGLE-2-16: 7.452 / 11.184 = x1.131 [1.109, 1.152] / x1.053 [1.018, 1.087]. SAME-COST WIN.
+  - Proxy band: x1.056 .. 1.221 / x1.017 .. 1.107. Worst case (no-decay off-path chains): x0.909 / x0.932.
+- EAGLE-2-32: x1.363 / x1.504. It fails R32 1.625 and PAYS at R32 1.3.
+  - Band x1.202 .. 1.534 / x1.412 .. 1.630; worst case x0.930 / x1.172.
+- Throughput, assuming a 16-node tree verify costs a 16-row chain:
+  - R32 1.625: the best is EAGLE-2-16, at x1.131 / x1.053.
+  - R32 1.3: MBPP's best is EAGLE-2-16 (x1.131; EAGLE-2-32 x1.048). HE+'s best is EAGLE-2-32 (x1.157).
+- Break-even: a 16-node tree verify may cost up to 1.131x (MBPP) / 1.053x (HE+) a 16-row chain's.
+Other policies, recomputed with y_rank (these replace S9's void 125B rows):
+- 16 rows: STATIC x1.003 / 0.936; DYN single-level x1.056 / 0.958; SEQ x1.000 / 1.000. Per-check single-level oracle
+  x1.406 / 1.202; multi-level oracle x1.759 / 1.319.
+- 32 rows: STATIC x1.067 / 1.176; DYN x1.174 / 1.215; SEQ x1.051 / 1.193. Oracles x1.566 / 1.729 and x2.793 / 2.344.
+- EAGLE-2 takes 30-41 % (16 rows) and 20-38 % (32 rows) of the multi-level ceiling's gain.
+Delta 1, reported only (a sibling counts only when it is y, a lower bound): EAGLE-2-16 x1.036 / 1.002; EAGLE-2-32
+x1.248 / 1.436.
+Reading:
+- The WIN holds on the central and optimistic proxy. It is marginal on HE+ under the pessimistic proxy (1.017 < 1.03)
+  and lost in the hard worst case.
+- So the decisive unknown is the head's confidence OFF the true path. Neither the topk dump nor kdump holds it: kdump's
+  top-8 are the 125B's verify rows on the wrong branch, not the head's.
+- What settles it:
+  - (a) Draft real trees with the head, off-path nodes included. On s30 this is a sandbox build; for t30b it is a head-
+    only tree dump.
+  - (b) Leap's price for the 16-node tree verify, against the break-even above.
+
+## WEEK98 S9c REAL EAGLE-2 TREES on the 125B head (pre-registered Sun 15 Nov 11:00, before the data exists)
+Ask: the orchestrator, 11:3x. BigMoE's head-only t30b TREE dump: real EAGLE-2 drafting at each walk start, every node's
+top-8 and probabilities including off-path children, ~32 nodes per start. It removes S9b's off-path proxy.
+Leap's tree-verify estimate: +0.4 to 1.3 ms on a ~62 ms 16-row check, so the cost factor c16 = 1.006 to 1.021.
+Pricing, paired per start, at the dump's starts (the chain walk's check starts):
+- accepted = the longest true-path prefix among the tree's best N - 1 nodes by path score; N = 16 is the best-15
+  subset of the same best-first tree.
+- Compared at the same starts:
+  - chain-16 / chain-32 (from the cells);
+  - S9b's proxy EAGLE-2 (central, and the band);
+  - the real tree.
+- Proxy bias = real / proxy, per set and N.
+- kept per check = mean(accepted + 1). Ratios use a start-level bootstrap within windows.
+- The walk-based number = S9b's walk result x the proxy bias (reported beside the paired one).
+Line (EXACT, both sets):
+- NET SAME-COST WIN at 16 rows: real EAGLE-2-16 / chain-16 >= 1.03 x c16, at Leap's upper c16 = 1.021 (that is
+  >= 1.052), with the CI above 1.021.
+- 32 ROWS PAY: real EAGLE-2-32 / chain-16 >= R32 x c32, at R32 1.625 and 1.3. c32 is Leap's 32-node tree overhead if
+  given, else 1.0, with a note.
+- Throughput: the best of chain-16, EAGLE-2-16, chain-32, EAGLE-2-32 at each R32, net of c.
+Result -> action:
+- NET WIN: the exact route. Hand Leap the measured kept gain.
+- Otherwise: report the real numbers and the proxy's bias.

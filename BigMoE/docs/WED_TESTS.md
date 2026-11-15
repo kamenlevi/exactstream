@@ -2118,3 +2118,43 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
 - **Verdict by MoonShots' pre-registered LINE:** a lever needed M1 >= 50 % (MBPP), and M1 < 25 % reads as "the wrong token
   derails the next prediction". MBPP's M1 is 6.6 %: K-next FAILS. Only a fresh pass on b would carry the 125B's
   information. Low margins don't explain it: >= 5-nat targets reach only 19 %.
+
+## Sun 15 Nov 10:45-10:53: TOPK, t30b's own top-8 + probabilities at every drafted cell, for MTP Head's EAGLE-2 tree pricing on the 125B (scripts/dd_topk.py; data/deepdraft/ceiling/topk_t30b_{heplus24,mbppbank}.{npz,json})
+- **Why (the orchestrator 10:4x):** Kamen decided the drafter's 98 % stays EXACT, so the exact route left is TREES: verify
+  the head's #2 / #3 where it is unsure, in the same check. Pricing that on the 125B needs the head's own top-k and
+  probabilities; the cells held only the draft's rank in the 125B's top-32.
+- **What:** the drafter head alone (no 125B), on the bank's HE+ 24 and MBPP 100 windows (runtime path, exact). It uses
+  dd_ceiling's files, anchors, chain and cell order.
+  - Per cell: top_ids / top_p (top-8, softmax over the full lm_head), y (the 125B's greedy token), p_y, y_rank (y's rank
+    in the head's order) and right.
+  - walk_start marks the check starts of t30b's chain walk at 32-row checks (checkstart_walk.py's walk).
+  - The chain is TEACHER-FORCED (depth >= 1 embeds the true token; the hidden state is the chain's own). So each cell is
+    the head's distribution at the on-true-path node of any tree, and equals the free-running decode up to a check's
+    first miss. Off-path nodes' distributions are not in the data.
+- **Checks:**
+  - Rows align with cells_t30b_{heplus24,mbppbank}.npz (depth, fi, row and right identical): 186,465 / 438,850 cells.
+  - Walk check starts 461 / 2,253, equal to checkstart_walk.py's.
+  - y matches the bank's ids on a sample.
+  - --selftest matches numpy on top-K, p, p_y, y_rank and argmax, and the walk by hand.
+  - 76 s / 190 s; MLX peak 10.9 / 11.2 GB.
+  - Logits come from a bf16 lm_head, so exact ties happen: 329 HE+ cells have y tied with the argmax (y_rank 0, right
+    False).
+- **At t30b's walk check starts, depth 0 (the 125B's word y within the head's top-k):**
+
+  | set | starts | right | top-2 | top-3 | top-4 | top-8 | misses: y is #2 / within top-4 / top-8 |
+  |---|---|---|---|---|---|---|---|
+  | HE+ 24 | 461 | 91.97 % | 96.53 % | 97.40 % | 98.48 % | 99.35 % | 57 % / 81 % / 92 % (37 misses) |
+  | MBPP 100 | 2,253 | 89.70 % | 96.40 % | 98.00 % | 99.02 % | 99.69 % | 65 % / 91 % / 97 % (232 misses) |
+
+  - "Right" excludes exact ties; top-k counts them (3 / 12 starts).
+  - The head's p1 separates the misses. At p1 >= 0.95 (70 % / 61 % of starts) it is right 100 / 99.5 %. At p1 < 0.5 it
+    is right 40 / 44 %, with y in the top-2 66 / 75 %. A confidence policy has signal on the 125B's rows.
+  - All cells (every depth): top-1 / top-2 / top-8 92.3 / 96.2 / 98.9 % (HE+), 78.3 / 88.0 / 96.4 % (MBPP).
+- **CORRECTION to the tree premise ("at check starts the head's top-2 holds the 125B's word 96.36 % MBPP / 100 % HE+",
+  NewIdeas roottree.txt):**
+  - roottree.py reads the cells' `rank` as "the 125B's token's rank in the head's order". It is not that.
+  - In cells_t30b_heplus.npz (01:18) `rank` is -1 on every wrong cell (14,671), a placeholder, and `rank <= 1` counted
+    all of them: hence 100 %.
+  - In dd_ceiling's cells (mbpp100 / heplus24) `rank` is the DRAFT's rank in the 125B's top-32.
+  - The head's own top-2 is 96.53 % (HE+) / 96.40 % (MBPP). A #2 branch recovers 57 % / 65 % of check-start misses,
+    not all of them.

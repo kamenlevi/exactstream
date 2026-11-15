@@ -1,0 +1,27 @@
+10:40:29 TOPK queued: waits for no other lock > 5 GB and NO-SWAP >= 18 GB
+10:45:20 TOPK start (NO-SWAP 41 GB)
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=31.7 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+Traceback (most recent call last):
+  File "/Users/kamen/BigMoE/scripts/dd_topk.py", line 178, in <module>
+    main()
+  File "/Users/kamen/BigMoE/scripts/dd_topk.py", line 161, in main
+    assert (C["y"] == np.array([np.load(FS[int(fi)])["ids"][int(r) + 1] for fi, r in zip(C["fi"][:200], C["row"][:200])])).all(), "y"
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: operands could not be broadcast together with shapes (186465,) (200,) 
+10:46:41 TOPK-DONE rc 1
+10:47:56 TOPK queued: waits for no other lock > 5 GB and NO-SWAP >= 18 GB
+10:48:16 TOPK start (NO-SWAP 41 GB)
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=31.8 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[topk] {"run": "t30b", "set": "heplus24", "cells": 186465, "k": 8, "top1_neq_argmax_ties": 0, "wall_s": 76.2, "mlx_peak_gb": 10.88, "aligned_with_cells": true, "walk_check_starts": 461, "checkstart_walk_starts": 461, "at_walk_starts_depth0": {"y_in_top1": 0.9262, "y_in_top2": 0.9653, "y_in_top3": 0.974, "y_in_top4": 0.9848, "y_in_top8": 0.9935}, "all_cells": {"y_in_top1": 0.9231, "y_in_top2": 0.9618, "y_in_top3": 0.9734, "y_in_top8": 0.9895}, "p1_median_right_vs_wrong_depth0_walk": [0.9997, 0.4739]}
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=31.7 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[topk] {"run": "t30b", "set": "mbppbank", "cells": 438850, "k": 8, "top1_neq_argmax_ties": 0, "wall_s": 189.8, "mlx_peak_gb": 11.19, "aligned_with_cells": true, "walk_check_starts": 2253, "checkstart_walk_starts": 2253, "at_walk_starts_depth0": {"y_in_top1": 0.9024, "y_in_top2": 0.964, "y_in_top3": 0.98, "y_in_top4": 0.9902, "y_in_top8": 0.9969}, "all_cells": {"y_in_top1": 0.7834, "y_in_top2": 0.8801, "y_in_top3": 0.9146, "y_in_top8": 0.9638}, "p1_median_right_vs_wrong_depth0_walk": [0.993, 0.5168]}
+10:52:50 TOPK-DONE rc 0

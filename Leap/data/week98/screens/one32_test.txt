@@ -1,0 +1,14 @@
+ONE32-TEST Sun 15 Nov 10:59:58: MLX 0.32.2
+  gdn qkv|z (R-83 qz)          N  16384 K  2560: qmm16c2  372 /  372 -> OK
+  gdn out_proj / att o_proj    N   2560 K  6144: qmm16c2  372 /  372 -> OK
+  att q_proj                   N  12288 K  2560: qmm16c2  372 /  372 -> OK
+  shared down                  N   2560 K   640: qmm16c2  372 /  372 -> OK
+  ple key                      N  10240 K  2560: qmm16c2  372 /  372 -> OK
+  ple value                    N   2560 K  2560: qmm16c2  372 /  372 -> OK
+  lm_head                      N 248320 K  2560: qmm16c2  372 /  372 -> OK
+  gdn b|a (R-83 ba)            N     96 K  2560 4-bit: qmvw32 kl8  372 /  372 -> OK, qmv32    0 /  372 -> NO, mlx raw  183 /  372 -> NO
+  att k / v_proj               N    512 K  2560 4-bit: qmvw32 kl8  372 /  372 -> OK, qmv32    0 /  372 -> NO, mlx raw  183 /  372 -> NO
+  indexer qk                   N    640 K  2560 4-bit: qmvw32 kl8  372 /  372 -> OK, qmv32    0 /  372 -> NO, mlx raw  183 /  372 -> NO
+  router (8-bit)               N    512 K  2560 8-bit: qmvw32 kl8  372 /  372 -> OK, qmv32  345 /  372 -> NO, mlx raw  183 /  372 -> NO
+  shared gate|up|gate (K-73)   N   1281 K  2560 4-bit: qmvw32 kl8  372 /  372 -> OK, qmv32    0 /  372 -> NO, mlx raw  183 /  372 -> NO
+done in 1 s; peak 4.2 GB

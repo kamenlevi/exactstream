@@ -567,6 +567,69 @@ arm.**
 - **Use:** its pass@1 delta and discordance against the batch-1 exact arm are the 2B's paired noise floor under a
   numerics-only change. They are reported beside each delta. The registered lines don't change.
 
+**J(CC), RESULT (10:1x; week98/jcc/jcc_result.json, score_out.txt): delta 1 HOLDS; delta 2 FAILS, on HE+.**
+
+| arm vs exact (264 keys, paired) | HE+ (164) | MBPP (100) | pooled | arm-only / exact-only | McNemar p | line |
+|---|---|---|---|---|---|---|
+| exact (batch 1) | 41.46 | 29.00 | 36.74 | - | - | - |
+| **delta 1** | 42.07 (+0.61, p 1.0) | 30.00 (+1.0, p 1.0) | 37.50 (**+0.76**) | 23 / 21 | 0.88 | **HOLDS** |
+| **delta 2** | 32.32 (**-9.15**, 11 / 26, p 0.020) | 28.00 (-1.0, p 1.0) | 30.68 (**-6.06**) | 22 / 38 | 0.052 | **FAILS** (drop > 3 pt; HE+ lower at p < 0.05) |
+| control B (exact, batched numerics) | 40.24 (-1.22) | 33.00 (+4.0) | 37.50 (+0.76) | 18 / 16 | 0.86 | (noise floor) |
+
+**Behaviour** (R1-only commits = committed non-top-1 drafts; per 1K generated tokens):
+
+| arm | R1 per 1K | code | comment | docstring | string | kept per check (lift) | lift without capped answers | length ratio | cap hits (exact 26) | answers changed |
+|---|---|---|---|---|---|---|---|---|---|---|
+| delta 1, HE+ | 27.3 | 7.5 | 15.0 | 4.5 | 0.3 | 7.46 (+19.9 %) | +9.1 % | 1.07 | 21 (14) | 141 / 164 |
+| delta 1, MBPP | 42.5 | 7.4 | 11.0 | 22.8 | 1.2 | 6.27 (+20.9 %) | +19.2 % | 0.95 | 10 (12) | 100 / 100 |
+| delta 2, HE+ | 41.4 | 12.5 | 21.6 | 6.4 | 0.8 | 9.88 (+59.0 %) | +23.7 % | 1.16 | 33 (14) | 151 / 164 |
+| delta 2, MBPP | 63.3 | 12.9 | 18.5 | 30.3 | 1.7 | 9.56 (+84.3 %) | +45.4 % | 1.13 | 17 (12) | 100 / 100 |
+| control B | 0 | - | - | - | - | - | - | 1.00 | 28 | 207 / 264 |
+
+- Prose outside the fence takes ~0 R1 commits.
+- The 125B's teacher-forced kept/32 lifts (Breakthrough): delta 1 HE+ +21.8 / MBPP +23.1 %; delta 2 +32.3 / +46.5 %.
+
+**Self-checks:**
+- (b) PASS: 99.05 % (smoke).
+- Divergence check PASS: in all 264 keys of each delta arm, the first token that differs from exact is the arm's first
+  R1 commit.
+- (a): HE PASS (6.22 vs the read-out's 6.43, ratio 0.97). MBPP **FAILS its pre-registered +-15 %** (5.19 vs 4.42,
+  ratio 1.17).
+  - Like for like (the read-out's own window: checks ending by token 512, the capture's cap), MBPP is 4.53 vs 4.42.
+  - So the excess comes from answers past 512 tokens (loops, which are easy to draft), not from the loop logic.
+  - Answer identity with Sandbox98's capture (batched greedy) in the first 512 tokens: HE 18 / 60, MBPP 8 / 100. This
+    is the numerics sensitivity that amendment 1 controls for.
+
+**Reading:**
+- **Delta 1 is inside the 2B's noise.** It has +0.76 pooled with 44 discordant keys; the numerics-only control has
+  +0.76 with 34.
+  - Its real kept-per-check lift (+21 %) equals the 125B's teacher-forced lift (+22-23 %). On HE+ about half of it
+    comes from answers that run to the cap (+9 % without them).
+- **Delta 2 fails on HE+ by a mechanism, not by noise:**
+  - 23 HE+ answers newly run to the 768 cap (4 stop running to it), and 8 of the 26 losses end at the cap.
+  - The first R1 commit in 15 of the 26 losses is a docstring token: the 2B rewrites the docstring, and the code
+    follows the rewrite (J(A)'s steering).
+  - MBPP holds at delta 2 (-1.0, p 1.0).
+- **Dose-matched to the 125B** (code-token R1 per 1K): the 125B's teacher-forced exposure is HE+ 4.1 / 5.8 and MBPP
+  8.1 / 12.8 at delta 1 / 2.
+  - On HE+, the 2B's delta 1 (code 7.5, all 27.3) already exceeds the 125B's delta 2 (5.8, 22.3), and it HOLDS. By the
+    pre-registered reading, that supports delta 2 on the 125B for HE+.
+  - On MBPP, the 2B's delta 2 (12.9, 63.3) matches the 125B's delta 2 (12.8, 61.9), and MBPP holds there.
+  - The 2B's HE+ failure sits at ~2x the 125B's delta-2 code dose.
+  - The 125B's exposures are teacher-forced and the 2B's are real decoding, so the match is approximate.
+- **So, for Monday:**
+  - A delta-2 arm on the 125B is plausible, not established. The 2B can't stand in for it at matched dose on both
+    sets with one delta.
+  - The failure mode to gate is runaway length. Watch cap hits and loops (decode_report's truncation and loop rows)
+    beside pass@1.
+  - Docstring rewrites are the main lossy entry point. A docstring / comment guard would cut it.
+- **Caveats:**
+  - One deterministic draw per arm on a weak model (pass@1 HE+ 41 / MBPP 29).
+  - The 2B's exact answers already change in 78 % of keys under numerics alone.
+  - The "without capped answers" lifts and the loss mechanism are exploratory, not pre-registered.
+- **Files:** week98/jcc_decode.py, jcc_batch.py, jcc_score.py, jcc_prescore.py, jcc_guard.sh;
+  jcc/arm{0,1,2,B}.jsonl, scores.json, jcc_result.json.
+
 ## Ranked (final, 01:3x)
 1. **The 2B audits and repairs the head's deep tokens: CONFIRMED on HE+** (D). On MBPP, the frozen schedule was chosen
    on those rows (C). Training-free.

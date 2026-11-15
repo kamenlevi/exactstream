@@ -246,6 +246,11 @@ prompt ids and reference completion ids.
       spn on every QOM run.
     - It is gated with CARD_ENGAGE_MODE=any (03:2x): > 0 summed over each process's code runs. An accept rule only
       engages where a draft qualifies, so many single code runs honestly read 0.
+  - **Runaway answers (amendment 3a, 10:3x; MoonShots' J(CC) on the 2B):** delta 2 failed through capped / looping
+    answers and docstring rewrites. So tier 1 now carries a RUNAWAY guard for every variant: paired cap-hit-or-loop
+    increases over the pooled sets, FAIL at McNemar p < 0.05.
+    - The speed read-out (tools/lossy_speed.py) quotes kept per check on answers uncapped in both arms. On the 2B, part
+      of the delta-1 lift was runaway answers.
   - **Pins:** the drafter decides which tokens are offered, so the variant's amendment pins:
     - the drafter checkpoint (sha256);
     - when the rule audits with the 2B, the 2B checkpoint and the audit settings;

@@ -20,6 +20,10 @@ code-scoped PASS licenses a code-only mode only.
 interim: z = (b - c) / sqrt(b + c) over the scope's pooled sets, b = arm-only correct, c = reference-only correct;
 STOP-FAIL if z <= -2.8.
 tier0: KILL if the reference-only minus arm-only count is >= 4 on the scope's 40 keys, or any arm row is empty; else GO.
+RUNAWAY guard (amendment 3a, from MoonShots' J(CC) on the 2B: delta 2 failed through runaway answers, cap hits 26 -> 50):
+  runaway = the answer hit the token cap (finish "length") or loops (evalsuite.decode_report.looped: a 20-token n-gram
+  >= 3 times in the last 400 tokens). Over the scope's pooled sets, paired: arm-only runaway b vs reference-only c;
+  FAIL if b > c with exact McNemar p < 0.05. Cap hits and loops are printed per set either way.
 Last line: `LOSSY <mode>[ (CODE-ONLY mode)]: ...`; exit 0 PASS / GO / CONTINUE, 1 FAIL / KILL / STOP-FAIL, 2 rows missing."""
 import json, math, os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -28,6 +32,7 @@ sys.path.insert(0, HERE)
 import cert_report as cr
 import d4x
 from evalsuite.report import mcnemar_p
+from evalsuite.decode_report import looped
 
 PANEL = json.load(open(os.path.join(HERE, "lossy_panel.json")))
 NAME = {"humaneval": "HumanEval+", "mbpp": "MBPP", "ifeval": "IFEval"}
@@ -109,6 +114,20 @@ def main(mode, arm, ref, scope="all", ident=""):
             v, b, c = setline(s, *P[s])
             bad += [] if v in ("PASS", "DIFFERS (HIGHER)") else [NAME[s]]
             B, C, N = B + b, C + c, N + len(P[s][0])
+        # the runaway guard: cap hits or loops, paired over the pooled sets
+        run_ = lambda r: (r.get("finish") == "length") or looped(r.get("completion_ids") or [])
+        rb = rc = 0
+        for s_ in pool:
+            ks = P[s_][0]
+            ca, cr_ = (sum(1 for k in ks if X[k].get("finish") == "length") for X in (A, R))
+            la, lr = (sum(1 for k in ks if looped(X[k].get("completion_ids") or [])) for X in (A, R))
+            b_ = sum(1 for k in ks if run_(A[k]) and not run_(R[k])); c_ = sum(1 for k in ks if run_(R[k]) and not run_(A[k]))
+            rb, rc = rb + b_, rc + c_
+            print(f"  {NAME[s_]} runaway: cap hits {ca} vs {cr_}, loops {la} vs {lr} (arm only {b_} / reference only {c_})")
+        rp = mcnemar_p(rb, rc)
+        rv = "FAIL" if rb > rc and rp < 0.05 else "PASS"
+        print(f"runaway guard (pooled{' code' if code else ''}): arm only {rb} / reference only {rc}, McNemar p {rp:.4f}: {rv}")
+        bad += [] if rv == "PASS" else ["runaway"]
         v, d, p = pooled_rule(B, C, N)
         print(f"pooled{' code' if code else ''} (n {N}): delta {d:+.2f} pt, McNemar p {p:.4f} (arm only {B} / reference only "
               f"{C}; line > {POOL_D:+.0f} pt, a screening line): {v}")

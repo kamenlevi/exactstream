@@ -361,3 +361,53 @@
   - the variant with the exact refs as a stand-in: rc 0.
 - **Time:** ~50 min per arm per order at 45 GB (code ~61K tokens + IFEval). That is ~1.7 h for the base's two orders
   and ~1.7 h for the variant's.
+
+## Amendment 3a (Sun 2026-11-15 10:3x, before any variant data): a RUNAWAY guard in tier 1, and the speed read-out
+- **Why:** MoonShots' J(CC) (12f76d1; verified by the orchestrator 10:3x) ran end to end on the 2B, s30, 264 keys paired,
+  with EvalSuite's scorers.
+  - Close-call at delta 1 HOLDS: pooled +0.76 pt, p 0.88. A numerics-only control gives +0.76 too.
+  - At delta 2 it FAILS: pooled -6.06 pt; HumanEval+ -9.15 pt, p 0.020.
+  - The mechanism is runaway answers (cap hits 26 -> 50) plus docstring rewrites that steer the code.
+  - Part of delta 1's speed lift was runaway answers: real kept per check +21 %, but only +9 % (HumanEval+) / +19 %
+    (MBPP) without capped answers.
+- **The guard, for every variant from now on** (tools/lossy_d4.py tier1, in both the single-order and pooled modes):
+  - An answer is a RUNAWAY if it hit the token cap (finish "length") or loops (evalsuite.decode_report.looped: a
+    20-token n-gram >= 3 times in the last 400 tokens).
+  - The guard is paired over the scope's pooled sets: arm-only runaways b against reference-only c.
+  - FAIL if b > c with exact McNemar p < 0.05. Cap hits and loops print per set either way.
+  - Tier 1 PASS now also needs this guard.
+- **The speed read-out (information beside the verdict, never a line):** tools/lossy_speed.py <arm TG> <base TG>.
+  - It gives kept tokens per check, arm against base, per set and for code pooled.
+  - Twice: on all answers, and on the answers uncapped and unlooped in BOTH arms.
+  - It reads runner 64's per-process runs.json (the REPLAY processes are left out) and the runs' decode rows.
+  - Tested on synthetic files: a capped fast answer reads +125 % on all answers, but +25 % on the clean ones.
+  - Any speed claim quotes the clean number.
+
+## Amendment 3b (Sun 2026-11-15 10:3x, before its data): a delta-2 close-call arm, if BigMoE writes its env
+- **The arm:** ccx45cc1d2, lx45cc1's line + R57_RELAX_DELTA=2 + R57_RELAX_DELTA_SETS=humaneval,humanevalx,mbpp, on the
+  same cc1 snapshot.
+  - It is gated exactly as amendment 3 (CARD_ENGAGE=close_call:accepted, CARD_ENGAGE_MODE=any), against the same
+    cached base, in both orders.
+  - It runs after delta 1. Time: ~1.7 h at 45 GB; the night comes from the orchestrator and NewIdeas' queue.
+- **What is known:**
+  - On the 2B, delta 2 fails through runaway answers, which the new guard tests directly.
+  - On the 125B, the teacher-forced delta-2 code dose (HumanEval+ 5.8 non-top-1 per 1K) is below the 2B's delta-1 dose
+    (7.5), which held. So delta 2 is plausible on the 125B, not established.
+- **Two arms against one base:**
+  - Each gets its own verdict.
+  - If both pass and the faster is preferred, that choice is a selection, and the tier-2 card gate must confirm it
+    before any adoption.
+- **Not registered:** delta 2 with a comment / docstring guard. That is Breakthrough's spec. Comments and docstrings
+  carry ~75 % of delta 1's rule commits (24.9 of 32.9 per 1K), so the guard cuts most of the gain. It would come under
+  its own amendment.
+- **Checked (10:2x)** with lossy_d4.py sha256 f607a4c6a1f4fbde... (the speed tool is sha256 eab2ee49e4582f4f...): CERT's v1' in both orders
+  against exact, code (results/lossygate/runaway_cert_2026-11-15.txt).
+  - HumanEval+ cap hits 14 vs 8 (arm only 7 / reference only 1).
+  - MBPP cap hits 14 vs 12, loops 1 vs 0 (8 / 5).
+  - **Runaway guard: arm only 15 / reference only 6, McNemar p 0.0784: PASS.** CERT's tier-1 verdict is unchanged:
+    PASS, both orders pooled.
+  - Information: the shipped lossy stack itself trends toward more capped answers than exact. A variant is gated
+    against the cached lossy-45 base, so the guard measures the variant's own increment over that base.
+- **The delta-2 env is registered (amendment 3b; BigMoE e7ba034):** ccx45cc1d2_env.txt, blob
+  a5cb28ef13ec3221d24655c199b8e65e6ffb2ad1, clean. The only difference from ccx45cc1 is R57_RELAX_DELTA 1 -> 2 (checked
+  here). Same cc1 pins. Dry run with the exact refs as a stand-in: rc 0.

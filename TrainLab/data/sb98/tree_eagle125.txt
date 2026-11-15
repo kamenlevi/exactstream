@@ -1,0 +1,66 @@
+SELF-CHECK mbppbank: layout == certify98, cells == topk (depth / fi / row / right); chain-32 6.92 vs published 6.92 -> PASS; walk_start == the chain-32 walk's starts in 100 / 100 windows; bf16 ties 1978 -> y = #2
+SELF-CHECK heplus24: layout == certify98, cells == topk (depth / fi / row / right); chain-32 13.77 vs published 13.77 -> PASS; walk_start == the chain-32 walk's starts in 24 / 24 windows; bf16 ties 329 -> y = #2
+SELF-CHECK mbppbank: this script's chain-32 (from y_rank) 6.92 vs published 6.92 -> PASS
+SELF-CHECK heplus24: this script's chain-32 (from y_rank) 13.77 vs published 13.77 -> PASS
+
+== 125B mbpp exact: chain-16 6.588, chain-32 6.924 (x1.051)
+  EAGLE-2-16: 7.452 = x1.131 chain-16 [1.109, 1.152]; proxy band x1.056 (pess.) .. x1.221 (opt.); worst case x0.909
+  static-16: 6.611 = x1.003 [0.993, 1.013] with {'D': 14, 'L': 1, 'B': 1, 'w': 2} (from he)
+  dyn-16: 6.955 = x1.056 [1.041, 1.069] with {'D': 13, 'L': 2, 'B': 1, 'w': 2, 'sig': 0, 'tau': 0.8} (from he)
+  seq-16: x1.000 (0 off-path nodes); per-check single-level oracle x1.406; multi-level oracle x1.759
+  EAGLE-2-32: 8.979 = x1.363 chain-16 [1.340, 1.386]; proxy band x1.202 (pess.) .. x1.534 (opt.); worst case x0.930
+  static-32: 7.033 = x1.067 [1.055, 1.083] with {'D': 30, 'L': 1, 'B': 1, 'w': 2} (from he)
+  dyn-32: 7.732 = x1.174 [1.157, 1.193] with {'D': 27, 'L': 4, 'B': 1, 'w': 2, 'sig': 1, 'tau': 1.5} (from he)
+  seq-32: x1.051 (0 off-path nodes); per-check single-level oracle x1.566; multi-level oracle x2.793
+
+== 125B he exact: chain-16 10.625, chain-32 13.769 (x1.296)
+  EAGLE-2-16: 11.184 = x1.053 chain-16 [1.018, 1.087]; proxy band x1.017 (pess.) .. x1.107 (opt.); worst case x0.932
+  static-16: 9.945 = x0.936 [0.907, 0.962] with {'D': 13, 'L': 2, 'B': 1, 'w': 2} (from mbpp)
+  dyn-16: 10.184 = x0.958 [0.922, 0.995] with {'D': 13, 'L': 2, 'B': 1, 'w': 2, 'sig': 1, 'tau': 1.5} (from mbpp)
+  seq-16: x1.000 (0 off-path nodes); per-check single-level oracle x1.202; multi-level oracle x1.319
+  EAGLE-2-32: 15.977 = x1.504 chain-16 [1.449, 1.565]; proxy band x1.412 (pess.) .. x1.630 (opt.); worst case x1.172
+  static-32: 12.500 = x1.176 [1.154, 1.200] with {'D': 19, 'L': 2, 'B': 6, 'w': 2} (from mbpp)
+  dyn-32: 12.905 = x1.215 [1.183, 1.248] with {'D': 19, 'L': 6, 'B': 2, 'w': 2, 'sig': 0, 'tau': 0.9} (from mbpp)
+  seq-32: x1.193 (11 off-path nodes); per-check single-level oracle x1.729; multi-level oracle x2.344
+
+== 125B mbpp d1: chain-16 7.919, chain-32 8.524 (x1.076)
+  EAGLE-2-16: 8.206 = x1.036 chain-16 [1.018, 1.054]; proxy band x0.972 (pess.) .. x1.093 (opt.); worst case x0.848
+  static-16: 7.876 = x0.994 [0.985, 1.005] with {'D': 14, 'L': 1, 'B': 1, 'w': 2} (from he)
+  dyn-16: 7.964 = x1.006 [0.990, 1.020] with {'D': 13, 'L': 2, 'B': 1, 'w': 2, 'sig': 1, 'tau': 0.5} (from he)
+  seq-16: x1.000 (0 off-path nodes); per-check single-level oracle x1.315; multi-level oracle x1.539
+  EAGLE-2-32: 9.881 = x1.248 chain-16 [1.226, 1.271]; proxy band x1.118 (pess.) .. x1.372 (opt.); worst case x0.875
+  static-32: 8.594 = x1.085 [1.073, 1.100] with {'D': 30, 'L': 1, 'B': 1, 'w': 2} (from he)
+  dyn-32: 8.802 = x1.111 [1.095, 1.130] with {'D': 29, 'L': 2, 'B': 1, 'w': 2, 'sig': 0, 'tau': 0.9} (from he)
+  seq-32: x1.076 (0 off-path nodes); per-check single-level oracle x1.544; multi-level oracle x2.469
+
+== 125B he d1: chain-16 12.097, chain-32 16.776 (x1.387)
+  EAGLE-2-16: 12.120 = x1.002 chain-16 [0.986, 1.018]; proxy band x0.971 (pess.) .. x1.015 (opt.); worst case x0.893
+  static-16: 11.591 = x0.958 [0.938, 0.978] with {'D': 14, 'L': 1, 'B': 1, 'w': 2} (from mbpp)
+  dyn-16: 11.224 = x0.928 [0.904, 0.950] with {'D': 13, 'L': 2, 'B': 1, 'w': 2, 'sig': 1, 'tau': 1} (from mbpp)
+  seq-16: x1.000 (0 off-path nodes); per-check single-level oracle x1.126; multi-level oracle x1.176
+  EAGLE-2-32: 17.371 = x1.436 chain-16 [1.345, 1.536]; proxy band x1.358 (pess.) .. x1.510 (opt.); worst case x1.148
+  static-32: 14.622 = x1.209 [1.178, 1.243] with {'D': 21, 'L': 2, 'B': 5, 'w': 2} (from mbpp)
+  dyn-32: 15.625 = x1.292 [1.244, 1.343] with {'D': 23, 'L': 2, 'B': 4, 'w': 2, 'sig': 1, 'tau': 2} (from mbpp)
+  seq-32: x1.267 (8 off-path nodes); per-check single-level oracle x1.711; multi-level oracle x2.116
+
+VERDICTS (pre-registered, EXACT judged; d1 reported): SAME-COST WIN = EAGLE-2-16 >= 1.03 x chain-16 with CI > 1 on both sets; 32 ROWS PAY = EAGLE-2-32 / chain-16 >= R32 on both sets
+  exact: EAGLE-2-16 x1.131 / x1.053 -> SAME-COST WIN
+  exact: EAGLE-2-32 x1.363 / x1.504 vs R32 1.625 -> no
+  exact: EAGLE-2-32 x1.363 / x1.504 vs R32 1.3 -> PAYS
+  d1: EAGLE-2-16 x1.036 / x1.002 -> no (reported only)
+  d1: EAGLE-2-32 x1.248 / x1.436 vs R32 1.625 -> no
+  d1: EAGLE-2-32 x1.248 / x1.436 vs R32 1.3 -> no
+
+THROUGHPUT vs chain-16 (kept/check / cost; cost 16 rows = 1, 32 rows = R32; the 16-node tree verify assumed = a 16-row chain, Leap prices it)
+  exact mbpp R32 1.625: chain-16 x1.000, EAGLE-2-16 x1.131, chain-32 x0.647, EAGLE-2-32 x0.839 -> best EAGLE-2-16
+  exact mbpp R32 1.3: chain-16 x1.000, EAGLE-2-16 x1.131, chain-32 x0.808, EAGLE-2-32 x1.048 -> best EAGLE-2-16
+  exact mbpp: break-even 16-node tree verify = 1.131 x a 16-row chain's
+  exact he R32 1.625: chain-16 x1.000, EAGLE-2-16 x1.053, chain-32 x0.797, EAGLE-2-32 x0.925 -> best EAGLE-2-16
+  exact he R32 1.3: chain-16 x1.000, EAGLE-2-16 x1.053, chain-32 x0.997, EAGLE-2-32 x1.157 -> best EAGLE-2-32
+  exact he: break-even 16-node tree verify = 1.053 x a 16-row chain's
+  d1 mbpp R32 1.625: chain-16 x1.000, EAGLE-2-16 x1.036, chain-32 x0.662, EAGLE-2-32 x0.768 -> best EAGLE-2-16
+  d1 mbpp R32 1.3: chain-16 x1.000, EAGLE-2-16 x1.036, chain-32 x0.828, EAGLE-2-32 x0.960 -> best EAGLE-2-16
+  d1 mbpp: break-even 16-node tree verify = 1.036 x a 16-row chain's
+  d1 he R32 1.625: chain-16 x1.000, EAGLE-2-16 x1.002, chain-32 x0.853, EAGLE-2-32 x0.884 -> best EAGLE-2-16
+  d1 he R32 1.3: chain-16 x1.000, EAGLE-2-16 x1.002, chain-32 x1.067, EAGLE-2-32 x1.105 -> best EAGLE-2-32
+  d1 he: break-even 16-node tree verify = 1.002 x a 16-row chain's

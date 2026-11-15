@@ -1,0 +1,48 @@
+SELF-CHECK table == core.chain_table on mbpp_100.npz: PASS
+mhc2a_n1 mbpp: exact kept/32 4.0764 (evalx 4.0764), walk-strict 0-14 71.98 %; close-call: d0.5 4.515 (28.6 changed/1K, strict 73.43 %); d1 4.890 (52.0 changed/1K, strict 75.07 %); d2 5.621 (88.7 changed/1K, strict 78.65 %)
+SELF-CHECK table == core.chain_table on humaneval_HumanEval_1.npz: PASS
+mhc2a_n1 he: exact kept/32 5.7914 (evalx 5.7914), walk-strict 0-14 82.08 %; close-call: d0.5 6.142 (13.4 changed/1K, strict 82.78 %); d1 6.571 (27.7 changed/1K, strict 83.26 %); d2 7.133 (45.3 changed/1K, strict 84.16 %)
+mhx_mg1 mbpp: exact kept/32 4.1233, walk-strict 0-14 72.51 %; close-call: d0.5 4.518 (29.8 changed/1K, strict 73.88 %); d1 4.932 (53.1 changed/1K, strict 75.93 %); d2 5.671 (89.7 changed/1K, strict 79.17 %)
+mhx_mg1 he: exact kept/32 5.8513, walk-strict 0-14 82.84 %; close-call: d0.5 6.214 (13.7 changed/1K, strict 83.68 %); d1 6.615 (28.4 changed/1K, strict 84.27 %); d2 7.225 (46.6 changed/1K, strict 84.91 %)
+mhx_mg1k mbpp: exact kept/32 4.0649, walk-strict 0-14 71.01 %; close-call: d0.5 4.485 (28.1 changed/1K, strict 73.33 %); d1 4.880 (51.5 changed/1K, strict 75.21 %); d2 5.550 (87.8 changed/1K, strict 77.91 %)
+mhx_mg1k he: exact kept/32 5.8084, walk-strict 0-14 83.02 %; close-call: d0.5 6.156 (13.9 changed/1K, strict 83.69 %); d1 6.538 (27.7 changed/1K, strict 84.13 %); d2 7.179 (45.8 changed/1K, strict 85.35 %)
+mhx_cs1 mbpp: exact kept/32 4.1517, walk-strict 0-14 72.63 %; close-call: d0.5 4.590 (29.4 changed/1K, strict 74.58 %); d1 5.005 (52.3 changed/1K, strict 75.87 %); d2 5.716 (87.1 changed/1K, strict 78.95 %)
+mhx_cs1 he: exact kept/32 5.8600, walk-strict 0-14 83.42 %; close-call: d0.5 6.264 (13.7 changed/1K, strict 84.07 %); d1 6.739 (28.8 changed/1K, strict 84.45 %); d2 7.245 (46.4 changed/1K, strict 85.25 %)
+
+pairs vs the control mhc2a_n1 (kept/32 diff [window bootstrap 95 % CI], sign test p over windows):
+  mhx_mg1 mbpp delta 0: 4.076 -> 4.123 (+0.047, +1.2 %) [-0.024, +0.120] p 0.268 (24+/16-); changed/1K 0.0 -> 0.0
+  mhx_mg1 mbpp delta 0.5: 4.515 -> 4.518 (+0.004, +0.1 %) [-0.077, +0.086] p 0.636 (22+/18-); changed/1K 28.6 -> 29.8
+  mhx_mg1 mbpp delta 1: 4.890 -> 4.932 (+0.042, +0.9 %) [-0.033, +0.120] p 0.451 (25+/19-); changed/1K 52.0 -> 53.1
+  mhx_mg1 mbpp delta 2: 5.621 -> 5.671 (+0.050, +0.9 %) [-0.042, +0.145] p 0.43 (23+/17-); changed/1K 88.7 -> 89.7
+  mhx_mg1 he delta 0: 5.791 -> 5.851 (+0.060, +1.0 %) [-0.048, +0.162] p 0.0931 (16+/7-); changed/1K 0.0 -> 0.0
+  mhx_mg1 he delta 0.5: 6.142 -> 6.214 (+0.072, +1.2 %) [-0.073, +0.220] p 0.169 (17+/9-); changed/1K 13.4 -> 13.7
+  mhx_mg1 he delta 1: 6.571 -> 6.615 (+0.044, +0.7 %) [-0.158, +0.243] p 0.345 (17+/11-); changed/1K 27.7 -> 28.4
+  mhx_mg1 he delta 2: 7.133 -> 7.225 (+0.091, +1.3 %) [-0.107, +0.291] p 0.442 (16+/11-); changed/1K 45.3 -> 46.6
+  mhx_mg1k mbpp delta 0: 4.076 -> 4.065 (-0.012, -0.3 %) [-0.081, +0.055] p 0.88 (23+/21-); changed/1K 0.0 -> 0.0
+  mhx_mg1k mbpp delta 0.5: 4.515 -> 4.485 (-0.030, -0.7 %) [-0.110, +0.046] p 1 (22+/22-); changed/1K 28.6 -> 28.1
+  mhx_mg1k mbpp delta 1: 4.890 -> 4.880 (-0.010, -0.2 %) [-0.110, +0.081] p 0.652 (24+/20-); changed/1K 52.0 -> 51.5
+  mhx_mg1k mbpp delta 2: 5.621 -> 5.550 (-0.071, -1.3 %) [-0.170, +0.030] p 0.644 (19+/23-); changed/1K 88.7 -> 87.8
+  mhx_mg1k he delta 0: 5.791 -> 5.808 (+0.017, +0.3 %) [-0.093, +0.129] p 0.701 (12+/15-); changed/1K 0.0 -> 0.0
+  mhx_mg1k he delta 0.5: 6.142 -> 6.156 (+0.014, +0.2 %) [-0.119, +0.150] p 0.557 (11+/15-); changed/1K 13.4 -> 13.9
+  mhx_mg1k he delta 1: 6.571 -> 6.538 (-0.033, -0.5 %) [-0.216, +0.135] p 1 (12+/13-); changed/1K 27.7 -> 27.7
+  mhx_mg1k he delta 2: 7.133 -> 7.179 (+0.045, +0.6 %) [-0.215, +0.295] p 1 (13+/12-); changed/1K 45.3 -> 45.8
+  mhx_cs1 mbpp delta 0: 4.076 -> 4.152 (+0.075, +1.8 %) [+0.014, +0.133] p 0.00289 (31+/11-); changed/1K 0.0 -> 0.0
+  mhx_cs1 mbpp delta 0.5: 4.515 -> 4.590 (+0.076, +1.7 %) [+0.003, +0.146] p 0.0385 (27+/13-); changed/1K 28.6 -> 29.4
+  mhx_cs1 mbpp delta 1: 4.890 -> 5.005 (+0.115, +2.4 %) [+0.026, +0.206] p 0.0226 (30+/14-); changed/1K 52.0 -> 52.3
+  mhx_cs1 mbpp delta 2: 5.621 -> 5.716 (+0.095, +1.7 %) [-0.013, +0.212] p 0.0436 (28+/14-); changed/1K 88.7 -> 87.1
+  mhx_cs1 he delta 0: 5.791 -> 5.860 (+0.069, +1.2 %) [-0.035, +0.202] p 0.307 (15+/9-); changed/1K 0.0 -> 0.0
+  mhx_cs1 he delta 0.5: 6.142 -> 6.264 (+0.122, +2.0 %) [-0.010, +0.279] p 0.248 (17+/10-); changed/1K 13.4 -> 13.7
+  mhx_cs1 he delta 1: 6.571 -> 6.739 (+0.168, +2.6 %) [+0.007, +0.321] p 0.152 (16+/8-); changed/1K 27.7 -> 28.8
+  mhx_cs1 he delta 2: 7.133 -> 7.245 (+0.111, +1.6 %) [-0.102, +0.319] p 0.678 (13+/10-); changed/1K 45.3 -> 46.4
+
+extra pair mhx_mg1 vs mhx_cs1:
+  mhx_mg1@mhx_cs1 mbpp delta 0: 4.152 -> 4.123 (-0.028, -0.7 %) [-0.095, +0.049] p 0.0961 (16+/28-); changed/1K 0.0 -> 0.0
+  mhx_mg1@mhx_cs1 mbpp delta 0.5: 4.590 -> 4.518 (-0.072, -1.6 %) [-0.156, +0.026] p 0.066 (15+/28-); changed/1K 29.4 -> 29.8
+  mhx_mg1@mhx_cs1 mbpp delta 1: 5.005 -> 4.932 (-0.073, -1.5 %) [-0.183, +0.039] p 0.135 (17+/28-); changed/1K 52.3 -> 53.1
+  mhx_mg1@mhx_cs1 mbpp delta 2: 5.716 -> 5.671 (-0.045, -0.8 %) [-0.161, +0.076] p 0.073 (13+/25-); changed/1K 87.1 -> 89.7
+  mhx_mg1@mhx_cs1 he delta 0: 5.860 -> 5.851 (-0.009, -0.1 %) [-0.123, +0.093] p 0.69 (11+/14-); changed/1K 0.0 -> 0.0
+  mhx_mg1@mhx_cs1 he delta 0.5: 6.264 -> 6.214 (-0.049, -0.8 %) [-0.161, +0.056] p 0.307 (9+/15-); changed/1K 13.7 -> 13.7
+  mhx_mg1@mhx_cs1 he delta 1: 6.739 -> 6.615 (-0.124, -1.8 %) [-0.254, +0.013] p 0.383 (8+/13-); changed/1K 28.8 -> 28.4
+  mhx_mg1@mhx_cs1 he delta 2: 7.245 -> 7.225 (-0.020, -0.3 %) [-0.203, +0.145] p 0.845 (12+/14-); changed/1K 46.4 -> 46.6
+VERDICT mhx_mg1k (delta-1 walk vs mhc2a_n1): NO EFFECT: MBPP -0.010 (p 0.652), HE -0.033; exact kept/32 MBPP -0.012, HE +0.017
+VERDICT mhx_mg1@mhx_cs1 (delta-1 walk vs mhx_cs1): NO EFFECT: MBPP -0.073 (p 0.135), HE -0.124; exact kept/32 MBPP -0.028, HE -0.009

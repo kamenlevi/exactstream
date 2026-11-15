@@ -41,6 +41,156 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Sun 15 11:00 (orchestrator): S9b verified (tree_eagle125.txt: self-checks pass; EAGLE-2-16 x1.131 [1.109, 1.152] /
+  x1.053 [1.018, 1.087]). The tree check is now the exact drafter-side lead.
+  - Leap's tree-verify estimate (TREE16, route (b)) is ~+0.4-1.3 ms on ~62 ms, inside the 1.053x break-even.
+  - EAGLE-2-32 x1.363 / x1.504 pays once Leap's step 1 brings R32 to ~1.3.
+  - Next:
+    - BigMoE: a head-only t30b TREE dump (real EAGLE-2 drafting, off-path nodes' top-8 + probs, ~32 nodes per start),
+      to settle the off-path confidence;
+    - then MTP Head re-prices;
+    - build order with Leap after its step 1.
+  - Kamen's answer on the invariant attention reference would make the tree's attention exact with no P·V port.
+- Sun 15 10:59: **MTP Head S9b: an EAGLE-2-style 16-node tree is a SAME-COST WIN on the 125B, exact: x1.131 (MBPP) /
+  x1.053 (HE+) kept vs chain-16** (CPU on BigMoE's t30b top-8 dump 9f49e03; pre-registered TrainLab 74314c3 + c2bfe6d,
+  result 1ead8da; data/sb98/tree_eagle125.txt).
+  - EAGLE-2-16: CIs [1.109, 1.152] / [1.018, 1.087]. Nodes whose parent is on the true path are exact; only the
+    descendants of a wrong sibling are proxied.
+    - Proxy band x1.056-1.221 / x1.017-1.107. The hard worst case (no-decay off-path chains) is x0.91 / 0.93.
+    - So HE+'s win is marginal under the pessimistic proxy. The head's off-path confidence is not in any dump yet.
+  - EAGLE-2-32: x1.363 / 1.504. It does not pay at R32 1.625; it pays at Leap's target 1.3.
+    - At R32 1.3 the best is still EAGLE-2-16 on MBPP (x1.13), and EAGLE-2-32 on HE+ (x1.16).
+  - Break-even for Leap: a 16-node tree verify may cost up to 1.131x (MBPP) / 1.053x (HE+) a 16-row chain's.
+  - Delta 1 (a sibling counts only when it is y, a lower bound): x1.036 / 1.002.
+  - Other policies at 16 rows, now correct: static branches x1.003 / 0.936; confidence-gated single-level x1.056 /
+    0.958; optimal static = the chain. Ceilings: single-level oracle x1.41 / 1.20, multi-level x1.76 / 1.32.
+  - Settles it: (a) real trees drafted with the head, off-path nodes included (an s30 build, or a head-only tree dump
+    for t30b); (b) Leap's tree-verify price vs the break-even.
+- Sun 15 11:0x: **Leap CHECK55 plan** (76817d3, ~/Leap/data/week98/check55_plan.md).
+  - Central targets: exact 32-row ~60 ms, 16-row ~45 (~55 / ~41 only if every step lands at its good end).
+  - The check is bound by dispatches and latency, not bytes: graph build 0.54 / 0.62 of a check, ~2,000 kernels.
+    The step past 16 rows is the second 2 x 16 chunk of every op.
+  - Steps:
+    - 0: profile (Breakthrough owns it, briefed 10:5x);
+    - 1: one launch per op at 17-32 rows, giving 32 rows ~75-85 ms (R32 ~1.2-1.35), first drop by Tue;
+    - 2: dispatch diet, -5..-10;
+    - 3: one-dispatch attention, -4..-6;
+    - 4: gate round trips + commit, -2..-4;
+    - 5: bytes at the floor, -2..-5.
+    About two weeks in all.
+  - **For Kamen today: the invariant (per-row key list) attention reference.** It changes today's exact bits and needs
+    a one-time re-certification. In return it gives step 3's -4..-5 ms more simply and makes trees exact for free
+    (saves ~1 day of the P·V port).
+- Sun 15 10:5x: **KAMEN CONFIRMS: "let's chase exact drafter", and the CHECK gets equal top priority with the drafter**
+  ("from everything I've heard the check unlocks like 3x the tokens").
+  - Honest size given to him: the exact 32-row check 99-102 -> ~55 ms is ~1.8x; ~3x+ is the lossy check (~21-25 ms).
+  - Leap was asked for its ordered plan to ~55 ms (32 rows) / ~40 ms (16 rows) with ETAs, and whether Breakthrough
+    (idle, fresh week) should own a non-colliding piece.
+  - **Leap TREE16 price** (desk estimate, 91cc592, data/week98/tree_verify_price.md): a 16-node tree check costs about
+    chain-16 except exact attention.
+    - GDN: depth-first walk with state saved at forks, +0.1-0.5 ms, exact by construction.
+    - Attention: a plain tree mask is NOT bitwise for side nodes. Exact routes:
+      - (b) port P·V bitwise, +0.2-0.5 ms, ~1 day;
+      - (a) no new kernel, +3-6 ms at 1-2K context;
+      - (c) a new AR-equal reference: changes today's reference bits, Kamen's call.
+    - Net vs S9's EAGLE-2 estimate: ~+15 % (MBPP) / +3-4 % (HE+) kept with (b). Build ~1.5-2 days, all exact.
+    - Decision after MTP Head prices EAGLE-2 on the 125B from BigMoE's t30b top-3 dump; the check plan comes first.
+- Sun 15 10:4x: **Sandbox98 QAT follow-up FLOOR (lr floor 30 %) = KILL; the three follow-ups are done, none passes
+  both sets** (802d7d4; pre-registered d7e11e2).
+  - FLOOR, kept/32 vs the 8-bit body, MBPP-50 / HE-30: -3.05 / -8.15 % (list -2.80 / -8.05 %). Against plain QAT:
+    MBPP -0.011 kept, HE -0.370 (CI -0.605..-0.195). The halves agree (-5.04 / -7.02 %). The low end of the schedule
+    matters: ending at 3e-6 instead of 1e-6 costs ~6 % on HE.
+  - The three: MIX (44 MB) +1.42 / -1.79 %; LSQ (38 MB) -0.90 / -2.25 %; FLOOR KILL; plain QAT -2.80 / -2.25 %.
+    MBPP-50 can be brought inside the 1 % line (MIX, LSQ); HE-30 does not move. Averaged over both halves, MIX sits
+    within ~0.3 % of the bar on both sets.
+  - Exact road: a 4-bit body changes only the drafter's guesses (kept/32); the check keeps every token exact.
+  - Untested: MIX + LSQ together; a lower floor or a cool-down. Sandbox98 is idle.
+- Sun 15 10:4x: **KAMEN'S DIRECTION: the drafter's 98 % stays EXACT** (his words: "that's the purpose of the drafter";
+  lossy close-call only if it were clearly the better use of the week). Orchestrator's plan, given to him:
+  - One guess at 98 % right after a miss is blocked: the 125B is near-tied there. Exact 98 % comes back as CANDIDATES.
+    ~~At check starts the head's top-2 holds the 125B's word 96.36 % (MBPP) / 100 % (HE+ 24)~~ **CORRECTED 11:0x**
+    (BigMoE TOPK 9f49e03; re-counted by the orchestrator from topk_t30b_*.npz at the depth-0 walk starts, n 461 / 2,253):
+    - The HE+ 100 % was an artifact: rank = -1 on all wrong cells, counted as top-2 hits. The MBPP 96.36 % used the
+      draft's rank in the 125B's list.
+    - The head's own top-1 / 2 / 4 / 8: HE+ 91.97 / 96.1-96.5 / 98.48 / 99.35 %; MBPP 89.70 / 96.3-96.4 / 99.0 /
+      99.69 %.
+    - So a #2 branch recovers ~57-65 % of check-start misses and a top-4 fan ~81-91 %.
+    - The head's p1 separates them: p1 >= 0.95 (61-70 % of starts) is right 99.5-100 %; p1 < 0.5 (~8 %) only 40-44 %.
+      The confidence gate has real signal.
+  - So the exact route for the week is TREES + CHEAPER ROWS, both exact:
+    - verify the head's #2 / #3 at its unsure spots in the same check (MTP Head's S9 lead: EAGLE-2-style 16-node tree
+      ~+17 % / ~+5 %; a perfect tree ~x2 at 32 rows);
+    - make the extra rows cheap (Goal B: R32 1.625 -> ~1.3, Leap).
+  - Asked:
+    - BigMoE: t30b's top-3 tokens + probabilities along the walk, head-only recompute if possible; else tonight's
+      45 GB block.
+    - MTP Head: price EAGLE-2 on the 125B at R32 1.625 and ~1.3.
+    - Leap: the tree verify cost on the hybrid GDN model.
+  - Lossy close-call stays the side track: Monday night's gate (delta 1 + delta 2) is already registered.
+- Sun 15 10:26: **MTP Head S9 TREE-DYN: no tree makes the 32-row check pay; the one lead is a 16-row EAGLE-2-style
+  tree at ~+17 % (MBPP) / ~+5 % (HE+) kept, exact, estimated** (CPU on the 125B cells + s30; pre-registered TrainLab
+  4dd7de9, result d0aafb2; data/sb98/tree_price.txt).
+  - **CORRECTION (Sun 15 10:59): this bullet's 125B numbers are VOID.** The cells' 'rank' field is the draft's rank
+    in the 125B's top-32, not y's rank in the head's list (BigMoE). NewIdeas' roottree read it the same way. S9b
+    replaces these rows with BigMoE's top-8 dump; the s30 rows stand.
+  - Below, kept/check is vs chain-16, as MBPP / HE+. The 125B cells hold where the true token sits in the head's list,
+    but not the head's confidence. So on the 125B only no-confidence trees and oracles are priced.
+  - 125B realizable:
+    - Static branches: 16 rows x1.001 / 0.933; 32 rows x1.067 / 1.087.
+    - The optimal static tree (Sequoia-style) never branches at 16 rows (x1.000); x1.05 / 1.20 at 32.
+    - Delta 1 is similar.
+  - 125B per-check oracle (single-level ceiling): 16 rows x1.40 / 1.18, so only the oracle passes the same-cost line.
+    32 rows x1.54 / 1.69, which fails 1.625 on MBPP: the 32-row line closes for single-level trees.
+    - Reference: chain-32 / chain-16 is only x1.05 / 1.30.
+  - Added after the run:
+    - The multi-level ceiling (a perfect #2 / #3 tree, paying the wrong siblings' rows) is x1.60 / 1.22 at 16 rows and
+      x2.08 / 1.92 at 32.
+    - An EAGLE-2-style tree on s30 (best-first by the head's path probability; off-path nodes proxied) gives x1.20 /
+      1.14 at 16 rows. It captures 24-40 % of that ceiling's gain. Carried to the 125B: ~x1.17 / ~x1.05 at 16 rows,
+      ~x1.43 / ~x1.31 at 32 (exact).
+  - Next, if wanted:
+    - The 125B head's own top-3 probabilities along the walk (a GPU dump on BigMoE's harness) would price EAGLE-2-16
+      directly.
+    - Leap's price for a 16-node tree verify on the hybrid model (GDN state forked per branch, tree mask) decides
+      whether the +17 % is real at 61-64 ms.
+- Sun 15 10:1x: **MoonShots J(CC): close-call acceptance end to end on the 2B + s30 (HE+ 164 + MBPP 100, paired):
+  delta 1 HOLDS (+0.76 pt, p 0.88; numerics control +0.76), delta 2 FAILS (-6.06; HE+ -9.15, p 0.020).**
+  - delta 2's loss is runaway answers (cap hits 26 -> 50) and docstring rewrites steering the code.
+  - Real kept/check: +21 % at delta 1 (= the 125B's teacher-forced) and +69 % at delta 2. Without capped answers,
+    delta 1 gives +9 % (HE+) / +19 % (MBPP).
+  - At the 125B's delta-2 code dose the 2B holds on both sets, so delta 2 on the 125B is plausible but needs the gate,
+    with cap-hit and loop rows (LEVERS_A_MOONSHOTS.md J(CC); 12f76d1).
+  - Orchestrator, 10:3x: verified and sent to EvalSuite, with three suggestions:
+    - cap-hit / loop rows and kept on uncapped answers for Monday's delta-1 arm;
+    - a delta-2 arm when a 45 GB slot has room;
+    - optionally, a comment / docstring guard.
+- Sun 15 10:2x (orchestrator): S8 / S8b verified (rerank_gate.txt, margin_RESULT.txt).
+  - Next for MTP Head: **TREE-DYN pricing** (CPU, the 125B cells + s30).
+    - The best version of NewIdeas' root-only ROOT TREE: the head's #2 with its own sub-chain at the least-confident
+      positions, under a fixed 16- or 32-row budget, exact and delta 1.
+    - Line: tree-16 beats chain-16 (same cost), or tree-32 / chain-16 kept > 1.625 (R32).
+  - Caveat: the hybrid GDN trunk needs its recurrent state forked per branch path; Leap prices that if it passes.
+- Sun 15 10:1x: **Sandbox98 QAT follow-up LSQ (learned group scales) = BETWEEN** (a1c15c3; pre-registered d7e11e2):
+  every Linear 4-bit g32 with each group's scale and offset learned; body 38 MB, plain QAT's size.
+  - kept/32 vs the 8-bit body, MBPP-50 / HE-30: -0.90 / -2.25 % (list -0.81 / -1.84 %); plain QAT g32 -2.80 / -2.25 %.
+    MBPP passes the 1 % line at no extra bytes (+0.083 kept over plain QAT, CI +0.017..+0.151); HE-30 does not move
+    (+0.000). Second halves: MBPP -1.20, HE +0.20 %; averaged over both halves LSQ sits ~1 % under the bar.
+  - So far both levers lift MBPP (MIX more, for +6 MB) and neither moves HE-30. FLOOR (QAT lr floor 30 %) runs next,
+    ~1.5-2 h at this GPU share.
+- Sun 15 10:08: **MTP Head S8 + S8b: the head's #2 holds the fix, but training cannot move it to #1; the
+  train-for-the-close-call-rule family closes on the sandbox** (pre-registered TrainLab 4418e5b / f88e870; results
+  5fa33f6 / 32689e5).
+  - S8 gate (s30, read-out): at the delta-1 walk's misses, s30's #2 is IN (the true token or in the delta-1 set) at
+    52 %, and #2 or #3 at 70 %.
+    - Oracle kept/32 under delta 1: top-2 +57 %, top-3 +97..100 %. The exact top-2 oracle alone gives +55 %
+      (MBPP 4.32 -> 6.68).
+  - S8b: an argmax-margin loss (KL + relu(1 - (best IN logit - best OUT logit))), 400 steps. NO EFFECT on both arms:
+    - Without close-call survival, vs n1: delta-1 walk MBPP -0.010 (p 0.65), HE -0.033.
+    - With survival, vs S7's cs1: -0.073 (p 0.135), HE -0.124.
+  - With S7's set-mass loss, both losses aimed at the rule are now NO EFFECT; the plain KL already gets what training
+    can. The +55-57 % top-2 headroom needs more candidates checked per verify (trees or extra rows), or a ranker that
+    reads information the head lacks.
+  - Not tested: other loss weights, the 125B's head.
 - Sun 15 09:0x (orchestrator): S7 ACCSET verified (TrainLab data/sb98/accset_RESULT.txt; confirm NO EFFECT, MBPP +0.105
   kept/32, p 0.77).
   - Next on the lossy road: **MoonShots J(CC)**, a 2B end-to-end quality pre-screen of close-call. pass@1 on
@@ -242,6 +392,9 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
   - Mon 16 night: the close-call variant ccx45cc1 (delta 1 nat, CODE-ONLY; PREREG_lossygate amendment 3, 763da1c):
     forward ~50 min, reverse ~50 min if the forward passes. The 1c check variants need their own base on their later
     snapshot (a separate base run). Accept rules use CARD_ENGAGE_MODE=any (> 0 summed per process on code, 0 on IFEval).
+    - Added Sun 15 10:3x (orchestrator): the delta-2 arm ccx45cc1d2 (amendment 3b, 5d72210; ~1.7 h in both orders)
+      runs right after delta 1 the same night, in the weekday big-test window (Tue 00:30 -> 15:00). Both arms carry
+      the new RUNAWAY guard (amendment 3a). NewIdeas may reorder when it's back.
   - Wed 18 night: BigMoE's CERTIFY98 fresh-set capture (~3-4 h).
   - Thu 19 - Fri 20 nights: the proof runs.
   - To ask Kamen in the morning: close apps for Sunday night from 21:00.
