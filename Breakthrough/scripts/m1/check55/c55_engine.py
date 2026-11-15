@@ -119,6 +119,7 @@ def check(G, P, toks, n, arm, key, phase, rnd=-1):
     S["enc"] = 0.0
     S["ple_w"] = S["ple_u"] = 0.0
     S["ple_n"] = 0
+    tt0 = time.time()
     t0, w0, u0 = MP.now(), time.perf_counter(), time.thread_time()
     with ref2.verify_scope(model):
         lg = model(mx.array([toks]), cache=P)
@@ -135,7 +136,7 @@ def check(G, P, toks, n, arm, key, phase, rnd=-1):
     d = np.array(stats(), np.float64) - s0
     MP.tag(63)
     knobs(G, "A16")
-    REC.append(dict(arm=arm, key=key, phase=phase, round=rnd, n=n, t=(t0, tf, tr, t3), w=(w1 - w0, w2 - w1, w3 - w2),
+    REC.append(dict(arm=arm, key=key, phase=phase, round=rnd, n=n, tt=(tt0, time.time()), t=(t0, tf, tr, t3), w=(w1 - w0, w2 - w1, w3 - w2),
                     u=(u1 - u0, u2 - u1, u3 - u2), enc_f=enc_f, enc_all=S["enc"], c={k: c1[k] - c0[k] for k in c1},
                     cb=(c0["ncb"], c1["ncb"]), misses=float(d[0]), ssd_ms=1e3 * float(d[1]), slow_ms=1e3 * float(d[2]),
                     ple=(1e3 * S["ple_w"], 1e3 * S["ple_u"], S["ple_n"])))
@@ -397,6 +398,48 @@ def finish(G):
     dump(G, final=True)
 
 
+def heat_intervals(t_from, path=os.path.expanduser("~/Library/Logs/fanwatch.log"), tail_bytes=4_000_000):
+    """fanwatch's heat episodes as (start, end) epochs: 'heat pause ... PAUSE set' (or a 'froze' line) until the next
+    'PAUSE cleared' (open episodes run to now). Jobs are frozen (SIGSTOP) inside these; the orchestrator 14:5x: drop or
+    re-run any timed round one overlaps."""
+    out, start = [], None
+    try:
+        with open(path, "rb") as fh:
+            fh.seek(0, 2)
+            n = fh.tell()
+            fh.seek(max(0, n - tail_bytes))
+            lines = fh.read().decode(errors="replace").splitlines()
+    except OSError:
+        return [], "fanwatch.log unreadable"
+    for ln in lines:
+        if len(ln) < 19 or not ln[:4].isdigit():
+            continue
+        try:
+            t = time.mktime(time.strptime(ln[:19], "%Y-%m-%d %H:%M:%S"))
+        except ValueError:
+            continue
+        if t < t_from - 3600:
+            continue
+        if ("PAUSE set" in ln or " froze " in ln) and start is None:
+            start = t
+        elif "PAUSE cleared" in ln and start is not None:
+            out.append((start, t + 1.0))
+            start = None
+    if start is not None:
+        out.append((start, time.time() + 1.0))
+    return out, "ok"
+
+
+def mark_heat():
+    t_from = min((r["tt"][0] for r in REC), default=time.time())
+    iv, st = heat_intervals(t_from)
+    for r in REC:
+        a, b = r["tt"]
+        r["hot"] = any(x0 < b and a < x1 for x0, x1 in iv)
+    S["heat"] = dict(intervals=iv, status=st, dropped=sum(r["hot"] for r in REC))
+    return iv
+
+
 def dump(G, final=False):
     time.sleep(0.2)
     cb = MP.cbs(0, MP.counts()["ncb"])
@@ -434,8 +477,9 @@ def dump(G, final=False):
     for a, t in TAGS.items():
         tp = MP.tag_pso(t)
         kern[a] = {psos.get(int(sl), ("?", 0))[0]: int(tp[sl]) for sl in np.nonzero(tp)[0]}
+    mark_heat()
     out = os.path.join(G["OUT"], f"{G['TAG']}_c55engine.json")
-    json.dump(dict(when=time.strftime("%a %d %b %Y %H:%M:%S"), final=final, records=REC, bits=S["bits"], passk=K_out,
+    json.dump(dict(when=time.strftime("%a %d %b %Y %H:%M:%S"), final=final, records=REC, bits=S["bits"], passk=K_out, heat=S.get("heat"),
                    kernels_cum=kern, notes=S["notes"], spin_ms=SPIN_MS, seam0=S.get("seam0")),
               open(out, "w"), indent=0, default=str)
     if final:
@@ -443,9 +487,14 @@ def dump(G, final=False):
 
 
 def report(G, path):
-    R = [r for r in REC if "gpu" in r]
+    Rall = [r for r in REC if "gpu" in r]
+    hot_rounds = {(r["key"], r["round"]) for r in Rall if r.get("hot") and r["phase"] == "same"}
+    R = [r for r in Rall if not r.get("hot") and not (r["phase"] == "same" and (r["key"], r["round"]) in hot_rounds)]
     m = lambda v: float(np.median(v)) if len(v) else float("nan")
-    L = [f"C55 engine profile ({time.strftime('%a %d %b %H:%M')}): exact-45 loop, C 160; medians per check (ms)"]
+    hs = S.get("heat", {})
+    L = [f"C55 engine profile ({time.strftime('%a %d %b %H:%M')}): exact-45 loop, C 160; medians per check (ms)",
+         f"heat (fanwatch): {len(hs.get('intervals', []))} episode(s) in the run; {hs.get('dropped', 0)} checks overlapped -> dropped, "
+         f"and {len(hot_rounds)} same-token round(s) dropped whole ({hs.get('status')})"]
     L.append("| arm | phase | n | wall | CPU build | CPU encode (SB) | CPU read + commit | GPU busy | GPU idle | GPU first start | "
              "dispatches | misses | SSD ms | PLE stage ms (wall / CPU) |")
     L.append("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|")

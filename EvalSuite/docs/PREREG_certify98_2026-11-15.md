@@ -262,3 +262,83 @@
   - The deep guesses the engine actually reaches are already ~97 % (they are survivors). The gap sits in the first ~15
     guesses after each check.
   - This is optimistic for the deep part: better early guesses carry harder stretches deeper.
+
+## Amendment 5 (Sun 2026-11-15 14:5x, before any capture or candidate): one pass of the candidate, BigMoE's TOPK + TREE dump
+- **Why:** the orchestrator (14:3x) asked BigMoE for a head-only TOPK + TREE dump on the fresh files. MTP Head can then
+  price tree-16 kept/32 under the walk, so the certificate also covers the trees that ship.
+- **The scoring input is BigMoE's TOPK dump** (scripts/dd_topk.py, the layout of 9f49e03). Checked today on both dev sets
+  with tools/certify98_topk_check.py (results/certify98/topk_vs_cells_2026-11-15.txt):
+  - fi / depth / right equal the cells files array for array;
+  - certify98.py scores both the same: kept/32 13.768898 on HumanEval+ 24 and 6.923860 on MBPP 100; walk-strict band
+    0-2 91.3928 / 87.2266;
+  - TOPK's walk_start flags equal certify98.py's decode walk on 124 / 124 windows;
+  - the checker FAILs on a wrong set and on one flipped cell.
+  - So one pass of the candidate gives both the certificate's cells and the tree pricing's inputs.
+- **That pass IS the single look** (section 2: the sets open once, for one pinned candidate). TOPK holds `right`, the metric
+  itself.
+  - It runs only after the proof-run amendment is filed. That amendment names the candidate's checkpoint sha256, code
+    commit and settings, the scorer's sha256 and the frozen file hashes.
+  - Before then, no drafter runs on the fresh files, not even a smoke test. Smoke tests use the dev bank.
+  - TOPK and TREE come from the same sitting; their sha256s go in the RESULT.
+- **Tree-16 kept/32 under the walk is INFORMATION, with no line.**
+  - It is MTP Head's pricing from BigMoE's TREE dump: 32 best-first nodes, top-8 children, at every anchor. It is
+    reported per set with the same window-clustered standard error as kept/32.
+  - TREE's own checks must pass (roots == TOPK band 0; true-path nodes == TOPK's teacher-forced cells). Otherwise the
+    tree read-out is VOID, and the certificate stands without it.
+  - A tree LINE would need its own line and power, filed before the proof-run amendment.
+- **Layout (BigMoE's capture, outside git):** ~/datasets/deepdraft/certify98/<set>/<name>.npz.
+  - set = heplus (140), mbpp (300) or everyday (150). The strict 80 are a subset of heplus.
+  - name = HumanEval_<id>, mbpp_<task_id>, or the everyday key with "/" replaced by "_" (agent_bash17, ifeval_1107,
+    ifbench_101).
+  - Beside them, the capture writes files_sha256.json: the manifest's sha256 (acdf3e62d4fd8f74...) and one sha256 per
+    file.
+  - EvalSuite copies it to results/certify98/ and commits it, and the proof-run amendment freezes its sha256. BigMoE's
+    dumps refuse any file whose hash differs.
+
+## Amendment 6 (Sun 2026-11-15 15:2x, before any capture or candidate): the TREE LINE
+- **Why:** the orchestrator (14:5x) said yes to a tree LINE, because trees are the exact method Kamen chose. NewIdeas
+  drafted it (~/NewIdeas/research/week98/TREE_LINE.md v1, 15:0x); this amendment adapts it to this PREREG's form.
+- **The candidate** is named in the proof-run amendment. NewIdeas proposes t30b + EAGLE-2-16: best-first by path
+  probability, top-8 children, 15 nodes plus the bonus, one exact 16-row tree check. A better drafter replaces it if one
+  lands by Thursday. The same single pass (amendment 5) serves the chain gate and this line.
+- **The statistic, per fresh set:** T = tree-16 kept per check / chain-16 kept per check.
+  - Each runs under its OWN decode walk (certify98's walk, R0 = 1) over the same windows, and is pooled over windows.
+  - An N-row check drafts the first N - 1 pops of the tree, or N - 1 depths of the chain.
+  - accepted = the deepest on-true node + 1 (tree), or the run of right cells from depth 0 (chain). kept = accepted + 1.
+- **The lower bound LB(T):** one-sided 95 %, by the delta method on log T with window-clustered (CR1) influences and
+  t(K - 1). This is the same family as certify98.py's bounds, and it is deterministic.
+  - NewIdeas' window bootstrap gives the same bound on the dev sets (1.119 / 1.032 vs 1.119 / 1.031). It is reported
+    beside LB(T) as information.
+- **The line, per gated set (HumanEval+ 140 and MBPP 300; everyday is reported, never gated):**
+  - **PASS:** LB(T) >= 1.021 (Leap's tree-verify overhead c16) AND T >= 1.052 (S9c's 3 % net margin over it);
+  - **BETWEEN:** T >= 1.052 but LB(T) < 1.021;
+  - **FAIL:** T < 1.052.
+  - **Overall:** PASS if both sets PASS; FAIL if either set FAILs; otherwise BETWEEN.
+  - The verdict line: `CERTIFY98 TREE-16: PASS | BETWEEN | FAIL (HE+ T [LB], MBPP T [LB])`.
+- **Power,** using the dev standard errors scaled to the fresh windows (log SE 0.0162 -> 0.0067 on HumanEval+, 0.0093 ->
+  0.0054 on MBPP); NewIdeas' table, checked here:
+  - MBPP: 1.00 at the dev T 1.136.
+  - HumanEval+: 1.00 on the bound and 0.87 on the point at the dev T 1.060.
+  - HumanEval+ at the dev's low end, T 1.027: 0.22 on the bound and 0.00 on the point.
+  - HumanEval+'s 3 % net margin is the binding part.
+- **Coverage, information only (no line), per band 0, 1-2, 3-6, 7-10, 11-14** (a 16-row check reaches depth 14):
+  - **Definition:** walk-strict COVERAGE = P(the 125B's token is among the verified tree's nodes at depth d | depths
+    0..d-1 covered), at the tree-16 walk's check starts.
+  - It uses certify98's walk convention: a missing cell, or the walk's last start at the answer's end, ends the run. So
+    a chain's coverage equals certify98's walk-strict accuracy exactly, per depth. The scorer checks this on every run;
+    it holds on both dev sets.
+  - Dev numbers, chain-16 -> tree-16:
+    - HumanEval+ 24: 93.33 -> 98.23 / 93.46 -> 96.16 / 93.99 -> 93.20 / 95.36 -> 94.60 / 96.94 -> 96.08.
+    - MBPP 100: 89.72 -> 97.61 / 86.27 -> 91.92 / 85.64 -> 85.73 / 83.51 -> 80.07 / 85.13 -> 78.52.
+  - NewIdeas' table drops the walk's last start and missing cells, so it reads 0.2-0.5 pt higher (98.58 / 97.79 at
+    depth 0).
+  - Read: trees reach ~98 % where the wall is, the first guess after each check. Deeper, the 16-node budget leaves few
+    siblings, and coverage equals or trails the chain's top-1.
+- **The scorer:** tools/certify98_tree.py; its sha256 goes in the proof-run amendment.
+  - It reproduces MTP Head's S9c on both dev sets: TREE-REPRODUCE: PASS, max |diff| 0.0005
+    (results/certify98/tree_repro_2026-11-15.txt).
+  - Per window, it checks the tree's anchors, a_walk_start == the chain-32 walk, chain-32 == certify98's kept/32, and
+    the coverage nesting.
+  - TREE's own checks (amendment 5) gate the read-out: if any fails, the line is VOID and the chain certificate stands.
+- **The statement, if PASS** (NewIdeas' wording): "Exact. The verified 16-node tree covers the 125B's token at x % per
+  position (per band), and keeps T x more tokens per check than the chain, at a check cost at most 2.1 % higher."

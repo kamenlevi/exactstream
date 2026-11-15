@@ -1,0 +1,9 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (1320628 > 262144). Running this sequence through the model will result in indexing errors
+TREE16-TIME Sun 15 Nov 15:06:34: MLX 0.32.2; slice layers 4-7, SB 4, 6.6 GB active
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+4 layers, 24 rotated rounds, context 1024: C16 10.853 ms | Tc 11.393 | Tb 11.606 | Tbb 10.984
+  paired: Tc - C16 +0.510 ms [+0.440, +0.643] (the tree code); Tb - C16 +0.749 ms [+0.582, +0.819] (+ forks); Tbb - C16 +0.129 ms [-0.008, +0.249] (heads batched)
+TREE16-TIME verdict (pre-registered): engine-scaled overhead +1.55 ms = +2.5 % of a ~62 ms chain-16 -> trim route (b)'s dispatches before M4 (2-5 %)
+done in 5 s; peak 8.0 GB

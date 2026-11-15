@@ -154,6 +154,9 @@
   - Setting MBPP_LINE = L gates MBPP with the HumanEval+ rule at line L. Its 300 windows give 0.97 power at L = 97.5,
     or 0.81 in the stress case.
 - **Everyday text:** reported with the same statistics, never gated.
+- **The tree line (PREREG amendment 6):** T = tree-16 kept per check / chain-16 kept per check, each under its own walk.
+  PASS needs LB(T) >= 1.021 and T >= 1.052 on both HumanEval+ and MBPP. Walk-strict coverage per band is reported beside
+  it, and for a chain it equals the accuracy gated above.
 - **Always reported:**
   - each band's point estimate and lower bound;
   - the margin bins;
@@ -202,6 +205,9 @@
   - Then freeze the manifest and file the proof-run amendment, naming the candidate and its pins.
 - **Thu 19 - Fri 20:** score the one candidate (minutes). Run the engine check on >= 20 HumanEval+ fresh windows (~30
   min of GPU).
+  - The candidate's single pass is BigMoE's TOPK + TREE dump (head only, ~12 GB, ~45-60 min), run only after the
+    proof-run amendment (PREREG amendment 5). certify98.py scores the TOPK file, which equals the cells files on the dev
+    sets. Tree-16 kept/32 under the walk is information.
 - **Sat 21:** the verdict.
 
 ## 8. The v1' confirm (item 2: plan only, not run)

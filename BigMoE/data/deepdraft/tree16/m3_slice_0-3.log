@@ -1,0 +1,33 @@
+14:59:06 M3 start (NO-SWAP 26 GB)
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=25.9 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (1320628 > 262144). Running this sequence through the model will result in indexing errors
+TREE16-M3 Sun 15 Nov 14:59:10: MLX 0.32.2; slice layers 0-3 (GGGA; PLE at 1 via B2 ple_tree); 6.7 GB active
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  chain        T 16 (main 16), 1 paths: T1 ALL BITWISE; T2 3/3 commits bitwise (c1, c8, t16)
+  bushy3       T 16 (main 6), 3 paths: T1 ALL BITWISE; T2 7/7 commits bitwise (c1, t2, c3, t3, c6, t6, t6)
+14:59:27 TREE16 M3 harness (PLE slice layers 0-3 with B2, T1 + T2), MEM 8 GB: a quiet lock of another session -> SIGTERM to group 65987, unlock, rerun after
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=26.8 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (1320628 > 262144). Running this sequence through the model will result in indexing errors
+TREE16-M3 Sun 15 Nov 15:01:01: MLX 0.32.2; slice layers 0-3 (GGGA; PLE at 1 via B2 ple_tree); 6.7 GB active
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  chain        T 16 (main 16), 1 paths: T1 ALL BITWISE; T2 3/3 commits bitwise (c1, c8, t16)
+  bushy3       T 16 (main 6), 3 paths: T1 ALL BITWISE; T2 7/7 commits bitwise (c1, t2, c3, t3, c6, t6, t6)
+  bushy-deep   T 16 (main 9), 4 paths: T1 ALL BITWISE; T2 7/7 commits bitwise (c1, t3, c4, t4, t4, t6, c9)
+  deep-narrow  T 16 (main 15), 2 paths: T1 ALL BITWISE; T2 4/4 commits bitwise (c1, c7, t14, c15)
+  small7       T  7 (main 4), 3 paths: T1 ALL BITWISE; T2 6/6 commits bitwise (c1, c2, t2, t3, c4, t4)
+  random0      T 16 (main 2), 6 paths: T1 ALL BITWISE; T2 6/6 commits bitwise (c1, c2, t5, t6, t6, t6)
+  random1      T 16 (main 3), 5 paths: T1 ALL BITWISE; T2 6/6 commits bitwise (c1, c3, t6, t6, t8, t9)
+  random2      T 16 (main 4), 5 paths: T1 ALL BITWISE; T2 7/7 commits bitwise (c1, c2, t2, c4, t5, t9, t11)
+  random3      T 16 (main 5), 5 paths: T1 ALL BITWISE; T2 7/7 commits bitwise (c1, c2, t2, c5, t6, t6, t9)
+  random4      T 14 (main 8), 5 paths: T1 ALL BITWISE; T2 7/7 commits bitwise (c1, c4, t4, t4, t4, t7, c8)
+  random5      T  9 (main 2), 5 paths: T1 ALL BITWISE; T2 6/6 commits bitwise (c1, c2, t3, t3, t3, t4)
+TREE16-M3 verdict: T1 ALL BITWISE; T2 ALL BITWISE (tree_commit + probe == chain commit + probe) (106 s; peak 8.2 GB)
+15:02:50 M3-DONE rc 0

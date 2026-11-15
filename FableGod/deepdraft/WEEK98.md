@@ -41,6 +41,49 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Sun 15 14:46 (`date`) **NewIdeas: DRAFT TREE LINE for CERTIFY98** (sent to EvalSuite; NewIdeas research/week98/TREE_LINE.md;
+  dev numbers from tree_coverage.py on BigMoE's real t30b tree dumps).
+  - **Candidate:** t30b + EAGLE-2-16. **Statistic:** T = tree-16 / chain-16 kept per check under the walk.
+    **Uncertainty:** a window-clustered bootstrap.
+  - **Line** (HE+ and MBPP; everyday reported only):
+    - PASS: one-sided 95 % LB(T) >= 1.021 (Leap's c16) AND point T >= 1.052 (S9c's 3 % net).
+    - BETWEEN: point >= 1.052 with LB < 1.021.
+    - FAIL: point < 1.052.
+  - **Power**, dev SE scaled to the fresh windows:
+    - MBPP ~1.00 (T 1.136, SE 0.006).
+    - HE+: 1.00 on the LB and 0.87 on the point (T 1.060, SE 0.0071). At dev's 95 % low end (1.027): 0.20 / 0.00. HE+'s
+      net margin binds.
+  - **"98 % exact" with trees** = walk-strict COVERAGE per position: the 125B's word is among the verified candidates. For
+    a chain this nests the per-guess metric.
+    - Dev, chain -> tree-16 at depth 0: HE+ 93.80 -> 98.58, MBPP 90.03 -> 97.79. Trees meet 98 % at the check-start wall.
+    - Deeper (3-14), the 16-node budget leaves coverage at or below the chain's (HE+ 93.7-96.2; MBPP 80.4-86.1).
+    - So the certificate states coverage per band + T. It makes no single "98 % to 30" claim.
+- Sun 15 14:42 (`date`) **NewIdeas: CALIBRATED TREE SCORES = KILL** (CPU, 3.2 s; research/week98/calib_tree.py / .txt).
+  - What: isotonic calibration of t30b's edge probabilities, per depth bucket (0 / 1-2 / 3-6 / 7-14 / 15+) x walk-start
+    flag, CROSS-FIT on half the windows and scored on the other half, then EAGLE-2's top-15 by the calibrated path
+    score.
+  - Result: x0.996 (MBPP 7.455 vs 7.487) and x0.988 (HE+ 11.126 vs 11.263). The line was +2 % on both sets.
+  - Read: the head's raw probabilities already order the nodes as well as any per-depth monotone map does, and a
+    per-depth temperature table is a special case of one. ORACLE-15's headroom (x1.160 / x1.076) is information the head
+    lacks (which sibling is right), not miscalibration. Nothing to add to BigMoE's M1 from this.
+- Sun 15 14:40 (`date`) **NewIdeas: TREE SHAPE = EAGLE-2's order stands; TREES x CLOSE-CALL = OVERLAPPING** (CPU, 2.4 s, 0.14 GB;
+  NewIdeas research/week98/tree_shape_cc.py / .txt / .json). Data: BigMoE's real t30b tree dumps; MTP Head's S9c walk,
+  which it reproduces (EAGLE-2-16 7.487 / 11.263).
+  - **Shape** (re-select 15 of the 32 dumped nodes, 16-row check):
+    - Wider trees by a depth discount lose: x0.959-0.995 MBPP, x0.973-0.995 HE+.
+    - Root tempering (more first-guess siblings) is noise: x0.992-0.998 / x1.002-1.004.
+    - ORACLE-15 (the best reshaping of these nodes) is x1.160 / x1.076.
+    - So no confidence heuristic beats EAGLE-2's path-probability order. The headroom needs better-calibrated node
+      scores, not a shape rule. **Build EAGLE-2's order as is.**
+  - **Trees x close-call (delta 1)**, kept/check, budget-correct, with the existing CC walks' approximation after a
+    close-call:
+    - MBPP: chain-16 6.588 | +CC 7.919 (x1.202) | tree-16 7.487 (x1.136) | tree+CC 7.968 (x1.209).
+    - HE+: 10.625 | 12.097 (x1.139) | 11.263 (x1.060) | 11.762 (x1.107).
+    - Additivity is 0.62 / 0.54: OVERLAPPING. On the lossy line trees add ~0 (MBPP) or lose (HE+), since a tree spends
+      nodes on siblings that close-call already rescues.
+    - First chain miss on the walk, rescued by: tree only 27 / 21 %, CC only 15 / 16 %, both 12 / 16 %, neither 45 / 48 %.
+  - **Read:** trees are the EXACT line's lever (as ranked). If close-call ships on the lossy line, a chain + CC is as good as
+    a tree + CC. A tree + CC policy that also close-calls selected siblings needs the 125B's lp for them (not in the dumps).
 - Sun 15 11:46 (`date`) **NewIdeas: SHORT RANKING, exact first (Kamen ~10:4x).** Replaces my 11:46 entry, which ranked
   lossy first and kept the levers that are now closed.
   1. **Trees, exact: THE lead.** Tree-16 now (net ~+11-13 % MBPP / +4-5 % HE+, S9c); tree-32 once R32 is ~1.3. The #2
@@ -479,7 +522,16 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
     23-30 survivors); **by the HE+ line, 88.14 < 90 = KILL.** Even teacher-forced, DFlash2's strict accuracy falls to
     ~88-89 % by depths 7-14 on HE+ and ~73 % on MBPP: far from a 98 % corrector.
 - Sun 15 03:1x: **45 GB SLOTS for the week (orchestrator's draft; each needs ~47 GB NO-SWAP, i.e. Kamen closing apps):**
-  - Sun 15 night: Leap's a45 (exact-45 timing) 21:00 -> ~01:00; then EvalSuite tier 0a REPLAY calibration (~1.5 h;
+  - **SUPERSEDED for Sun night, 15:0x (orchestrator):** apps quit at 23:00 (apps_2300_1115.sh, pid 33477; force-quit
+    OK; Claude / Terminal / Finder / Spotify kept). Fans capped at 4,350 rpm, so heat stretches runs ~1.9x.
+    ONE ORDER, so the memory-gated waiters don't start together:
+    1. Leap a45 (~30 min);
+    2. Leap C7c (end marker C7C_DONE);
+    3. BigMoE's full-model M1 check, then the ng1 bit test (end marker NIGHT1115_BIGMOE_DONE);
+    4. EvalSuite's chain: tier-0a, then lx45cc1 both orders (~00:30 -> ~06:30; fallback start 01:30), writing
+       CHAIN_1116_END;
+    5. Breakthrough's engine profile (deadline Mon 15:00, heat episodes dropped).
+  - (Original draft) Sun 15 night: Leap's a45 (exact-45 timing) 21:00 -> ~01:00; then EvalSuite tier 0a REPLAY calibration (~1.5 h;
     PREREG_lossygate amendment 2, eba6d3c; BigMoE's four envs on rpl1 03be8b3, dry runs clean); then the close-call base
     lx45cc1 (lossy-45 as shipped, on snapshot cc1) cached in both orders (~1.7 h) -> done ~04:15 Mon.
   - Mon 16 night: the close-call variant ccx45cc1 (delta 1 nat, CODE-ONLY; PREREG_lossygate amendment 3, 763da1c):

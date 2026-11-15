@@ -290,3 +290,11 @@ vs later, the median wall:
 - If the loop does pay it, two fixes:
   - prefetch the drafted tokens' rows while the drafter runs;
   - make sure the stage overlaps GPU work (seam d at every check length).
+
+## Heat check of today's slice runs (Sun 14:4x, after the orchestrator's 14:5x ask)
+- fanwatch.log shows no heat pause and no freeze on 15 Nov up to 14:45. The 11:04-11:16 quiet runs (c55_1105,
+  c55_ko_1110, c55_sb_1116) were not frozen.
+- From tonight on, the engine profile checks each timed check against fanwatch's heat episodes (PAUSE set -> PAUSE
+  cleared).
+  - It drops the overlapped checks, and drops whole rounds from the paired deltas.
+  - It runs 16 rounds per window, so at least 12 survive.

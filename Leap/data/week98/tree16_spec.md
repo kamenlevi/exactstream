@@ -84,8 +84,13 @@ taps, n-gram contexts).
     the bonus, to t30b's cache of committed pairs.
   - **Attention:** the path's K / V rows go into slots L..L+k-1 in path order, then trim to L + k. The QSA indexer's
     raw keys likewise, and its pooled blocks completed by the kept tokens are recomputed.
-  - **Fast path:** if the path is a prefix of the main chain (nodes 0..k-1), today's chain commit (keep k) applies
-    unchanged.
+  - **Fast path:** if the path is a prefix of the main chain (nodes 0..k-1) AND k < T, today's chain commit (keep k)
+    applies unchanged.
+    - **NOT at k == T** (a fully accepted chain-shaped tree; BigMoE's T2, Sun 15:1x). MTPLX's commit_verified_window
+      returns early on a full accept (trim_n == 0), because a chain verify leaves the post-window state.
+    - tree_verify leaves the GDN state at the snapshot's, so nothing would replay. The chain tree at k 16 was off by
+      5.8.
+    - At k == T, tree_commit restores the snapshot and replays the path like any other accept.
 
 ## 5. Bit harness (M3, BigMoE; the 4-layer slice GGGA, then the 12-layer slice)
 - **Tree shapes:** a pure chain, a bushy tree (branching at depth 0-2), a deep narrow tree, and real t30b EAGLE-2
@@ -156,3 +161,24 @@ against mx.matmul bitwise, as the qv_wide k_lanes were.
   - B2's plan: ple_tree(ple_layer, hidden, tokens, meta, cache) -> the PLE term. MLX's own conv1d on a 10-row window
     per node, batched over the nodes, with the bit test vs the chain rows as the arbiter. It doesn't touch the cache's
     PLE slots (M2's).
+- Sun 14:4x (Leap):
+  - L1 (tree_gdn.gdn_body_tree) and L2 (tree_att.tree_sdpa) are built and ALL BITWISE in their unit tests: every node
+    == its path run as a chain; 10 / 7 trees, all ref2 key classes.
+  - L2 pads a tree's queries to 16 rows (MLX's scores kernel depends on the rows), as ref2 pads short checks.
+  - L3 (tree_verify) is next.
+- Sun 14:5x (Leap):
+  - L3 tree16.tree_verify is ALL BITWISE end to end on a slice without the PLE layer: 8 trees, logits + hidden_w of
+    every node == its path's chain verify.
+  - B2 plugs in by setting tree16.PLE_TREE[0] = ple_tree (signature ple_tree(ple_layer, hidden, input_ids, meta, cache)).
+  - Before calling tree_verify: ref2.apply(), then tree16.install(ref2).
+  - tree_verify consumes B1's meta keys anc, depth, gdn_win, fork_ops, n_slots.
+- Sun 15:0x:
+  - B2 PASS (Breakthrough fbd3ede).
+  - End to end with the PLE layer: ALL BITWISE (8d37798; 10 trees incl. EOS).
+  - Route (b): heads batched per kv head (default) and the tail steps one per path; both bitwise.
+  - TREE16-TIME: the batched form costs +4.0 % engine-scaled; re-timed with the per-path tail.
+- Sun 15:1x (BigMoE 445e8c7):
+  - M3 ALL BITWISE on both slices with tree_verify: layers 4-7, and layers 0-3 with B2. T1 every node == its path's
+    chain; T2 73 / 73 (tree_commit + probe == chain commit + probe).
+  - Section 4's fast path is fixed: k < T only, since MTPLX's commit skips the replay on a full accept and tree_verify's
+    GDN state is not meaningful.

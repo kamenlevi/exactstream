@@ -2192,3 +2192,31 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
   - At 16 rows the real tree sits inside S9b's proxy band on both sets (MBPP x1.103, HE+ x1.043 at the walk starts).
   - At 32 rows the tree uses the budget the chain wastes past its first miss: MBPP +26 %.
   - MTP Head prices the real walk from these files (S9c).
+
+## Sun 15 Nov 14:5x-15:03: TREE16 M3 bit harness: tree_verify + tree_commit + a probe == the chain, ALL BITWISE on the PLE-free slice (layers 4-7) AND the PLE slice (layers 0-3) (scripts/tree16_m3.py; data/deepdraft/tree16/m3_slice{,_0-3}.json)
+- **Context:** TREE16 (spec ~/Leap/data/week98/tree16_spec.md, ce2047a; approved by the orchestrator 12:0x) is an exact
+  16-node EAGLE-2 tree check on the 125B. MTP Head's S9c priced it at x1.136 MBPP / x1.060 HE+ kept per check vs
+  chain-16. BigMoE owns M1-M4.
+  - Pieces used here: Leap's tree_verify (1569cdc); Breakthrough's tree_meta (B1, b78708b) and ple_tree (B2, fbd3ede).
+  - Mine: M1 tree16_draft.py (7a19a27), M2 tree16_commit.py (b792b91 + the fix below), M3 tree16_m3.py.
+- **Harness:** Leap's slice load, ref2 + the exact CFG forms, tree16.install, a fresh 1,024-token prefill per route.
+  11 trees: chain, bushy3, bushy-deep, deep-narrow, small7 and 6 random, T 7-16.
+  - **T1:** every node's tree_verify logits + hidden_w == its root-to-leaf path's chain verify, bitwise.
+  - **T2:** per tree, 3-7 accepted paths (the root alone, main-chain prefixes, side branches, partial side paths).
+    tree_verify + tree_commit (ref2's commit phase) + a 4-row probe == a chain verify of the path + the loop's
+    full-accept commit + the same probe: probe logits, hidden_w and QSA offsets, bitwise.
+- **Results:**
+  - layers 4-7 (G G G A, no PLE): T1 ALL BITWISE (11 trees), T2 73 / 73 bitwise. 35 s, peak 8.1 GB.
+  - layers 0-3 (the PLE layer at index 1, B2 plugged in): T1 ALL BITWISE, T2 73 / 73 bitwise. This includes M2's PLE
+    commit: snapshot slots, stage(path ids), the layer on h_in in path order. 106 s, peak 8.2 GB.
+- **One bug found and fixed (M2):**
+  - The first PLE-free run gave 72 / 73. A fully accepted chain-shaped tree (k == T == 16) took the chain fast path,
+    where MTPLX's commit skips the replay because a chain verify leaves the post-window state. tree_verify's
+    recurrent state is not meaningful, so the result was off by 5.8.
+  - The fast path is now k < T only, and k == T replays from the snapshot. The spec's §4 fast path has the same hole
+    (told Leap).
+- **Still open:**
+  - M1's full-model check (tree main chain == draft_cut's greedy chain, per-forward ms; snapshot t16a, 162d2d9).
+    Tonight, in the orchestrator's order.
+  - Contexts > 2K need B3 (Mon-Tue).
+  - M4 loop integration, for Tuesday night's engine arm.
