@@ -1,0 +1,19 @@
+
+=== he (heplus24) ===  base P(m < 1) = 3.5 %
+  lift P(m(t+k) < 1 | min m(t-2..t) < 2) / base: k1 15.9 % (x4.56)  k2 15.1 % (x4.34)  k3 14.2 % (x4.08)  k4 13.9 % (x3.99)  k5 14.1 % (x4.06)  k6 13.7 % (x3.93)
+  always chain-32                    kept/32  13.769  hard starts 52.5 %  band 0-2 miss: hard 13.97 %  easy  2.67 %
+  always tree-32                     kept/32  16.263  hard starts 46.2 %  band 0-2 miss: hard  5.36 %  easy  0.63 %
+  KEYED (chain easy / tree hard)     kept/32  15.625  hard starts 49.0 %  band 0-2 miss: hard  5.38 %  easy  2.13 %
+  inverse (tree easy / chain hard)   kept/32  14.358  hard starts 51.8 %  band 0-2 miss: hard 14.67 %  easy  0.63 %
+  keyed vs always tree-32: -3.92 %; max lift at k <= 3: x4.56
+
+=== mbpp (mbppbank) ===  base P(m < 1) = 9.8 %
+  lift P(m(t+k) < 1 | min m(t-2..t) < 2) / base: k1 15.5 % (x1.58)  k2 14.8 % (x1.51)  k3 14.5 % (x1.48)  k4 14.3 % (x1.46)  k5 14.1 % (x1.44)  k6 13.7 % (x1.39)
+  always chain-32                    kept/32   6.924  hard starts 72.3 %  band 0-2 miss: hard 14.80 %  easy  7.32 %
+  always tree-32                     kept/32   9.031  hard starts 72.1 %  band 0-2 miss: hard  4.92 %  easy  2.47 %
+  KEYED (chain easy / tree hard)     kept/32   8.585  hard starts 72.4 %  band 0-2 miss: hard  4.95 %  easy  6.36 %
+  inverse (tree easy / chain hard)   kept/32   7.371  hard starts 72.6 %  band 0-2 miss: hard 14.93 %  easy  2.72 %
+  keyed vs always tree-32: -4.94 %; max lift at k <= 3: x1.58
+
+LINE (orchestrator: HE+ lift >= 2x at k <= 3 AND kept/32 >= +3 %): KILL  (HE+ lift x4.56, gain -3.92 %)
+Fable C's line (+2 % on both sets): KILL (HE+ -3.92 %, MBPP -4.94 %)

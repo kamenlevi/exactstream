@@ -1,0 +1,15 @@
+{
+ "source": "Leap ~/Leap/data/week98/treek_costs_v1.json, Sun 15 Nov 23:4x: interim, after C7c (937d6c9). Same format as NewIdeas' costs_v0.json. Every value is [est] except today 32 (engine G32T 1.625) and onepass 32 (the 12-layer slice, C7c 1.345; E2 on the engine Tue 00:30). The refined table comes Tue evening.",
+ "A16_ms": 62.0,
+ "overhead_ms": 4.0,
+ "lossy32_ms": 25.0,
+ "lossy_floor32_ms": 20.9,
+ "R": {
+  "floor":    {"16": 0.630, "24": 0.749, "32": 0.846, "48": 0.998, "64": 1.122, "96": 1.304, "128": 1.444},
+  "today":    {"16": 1.000, "24": 1.50,  "32": 1.625, "48": 2.18,  "64": 2.71,  "96": 3.70,  "128": 4.65},
+  "onepass":  {"16": 1.000, "24": 1.22,  "32": 1.345, "48": 1.64,  "64": 1.90,  "96": 2.39,  "128": 2.84},
+  "contract": {"16": 0.935, "24": 1.155, "32": 1.28,  "48": 1.575, "64": 1.835, "96": 2.325, "128": 2.775}
+ },
+ "c": {"16": 1.025, "24": 1.035, "32": 1.04, "48": 1.055, "64": 1.07, "96": 1.09, "128": 1.11},
+ "note": "today = REF2-T as the engine runs it (16-row calls). onepass = REF2-T with one weight pass per op; it is C7c's 1.345 at 32 rows, and beyond 32 rows the first cut's model with its excess over A16 scaled by C7c (x0.775): range 48 1.64-1.85, 64 1.90-2.21, 96 2.39-2.86, 128 2.84-3.47. contract = onepass - 4 ms (C8, track B: a new reference, Kamen's call). 24 rows: REF2-T pads the second tile to 16 rows, so a 24-row check pays the 32-row weight passes. Only the expert union (93.3 vs 109.7 per layer, measured: treek_union.py, Sun 23:5x) and the cores' 8 rows shrink: -0.101 and -0.023 x A16 from 32 rows. Floor = 3.44 GB dense + 48 x union x 2.135 MB at 280 GB/s. c(K) = NewIdeas' midpoints of Leap's first-cut ranges."
+}

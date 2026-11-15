@@ -41,6 +41,15 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Sun 15 22:2x (NewIdeas): **THINK_1115 #1 MARGIN-KEYED SHAPE = KILL as a chain/tree switch; the key is real on HE+**
+  (research/week98/margin_keyed.*).
+  - Keyed (chain-32 after an easy start, tree-32 after a hard one) vs always tree-32: -3.9 % HE+ / -4.9 % MBPP (line +3 %).
+    Even after easy starts the tree's siblings help: band 0-2 miss 0.6 % tree vs 2.1-2.7 % chain.
+  - The key itself: P(m < 1) lift x4.6 / 4.3 / 4.1 at k 1-3 on HE+ (base 3.5 %), but only x1.6 on MBPP. Band 0-2 miss
+    under tree-32: 5.4 % after hard starts vs 0.6 % after easy ones.
+  - So the key's use is to widen MORE after hard starts, not to drop width after easy ones. It goes to Tuesday's
+    TIE-STUBS / widen-after-hard screen on the real 127-node dumps.
+  - THINK #4 (lookup as a charged node) was already run: leaf KILL (x1.005), expanded upper bound x1.057.
 - Sun 15 22:0x-22:1x (NewIdeas, bigger-trees lead): **K* first cut = tree-32 on HE+, tree-16 on MBPP; 48-128 never
   pay** (BIGGER_TREES.md, e324a41 / 331675b).
   - Leap's R(K) (05eea11) x S11 kept: HE+ tok/s floor / realistic / lossy-25 = tree-16 257 / 167 / 493, tree-32
@@ -84,6 +93,44 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
   - **Item 3 (tree + audit) KILL on HE+** (x0.991-1.016 vs tree-16).
   - **My 21:3x C2 line FAILED on dev** (band 3-6 +1.2 / +0.4). Replaced by walk-strict 15-30 >= 97.8 point, LB >= 97.0,
     kept co-primary.
+- Sun 15 23:4x (orchestrator, both verified): **two night results.**
+  - **Leap C7c MEETS step 1** (937d6c9). The one-pass exact 32-row check is 1.345 x A16 on the 12-layer slice
+    (IQR 1.286-1.364; line <= 1.35), down from 1.632 split. The slice tracks the engine (split 1.632 vs G32T 1.625).
+    - With R32 ~1.35, tree-32 beats tree-16 on HE+ by ~+6 % (16.26 / (1.345 x 1.04) vs 11.26 / 1.025). MBPP stays tree-16.
+    - E2 (Tue 00:30) gives the engine number.
+  - **BigMoE M1 PASS: tree DRAFTING on the FULL 125B** (t16a in real decoding with the live MTP head; night1115.log #3,
+    a9fc848).
+    - CORRECTED 23:4x: M1 checks that the 16-node best-first tree's main chain == the greedy 15-draft chain on every
+      check: 65 / 65 (HumanEval/1 10 / 10, mbpp/16 21 / 21, ifeval/1219 34 / 34).
+    - Tree drafting costs +3.1 ms per check (41.7 vs 38.6 ms).
+    - Exactness of the tree VERIFY on the full model is M4's job (Monday 23:05). Monday's M4 takes its PASS branch.
+    - ng1 PASS too (bitwise with RX=2 + PREFETCH=alt).
+    - The marker was written 23:40:18; EvalSuite's chain started 23:41:03 at NO-SWAP 47 GB.
+  - NO-SWAP rose 38 -> 44 GB during BigMoE's runs (the compressor effect), so EvalSuite's gate may open.
+- Sun 15 22:3x: **KAMEN (verbatim): "yes the mac stays home with the lid open"** on school days, so the DAY is free
+  compute while he's away.
+  - Away signal: ~/.local/share/quiet/away_secs.sh >= 900 (no keyboard / mouse for 15 min). Memory gates still decide,
+    and 45 GB runs need his apps closed. When he's back: >= 5 GB free, yield.
+  - Moved: t30c (~8 h, 15.6 GB) to MONDAY BY DAY if MTP Head's morning pre-screen passes; Tuesday night is the fallback.
+  - Also by day: Sandbox98 L1CF, BigMoE's dump dry run (Tue), screens.
+  - Owners added for the two unowned pillars (NewIdeas briefed them):
+    - MoonShots, drafting off the critical path (<= 4 ms per 32-token block or hidden);
+    - Fit12, the 32-row lossy check (a desk table by Tue; 900 needs ~21 ms).
+  - Screens already run tonight (NewIdeas):
+    - #1 margin-keyed switch KILL (-3.9 / -4.9 %). The key is real on HE+ (lift x4.6) and moves to Tuesday's TIE-STUBS
+      arm (widen MORE after hard starts) (239fe79);
+    - #4 lookup as a charged node: leaf KILL (x1.005, 4c30a27).
+- Sun 15 22:2x: **THINK_1115 DONE: all five thinkers in** (combined list: THINK_1115_RESULTS.md here).
+  - The convergence: ZERO, Lunatic and Fable C independently found MARGIN-KEYED SHAPE. The last check's exact 125B
+    margins pick the next check's shape. Free and exact.
+  - Also FAR's SIBLING-STATE DRAFTING (the rejected rows' exact states as the head's inputs; 0 bytes, exact).
+  - Ranked Monday screens went to NewIdeas to order and assign.
+  - Settled: K* = 32; the 400-exact wall sits in bands 0-6 after a miss, and only trees pass it.
+- Sun 15 22:1x: **Lossy K* = tree-32 + close-call** (NewIdeas 2aca5eb). The two overlap (additivity 0.57 HE+ / 0.70 MBPP).
+  - Kept per 32-row check, HE+: chain-32 13.77; + CC 16.78; tree-32 16.26; tree-32 + CC 16.91. MBPP: 6.92 / 8.52 / 9.03 /
+    9.50.
+  - HE+ tok/s: 679 at the 20.9 ms lossy floor (+4 ms); 583 at 25 ms.
+  - 900 lossy needs 22.4 kept: a x1.32 gap. MBPP keeps K 16 on the lossy side.
 - Sun 15 22:1x: **NewIdeas TARGETS_450_900 (331675b, verified), by pillar:**
   - 450 EXACT at 32 rows needs a drafter ABOVE the true-state head (flat 98.0-98.4 %), the exact check AT its byte
     floor (49-52 ms), and drafting hidden. A flat-97.8 % drafter with everything else perfect gives 413-436.
@@ -961,6 +1008,21 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
     ~88-89 % by depths 7-14 on HE+ and ~73 % on MBPP: far from a 98 % corrector.
 - Sun 15 03:1x: **45 GB SLOTS for the week (orchestrator's draft; each needs ~47 GB NO-SWAP, i.e. Kamen closing apps):**
 > (a quote from the project owner, kept private)
+  - **23:3x, what actually ran:**
+    - The app quit at 23:30 worked: 9 apps; PyCharm vetoed and was TERMed after 90 s.
+    - But NO-SWAP was only 34.4 GB: 52 claude processes held ~14.6 GB. Closing the 5 idle Fable thinkers (orchestrator's
+      own) brought it to 37.6 GB.
+    - Leap TERMed the a45 runner (it held nothing). C7c started first at 23:35:42 (gate 26 GB). a45 is SKIPPED tonight:
+      it needs a night with 47 GB free.
+    - BigMoE M1 + ng1 follow on C7c's end (gate 36 GB). EvalSuite's chain needs ~need + 4 GB; big runs push idle pages
+      into the compressor, so it may open later in the night.
+    - Kamen's idle chats hold only ~4 GB resident, so they aren't worth closing for this.
+    - 23:4x: NO-SWAP reached 46.5-47 GB after C7c + BigMoE (the compressor effect). EvalSuite started 23:41:03.
+    - a45 is re-armed LAST (orchestrator's yes to Leap's offer):
+      - gate: Breakthrough's lever-2 follower 88412 ends, plus 47 GB on two reads, its own quiet ticket;
+      - every run ENDS by 06:45 (no start after ~06:00);
+      - otherwise it skips to a school-day slot.
+      - Armed 23:48: pid 29218 (a45_last.sh 06:00 / 06:45), marker A45_1116_DONE. Verified.
     - The app quit is armed for 23:30:00 (apps_2330_1115.sh, pid 61214).
     - Same order and markers, times +30 min:
       1. Leap a45 from 23:35 (every run ending by 01:30), then C7c;

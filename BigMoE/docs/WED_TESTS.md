@@ -2311,3 +2311,27 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
     multi-check decode.
 - **Next (after Monday's M4):** cut t16c with the slot and qsa_tree frozen, then run a full-model long-context arm,
   pre-registered and on its own ticket.
+
+## Sun 15 Nov 23:38-23:40: TREE16 M1 full-model check PASS (65 / 65 checks) + the ng1 n-gram bit test PASS (bitwise, receipt captured) (night1115e; data/r57/t16am1_*, ng1bit{A,B}_*)
+- **Context:** the night ran after the orchestrator's 18:52 HOLD and the 20:55 partial lift (tonight on, apps quit
+  23:30). Runner night1115e: after Leap's C7c, one quiet ticket, NO-SWAP 42 GB. Exact-45 (x45rpl1) at C 160, 3 keys
+  (HumanEval/1, mbpp/16, ifeval/1219).
+- **M1 (snapshot t16a, R57_TREE16_M1TEST):** t30b in the live MTP head, on the real 125B, REAL decoding. Per check, the
+  greedy 15-draft chain (draft_cut, t = 0) vs tree16_draft's 16-node best-first tree; both leave the MTP cache at the
+  committed history. The decode itself is the chain's, so tok/s here is NOT a speed number.
+  - The tree's main chain == the greedy chain on **every check: 10 / 10, 21 / 21, 34 / 34**.
+  - Draft time per check (median): chain 38.59-38.66 ms, tree 41.73-41.84 ms. That is +3.1 ms (+8 %) for the same 14
+    head forwards (top-8 readbacks + PathCache re-insertions).
+  - Main-chain length D (mean): 15.5 on HumanEval/1, 9.7 on mbpp/16, 8.0 on ifeval/1219. The best-first tree goes deep
+    when t30b is confident and branches where it isn't.
+  - T = 16 everywhere.
+  - So Monday's M4 (t16b; prereg docs/TREE16_M4_PREREG.md) takes its PASS branch.
+- **ng1 bit test (snapshot ng1):** arm A (flags off) vs arm B (R57_NGRAM_RX=2 + R57_NGRAM_PREFETCH=alt).
+  - Tokens identical on all 3 keys: **PASS bitwise**.
+  - B's receipt (runs.json "ngx"):
+    - PLE n-gram staging 0.107-0.130 s per run over 42-84 stage calls;
+    - the sidecar's hot LRU hits / misses 5,360 / 3,880 (HumanEval/1), 2,608 / 2,688 (mbpp/16), 3,448 / 3,512 (ifeval);
+    - async warm at the readback: 24-25 checks prefetched on code (12 warmed, 1,368-2,120 rows), none on ifeval;
+    - the row log for offline LRU sizing in ng1bitB_ngram_rows.npz.
+  - tok/s A / B: 61.6 / 58.4, 42.6 / 42.3, 42.6 / 42.3. These are back-to-back arms (warm-cache order bias), so
+    information only, not a verdict.

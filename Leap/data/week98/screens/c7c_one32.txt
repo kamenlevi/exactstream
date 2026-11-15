@@ -1,0 +1,19 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=28.1 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+C7c Sun 15 Nov 23:37:06: MLX 0.32.2; slice GGGAGGGAGGGA, 18.5 GB active; SB 4; dense_native False
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (1320628 > 262144). Running this sequence through the model will result in indexing errors
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+12 layers, 14 rounds, SB 4 (contexts 1024 -> 1536); ms per check (python build inside):
+  A16      22.95 ms (build  12.04 ms, 0.52 of it) = 1.000 x A16
+  C32s     37.46 ms (build  22.26 ms, 0.59 of it) = 1.632 x A16
+  C32o1    33.08 ms (build  18.51 ms, 0.56 of it) = 1.441 x A16
+  C32b     33.09 ms (build  18.64 ms, 0.56 of it) = 1.441 x A16
+  C32o     30.93 ms (build  16.88 ms, 0.55 of it) = 1.348 x A16
+  per-round medians [IQR] x A16: C32s 1.600 [1.537-1.726]; C32o1 1.420 [1.359-1.516]; C32b 1.402 [1.352-1.480]; C32o 1.345 [1.286-1.364]
+  paired attribution / A16: best forms (C32o1 - C32b) 0.013 [0.003-0.019]; seams to 32 (C32b - C32o) 0.047 [0.037-0.063]; all of step 1 (C32s - C32o) 0.239 [0.187-0.281]
+  v32one counts over the timed C32o checks: {'qmm16c2': 1176, 'qmvw32': 2226, 'qmm_split': 168, 'hc1': 1008, 'hc_split': 42, 'gdn1': 378, 'gdn_split': 0, 'att1': 126, 'att_split': 42, 'vsdpa32': 126}; matmuls still split (shape: calls): {(512, 2560, 4, 64, 'affine', 'mlx.core.bfloat16', 'biases'): 168}; v32 wrappers: {'qmm': 1022, 'lin': 112, 'gr': 392, 'att': 42, 'gdn': 126, 'moe': 0, 'moeblk': 672, 'moe1': 672, 'tierblk': 0, 'mr2': 0}
+C7c verdict (pre-registered): R32o 1.345 -> MEETS step 1's target on the slice (<= 1.35)
+done in 9 s; peak 20.2 GB

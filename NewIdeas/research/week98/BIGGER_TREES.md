@@ -105,3 +105,40 @@ is needed by Saturday.
   - Leap's refined R32 (C7c tonight, E2 Monday): HE+'s tree-32 lead over tree-16 is 4-8 %.
   - BigMoE's real 127-node dump on the dev bank (Tue): it would have to beat the proxy by > 20 % at K 64.
   - Neither looks likely to make K > 32 pay.
+
+## Lookup on top of tree-32 (Sun 22:1x; research/week98/lookup_tree_ub.{py,txt})
+- At tree-32's first uncovered depth on the true path, the lookup (CTX + DS) is right on 21.6 % (HE+) / 14.6 % (MBPP)
+  of the tree's misses.
+- **Upper bounds with no node cost:**
+  - as a 1-node leaf: x1.005 HE+ / x1.015 MBPP. Line (< +3 % on HE+) -> KILL.
+  - with the head's chain continuing below it: x1.057 / x1.064.
+- **Verdict:** the leaf form is CLOSED. The expanded form needs the drafting loop, and Wednesday's dump tool, to expand
+  lookup candidates. It is worth at most ~+5-6 % before node costs, so it is not for this week's certificate; recorded
+  for a later build.
+- **EvalSuite's re-run (151d997) matches** T32/32 1.181 [LB 1.126] / 1.304 [1.283] and T32/16 1.531 [1.470] /
+  1.371 [1.351].
+  - Correction: the targets-only convention raises MBPP's deep walk-strict bands by up to +3.5 pt (HE+ +0.1-0.5).
+  - Gating proposal:
+    - T32/32 gated on HE+ AND MBPP;
+    - T32/16 gated on HE+ only (MBPP prefers tree-16 and fails at every cost; information);
+    - band-0 coverage at K* gated on HE+, MBPP reported.
+
+## Lossy side of K* (Sun 22:1x; research/week98/tree_cc32.{py,txt}: tree_shape_cc.py at 31 nodes, close-call delta 1)
+- **kept per 32-row check:**
+  - HE+: chain-32 13.77; + CC 16.78 (x1.218); tree-32 16.26 (x1.181); **tree-32 + CC 16.91 (x1.228)**.
+  - MBPP: 6.92; 8.52 (x1.231); 9.03 (x1.304); **9.50 (x1.372)**.
+  - Additivity 0.57 HE+ / 0.70 MBPP (overlapping, as at 16 rows).
+- **Lossy K*:**
+  - HE+: tree-32 + CC, 679 tok/s at the 20.9 ms lossy floor (+4 ms) and 583 at 25 ms. 900 needs 22.4 kept: x1.32.
+  - MBPP: tree-16 + CC (7.97 at ~15.4 ms) gives ~411 vs tree-32 + CC's ~382, so MBPP keeps K 16 on the lossy side too.
+
+## K* depends on WHICH 32-row check (Sun 22:2x; treek_final.py, tested on the 32-node dumps: treek_final_test32.txt)
+- **With today's MEASURED 32-row check** (G32T 1.625 x A16), tree-16 beats tree-32 even on HE+: 166.7 vs 149.5 tok/s.
+  Tree-32 wins only once the 32-row check reaches the contract (~1.39) or its floor (0.85). So the bigger-trees payoff
+  rides on CHECK55's 32-row work.
+- **HE+ is flat between 24 and 32 rows:** 24 rows +1.1 % (floor) / +2.3 % (contract), on my INTERPOLATED R(24) [est].
+  - A 24-row check pays only if the engine runs it below the 32-row cost. Padded to 32, it doesn't.
+  - Leap's refined R(24) decides.
+- **MBPP:** tree-16 under every cost (+4-6 % over 24 rows).
+- **Tuesday:** run treek_final.py --costs <Leap's refined costs JSON> on BigMoE's real 127-node dumps (--dump-fmt). The
+  same script prints K* per set and cost model, with a 3 % rule for K > 32.

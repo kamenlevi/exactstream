@@ -318,3 +318,38 @@ is a new test with its own line.
   - C32onem - C32one: reported (Breakthrough's doc reports 32 rows).
 - **Prediction:** A16m - A16 -0.3..-2.0 ms (Breakthrough's desk timing: -7..-42 us per layer), so most likely BETWEEN.
 - 10 arms; the latest start (02:15) and the 03:00 hard end are unchanged.
+
+## C7c RESULT (Sun 23:37, quiet ticket): step 1 MEETS its target on the slice (screens README 'C7c')
+- **R32o = C32o / A16 = 1.345** (per-round median, IQR 1.286-1.364): <= 1.35 meets the target.
+  - The predictions held: R32o 1.33-1.40, and C32o1 1.441 in 1.43-1.45.
+  - The best forms gave 0.013 (predicted 0.03-0.05), the seams 0.047 (~0.05), all of step 1 0.239.
+- **The split path (today's engine path) is 1.632 on the slice vs 1.625 on the engine (G32T),** so the slice's 32-row
+  ratios track the engine's.
+- **Run order:** C7c ran first tonight (the orchestrator 23:34). a45 could not meet its 47 GB gate at 34-38 GB NO-SWAP and
+  is skipped tonight.
+- **Next:** E2 (E14's C32one / A16 on the engine, Tue 00:30) as booked. Bigger trees: R(32) one-pass ~1.35-1.40 on the
+  engine [est] replaces the first cut's 1.43-1.46 until E2 lands.
+
+## C7d R24 PRE-REGISTERED (Sun 23:5x, before any run): what a 24-row exact check costs (bigger trees, NewIdeas' R(24))
+scripts/week98/c7d_r24.py (the docstring has the full design).
+- **Question:** under REF2-T a 24-row check pads its second tile to 16 rows. The desk (treek_costs_v1.json) therefore
+  charges it the 32-row weight passes and saves only:
+  - the expert union, 93.3 vs 109.7 per layer (measured);
+  - the cores' 8 rows.
+
+  That gives R(24) = R(32) - 0.12, engine-scaled.
+- **Harness:** C7c's slice and harness, plus C9b's untimed warm check per round (fixes C7c's cold-read caveat).
+  - Arms: A16, C24s / C24o (split / step 1 complete at 24 rows, plus an untimed 8-row check to keep pace), C32s / C32o.
+  - 20 rotated rounds.
+- **Bits first:** C24o == C24s; C24s[:16] == A16; C32o[:24] == C24o; C32o == C32s. Any mismatch: a bug, no timing verdict.
+- **Primary:** R24o = C24o / A16 and D = R32o - R24o, each a median of per-round values.
+- **Prediction:** D ~0.10-0.12, R24o ~1.20-1.25, R32o ~1.33-1.35 (C7c had 1.345 without the warm-up).
+- **Lines:**
+
+  | D | verdict |
+  |---|---|
+  | >= 0.08 | the desk R(24) stands (1.22 one pass; the engine's R(24) = E2's R(32) - D) |
+  | 0.03-0.08 | PARTIAL: R(24) = R(32) - D as measured |
+  | < 0.03 | R(24) := R(32) (a 24-row tree pays only through kept) |
+- **When:** Monday by day, in a slot the orchestrator gives: smoke at 4 layers (share lock, ~7 GB), then 12 layers (quiet
+  ticket, ~21 GB, ~1 min). EvalSuite's chain may hold the Mac to 09:30-14:00.

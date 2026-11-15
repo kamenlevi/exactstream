@@ -61,3 +61,21 @@ part, and it carries a memory cost.
 - **Microbenches:** a one-pass multi-tile qmm16c (64 / 128 rows) on the 5 dense shapes, S4 at 64 / 128 rows, and the
   attention / GDN cores at 64 / 128 rows on the 4-layer slice. They replace the per-tile growth assumptions.
 - **Folding in tonight's C7c and Monday's E2:** the 32-row anchors, on the slice and on the engine.
+
+## Update Sun 23:4x: C7c measured the one-pass 32-row check; interim costs v1 (data/week98/treek_costs_v1.json)
+- **C7c (the 12-layer slice, tonight): the one-pass 32-row check is 1.345 x A16.** Today's split path is 1.632 on the
+  slice vs 1.625 on the engine, so the slice tracks the engine. E2 (Tue 00:30) measures the one-pass check on the engine.
+- **One pass beyond 32 rows [est]:** the first cut's model with its excess over A16 scaled by C7c (x0.775), giving 48 1.64,
+  64 1.90, 96 2.39, 128 2.84. The unscaled first cut stays as the upper end (1.85 / 2.21 / 2.86 / 3.47).
+- **R(24) [desk]:** REF2-T pads every call to 16-row tiles, so a 24-row check pays the 32-row weight passes. Only the
+  expert union (93.3 vs 109.7 per layer, measured at 23:5x: scripts/week98/treek_union.py -> data/week98/treek_union.txt;
+  busiest layer p50 154, max 197) and the cores' 8 rows shrink, by -0.101 and -0.023 x A16:
+  - one pass 1.22;
+  - split 1.50;
+  - contract 1.155;
+  - floor 0.749.
+- **The 32-row break-even on HE+ with NewIdeas' model** (kept 16.26 at tree-32 vs 11.26 at tree-16, c 1.04 / 1.025,
+  4 ms overhead): tree-32 beats tree-16 when R(32) < 1.45.
+  - At C7c's 1.345: 179 vs 167 tok/s (+7.5 %).
+  - At today's 1.625: 150 vs 167.
+  - So the one-pass 32-row check is what makes tree-32 pay.

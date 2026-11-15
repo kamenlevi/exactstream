@@ -1034,6 +1034,133 @@ SIM on both sets; EXACT 264 / 264; pass@1 identical.**
   - outputs: tree/c16_fixed_b32.jsonl, t32_fixed_b32.jsonl, tree_result_t32_fixed_b32.json, scores.json, score32.log,
     gaps_c16_16_vs_32.json, gaps32.log, run32.log.
 
+## PILLAR 3. Drafting off the critical path (NewIdeas 22:3x, the orchestrator's assignment; pre-registered Sun 15 Nov 22:5x, before any code ran)
+**Goal:** tree-32's drafting costs <= 4 ms per block on the critical path, with kept within 1 % of today's head.
+- Either in total, or hidden beside the check at <= +4 ms of check slowdown.
+- HE+ drafts ~20.8 levels per tree-32 block, MBPP 14.6 (NewIdeas, BIGGER_TREES.md).
+
+**The records, and the arithmetic they force:**
+- A level costs ~1.15 ms standalone (Leap P2) and ~2.2 ms in the engine, so ~24 ms per HE+ tree-32 block today.
+- Leap P2's fit: a step is ~0.54 ms fixed (per-op launches and syncs) plus bytes at ~290 GB/s.
+  - The best cut is 95.1 MB / 0.864 ms (4-bit Linears + an 8K head); attention + MoE (65 MB) were left untouched.
+  - So 32 steps at any bytes take >= ~17 ms.
+- t30b's layer (dd_t30b.safetensors header, fp32, 263.8 MB) and the 125B's MoE config (BigMoE cfg: 512 experts, 10 per
+  token, 640 wide; hidden 2560; vocab 248,320). At 4 bits (~4.5 bits per param with scales), per level and row:
+  - q_proj [12288, 2560] 17.7 MB (the largest), o_proj [2560, 6144] 8.8, fc_embedding + fc_hidden 7.4, k + v 1.5,
+    shared expert 2.8, router 0.7: ~39 MB dense;
+  - the routed experts, 10 x ~2.76 MB = ~27.6 MB (from the 125B's weights; not in the file);
+  - the screened head: 8K ids 11.8 MB, 32K ids 47 MB.
+  - About 78 MB at 4-bit + 8K, against Leap P2's measured 95.1 MB, which also counts the attention's context reads and
+    other stored formats.
+- **4 ms / 20.8 levels = 0.19 ms per level.** At 290 GB/s that allows <= ~55 MB per level even at zero fixed cost. So
+  the target needs BOTH of these; neither alone is enough:
+  - (i) the fixed cost per level down to <= ~0.05 ms (today ~0.54);
+  - (ii) the bytes per level down to <= ~40-45 MB (today >= ~78-95).
+- **Concurrency doesn't remove bytes.**
+  - On a bandwidth-bound check, a concurrent draft's reads add in full: ANE-1 slowed the check x1.070 beside the ANE
+    drafter.
+  - Block n+1 also depends on check n's outcome (the accept point, the bonus, the 125B's fresh state at the cut). So
+    drafting it during check n is speculation (section K's pricing).
+
+**Candidates, ranked (mine):**
+1. **(a') A byte-cut, sync-free level step: the critical-path route, attacking both terms.**
+   - **Sync-free:** draft the level-synchronous tree as ONE lazy MLX graph per block, with no host sync until the block
+     ends:
+     - a fixed frontier of F in {1, 2, 3} nodes per level, chosen on the GPU (top-F by path score over the candidates);
+     - token ids gathered by index, and chain entries appended.
+     - This tests whether the fixed cost falls from ~0.54 ms toward the per-kernel encode cost.
+     - Then try mx.compile. A hand-fused Metal dispatch (mx.fast.metal_kernel) for the dense GEMVs comes only if those
+       two leave more than 0.1 ms fixed per level.
+   - **Byte cuts of a draft-only copy** (the verify path is untouched, so exactness holds by construction):
+     - routed experts top-10 -> 4 or 2 at draft time (-16.6 / -22 MB);
+     - frontier-shared routing (the F rows of a level use one expert set, ranked by their summed router scores), so the
+       experts don't grow with F;
+     - q / o / fc at 3 or 2 bits (-6 to -15 MB);
+     - head 8K -> 4K, or session ids only (-6 to -9 MB).
+     - Budgets: {95, 70, 55, 40} MB per level.
+   - A fixed-F level-synchronous tree isn't best-first tree-32, so its kept is measured, not assumed.
+2. **(b) Speculative next-block drafting during the check, priced on paper first (desk, from the dumps).**
+   - **The guess:** the check accepts the #1 path (the highest path_p root-to-leaf path in the 31-node tree) up to its
+     leaf, and the bonus is the leaf's top-1 child. Variant: the 2 highest-path_p leaves.
+   - **Hit rate:** from BigMoE's real tree dumps (tree_t30b_{heplus24,mbppbank}.npz: 32 pops per anchor, parent,
+     path_p, on_true, ynext_rank), under tree-32's own walk (certify98's rule from row 1). A hit means:
+     - the accept node is the guessed leaf;
+     - and ynext_rank == 0 there.
+   - **Value per block** = hit x (the critical-path draft time) minus two costs:
+     - the contention, paid on every block (the speculative draft's bytes / BW);
+     - the stale-state loss on hits (block n+1 is drafted from the head's carry, not the 125B's fresh state).
+   - **Paper KILL line:** at today's bytes (~2 GB per block, ~6.8 ms of contention) against ~24 ms of drafting, KILL if
+     hit < ~28 % (one guess) or < ~57 % (two guesses at twice the bytes). The stale-state loss is not counted, so the
+     line is generous to (b).
+3. **(c) The ANE beside the check.**
+   - It inherits (b)'s dependency: it can only draft block n+1 speculatively.
+   - It adds ANE latency (~1+ ms per call x ~20.8 levels; WHOLE-CHIP-2's handoff is 78-147 us per layer) and ANE-1's
+     x1.07 check slowdown.
+   - Priced on paper with (b). Built only if (b) passes on paper AND (a') fails.
+
+**Measurements (Monday by day):**
+- **Budget:** <= 4 GB, one process, share lock with MEM. Timings under a share lock are indicative: interleaved arms,
+  medians. The timing verdict comes in the first window the orchestrator allows.
+- **B0 (desk, first; CPU, no lock):** (b)'s hit rate on HE+ 24 and MBPP bank, one guess and two, with the full-accept
+  share and the accept-depth histogram.
+- **M0:** today's t30b level step in MLX at F = 1 / 2 / 3 (4-bit + 8K head, synthetic states as in Leap P2). It must
+  reproduce Leap P2's 0.86-1.15 ms per level within 15 %; otherwise stop and reconcile.
+- **M1:** the sync-free block (one eval per 21 levels) at M0's bytes. It gives ms per level, so the fixed cost f.
+- **M2:** the byte budgets {95, 70, 55, 40} MB, sync-free. It gives ms per level, fitted to f + B / BW.
+- **M3 (kept; TRUE-STATE, teacher-forced with the 125B's true state):** for each cut, on the bank's HE+ 24 and MBPP 100
+  windows:
+  - the per-depth agreement of the cut head's top-3 with the full head's;
+  - tree-32 kept/32 under its own walk vs the full head's;
+  - it runs on t30b's cells harness (MTP Head's or BigMoE's code, imported read-only, with a weights hook), or by its
+    owner.
+  - The screened-head pick must equal the full head's at the same ids (subset logits bitwise, as MTP-STEP-1).
+
+**Lines:**
+- **PASS:** a measured sync-free block <= 4.0 ms per 20.8-level tree-32 block (<= 0.19 ms per level), at a cut whose M3
+  kept/32 is within 1 % of the full head's on both sets.
+- **BETWEEN:** <= 8 ms at a cut within 1 % kept. Report it as the route, with the gap.
+- **KILL (route a'):** > 8 ms at every cut within 1 % kept.
+- **(b) / (c):** the paper line above.
+
+**Expectation, written first:**
+- The fixed cost falls a lot once there's no sync (to ~0.1-0.2 ms per level), but bytes bind.
+- At ~78-95 MB, a level costs >= ~0.27-0.33 ms, i.e. ~6-7 ms per block.
+- Getting to <= ~45 MB needs 2-bit attention plus top-2 experts, which I expect to cost more than 1 % kept.
+- So BETWEEN (~6-8 ms) is my prior. PASS needs a byte cut that keeps kept.
+- For (b), I expect a hit rate of ~10-25 %, so a paper KILL.
+
+**Not in scope:**
+- fewer levels per block (a head that drafts 2 tokens per level: a drafter change);
+- a smaller distilled draft head;
+- the check side (Leap).
+
+**B0, RESULT (22:3x; week98/p3_b0_spec.py, p3_b0_spec.json; TRUE-STATE, from BigMoE's real t30b tree-32 dumps under
+tree-32's own walk): (b) KILL on paper by its line. HE+ is marginal, and it hangs on M1.**
+- **Self-check PASS:** the walk reproduces S9c's real EAGLE-2-32 kept/32 exactly (HE+ 16.263, MBPP 9.031). That needed
+  tree_real125's extra end-of-window slot (kept 1, no tree), which isn't counted as a speculation check.
+
+| tree-32, own walk | checks | stop at a leaf | stop at the root | G1 node / hit | G2 node / hit | accepted p25 / p50 / p75 / p90 |
+|---|---|---|---|---|---|---|
+| HE+ 24 | 391 | 50.4 % | 1.5 % | 35.0 / **27.1 %** | 46.0 / **34.5 %** | 5 / 12 / 30 / 31 |
+| MBPP bank | 1,727 | 42.1 % | 1.4 % | 11.7 / **4.2 %** | 21.8 / **8.7 %** | 4 / 7 / 11 / 15 |
+
+- Guess and hit, as defined above: the node must be right, and so must the bonus (the stop node's best child outside
+  the tree).
+- **Line** (KILL if hit < ~28 % for one guess, < ~57 % for two): HE+ 27.1 / 34.5 is a KILL, marginal for one guess.
+  MBPP 4.2 / 8.7 is a clear KILL.
+- **Sensitivity, stated after the result.** The break-even hit equals the bytes' share of a draft level's time, because
+  only the bytes contend with the check:
+  - 53 % on Leap P2 as stored (1.147 ms, 177.6 MB);
+  - 38 % at its best cut (0.864 ms, 95.1 MB);
+  - 15 % at today's in-engine level (~2.2 ms, mostly overhead that would have to hide fully behind the check).
+  - So HE+ (27 %) clears break-even only in a world where a level's overhead stays large and overlaps the check
+    completely. That is exactly the world (a') removes. The stale-state loss on hits (block n+1 drafted from the head's
+    carry) is not counted, which favours (b).
+- **Action:** (b) and (c) are parked behind (a'). Revisit (b) on HE+ only if M1 shows a level's sync-free fixed cost
+  stays above ~1 ms; it would then also need the stale-state kept measured.
+- **Also from the dumps:** half the HE+ checks (50.4 %) stop at a leaf, and a quarter accept >= 30 of 31. So tree-32's
+  depth binds on HE+, the K* story.
+
 ## Ranked (final, 01:3x)
 1. **The 2B audits and repairs the head's deep tokens: CONFIRMED on HE+** (D). On MBPP, the frozen schedule was chosen
    on those rows (C). Training-free.
