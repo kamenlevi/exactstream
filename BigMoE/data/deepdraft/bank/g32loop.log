@@ -1,0 +1,118 @@
+02:42:46 G32 on the exact-45 loop: waits for NO-SWAP >= 34 GB (two reads 20 s apart)
+02:43:06 room: NO-SWAP 36 GB -> run
+[bigmoe] tier 4433333333: C_m=175 C_l=112 per layer, 21.21 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.45 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R57_WIRED: mx.set_wired_limit(55.66 GB), was 0.00 GB
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 160), loaded in 5 s, 26.9 GB active; REF2 + SB; gate rows MAXK 320 (ext build_g32), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 256
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 14.3 tok/s; MLX peak prefill 28.8 / decode 29.2 GB, lifetime peak 29.8 -> 30.3 GB
+  warm-up (discarded): gsm8k/708 [gate+t, mtp] 64 tokens, 20.6 tok/s; MLX peak prefill 29.6 / decode 29.1 GB, lifetime peak 30.4 -> 30.4 GB
+G32TEST: v32 /Users/kamen/Leap/scripts/week98/v32.py; block _moeblock; MAXK 320, XLINES 9, ext build_g32; FAST off (exact)
+G32TEST dd__mc_27921: prompt 378, gate_req 142
+bigmoe: bad expert id 1603662336 at layer 0
+02:43:58 G32LOOP-DONE rc 134
+02:45:34 rerun after the ids_copy fix (ext build_g32 rebuilt 02:45)
+02:45:37 G32 on the exact-45 loop: waits for NO-SWAP >= 34 GB (two reads 20 s apart)
+02:45:57 room: NO-SWAP 36 GB -> run
+[bigmoe] tier 4433333333: C_m=175 C_l=112 per layer, 21.21 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.45 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R57_WIRED: mx.set_wired_limit(55.66 GB), was 0.00 GB
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 160), loaded in 4 s, 26.9 GB active; REF2 + SB; gate rows MAXK 320 (ext build_g32), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 256
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 14.6 tok/s; MLX peak prefill 28.8 / decode 29.2 GB, lifetime peak 29.8 -> 30.1 GB
+  warm-up (discarded): gsm8k/708 [gate+t, mtp] 64 tokens, 20.1 tok/s; MLX peak prefill 29.6 / decode 29.1 GB, lifetime peak 30.4 -> 30.4 GB
+G32TEST: v32 /Users/kamen/Leap/scripts/week98/v32.py; block _moeblock; MAXK 320, XLINES 9, ext build_g32; FAST off (exact)
+G32TEST dd__mc_27921: prompt 378, gate_req 142
+  32 rows twice bitwise (32, 32); v32 per 32-row forward {'qmm': 145, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'tierblk': 48, 'mr2': 0}
+  T1 M 32: rows bitwise 32 / 32
+  T1 M 17: rows bitwise 17 / 17
+  T1 M 24: rows bitwise 24 / 24
+  T1 M 31: rows bitwise 31 / 31
+  T2 keep 1: probe rows bitwise 4 / 4
+  T2 keep 9: probe rows bitwise 4 / 4
+  T2 keep 16: probe rows bitwise 4 / 4
+  T2 keep 17: probe rows bitwise 4 / 4
+  T2 keep 24: probe rows bitwise 4 / 4
+  T2 keep 31: probe rows bitwise 4 / 4
+G32TEST dd__mc_2753: prompt 255, gate_req 154
+  32 rows twice bitwise (32, 32); v32 per 32-row forward {'qmm': 145, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'tierblk': 48, 'mr2': 0}
+  T1 M 32: rows bitwise 32 / 32
+  T1 M 17: rows bitwise 17 / 17
+  T1 M 24: rows bitwise 24 / 24
+  T1 M 31: rows bitwise 31 / 31
+  T2 keep 1: probe rows bitwise 4 / 4
+  T2 keep 9: probe rows bitwise 4 / 4
+  T2 keep 16: probe rows bitwise 4 / 4
+  T2 keep 17: probe rows bitwise 4 / 4
+  T2 keep 24: probe rows bitwise 4 / 4
+  T2 keep 31: probe rows bitwise 4 / 4
+G32TEST dd__mc_28056: prompt 442, gate_req 156
+  32 rows twice bitwise (32, 32); v32 per 32-row forward {'qmm': 145, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'tierblk': 48, 'mr2': 0}
+  T1 M 32: rows bitwise 32 / 32
+  T1 M 17: rows bitwise 17 / 17
+  T1 M 24: rows bitwise 24 / 24
+  T1 M 31: rows bitwise 31 / 31
+  T2 keep 1: probe rows bitwise 4 / 4
+  T2 keep 9: probe rows bitwise 4 / 4
+  T2 keep 16: probe rows bitwise 4 / 4
+  T2 keep 17: probe rows bitwise 4 / 4
+  T2 keep 24: probe rows bitwise 4 / 4
+  T2 keep 31: probe rows bitwise 4 / 4
+G32TEST verdict: ALL BITWISE: the 32-row check through the widened gate on the exact-45 loop equals <= 16-row checks; peak 30.9 GB
+02:47:19 G32LOOP-DONE rc 0
+03:13:05 G32 OVF test: waits for NO-SWAP >= 34 GB (two reads 20 s apart)
+03:13:25 room: NO-SWAP 37 GB -> run
+[bigmoe] tier 4433333333: C_m=175 C_l=112 per layer, 21.21 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.45 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R57_WIRED: mx.set_wired_limit(55.66 GB), was 0.00 GB
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 160), loaded in 4 s, 26.9 GB active; REF2 + SB; gate rows MAXK 320 (ext build_g32), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 256
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 14.1 tok/s; MLX peak prefill 28.8 / decode 29.2 GB, lifetime peak 29.8 -> 30.1 GB
+  warm-up (discarded): gsm8k/708 [gate+t, mtp] 64 tokens, 23.0 tok/s; MLX peak prefill 29.6 / decode 29.1 GB, lifetime peak 30.4 -> 30.4 GB
+G32TEST: v32 /Users/kamen/Leap/scripts/week98/v32.py; block _moeblock; MAXK 320, XLINES 9, ext build_g32; FAST off (exact)
+G32TEST dd__mc_27921: prompt 378, gate_req 142
+  32 rows twice bitwise (0, 32); v32 per 32-row forward {'qmm': 145, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'tierblk': 48, 'mr2': 0}
+  OVF dd__mc_27921 rep 0: forced layer 5 (>= 161 ids): overflow count +1 on the 32-row check (its logits finite True, equal to the reference on 32 / 32 rows: discarded); the 16 + 16 redo: count +0, logits bitwise 32 / 32 -> OK
+  OVF dd__mc_27921 rep 1: forced layer 5 (>= 161 ids): overflow count +1 on the 32-row check (its logits finite True, equal to the reference on 32 / 32 rows: discarded); the 16 + 16 redo: count +0, logits bitwise 32 / 32 -> OK
+  OVF dd__mc_27921 rep 2: forced layer 5 (>= 161 ids): overflow count +1 on the 32-row check (its logits finite True, equal to the reference on 32 / 32 rows: discarded); the 16 + 16 redo: count +0, logits bitwise 32 / 32 -> OK
+G32TEST dd__mc_2753: prompt 255, gate_req 154
+  32 rows twice bitwise (0, 32); v32 per 32-row forward {'qmm': 145, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'tierblk': 48, 'mr2': 0}
+  OVF dd__mc_2753 rep 0: forced layer 5 (>= 161 ids): overflow count +1 on the 32-row check (its logits finite True, equal to the reference on 32 / 32 rows: discarded); the 16 + 16 redo: count +0, logits bitwise 32 / 32 -> OK
+  OVF dd__mc_2753 rep 1: forced layer 5 (>= 161 ids): overflow count +1 on the 32-row check (its logits finite True, equal to the reference on 32 / 32 rows: discarded); the 16 + 16 redo: count +0, logits bitwise 32 / 32 -> OK
+  OVF dd__mc_2753 rep 2: forced layer 5 (>= 161 ids): overflow count +1 on the 32-row check (its logits finite True, equal to the reference on 32 / 32 rows: discarded); the 16 + 16 redo: count +0, logits bitwise 32 / 32 -> OK
+G32TEST dd__mc_28056: prompt 442, gate_req 156
+  32 rows twice bitwise (0, 32); v32 per 32-row forward {'qmm': 145, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'tierblk': 48, 'mr2': 0}
+  OVF dd__mc_28056 rep 0: forced layer 5 (>= 161 ids): overflow count +1 on the 32-row check (its logits finite True, equal to the reference on 32 / 32 rows: discarded); the 16 + 16 redo: count +0, logits bitwise 32 / 32 -> OK
+  OVF dd__mc_28056 rep 1: forced layer 5 (>= 161 ids): overflow count +1 on the 32-row check (its logits finite True, equal to the reference on 32 / 32 rows: discarded); the 16 + 16 redo: count +0, logits bitwise 32 / 32 -> OK
+  OVF dd__mc_28056 rep 2: forced layer 5 (>= 161 ids): overflow count +1 on the 32-row check (its logits finite True, equal to the reference on 32 / 32 rows: discarded); the 16 + 16 redo: count +0, logits bitwise 32 / 32 -> OK
+G32TEST verdict: OVERFLOW GUARD OK: flagged, finite, and the 16 + 16 redo bitwise on every rep; peak 31.0 GB
+03:14:27 G32OVF-DONE rc 0
+03:14:55 G32 OVF test: waits for NO-SWAP >= 34 GB (two reads 20 s apart)
+03:15:15 room: NO-SWAP 44 GB -> run
+[bigmoe] tier 4433333333: C_m=175 C_l=112 per layer, 21.21 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.45 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R57_WIRED: mx.set_wired_limit(55.66 GB), was 0.00 GB
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 160), loaded in 2 s, 26.9 GB active; REF2 + SB; gate rows MAXK 320 (ext build_g32), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 256
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 27.5 tok/s; MLX peak prefill 28.8 / decode 29.2 GB, lifetime peak 29.8 -> 30.1 GB
+  warm-up (discarded): gsm8k/708 [gate+t, mtp] 64 tokens, 54.9 tok/s; MLX peak prefill 29.6 / decode 29.1 GB, lifetime peak 30.4 -> 30.4 GB
+G32TEST: v32 /Users/kamen/Leap/scripts/week98/v32.py; block _moeblock; MAXK 320, XLINES 9, ext build_g32; FAST off (exact)
+G32TEST dd__mc_27921: prompt 378, gate_req 142
+  32 rows twice bitwise (0, 32); v32 per 32-row forward {'qmm': 145, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'tierblk': 48, 'mr2': 0}
+  OVF dd__mc_27921 COLD (the forced check right after the prefill): count +1, logits finite True, equal to the 16 + 16 redo on 0 / 32 rows (the slot-0 path ran; discarded)
+  OVF dd__mc_27921 rep 0: forced layer 5 (>= 161 ids): overflow count +1 on the 32-row check (its logits finite True, equal to the reference on 32 / 32 rows: discarded); the 16 + 16 redo: count +0, logits bitwise 32 / 32 -> OK
+  OVF dd__mc_27921 rep 1: forced layer 5 (>= 161 ids): overflow count +1 on the 32-row check (its logits finite True, equal to the reference on 32 / 32 rows: discarded); the 16 + 16 redo: count +0, logits bitwise 32 / 32 -> OK
+  OVF dd__mc_27921 rep 2: forced layer 5 (>= 161 ids): overflow count +1 on the 32-row check (its logits finite True, equal to the reference on 32 / 32 rows: discarded); the 16 + 16 redo: count +0, logits bitwise 32 / 32 -> OK
+G32TEST dd__mc_2753: prompt 255, gate_req 154
+  32 rows twice bitwise (0, 32); v32 per 32-row forward {'qmm': 145, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'tierblk': 48, 'mr2': 0}
+  OVF dd__mc_2753 COLD (the forced check right after the prefill): count +1, logits finite True, equal to the 16 + 16 redo on 1 / 32 rows (the slot-0 path ran; discarded)
+  OVF dd__mc_2753 rep 0: forced layer 5 (>= 161 ids): overflow count +1 on the 32-row check (its logits finite True, equal to the reference on 32 / 32 rows: discarded); the 16 + 16 redo: count +0, logits bitwise 32 / 32 -> OK
+  OVF dd__mc_2753 rep 1: forced layer 5 (>= 161 ids): overflow count +1 on the 32-row check (its logits finite True, equal to the reference on 32 / 32 rows: discarded); the 16 + 16 redo: count +0, logits bitwise 32 / 32 -> OK
+  OVF dd__mc_2753 rep 2: forced layer 5 (>= 161 ids): overflow count +1 on the 32-row check (its logits finite True, equal to the reference on 32 / 32 rows: discarded); the 16 + 16 redo: count +0, logits bitwise 32 / 32 -> OK
+G32TEST dd__mc_28056: prompt 442, gate_req 156
+  32 rows twice bitwise (0, 32); v32 per 32-row forward {'qmm': 145, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'tierblk': 48, 'mr2': 0}
+  OVF dd__mc_28056 COLD (the forced check right after the prefill): count +1, logits finite True, equal to the 16 + 16 redo on 7 / 32 rows (the slot-0 path ran; discarded)
+  OVF dd__mc_28056 rep 0: forced layer 5 (>= 161 ids): overflow count +1 on the 32-row check (its logits finite True, equal to the reference on 32 / 32 rows: discarded); the 16 + 16 redo: count +0, logits bitwise 32 / 32 -> OK
+  OVF dd__mc_28056 rep 1: forced layer 5 (>= 161 ids): overflow count +1 on the 32-row check (its logits finite True, equal to the reference on 32 / 32 rows: discarded); the 16 + 16 redo: count +0, logits bitwise 32 / 32 -> OK
+  OVF dd__mc_28056 rep 2: forced layer 5 (>= 161 ids): overflow count +1 on the 32-row check (its logits finite True, equal to the reference on 32 / 32 rows: discarded); the 16 + 16 redo: count +0, logits bitwise 32 / 32 -> OK
+G32TEST verdict: OVERFLOW GUARD OK: flagged, finite, and the 16 + 16 redo bitwise on every rep; peak 31.1 GB

@@ -25,9 +25,9 @@ import bigmoe_ext as ext
 MAXK = int(os.environ.get("BIGMOE_MAXK", "160"))   # ids per sync-free gate row: 4 verify tokens x top-10; the row
                                                  # layout holds up to 61 (S=6 x top-10 = 60)
 PRED_LINES = max(0, min(4, int(os.environ.get("BIGMOE_PRED_LINES", "1"))))   # prediction lines after line 3 (MoonShots)
-assert MAXK <= 185, "BIGMOE_MAXK: the routing row carries at most 185 ids"
+assert MAXK <= 340, "BIGMOE_MAXK: the routing row carries at most 340 ids (G32: 9 extra id lines)"
 # one more id line (ids 61..91) at the end of the row when MAXK > 61; R-55 GATE16: up to 4 (MAXK 160 = 16 rows x top-10)
-XLINES = 0 if MAXK <= 61 else min(4, (MAXK - 61 + 30) // 31)   # = ext xlines_of
+XLINES = 0 if MAXK <= 61 else min(9, (MAXK - 61 + 30) // 31)   # = ext xlines_of (G32: up to 9 lines, MAXK 340)
 ROW = 96 + 32 * PRED_LINES + 32 * XLINES   # 4 x 128-byte lines: [seq, n, ids0..29] [seq, ids30..60] [seq, np, preds0..29] [seq, preds30..60] (+ more);
                    # each line carries its own seq, written last, so a line seen with the new seq is complete
 _src = r"""

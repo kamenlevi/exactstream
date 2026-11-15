@@ -1928,3 +1928,193 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
   - REOPENS needed +1.0 AND kept +0.1, so CLOSED stands.
   - But x2c's higher training loss (1.016x) hid a better deep read-out, exactly the survival-weighting effect.
 - The re-run isn't bitwise t30b (loss max abs diff 0.14). Training isn't exactly reproducible here.
+
+> (a quote from the project owner, kept private)
+- **The question:** what does a fresh trunk state give the head that its own chain lacks (oracle 93.63 vs the chain 72.13
+  at MBPP 23-30)?
+- **STALE:** the true anchor state fed unchanged at every depth gives 16.00. Composition of the new tokens is most of what
+  depth needs.
+- **ROLLOUT** (PREREG a8adf45), a linear state transition in wd's top-512 PCA, from the true anchor over the true tokens:
+  23.08 = PARTIAL. Its direction error degrades from 0.59 at 1 step to 0.79 at 30.
+  - Sandbox98 on the 2B: linear 20.86, +MLP 22.32, vs its chain 57.32. A context-free stepper can't track a state that is
+    recomputed from context each step.
+- **T1 copyability:**
+  - the misses a fresh state fixes are LESS copyable than average: prompt lookup right on 12.2 % (23-30) vs 31.1 % of all
+    deep cells;
+  - the chain's deep hits are the most copyable (38.9 %);
+  - so it's composition, not retrieval. A perfect lookup would add ~2.6 pt at most.
+- **T3 subspace:** the true state in its top-k PCA directions gives k 16 / 64 / 256 / 1024 -> 29.9 / 50.1 / 69.9 / 86.9
+  (mean fill). The head needs > 1,000 directions of the fresh state.
+- **Together** (with Sandbox98's T2: the 2B over only the drafted tokens beats its one-layer head, 69.6 vs 55.4):
+  - the missing piece is deep composition of the drafted tokens over a ~64-256-token window, regenerating a
+    near-complete state;
+  - not lookups, not width, not a few directions.
+  - Next: a deeper drafter (PREREG_DEEPDRAFT_T30D, build spec in the handover), if Sandbox98's depth test is positive.
+
+## Sun 15 Nov 01:21-02:47: G32, the exact 32-row check on the full streamed 125B: ALL BITWISE (data/deepdraft/bank/g32loop.log, g32.log)
+- **What:** Leap's 32-row exact-check spec (a821edc), on the full streamed 125B, in two parts.
+  - BigMoE's widened sync-free gate (488c428): up to 340 ids per routing row in 9 extra id lines, ext/build_g32, BIGMOE_MAXK 320.
+  - Leap's v32 (17-32-row verify forms over ref2), with V32_MOE1=1: the MoE experts as ONE 32-row call into the streamed engine.
+- **Test:** r57_screen_fast.py R57_G32TEST (378ad69), on the exact-45 loop's own setup (R57_PRESET=45: NAX6, the K-73 block,
+  OOO, D45 extras) at C 160.
+  - 3 MBPP bank windows (dd__mc_27921 / 2753 / 28056, at most 142 / 154 / 156 distinct experts per layer over 36 rows).
+  - One prefill per window, with rollbacks between the arms.
+  - T1: one M-row verify vs the same rows as <= 16-row verifies with commits between, logits per row.
+  - T2: a 32-row verify committing k rows, then a 4-row probe, vs k rows as <= 16-row checks and the same probe.
+- **Result: ALL BITWISE.**
+  - T1 at M 32 / 17 / 24 / 31: 32/32, 17/17, 24/24, 31/31 rows on all 3 windows.
+  - T2 at k 1 / 9 / 16 / 17 / 24 / 31: 4/4 probe rows on all 3 windows.
+  - The 32-row forward run twice is bitwise; v32's tierblk fires 48x per 32-row forward.
+  - Peak 30.9 GB at C 160.
+- **Two bugs found on the way:**
+  - v32 9e9f9ba sent 17-32-row MoE blocks to MTPLX's _verify_call, whose unsorted top-k decoded REF2-T's rank tiers by
+    position: drift on every row, argmax intact. Leap fixed it in b0c99d5 (the loop's own block, one switch call).
+  - The ext loader's per-call id copy (ids_copy[256], ext:1682) was sized for R-55's <= 185 ids. 320 ids overflowed it:
+    silent stack corruption on the bank's D-23 preset, an abort ("bad expert id") on the exact-45 loop. Fixed in
+    6169f13 (352).
+  - So the 01:21-02:33 g32_test results on the D-23 preset are VOID: the first run, and bisect 2's half-row drift. Their
+    non-32-row facts stand: two prefills bitwise; the same call twice bitwise; the MoE block split 2 x 16 breaks the
+    gate's one-call-per-layer.
+- **Open before a 32-row loop ships (with Leap):**
+  - an overflow guard: the loop can't know a check's distinct-expert count before routing. The max seen over a 32-row
+    window is 242 (fits C 256). The guard writes slot 0 at weight 0, never -2, since the tier kernel casts base slots to
+    uint; then a counter and a host redo as 2 x 16;
+  - the loop's GATE_N 160 pin in set_arm and its two MAXK 160 asserts.
+
+## Sun 15 Nov 02:54-02:56: G32T, the time of one 32-row exact check vs 16-row checks (Leap's PREREG 'G32T'): R32 1.625, "NEEDS KERNEL WORK" (data/r57/g32time/, data/deepdraft/bank/g32time.log)
+- **Setup:** r57_screen_fast R57_G32TEST time mode (939184a), under a quiet ticket (NO-SWAP 45 GB, powermode 2). The
+  exact-45 loop at C 160, MAXK 320, ext build_g32, v32 b0c99d5 (V32_MOE1=1, mr2 off), SB extended to 17-32 rows.
+- **Arms** (each on its own rollback, on the same 3 MBPP bank windows as G32; drafts = the exact continuation):
+  - A16: one 16-row check;
+  - B2x16: two 16-row checks with a commit between;
+  - C24: one 24-row check;
+  - C32: one 32-row check.
+- **Rounds:** 2 warm-up + 12, the arm order rotating per round. The pool was warm: 0 misses and 0 SSD ms on every arm.
+- **ms per check incl. its commit** (median per window):
+
+  | window | A16 | B2x16 | C24 | C32 |
+  |---|---|---|---|---|
+  | dd__mc_27921 | 64.2 | 130.8 | 98.9 | 102.4 |
+  | dd__mc_2753 | 61.2 | 124.2 | 95.6 | 99.4 |
+  | dd__mc_28056 | 61.3 | 128.0 | 97.1 | 102.3 |
+
+- **Pooled per-round paired ratios** (36 rounds), median [IQR]:
+  - R32 = C32 / A16 1.625 [1.597-1.676];
+  - R24 1.560 [1.541-1.582];
+  - C32 / B2x16 0.798 [0.784-0.801].
+- **C32 == B2x16 logits bitwise** on every window: SB at 17-32 rows is scheduling only.
+- **Verdict by Leap's lines:**
+  - R32 is in 1.40-1.70: "needs kernel work" (<= 1.40 would pay at today's kernels).
+  - One pass saves ~20 %, short of the 25 % line.
+  - Leap had predicted R32 1.45-1.6 and C32 / B2x16 0.75-0.8.
+- **Shape:** 16 -> 24 rows costs +34.7 ms but 24 -> 32 only +3.5 to 5 ms. That's a step at the 17-row boundary, not a
+  per-row slope. Likely v32's 2 x 16 qmm splits (145 per forward) reading every dense / router / shared weight twice;
+  mr2 (one weight read, V32_MR2=1) is the next arm.
+
+## Sun 15 Nov 02:53-03:02: R57_REPLAY self-check (EvalSuite LOSSY_GATE section 9, tier 0a): CERTIFIED, 100 % on the exact config's own rows (data/r57/replay/)
+- **R57_REPLAY** (6a0f70f, fixed in d1fd8c5 and e5d17c6): teacher-forced checks at the variant's width. The drafts are the
+  next reference tokens, the reference block is committed whatever the check accepted, and each position's pick, own
+  margin and logit(ref) - max are logged.
+- **Exact config:** exact-45's flags at C 160. Keys: HumanEval/1, /101, /11 and ifeval/1219.
+- **On REF2-T's rows** (EvalSuite results/ref2): 525 / 527 drafted rows. Both flips are REF2-T's own tie points:
+  - HE/1 position 130 is an exact tie (margin 0.0; the check picks 437, REF2-T 482);
+  - HE/11 position 92 is 0.125 nat.
+  - exact-45's own decode leaves REF2-T at exactly these positions (NAX6 is its own exact reference).
+- **On exact-45's own rows** (its decode of the same keys): 724 / 724 drafted rows, 775 / 775 in all, 0 flips at any margin.
+  The chat key runs on the DFlash2 path.
+- **Fixes found by the self-check:**
+  - the loop's warm-up decode ran with no key (d1fd8c5);
+  - chat keys went to the MTP head, which REPLAY doesn't wire (e5d17c6: DFlash2 carries the reference drafts on every set).
+- **For EvalSuite's exact pass:** replay the exact config's OWN rows (a cached exact-45 base run). REF2-T's rows read
+  ~99.6 % because of its tie points.
+- **C32m arm (03:02-03:04, Leap 03:1x):** C32 with v32mr2 installed and mr2 on (REF2_DENSE_NATIVE=1, R57_GDNB=1), toggled
+  per arm and paired within rounds.
+  - It engaged on every forward: mr2 121, gdn32 36, declined 0. Logits equal B2x16 bitwise.
+  - (C32 - C32m) / A16 is -0.002 [IQR -0.023 to 0.025] over 36 rounds (per window -0.009 / +0.018 / 0.000). That's under
+    Leap's 0.03 keep line: DROPPED.
+  - In this config R32 is 1.607 and C32 / B2x16 0.773 (the same picture). Every arm ran ~35-40 % slower in absolute time
+    than in the first run (A16 82-90 vs 61-64 ms) with wider IQRs, with no other load and a warm pool. So REF2_DENSE_NATIVE
+    / gdn_body at C 160, or memory (swap +1 GB): not isolated yet.
+- **The C32m run's absolute slowdown, isolated (03:07-03:10, quiet, one window, A16 only):** it was not REF2_DENSE_NATIVE or
+  gdn_body.
+  - ISO1 (config blocks in a fixed order) drifted: neither 68.9 -> gdnb 78.9 -> dense 84.0 -> both 93.0 -> neither again
+    89.8 ms, with swap flat.
+  - ISO2 (the 4 configs rotated within each of 12 rounds): neither 64.1, gdnb 64.3, dense 64.9, both 65.0 ms. Paired deltas
+    +0.2 / +0.7 / +0.8 ms; drift +0.0.
+  - So the flags cost <= ~1 %. Some runs drift at run level (C32m, ISO1) and others don't (G32T, ISO2): absolute ms across
+    runs are not comparable; within-run paired rotations are.
+
+## Sun 15 Nov 03:13-03:17: the G32 OVERFLOW GUARD (Leap's split: mine), built and tested: OK (0231f64, 40b4a04; data/deepdraft/bank/g32loop.log)
+- **Why:** the exact loop can't know a 32-row check's distinct-expert count before routing. When it exceeds the layer's
+  pool, ensure() aborted (ext:779).
+- **The guard** (BIGMOE_OVERFLOW_FLAG=1): on a gate call only (the sync route still aborts), every use gets slot 0 (a valid
+  slot; the tier kernels cast base slots to uint, so never -2), nothing is read, and a counter counts the call
+  (ext.overflow_count()). The host reads the counter after the check's readback, rolls the check back, and redoes it as
+  <= 16-row checks.
+- **Test hook:** BIGMOE_FORCE_OVERFLOW=<ext layer>[:<min ids>] (default 161) forces it on that layer's 17+-row calls.
+- **Test:** R57_G32OVF on the exact-45 loop at C 160, layer 5 forced, 3 windows. Per window:
+  - COLD: the forced check right after the prefill. The window's misses read the CPU's slot 0: count +1, logits finite,
+    equal to the redo on only 0 / 1 / 7 of 32 rows (garbage, discarded).
+  - Then 3 warm reps. With a warm pool the residency table served every slot, so the flagged check's logits were even
+    correct (count +1 each).
+  - Every 16 + 16 redo: count +0, logits bitwise to the reference: 9 / 9 reps.
+- **Left (with Leap):**
+  - the loop's own redo for 32-row checks in r57_screen_fast's decode loop;
+  - GATE_N = MAXK on the gate arm and the MAXK asserts relaxed (both only matter once the loop runs 32-row checks);
+  - Leap: ref2's side of weight-0 / garbage pairs (moot here, since the whole check is redone).
+
+## Sun 15 Nov 03:19-03:25: CLOSE-CALL acceptance flag for EvalSuite's gate (2ad2d67; snapshot cc1 6bb40d6; data/r57/closecall_smoke.log)
+- **What:** R1(delta): accept a draft whose logit is within delta of the top-1. Breakthrough priced delta 1 nat under the
+  real walk: HE+ kept/32 +21.8 %, MBPP +23.1 % (3c09867).
+- **Build:** R57_RELAX_DELTA_SETS scopes R57_RELAX_DELTA to sets (unset = every set, as before). The new runs.json
+  "close_call": {"accepted": n} counts committed non-top-1 drafts kept only by R1. With lossy-45's RELAX_SPAN, it's the
+  non-top-1 rows between the base rules' k and the final k. It is absent outside the scope.
+- **Smoke** (lossy-45 + delta 1 on humaneval / humanevalx / mbpp, C 160):
+  - HumanEval/1: accepted 2 (= R1's relaxed rows; rule C 0), 239 tokens;
+  - IFEval: absent, R1 not engaged.
+- **For the gate:** data/stack/lx45cc1_env.txt (the base) and ccx45cc1_env.txt (the variant), both on the cc1 snapshot.
+
+## Sun 15 Nov 03:2x: POST-MISS DEPTH 0, the GOAL A wall from fresh-state cells (scripts/postmiss_d0.py; data/deepdraft/ceiling/postmiss_d0.json)
+- **Question:** the orchestrator's wall is that t30b's depth 0 at the walk's check starts is 91.6 % on HE+, vs 97.9 %
+  elsewhere. Is the cause stale drafter state, or are the positions hard?
+- **Data:** t30b's HE+ cells (b316365) have the TRUE trunk state at every anchor, so no staleness. In them, depth-0
+  accuracy is 83.97 % after a depth-0 miss at the previous position (n 131), vs 98.23 % after a hit (n 6,220).
+- **The 125B's own margin** there:
+  - median 3.87 vs 11.87 nats;
+  - near-ties (m < 0.5) 12.2 % vs 1.6 %.
+- **Reading:** a miss marks a surprising place, where the next token is harder for the 125B too. Much of the check-start
+  gap is selection, which a fresh-state refresh can't close. Levers should target post-miss positions with
+  125B-specific information, e.g. MoonShots' verify-dump idea, priced net of near-ties.
+- **Caveat:** this conditions on a depth-0 miss only; the walk's check starts follow misses at any depth.
+- **Extended to the WALK's check starts** (scripts/checkstart_walk.py, t30b's fresh-state cells, kept_walk from row 1;
+  the orchestrator 03:3x):
+
+  | set | check start after a miss (any depth) | after a full 31-draft accept | all anchors, depth 0 |
+  |---|---|---|---|
+  | HE+ 24 (bank) | 89.29 % (n 336; m median 6.44, near-ties 6.0 %) | 99.01 % (n 101; m 12.31, 1.0 %) | 97.95 % |
+  | MBPP 100 (bank) | 89.16 % (n 2,140; m 6.00, 7.0 %) | 100 % (n 13; m 9.50) | 94.01 % |
+
+  - After a depth-0 miss only: HE+ 83.97 % vs 98.23 %, MBPP 85.79 % vs 94.50 % (m 4.38 vs 8.50).
+  - The walk numbers match the orchestrator's 91.6 % (HE+) and MoonShots' 89.5 % (MBPP) at check starts, with the state
+    fresh. So the wall is the positions' hardness.
+  - MBPP cells on the bank's windows: cells_t30b_mbppbank.npz (dd_ceiling --set mbppbank; band 0 94.01 %, 23-30 72.13 %).
+  - The K-next miss lists: data/deepdraft/ceiling/kmiss_{heplus24,mbppbank}.json, 326 / 2,107 misses with d_k recoverable.
+
+## Sun 15 Nov 03:30-04:03: K-NEXT verify dump (MoonShots' spec, LEVERS_A_MOONSHOTS.md "K-next"): FAILS its line; the wrong token derails (data/deepdraft/ceiling/kdump_*.jsonl, kdump_stats.json)
+- **Question:** at a check ending in a miss, the 125B's verify row just past the miss was computed on the WRONG draft d_k. Is
+  its argmax still y, the next check's depth-0 target? That would be a free, 125B-informed first guess.
+- **Run:** g32_test.py G32_VDUMP (08e083f) on the bank's runtime path, C 160 (ext build_g32 at MAXK 160; build_next can't
+  read the converted store).
+  - One branch per miss of t30b's fresh-state walk: [d_k (, d_(k+1), d_(k+2))] verified on the true prefix ids[:t], top-8 per
+    row, then rolled back.
+  - HE+ 24: 326 branches; MBPP 100 (bank): 2,107.
+- **Results:**
+
+  | | P(argmax == y) | M1: t30b's next depth 0 wrong | M0: t30b right | y in top-2 / 5 / 8 |
+  |---|---|---|---|---|
+  | MBPP (the line's set) | 16.6 % | 6.6 % (n 228) | 17.8 % (n 1,879) | 22.4 / 30.5 / 35.4 % |
+  | HE+ | 18.4 % | 2.9 % (n 35) | 20.3 % (n 291) | 25.8 / 35.0 / 38.7 % |
+
+- **Verdict by MoonShots' pre-registered LINE:** a lever needed M1 >= 50 % (MBPP), and M1 < 25 % reads as "the wrong token
+  derails the next prediction". MBPP's M1 is 6.6 %: K-next FAILS. Only a fresh pass on b would carry the 125B's
+  information. Low margins don't explain it: >= 5-nat targets reach only 19 %.

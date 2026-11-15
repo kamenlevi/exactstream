@@ -1,0 +1,105 @@
+--- pflm_engine_1111.py	2026-11-12 15:05:59
++++ pflm.py	2026-11-12 15:05:59
+@@ -27,6 +27,13 @@
+   leaves rows unwritten past 32,767 sorted rows unless M % 64 == 0), then each chunk's residual write. The router and the
+   shared expert run once per group (per-token, batch-independent per Leap; R57_LOGHASH vs mode 1 decides). The screen passes
+   on_layer (its TAP for the drafter, which layer(...) did in modes 1 / 2). R57_PFLM_CC=1: mx.clear_cache() after each layer.
++- ONE-BUILD CANDIDATE (Leap Thu 12 Nov; scripts/prefill15/onebuild, not in the engine yet):
++  - R57_PFLM_SEGALL (default 1 here): over a group of chunks, the router and the shared expert run per chunk slice too, as
++    the shared expert's gate already did (Tue 10 Nov f432586: a short final chunk inside a group differed, 292 rows; with
++    the fix 20 / 20 short-tail and 26 / 26 30K prompts exact at ~2 % of PF-B's speed). =0: the gate only (before).
++  - R57_PFLM_QD=n (default 0 = unbounded, as before): the memory trim for 45 GB. At most n chunks' attention parts are in
++    flight (each holds its score plane, ~1.5-3 GB at 30K context); the CPU reads the layer's experts in one slice per
++    chunk between them, so the read still overlaps the GPU. Same operations and order: exact by construction; untested.
+ """
+ import os
+ import numpy as np
+@@ -89,16 +96,28 @@
+     return E
+ 
+ 
++def _read_ids(t, ids):
++    """read experts ids of layer t into their own scratch rows (the ext's CPU rebuild)"""
++    if ids:
++        LMC["tier"]._read_rebuilt(t, ids, ids, LMC["sc"])
++        LMC["have"].update(ids)
++        LMC["reads"] += len(ids)
++
++
+ def _read_all(t):
+     """PF-B: every expert of layer t not yet in the scratch, read now (CPU) while the GPU runs the queued attention parts."""
+     E = _scratch(t)
+-    need = [e for e in range(E) if e not in LMC["have"]]
+-    if need:
+-        LMC["tier"]._read_rebuilt(t, need, need, LMC["sc"])
+-        LMC["have"].update(need)
+-        LMC["reads"] += len(need)
++    _read_ids(t, [e for e in range(E) if e not in LMC["have"]])
+ 
+ 
++def _read_plan(t, n):
++    """R57_PFLM_QD: layer t's experts not yet in the scratch, in n slices or fewer (one per chunk), in id order"""
++    E = _scratch(t)
++    todo = [e for e in range(E) if e not in LMC["have"]]
++    per = -(-len(todo) // max(1, n)) if todo else 0
++    return [todo[i:i + per] for i in range(0, len(todo), per)] if per else []
++
++
+ def install(tier, mode=1):
+     """Wrap bigmoe.tier.prefill_call (stream._sync_call looks it up at call time). Inactive unless LMC['on']."""
+     LMC["mode"] = int(mode)
+@@ -155,6 +174,8 @@
+     ahead = os.environ.get("R57_PFLM_AHEAD", "1") != "0"
+     cc = os.environ.get("R57_PFLM_CC") == "1"
+     seg = os.environ.get("R57_PFLM_SEG", "1") != "0"     # =0: the batched gate (pb3 / pb38 at d44ec7a: not bitwise)
++    segall = seg and os.environ.get("R57_PFLM_SEGALL", "1") != "0"   # the router + shared expert per chunk slice too
++    qd = int(os.environ.get("R57_PFLM_QD", "0") or 0)    # the 45 GB memory trim: chunks in flight (0 = unbounded)
+     assert not seg or all(hasattr(l_.mlp, "shared_expert_gate") for l_ in tm.layers), "R57_PFLM_SEG: no shared_expert_gate"
+     groups, cur, n = [], [], 0                           # contiguous chunk groups of <= tok tokens (at least one chunk)
+     for k, x in enumerate(xs):
+@@ -169,7 +190,8 @@
+         assert "tier" in bm_ and not bm_["full"], "R57_PFLM=3: every layer must take the tier path (none fully resident)"
+     for L, (layer, c) in enumerate(zip(tm.layers, cache)):
+         t = layer.mlp.switch_mlp._bm["tier"]
+-        pend = []
++        pend, fly = [], []
++        plan = _read_plan(t, len(xs)) if (ahead and qd) else []   # QD: the read in slices between the chunks
+         for k, x in enumerate(xs):
+             if L == 0:                                   # as _forward: the ssm mask of a B=1 unpadded chunk is None
+                 assert Q.create_ssm_mask(hs[k], cache[tm.ssm_idx]) is None, "PFLM: an ssm mask (padding?)"
+@@ -186,20 +208,33 @@
+             pend.append((mixed, hyper, inject))
+             outs = [a for a in (mixed, hyper, inject) if isinstance(a, mx.array)] + list(states([c]))
+             (mx.eval if sync else mx.async_eval)(*outs)
++            if qd:
++                fly.append(outs)
++                if plan:                                 # this chunk's slice of the read (CPU) || the chunks in flight (GPU)
++                    _read_ids(t, plan.pop(0))
++                if len(fly) > qd:                        # wait for the oldest chunk in flight: its temporaries go back
++                    mx.eval(*fly.pop(0))
++        del fly
+         if ahead:
+-            _read_all(t)                                 # CPU read || the GPU's queued attention parts
++            _read_all(t)                                 # CPU read || the GPU's queued attention parts (QD: the rest)
+         for g in groups:
+             M = pend[g[0]][0] if len(g) == 1 else mx.concatenate([pend[k][0] for k in g], axis=1)
+             fix = len(g) > 1 and seg                     # R57_PFLM_SEG (default 1): the shared expert's gate per chunk slice
+             if fix:
+                 mlp_ = layer.mlp
++                sizes_ = [pend[k][0].shape[1] for k in g]
+                 seg0 = mlp_.shared_expert_gate
+-                mlp_.shared_expert_gate = _SegPerChunk(seg0, [pend[k][0].shape[1] for k in g])
++                mlp_.shared_expert_gate = _SegPerChunk(seg0, sizes_)
++                if segall:                               # the router and the shared expert per chunk slice too (f432586)
++                    gate0, se0 = mlp_.gate, mlp_.shared_expert
++                    mlp_.gate, mlp_.shared_expert = _SegPerChunk(gate0, sizes_), _SegPerChunk(se0, sizes_)
+             try:
+                 Y = layer.mlp(M)                         # router + shared expert + the padded SwitchGLU (tier wrapper)
+             finally:
+                 if fix:
+                     mlp_.shared_expert_gate = seg0
++                    if segall:
++                        mlp_.gate, mlp_.shared_expert = gate0, se0
+             off = 0
+             for k in g:
+                 n_ = pend[k][0].shape[1]

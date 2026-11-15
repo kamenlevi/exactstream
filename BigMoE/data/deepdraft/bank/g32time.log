@@ -1,0 +1,91 @@
+02:53:34 G32T: waits for pid 99372 (the replay self-check runner), then a quiet ticket
+02:54:14 G32T: queueing a quiet ticket
+queued #1; this returns when it's your turn and the Mac is quiet.
+your turn after 30s: quiet lock held until 03:54. Measure now, and `peer unlock` as soon as you're done.
+02:54:44 G32T: quiet granted; NO-SWAP 45 GB; power:  powermode 2
+[bigmoe] tier 4433333333: C_m=175 C_l=112 per layer, 21.21 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.45 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R57_WIRED: mx.set_wired_limit(55.66 GB), was 0.00 GB
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 160), loaded in 2 s, 26.9 GB active; REF2 + SB; gate rows MAXK 320 (ext build_g32), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 256
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 27.3 tok/s; MLX peak prefill 28.8 / decode 29.2 GB, lifetime peak 29.8 -> 30.3 GB
+  warm-up (discarded): gsm8k/708 [gate+t, mtp] 64 tokens, 53.2 tok/s; MLX peak prefill 29.6 / decode 29.1 GB, lifetime peak 30.4 -> 30.4 GB
+G32TEST: v32 /Users/kamen/Leap/scripts/week98/v32.py; block _moeblock; MAXK 320, XLINES 9, ext build_g32; FAST off (exact)
+G32TEST dd__mc_27921: prompt 378, gate_req 142
+  32 rows twice bitwise (32, 32); v32 per 32-row forward {'qmm': 145, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'tierblk': 48, 'mr2': 0}
+  TIME dd__mc_27921 (2 warm-up + 12 rounds; ms per check incl. its commit, median [IQR]): A16 64.2 [64.1-64.3] (misses 0, SSD 0.0 ms); B2x16 130.8 [130.7-130.8] (misses 0, SSD 0.0 ms); C24 98.9 [98.8-99.1] (misses 0, SSD 0.0 ms); C32 102.4 [102.3-102.8] (misses 0, SSD 0.0 ms); R32 1.593, R24 1.541, C32 / B2x16 0.783; C32 vs B2x16 logits bitwise (32, 32)
+G32TEST dd__mc_2753: prompt 255, gate_req 154
+  32 rows twice bitwise (32, 32); v32 per 32-row forward {'qmm': 145, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'tierblk': 48, 'mr2': 0}
+  TIME dd__mc_2753 (2 warm-up + 12 rounds; ms per check incl. its commit, median [IQR]): A16 61.2 [61.1-61.5] (misses 0, SSD 0.0 ms); B2x16 124.2 [124.2-124.4] (misses 0, SSD 0.0 ms); C24 95.6 [95.3-95.7] (misses 0, SSD 0.0 ms); C32 99.4 [99.3-99.6] (misses 0, SSD 0.0 ms); R32 1.627, R24 1.561, C32 / B2x16 0.800; C32 vs B2x16 logits bitwise (32, 32)
+G32TEST dd__mc_28056: prompt 442, gate_req 156
+  32 rows twice bitwise (32, 32); v32 per 32-row forward {'qmm': 145, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'tierblk': 48, 'mr2': 0}
+  TIME dd__mc_28056 (2 warm-up + 12 rounds; ms per check incl. its commit, median [IQR]): A16 61.3 [61.0-63.6] (misses 0, SSD 0.0 ms); B2x16 128.0 [127.5-132.7] (misses 0, SSD 0.0 ms); C24 97.1 [96.9-97.5] (misses 0, SSD 0.0 ms); C32 102.3 [102.2-106.0] (misses 0, SSD 0.0 ms); R32 1.676, R24 1.588, C32 / B2x16 0.799; C32 vs B2x16 logits bitwise (32, 32)
+G32TEST verdict: ALL BITWISE: the 32-row check through the widened gate on the exact-45 loop equals <= 16-row checks; peak 30.7 GB
+02:55:45 G32T-DONE rc 0
+03:00:37 G32T-MR2: waits for pid 8856 (the replay self-check runner), then a quiet ticket
+03:01:57 G32T: queueing a quiet ticket
+queued #1; this returns when it's your turn and the Mac is quiet.
+your turn after 25s: quiet lock held until 04:02. Measure now, and `peer unlock` as soon as you're done.
+03:02:23 G32T: quiet granted; NO-SWAP 47 GB; power:  powermode 2
+[bigmoe] tier 4433333333: C_m=175 C_l=112 per layer, 21.21 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.45 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R57_WIRED: mx.set_wired_limit(55.66 GB), was 0.00 GB
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 160), loaded in 2 s, 26.9 GB active; REF2 + SB; gate rows MAXK 320 (ext build_g32), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 256
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 25.5 tok/s; MLX peak prefill 28.8 / decode 32.0 GB, lifetime peak 29.8 -> 33.0 GB
+  warm-up (discarded): gsm8k/708 [gate+t, mtp] 64 tokens, 55.0 tok/s; MLX peak prefill 31.5 / decode 31.0 GB, lifetime peak 33.0 -> 33.0 GB
+G32TEST: v32 /Users/kamen/Leap/scripts/week98/v32.py; block _moeblock; MAXK 320, XLINES 9, ext build_g32; FAST off (exact)
+G32TEST dd__mc_27921: prompt 378, gate_req 142
+  32 rows twice bitwise (32, 32); v32 per 32-row forward {'qmm': 145, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'tierblk': 48, 'mr2': 0}
+  TIME dd__mc_27921 C32m (mr2 + full-width GDN): vs B2x16 logits bitwise (32, 32); (C32 - C32m) / A16 per round, median -0.009 (Leap: keep if >= 0.03); counters per C32m forward (mr2 / gdn32 / declined) min (121, 36, 0) max (121, 36, 0)
+  TIME dd__mc_27921 (2 warm-up + 12 rounds; ms per check incl. its commit, median [IQR]): A16 90.1 [88.8-102.5] (misses 0, SSD 0.0 ms); B2x16 183.4 [181.1-208.2] (misses 0, SSD 0.0 ms); C24 137.5 [135.3-147.4] (misses 0, SSD 0.0 ms); C32 141.5 [140.4-150.2] (misses 0, SSD 0.0 ms); C32m 142.6 [140.5-155.4] (misses 0, SSD 0.0 ms); R32 1.574, R24 1.509, C32 / B2x16 0.767; C32 vs B2x16 logits bitwise (32, 32)
+G32TEST dd__mc_2753: prompt 255, gate_req 154
+  32 rows twice bitwise (32, 32); v32 per 32-row forward {'qmm': 145, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'tierblk': 48, 'mr2': 0}
+  TIME dd__mc_2753 C32m (mr2 + full-width GDN): vs B2x16 logits bitwise (32, 32); (C32 - C32m) / A16 per round, median 0.018 (Leap: keep if >= 0.03); counters per C32m forward (mr2 / gdn32 / declined) min (121, 36, 0) max (121, 36, 0)
+  TIME dd__mc_2753 (2 warm-up + 12 rounds; ms per check incl. its commit, median [IQR]): A16 82.6 [78.9-87.8] (misses 0, SSD 0.0 ms); B2x16 166.7 [163.6-193.1] (misses 0, SSD 0.0 ms); C24 128.1 [123.6-145.9] (misses 0, SSD 0.0 ms); C32 136.6 [131.2-141.7] (misses 0, SSD 0.0 ms); C32m 135.6 [131.0-142.2] (misses 0, SSD 0.0 ms); R32 1.660, R24 1.552, C32 / B2x16 0.807; C32 vs B2x16 logits bitwise (32, 32)
+G32TEST dd__mc_28056: prompt 442, gate_req 156
+  32 rows twice bitwise (32, 32); v32 per 32-row forward {'qmm': 145, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'tierblk': 48, 'mr2': 0}
+  TIME dd__mc_28056 C32m (mr2 + full-width GDN): vs B2x16 logits bitwise (32, 32); (C32 - C32m) / A16 per round, median 0.000 (Leap: keep if >= 0.03); counters per C32m forward (mr2 / gdn32 / declined) min (121, 36, 0) max (121, 36, 0)
+  TIME dd__mc_28056 (2 warm-up + 12 rounds; ms per check incl. its commit, median [IQR]): A16 84.4 [82.9-87.2] (misses 0, SSD 0.0 ms); B2x16 176.7 [174.0-187.7] (misses 0, SSD 0.0 ms); C24 134.6 [131.8-138.7] (misses 0, SSD 0.0 ms); C32 142.2 [139.2-144.8] (misses 0, SSD 0.0 ms); C32m 141.1 [139.4-143.6] (misses 0, SSD 0.0 ms); R32 1.656, R24 1.574, C32 / B2x16 0.783; C32 vs B2x16 logits bitwise (32, 32)
+G32TEST verdict: TIME MODE (T1 / T2 not run; C32 == B2x16 logits checked per window above); peak 32.6 GB
+03:03:38 G32T-MR2-DONE rc 0
+03:06:26 G32ISO: waits for pid 1 (the replay self-check runner), then a quiet ticket
+03:06:26 G32T: queueing a quiet ticket
+queued #1; this returns when it's your turn and the Mac is quiet.
+your turn after 35s: quiet lock held until 04:07. Measure now, and `peer unlock` as soon as you're done.
+03:07:02 G32T: quiet granted; NO-SWAP 45 GB; power:  powermode 2
+[bigmoe] tier 4433333333: C_m=175 C_l=112 per layer, 21.21 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.45 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R57_WIRED: mx.set_wired_limit(55.66 GB), was 0.00 GB
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 160), loaded in 2 s, 26.9 GB active; REF2 + SB; gate rows MAXK 320 (ext build_g32), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 256
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 27.7 tok/s; MLX peak prefill 28.8 / decode 29.2 GB, lifetime peak 29.8 -> 30.3 GB
+  warm-up (discarded): gsm8k/708 [gate+t, mtp] 64 tokens, 56.7 tok/s; MLX peak prefill 29.6 / decode 29.1 GB, lifetime peak 30.4 -> 30.4 GB
+G32TEST: v32 /Users/kamen/Leap/scripts/week98/v32.py; block _moeblock; MAXK 320, XLINES 9, ext build_g32; FAST off (exact)
+G32TEST dd__mc_27921: prompt 378, gate_req 142
+  32 rows twice bitwise (32, 32); v32 per 32-row forward {'qmm': 145, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'tierblk': 48, 'mr2': 0}
+  ISO dd__mc_27921 neither (dense_native False, gdn_body False): A16 median 68.9 ms [IQR 66.9-70.6] over 12; swap 8208 -> 8208 MB; dense_native calls 0
+  ISO dd__mc_27921 gdnb (dense_native False, gdn_body True): A16 median 78.9 ms [IQR 77.1-80.4] over 12; swap 8208 -> 8208 MB; dense_native calls 0
+  ISO dd__mc_27921 dense (dense_native True, gdn_body False): A16 median 84.0 ms [IQR 80.4-88.2] over 12; swap 8208 -> 8208 MB; dense_native calls 2030
+  ISO dd__mc_27921 both (dense_native True, gdn_body True): A16 median 93.0 ms [IQR 91.8-93.1] over 12; swap 8208 -> 8208 MB; dense_native calls 4060
+  ISO dd__mc_27921 neither_again (dense_native False, gdn_body False): A16 median 89.8 ms [IQR 89.6-90.1] over 12; swap 8208 -> 8208 MB; dense_native calls 4060
+G32TEST verdict: TIME MODE (T1 / T2 not run; C32 == B2x16 logits checked per window above); peak 32.4 GB
+03:07:32 G32ISO-DONE rc 0
+03:08:24 G32ISO2: waits for pid 1 (the replay self-check runner), then a quiet ticket
+03:08:24 G32T: queueing a quiet ticket
+queued #1; this returns when it's your turn and the Mac is quiet.
+your turn after 35s: quiet lock held until 04:08. Measure now, and `peer unlock` as soon as you're done.
+03:08:59 G32T: quiet granted; NO-SWAP 45 GB; power:  powermode 2
+[bigmoe] tier 4433333333: C_m=175 C_l=112 per layer, 21.21 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.45 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R57_WIRED: mx.set_wired_limit(55.66 GB), was 0.00 GB
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 160), loaded in 2 s, 26.9 GB active; REF2 + SB; gate rows MAXK 320 (ext build_g32), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 256
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 27.7 tok/s; MLX peak prefill 28.8 / decode 29.2 GB, lifetime peak 29.8 -> 30.3 GB
+  warm-up (discarded): gsm8k/708 [gate+t, mtp] 64 tokens, 56.1 tok/s; MLX peak prefill 29.6 / decode 29.1 GB, lifetime peak 30.4 -> 30.4 GB
+G32TEST: v32 /Users/kamen/Leap/scripts/week98/v32.py; block _moeblock; MAXK 320, XLINES 9, ext build_g32; FAST off (exact)
+G32TEST dd__mc_27921: prompt 378, gate_req 142
+  32 rows twice bitwise (32, 32); v32 per 32-row forward {'qmm': 145, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'tierblk': 48, 'mr2': 0}
+  ISO2 dd__mc_27921 (configs rotated within each round, 12 rounds): A16 medians neither 64.1, gdnb 64.3, dense 64.9, both 65.0; paired per-round deltas vs neither (median ms): gdnb +0.2, dense +0.7, both +0.8; neither's drift (last 4 vs first 4 rounds) +0.0 ms
+G32TEST verdict: TIME MODE (T1 / T2 not run; C32 == B2x16 logits checked per window above); peak 32.4 GB
+03:09:30 G32ISO2-DONE rc 0

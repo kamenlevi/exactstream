@@ -1,0 +1,32 @@
+--- /private/tmp/claude-501/-Users-kamen-OjoX/f2971937-6c95-4e86-a049-05beff6a8e32/scratchpad/agent/mock_tools.py	2026-11-10 23:22:54
++++ /private/tmp/claude-501/-Users-kamen-OjoX/f2971937-6c95-4e86-a049-05beff6a8e32/scratchpad/agent/mock_tools_sl.py	2026-11-12 15:08:43
+@@ -16,6 +16,11 @@
+ PICK = tuple((SETOF[k.split("/")[0]], k) for k in os.environ["R57_KEYS"].split(","))
+ RUNS, TOK = [], {}
+ WD = os.environ.get("MOCK_WORKDIR", "/tmp")
++if os.environ.get("MOCK_CC"):                              # status-line test: a stand-in conversation cache (last() only)
++    import types
++    _cc = types.ModuleType("convcache"); _cc.info = {}
++    _cc.install = lambda g: True; _cc.hint = lambda **k: None; _cc.last = lambda: dict(_cc.info)
++    sys.modules["convcache"] = _cc
+ 
+ 
+ def rule(item):
+@@ -58,13 +63,16 @@
+ 
+ 
+ print("mock tool loop loaded", flush=True)
++print("MOCK_ENV", {k: os.environ.get(k) for k in ("MTPLX_QSA_PREFILL", "MTPLX_QSA_PREFILL_MIN_CONTEXT", "MTPLX_QSA_PREFILL_FLASH_MIN_CONTEXT", "MTPLX_QSA_PREFILL_DIRECT_MIN_CONTEXT")}, flush=True)
+ it = next(x for x in ED.load("dec_math") if x["key"] == "gsm8k/708")
+ SV.new_prompt(it["prompt_ids"]); SV.committed([11, 12, 13])
+ for n_p, (s, key) in enumerate(PICK):
+     it = next(x for x in ED.load("dec_" + s) if x["key"] == key)
+     ids = it["prompt_ids"]
+     reply = tk.encode(reply_for(tk.decode(ids)), add_special_tokens=False) + [next(iter(EOS))]
+-    t0 = time.perf_counter(); SV.new_prompt(ids); time.sleep(0.2)
++    if os.environ.get("MOCK_CC"):
++        sys.modules["convcache"].info = dict(n=len(ids), hit=True, c=len(ids) - 5, src="mock")
++    t0 = time.perf_counter(); SV.new_prompt(ids); time.sleep(float(os.environ.get("MOCK_THINK", "0.2")))
+     out = [reply[0]]; SV.committed([reply[0]]); t1 = time.perf_counter(); j = 1
+     slow = "SLOW" in tk.decode(ids).rsplit("<|im_start|>user", 1)[-1]
+     while len(out) < CAP and out[-1] not in EOS:

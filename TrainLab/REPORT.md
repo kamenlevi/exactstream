@@ -4009,3 +4009,142 @@ loses chat hits.
   window-step, data/f2a/train.log); eval to END - 5 min. Needs a quiet whole-Mac window of >= ~6 h for a minimal test
   and ~9-10.5 h for the full ring (capture ran 76-80 tok/s at C 128; C 64 is not measured).
 - Prediction [G]: held-out x1.02-1.08; PASS ~20 % (lowered from ~35 % after Sunday's x1.014 at 0.10M tokens).
+
+### WEEK98 S1 DEPTHC: depth done properly, on Sandbox98 (pre-registered Sun 11-15 01:12, before it runs; runner sb98/depth_copy.sh)
+> (a quote from the project owner, kept private)
+  depth test (DEPTHN_LINES.md) started the extra layer at zero output projections and an own lr of 3e-5. The layer
+  barely grew (max |w| 0.0025 after 400 steps), and 400 steps is under the budget where the one-layer head is still
+  moving (400 -> 1,889 steps is +7.1 pt). So it did not test depth.
+- Setup: Qwen3.5-2B sandbox, all arms from the native head with a fresh Adam, s30's slices and schedule (base files, seed
+  1114, warm-up 20 to 1e-5, cosine to 1e-6 over 1,889 steps = one pass), rollout depth 30, one process:
+  - n1: the native single layer (control; smoke step-1 loss 0.89786 = s30's first logged loss, same slices);
+  - c2: + a second layer, a FULL copy of the native layer (non-zero), in the main Adam (levers/deepc);
+  - c2h: the same copy on its own Adam at 3e-5 (levers/deepch; deep2's lr, constant after the warm-up).
+- Read-out: Sandbox98's evalx, depth 31, chain, MBPP-50 + HE-30; paired compare.py (bootstrap CI, sign test).
+- Stop line at step 380 (20 %): if BOTH copies are <= -2.0 pt vs n1 at MBPP-50 23-30 (p < 0.05), the run stops: KILL.
+- Lines at 1,889 steps, each copy vs n1, MBPP-50 23-30:
+  - >= +2.0 pt (p < 0.05): DEPTH HELPS. Next: borrowed pretrained depth (a layer of the 2B itself), then a 125B port spec
+    (T30D with a copied layer), costed (a 2-layer draft is +56 % per drafted token here).
+  - within +-2 pt: NO EFFECT at the full budget with a non-zero start.
+  - <= -2.0 pt (p < 0.05): HURTS.
+  - Control: n1 should be within 1.5 pt of s30 (55.47); if not, the run stands but its control did not reproduce s30.
+- Prediction [G]: NO EFFECT 55 %, HELPS 25 %, HURTS 20 %.
+
+### WEEK98 S2 CARRY400: the carry, on Sandbox98 (pre-registered Sun 11-15 01:22, before it runs; runner sb98/carry400.sh)
+- Why: KEYFRAMES showed the carried stand-in decays within ~4 depths even after a TRUE-state refresh, so the limit is the
+  head's carry (orchestrator 01:1x, item 2).
+- Budget: the 400-step re-annealed pool2 setup from s30o holds but does not move its control (DEPTH_LINES: -0.50), so
+  by the budget rule it cannot show training levers. These arms start from the native head instead, where 400 steps
+  move the control from 1.5 to 48.4 % (DEPTHN's dn_n1). That screens whether a lever makes the carry LEARN faster;
+  a winner is confirmed at the full 1,889 steps.
+- Recipe: dn_n1's (base files, seed 1114, fresh Adam, 20-step warm-up to 1e-5, cosine to 1e-6 at step 400, rollout
+  depth 30); read-out depth 31, chain, MBPP-50 + HE-30.
+- 2a (one process): n1 (control; should equal dn_n1 within 1.0 pt), carrya (a residual carry adapter A, d -> 1024 -> d,
+  4.2M params, own Adam at 1e-4, small random init: depth j+1 reads A(h), the guess still reads h), carryac (carrya + a
+  consistency loss on the carry only, in headfeat's head-input space, LAM 0.5; headfeat pulled the guess vector itself
+  and lost 1.5 pt).
+- 2b (alone, after 2a): allrows (no accept-until-fail truncation in training; failed rows stay in the chain and the
+  deep depths weigh more), compared against 2a's n1 (same slices, order and schedule).
+- Lines, each lever vs n1, MBPP-50 23-30: >= +2.0 pt (p < 0.05) PROMISING (confirm at 1,889 steps); within +-2 NO EFFECT
+  at 400 steps from native; <= -2.0 (p < 0.05) HURTS.
+- Prediction [G]: carrya NO EFFECT 60 %; carryac PROMISING 25 %; allrows HURTS 40 % (it trains on rows that never
+  reach the deep depths at run time).
+- S4 DEPTHC run 1 is VOID (Sun 01:12-01:36). Leap's quiet windows made Sandbox98's guarded() yield 3 times, and it gives
+  up after 3 (01:26, last at step 9). The runner then started its final read-out on the step-9 checkpoints, which I
+  stopped. Fix: sb98/run_paused.sh pauses (SIGSTOP, lock released) during others' quiet windows and resumes (SIGCONT),
+  never killing or restarting. S4 now requires the trainer's DONE line before its read-out (depth_copy_p.sh). Night chain
+  v2 (sb98/night_chain2.sh, 01:37) runs 2a again if needed, then 2b, then S4 with the same pre-registered lines.
+#### WEEK98 S2 CARRY400 RESULT (Sun 11-15 02:20; data/sb98/mhc2a_compare.txt, mhx_compare.txt): 2a NO EFFECT; 2b allrows "PROMISING" on the band, NO EFFECT on kept
+- Control: mhc2a_n1 equals dn_n1 exactly (MBPP-50 23-30 48.37, kept/32 4.076; deterministic recipe).
+- 2a, vs n1, MBPP-50 23-30: carrya -1.04 pt (p 0.19), carryac +0.70 (p 0.31). Both NO EFFECT.
+- 2b, allrows vs n1:
+  - Bands: MBPP-50 23-30 +8.58 pt (CI +7.59..+9.62, 48 / 0 windows); HE-30 +5.75 (29 / 1); depth 0 -0.38 / -0.09.
+  - kept/32: MBPP 4.076 -> 4.066 (CI -0.067..+0.054); HE 5.791 -> 5.687 (CI -0.228..+0.015). **Flat.**
+  - Reading: the band is unconditional. It counts every row at depth j, including rows already past an earlier miss,
+    which the engine never drafts. allrows trains exactly those rows, so it lifts the band without lifting acceptance.
+    The pre-registered line (the band) passes by its letter, but it was the wrong metric for a lever that changes which
+    rows train. By the runtime metric (kept/32) it is NO EFFECT.
+- Lesson (method): judge any lever that changes the training row set by kept/32 or the strict conditional per depth,
+  never by the unconditional band.
+
+#### WEEK98 S1 DEPTHC RESULT (Sun 11-15 03:30-03:52, run 3; data/sb98/mhd1_s380_compare.txt): KILL at the stop line (step 380)
+- Run 1 was VOID (yielded out at step 9). Run 2 was stopped for BigMoE's G32 (no new job > 5 GB). Run 3 ran paused-safe
+  from 03:30.
+- At step 380 (20 % of the 1,889-step cosine), vs n1 (the same slices and schedule, same process):
+  | arm | MBPP-50 23-30 | MBPP depth 0 | MBPP kept/32 | HE-30 23-30 | HE kept/32 |
+  |---|---|---|---|---|---|
+  | n1 | 44.50 | 87.20 | 3.771 | 53.20 | 4.969 |
+  | c2 (copy, main Adam) | -2.52 (CI -3.75..-1.30, p 0.001) | -1.25 | -0.244 (CI -0.32..-0.18) | +0.43 | -0.404 |
+  | c2h (copy, own 3e-5) | -7.91 (p 0.000) | -2.96 | -0.500 | -6.94 | -0.695 |
+- Both copies are worse than n1 on the band AND on kept/32, so the stop line fired: KILL.
+- Caveat: the 2-layer arms start from a worse function (the native layer applied twice, step-1 loss 3.60 vs 0.90). They
+  might narrow the gap by 1,889 steps; the pre-registered stop line exists to not pay for finding out.
+- With deep2 (zero start: NO EFFECT, didn't grow) and tie2 (HURTS), every untied, tied and zero-started extra layer
+  trained on the chain loses or ties in this regime.
+- Cost, had it worked: a 2-layer chain head drafts at 3.96 vs 2.54 ms per drafted token on the 2B (+56 %; Sandbox98
+  timedraft). On the 125B a chain step is ~2.2 ms (NewIdeas), so an extra MoE-free layer adds ~1.2-1.4 ms per step.
+  That is ~40 ms per 32-row block, against the spec's 2-4 ms per block.
+- Untested here: borrowed pretrained depth (a 2B layer as the second layer). It sits on the same cost wall; the block-model
+  family (LEVERS_A #1, S1) is where depth is free on bytes.
+
+### WEEK98 S5 WALKW: walk-weighted TTT, train where you draft (pre-registered Sun 11-15 06:05, before it runs; runner sb98/walkw.sh)
+- Why: EvalSuite 9480ba4 (WEEK98 top). On the 125B, kept/32 is lost in the first ~15 guesses after each check: HE+ depth
+  0 is 91.6 % at the walk's check starts vs 97.9 % elsewhere, and depths 0-14 at 98 % would give 22.6 of the 23.8 kept.
+  Every runtime draft starts at a check start (the anchor after the previous check's bonus token), and those anchors
+  are harder than average. Plain TTT weighs every anchor equally.
+- Lever (levers/walkw): the anchors that are check starts in s30's own walk on the training windows (walk_starts.py)
+  get LAM = 2 x the same per-depth KL added (core._kl_hit: the same rows, targets and top-32), so they weigh 3x at every
+  depth they survive to. accept-until-fail and everything else are unchanged.
+- Setup: one arm, dn_n1's recipe (from native, fresh Adam, base files seed 1114, rollout depth 30, 400-step cosine). The
+  control is mhc2a_n1, which equals dn_n1 exactly. Read-out: evalx depth 31, MBPP-50 + HE-30.
+- Line (Kamen's rule since 03:0x: judge by kept/32 and walk-strict 0-14), MBPP-50 kept/32, ww - n1:
+  - >= +0.10 (sign p < 0.05): PROMISING. Confirm at 1,889 steps, then a 125B spec (t30b continued with walk weights).
+  - within +-0.10: NO EFFECT.
+  - <= -0.10 (p < 0.05): HURTS.
+  - Also reported (information): HE-30 kept/32; depth 0 at each head's own check starts vs all anchors; walk-strict 0-14
+    (walk_diag.py); bands.
+- Prediction [G]: NO EFFECT 50 %, PROMISING 30 %, HURTS 20 %.
+- **Amendment 1 (06:06, before any run; orchestrator 06:2x):**
+  - Bound: BigMoE's selection finding is that depth 0 right after a miss is 84-89 % even WITH the true state (99-100 %
+    after a full accept). Reweighting can only win where the drafter is capacity-limited at close calls, not where the
+    125B itself is unsure.
+  - Arm 2 'mw' (levers/marginw), in the same process: rows whose target margin (top-1 minus top-2 log-prob) is
+    < 1 nat get the same 3x weight. Same line on MBPP-50 kept/32 vs n1 (+-0.10, p < 0.05).
+  - Judged by each arm's own walk (kept/32, depth 0 at its own check starts, walk-strict 0-14). The weighted losses are
+    not comparable to the control's.
+  - S4 closure per Kamen's 01:00 rule: our own screen, every init tried (zero start = deep2 NO EFFECT, tied = tie2
+    HURTS, untied copy = c2 / c2h KILL), and the 125B price (+56 % per drafted token, ~40 ms per 32-block) binds. A full
+    extra layer would need kept/32 up ~1.6x to pay at a ~62 ms 16-row check. Closed for full layers; a small (<= ~12 MB)
+    extra block stays open if anyone has a reason.
+- **Incident (06:06-06:08), before any WALKW training:** step 1 (walk_starts.py) looped Sandbox98's chain_table over 380
+  windows without Sandbox98's memory caps (core.limit_memory: 1 GB cache, 4.5 GB limit). MLX's buffer cache ballooned to
+  ~50 GB: NO-SWAP went 39 -> 3.6 GB and swap 8.1 -> ~19 GB in ~90 s. I killed it at 06:07:40 and NO-SWAP returned to
+  53 GB. The orchestrator was told.
+  - Fixes: walk_starts.py and walk_diag.py call C.limit_memory(4.5) and clear the cache per window.
+  - run_paused.sh now KILLS its job (a paused job keeps its memory) when NO-SWAP < 6 GB or swap grows > 2 GB.
+  - The rerun uses the same pre-registered arms and lines.
+#### WEEK98 S5 WALKW RESULT (Sun 11-15 06:08-06:24, rerun with memory caps; data/sb98/walkw_compare.txt, walkw_diag.log): NO EFFECT (both arms)
+| vs n1 (mhc2a_n1 = dn_n1) | MBPP-50 kept/32 | HE-30 kept/32 | MBPP 23-30 | depth 0 at own check starts, MBPP / HE | walk-strict 0-14 mean, MBPP / HE |
+|---|---|---|---|---|---|
+| n1 (control) | 4.076 | 5.791 | 48.37 | 84.15 / 87.26 % (all anchors 88.12 / 93.54) | 71.98 / 82.08 % |
+| ww: check starts 3x | +0.019 (CI -0.028..+0.069, p 0.31) | +0.069 (p 0.09) | -0.38 | 84.42 / 86.74 % | 73.39 / 83.66 % |
+| mw: margin < 1 nat 3x | -0.084 (CI -0.132..-0.035, p 0.16) | -0.100 (p 0.35) | -2.11 (p 0.011) | 84.11 / 86.53 % | 71.25 / 82.95 % |
+- By the line (MBPP-50 kept/32 +-0.10 with p < 0.05) both are NO EFFECT; mw leans worse.
+- The sandbox reproduces EvalSuite's 125B finding. Depth 0 at the walk's check starts is 84.2 % vs 88.1 % over all
+  anchors (MBPP), and 87.3 vs 93.5 % (HE); the 125B has 91.6 vs 97.9 %.
+- Training 3x on those anchors leaves depth 0 there unchanged (+0.3 / -0.5 pt). That matches amendment 1's bound: right
+  after a miss, the drafter lacks information (the target's state at the bonus token), not training weight. Walk-strict
+  0-14 rose ~1.5 pt for ww but did not reach kept/32.
+- Implication (not mine to price): the check-start gap needs the missing state, e.g. tree verification that covers the
+  likely bonus tokens at miss-prone positions (EAGLE-2 / SpecInfer-style), or a cheap pass for the bonus row.
+  Re-weighting the drafter's training does not reach it.
+- Correction (orchestrator 06:3x) to the reading above. "Lacks the target's state at the bonus token" reads as a state
+  refresh, and depth 0 already conditions on the 125B's TRUE state. BigMoE's fresh-state test gives ~89 % right after a
+  miss vs 99-100 % after a full accept, so a refresh can't close the gap. What is missing is the 125B's own pass ON the
+  bonus token, i.e. its next step itself (MoonShots' K-next close).
+  - The root tree is priced (NewIdeas, research/week98/roottree.txt): the head's top-2 covers the 125B's token at MBPP
+    check starts 96.36 % (top-1 89.70). A root branch at a fixed 32 rows gains at most +4.5 % kept on MBPP and loses on
+    HE+.
+  - Exact options left: a sequential 125B row on the bonus token (~0.6 ms per layer partial pass), or more rows per check
+    if a 64-row tree is cheap. Lossy close-call acceptance is the direct one.
+  - The training-side verdict stands: training weight doesn't move the check-start gap.

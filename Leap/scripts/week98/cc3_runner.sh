@@ -18,6 +18,8 @@
 # Gates: NO-SWAP = free + purgeable + file-backed (the 11-14 05:4x formula), the lower of two reads 30 s apart, parts logged
 # (18:2x); the power mode logged at each grant and run (19:1x). Swap +2 GB stops; HOLD / PAUSE / lid / HEALTH ACT checked
 # before each run; no other engine may run. Never lowers a gate.
+# v6 (Sun 15 Nov 00:5x): CC3_ONLY=a45 runs exact-45 alone (no b24 ticket, no b24 flag check). Sat night's a45 never met
+# its gate (NO-SWAP 32-35 GB vs 47 to 00:49); the orchestrator 01:0x set the re-arm window Sun 21:00 -> Mon 01:00.
 # DRY=1: the head test of this script: fake lock, 1 s waits, gates 1 GB, and flagcheck.py in place of run.py (so each run's
 # exact arguments still meet the real loop's checks). Usage: cc3_runner.sh "<FROM YYYY-MM-DD HH:MM:SS>" "<CUTOFF ...>"
 V=/Users/kamen/Leap/release/cleanclone/v121; CL=$V/clone; H2=$V/home2; HFH=$HOME/.cache/huggingface
@@ -25,7 +27,8 @@ D=${CC3_DIR:-/Users/kamen/Leap/data/week98/cc3}; W=/Users/kamen/Leap/scripts/wee
 Q=$HOME/.local/share/quiet; LOG=$D/cc3.log; PY=/opt/homebrew/opt/python@3.12/bin/python3.12
 KEYS=humaneval/HumanEval/68,humaneval/HumanEval/16,humaneval/HumanEval/91,humaneval/HumanEval/6
 FROM=$(date -j -f "%Y-%m-%d %H:%M:%S" "${1:?FROM}" +%s); CUT=$(date -j -f "%Y-%m-%d %H:%M:%S" "${2:?CUTOFF}" +%s)
-DRY=${DRY:-0}; G24=28; G45=47; ZZ=30; ST=20; PW=60
+DRY=${DRY:-0}; G24=28; G45=47; ZZ=30; ST=20; PW=60; ONLY=${CC3_ONLY:-}
+case "$ONLY" in ""|a45) ;; *) echo "CC3_ONLY must be empty or a45"; exit 2;; esac
 [ $DRY = 1 ] && { G24=1; G45=1; ZZ=1; ST=1; PW=1; }
 F24="CC3_EVERY=4 CC3_REFLOOSE=1"; F45="R57_WARMSPLIT=4 CC3_REFLOOSE=1"
 noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
@@ -61,9 +64,10 @@ args() {   # args <tag> <config> <mem> <passes> <flags>: run.py's arguments for 
   for e in $5; do a_="$a_ --env $e"; done
   echo "$a_ --out $D/$1"
 }
-say "armed (pid $$, v5$([ $DRY = 1 ] && echo ", DRY")): cc3 screen 3, b24 then a45 with the probe; from $1, every run ends by $2"
+say "armed (pid $$, v6$([ $DRY = 1 ] && echo ", DRY")): cc3 screen 3, $([ "$ONLY" = a45 ] && echo "a45 only" || echo "b24 then a45") with the probe; from $1, every run ends by $2"
 # the head test at arming: each run's exact arguments against the real loop's checks (flagcheck.py), before any ticket
-for spec_ in "b24 lossy 24 d1,d16,d32,s32 $F24" "a45 exact 45 d1,d16,d32,s32 $F45"; do
+SPECS=("b24 lossy 24 d1,d16,d32,s32 $F24" "a45 exact 45 d1,d16,d32,s32 $F45"); [ "$ONLY" = a45 ] && SPECS=("${SPECS[1]}")
+for spec_ in "${SPECS[@]}"; do
   set -- $spec_; t_=$1; c_=$2; m_=$3; p_=$4; shift 4
   fc_=$( cd /Users/kamen/Leap && env HOME=$H2 HF_HOME=$HFH $CL/.venv/bin/python $W/flagcheck.py $CL $(args fc_$t_ $c_ $m_ $p_ "$*") 2>&1 )
   rm -rf $D/fc_$t_ $D/fc_${t_}_probe.jsonl
@@ -112,8 +116,9 @@ run_a45() { if ! run a45 $G45 420 exact 45 d1,d16,d32,s32 "$F45" && [ "$RC" != s
             fi
             [ "$RC" = skip ] && A45=skip || A45=done; }
 while [ $(date +%s) -lt $FROM ]; do sleep 20; done
-# ticket 1: b24; a45 too only if one read already shows its gate (no idle minutes in the lock)
-if ticket 900 "Leap: WEEK98 cheap-check screen, lossy-24 (check cost at 1 / 13 / 32 rows, 4 short prompts), MEM 28 GB, ~7 min"; then
+# ticket 1: b24; a45 too only if one read already shows its gate (no idle minutes in the lock). CC3_ONLY=a45: no ticket 1
+if [ "$ONLY" = a45 ]; then say "ticket 1 (b24) skipped: a45 only"
+elif ticket 900 "Leap: WEEK98 cheap-check screen, lossy-24 (check cost at 1 / 13 / 32 rows, 4 short prompts), MEM 28 GB, ~7 min"; then
   if ! run b24 $G24 420 lossy 24 d1,d16,d32,s32 "$F24" && [ "$RC" != skip ]; then run b24b $G24 360 lossy 24 d1,d16 "$F24"; fi
   if [ "${A45_SAME:-1}" = 1 ] && [ "$(noswap)" -ge $G45 ]; then run_a45; else say "a45 not in this ticket: one read $(noswap) GB vs $G45"; fi
   unticket

@@ -61,6 +61,11 @@ def fuse_taps(head, P, Win, emb):
                 z = RO["z"][:n] @ RO["At"] + RO["EP"][TAPS["a0"] + k:TAPS["a0"] + k + n] @ RO["Bt"] + RO["c"]
                 RO["z"] = z
                 Win = (RO["mu"] + z @ RO["Vt"]).astype(Win.dtype)[None]
+            elif TAPS.get("SUB") is not None:             # T3 SUBSPACE: true wd in the top-k PCA directions, the rest filled
+                SB = TAPS["SUB"]
+                Tr = TAPS["WR"][:, r0:r0 + n].astype(mx.float32)
+                Bs = TAPS["W0"][:, TAPS["a0"]:TAPS["a0"] + n].astype(mx.float32) if SB["fill"] == "stale" else SB["mu"]
+                Win = (Bs + ((Tr - Bs) @ SB["Vk"]) @ SB["Vkt"]).astype(Win.dtype)
             elif TAPS.get("stale"):                       # STALE: the true anchor stream wd_s at every depth
                 Win = TAPS["W0"][:, TAPS["a0"]:TAPS["a0"] + n].astype(Win.dtype)
             elif TAPS.get("combo") is not None:           # COMBO5: [stand-in, tap 5 of the row] -> wd
@@ -388,6 +393,10 @@ def cmd_evalrep(a):
         items = sorted(glob.glob(os.path.join(T.TD, "dlog/d1102mbpp/dlog__mbpp*.npz")))[:100]
     FD = os.path.expanduser(a.featdir)
     TAPS["combo"] = None
+    SUBC = None
+    if a.replace == "sub":                              # T3: the PCA basis from rollout.py fit (V [10240, >= k]), the fill
+        rm = np.load(a.ridge); Vk = rm["V"][:, :a.subk].astype(np.float32)
+        SUBC = {"Vk": mx.array(Vk), "Vkt": mx.array(Vk.T), "mu": mx.array(rm["mu"].astype(np.float32))[None, None], "fill": a.subfill}
     if a.replace == "rollout":                          # ROLLOUT: the transition model + the bank's token embeddings
         rm = np.load(a.ridge)
         RO_mu, RO_V = rm["mu"].astype(np.float32), rm["V"].astype(np.float32)
@@ -403,7 +412,7 @@ def cmd_evalrep(a):
     for run in a.runs.split(","):
         set_tap(P, False)
         P.load_weights(os.path.join(CKD, f"dd_{run}.safetensors")); mx.eval(P.parameters())
-        band = {b: [0, 0] for b in BANDS}; kept = []; kept16 = []
+        band = {b: [0, 0] for b in BANDS}; kept = []; kept16 = []; DUMP = {}
         for f in items:
             while os.path.exists(T.PAUSE):
                 time.sleep(1)
@@ -417,7 +426,7 @@ def cmd_evalrep(a):
                 x["W"] = mx.array(np.asarray(np.load(os.path.join(FD, os.path.basename(f)))["wd"])).astype(mx.bfloat16)[None]
             if a.replace == "wd":
                 WR = x["W"]
-            elif a.replace in ("rollout", "stale"):
+            elif a.replace in ("rollout", "stale", "sub"):
                 WR = None
             elif a.replace == "combo":
                 rz = np.load(os.path.join(FD, os.path.basename(f)))
@@ -435,8 +444,11 @@ def cmd_evalrep(a):
                 WR = (((Hf - xm) @ Wm) + ym).astype(mx.bfloat16)[None]
             gen = gen_code if a.set == "code" else int(z["gen"]); a0 = max(0, gen - 2)
             TAPS["RO"], TAPS["stale"] = None, a.replace == "stale"
-            if a.replace == "stale":
+            TAPS["SUB"] = SUBC if a.replace == "sub" else None
+            if a.replace in ("stale", "sub"):
                 TAPS["W0"] = x["W"]
+            if a.replace == "sub":
+                WR = x["W"]
             if a.replace == "rollout":                    # the rollout state starts at PCA(the true anchor stream) of every anchor
                 W0 = np.asarray(x["W"][0].astype(mx.float32))
                 ids_ = np.asarray(x["ids"])
@@ -454,11 +466,15 @@ def cmd_evalrep(a):
                 c = rt[:, lo:hi + 1]; band[(lo, hi)][0] += int((c == 1).sum()); band[(lo, hi)][1] += int((c >= 0).sum())
             kept += DD.kept_walk(rt, max(0, gen - 1 - a0))
             kept16 += kept_walk_n(rt, max(0, gen - 1 - a0), 15)
+            if a.dump:
+                DUMP[f"rt_{len(DUMP) // 2}"] = rt; DUMP[f"a0_{len(DUMP) // 2}"] = np.int64(a0)
             mx.clear_cache()
-        key = f"{run}+{a.replace}" + (f"+{os.path.basename(a.ridge)[:-4]}" if a.replace in ("rawmap", "combo", "rollout") else "") + (f"+k{a.refresh}" if a.refresh > 1 else "") + ("+bankctx" if a.ctx == "bank" else "")
+        key = f"{run}+{a.replace}" + (f"+{os.path.basename(a.ridge)[:-4]}" if a.replace in ("rawmap", "combo", "rollout") else "") + (f"+k{a.refresh}" if a.refresh > 1 else "") + ("+bankctx" if a.ctx == "bank" else "") + (f"+k{a.subk}{a.subfill}" if a.replace == "sub" else "")
         R[key] = {f"{lo}-{hi}": band[(lo, hi)][0] / max(band[(lo, hi)][1], 1) for lo, hi in BANDS}
         R[key]["kept_per_32"] = float(np.mean(kept)) if kept else None
         R[key]["kept_per_16"] = float(np.mean(kept16)) if kept16 else None
+        if a.dump:
+            np.savez_compressed(os.path.expanduser(a.dump), files=np.array([os.path.basename(f) for f in items]), **DUMP)
         print(f"[rep] {key} {a.set} (kept/16 {R[key]['kept_per_16']:.2f}): " + " ".join(f"{b}:{100 * v:.2f}" for b, v in R[key].items() if "-" in b)
               + f"; kept/32 {R[key]['kept_per_32']:.2f}", flush=True)
     R["mlx_peak_gb"] = mx.get_peak_memory() / 1e9
@@ -474,7 +490,7 @@ def main():
     ap.add_argument("--tap-lr", dest="tap_lr", type=float, default=1e-5); ap.add_argument("--tag", default="tq2")
     ap.add_argument("--fresh-opt", dest="warm_opt", action="store_false", help="the void run's fresh Adam (tq_)")
     ap.add_argument("--frac", type=float, default=0.03); ap.add_argument("--peak-max", dest="peak_max", type=float, default=22.0)
-    ap.add_argument("--replace", choices=["wd", "pred", "rawwd", "rawmap", "combo", "rollout", "stale"], default="wd"); ap.add_argument("--refresh", type=int, default=1); ap.add_argument("--set", choices=["mbpp", "code"], default="mbpp"); ap.add_argument("--ctx", choices=["set", "bank"], default="set"); ap.add_argument("--featdir", default="~/datasets/deepdraft/rawtaps"); ap.add_argument("--ridge", default=os.path.join(CKD, "ridge_h2wd.npz"))
+    ap.add_argument("--replace", choices=["wd", "pred", "rawwd", "rawmap", "combo", "rollout", "stale", "sub"], default="wd"); ap.add_argument("--subk", type=int, default=64); ap.add_argument("--subfill", choices=["stale", "mean"], default="stale"); ap.add_argument("--dump", default=None); ap.add_argument("--refresh", type=int, default=1); ap.add_argument("--set", choices=["mbpp", "code"], default="mbpp"); ap.add_argument("--ctx", choices=["set", "bank"], default="set"); ap.add_argument("--featdir", default="~/datasets/deepdraft/rawtaps"); ap.add_argument("--ridge", default=os.path.join(CKD, "ridge_h2wd.npz"))
     ap.add_argument("--runs", default="t30b,tq2_C,tq2_T"); ap.add_argument("--out-name", dest="out_name", default="eval2.json")
     a = ap.parse_args()
     {"smoke": cmd_smoke, "train": cmd_train, "eval": cmd_eval, "evalrep": cmd_evalrep, "collect": cmd_collect}[a.cmd](a)

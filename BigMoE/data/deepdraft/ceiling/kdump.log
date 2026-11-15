@@ -1,0 +1,42 @@
+03:29:45 K-next verify dump: room NO-SWAP 43 GB -> run (HE+ 326 + MBPP 2,107 branches)
+Traceback (most recent call last):
+  File "/Users/kamen/BigMoE/scripts/g32_test.py", line 84, in <module>
+    rt, st = EM.load(EM.variant("ref"), C=C)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/EvalSuite/evalsuite/model.py", line 597, in load
+    rt, st = load_streamed(md, C, mtp=False)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/bigmoe/loader.py", line 91, in load_streamed
+    streamer.install_sidecars()          # BIGMOE_TIER only: LSB sidecars + rank-ordered MoE block (after every patch)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/bigmoe/stream.py", line 609, in install_sidecars
+    Ls, sideP, P = _tier.make_sidecar(ext, t["E"], t["C_l"], t["shapes4"], self._tier_dir, t["r"])
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/bigmoe/tier.py", line 288, in make_sidecar
+    assert hasattr(ext, "set_direct_split"), "native+p11+pad needs an ext from the lever-1 build"   # slots, the b's via a bounce
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: native+p11+pad needs an ext from the lever-1 build
+03:30:05 VDUMP-RUNNER-DONE rc 1
+03:30:20 re-run on ext build_g32 (build_next can't read the converted native+p11+pad store)
+03:30:40 K-next verify dump: room NO-SWAP 37 GB -> run (HE+ 326 + MBPP 2,107 branches)
+[bigmoe] tier 4433333333: C_m=175 C_l=112 per layer, 21.21 GB pools
+[dlog 03:30:43] E2: C 160, base pool C_m >= 175, rows per check 16, BIGMOE_MAXK 160
+[dlog 03:30:43] loaded in 1 s, 25.1 GB active; C 160; preset 45 (REF2-T 4433333333/3c, C_l 112, MAXK 160, build_next, L1-20 + cut 0.3; D-23's)
+[dlog 03:30:43] G32: BIGMOE_MAXK 160 (gate XLINES 4), ext build_g32, C 160, V32_MOE1 1
+[dlog 03:31:01] VDUMP heplus24: 1 / 24 windows, 21 branches, P(argmax == y) so far 0.238, 18 s
+[dlog 03:33:25] VDUMP heplus24: 11 / 24 windows, 173 branches, P(argmax == y) so far 0.127, 163 s
+[dlog 03:35:35] VDUMP heplus24: 21 / 24 windows, 272 branches, P(argmax == y) so far 0.173, 292 s
+[dlog 03:36:28] VDUMP heplus24 done: 326 branches -> /Users/kamen/BigMoE/data/deepdraft/ceiling/kdump_heplus24.jsonl; P(row past the miss's argmax == y) 0.1840; 345 s
+[dlog 03:36:38] VDUMP mbppbank: 1 / 100 windows, 13 branches, P(argmax == y) so far 0.000, 10 s
+[dlog 03:38:51] VDUMP mbppbank: 11 / 100 windows, 237 branches, P(argmax == y) so far 0.152, 143 s
+[dlog 03:42:31] VDUMP mbppbank: 21 / 100 windows, 569 branches, P(argmax == y) so far 0.172, 363 s
+[dlog 03:44:17] VDUMP mbppbank: 31 / 100 windows, 668 branches, P(argmax == y) so far 0.162, 469 s
+[dlog 03:46:20] VDUMP mbppbank: 41 / 100 windows, 848 branches, P(argmax == y) so far 0.170, 592 s
+[dlog 03:48:13] VDUMP mbppbank: 51 / 100 windows, 1015 branches, P(argmax == y) so far 0.164, 705 s
+[dlog 03:52:40] VDUMP mbppbank: 61 / 100 windows, 1305 branches, P(argmax == y) so far 0.168, 972 s
+[dlog 03:54:03] VDUMP mbppbank: 71 / 100 windows, 1399 branches, P(argmax == y) so far 0.167, 1055 s
+[dlog 03:56:34] VDUMP mbppbank: 81 / 100 windows, 1604 branches, P(argmax == y) so far 0.168, 1206 s
+[dlog 03:59:03] VDUMP mbppbank: 91 / 100 windows, 1771 branches, P(argmax == y) so far 0.169, 1355 s
+[dlog 04:03:17] VDUMP mbppbank done: 2107 branches -> /Users/kamen/BigMoE/data/deepdraft/ceiling/kdump_mbppbank.jsonl; P(row past the miss's argmax == y) 0.1656; 1609 s
+[dlog 04:03:17] VDUMP-ALL done; peak 28.6 GB
+04:03:31 VDUMP-RUNNER-DONE rc 0

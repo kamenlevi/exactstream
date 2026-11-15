@@ -1,0 +1,12 @@
+431a432,434
+>     if PERT.get("gate") == ("tiers",):                    # WEEK98 1c: the gated rows' MSB-3 ranks (keep3, rank-sorted)
+>         r3 = CUR["rm3"]; keep = np.zeros((len(G), 10), bool); gi = p0 + G; ok_ = gi < r3.shape[0]
+>         keep[ok_] = r3[gi[ok_], li]
+484c487
+<     if spec[0] in ("t3mask", "t3keep", "t3u"): return k   # set from the rank mask in measure() (t3u: NEVER-WAIT v3 (b), _nw3_setup)
+---
+>     if spec[0] in ("t3mask", "t3keep", "t3u", "tiers"): return k   # set from the rank mask in measure() (t3u: NEVER-WAIT v3 (b), _nw3_setup)
+534a538,540
+>         if PERT.get("gate") == ("tiers",):                  # WEEK98 1c (Breakthrough, Sun 15 Nov): every answer row is gated;
+>             kk = np.full(len(ids), 10, np.int32); kk[a:] = 0; CUR["k"] = kk    # the stock path serves the mask's 'keep' ranks at
+>             CUR["rm3"] = np.load(os.path.join(OUT, PERT["rmask"], nm))["keep3"]   # 4 bits, _t3_add its 'keep3' ranks at PERT['t3']

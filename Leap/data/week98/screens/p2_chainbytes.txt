@@ -1,0 +1,17 @@
+built base (as stored): 177.6 MB per step (screened head 47.2, layers.0.mlp 34.9, layers.0.self_attn 29.8, layers.0.attn_hyper_connection 13.2, layers.0.mlp_hyper_connection 13.2, hyper_connection_mixer 13.1, fc_embedding 13.1, fc_hidden 13.1)
+built bf16 Linears -> 8-bit: 146.9 MB per step (screened head 47.2, layers.0.mlp 34.9, layers.0.self_attn 29.8, layers.0.attn_hyper_connection 7.1, layers.0.mlp_hyper_connection 7.1, hyper_connection_mixer 7.0, fc_embedding 7.0, fc_hidden 7.0)
+built bf16 Linears -> 4-bit: 130.5 MB per step (screened head 47.2, layers.0.mlp 34.9, layers.0.self_attn 29.8, layers.0.attn_hyper_connection 3.8, layers.0.mlp_hyper_connection 3.8, hyper_connection_mixer 3.7, fc_embedding 3.7, fc_hidden 3.7)
+built head 16K rows: 154.0 MB per step (layers.0.mlp 34.9, layers.0.self_attn 29.8, screened head 23.6, layers.0.attn_hyper_connection 13.2, layers.0.mlp_hyper_connection 13.2, hyper_connection_mixer 13.1, fc_embedding 13.1, fc_hidden 13.1)
+built head 8K rows: 142.2 MB per step (layers.0.mlp 34.9, layers.0.self_attn 29.8, layers.0.attn_hyper_connection 13.2, layers.0.mlp_hyper_connection 13.2, hyper_connection_mixer 13.1, fc_embedding 13.1, fc_hidden 13.1, screened head 11.8)
+built 4-bit + head 8K: 95.1 MB per step (layers.0.mlp 34.9, layers.0.self_attn 29.8, screened head 11.8, layers.0.attn_hyper_connection 3.8, layers.0.mlp_hyper_connection 3.8, hyper_connection_mixer 3.7, fc_embedding 3.7, fc_hidden 3.7)
+all built at 0 s; active 2.7 GB
+
+variant | MB per step | step ms (median) | p10-p90 | top-1 == base (synthetic states, info)
+base (as stored) | 177.6 | 1.147 | 1.112-1.231 | 1.000
+bf16 Linears -> 8-bit | 146.9 | 1.065 | 1.041-1.143 | 0.633
+bf16 Linears -> 4-bit | 130.5 | 1.008 | 0.976-1.099 | 0.469
+head 16K rows | 154.0 | 1.052 | 1.026-1.148 | 0.688
+head 8K rows | 142.2 | 1.009 | 0.983-1.076 | 0.609
+4-bit + head 8K | 95.1 | 0.864 | 0.845-0.932 | 0.266
+P2 verdict: CLOSE the chain-step diet (no variant <= 0.5 ms and <= 60 MB); fastest 4-bit + head 8K 0.864 ms at 95.1 MB (base 1.147 ms, 177.6 MB); 32 steps: base 36.7 ms -> fastest 27.6 ms
+done in 4 s; peak 2.9 GB

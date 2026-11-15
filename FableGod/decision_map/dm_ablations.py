@@ -195,6 +195,8 @@ def ablation(name):
     every row and layer; e.g. moe_reuse_prev_L12_35, moe_reuse_lag4_L12_35, moe_reuse_chain1_L08_35_topk2."""
     if re.match(r"d\d+_", name) and name not in ABLATIONS:   # (Breakthrough, Wed 11 Nov) BigMoE's D2 family d<k>_* lives in
         import dm_d2  # noqa: F401                           # dm_d2.py (BigMoE's file), imported only when one is asked for
+    if name.startswith("bt_") and name not in ABLATIONS:   # (Breakthrough, Sun 15 Nov) WEEK98 goal-B screens live in dm_bt.py
+        import dm_bt  # noqa: F401
     if name in ABLATIONS: return ABLATIONS[name]
     if "+" in name:                                      # FLOOR night stacks (Tue 07:0x): a+b runs both setups in order
         parts = [ablation(p) for p in name.split("+")]

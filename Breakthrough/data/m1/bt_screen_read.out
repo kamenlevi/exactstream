@@ -1,0 +1,15 @@
+WEEK98 goal-B map screens, code windows: flips % vs baseline (all rows / non-tie), [95 % window bootstrap]
+| arm | windows | all-row (level 1.34) | non-tie (level 0.87) | prediction |
+|---|---|---|---|---|
+| bt_comb + shortlist | 12 | 1.25 [0.45, 2.30] | 0.60 [0.19, 1.06] | 1.53 additive / ~1.23 tie-aware; non-tie 0.65 [0.61, 0.68] |
+| bt_comb | 12 | 1.22 [0.43, 2.20] | 0.57 [0.19, 1.01] | 1.53 additive / ~1.23 tie-aware; non-tie 0.65 [0.61, 0.68] |
+| bt_mix4 | 12 | 1.16 [0.41, 2.12] | 0.48 [0.17, 0.84] | +0.42 / +0.12 (confounded) |
+| bt_ga3 | 12 | 4.43 [2.15, 7.37] | 3.62 [1.90, 5.78] | none (D3 bound up to +7.4 non-tie) |
+| bt_1c | 12 | 1.13 [0.36, 2.28] | 0.48 [0.11, 0.97] | 1.08 [0.99, 1.15] / 0.50 [0.46, 0.53] |
+| hc8w | 12 | 0.33 [0.06, 0.64] | 0.06 [0.00, 0.15] | reference |
+| t4_all | 12 | 0.33 [0.10, 0.56] | 0.06 [0.00, 0.15] | reference |
+
+(a) bt_comb: BOTH LINES MET: 1c + 4-bit mixers + shortlist is the code plan (24.9 ms at 84 %) -> BigMoE integration + EvalSuite code gate
+(b) bt_mix4: keep 8-bit mixers (HC8, shipped)
+(c) bt_ga3: CLOSED until a better quantizer
+(d) bt_1c: expert calibration HOLDS (prediction 1.08 / 0.50, +-50 %); dense increment bt_comb - bt_1c = +0.09 all-row / +0.09 non-tie (bt_mix4 alone: 1.16 / 0.48)

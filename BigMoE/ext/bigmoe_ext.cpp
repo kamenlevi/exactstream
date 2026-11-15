@@ -584,7 +584,9 @@ static int g_plines = std::max(0, std::min(4, getenv("BIGMOE_PRED_LINES") ? atoi
 // entries of 3 lines (slots 0..30 | 31..61 | 62..92). The default (MAXK <= 61) layout is unchanged.
 // R-55 GATE16 (MAXK 93..185): k = 2..4 id lines ([seq, ids61..91] [seq, ids92..122] ...) and entries of 2 + k lines, so a
 // 16-row check (16 x top-10 = 160 ids, k = 4) takes the sync-free gate. MAXK <= 92 keeps the layout above.
-static int xlines_of(const char* s) { int k = s ? atoi(s) : 0; return k > 61 ? std::min(4, (k - 61 + 30) / 31) : 0; }
+// G32 (Sun 15 Nov, Leap's 32-row exact-check spec a821edc): up to 9 id lines (MAXK 186..340), so a 32-row check (32 x top-10
+// = 320 ids) takes the sync-free gate; entries of 2 + k lines (RS up to 352). MAXK <= 185 keeps the layouts above.
+static int xlines_of(const char* s) { int k = s ? atoi(s) : 0; return k > 61 ? std::min(9, (k - 61 + 30) / 31) : 0; }
 static int g_xlines = xlines_of(getenv("BIGMOE_MAXK"));
 static int g_rs = 32 * (2 + g_xlines);                // ints per release-region entry (64 | 96 | ... | 192)
 static int g_row = 96 + 32 * g_plines + 32 * g_xlines, g_pcap = 30 + 31 * g_plines;
@@ -752,7 +754,18 @@ static void vt_copy(const Layer& ly, int s, int t, bool to_tier) {   // pool slo
 
 // ids -> slots (in place into out). Loads misses (blocking). Caller holds g_mu.
 static std::atomic<int64_t> g_qom_skip{0}, g_qom_opt{0};   // QOM: optional-only misses not read / optional uses seen
-static void ensure(int L, const int32_t* ids_in, int n, int32_t* out) {
+// G32 overflow guard (Sun 15 Nov 2026; Leap's split 02:5x). A gate call (the sync-free gate's row, <= 340 ids) whose distinct
+// experts exceed the layer's pool aborted below. BIGMOE_OVERFLOW_FLAG=1: instead every use of that call gets slot 0 (a valid
+// slot: the tier kernels cast base slots to uint, so never -2), nothing is read, and g_ovf_count counts the call. The output is
+// finite garbage that the host discards: it reads overflow_count() after the verify's readback, rolls the check back and redoes
+// it as <= 16-row checks. Test hook BIGMOE_FORCE_OVERFLOW=<ext layer>[:<min ids>]: that layer's gate calls with >= min ids
+// (default 161: 17+ rows) take this path on purpose. Calls from the sync route (prefill, ext.route) still abort, as before.
+static bool g_ovf_flag = getenv("BIGMOE_OVERFLOW_FLAG") && atoi(getenv("BIGMOE_OVERFLOW_FLAG"));
+static int g_ovf_force_L = getenv("BIGMOE_FORCE_OVERFLOW") && *getenv("BIGMOE_FORCE_OVERFLOW") ? atoi(getenv("BIGMOE_FORCE_OVERFLOW")) : -1;
+static int g_ovf_force_min = getenv("BIGMOE_FORCE_OVERFLOW") && strchr(getenv("BIGMOE_FORCE_OVERFLOW"), ':')
+                               ? atoi(strchr(getenv("BIGMOE_FORCE_OVERFLOW"), ':') + 1) : 161;
+static std::atomic<int64_t> g_ovf_count{0};
+static void ensure(int L, const int32_t* ids_in, int n, int32_t* out, bool gate_call = false) {
   Layer& ly = g_layers.at(L);
   // QOM (BigMoE Wed 11-04; Breakthrough's keep-set rule, ~/Breakthrough/keepset): bit 21 of an id marks an OPTIONAL use (a
   // sure row's rank 2-9 expert outside the check's loads). An expert whose every use is optional is served from the pool
@@ -774,7 +787,15 @@ static void ensure(int L, const int32_t* ids_in, int n, int32_t* out) {
     if (anyopt && !((ids_in[i] >> 21) & 1)) req[it - need.begin()] = 1;
     if (rk) { int8_t& m = mr[it - need.begin()]; m = (int8_t)std::min<int>(m, i % ly.rank_k); }
   }
-  if ((int)need.size() > ly.C_main) { fprintf(stderr, "bigmoe: %zu experts > C=%d at layer %d\n", need.size(), ly.C_main, L); abort(); }
+  const bool ovf_force = gate_call && g_ovf_force_L == L && n >= g_ovf_force_min;
+  if ((int)need.size() > ly.C_main || ovf_force) {
+    if (gate_call && (g_ovf_flag || ovf_force)) {   // G32 overflow guard: slot 0 for every use, nothing read, counted
+      for (int i = 0; i < n; i++) out[i] = 0;
+      g_ovf_count.fetch_add(1);
+      return;
+    }
+    fprintf(stderr, "bigmoe: %zu experts > C=%d at layer %d\n", need.size(), ly.C_main, L); abort();
+  }
   if (g_lfu_decay > 0) {
     if (ly.lfu.empty()) ly.lfu.assign(ly.E, 0.0);
     ly.lfu_w /= g_lfu_decay;
@@ -1209,7 +1230,7 @@ class PostIds : public Primitive {
     enc.set_input_array(in[1], 6);
     enc.set_bytes(np, 7);
     if (g_post_bump) enc.set_input_array(*g_post_bump, 4);   // unused by the kernel; triggers MLX's commit
-    int nt = g_xlines > 1 ? 192 : g_xlines ? 128 : 64;                       // R-55: up to 185 ids
+    int nt = g_xlines > 4 ? 352 : g_xlines > 1 ? 192 : g_xlines ? 128 : 64;   // R-55: up to 185 ids; G32: up to 340
     enc.dispatch_threads(MTL::Size(nt, 1, 1), MTL::Size(nt, 1, 1));   // one thread per id (table lookup)
   }
   DEFINE_NAME(PostIds)
@@ -1677,7 +1698,8 @@ static void loader_main() {
       if (n < 0 || n > g_maxk) { fprintf(stderr, "bigmoe: bad n=%d at layer %d\n", n, L); abort(); }
       {
         std::lock_guard<std::mutex> lk(g_mu);
-        int32_t ids_copy[256];
+        int32_t ids_copy[352];                       // G32 fix (Sun 02:5x): n <= g_maxk <= 340 (gated.py); 256 overflowed at
+                                                     // 32 rows (320 ids): stack corruption, then "bad expert id" in the loop
         {                                            // fresh line tags != fresh sectors: every id word must carry
           double t_st = 0; int64_t rr = 0;           // this post's stamp (re-read until it does), then strip it
           for (;;) {
@@ -1697,7 +1719,7 @@ static void loader_main() {
         if (g_jit) { g_srv[L] = seq; if (g_early) { if (g_s10b_res) s10b_res(L, seq); schedule(L, seq, row); pump(); } }
         if (g_side0 > 0 && L < g_nbase) joint_side(L, seq);   // JOINT: the sidecar row's reads first, in the background
         t_e0 = g_trace ? now_s() : 0;
-        ensure(L, ids_copy, n, g_ring + ring_off(L, (uint64_t)seq));
+        ensure(L, ids_copy, n, g_ring + ring_off(L, (uint64_t)seq), true);   // gate call: the overflow guard applies
         t_e1 = g_trace ? now_s() : 0;
         if (L + 1 < g_nl) {                         // remember L+1's look-ahead set for the miss split
           int np0 = row[65], k1 = std::min(np0 & 255, g_pcap);
@@ -2122,6 +2144,8 @@ NB_MODULE(bigmoe_ext, m) {
     rebuild_w4(w3.data<uint32_t>(), l1.data<uint32_t>(), out.data<uint32_t>(), (int64_t)out.size() / 4);
   });
   m.def("stage_wait", [](int b) { if (g_sgrp[b]) dispatch_group_wait(g_sgrp[b], DISPATCH_TIME_FOREVER); });
+  m.def("overflow_count", []() { return (int64_t)g_ovf_count.load(); });   // G32 overflow guard: gate calls that overflowed
+  m.def("overflow_mode", []() { return std::vector<int>{(int)g_ovf_flag, g_ovf_force_L, g_ovf_force_min}; });
   m.def("lookup", [](int L, std::vector<int32_t> ids) {   // slot or -1, no loading
     std::lock_guard<std::mutex> lk(g_mu);
     Layer& ly = g_layers.at(L);

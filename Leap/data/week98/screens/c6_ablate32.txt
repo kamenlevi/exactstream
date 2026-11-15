@@ -1,0 +1,20 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=25.6 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+C6 Sun 15 Nov 02:50:34: MLX 0.32.2; slice GGGAGGGAGGGA, 18.5 GB active; SB 4
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (1320496 > 262144). Running this sequence through the model will result in indexing errors
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+12 layers, 12 rounds, SB 4 (contexts 1024 -> 1472); ms per check (python build inside):
+  A16        22.67 ms (build  12.13 ms, 0.54 of it) = 1.000 x A16
+  B2x16      45.50 ms (build  24.87 ms, 0.55 of it) = 2.007 x A16
+  C20        31.46 ms (build  20.41 ms, 0.65 of it) = 1.387 x A16
+  C24        33.13 ms (build  21.32 ms, 0.64 of it) = 1.461 x A16
+  C32        35.81 ms (build  22.25 ms, 0.62 of it) = 1.579 x A16
+  noMOE1     41.69 ms (build  27.61 ms, 0.66 of it) = 1.839 x A16; step worth +0.260 x A16
+  noGDN32    35.78 ms (build  21.95 ms, 0.61 of it) = 1.578 x A16; step worth -0.001 x A16
+  noHC32     34.77 ms (build  21.37 ms, 0.61 of it) = 1.534 x A16; step worth -0.046 x A16
+  noMR2      37.18 ms (build  21.52 ms, 0.58 of it) = 1.640 x A16; step worth +0.060 x A16
+  R32 = C32 / A16 1.579; B2x16 / A16 2.007
+done in 13 s; peak 21.3 GB

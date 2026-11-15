@@ -38,3 +38,18 @@ your turn after 10s: quiet lock held until 21:45. Measure now, and `peer unlock`
 11-14 21:17:31   b24 rc 0; lifetime peak 23.91 GB; probe lines 23; 
 11-14 21:17:31 a45 not in this ticket: one read 41 GB vs 47
 11-14 21:17:31 ticket released
+11-15 00:49:42 a45 did not run by the cutoff (NO-SWAP 32 GB; free 9.9 + purgeable 0.8 + file-backed 21.6 (speculative 3.6 inside); anon 28.3, compressor 2.6); re-arm for another night
+== b24 (cli_1114_211646): probe checks 23 (trigger own, ref_ok 10, loose 10), errors 0 []; tokens == REF2 []; peak 23.91 GB; power mode 2 at 11-14 21:16:46
+   in-run reference: live checks at 13 rows (probed checks and the next left out) median 81.5 ms (n 29; misses 184, SSD wait 34.2 ms); per layer 1.70
+   probe: dense only 1 / 13 / 32 rows 30.6 / 23.1 / 181.3 ms (n 23 / 23 / 20); real 32 rows (slot path, fast gate off) 2814.7 ms, misses 0, SSD wait 0.0 ms (n 3)
+   per layer (/ 48): d1 0.64, d16 0.48, d32 3.78, s32 58.64
+   split at 13 rows (n 10, rows 13): live check 76.1 ms = dense 23.9 + experts and misses 53.7 (misses 130, SSD wait 23.9 ms); per layer 1.59 = 0.50 + 1.12
+   split at all rows (n 20, rows 10): live check 62.0 ms = dense 23.2 + experts and misses 36.9 (misses 110, SSD wait 21.1 ms); per layer 1.29 = 0.48 + 0.77
+   d1: build 8.7 ms (thread CPU 8.4) + wait 21.8 ms (thread CPU 15.1)
+   d16: build 18.3 ms (thread CPU 17.7) + wait 5.0 ms (thread CPU 0.7)
+   d32: build 14.7 ms (thread CPU 11.3) + wait 168.1 ms (thread CPU 59.5)
+   s32: build 2807.3 ms (thread CPU 1271.0) + wait 7.5 ms (thread CPU 2.4)
+11-15 00:49:42 DONE
+11-15 00:49:42 exit (NO-SWAP 32 GB, swap 7085 MB)
+11-15 00:50:58 armed (pid 12468, v6): cc3 screen 3, a45 only with the probe; from 2026-11-15 21:00:00, every run ends by 2026-11-16 01:00:00
+11-15 00:50:59   flag check a45 (exact-45, R57_WARMSPLIT=4 CC3_REFLOOSE=1): PASS (the real loop reached its model load)

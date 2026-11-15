@@ -1,0 +1,16 @@
+C3 Sun 15 Nov 01:24:58: MLX 0.32.2; slice GGGA (PLE layer [1]), 6.7 GB active, loaded in 1 s; ref2 forms on: ['att_rope', 'commit_phase', 'dense_native', 'experts', 'gdn_body', 'gdn_exact', 'gdn_inproj_x', 'hc_b', 'hc_gate', 'hc_write', 'idx_prep', 'keep_caches', 'key_buckets', 'nax_coh', 'ple_late', 'sb_first', 'sdpa_classes', 'slot_call', 'tiers']
+T1 forward: one M-row verify (v32) vs <= 16-row verifies of the same rows (full accepts between)
+  M 32: rows bitwise 32 / 32 (max |diff| 0); v32 wrappers fired {'qmm': 19, 'lin': 2, 'gr': 9, 'att': 1, 'gdn': 0, 'moe': 0, 'moeblk': 4, 'moe1': 4, 'mr2': 11}; v32mr2 {'gdn32': 3, 'gdn32_declined': 0}
+  M 17: rows bitwise 17 / 17 (max |diff| 0); v32 wrappers fired {'qmm': 19, 'lin': 2, 'gr': 9, 'att': 1, 'gdn': 0, 'moe': 0, 'moeblk': 4, 'moe1': 4, 'mr2': 11}; v32mr2 {'gdn32': 6, 'gdn32_declined': 0}
+  M 24: rows bitwise 24 / 24 (max |diff| 0); v32 wrappers fired {'qmm': 19, 'lin': 2, 'gr': 9, 'att': 1, 'gdn': 0, 'moe': 0, 'moeblk': 4, 'moe1': 4, 'mr2': 11}; v32mr2 {'gdn32': 9, 'gdn32_declined': 0}
+  M 31: rows bitwise 31 / 31 (max |diff| 0); v32 wrappers fired {'qmm': 19, 'lin': 2, 'gr': 9, 'att': 1, 'gdn': 0, 'moe': 0, 'moeblk': 4, 'moe1': 4, 'mr2': 11}; v32mr2 {'gdn32': 12, 'gdn32_declined': 0}
+T2 commit: a 32-row verify (v32), commit keep k, then a 4-row probe; vs k rows verified as <= 16-row checks, same probe
+  keep 1: probe rows bitwise 4 / 4 (max |diff| 0)
+  keep 9: probe rows bitwise 4 / 4 (max |diff| 0)
+  keep 16: probe rows bitwise 4 / 4 (max |diff| 0)
+  keep 17: probe rows bitwise 4 / 4 (max |diff| 0)
+  keep 24: probe rows bitwise 4 / 4 (max |diff| 0)
+  keep 31: probe rows bitwise 4 / 4 (max |diff| 0)
+ref2 forms that ran (counts): {'mlx16': 1145, 'linear': 56, 'hc_read': 418, 'hc_eager16': 50, 'attention': 23, 'experts': 123, 'kb_pad': 50, 'att_rope': 50, 'idx_prep': 142, 'hc_write': 123, 'gdn_inproj_x': 93, 'gdnb': 159, 'hc_b': 418, 'verify_old': 71, 'verify_old_eligible': 50, 'dense_native': 439, 'dense_native_repack': 13, 'sb_first': 15, 'ple_late': 15}
+C3 verdict: ALL BITWISE (V32_MOE1=1, V32_MR2=1, V32_GDN32=1, REF2_DENSE_NATIVE=1); v32 counts at the end {'qmm': 148, 'lin': 20, 'gr': 69, 'att': 7, 'gdn': 0, 'moe': 0, 'moeblk': 31, 'moe1': 31, 'mr2': 86}
+done in 12 s; peak 8.7 GB

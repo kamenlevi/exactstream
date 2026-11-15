@@ -83,7 +83,8 @@ if TIER:
         os.environ.pop("BIGMOE_TIER_COMBINE", None)      # R57_COMBINE=1 keeps it for the OOO arm
 _PF_ARM = bool({"gate+pf", "gate+t+pf"} & set(os.environ.get("R57_ARMS", "slot,gate,gate+pf").split(",")))   # look-ahead arms
 os.environ.setdefault("BIGMOE_MAXK", "160")             # the default since R-55's adoption (gated.py); explicit for the asserts
-assert os.environ.get("BIGMOE_MAXK") == "160", "see Usage"
+assert os.environ.get("BIGMOE_MAXK") == "160" or (os.environ.get("R57_G32TEST") and os.environ.get("BIGMOE_MAXK") == "320"), \
+    "see Usage (MAXK 320 only under R57_G32TEST, the G32 test mode)"
 sys.path.insert(0, os.path.expanduser("~/BigMoE"))
 sys.path.insert(0, os.path.expanduser("~/Leap/scripts"))
 sys.path.insert(0, os.path.expanduser("~/EvalSuite"))
@@ -166,6 +167,10 @@ CHATTRUNC = float(os.environ.get("R57_CHATTRUNC", "0"))
 FAST = os.environ.get("R57_FAST", "")
 RLX_D = float(os.environ.get("R57_RELAX_DELTA", "0") or 0)   # R57_RELAX_DELTA=<nats> (MoonShots' relax_delta.py): relaxed
 RLX_THR = RLX_COPY = None                                    # acceptance at any delta (EvalSuite's R1); R57_RELAX_GATE
+RLX_SETS = {x_ for x_ in os.environ.get("R57_RELAX_DELTA_SETS", "").split(",") if x_}   # CLOSE-CALL (Sun 15 Nov; EvalSuite 03:0x,
+                                                             # Breakthrough's R1(1 nat) pricing 3c09867): R1(delta) only on these
+                                                             # sets (unset = every set, as before); runs.json "close_call":
+                                                             # {"accepted": n} = committed non-top-1 drafts kept only by R1(delta)
 if RLX_D > 0:                                                # (cf:<thr> / copy / both) picks the rows that may relax;
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # R57_RELAX_LOG logs each relaxed accept. 0 / unset =
     import relax_delta as RLD                                # exact: none of the RLX blocks below runs
@@ -355,7 +360,8 @@ import bigmoe.stream as BS
 import bigmoe.gated as BG
 from mtplx import cache_state as CS
 Q = ref2.Q
-assert BG.MAXK == 160 and BG.XLINES == 4 and (not _PF_ARM or PF_B <= 30 + 31 * BS._PRED_LINES), (PF_B, BS._PRED_LINES)
+assert ((BG.MAXK == 160 and BG.XLINES == 4) or (os.environ.get("R57_G32TEST") and BG.MAXK == 320 and BG.XLINES == 9)) \
+    and (not _PF_ARM or PF_B <= 30 + 31 * BS._PRED_LINES), (BG.MAXK, BG.XLINES, PF_B, BS._PRED_LINES)
 if TIER and os.environ.get("R57_COMBINE") == "1":       # R-69 (Leap R-69L/R-69D): EM.load's block does the sorted top-k
     import bigmoe.tier as _BT                            # and MLX's combine itself, so tier_call never got the scores and
     from mtplx.models import qwen4_exp as _QX            # TIER_COMBINE / OOO never engaged. This copy of EvalSuite's
@@ -974,10 +980,12 @@ _midloop = Q._prefill_midloop_eval_layers
 SB_LO = 1 if os.environ.get("R57_SB1") == "1" else 2     # Leap's C0 timeline (11-02): 1-row checks build their graph without the
                                                          # midloop async_eval (warm 48 vs 44 ms at 2 rows); R57_SB1=1 = from 1 row
 SBN = int(os.environ.get("R57_SBN", "4") or "4")         # Leap S2 (Sat): submit every SBN layers on SB's 2-16-row checks (4 = today)
+SB_HI = 32 if os.environ.get("R57_G32TEST") else 16      # G32T (Leap 03:0x): SB on 17-32-row checks too under R57_G32TEST (scheduling
+                                                         # only; the time mode's C32 / B2x16 logits are compared bitwise per round)
 def ref_on(on):
     if on:
         ref2.apply()
-        Q._prefill_midloop_eval_layers = lambda rows: _midloop(rows) or (SBN if SB_LO <= int(rows) <= 16 else 0)   # SB
+        Q._prefill_midloop_eval_layers = lambda rows: _midloop(rows) or (SBN if SB_LO <= int(rows) <= SB_HI else 0)   # SB
     else:
         ref2.remove()
         Q._prefill_midloop_eval_layers = _midloop
@@ -1114,6 +1122,22 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
         ctx = T[start:P]
     a = P
     tok = int(mx.argmax(last).item())
+    rp_ = None
+    if RPL is not None and RPL["key"] is not None:       # R57_REPLAY: this key's reference row (teacher forcing from token 0);
+                                                         # the loop's warm-up runs (no key yet) decode as usual (discarded)
+        assert not mtp, "R57_REPLAY: the DFlash2 drafter path only (the MTP head's history is not wired)"
+        rr_ = RPL["rows"].get(RPL["key"])
+        assert rr_ is not None, f"R57_REPLAY: no row for {RPL['key']}"
+        assert rr_.get("n_prompt") in (None, len(ids)) and rr_.get("prompt_ids") in (None, list(ids)), \
+            f"R57_REPLAY: {RPL['key']}'s prompt differs from the row's"
+        ref_ = [int(x_) for x_ in (rr_["completion_ids"] if "completion_ids" in rr_ else rr_["ref_ids"])][:RPL["cap"]]
+        assert ref_, f"R57_REPLAY: {RPL['key']}'s reference is empty"
+        lp_ = last.reshape(-1).astype(mx.float32)
+        t2p_ = mx.topk(lp_, 2)
+        mgp_, drp_ = mx.abs(t2p_[0] - t2p_[1]), lp_[ref_[0]] - lp_.max()
+        mx.eval(mgp_, drp_)
+        rp_ = dict(ref=ref_, pos=[(0, tok, ref_[0], round(mgp_.item(), 4), round(drp_.item(), 4), "pf")])
+        tok = ref_[0]                                    # the prefill's pick is logged as position 0 ("pf"), then forced
     tpf_ = time.perf_counter() - tpf_                    # s: prefill + the cache / drafter setup + the first token
     pfb_ = disk_read_bytes() if pfst_ is not None else 0  # R57_PFSTAT: the prefill's SSD bytes end here (A6's pre-loop steps excluded below)
     if pfst_ is not None:                                # CT1: routed expert-layers, and those already resident at the start (PF-D's
@@ -1131,6 +1155,8 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
     scan = RXC.CodeScan() if fz and fz["loop"] else None
     rgrams = RXC.prompt_grams(ids) if RLX_D > 0 and RLX_COPY else None   # R57_RELAX_GATE copy: its own grams (FAST's stay)
     rst = dict(rows=0, kx=0, k=0, relaxed=0)              # R57_RELAX_DELTA per run: rows checked, kept exact / in all, relaxed
+    rlx_ = RLX_D > 0 and (not RLX_SETS or fset in RLX_SETS)   # R57_RELAX_DELTA engaged on this prompt's set (R57_RELAX_DELTA_SETS)
+    ccn_ = [0]                                           # close_call: committed non-top-1 drafts kept only by R1(delta)
     rlog = RLD.Log(os.environ.get("R57_RELAX_LOG", "")) if RLX_D > 0 else None
     assert not (SPAN and fz and fz["loop"]), "R57_RELAX_SPAN replaces the FAST arm's comment loop: use an arm without it"
     sscan = RXC.CodeScan() if SPAN else None             # R57_RELAX_SPAN: the causal comment tagger, fed the answer's text
@@ -1240,6 +1266,8 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
         hist = time.perf_counter() - td
     del ws
     while len(out) < CAP and tok not in EOS:
+        if rp_ is not None and len(out) >= len(rp_["ref"]):   # R57_REPLAY: the reference row (or R57_REPLAY_CAP) ends here
+            break
         if el() > HARD:
             cut = True
             break
@@ -1270,9 +1298,12 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
                 mx.eval(pth, cf)                         # off: np.array(pth) then np.array(cf) can each wait on the GPU
             dr = np.array(pth[0]).tolist()
             cfl = np.array(cf[0]).tolist()
+            if rp_ is not None:                          # R57_REPLAY: the drafts = the next reference tokens at the drafter's
+                dr = rp_["ref"][len(out):len(out) + len(dr)]   # full width (D17: 16, the 16th gating the last row); every row
+                cfl = [1.0] * len(dr)                    # sure (QOM at thr 0 marks every drafted row sure anyway)
             x16 = c16 = None
-            if _d17:                                     # MTP Head's draft17.split17: today's 15-draft block + the extra
-                dr, cfl, x16, c16 = D17M.split17(dr, cfl, R_)
+            if _d17 and len(dr) >= R_:                   # MTP Head's draft17.split17: today's 15-draft block + the extra
+                dr, cfl, x16, c16 = D17M.split17(dr, cfl, R_)   # (R57_REPLAY: a block cut by the reference's end has no 16th)
             cf_raw = list(cfl)
             if cg is not None:                           # R57_COPY: the gated copy over the whole block, before the cut
                 t_ = time.perf_counter()
@@ -1285,6 +1316,8 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
                     dr, cfl = dr[:15], cfl[:15]
                 elif CRUN == 64 and R_ == 64:            # R57_COPYRUN=64 (exact): a long verbatim run goes on past the
                     d0_, dr, cu_, ci_, cfl = INM.copyrun_extend(cg, d0_, dr, cu_, ci_, cfl, R_)   # drafter's 31 picks
+            if rp_ is not None and cg is not None:       # R57_REPLAY: the copy ran as in decoding (its state, its counters),
+                dr, cfl = list(d0_), [1.0] * len(d0_)    # but the block stays the reference at full width
             if iscan is not None:                        # R57_INERT: rows in a span are sure in the cut; a longer block
                 idx_ = [_TKZ.decode([int(x)]) for x in dr]   # keeps its drafts past the 15th only inside a span (or a copy)
                 in_, cfl, _ = INM.pre_block(RXC, iscan, dr, cfl, idx_, INERT, cu_ if cg is not None else None)
@@ -1297,7 +1330,7 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
                     sq_ = np.array([g_ == 1 for g_ in RXC.gate_rows(cg_, tl_, dr, fz["thr"], None)])   # builds the union
                 else:                                    # mask per layer
                     fk_ = RXC.keep_mask(RXC.gate_rows(cg_, tl_, dr, fz["thr"], grams))
-            if RLX_D > 0 and (RLX_THR is not None or RLX_COPY):   # R57_RELAX_DELTA: the row gate, on the block before the cut
+            if rlx_ and (RLX_THR is not None or RLX_COPY):   # R57_RELAX_DELTA: the row gate, on the block before the cut
                 tlr = out[-RXC.COPY_N:] if len(out) >= RXC.COPY_N else ids[len(out) - RXC.COPY_N:] + out
                 cgr = (cf_raw if cg is None else [c_ if d_ == x_ else 0.0 for c_, d_, x_ in zip(cf_raw, d0_, dr)])
                 rg_ = RLD.gate_flags(RXC, RLX_THR, RLX_COPY, cgr, tlr, dr, rgrams)
@@ -1444,6 +1477,16 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
         if TCPU:                                         # R57_TCPU: main-thread CPU ms of this check's build and wait
             tc_.append([round(1e3 * (tcb_ - t1_), 2), round(1e3 * (time.thread_time() - tcb_), 2)])
         am = am.tolist()
+        if rp_ is not None:                              # R57_REPLAY: row j judges ref[len(out) + j] (the last row: the next
+            j0_ = len(out)                               # block's first token); its pick, its own top-1 minus top-2 margin,
+            tg_ = rp_["ref"][j0_:j0_ + len(dr) + 1]      # and logit(ref) - max logit, in nats
+            lr_ = lg[0, :len(tg_)].astype(mx.float32)
+            t2r_ = mx.topk(lr_, 2, axis=-1)
+            mgr_ = mx.abs(t2r_[:, 0] - t2r_[:, 1])
+            dfr_ = mx.take_along_axis(lr_, mx.array(tg_, dtype=mx.int32)[:, None], axis=-1)[:, 0] - lr_.max(axis=-1)
+            mx.eval(mgr_, dfr_)
+            for j_, (t_, m_, d_) in enumerate(zip(tg_, mgr_.tolist(), dfr_.tolist())):
+                rp_["pos"].append((j0_ + j_, int(am[j_]), int(t_), round(m_, 4), round(d_, 4), "b" if j_ == len(dr) else "d"))
         if rx2:
             dlm2, drk2 = dlv_.tolist(), rkv_.tolist()
         if PREROUTE and EM.STATE.capture is not None:   # R57_PREROUTE: score this check's pre-routes
@@ -1470,7 +1513,7 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
             while k < len(dr) and (dr[k] == am[k] or any(RXC.rule_ok(r_, dlm[k], drk[k]) for r_ in
                                                           fz["rules"] + ((fz["loop"],) if k in cm_ else ()))):
                 k += 1
-        if RLX_D > 0 and dr and (rg_ is not None or (RLX_THR is None and not RLX_COPY)):   # R57_RELAX_DELTA
+        if rlx_ and dr and (rg_ is not None or (RLX_THR is None and not RLX_COPY)):   # R57_RELAX_DELTA
             if rx2 and (fz is None or not (fz["rules"] or fz["loop"])):   # R57_RELAX_V2: from the one readback
                 dlm, drk, cm_ = dlm2, drk2, set()
             elif fz is None or not (fz["rules"] or fz["loop"]):     # dlm / rank (the R57_FAST block computed them otherwise)
@@ -1483,6 +1526,8 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
             fok = None if fz is None or not (fz["rules"] or fz["loop"]) else (
                 lambda j: any(RXC.rule_ok(r_, dlm[j], drk[j]) for r_ in fz["rules"] + ((fz["loop"],) if j in cm_ else ())))
             k, rl_ = RLD.relaxed_k(dr, am, dlm, RLX_D, rg_, fok)  # the exact rule, the arm's rules, or R1(delta) where gated
+            if not SPAN:                                 # close_call: the rows kept only by R1(delta) (SPAN recounts below)
+                ccn_[0] += len(rl_)
             rst["rows"] += len(dr) + 1; rst["kx"] += kx0 + 1; rst["k"] += k + 1; rst["relaxed"] += len(rl_)
             for j in rl_:
                 rlog.write(prompt=name, check=FG["chk"], row=j, draft=int(dr[j]), argmax=int(am[j]), dlm=round(dlm[j], 4),
@@ -1506,12 +1551,17 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
                 dtx = [_TKZ.decode([int(x)]) for x in dr]
                 atx = [_TKZ.decode([int(x)]) for x in am[:len(dr)]]
                 srows, spre = RSP.span_rows(RXC, sscan, dtx, atx)   # conditions 1-4 (a copy of the tagger is fed the drafts)
-            rlx_on = RLX_D > 0 and (rg_ is not None or (RLX_THR is None and not RLX_COPY))   # the combined arm: v1's R1 gate
+            rlx_on = rlx_ and (rg_ is not None or (RLX_THR is None and not RLX_COPY))   # the combined arm: v1's R1 gate
             rlx_ok = (lambda j: (rg_ is None or bool(rg_[j])) and sdlm[j] >= -RLX_D) if rlx_on else None
             fok_s = None if (fz is None or not fz["rules"]) and rlx_ok is None else (
                 lambda j: (fz is not None and any(RXC.rule_ok(r_, sdlm[j], sdrk[j]) for r_ in fz["rules"]))
                 or (rlx_ok is not None and rlx_ok(j)))
             k, sl_ = RSP.span_k(dr, am, sdlm, sdrk, srows, SPAN_RULE, fok_s)   # exact, the arm's rules, or rule C
+            if rlx_on:                                   # close_call: what the base's own rules (rule C, the arm's rules) keep
+                fokb_ = None if fz is None or not fz["rules"] else (     # without R1(delta); the non-top-1 rows past that point
+                    lambda j: any(RXC.rule_ok(r_, sdlm[j], sdrk[j]) for r_ in fz["rules"]))   # were kept only by R1(delta)
+                kb_, _ = RSP.span_k(dr, am, sdlm, sdrk, srows, SPAN_RULE, fokb_)
+                ccn_[0] += sum(1 for j_ in range(kb_, k) if dr[j_] != am[j_])
             sst["rows"] += len(dr) + 1; sst["kx"] += kx0 + 1; sst["k"] += k + 1; sst["relaxed"] += len(sl_)
             sst["span_rows"] += len(srows)
             for j in sl_:
@@ -1539,6 +1589,11 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
                            dlm=round(idlm[j], 4), cf=round(float(cf_raw[j]), 4) if j < len(cf_raw) else None)
         if fz is not None:
             fst["k"] += k + 1
+        nxt_ = am[k]
+        if rp_ is not None:                              # R57_REPLAY: commit the reference block whatever the check accepted;
+            k = len(dr)                                  # the next reference token is the next check's first row (never the
+            jn_ = len(out) + len(dr)                     # check's correction)
+            nxt_ = rp_["ref"][jn_] if jn_ < len(rp_["ref"]) else None
         model.commit_verified_window(cache, snap.states, keep_tokens=k + 1, verified_tokens=len(dr) + 1)
         mx.async_eval(states(cache))                     # SB: the commit replay submitted alone
         c2 = time.perf_counter()
@@ -1552,7 +1607,7 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
         ck_t.append(c2 - c1); kept.append(k + 1); wl.append(c2 - c0)
         if STALL:
             stl_.append([round(x + off_, 6) for x in (c0, c1, cb, ce, c2)] + [len(dr) + 1, k])
-        new = dr[:k] + [am[k]]
+        new = dr[:k] + ([nxt_] if nxt_ is not None else [])   # = dr[:k] + [am[k]] outside R57_REPLAY
         for j, x in enumerate(new):
             if x in EOS:
                 new = new[:j + 1]
@@ -1568,7 +1623,8 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
             iscan.feed("".join(_TKZ.decode([int(x)]) for x in new))
         if cg is not None:                               # R57_COPY: the check labels the duel; the kept tokens join the window
             t_ = time.perf_counter()
-            cg.learn(d0_, ci_, dr[:k] + [am[k]], k)         # the committed truth (== am[:k + 1] unless R57_FAST relaxed it)
+            cg.learn(d0_, ci_, dr[:k] + [am[k] if nxt_ is None else nxt_], k)   # the committed truth (== am[:k + 1] unless
+                                                         # R57_FAST relaxed it; R57_REPLAY: the reference)
             cg.ids.extend(new)
             n_ = len(dr)
             cst["pos"] += n_; cst["used"] += sum(cu_[:n_]); cst["ok"] += sum(cu_[:k])
@@ -1627,7 +1683,12 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
                  layer=np.array([r_[1] for r_ in recs]), rows=np.array([r_[2].shape[0] for r_ in recs]), ids=I_, sure=S_,
                  keep=K2, warm=np.array(FG["warm"]), prompt_len=len(ids), len_rule=U3C_LEN)
         FG["dump"] = None
+    rpo_ = None
+    if rp_ is not None:                                  # R57_REPLAY: this key's positions and summary
+        assert out[:len(rp_["ref"])] == rp_["ref"][:len(out)], "R57_REPLAY: the committed tokens left the reference"
+        rpo_ = replay_summary(RPL["key"], rp_["pos"])
     return dict(lh=lh_, out=out[:CAP], n=min(len(out), CAP), tps=min(len(out), CAP) / dec, drafter=drafter, hist=hist, a6=a6,
+                replay=rpo_,                             # R57_REPLAY: positions + summary (None otherwise)
                 nwk=[ref2.COUNTS.get("nw_calls", 0) - nk0_[0], ref2.COUNTS.get("nw_late_calls", 0) - nk0_[1]] if NW else None,
                 pfs=round(tpf_, 4),                      # E5: prefill wall s (end to end = n / (pfs + n / tps))
                 pfst=None if pfst_ is None else dict(res_base=pfst_[0], res_side=pfst_[1], gb=round((pfb_ - pfst_[2]) / 1e9, 3),
@@ -1637,6 +1698,7 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
                 pfd=None if pd0_ is None else {k_: PFLMM.PFD[k_] - pd0_[k_] for k_ in PFLMM.PFD},   # R57_PFD: rows A / B / C, SSD bytes, check
                 p2=p2c_ if P2MAX else None,          # R57_P2: this prompt's decode-path chunks (0 = it took the prefill)
                 rlx=rst if RLX_D > 0 else None,      # R57_RELAX_DELTA: rows checked, kept exact / in all, relaxed accepts
+                close_call={"accepted": ccn_[0]} if rlx_ else None,   # CLOSE-CALL: only where R1(delta) is engaged
                 spn=sst if SPAN else None,           # R57_RELAX_SPAN: rows checked, kept exact / in all, relaxed, span rows
                 inert=dict(ist, arm=INERT["name"]) if INERT is not None else None,   # R57_INERT: rows checked, kept exact / in
                                                      # all, kept whole / by a rule, per region, rows open
@@ -1655,6 +1717,49 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
                 copy=dict(cst, ms=round(1e3 * cst["ms"], 2)) if cg is not None else None,
                 fast=dict(fst, arm=FAST) if fz is not None else None, pf=pfx,
                 preroute={k_: list(v_) for k_, v_ in PRS.items()} if PREROUTE else None)
+
+# R57_REPLAY=<rows.jsonl>[:margins.json] (Sun 15 Nov; EvalSuite docs/LOSSY_GATE_2026-11-15.md section 9, tier 0a): each
+# key's prompt prefilled as the variant does, then checks of the variant's normal width whose drafts are the next REFERENCE
+# tokens (the drafter still runs; its block is replaced; every row sure), the reference block committed whatever the check
+# accepted (never the correction), to the row's end or R57_REPLAY_CAP (default 2048; the run's CAP argument also stops it).
+# Per row: the check's pick, the reference token, the check's own top-1 minus top-2 margin, logit(ref) - max (nats); kind
+# "pf" (the prefill's pick, position 0), "d" (a drafted row), "b" (a check's last row: the next block's first token).
+# rows.jsonl: key + completion_ids (or ref_ids), as EvalSuite's decode.jsonl rows; n_prompt / prompt_ids checked if present.
+# margins.json: absent -> this run writes it (the exact config: must accept 100 %, its self-check); present -> read, and the
+# flips are binned by the exact margin at their position. -> runs.json "replay" (summary) + {TAG}_replay.json (positions).
+RPL = None
+if os.environ.get("R57_REPLAY"):
+    _rf, _, _mf = os.environ["R57_REPLAY"].partition(":")
+    _mf = os.path.expanduser(_mf) if _mf else os.path.join(OUT, f"{TAG}_margins.json")
+    RPL = dict(rows={d_["key"]: d_ for d_ in (json.loads(l_) for l_ in open(os.path.expanduser(_rf)) if l_.strip())}, mpath=_mf,
+               margins=json.load(open(_mf)) if os.path.exists(_mf) else None, cap=int(os.environ.get("R57_REPLAY_CAP", "2048")),
+               key=None, all={})
+    assert INERT is None and CRUN != 64, "R57_REPLAY: R57_INERT / R57_COPYRUN=64 cut or extend the block (not wired)"
+    say(f"R57_REPLAY: {len(RPL['rows'])} rows from {_rf}; margins {_mf} ("
+        f"{'read: variant run' if RPL['margins'] is not None else 'absent: this run writes them (exact config)'}); "
+        f"cap {RPL['cap']} (and the run's CAP {CAP})")
+RBINS = ((0.0, 0.5), (0.5, 1.0), (1.0, 2.0), (2.0, float("inf")))
+
+
+def replay_summary(key, pos):
+    """pos: (position, pick, ref, own margin, logit(ref) - max, kind). A = accepted / n over drafted rows; flips binned
+    by the EXACT margin at their position (margins.json) when read, else by this run's own margin."""
+    d_ = [p_ for p_ in pos if p_[5] == "d"]
+    em_ = (RPL["margins"] or {}).get(key)
+    fl_ = [p_ for p_ in d_ if p_[1] != p_[2]]
+    fb_ = [0, 0, 0, 0]
+    for p_ in fl_:
+        m_ = em_.get(str(p_[0])) if em_ is not None else p_[3]
+        if m_ is None:
+            continue
+        fb_[next(i_ for i_, (a_, b_) in enumerate(RBINS) if a_ <= m_ < b_)] += 1
+    al_ = pos
+    return dict(n=len(d_), acc=len(d_) - len(fl_), A=(len(d_) - len(fl_)) / max(len(d_), 1),
+                n_all=len(al_), acc_all=sum(1 for p_ in al_ if p_[1] == p_[2]),
+                pf_ok=bool(pos and pos[0][5] == "pf" and pos[0][1] == pos[0][2]),
+                flips_by_margin=dict(zip(("lt0.5", "0.5-1", "1-2", "ge2"), fb_)), margins_from="exact" if em_ is not None else "own",
+                F_hi=1e3 * fb_[3] / max(len(d_), 1), pos=pos)
+
 
 REFTOK, REFARM = {}, None                                # R57_REFTOK=<tokens.json>[:arm]: every run vs those tokens
 if os.environ.get("R57_REFTOK"):
@@ -1689,6 +1794,256 @@ WSALL = []                                               # warm-split samples of
 STL = []                                                 # R57_STALL: every run's decode events -> {TAG}_stall.json
 PRALL = []                                               # R57_PREROUTE: every run's samples -> {TAG}_preroute.json
 LAYMAP = [[sw._bm["L"], (sw._bm.get("tier") or {}).get("side")] for sw in SW_] if STALL else []   # ext ids: base, sidecar
+# R57_G32TEST=<bank key>[,<key>...] (Sun 15 Nov 02:5x; Leap's spec a821edc, v32 b0c99d5): the 32-row exact check on THIS loop's
+# exact-45 setup (its K-73 block, OOO, NAX6, ref2 forms, prefill and commit) through the widened gate (BIGMOE_MAXK=320, ext
+# build_g32), with v32 over ref2 (V32_MOE1=1: the loop's own block replicated at 17-32 rows, ONE switch call), against <= 16-row
+# checks. One prefill per key (prefills are bitwise across runs: BigMoE B0 02:32), rollbacks between the arms.
+# - T1: one M-row verify vs the same rows as <= 16-row verifies with commits between, logits per row, M = 32 / 17 / 24 / 31.
+# - T2: a 32-row verify committing k rows, then a 4-row probe, vs k rows as <= 16-row checks and the same probe, k = 1 / 9 /
+#   16 / 17 / 24 / 31.
+# - v32's counters per 32-row forward ('tierblk' 48), and when anything differs the layer taps (L5 ... L45). Pass = all bitwise.
+if os.environ.get("R57_G32TEST"):
+    assert BG.MAXK == 320 and os.environ.get("V32_MOE1") == "1", "R57_G32TEST: BIGMOE_MAXK=320 and V32_MOE1=1"
+    sys.path.insert(0, os.path.expanduser("~/Leap/scripts/week98"))
+    import v32
+    ref_on(True)                                         # ref2's forms, as each run() starts, then v32 over them
+    v32.install(ref2)
+    say(f"G32TEST: v32 {v32.__file__}; block {Q.SparseMoeBlock.__call__.__name__}; MAXK {BG.MAXK}, XLINES {BG.XLINES}, ext {BG._BUILD}; "
+        f"FAST {FAST or 'off (exact)'}")
+    def g_fwd(cache, toks):
+        with ref2.verify_scope(model):
+            lg_ = model(mx.array([toks]), cache=cache)
+        lg_ = lg_[0].astype(mx.float32); mx.eval(lg_)
+        return lg_
+    def g_commit(cache, sn, keep, n):
+        assert model.commit_verified_window(cache, sn.states, keep_tokens=keep, verified_tokens=n)
+        mx.eval(states(cache))
+    def g_back(cache, sn, n):
+        CS.rollback_after_verify(cache, sn, n); mx.eval(states(cache))
+    def g_cmp(a, b):
+        eq_ = mx.all(a == b, axis=-1); d_ = mx.max(mx.abs(a - b), axis=-1); mx.eval(eq_, d_)
+        return int(np.array(eq_).sum()), int(eq_.shape[0]), [round(float(x_), 3) for x_ in np.array(d_)]
+    def g_chunks(n):
+        o_, a_ = [], 0
+        while a_ < n:
+            o_.append(min(16, n - a_)); a_ += o_[-1]
+        return o_
+    allok = True
+    for key in os.environ["R57_G32TEST"].split(","):
+        bz = np.load(os.path.expanduser(f"~/datasets/deepdraft/bank/{key}.npz"))
+        rz = np.load(os.path.expanduser(f"~/datasets/deepdraft/routes/{key}.npz"))
+        gids, gen, RTg = [int(t_) for t_ in bz["ids"]], int(bz["gen"]), rz["routes"]
+        G = max(len(np.unique(RTg[gen:gen + 36, l_])) for l_ in range(RTg.shape[1]))
+        for sw in SW_:
+            sw._bm["gate_req"] = G                       # a 32-row call has 320 ids > C: the caller's distinct bound
+        set_arm("slot")
+        P, _l, _T, _w = prefill(gids[:gen], False, chunk=PFCHUNK)
+        mx.eval(states(P))
+        set_arm("gate+t"); BS.GATE_N[0] = BG.MAXK       # the loop's arm, its gate at the widened width
+        S0 = CS.snapshot_untrimmable_cache_lazy(P)
+        say(f"G32TEST {key}: prompt {gen}, gate_req {G}")
+        v32.CNT.update({k_: 0 for k_ in v32.CNT})
+        a1 = g_fwd(P, gids[gen:gen + 32]); c32 = dict(v32.CNT); g_back(P, S0, 32)
+        a2 = g_fwd(P, gids[gen:gen + 32]); g_back(P, S0, 32)
+        say(f"  32 rows twice bitwise {g_cmp(a1, a2)[:2]}; v32 per 32-row forward {c32}")
+        if os.environ.get("R57_G32OVF") == "1":         # the G32 overflow guard (ext 03:1x; Leap's test ask 02:5x), with
+            ovm_ = BG.ext.overflow_mode()                # BIGMOE_FORCE_OVERFLOW=<layer>: that layer's 17+-row gate calls overflow
+            assert ovm_[1] >= 0, "R57_G32OVF needs BIGMOE_FORCE_OVERFLOW=<ext layer>"
+            oc0_ = BG.ext.overflow_count()               # COLD first (03:1x): with a warm pool the residency table serves every
+            snc_ = CS.snapshot_untrimmable_cache_lazy(P)  # slot and the CPU's slot-0 fill goes unread; right after the prefill
+            lc_ = g_fwd(P, gids[gen:gen + 32])           # the window's misses take the CPU's slots (0): the garbage path
+            oc1_ = BG.ext.overflow_count(); finc_ = bool(mx.all(mx.isfinite(lc_)).item())
+            g_back(P, snc_, 32)
+            sn_ = CS.snapshot_untrimmable_cache_lazy(P)  # the reference: 16 + 16 with a commit between
+            ra_ = g_fwd(P, gids[gen:gen + 16]); g_commit(P, sn_, 16, 16)
+            sn2_ = CS.snapshot_untrimmable_cache_lazy(P)
+            rb_ = g_fwd(P, gids[gen + 16:gen + 32]); g_commit(P, sn2_, 16, 16)
+            ref_ = mx.concatenate([ra_, rb_], axis=0); g_back(P, S0, 32)
+            eqc_ = g_cmp(lc_, ref_)[:2]
+            allok &= (oc1_ - oc0_) >= 1
+            say(f"  OVF {key} COLD (the forced check right after the prefill): count +{oc1_ - oc0_}, logits finite {finc_}, equal to "
+                f"the 16 + 16 redo on {eqc_[0]} / {eqc_[1]} rows ({'the slot-0 path ran' if eqc_[0] < eqc_[1] else 'every slot came from the residency table'}; discarded)")
+            for rep_ in range(3):                        # the guarded check, three times on fresh rollbacks
+                o0_ = BG.ext.overflow_count()
+                sn_ = CS.snapshot_untrimmable_cache_lazy(P)
+                lo_ = g_fwd(P, gids[gen:gen + 32])       # the overflowing 32-row check: garbage, flagged
+                o1_ = BG.ext.overflow_count()
+                fin_ = bool(mx.all(mx.isfinite(lo_)).item())
+                eq_o = g_cmp(lo_, ref_)[:2]
+                CS.rollback_after_verify(P, sn_, 32); mx.eval(states(P))   # the host's redo: roll back, then 16 + 16
+                sn_ = CS.snapshot_untrimmable_cache_lazy(P)
+                xa_ = g_fwd(P, gids[gen:gen + 16]); g_commit(P, sn_, 16, 16)
+                sn2_ = CS.snapshot_untrimmable_cache_lazy(P)
+                xb_ = g_fwd(P, gids[gen + 16:gen + 32]); g_commit(P, sn2_, 16, 16)
+                o2_ = BG.ext.overflow_count()
+                eq_r = g_cmp(mx.concatenate([xa_, xb_], axis=0), ref_)[:2]
+                g_back(P, S0, 32)
+                ok_ = (o1_ - o0_) >= 1 and o2_ == o1_ and eq_r[0] == eq_r[1]
+                allok &= ok_
+                say(f"  OVF {key} rep {rep_}: forced layer {ovm_[1]} (>= {ovm_[2]} ids): overflow count +{o1_ - o0_} on the 32-row check "
+                    f"(its logits finite {fin_}, equal to the reference on {eq_o[0]} / {eq_o[1]} rows: discarded); the 16 + 16 redo: "
+                    f"count +{o2_ - o1_}, logits bitwise {eq_r[0]} / {eq_r[1]} -> {'OK' if ok_ else 'FAIL'}")
+            del P, S0
+            mx.clear_cache()
+            continue
+        if os.environ.get("R57_G32ISO") == "2":         # 03:1x: ISO=1's blocks drifted ("neither" 68.9 -> 89.8 ms within the run,
+            ISO_R = int(os.environ.get("R57_G32TIME", "12") or 12)   # swap flat), so the configs rotate WITHIN each round:
+            CF4 = (("neither", False, False), ("gdnb", False, True), ("dense", True, False), ("both", True, True))
+            T4 = {c_[0]: [] for c_ in CF4}               # paired per-round deltas cancel the drift; the drift itself =
+            def a16_():                                  # "neither"'s last 4 rounds vs its first 4
+                sn_ = CS.snapshot_untrimmable_cache_lazy(P)
+                t_ = time.perf_counter()
+                g_fwd(P, gids[gen:gen + 16]); g_commit(P, sn_, 16, 16)
+                dt_ = 1e3 * (time.perf_counter() - t_)
+                g_back(P, S0, 16)
+                return dt_
+            for r_ in range(2 + ISO_R):
+                rot = r_ % 4
+                for nm_, dn_, gb_ in CF4[rot:] + CF4[:rot]:
+                    ref2.CFG["dense_native"], ref2.CFG["gdn_body"] = dn_, gb_
+                    dt_ = a16_()
+                    if r_ >= 2:
+                        T4[nm_].append(dt_)
+            ref2.CFG["dense_native"], ref2.CFG["gdn_body"] = False, False
+            nb_ = np.array(T4["neither"])
+            say(f"  ISO2 {key} (configs rotated within each round, {ISO_R} rounds): A16 medians "
+                + ", ".join(f"{k_} {np.median(v_):.1f}" for k_, v_ in T4.items())
+                + "; paired per-round deltas vs neither (median ms): "
+                + ", ".join(f"{k_} {np.median(np.array(v_) - nb_):+.1f}" for k_, v_ in T4.items() if k_ != "neither")
+                + f"; neither's drift (last 4 vs first 4 rounds) {np.median(nb_[-4:]) - np.median(nb_[:4]):+.1f} ms")
+            del P, S0
+            mx.clear_cache()
+            break
+        if os.environ.get("R57_G32ISO") == "1":         # Leap 03:2x: the C32m run's every arm was ~35-40 % slower than G32T's. A16
+            ISO_R = int(os.environ.get("R57_G32TIME", "12") or 12)   # only, config blocks in this order (DENSE-N's native copies
+            sw_mb = lambda: float(os.popen("sysctl -n vm.swapusage").read().split()[5].rstrip("M"))   # persist once made):
+            for nm_, dn_, gb_ in (("neither", False, False), ("gdnb", False, True), ("dense", True, False), ("both", True, True),
+                                  ("neither_again", False, False)):   # the last block catches drift over the run
+                ref2.CFG["dense_native"], ref2.CFG["gdn_body"] = dn_, gb_
+                s0_sw = sw_mb(); ts_ = []
+                for r_ in range(2 + ISO_R):
+                    sn_ = CS.snapshot_untrimmable_cache_lazy(P)
+                    t_ = time.perf_counter()
+                    g_fwd(P, gids[gen:gen + 16]); g_commit(P, sn_, 16, 16)
+                    if r_ >= 2:
+                        ts_.append(1e3 * (time.perf_counter() - t_))
+                    g_back(P, S0, 16)
+                say(f"  ISO {key} {nm_} (dense_native {dn_}, gdn_body {gb_}): A16 median {np.median(ts_):.1f} ms [IQR "
+                    f"{np.percentile(ts_, 25):.1f}-{np.percentile(ts_, 75):.1f}] over {len(ts_)}; swap {s0_sw:.0f} -> {sw_mb():.0f} MB; "
+                    f"dense_native calls {ref2.COUNTS.get('dense_native', 0)}")
+            ref2.CFG["dense_native"], ref2.CFG["gdn_body"] = False, False
+            del P, S0
+            mx.clear_cache()
+            break                                        # one window is enough (A16 only)
+        TMR = int(os.environ.get("R57_G32TIME", "0") or 0)   # G32T (Leap's PREREG, data/week98/screens/README.md 'G32T'):
+        if TMR:                                          # R57_G32TIME=<measured rounds> after R57_G32TIME_WARM (2) warm-ups.
+            MR2 = os.environ.get("R57_G32_MR2") == "1"   # Leap 03:1x: C32m = C32 with v32mr2 installed + mr2 on (REF2_DENSE_NATIVE=1,
+            if MR2:                                      # R57_GDNB=1); toggled per arm, so C32 / C32m pair within each round
+                import v32mr2
+                v32.ST["mr2"] = False
+            ARMS4 = ("A16", "B2x16", "C24", "C32") + (("C32m",) if MR2 else ())   # A16 one 16-row check; B2x16 two with a
+                                                         # commit between; C24 / C32 one
+            WU = int(os.environ.get("R57_G32TIME_WARM", "2") or 2)   # 24- / 32-row check. Each verify + commit eval-synced, on its
+            TA = {nm: [] for nm in ARMS4}                # own rollback to the prefill; drafts = the bank's exact continuation
+            TM_ = {nm: [] for nm in ARMS4}               # (every guess right); per check: wall ms, misses, demand SSD ms
+            LG_ = {}
+            MRC_ = []                                    # C32m: (v32 mr2, v32mr2 gdn32, gdn32_declined) per forward
+            def t_arm(nm):
+                sn_ = CS.snapshot_untrimmable_cache_lazy(P)
+                s0_ = stats()
+                t_ = time.perf_counter()
+                if nm == "C32m":
+                    v32mr2.install(v32, ref2); v32.ST["mr2"] = True
+                    v32.CNT["mr2"] = 0; v32mr2.CNT.update(gdn32=0, gdn32_declined=0)
+                    try:
+                        lg_ = g_fwd(P, gids[gen:gen + 32]); g_commit(P, sn_, 32, 32)
+                    finally:
+                        v32mr2.uninstall(); v32.ST["mr2"] = False
+                        MRC_.append((v32.CNT["mr2"], v32mr2.CNT["gdn32"], v32mr2.CNT["gdn32_declined"]))   # Leap: 73 / 36 / 0
+                                                         # per forward; 0 on mr2 or gdn32 = a silent fallback (C32m == C32)
+                elif nm in ("C24", "C32"):
+                    n_ = 24 if nm == "C24" else 32
+                    lg_ = g_fwd(P, gids[gen:gen + n_]); g_commit(P, sn_, n_, n_)
+                else:
+                    lg_ = g_fwd(P, gids[gen:gen + 16]); g_commit(P, sn_, 16, 16)
+                    if nm == "B2x16":
+                        sn2_ = CS.snapshot_untrimmable_cache_lazy(P)
+                        lg2_ = g_fwd(P, gids[gen + 16:gen + 32]); g_commit(P, sn2_, 16, 16)
+                        lg_ = mx.concatenate([lg_, lg2_], axis=0)
+                dt_ = 1e3 * (time.perf_counter() - t_)
+                d_ = stats() - s0_
+                g_back(P, S0, {"A16": 16, "C24": 24}.get(nm, 32))
+                return dt_, d_, lg_
+            for r_ in range(WU + TMR):                   # the order rotates per round (A B C D, B C D A, C D A B, D A B C):
+                rot = r_ % len(ARMS4)                    # the arms share the pool across rollbacks, an earlier arm warms it
+                for nm in ARMS4[rot:] + ARMS4[:rot]:
+                    dt_, d_, lg_ = t_arm(nm)
+                    if r_ >= WU:
+                        TA[nm].append(dt_); TM_[nm].append([float(d_[0]), 1e3 * float(d_[1])])
+                    if r_ == WU and nm in ("B2x16", "C32", "C32m"):
+                        LG_[nm] = lg_
+            bw_ = g_cmp(LG_["C32"], LG_["B2x16"])[:2]    # SB on 17-32 rows changes scheduling only: C32 == B2x16 bitwise
+            if MR2:
+                bwm_ = g_cmp(LG_["C32m"], LG_["B2x16"])[:2]
+                mrm_ = MRC_[WU:]                         # the measured rounds' forwards (warm-ups make DENSE-N's copies)
+                fell_ = any(x_[0] == 0 or x_[1] == 0 for x_ in mrm_)
+                say(f"  TIME {key} C32m (mr2 + full-width GDN): vs B2x16 logits bitwise {bwm_}; (C32 - C32m) / A16 per round, median "
+                    f"{float(np.median((np.array(TA['C32']) - np.array(TA['C32m'])) / np.array(TA['A16']))):.3f} (Leap: keep if >= 0.03); "
+                    f"counters per C32m forward (mr2 / gdn32 / declined) min {tuple(np.min(mrm_, axis=0).tolist())} max "
+                    f"{tuple(np.max(mrm_, axis=0).tolist())}" + (" -- FALLBACK seen: drop this window's C32m" if fell_ else ""))
+            q_ = lambda v: (float(np.median(v)), float(np.percentile(v, 25)), float(np.percentile(v, 75)))
+            pr_ = lambda a_, b_: float(np.median(np.array(TA[a_]) / np.array(TA[b_])))   # medians of per-round paired ratios
+            say(f"  TIME {key} ({WU} warm-up + {TMR} rounds; ms per check incl. its commit, median [IQR]): "
+                + "; ".join(f"{nm} {q_(TA[nm])[0]:.1f} [{q_(TA[nm])[1]:.1f}-{q_(TA[nm])[2]:.1f}] (misses {np.median([x_[0] for x_ in TM_[nm]]):.0f}, "
+                            f"SSD {np.median([x_[1] for x_ in TM_[nm]]):.1f} ms)" for nm in ARMS4)
+                + f"; R32 {pr_('C32', 'A16'):.3f}, R24 {pr_('C24', 'A16'):.3f}, C32 / B2x16 {pr_('C32', 'B2x16'):.3f}; C32 vs B2x16 logits bitwise {bw_}")
+            os.makedirs(os.path.join(OUT, "g32time"), exist_ok=True)
+            json.dump(dict(key=key, warmup=WU, rounds=TMR, ms=TA, misses_ssdms=TM_, gate_req=G, C=C, c32_eq_b2x16=bw_),
+                      open(os.path.join(OUT, "g32time", f"{TAG}_{key}.json"), "w"))
+            del P, S0
+            mx.clear_cache()
+            continue
+        for M in (32, 17, 24, 31):
+            lv = g_fwd(P, gids[gen:gen + M]); g_back(P, S0, M)
+            parts, pos = [], gen
+            for n in g_chunks(M):
+                sn = CS.snapshot_untrimmable_cache_lazy(P)
+                parts.append(g_fwd(P, gids[pos:pos + n])); g_commit(P, sn, n, n); pos += n
+            g_back(P, S0, M)
+            eq, tot, dl = g_cmp(lv, mx.concatenate(parts, axis=0)); allok &= eq == tot
+            say(f"  T1 M {M}: rows bitwise {eq} / {tot}" + ("" if eq == tot else f"; per-row max |diff| {dl}"))
+        for k in (1, 9, 16, 17, 24, 31):
+            sn = CS.snapshot_untrimmable_cache_lazy(P)
+            g_fwd(P, gids[gen:gen + 32]); g_commit(P, sn, k, 32)
+            S1 = CS.snapshot_untrimmable_cache_lazy(P)
+            pv = g_fwd(P, gids[gen + k:gen + k + 4]); g_back(P, S1, 4); g_back(P, S0, k)
+            pos = gen
+            for n in g_chunks(k):
+                sn = CS.snapshot_untrimmable_cache_lazy(P)
+                g_fwd(P, gids[pos:pos + n]); g_commit(P, sn, n, n); pos += n
+            S1 = CS.snapshot_untrimmable_cache_lazy(P)
+            pr = g_fwd(P, gids[gen + k:gen + k + 4]); g_back(P, S1, 4); g_back(P, S0, k)
+            eq, tot, dl = g_cmp(pv, pr); allok &= eq == tot
+            say(f"  T2 keep {k}: probe rows bitwise {eq} / {tot}" + ("" if eq == tot else f"; max |diff| {max(dl)}"))
+        if not allok:                                    # where it starts: the layer taps, one 32-row call vs 16 + 16
+            tap_reset(); TAP["on"] = True
+            g_fwd(P, gids[gen:gen + 32]); TAP["on"] = False; t32 = taps(); g_back(P, S0, 32)
+            tap_reset(); TAP["on"] = True
+            sn = CS.snapshot_untrimmable_cache_lazy(P); g_fwd(P, gids[gen:gen + 16]); TAP["on"] = False
+            g_commit(P, sn, 16, 16); S1 = CS.snapshot_untrimmable_cache_lazy(P)
+            TAP["on"] = True; g_fwd(P, gids[gen + 16:gen + 32]); TAP["on"] = False
+            tch = taps(); g_back(P, S1, 16); g_back(P, S0, 16)
+            t32r, tchr = t32.reshape(32, len(TAPS), -1), tch.reshape(32, len(TAPS), -1)
+            per_ = []
+            for i_, L_ in enumerate(TAPS):
+                e_ = mx.all(t32r[:, i_] == tchr[:, i_], axis=-1); mx.eval(e_)
+                per_.append(f"L{L_} {int(np.array(e_).sum())}/32")
+            say("  taps (layer outputs) 32 vs 16 + 16, bitwise rows: " + ", ".join(per_))
+        del P, S0
+        mx.clear_cache()
+    say(f"G32TEST verdict: {('OVERFLOW GUARD OK: flagged, finite, and the 16 + 16 redo bitwise on every rep' if allok else 'OVERFLOW GUARD FAIL') if os.environ.get('R57_G32OVF') == '1' else 'TIME MODE (T1 / T2 not run; C32 == B2x16 logits checked per window above)' if int(os.environ.get('R57_G32TIME', '0') or 0) else 'ALL BITWISE: the 32-row check through the widened gate on the exact-45 loop equals <= 16-row checks' if allok else 'NOT BITWISE'}"
+        f"; peak {mx.get_peak_memory() / 1e9:.1f} GB")
+    sys.exit(0)
 for n_p, (s, key) in enumerate(PICK):
     it = next(x for x in ED.load("dec_" + s) if x["key"] == key)
     ids, want = list(it["prompt_ids"]), REFROWS.get(key, {}).get("completion_ids", [])
@@ -1697,6 +2052,8 @@ for n_p, (s, key) in enumerate(PICK):
         ids, want = ids[:_j] + NOCOM_IDS + ids[_j:], []  # the stored REF2 row belongs to the unchanged prompt
     typ = rule(it) if (CHATSW or COPY or DRAFT4 is not None or CHATROWS or CHATTRUNC or FAST) else ""
     drafter = "mtp" if CHATSW and typ == "chat" else "dfl"   # the chat switch; without R57_CHATSW every prompt drafts on DFlash2
+    if RPL is not None:                                  # R57_REPLAY: the drafts are the reference either way; DFlash2's path
+        drafter = "dfl"                                  # carries them on every set (chat's maxd / CHATROWS width still applies)
     draft = DRAFT4 if DRAFT4 is not None and typ == "code" else DRAFT16   # D7B=code: code prompts draft on the 4-bit drafter
     cpy = bool(COPY) and typ != "math"                   # R57_COPY: off on math (GATE.md 3)
     cf = corr_for(key)
@@ -1711,9 +2068,22 @@ for n_p, (s, key) in enumerate(PICK):
         if el() > HARD:
             say(f"  time budget: stopped before {key} [{arm}]")
             break
+        if RPL is not None:
+            RPL["key"] = key                             # R57_REPLAY: run() looks the reference row up by the raw key
         r = run(ids, arm, f"{key.replace('/', '_').replace('.json', '')}_{arm}_{len(TOK.get(key, {}).get(arm, []))}", drafter,
                 cpy, CHATROWS - 1 if CHATROWS and typ == "chat" else 0, s, CHATTRUNC if CHATTRUNC and typ == "chat" else None)
         PC.append(dict(key=key, arm=arm, paused="PAUSED" in r["bad"], **r["pc"]))
+        if r.get("replay") is not None:                  # R57_REPLAY: positions -> {TAG}_replay.json; the exact run writes the
+            rs_ = r["replay"]                            # margins (every position's own margin), the others read them
+            RPL["all"][key] = dict(arm=arm, **rs_)
+            json.dump(RPL["all"], open(os.path.join(OUT, f"{TAG}_replay.json"), "w"))
+            if RPL["margins"] is None:
+                mw_ = json.load(open(RPL["mpath"])) if os.path.exists(RPL["mpath"]) else {}
+                mw_[key] = {str(p_[0]): p_[3] for p_ in rs_["pos"]}
+                json.dump(mw_, open(RPL["mpath"], "w"))
+            say(f"    REPLAY {key}: drafted rows accepted {rs_['acc']} / {rs_['n']} (A {rs_['A']:.4f}); all rows "
+                f"{rs_['acc_all']} / {rs_['n_all']}; prefill pick ok {rs_['pf_ok']}; flips by {rs_['margins_from']} margin "
+                f"{rs_['flips_by_margin']}; F_hi {rs_['F_hi']:.2f} per 1,000")
         if r["stall"]:
             STL.append(dict(key=key, arm=arm, paused="PAUSED" in r["bad"], **r["stall"]))
         if r["preroute"]:
@@ -1731,7 +2101,7 @@ for n_p, (s, key) in enumerate(PICK):
         RUNS.append(dict(key=key, arm=arm, type=typ, bad=r["bad"], cut=r["cut"], P=len(ids),
                          **{k_: r[k_] for k_ in ("drafter", "hist", "a6", "n", "tps", "tpsw", "kept", "checks", "cyc", "ck",
                                                  "drf", "miss", "io", "mb", "mpk", "mem", "copy", "fast", "pf", "lh", "inert")},
-                         d7b=draft is DRAFT4, rlx=r.get("rlx"), spn=r.get("spn"), nwk=r.get("nwk"), pfs=r.get("pfs"), pfst=r.get("pfst"), pflm=r.get("pflm"), pfd=r.get("pfd"), p2=r.get("p2")))   # Thu 18:5x / Fri 10:0x: relaxed / span / INERT
+                         d7b=draft is DRAFT4, replay=None if r.get("replay") is None else {k_: v_ for k_, v_ in r["replay"].items() if k_ != "pos"}, rlx=r.get("rlx"), **({"close_call": r["close_call"]} if r.get("close_call") is not None else {}), spn=r.get("spn"), nwk=r.get("nwk"), pfs=r.get("pfs"), pfst=r.get("pfst"), pflm=r.get("pflm"), pfd=r.get("pfd"), p2=r.get("p2")))   # Thu 18:5x / Fri 10:0x: relaxed / span / INERT
                                                          # stats were computed but never written (the pre-flight's MISSING)
         m = min(len(want), r["n"])
         agree = same(r["out"], want)

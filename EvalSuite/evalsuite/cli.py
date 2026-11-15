@@ -52,15 +52,17 @@ def keepalive():
 
 
 def free_gb():
-    """GB a load can take without swapping: NO-SWAP = free + speculative + purgeable + file-backed pages (vm_stat;
-    orchestrator 10-30 23:5x, RULES.md). memory_pressure's free % misses wired Metal memory, and vm_stat's
-    'inactive' holds anonymous pages that only swap or compression can free"""
+    """GB a load can take without swapping: NO-SWAP = free + purgeable + file-backed pages (vm_stat; orchestrator
+    10-30 23:5x, RULES.md). Speculative pages are NOT added: they sit inside file-backed (active + inactive + speculative
+    + throttled = file-backed + anonymous), so adding them counted them twice (the orchestrator, 11-15, Leap 8b43d11).
+    memory_pressure's free % misses wired Metal memory, and vm_stat's 'inactive' holds anonymous pages that only swap or
+    compression can free"""
     r = subprocess.run(["vm_stat"], capture_output=True, text=True).stdout
     ps, s = 16384, 0
     for l in r.splitlines():
         if "page size of" in l:
             ps = int(l.split("page size of")[1].split()[0])
-        elif l.startswith(("Pages free:", "Pages speculative:", "Pages purgeable:", "File-backed pages:")):
+        elif l.startswith(("Pages free:", "Pages purgeable:", "File-backed pages:")):
             s += int(l.split(":")[1].strip().rstrip("."))
     return s * ps / 1e9
 

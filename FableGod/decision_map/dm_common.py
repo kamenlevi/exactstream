@@ -429,6 +429,9 @@ def _t3_add(block, li, x):
     if PERT.get("nw3"):                                   # NEVER-WAIT v3 (b): the gated (unsure) rows' ranks 0-1 at PERT['t3']
         r3 = CUR["rm3"]; keep = np.zeros((len(G), 10), bool); gi = p0 + G; ok_ = gi < r3.shape[0]   # bits, on time; not a late
         keep[ok_] = r3[gi[ok_], li]; NW["t3"] += int(keep[:, :2].sum())     # rank (4-bit, written late on the stock path)
+    if PERT.get("gate") == ("tiers",):                    # WEEK98 1c: the gated rows' MSB-3 ranks (keep3, rank-sorted)
+        r3 = CUR["rm3"]; keep = np.zeros((len(G), 10), bool); gi = p0 + G; ok_ = gi < r3.shape[0]
+        keep[ok_] = r3[gi[ok_], li]
     if src is not None:                                   # every kept expert from src; ranks < t3k forced in (the _t3 masks drop them)
         keep[:, :int(PERT.get("t3k", 2))] = True
         yg = dm_t3.routed_kept(block, li, rows[mx.array(G.astype(np.int32))], src, keep)
@@ -481,7 +484,7 @@ def _gate_k(nm, n):
     if spec[0] == "cert": k[_cert(nm, n, spec[1]) >= spec[2]] = spec[3]; return k
     if spec[0] == "acert": k[_acert(nm, n, *spec[1:5])] = spec[5]; return k
     if spec[0] == "t3cert": k[_cert(nm, n, spec[1]) >= spec[2]] = 0; return k   # 3-bit pass 1: certified rows via dm_t3
-    if spec[0] in ("t3mask", "t3keep", "t3u"): return k   # set from the rank mask in measure() (t3u: NEVER-WAIT v3 (b), _nw3_setup)
+    if spec[0] in ("t3mask", "t3keep", "t3u", "tiers"): return k   # set from the rank mask in measure() (t3u: NEVER-WAIT v3 (b), _nw3_setup)
     g = _gate(nm, n)
     if spec[0] == "top": k[g >= spec[1]] = spec[2]
     elif spec[0] == "t3": k[g >= spec[1]] = 0           # dm_t3 adds their top-2 (records3, PERT['t3'] bits)
@@ -532,6 +535,9 @@ def measure(model, windows, name, setup):
         if PERT.get("gate") == ("t3mask",):                 # the t3 rows = the rows whose mask drops rank 0 (Tue 11:0x): a
             kk = np.full(len(ids), 10, np.int32); r = CUR["rm"]; m = min(len(kk), r.shape[0])   # live cut's exact bonus
             kk[:m][~r[:m, :, 0].any(axis=1)] = 0; CUR["k"] = kk                                 # rows are not served twice
+        if PERT.get("gate") == ("tiers",):                  # WEEK98 1c (Breakthrough, Sun 15 Nov): every answer row is gated;
+            kk = np.full(len(ids), 10, np.int32); kk[a:] = 0; CUR["k"] = kk    # the stock path serves the mask's 'keep' ranks at
+            CUR["rm3"] = np.load(os.path.join(OUT, PERT["rmask"], nm))["keep3"]   # 4 bits, _t3_add its 'keep3' ranks at PERT['t3']
         if PERT.get("nw3"): _nw3_setup(_gate(nm, len(ids)), a)   # NEVER-WAIT v3 (b): the unsure answer rows' ranks 0-1 at 3 bits
         l0 = _lsrc() if PERT.get("t3L") else None         # screen 7: this window's per-layer source counts
         tk, lp = run_window(model, ids)

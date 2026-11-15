@@ -113,3 +113,97 @@ perfect pick at 64 rows), MBPP 441 (591).
 - With the pre-registered -5.0, every HumanEval+ figure is 1.52x larger: delta 0.05 -2.0, rho 0.75 -3.0, R1(0.5) -5.0,
   rho 0.25 -10.8, rho 0.1 -14.7.
 - The IFEval column and the recommendation (delta 0.05) do not change.
+
+## Under the real decode walk (Sun 15 Nov 02:4x; the orchestrator: close-call acceptance as the direct lossy route to GOAL A). Pre-registered before computing
+
+**Data:** t30b's cells (BigMoE data/deepdraft/ceiling/cells_t30b_heplus.npz: 24 HE+ windows; cells_t30b_mbpp100.npz:
+100 MBPP files).
+- Per anchor and guess depth 0-30 they hold: right (= the 125B's runtime top-1, true prefix fed), m (the 125B's top-1
+  minus top-2, nats), rank, and dlp (the guess's log-prob minus the top-1's; <= 0; -inf outside the top-32).
+- Walk: EvalSuite's tools/certify98.py functions (kept_walk cap 31 from row 1; strict_counts "walk"), imported read-only.
+
+**Rule:** a guess is accepted if right OR dlp >= -delta, for delta = 0.1, 0.25, 0.5, 1, 2. delta = 0 is the exact walk and
+must reproduce t30b's published 13.77 (HE+) / 6.92 (MBPP) kept/32.
+
+**Reported per set and delta:**
+- kept/32, with the window-clustered 95 % interval;
+- walk-strict over depths 0-14 (P(right at k | right at 0..k-1) at the walk's check starts, pooled);
+- exposure = the walk's accepted non-top-1 tokens per 1K kept tokens: in all, by the 125B's margin bin (m < 0.1,
+  0.1-0.25, 0.25-0.5, 0.5-1, 1-2, >= 2) and by the target token's class (code / comment / string / prose outside a
+  code fence).
+- Classes: a character lexer over the decoded window text, from the answer start (the model's tokenizer.json).
+
+**Lines:**
+- **PASS** (worth EvalSuite's real-decoding code gate): some delta <= 1 lifts kept/32 by >= +15 % on BOTH sets (HE+
+  >= 15.84, MBPP >= 7.96), with <= 10 accepted non-top-1 tokens per 1K kept tokens in code (outside comments, strings
+  and prose).
+- **KILL:** no delta <= 1 lifts both by >= +15 %.
+- **BETWEEN:** otherwise.
+
+**Caveat:** these are teacher-forced UPPER bounds. After a changed token the cells still follow the 125B's own path,
+and MoonShots' J(A) found that changed tokens change the code that follows about half the time. EvalSuite's code gate
+in real decoding decides.
+
+**Files:** scripts/m1/closecall_walk.py, data/m1/closecall_walk.out.
+
+### Result (Sun 02:46; data/m1/closecall_walk.out)
+
+**Self-checks:** delta 0 reproduces t30b's published kept/32 on both sets (13.77 / 6.92): PASS.
+
+**HE+: NOT PRICEABLE from these cells.** dlp is NaN on all 14,671 wrong guesses (the HE+ capture didn't record the
+guess's log-prob gap or rank), so no wrong guess can be judged a close call. The zero lift printed for HE+ is that
+artifact, not a result. MBPP's cells have the gaps.
+
+**MBPP** (100 files; kept/32 [95 % window CI]; exposure = the walk's accepted non-top-1 tokens per 1K kept tokens):
+
+| delta | kept/32 | vs exact | walk-strict 0-14 % | exposure | code | comment | string |
+|---|---|---|---|---|---|---|---|
+| 0 | 6.92 [6.54, 7.39] | - | 85.67 | 0 | 0 | 0 | 0 |
+| 0.1 | 7.04 | +1.7 % | 85.94 | 2.7 | 0.5 | 1.0 | 1.3 |
+| 0.25 | 7.41 | +7.1 % | 86.70 | 12.5 | 2.5 | 4.2 | 5.9 |
+| 0.5 | 7.84 | +13.3 % | 87.45 | 21.4 | 4.3 | 7.9 | 9.3 |
+| 1 | 8.52 [8.14, 9.00] | +23.1 % | 88.62 | 36.6 | 8.1 | 12.7 | 15.9 |
+| 2 | 10.14 | +46.5 % | 90.83 | 61.9 | 12.8 | 21.0 | 28.1 |
+
+- By the 125B's margin, delta 1's 36.6 per 1K splits 3.1 / 5.2 / 11.7 / 15.4 / 1.2 over m < 0.1 / 0.1-0.25 / 0.25-0.5
+  / 0.5-1 / 1-2.
+- No MBPP answer has a code fence, so the prose class is 0.
+- Most accepted changes land in comments and strings (docstrings): at delta 1, 28.6 of the 36.6 per 1K.
+
+**Verdict (pre-registered): UNDETERMINED**, because HE+ has no miss gaps.
+- MBPP alone meets both lines first at delta 1: +23.1 % kept/32 with 8.1 code-token changes per 1K. delta 0.5 misses
+  the lift (+13.3 %).
+- Why the lift is modest: MBPP's misses are mostly far from the top-1 (median gap -4.5 nats; only ~10 % within 0.625),
+  so close-call acceptance recovers a small part of them. NewIdeas' margin ceilings (e.g. >= 1 nat right -> MBPP 13.64)
+  assume the drafter is right on every confident row, which is a different lever.
+
+**Needed for the verdict:** HE+ cells with rank / dlp on the misses (BigMoE's dd_ceiling misses path, as for MBPP).
+The caveat stands: these are teacher-forced upper bounds.
+
+### Final result (Sun 02:52): HE+ priced on BigMoE's re-emitted cells (cells_t30b_heplus24.npz, b316365); verdict PASS (delta 1)
+
+The re-emitted cells are identical to the old file (right and m equal on all 186,465 cells), with rank / dlp now on
+every miss. The delta 0 self-check reproduces 13.77: PASS.
+
+**HE+** (24 windows):
+
+| delta | kept/32 [95 % window CI] | vs exact | walk-strict 0-14 % | exposure per 1K kept | code | comment | string |
+|---|---|---|---|---|---|---|---|
+| 0 | 13.77 [11.08, 17.26] | - | 92.98 | 0 | 0 | 0 | 0 |
+| 0.1 | 14.26 | +3.6 % | 93.39 | 2.7 | 1.1 | 1.4 | 0.2 |
+| 0.25 | 14.52 | +5.5 % | 93.64 | 4.4 | 1.4 | 2.8 | 0.2 |
+| 0.5 | 15.11 | +9.7 % | 94.06 | 8.0 | 2.4 | 5.5 | 0.2 |
+| **1** | **16.78 [14.38, 19.44]** | **+21.8 %** | 95.14 | 15.4 | **4.1** | 11.0 | 0.3 |
+| 2 | 18.21 | +32.3 % | 95.92 | 22.3 | 5.8 | 16.0 | 0.5 |
+
+At delta 1, the margin bins (m < 0.1 / 0.1-0.25 / 0.25-0.5 / 0.5-1 / 1-2) hold 1.4 / 2.5 / 4.1 / 6.6 / 0.8 per 1K.
+
+**VERDICT (pre-registered): PASS at delta 1** (the earlier UNDETERMINED is superseded).
+- kept/32 rises +21.8 % on HE+ (13.77 -> 16.78) and +23.1 % on MBPP (6.92 -> 8.52).
+- Code-token changes stay at 4.1 (HE+) and 8.1 (MBPP) per 1K kept tokens, under the line of 10. Most changes land in
+  comments (HE+) and comments + docstrings (MBPP).
+- delta 0.5 misses the lift on both sets (+9.7 / +13.3 %).
+- Next, per the pre-registration: EvalSuite's real-decoding code gate at delta 1 (a lossy variant against the lossy-45
+  base).
+- Caveat: these are teacher-forced UPPER bounds (J(A): about half of changed tokens alter the code that follows), so
+  the real-decoding lift is lower.

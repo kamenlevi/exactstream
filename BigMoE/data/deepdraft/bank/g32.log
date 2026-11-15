@@ -1,0 +1,67 @@
+01:21:59 G32 test: waits for NO-SWAP >= 33 GB (two reads 30 s apart) for C 160
+01:35:59 room: NO-SWAP 40 GB -> run
+01:35:59 G32-DONE rc 127
+01:41:08 G32 head-test: the exact launch through guarded, G32_DRY=1 (no model)
+[dlog 01:41:10] DRY dd__mc_27921: prompt 378, ids 765, routes (764, 48, 10), gate_req 142 (C 160: fits)
+[dlog 01:41:10] DRY dd__mc_2753: prompt 255, ids 556, routes (555, 48, 10), gate_req 154 (C 160: fits)
+[dlog 01:41:10] DRY dd__mc_28056: prompt 442, ids 827, routes (826, 48, 10), gate_req 156 (C 160: fits)
+[dlog 01:41:10] DRY OK: MAXK 320, XLINES 9, ROW 416 B, GATE_N [320], ext build_g32/bigmoe_ext.cpython-312-darwin.so, V32_MOE1 1, ref2 ref2.py
+01:41:29 G32 head-test end rc 0
+01:41:36 G32 test (bash runner): waits for NO-SWAP >= 33 GB (two reads 30 s apart) for C 160
+02:24:05 pre-lock (the orchestrator 01:56): share lock taken ahead of the room (MEM ~26 GB)
+02:25:37 room: NO-SWAP 33 GB -> run
+[bigmoe] tier 4433333333: C_m=175 C_l=112 per layer, 21.21 GB pools
+[dlog 02:25:41] E2: smallest base pool C_m 175 < 32 rows x 10: rows -> 17
+[dlog 02:25:41] E2: C 160, base pool C_m >= 175, rows per check 17, BIGMOE_MAXK 320
+[dlog 02:25:41] loaded in 3 s, 25.1 GB active; C 160; preset 45 (REF2-T 4433333333/3c, C_l 112, MAXK 160, build_next, L1-20 + cut 0.3; D-23's)
+[dlog 02:25:42] G32: BIGMOE_MAXK 320 (gate XLINES 9), ext build_g32, C 160, V32_MOE1 1
+[dlog 02:25:42] dd__mc_27921: prompt 378, window rows 378..413: max distinct experts over layers 142 -> gate_req 142
+02:25:45 pre-lock: posted 'G32 loaded'
+[dlog 02:26:09]   T1 M 32: rows bitwise 0 / 32 (max |diff| 3.15); v32 wrappers {'qmm': 241, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'mr2': 0}
+[dlog 02:26:37]   T1 M 17: rows bitwise 0 / 17 (max |diff| 3.15); v32 wrappers {'qmm': 241, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'mr2': 0}
+[dlog 02:27:05]   T1 M 24: rows bitwise 0 / 24 (max |diff| 3.15); v32 wrappers {'qmm': 241, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'mr2': 0}
+[dlog 02:27:32]   T1 M 31: rows bitwise 0 / 31 (max |diff| 3.15); v32 wrappers {'qmm': 241, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'mr2': 0}
+[dlog 02:28:03]   T2 keep 1: probe rows bitwise 0 / 4 (max |diff| 1.73)
+[dlog 02:28:36]   T2 keep 9: probe rows bitwise 0 / 4 (max |diff| 1.71)
+[dlog 02:29:08]   T2 keep 16: probe rows bitwise 0 / 4 (max |diff| 2.06)
+[dlog 02:29:46]   T2 keep 17: probe rows bitwise 0 / 4 (max |diff| 1.94)
+[dlog 02:30:22]   T2 keep 24: probe rows bitwise 0 / 4 (max |diff| 1.29)
+[dlog 02:31:00]   T2 keep 31: probe rows bitwise 0 / 4 (max |diff| 2.24)
+[dlog 02:31:00] dd__mc_2753: prompt 255, window rows 255..290: max distinct experts over layers 154 -> gate_req 154
+[dlog 02:31:27]   T1 M 32: rows bitwise 0 / 32 (max |diff| 3); v32 wrappers {'qmm': 241, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'mr2': 0}
+02:31:44 G32 BISECT: starts as soon as the G32 runner (pid 45499) exits (its 25 GB freed), if NO-SWAP >= 28 GB
+02:31:50 G32 test stopped by hand after key 1 (T1 0-bitwise at M 32 / 17 / 24 / 31, T2 0-bitwise at every keep): the slot goes to the bisect (one prefill + rollbacks)
+02:31:58 G32-DONE rc 143
+02:31:58 room: NO-SWAP 30 GB -> run
+[bigmoe] tier 4433333333: C_m=175 C_l=112 per layer, 21.21 GB pools
+[dlog 02:32:01] E2: smallest base pool C_m 175 < 32 rows x 10: rows -> 17
+[dlog 02:32:01] E2: C 160, base pool C_m >= 175, rows per check 17, BIGMOE_MAXK 320
+[dlog 02:32:01] loaded in 2 s, 25.1 GB active; C 160; preset 45 (REF2-T 4433333333/3c, C_l 112, MAXK 160, build_next, L1-20 + cut 0.3; D-23's)
+[dlog 02:32:02] G32: BIGMOE_MAXK 320 (gate XLINES 9), ext build_g32, C 160, V32_MOE1 1
+[dlog 02:32:02] BISECT dd__mc_27921: prompt 378, gate_req 142
+[dlog 02:32:16] B0 two prefills: last logits bitwise True (max |diff| 0); taps bitwise True; widened bitwise True; cache arrays unequal 0 / 122
+[dlog 02:32:29] B1 determinism on one prefill: 16 rows twice bitwise (16, 16); 32 rows twice bitwise (32, 32); v32 {'qmm': 241, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'mr2': 0}
+[dlog 02:32:37] B2 one 32-row call vs 16 + 16 (one prefill): rows 0-15 bitwise (0, 16), argmax equal 16 / 16; rows 16-31 bitwise (0, 16), argmax equal 16 / 16; 16-row call now vs before (16, 16)
+[dlog 02:32:37] B2 per-row max |diff| rows 0-15 [3.149, 1.977, 1.688, 1.25, 1.695, 1.25, 1.25, 1.078, 1.172, 1.109, 1.875, 1.445, 1.387, 1.326, 1.262, 0.91]
+[dlog 02:32:37] B2 per-row max |diff| rows 16-31 [1.613, 1.203, 1.438, 2.25, 1.375, 1.562, 1.062, 1.658, 1.656, 1.625, 2.75, 1.482, 1.023, 1.395, 1.633, 1.516]
+[dlog 02:32:44] B3 moe1 OFF (v32 splits the MoE block 2 x 16): vs 16 + 16 bitwise (0, 32), argmax equal 0 / 32; vs moe1 ON bitwise (0, 32); v32 {'qmm': 1, 'lin': 2, 'gr': 97, 'att': 12, 'gdn': 36, 'moe': 0, 'moeblk': 48, 'moe1': 0, 'mr2': 0}; per-row max |diff| [31.078, 24.0, 23.719, 22.969, 24.676, 22.013, 23.926, 22.996, 19.25, 26.008, 27.777, 29.424, 25.586, 28.312, 24.188, 26.091, 27.031, 28.062, 26.352, 24.43, 25.246, 26.812, 28.551, 26.07, 33.135, 26.282, 29.764, 30.641, 23.773, 28.827, 29.453, 28.172]
+[dlog 02:32:58] B4 taps (layer outputs, 4-way mean, fp16), one 32-row call vs 16 + 16: L5: 0 / 32 rows bitwise (max |diff| 0.0072); L15: 0 / 32 rows bitwise (max |diff| 0.0141); L25: 0 / 32 rows bitwise (max |diff| 0.0404); L35: 0 / 32 rows bitwise (max |diff| 0.198); L45: 0 / 32 rows bitwise (max |diff| 0.376)
+[dlog 02:32:58] BISECT done; peak 28.2 GB
+02:33:00 G32-BISECT-END rc 139
+02:35:52 G32 BISECT: starts as soon as the G32 runner (pid 1) exits (its 25 GB freed), if NO-SWAP >= 28 GB
+02:35:52 room: NO-SWAP 31 GB -> run
+[bigmoe] tier 4433333333: C_m=175 C_l=112 per layer, 21.21 GB pools
+[dlog 02:35:55] E2: smallest base pool C_m 175 < 32 rows x 10: rows -> 17
+[dlog 02:35:55] E2: C 160, base pool C_m >= 175, rows per check 17, BIGMOE_MAXK 320
+[dlog 02:35:55] loaded in 2 s, 25.1 GB active; C 160; preset 45 (REF2-T 4433333333/3c, C_l 112, MAXK 160, build_next, L1-20 + cut 0.3; D-23's)
+[dlog 02:35:55] G32: BIGMOE_MAXK 320 (gate XLINES 9), ext build_g32, C 160, V32_MOE1 1
+[dlog 02:36:04] BB recorded at L[0, 1, 2, 3, 4, 5]: block x (1, 32, 2560); switch x (1, 32, 2560), ids (1, 32, 10), extra args 0 / []
+[dlog 02:36:04] BB L0: streamed experts 32 vs 16 + 16 rows bitwise 32 / 32 (max |diff| 0), out (1, 32, 10, 2560); whole MoE block 0 / 32 (max |diff| 0.02)
+[dlog 02:36:04] BB L1: streamed experts 32 vs 16 + 16 rows bitwise 16 / 32 (max |diff| 0.211), out (1, 32, 10, 2560); whole MoE block 0 / 32 (max |diff| 0.0928)
+[dlog 02:36:04] BB L2: streamed experts 32 vs 16 + 16 rows bitwise 16 / 32 (max |diff| 0.29), out (1, 32, 10, 2560); whole MoE block 0 / 32 (max |diff| 0.133)
+[dlog 02:36:04] BB L3: streamed experts 32 vs 16 + 16 rows bitwise 16 / 32 (max |diff| 0.353), out (1, 32, 10, 2560); whole MoE block 0 / 32 (max |diff| 0.112)
+[dlog 02:36:05] BB L4: streamed experts 32 vs 16 + 16 rows bitwise 16 / 32 (max |diff| 0.322), out (1, 32, 10, 2560); whole MoE block 0 / 32 (max |diff| 0.13)
+[dlog 02:36:05] BB L5: streamed experts 32 vs 16 + 16 rows bitwise 16 / 32 (max |diff| 0.23), out (1, 32, 10, 2560); whole MoE block 0 / 32 (max |diff| 0.0673)
+[dlog 02:36:05] BB MLX combine (y * scores).sum(-2) at 32 vs 16 + 16 rows: bitwise 32 / 32 (max |diff| 0), dtype mlx.core.bfloat16
+[dlog 02:36:05] BISECT2 done; peak 27.8 GB
+02:36:13 G32-BISECT2-END rc 138

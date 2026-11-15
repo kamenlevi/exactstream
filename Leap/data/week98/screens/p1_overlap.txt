@@ -1,0 +1,11 @@
+P1 OVERLAP Sun 15 Nov 01:11:19: MLX 0.32.2
+chain built in 1 s: MTP head 1.67 GB, 32 steps per chain
+pools loaded (3 layers) at 1 s; active 6.9 GB
+dense set: 773 calls per check, 3.43 GB of distinct weights; active 10.4 GB
+sanity: the chain on stream 2 gives the default stream's tokens: True ([381, 264, 198, 21742, 21742, 23357] ...)
+S 16: check alone 84.6 ms, chain alone 37.6 ms (1.174 per step), together 119.7 ms (the chain inside it 40.1 ms, x1.07); kappa median 0.932 (rounds 0.91, 0.94, 0.92, 0.93, 0.94, 0.92, 0.92, 0.93, 0.94, 1.06); serial sum 122.2
+S 32: check alone 110.8 ms, chain alone 38.0 ms (1.186 per step), together 145.3 ms (the chain inside it 41.6 ms, x1.10); kappa median 0.926 (rounds 0.92, 0.93, 0.95, 1.01, 0.90, 0.93, 0.96, 0.83, 0.80, 0.82); serial sum 148.8
+
+P1 verdict at S 16: kappa 0.932 -> CLOSED on one GPU (kappa >= 0.52 = q: pipelining loses)
+P1 verdict at S 32: kappa 0.926 -> CLOSED on one GPU (kappa >= 0.52 = q: pipelining loses)
+done in 9 s; peak 10.9 GB

@@ -24,6 +24,11 @@ TD = os.path.expanduser("~/TrainLab/data")
 CAP = os.path.expanduser("~/FableGod/deepdraft/capture/n1112")
 OUT = os.path.expanduser("~/BigMoE/data/deepdraft/ceiling")
 MBPP = sorted(glob.glob(os.path.join(TD, "dlog/d1102mbpp/dlog__mbpp*.npz")))[:100]
+HEP = sorted(glob.glob(os.path.expanduser("~/datasets/deepdraft/bank/tf_code_HumanEval_*.npz")))   # --set heplus24 (Sun 15 Nov
+MBB = sorted(glob.glob(os.path.expanduser("~/datasets/deepdraft/bank/dlog__mbpp*.npz")))   # --set mbppbank: the bank's MBPP 100
+                                                         # (runtime path; MoonShots' K-next verify dump walks these, 03:4x)
+                                                         # 03:0x, the orchestrator for Breakthrough's close-call pricing): the
+                                                         # bank's 24 HE+ windows (runtime path, exact; wd / tk / lp / ids / gen)
 EDGES = [0, 0.1, 0.25, 0.5, 1, 2, 4, np.inf]
 LAB = ["<0.1", "0.1-0.25", "0.25-0.5", "0.5-1", "1-2", "2-4", ">=4"]
 
@@ -73,8 +78,10 @@ def cmd_misses(a):
     P = M.Trainable(head)
     w = os.path.join(T.CK, "d22_b5.safetensors") if a.run == "b5" else os.path.join(DD.CKD, f"dd_{a.run}.safetensors")
     P.load_weights(w); mx.eval(P.parameters())
-    cells = {k: [] for k in ("depth", "right", "m", "rank", "dlp")}   # depth = the band index (0 = the first guess)
-    for f in MBPP:
+    cells = {k: [] for k in ("depth", "right", "m", "rank", "dlp", "fi", "row")}   # depth = the band index (0 = the first guess)
+    FS = {"mbpp100": MBPP, "heplus24": HEP, "mbppbank": MBB}[a.set]
+    assert len(FS) == {"mbpp100": 100, "heplus24": 24, "mbppbank": 100}[a.set], (a.set, len(FS))
+    for fi, f in enumerate(FS):
         while os.path.exists(T.PAUSE):
             time.sleep(1)
         z = np.load(f)
@@ -94,13 +101,14 @@ def cmd_misses(a):
             hit = tk[rows] == am[:, None]
             rank = np.where(hit.any(1), hit.argmax(1), 99)
             dlp = np.where(rank < 32, lp[rows, np.minimum(rank, 31)] - lp[rows, 0], -np.inf)
-            for k, v in (("depth", np.full(len(rows), j)), ("right", right.astype(bool)), ("m", m), ("rank", rank), ("dlp", dlp)):
+            for k, v in (("depth", np.full(len(rows), j)), ("right", right.astype(bool)), ("m", m), ("rank", rank), ("dlp", dlp),
+                         ("fi", np.full(len(rows), fi)), ("row", rows)):
                 cells[k].append(v)
         mx.clear_cache()
     C = {k: np.concatenate(v) for k, v in cells.items()}
     os.makedirs(OUT, exist_ok=True)
-    np.savez_compressed(os.path.join(OUT, f"cells_{a.run}_mbpp100.npz"), **C)
-    R = {"run": a.run, "set": "mbpp100", "wall_s": time.time() - t0, "mlx_peak_gb": mx.get_peak_memory() / 1e9}
+    np.savez_compressed(os.path.join(OUT, f"cells_{a.run}_{a.set}.npz"), files=np.array([os.path.basename(f) for f in FS]), **C)
+    R = {"run": a.run, "set": a.set, "wall_s": time.time() - t0, "mlx_peak_gb": mx.get_peak_memory() / 1e9}
     for name, lo, hi in (("band0", 0, 0), ("band23_30", 23, 30), ("band7_10", 7, 10), ("band15_22", 15, 22)):
         sel = (C["depth"] >= lo) & (C["depth"] <= hi)
         r, m, rank, dlp = C["right"][sel], C["m"][sel], C["rank"][sel], C["dlp"][sel]
@@ -121,10 +129,10 @@ def cmd_misses(a):
         tie_miss0 = (sum((v[0] or 0) * v[1] for k, v in mr0.items() if k in ("<0.1", "0.1-0.25"))
                      / max(sum(v[1] for k, v in mr0.items() if k in ("<0.1", "0.1-0.25")), 1))
         x["tie_limited_ceiling"] = 1 - x["row_share_m<0.25"] * tie_miss0
-    json.dump(R, open(os.path.join(OUT, f"misses_{a.run}_mbpp100.json"), "w"), indent=1)
+    json.dump(R, open(os.path.join(OUT, f"misses_{a.run}_{a.set}.json"), "w"), indent=1)
     for name in ("band0", "band7_10", "band15_22", "band23_30"):
         x = R[name]
-        print(f"[ceil] {a.run} MBPP {name}: acc {100 * x['acc']:.2f} % on {x['cells']} cells; misses on m<0.1 / <0.25 / <0.5: "
+        print(f"[ceil] {a.run} {a.set} {name}: acc {100 * x['acc']:.2f} % on {x['cells']} cells; misses on m<0.1 / <0.25 / <0.5: "
               + " / ".join(f"{100 * v:.1f}" for v in x["miss_share_on"].values())
               + f" %; on confident rows (m >= 1) {100 * x['miss_share_confident_m>=1']:.1f} %; the runner-up {100 * x['miss_share_runner_up']:.1f} %"
               + f"; outside the top-32 {100 * x['miss_share_outside_top32']:.1f} %")
@@ -140,6 +148,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=["margins", "misses"])
     ap.add_argument("--run", default="t30b"); ap.add_argument("--frac", type=float, default=0.03)
+    ap.add_argument("--set", choices=["mbpp100", "heplus24", "mbppbank"], default="mbpp100")
     a = ap.parse_args()
     {"margins": cmd_margins, "misses": cmd_misses}[a.cmd](a)
 

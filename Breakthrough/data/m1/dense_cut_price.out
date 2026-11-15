@@ -1,0 +1,42 @@
+DENSE read per pass from the weight headers: 3.437 GB (Leap's D32 figure: 3.44 GB)
+  HC mixers (bf16)          1.281 GB (37.3 %)
+  GDN projections           1.173 GB (34.1 %)
+  lm_head                   0.358 GB (10.4 %)
+  attention projections     0.336 GB ( 9.8 %)
+  shared expert             0.133 GB ( 3.9 %)
+  router (8-bit)            0.067 GB ( 1.9 %)
+  PLE (bf16)                0.066 GB ( 1.9 %)
+  indexer (8-bit)           0.021 GB ( 0.6 %)
+  norms / conv / other      0.003 GB ( 0.1 %)
+
+MEASURED map flips % (all-row / non-tie):
+  hc8w     HC mixers + PLE at 8-bit (exact experts)             code 0.33 / 0.06  ifeval 2.21 / 0.39  multi 1.77 / 0.39
+  t4_all   bit-plane path at 4 bits (numeric-noise reference)   code 0.33 / 0.06  ifeval 2.15 / 0.19  multi 1.58 / 0.24
+  bm_res   resident-only experts (BigMoE D2 control)            code 0.92 / 0.54  ifeval 37.06 / 33.67  multi 52.43 / 50.06
+  bm_d4    + bf16 / 8-bit trunk modules at 4-bit                code 1.34 / 0.66  ifeval 37.97 / 34.57  multi 52.74 / 50.42
+  bm_d3    + the whole trunk at 3-bit RTN                       code 8.29 / 7.42  ifeval 50.07 / 46.99  multi 66.06 / 64.04
+  mixers + inject + PLE + indexer at 4-bit, increment over resident-only (confounded): code +0.42 / +0.12  ifeval +0.91 / +0.90  multi +0.31 / +0.36
+
+LM_HEAD SHORTLIST: the bank's top-1 tokens (261388 rows, 8775 distinct) -> map misses (baseline top-1 outside the K most frequent; an upper bound)
+  K   2048: saves 0.355 GB; misses % code 9.626  ifeval 45.275  multi 81.255
+  K   4096: saves 0.352 GB; misses % code 4.248  ifeval 39.505  multi 78.497
+  K   8192: saves 0.346 GB; misses % code 1.485  ifeval 32.970  multi 76.555
+  K  16384: saves 0.334 GB; misses % code 0.030  ifeval 31.969  multi 76.274
+  K  32768: saves 0.311 GB; misses % code 0.030  ifeval 31.969  multi 76.274
+
+COMBINED CODE PLAN: expert tiers (3 tiers, acceptance-weighted) + dense cuts; code flips = the expert prediction [leave-one-arm-out range] + the dense levers' measured standalone flips (all-row / non-tie)
+  dense cuts (GB saved per check): HC mixers + PLE to 8-bit 0.631, to 4-bit 0.968; lm_head K16K 0.334; GDN + attention 4 -> 3-bit 0.335 (unmeasured); shared expert MSB-3 0.029
+| experts (s, lambda) | dense option | GB | ms floor / 84 % | tok/s HE+ at 84 % (today / 98 %) | code all-row % (level 1.34) | code non-tie % (level 0.87) | verdict (code) |
+|---|---|---|---|---|---|---|---|
+| s 0.98 lam 8.0e-03 (54.8 eq) | dense as is | 9.05 | 32.3 / 38.5 | 303 / 512 | 0.51 [0.42, 0.62] | 0.15 [0.12, 0.19] | within |
+| s 0.98 lam 8.0e-03 (54.8 eq) | mixers 8-bit + lm_head K16K | 8.09 | 28.9 / 34.4 | 333 / 563 | 0.87 [0.78, 0.98] | 0.24 [0.21, 0.28] | within |
+| s 0.98 lam 8.0e-03 (54.8 eq) | mixers 4-bit + lm_head K16K | 7.75 | 27.7 / 33.0 | 345 / 583 | 0.96 [0.87, 1.07] | 0.30 [0.27, 0.34] | within |
+| s 0.98 lam 1.2e-02 (43.7 eq) | dense as is | 7.92 | 28.3 / 33.7 | 339 / 573 | 0.81 [0.73, 0.87] | 0.32 [0.28, 0.34] | within |
+| s 0.98 lam 1.2e-02 (43.7 eq) | mixers 8-bit + lm_head K16K | 6.95 | 24.8 / 29.6 | 378 / 637 | 1.17 [1.08, 1.23] | 0.41 [0.37, 0.43] | within |
+| s 0.98 lam 1.2e-02 (43.7 eq) | mixers 4-bit + lm_head K16K | 6.61 | 23.6 / 28.1 | 393 / 663 | 1.26 [1.17, 1.32] | 0.47 [0.43, 0.49] | within |
+| s 0.98 lam 1.6e-02 (36.4 eq) | dense as is | 7.17 | 25.6 / 30.5 | 368 / 622 | 1.08 [0.99, 1.15] | 0.50 [0.46, 0.53] | within |
+| s 0.98 lam 1.6e-02 (36.4 eq) | mixers 8-bit + lm_head K16K | 6.20 | 22.1 / 26.4 | 414 / 698 | 1.44 [1.34, 1.51] | 0.59 [0.55, 0.62] | over |
+| s 0.98 lam 1.6e-02 (36.4 eq) | mixers 4-bit + lm_head K16K | 5.86 | 20.9 / 24.9 | 432 / 730 | 1.53 [1.43, 1.60] | 0.65 [0.61, 0.68] | over |
+| s 0.98 lam 1.8e-02 (33.6 eq) | dense as is | 6.88 | 24.6 / 29.2 | 381 / 643 | 1.21 [1.06, 1.28] | 0.59 [0.52, 0.63] | within |
+| s 0.98 lam 1.8e-02 (33.6 eq) | mixers 8-bit + lm_head K16K | 5.91 | 21.1 / 25.1 | 430 / 725 | 1.56 [1.41, 1.64] | 0.68 [0.61, 0.72] | over |
+| s 0.98 lam 1.8e-02 (33.6 eq) | mixers 4-bit + lm_head K16K | 5.57 | 19.9 / 23.7 | 450 / 759 | 1.65 [1.50, 1.73] | 0.74 [0.67, 0.78] | over |

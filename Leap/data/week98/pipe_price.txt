@@ -1,0 +1,45 @@
+pipe_price.py (Leap, Sun 15 Nov 2026 00:4x): a pipelined draft / check loop, priced from measured parts
+
+== Floors (exact 4-bit bytes / 280 GB/s) ==
+   1 rows:  4.46 GB ->  15.9 ms (bw_probe 285:  15.7); earlier estimate  15.9 ms (union 10.0 vs measured 10.0)
+  16 rows: 10.87 GB ->  38.8 ms (bw_probe 285:  38.1); earlier estimate  36.5 ms (union 66.1 vs measured 72.5)
+  32 rows: 14.56 GB ->  52.0 ms (bw_probe 285:  51.1); earlier estimate  49.1 ms (union 100.5 vs measured 108.5)
+  tau at flat 0.98: 32 rows (31 guesses) 23.81; 30 guesses 23.27
+  tau at flat 0.95: 32 rows (31 guesses) 16.13; 30 guesses 15.92
+  tau at flat 0.90: 32 rows (31 guesses)  9.66; 30 guesses  9.62
+  450 tok/s exact at tau 23.81 needs a cycle <= 52.9 ms: 0.9 ms over the 32-row floor at 280 GB/s, 4.4 ms at 300 GB/s (the loads' best, 287-305)
+  max at the floor, zero drafting and overhead: 458 tok/s (280 GB/s), 491 (300 GB/s)
+
+== tok/s at a flat 98 % (tau 23.81, q = 0.98^32 = 0.524); overhead 5.0 ms per cycle ==
+  kappa 1.0 = the overlapped draft costs the check its own full time (same GPU, NAX-OCC-like: two streams at S 32
+  only 1.2-2.4 % faster than serial); 0.25 = good overlap; 'bytes' = perfect overlap, only the shared bus counts.
+  check: 32 rows today, single pass (est. 90-97): 93.0 ms
+    chain head today (MTP step 1.3 ms, ~170 MB): draft 41.6 ms, 5.44 GB | sequential  171 | pipelined k 1.00:  149 (check 134.6); k 0.25:  186 (check 103.4); k 0.00:  202 (check  93.0)
+    chain head, bytes cut (0.5 ms, ~60 MB) [P]: draft 16.0 ms, 1.92 GB | sequential  209 | pipelined k 1.00:  196 (check 109.0); k 0.25:  217 (check  97.0); k 0.00:  225 (check  93.0)
+    one-pass block drafter (DFlash2 4-bit 9.4 ms / 0.52 GB at 16 rows; 10 ms at 32 [P]): draft 10.0 ms, 0.52 GB | sequential  220 | pipelined k 1.00:  211 (check 103.0); k 0.25:  226 (check  95.5); k 0.00:  232 (check  93.0)
+  check: 32 rows after kernel work [P]: 65.0 ms
+    chain head today (MTP step 1.3 ms, ~170 MB): draft 41.6 ms, 5.44 GB | sequential  213 | pipelined k 1.00:  181 (check 106.6); k 0.25:  238 (check  75.4); k 0.00:  247 (check  71.4)
+    chain head, bytes cut (0.5 ms, ~60 MB) [P]: draft 16.0 ms, 1.92 GB | sequential  277 | pipelined k 1.00:  254 (check  81.0); k 0.25:  292 (check  69.0); k 0.00:  307 (check  65.0)
+    one-pass block drafter (DFlash2 4-bit 9.4 ms / 0.52 GB at 16 rows; 10 ms at 32 [P]): draft 10.0 ms, 0.52 GB | sequential  298 | pipelined k 1.00:  281 (check  75.0); k 0.25:  308 (check  67.5); k 0.00:  318 (check  65.0)
+  check: 32 rows at the byte floor: 52.0 ms
+    chain head today (MTP step 1.3 ms, ~170 MB): draft 41.6 ms, 5.44 GB | sequential  241 | pipelined k 1.00:  201 (check  93.6); k 0.25:  247 (check  71.4); k 0.00:  247 (check  71.4)
+    chain head, bytes cut (0.5 ms, ~60 MB) [P]: draft 16.0 ms, 1.92 GB | sequential  326 | pipelined k 1.00:  295 (check  68.0); k 0.25:  333 (check  58.9); k 0.00:  333 (check  58.9)
+    one-pass block drafter (DFlash2 4-bit 9.4 ms / 0.52 GB at 16 rows; 10 ms at 32 [P]): draft 10.0 ms, 0.52 GB | sequential  355 | pipelined k 1.00:  332 (check  62.0); k 0.25:  370 (check  54.5); k 0.00:  374 (check  53.9)
+
+== The depth the speculative block needs (G = 31; chain head today, check at the floor, kappa = bytes only) ==
+  accuracy at depths 32-63 0.98: q_F 0.524, share of speculative blocks 0.524, tau_S 23.81; tok/s chain  247, one-pass block  374 (sequential: chain  241, block  355)
+  accuracy at depths 32-63 0.95: q_F 0.508, share of speculative blocks 0.386, tau_S 16.13; tok/s chain  204, one-pass block  321 (sequential: chain  241, block  355)
+  accuracy at depths 32-63 0.90: q_F 0.481, share of speculative blocks 0.333, tau_S  9.66; tok/s chain  183, one-pass block  291 (sequential: chain  241, block  355)
+  accuracy at depths 32-63 0.80: q_F 0.428, share of speculative blocks 0.300, tau_S  5.00; tok/s chain  172, one-pass block  276 (sequential: chain  241, block  355)
+
+== Deeper checks at the floor, IF the drafter holds 98 % that deep (union beyond 32 rows extrapolated [P]) ==
+  Union growth per added row: 3.38 (8-16 rows), 2.25 (16-32), so ~1.75 (32-48) and ~1.5 (32-64) [P].
+  Above 256 distinct (C_main at 45 GB) a check splits in two; step 0's 32-row max is already 242.
+  32 rows: union 108.5, 14.56 GB, floor  52.0 ms, tau 23.81 ->  458 tok/s with free drafting; with a one-pass block drafter (10 ms, 0.52 GB) + 5 ms overhead, sequential  355
+  48 rows: union 136.5, 17.43 GB, floor  62.2 ms, tau 31.04 ->  499 tok/s with free drafting; with a one-pass block drafter (10 ms, 0.52 GB) + 5 ms overhead, sequential  402
+  64 rows: union 156.5, 19.48 GB, floor  69.6 ms, tau 36.28 ->  521 tok/s with free drafting; with a one-pass block drafter (10 ms, 0.52 GB) + 5 ms overhead, sequential  429
+
+== What 450 exact asks of drafting (check at the 32-row floor, 300 GB/s) ==
+  overhead 5.0 ms: room for drafting -0.63 ms per cycle = bytes / bw + (1 - q) x serial draft; e.g. serial <=  0.0 ms with zero bytes
+  overhead 2.5 ms: room for drafting  1.87 ms per cycle = bytes / bw + (1 - q) x serial draft; e.g. serial <=  3.9 ms with zero bytes
+  overhead 0.0 ms: room for drafting  4.37 ms per cycle = bytes / bw + (1 - q) x serial draft; e.g. serial <=  9.2 ms with zero bytes

@@ -1,0 +1,102 @@
+Lossy 32-row check pricing v2: 36 map windows, 10316 answer rows, 589 tie rows
+
+CALIBRATION (ALL rows): measured flips % vs missed energy E per row-layer
+| arm | code E | code flips | ifeval E | ifeval flips | multi E | multi flips |
+|---|---|---|---|---|---|---|
+| topk2 | 0.05808 | 4.10 | 0.05669 | 26.35 | 0.05710 | 30.59 |
+| topk5 | 0.02698 | 1.60 | 0.02376 | 11.48 | 0.02398 | 11.48 |
+| top_k8 | 0.00917 | 0.65 | 0.00746 | 5.24 | 0.00742 | 4.31 |
+| q1u_cf09 | 0.02614 | 0.98 | 0.00799 | 4.92 | 0.00585 | 3.04 |
+| q1u_cf099 | 0.01984 | 0.74 | 0.00371 | 3.36 | 0.00266 | 2.34 |
+| qom_0_live_c51 | 0.02446 | 1.16 | 0.01782 | 8.80 | 0.01326 | 5.26 |
+| qom_0_live_c147 | 0.01102 | 0.74 | 0.00521 | 4.50 | 0.00433 | 3.26 |
+| t4_all | 0.00000 | 0.33 | 0.00000 | 2.15 | 0.00000 | 1.58 |
+| t3_all | 0.00245 | 0.92 | 0.00251 | 7.24 | 0.00249 | 5.83 |
+fit code (ALL rows): flips% = 41.5 E^0.932; log residual rms 0.26; t4_all path noise 0.33 %; t3_all measured 0.92 % vs predicted 0.56 at err 0.08 (+ path noise)
+fit ifeval (ALL rows): flips% = 188 E^0.730; log residual rms 0.10; t4_all path noise 2.15 %; t3_all measured 7.24 % vs predicted 6.53 at err 0.08 (+ path noise)
+fit multi (ALL rows): flips% = 265 E^0.833; log residual rms 0.19; t4_all path noise 1.58 %; t3_all measured 5.83 % vs predicted 5.71 at err 0.08 (+ path noise)
+
+CALIBRATION (NON-TIE rows): measured flips % vs missed energy E per row-layer
+| arm | code E | code flips | ifeval E | ifeval flips | multi E | multi flips |
+|---|---|---|---|---|---|---|
+| topk2 | 0.05809 | 3.23 | 0.05660 | 22.76 | 0.05705 | 27.06 |
+| topk5 | 0.02702 | 1.03 | 0.02375 | 7.66 | 0.02398 | 8.23 |
+| top_k8 | 0.00919 | 0.21 | 0.00747 | 1.90 | 0.00743 | 1.54 |
+| q1u_cf09 | 0.02651 | 0.51 | 0.00862 | 1.58 | 0.00621 | 0.88 |
+| q1u_cf099 | 0.02014 | 0.33 | 0.00405 | 0.87 | 0.00286 | 0.73 |
+| qom_0_live_c51 | 0.02460 | 0.54 | 0.01815 | 4.96 | 0.01346 | 2.66 |
+| qom_0_live_c147 | 0.01110 | 0.24 | 0.00535 | 1.26 | 0.00442 | 0.76 |
+| t4_all | 0.00000 | 0.06 | 0.00000 | 0.19 | 0.00000 | 0.24 |
+| t3_all | 0.00245 | 0.36 | 0.00252 | 3.44 | 0.00250 | 3.09 |
+fit code (NON-TIE rows): flips% = 143 E^1.446; log residual rms 0.30; t4_all path noise 0.06 %; t3_all measured 0.36 % vs predicted 0.18 at err 0.08 (+ path noise)
+fit ifeval (NON-TIE rows): flips% = 763 E^1.242; log residual rms 0.12; t4_all path noise 0.19 %; t3_all measured 3.44 % vs predicted 2.53 at err 0.08 (+ path noise)
+fit multi (NON-TIE rows): flips% = 947 E^1.302; log residual rms 0.26; t4_all path noise 0.24 %; t3_all measured 3.09 % vs predicted 2.35 at err 0.08 (+ path noise)
+
+BLOCKS: 299 full 32-row blocks (9568 rows); exact distinct experts per layer mean 99.9 (p99 178, max 222); SELF-CHECK vs Leap's 100.5 (+-10 %): PASS
+exact: 13.68 GB, 48.9 ms at the floor. Targets: 25 ms = 34.7 4-bit-eq experts per layer at the floor, 23.8 at 84 %.
+
+(c) UNION CAPS (keep the N largest sums of w^2 per block-layer; others dropped):
+| lever | 4-bit-eq / layer | GB | ms floor / 84 % | tok/s HE+ today / 98 % | flips % all (code / ifeval / multi) | non-tie (code / ifeval / multi) | all-row levels | non-tie levels | code-only |
+|---|---|---|---|---|---|---|---|---|---|
+| cap 80 | 75.5 | 11.17 | 39.9 / 47.5 | 253 / 428 | 0.35 / 2.75 / 1.58 | 0.09 / 0.58 / 0.32 | within | within | within |
+| cap 60 | 58.8 | 9.47 | 33.8 / 40.3 | 292 / 493 | 0.67 / 5.34 / 3.35 | 0.24 / 1.80 / 1.03 | within | within | within |
+| cap 50 | 49.6 | 8.52 | 30.4 / 36.2 | 319 / 539 | 0.90 / 7.21 / 4.74 | 0.38 / 2.99 / 1.77 | <=1.5x | <=1.5x | within |
+| cap 40 | 39.9 | 7.53 | 26.9 / 32.0 | 354 / 597 | 1.20 / 9.62 / 6.64 | 0.58 / 4.88 / 3.00 | over | over | within |
+| cap 35 | 35.0 | 7.02 | 25.1 / 29.9 | 374 / 632 | 1.38 / 11.10 / 7.87 | 0.73 / 6.21 / 3.90 | over | over | over |
+| cap 30 | 30.0 | 6.51 | 23.3 / 27.7 | 398 / 672 | 1.59 / 12.81 / 9.35 | 0.91 / 7.92 / 5.11 | over | over | over |
+| cap 24 | 24.0 | 5.90 | 21.1 / 25.1 | 430 / 726 | 1.91 / 15.26 / 11.57 | 1.20 / 10.66 / 7.12 | over | over | over |
+
+(b) BIT-PLANE TIERS, calibrated errors (MSB-3 0.08, MSB-2 0.32), RD per block-layer:
+| lever | 4-bit-eq / layer | GB | ms floor / 84 % | tok/s HE+ today / 98 % | flips % all (code / ifeval / multi) | non-tie (code / ifeval / multi) | all-row levels | non-tie levels | code-only |
+|---|---|---|---|---|---|---|---|---|---|
+| tiers lam 2.0e-03 | 93.8 | 13.05 | 46.6 / 55.5 | 221 / 373 | 0.02 / 0.46 / 0.27 | 0.00 / 0.03 / 0.02 | within | within | within | 4-bit 78.0 MSB-3 20.0 MSB-2 0.6 drop 1.4
+| tiers lam 4.0e-03 | 83.2 | 11.96 | 42.7 / 50.9 | 238 / 403 | 0.09 / 1.42 / 0.98 | 0.01 / 0.19 / 0.15 | within | within | within | 4-bit 56.2 MSB-3 32.9 MSB-2 2.5 drop 8.3
+| tiers lam 8.0e-03 | 63.9 | 9.99 | 35.7 / 42.5 | 279 / 471 | 0.33 / 3.65 / 2.87 | 0.08 / 0.95 / 0.81 | within | within | within | 4-bit 37.2 MSB-3 31.5 MSB-2 4.0 drop 27.2
+| tiers lam 1.6e-02 | 44.1 | 7.96 | 28.4 / 33.8 | 338 / 571 | 0.81 / 6.90 / 5.78 | 0.32 / 2.80 / 2.43 | over | <=1.5x | within | 4-bit 21.2 MSB-3 26.9 MSB-2 3.5 drop 48.3
+| tiers lam 3.2e-02 | 27.3 | 6.24 | 22.3 / 26.5 | 412 / 695 | 1.54 / 11.77 / 10.14 | 0.86 / 6.89 / 5.80 | over | over | over | 4-bit 10.1 MSB-3 19.9 MSB-2 3.0 drop 66.9
+
+(a)+(b)+(c) ACCEPTANCE-WEIGHTED (today's code drafter s 0.935): decisions on sum s^d w^2; quality = the reach-weighted E:
+| lever | 4-bit-eq / layer | GB | ms floor / 84 % | tok/s HE+ today / 98 % | flips % all (code / ifeval / multi) | non-tie (code / ifeval / multi) | all-row levels | non-tie levels | code-only |
+|---|---|---|---|---|---|---|---|---|---|
+| acc-cap 40 | 39.9 | 7.53 | 26.9 / 32.0 | 354 / 597 | 1.08 / 8.83 / 5.93 | 0.49 / 4.21 / 2.49 | over | over | within |
+| acc-cap 30 | 30.0 | 6.51 | 23.3 / 27.7 | 398 / 672 | 1.47 / 11.94 / 8.52 | 0.80 / 7.04 / 4.39 | over | over | over |
+| acc-cap 24 | 24.0 | 5.90 | 21.1 / 25.1 | 430 / 726 | 1.78 / 14.37 / 10.68 | 1.07 / 9.64 / 6.25 | over | over | over |
+| acc-tiers lam 4.0e-03 | 56.3 | 9.21 | 32.9 / 39.2 | 299 / 505 | 0.39 / 4.07 / 3.21 | 0.10 / 1.13 / 0.96 | within | within | within | 4-bit 32.0 MSB-3 28.8 MSB-2 3.3 drop 35.7
+| acc-tiers lam 8.0e-03 | 38.5 | 7.39 | 26.4 / 31.4 | 359 / 607 | 0.88 / 7.59 / 6.30 | 0.36 / 3.26 / 2.74 | over | over | within | 4-bit 17.9 MSB-3 24.1 MSB-2 3.3 drop 54.6
+| acc-tiers lam 1.6e-02 | 23.3 | 5.83 | 20.8 / 24.8 | 434 / 733 | 1.64 / 12.71 / 10.83 | 0.95 / 7.83 / 6.40 | over | over | over | 4-bit 8.5 MSB-3 17.1 MSB-2 2.6 drop 71.6
+| acc-tiers lam 3.2e-02 | 12.2 | 4.69 | 16.8 / 20.0 | 512 / 865 | 2.62 / 19.49 / 16.92 | 1.95 / 16.20 / 12.84 | over | over | over | 4-bit 3.3 MSB-3 10.1 MSB-2 1.8 drop 84.6
+
+(a)+(b)+(c) ACCEPTANCE-WEIGHTED (98 % drafter s 0.98): decisions on sum s^d w^2; quality = the reach-weighted E:
+| lever | 4-bit-eq / layer | GB | ms floor / 84 % | tok/s HE+ today / 98 % | flips % all (code / ifeval / multi) | non-tie (code / ifeval / multi) | all-row levels | non-tie levels | code-only |
+|---|---|---|---|---|---|---|---|---|---|
+| acc-cap 40 | 39.9 | 7.53 | 26.9 / 32.0 | 354 / 597 | 1.18 / 9.56 / 6.57 | 0.57 / 4.82 / 2.93 | over | over | within |
+| acc-cap 30 | 30.0 | 6.51 | 23.3 / 27.7 | 398 / 672 | 1.58 / 12.74 / 9.26 | 0.89 / 7.86 / 5.01 | over | over | over |
+| acc-cap 24 | 24.0 | 5.90 | 21.1 / 25.1 | 430 / 726 | 1.89 / 15.18 / 11.48 | 1.18 / 10.59 / 7.00 | over | over | over |
+| acc-tiers lam 4.0e-03 | 75.2 | 11.14 | 39.8 / 47.4 | 254 / 429 | 0.16 / 2.22 / 1.66 | 0.03 / 0.40 / 0.34 | within | within | within | 4-bit 47.7 MSB-3 32.9 MSB-2 3.4 drop 15.9
+| acc-tiers lam 8.0e-03 | 54.8 | 9.05 | 32.3 / 38.5 | 303 / 512 | 0.51 / 4.85 / 3.94 | 0.15 / 1.52 / 1.32 | <=1.5x | within | within | 4-bit 29.8 MSB-3 29.5 MSB-2 3.7 drop 36.9
+| acc-tiers lam 1.6e-02 | 36.4 | 7.17 | 25.6 / 30.5 | 368 / 622 | 1.08 / 8.73 / 7.40 | 0.50 / 4.13 / 3.52 | over | over | within | 4-bit 15.8 MSB-3 24.1 MSB-2 3.3 drop 56.7
+| acc-tiers lam 3.2e-02 | 21.2 | 5.62 | 20.1 / 23.9 | 447 / 754 | 1.92 / 14.39 / 12.44 | 1.21 / 9.67 / 7.94 | over | over | over | 4-bit 7.0 MSB-3 16.4 MSB-2 2.6 drop 73.8
+
+REFINE: acceptance-weighted tiers near 25 ms at the floor (34.7 4-bit-eq / layer), and without MSB-2:
+| lever | 4-bit-eq / layer | GB | ms floor / 84 % | tok/s HE+ today / 98 % | flips % all (code / ifeval / multi) | non-tie (code / ifeval / multi) | all-row levels | non-tie levels | code-only |
+|---|---|---|---|---|---|---|---|---|---|
+| acc-tiers s 0.935 lam 1.2e-02 | 29.2 | 6.43 | 23.0 / 27.3 | 402 / 679 | 1.30 / 10.37 / 8.75 | 0.66 / 5.54 / 4.59 | over | over | within | 4-bit 11.8 MSB-3 20.2 MSB-2 2.9 drop 65.0
+| acc-tiers s 0.935 lam 1.4e-02 | 26.0 | 6.10 | 21.8 / 25.9 | 419 / 707 | 1.48 / 11.59 / 9.82 | 0.81 / 6.69 / 5.49 | over | over | over | 4-bit 10.0 MSB-3 18.6 MSB-2 2.8 drop 68.6
+| acc-tiers s 0.935 lam 1.8e-02 | 21.1 | 5.61 | 20.0 / 23.8 | 448 / 756 | 1.80 / 13.75 / 11.76 | 1.09 / 8.95 / 7.27 | over | over | over | 4-bit 7.4 MSB-3 15.9 MSB-2 2.5 drop 74.1
+| acc-tiers s 0.935 lam 2.2e-02 | 17.7 | 5.25 | 18.8 / 22.3 | 471 / 794 | 2.07 / 15.65 / 13.45 | 1.36 / 11.15 / 8.97 | over | over | over | 4-bit 5.7 MSB-3 13.8 MSB-2 2.3 drop 78.1
+| acc-3tiers s 0.935 lam 8.0e-03 | 38.5 | 7.39 | 26.4 / 31.4 | 359 / 606 | 0.88 / 7.60 / 6.30 | 0.36 / 3.26 / 2.74 | over | over | within | 4-bit 17.9 MSB-3 26.5 drop 55.5
+| acc-3tiers s 0.935 lam 1.6e-02 | 23.3 | 5.83 | 20.8 / 24.8 | 434 / 733 | 1.65 / 12.71 / 10.83 | 0.95 / 7.83 / 6.40 | over | over | over | 4-bit 8.5 MSB-3 19.1 drop 72.3
+| acc-tiers s 0.98 lam 1.2e-02 | 43.7 | 7.92 | 28.3 / 33.7 | 339 / 573 | 0.81 / 6.92 / 5.79 | 0.32 / 2.78 / 2.40 | over | <=1.5x | within | 4-bit 21.0 MSB-3 26.6 MSB-2 3.5 drop 48.8
+| acc-tiers s 0.98 lam 1.4e-02 | 39.7 | 7.51 | 26.8 / 31.9 | 355 / 599 | 0.95 / 7.86 / 6.62 | 0.41 / 3.45 / 2.96 | over | over | within | 4-bit 18.1 MSB-3 25.3 MSB-2 3.4 drop 53.1
+| acc-tiers s 0.98 lam 1.8e-02 | 33.5 | 6.88 | 24.6 / 29.2 | 381 / 643 | 1.21 / 9.56 / 8.14 | 0.59 / 4.82 / 4.09 | over | over | within | 4-bit 14.0 MSB-3 22.9 MSB-2 3.2 drop 59.9
+| acc-tiers s 0.98 lam 2.2e-02 | 28.9 | 6.40 | 22.9 / 27.2 | 403 / 681 | 1.44 / 11.08 / 9.51 | 0.77 / 6.20 / 5.22 | over | over | over | 4-bit 11.1 MSB-3 20.7 MSB-2 3.0 drop 65.0
+| acc-3tiers s 0.98 lam 8.0e-03 | 54.8 | 9.06 | 32.3 / 38.5 | 303 / 512 | 0.51 / 4.85 / 3.94 | 0.15 / 1.52 / 1.32 | <=1.5x | within | within | 4-bit 29.8 MSB-3 32.2 drop 38.0
+| acc-3tiers s 0.98 lam 1.6e-02 | 36.4 | 7.17 | 25.6 / 30.5 | 368 / 622 | 1.08 / 8.74 / 7.39 | 0.50 / 4.14 / 3.52 | over | over | within | 4-bit 15.8 MSB-3 26.4 drop 57.6
+
+UNCERTAINTY: predicted flips % with the leave-one-arm-out range [min, max] (7 refits per domain)
+| lever | code all | code non-tie | ifeval all | multi all |
+|---|---|---|---|---|
+| 1a acc-tiers s 0.935 lam 1.2e-2 (29.2 eq) | 1.30 [1.10, 1.38] | 0.66 [0.56, 0.71] | 10.37 [9.43, 10.65] | 8.75 [7.46, 9.32] |
+| 1b acc-tiers s 0.98 lam 1.8e-2 (33.5 eq) | 1.21 [1.06, 1.28] | 0.59 [0.52, 0.63] | 9.56 [8.79, 9.80] | 8.14 [7.03, 8.65] |
+| 1c acc-3tiers s 0.98 lam 1.6e-2 (36.4 eq) | 1.08 [0.99, 1.15] | 0.50 [0.46, 0.53] | 8.74 [8.13, 8.95] | 7.39 [6.50, 7.84] |
+| 1d acc-tiers s 0.98 lam 8e-3 (54.8 eq) | 0.51 [0.42, 0.62] | 0.15 [0.12, 0.19] | 4.85 [4.70, 4.98] | 3.94 [3.65, 4.13] |

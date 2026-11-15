@@ -52,6 +52,35 @@ my earlier measurements. Nothing here has been built or run.
      - exact-45 has no DENSE-N-RAM. Its number (same screen, pending) shows what GDN / attention above 16 rows cost on
        their own.
 
+## Built Sun 15 Nov 01:0x-02:1x (Leap's side, exact by construction; details in data/week98/screens/README.md)
+- **REF2's 17-32-row verify path:** scripts/week98/v32.py, plus v32mr2.py and hc32.py. Each installs after ref2.apply()
+  and takes only 17-32-row calls in the verify phase (the verify forward and the commit replay; never the prefill). Every
+  row keeps the bits of the certified <= 16-row forms.
+  - Row-local ops (quantized matmuls incl. the 8-bit router / indexer and the LM head, bf16 Linears) run as two 16-row
+    calls. Where D32's mr2 applies (4-bit, N >= 1024, with a DENSE-N / DENSE-N-RAM native copy) they run as one 32-row
+    call instead.
+  - The HC read runs in one weight pass (hc32: the split-K GEMM with two 16-row accumulators sharing every weight tile).
+  - GDN: the projections at full width (v32mr2); only the recurrence core (ref2's gdn_body) runs as two 16-row chunks,
+    carrying the conv and recurrent states. The capture stash is joined, so MTPLX's commit replays one 32-row window.
+  - Attention runs as two 16-row chunks in sequence (chunk 2 sees chunk 1's keys).
+  - **The MoE block:** MTPLX's SparseMoeBlock takes its PREFILL combine at >= 32 rows even in decode_verify, and that
+    path lowers the shared-expert gate's sigmoid differently. v32 therefore calls _verify_call directly at 17-32 rows
+    (V32_MOE1). The router and the shared expert go 2 x 16; the experts take ONE call (the union read once).
+  - Bit tests on a 4-layer resident slice (c3_v32.py): forward at 17 / 24 / 31 / 32 rows and commit keep 1-31 then a
+    probe, all bitwise, at each step: C3 (splits), C3b (one-call experts), C3c (GDN at full width + mr2), C3d (hc32).
+- **The gate (BigMoE, 488c428, ext/build_g32):** MAXK <= 340, XLINES <= 9, 352 PostIds threads. The ensure-to-overflow
+  flag comes next.
+- **G32 PASSES (Sun 02:47):** on the exact-45 loop (C 160), one 32-row check through the widened gate is bitwise equal
+  to <= 16-row checks: 3 windows, M 17 / 24 / 31 / 32, commit keep 1-31. That needed v32 b0c99d5 (the loop's MoE block
+  at 32 rows, ONE expert call) and BigMoE's ids_copy fix (6169f13). The exact single-pass 32-row check exists.
+  - Their g32_test runs C3's T1 / T2 on the full streamed 125B with V32_MOE1 at MAXK 320 (gate_req from the routing log),
+    after the next memory slot.
+- **Time:** C5 v1 (12-layer resident slice) has the exact 32-row check at ~1.6x a 16-row check (fair read), against
+  2 x 16's 2.0x. The deep-drafter line is ~1.35-1.4x.
+  - Still 2 x 16 inside the 32-row check: the 8-bit router / indexer (MLX's 32-row call differs), the small-N 4-bit
+    shapes, the attention projections and SDPA, and the GDN core. The remaining gap is those plus the kernels' distance
+    from the floor.
+
 ## Risk: the union can exceed the pool
 - 16 rows x top-10 = 160 ids, which is <= C at 45 GB (256) and 32 GB (160), so today's wide gate is always safe there.
   At 32 rows the worst case is 320 distinct, more than any pool.

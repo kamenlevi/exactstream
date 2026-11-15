@@ -1,0 +1,13 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=25.9 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+C5 Sun 15 Nov 01:39:52: MLX 0.32.2; slice GGGAGGGAGGGA, 18.5 GB active, loaded in 2 s; ref2 on: ['att_rope', 'commit_phase', 'dense_native', 'experts', 'gdn_body', 'gdn_exact', 'gdn_inproj_x', 'hc_gate', 'hc_write', 'idx_prep', 'keep_caches', 'key_buckets', 'nax_coh', 'ple_late', 'sb_first', 'sdpa_classes', 'slot_call', 'tiers']
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (1320496 > 262144). Running this sequence through the model will result in indexing errors
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+12 layers, 16 rounds: A16 24.03 ms | B2x16 58.81 ms | C32 48.00 ms
+  R32 = C32 / A16 median 1.914 (rounds 2.06, 1.79, 2.21, 2.12, 2.04, 2.16, 2.06, 2.12, 1.86, 1.89, 1.91, 1.57, 1.82, 1.92, 1.78, 1.76); B2x16 / A16 2.398; C32 / B2x16 0.816
+  v32 counts {'qmm': 1140, 'lin': 40, 'gr': 20, 'att': 60, 'gdn': 0, 'moe': 0, 'moeblk': 240, 'moe1': 240, 'mr2': 620}; v32mr2 {'gdn32': 180, 'gdn32_declined': 0}; hc32 {'hc32': 480, 'hc32_declined': 20}
+C5 verdict (pre-registered): R32 1.914 -> look for a missed path (> 1.7)
+done in 7 s; peak 20.9 GB

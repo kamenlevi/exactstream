@@ -1,0 +1,80 @@
+01:54:50 replay self-check: waits for the G32 runner (pid 45499) to end, then NO-SWAP >= 35 GB
+02:31:40 replay self-check runner stopped (task bbtzxoy08) to give the slot to the G32 bisect; re-arm after
+02:53:13 replay self-check re-armed after G32 (no pid to wait on)
+02:53:20 replay self-check: waits for the G32 runner (pid 1) to end, then NO-SWAP >= 35 GB
+02:53:50 room: NO-SWAP 41 GB -> run
+[bigmoe] tier 4433333333: C_m=175 C_l=112 per layer, 21.21 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.45 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R57_WIRED: mx.set_wired_limit(55.66 GB), was 0.00 GB
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 160), loaded in 3 s, 26.9 GB active; REF2 + SB; gate rows MAXK 160 (ext build), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 2048
+R57_REPLAY: 4 rows from /Users/kamen/BigMoE/data/r57/replay/selfcheck_rows.jsonl; margins /Users/kamen/BigMoE/data/r57/replay/selfcheck_margins.json (absent: this run writes them (exact config)); cap 2048 (and the run's CAP 2048)
+Traceback (most recent call last):
+  File "/Users/kamen/BigMoE/scripts/r57_screen_fast.py", line 1772, in <module>
+    r = run(list(it["prompt_ids"]), ARMS_[0], drafter="dfl" if dr_ == "d7b" else dr_)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/scripts/r57_screen_fast.py", line 1125, in run
+    assert rr_ is not None, f"R57_REPLAY: no row for {RPL['key']}"
+           ^^^^^^^^^^^^^^^
+AssertionError: R57_REPLAY: no row for None
+02:54:10 RPL-SELFCHECK-DONE rc 1
+02:54:39 re-run after the warm-up fix (d1fd8c5), chained after the G32T runner (pid 99994)
+02:54:39 replay self-check: waits for the G32 runner (pid 99994) to end, then NO-SWAP >= 35 GB
+02:56:39 room: NO-SWAP 40 GB -> run
+[bigmoe] tier 4433333333: C_m=175 C_l=112 per layer, 21.21 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.45 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R57_WIRED: mx.set_wired_limit(55.66 GB), was 0.00 GB
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 160), loaded in 2 s, 26.9 GB active; REF2 + SB; gate rows MAXK 160 (ext build), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 2048
+R57_REPLAY: 4 rows from /Users/kamen/BigMoE/data/r57/replay/selfcheck_rows.jsonl; margins /Users/kamen/BigMoE/data/r57/replay/selfcheck_margins.json (absent: this run writes them (exact config)); cap 2048 (and the run's CAP 2048)
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 14.1 tok/s; MLX peak prefill 28.8 / decode 29.1 GB, lifetime peak 29.7 -> 30.1 GB
+  warm-up (discarded): gsm8k/708 [gate+t, mtp] 64 tokens, 20.8 tok/s; MLX peak prefill 29.6 / decode 29.1 GB, lifetime peak 30.4 -> 30.4 GB
+    REPLAY humaneval/HumanEval/1: drafted rows accepted 227 / 228 (A 0.9956); all rows 243 / 244; prefill pick ok True; flips by own margin {'lt0.5': 1, '0.5-1': 0, '1-2': 0, 'ge2': 0}; F_hi 0.00 per 1,000
+  humaneval/HumanEval/1 [gate+t] [code: dfl]: 244 tokens in 16 checks (kept 15.25), 41.8 tok/s (steady state, checks >= 2: 45.2), median cycle 366.0 ms, check + commit 322.1 ms; per check (medians) 992 misses, demand SSD 155.8 ms, gate service 162.2 ms (93 calls with misses), draft 26.0 ms; per kept token SSD 105.5 MB, 72.2 misses; tokens == REF2 row 244 / 244; JOINT reads 2992; demand bursts 931: after >= 0.25 ms idle 765, >= 1 ms 719; keepalive reads 22122; tier: 2625 hits (copied back, no SSD read), 13251 copied in, 6675 dropped, 171 slabs found purged; filled 5.87 of 7.45 GB (volatile, beside the footprint)
+    mem: MLX peak prefill 29.9 / decode 29.3 GB; at the end active 29.2, cache 0.4, footprint 30.2 GB; lifetime peak after prefill 30.6 -> after decode 30.6 GB
+    REPLAY humaneval/HumanEval/101: drafted rows accepted 168 / 168 (A 1.0000); all rows 180 / 180; prefill pick ok True; flips by own margin {'lt0.5': 0, '0.5-1': 0, '1-2': 0, 'ge2': 0}; F_hi 0.00 per 1,000
+  humaneval/HumanEval/101 [gate+t] [code: dfl]: 180 tokens in 12 checks (kept 15.00), 39.5 tok/s (steady state, checks >= 2: 40.8), median cycle 374.6 ms, check + commit 346.5 ms; per check (medians) 1022 misses, demand SSD 132.8 ms, gate service 135.5 ms (92 calls with misses), draft 29.7 ms; per kept token SSD 95.7 MB, 72.3 misses; tokens == REF2 row 180 / 180; JOINT reads 1570; demand bursts 725: after >= 0.25 ms idle 575, >= 1 ms 487; keepalive reads 19772; tier: 3287 hits (copied back, no SSD read), 11341 copied in, 7073 dropped, 56 slabs found purged; filled 6.31 of 7.45 GB (volatile, beside the footprint)
+    mem: MLX peak prefill 29.9 / decode 29.3 GB; at the end active 29.2, cache 0.5, footprint 30.3 GB; lifetime peak after prefill 30.7 -> after decode 30.7 GB
+    REPLAY humaneval/HumanEval/11: drafted rows accepted 130 / 131 (A 0.9924); all rows 139 / 140; prefill pick ok True; flips by own margin {'lt0.5': 1, '0.5-1': 0, '1-2': 0, 'ge2': 0}; F_hi 0.00 per 1,000
+  humaneval/HumanEval/11 [gate+t] [code: dfl]: 140 tokens in 9 checks (kept 15.56), 37.0 tok/s (steady state, checks >= 2: 37.0), median cycle 448.5 ms, check + commit 418.9 ms; per check (medians) 1132 misses, demand SSD 212.4 ms, gate service 217.4 ms (92 calls with misses), draft 16.6 ms; per kept token SSD 102.7 MB, 73.6 misses; tokens == REF2 row 140 / 140; JOINT reads 1183; demand bursts 529: after >= 0.25 ms idle 432, >= 1 ms 334; keepalive reads 13507; tier: 2330 hits (copied back, no SSD read), 9072 copied in, 4470 dropped, 107 slabs found purged; filled 4.60 of 7.45 GB (volatile, beside the footprint)
+    mem: MLX peak prefill 29.8 / decode 29.2 GB; at the end active 29.2, cache 0.5, footprint 30.3 GB; lifetime peak after prefill 30.7 -> after decode 30.7 GB
+Traceback (most recent call last):
+  File "/Users/kamen/BigMoE/scripts/r57_screen_fast.py", line 1945, in <module>
+    r = run(ids, arm, f"{key.replace('/', '_').replace('.json', '')}_{arm}_{len(TOK.get(key, {}).get(arm, []))}", drafter,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/scripts/r57_screen_fast.py", line 1124, in run
+    assert not mtp, "R57_REPLAY: the DFlash2 drafter path only (the MTP head's history is not wired)"
+           ^^^^^^^
+AssertionError: R57_REPLAY: the DFlash2 drafter path only (the MTP head's history is not wired)
+02:57:40 RPL-SELFCHECK-DONE rc 1
+02:59:20 own-rows certification: step 1, exact-45 decodes humaneval/HumanEval/1,humaneval/HumanEval/101,humaneval/HumanEval/11,ifeval/1219
+03:00:43 own-rows: step 3, REPLAY on the exact config's own rows
+[bigmoe] tier 4433333333: C_m=175 C_l=112 per layer, 21.21 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.45 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R57_WIRED: mx.set_wired_limit(55.66 GB), was 0.00 GB
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 160), loaded in 3 s, 26.9 GB active; REF2 + SB; gate rows MAXK 160 (ext build), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 2048
+R57_REPLAY: 4 rows from /Users/kamen/BigMoE/data/r57/replay/own_rows.jsonl; margins /Users/kamen/BigMoE/data/r57/replay/own_margins.json (absent: this run writes them (exact config)); cap 2048 (and the run's CAP 2048)
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 15.3 tok/s; MLX peak prefill 28.8 / decode 29.1 GB, lifetime peak 29.8 -> 30.2 GB
+  warm-up (discarded): gsm8k/708 [gate+t, mtp] 64 tokens, 19.8 tok/s; MLX peak prefill 29.6 / decode 29.1 GB, lifetime peak 30.4 -> 30.4 GB
+    REPLAY humaneval/HumanEval/1: drafted rows accepted 228 / 228 (A 1.0000); all rows 244 / 244; prefill pick ok True; flips by own margin {'lt0.5': 0, '0.5-1': 0, '1-2': 0, 'ge2': 0}; F_hi 0.00 per 1,000
+  humaneval/HumanEval/1 [gate+t] [code: dfl]: 244 tokens in 16 checks (kept 15.25), 36.0 tok/s (steady state, checks >= 2: 38.2), median cycle 415.8 ms, check + commit 393.9 ms; per check (medians) 997 misses, demand SSD 230.3 ms, gate service 241.2 ms (93 calls with misses), draft 15.6 ms; per kept token SSD 107.7 MB, 72.4 misses; tokens == REF2 row 130 / 244; JOINT reads 3099; demand bursts 909: after >= 0.25 ms idle 767, >= 1 ms 559; keepalive reads 19194; tier: 2371 hits (copied back, no SSD read), 13194 copied in, 5560 dropped, 192 slabs found purged; filled 5.30 of 7.45 GB (volatile, beside the footprint)
+    mem: MLX peak prefill 29.9 / decode 29.3 GB; at the end active 29.2, cache 0.4, footprint 30.2 GB; lifetime peak after prefill 30.7 -> after decode 30.7 GB
+    REPLAY humaneval/HumanEval/101: drafted rows accepted 168 / 168 (A 1.0000); all rows 180 / 180; prefill pick ok True; flips by own margin {'lt0.5': 0, '0.5-1': 0, '1-2': 0, 'ge2': 0}; F_hi 0.00 per 1,000
+  humaneval/HumanEval/101 [gate+t] [code: dfl]: 180 tokens in 12 checks (kept 15.00), 34.4 tok/s (steady state, checks >= 2: 36.4), median cycle 375.9 ms, check + commit 357.0 ms; per check (medians) 1024 misses, demand SSD 224.6 ms, gate service 237.9 ms (92 calls with misses), draft 15.9 ms; per kept token SSD 104.2 MB, 72.4 misses; tokens == REF2 row 180 / 180; JOINT reads 1824; demand bursts 669: after >= 0.25 ms idle 576, >= 1 ms 385; keepalive reads 13887; tier: 2490 hits (copied back, no SSD read), 11118 copied in, 5149 dropped, 145 slabs found purged; filled 5.47 of 7.45 GB (volatile, beside the footprint)
+    mem: MLX peak prefill 29.9 / decode 29.3 GB; at the end active 29.2, cache 0.5, footprint 30.3 GB; lifetime peak after prefill 30.8 -> after decode 30.8 GB
+    REPLAY humaneval/HumanEval/11: drafted rows accepted 127 / 127 (A 1.0000); all rows 136 / 136; prefill pick ok True; flips by own margin {'lt0.5': 0, '0.5-1': 0, '1-2': 0, 'ge2': 0}; F_hi 0.00 per 1,000
+  humaneval/HumanEval/11 [gate+t] [code: dfl]: 136 tokens in 9 checks (kept 15.11), 39.1 tok/s (steady state, checks >= 2: 40.4), median cycle 414.2 ms, check + commit 384.9 ms; per check (medians) 1131 misses, demand SSD 209.2 ms, gate service 214.1 ms (91 calls with misses), draft 24.8 ms; per kept token SSD 104.1 MB, 74.1 misses; tokens == REF2 row 92 / 136; JOINT reads 1352; demand bursts 489: after >= 0.25 ms idle 433, >= 1 ms 303; keepalive reads 9921; tier: 2202 hits (copied back, no SSD read), 8673 copied in, 4269 dropped, 84 slabs found purged; filled 5.00 of 7.45 GB (volatile, beside the footprint)
+    mem: MLX peak prefill 29.8 / decode 29.2 GB; at the end active 29.1, cache 0.4, footprint 30.2 GB; lifetime peak after prefill 30.8 -> after decode 30.8 GB
+    REPLAY ifeval/1219: drafted rows accepted 201 / 201 (A 1.0000); all rows 215 / 215; prefill pick ok True; flips by own margin {'lt0.5': 0, '0.5-1': 0, '1-2': 0, 'ge2': 0}; F_hi 0.00 per 1,000
+  ifeval/1219 [gate+t] [chat: dfl]: 215 tokens in 14 checks (kept 15.36), 33.9 tok/s (steady state, checks >= 2: 36.8), median cycle 375.6 ms, check + commit 354.9 ms; per check (medians) 603 misses, demand SSD 197.6 ms, gate service 201.5 ms (93 calls with misses), draft 16.9 ms; per kept token SSD 82.1 MB, 56.9 misses; tokens == REF2 row 22 / 170; JOINT reads 2516; demand bursts 790: after >= 0.25 ms idle 670, >= 1 ms 462; keepalive reads 21096; tier: 1700 hits (copied back, no SSD read), 9617 copied in, 4566 dropped, 146 slabs found purged; filled 5.64 of 7.45 GB (volatile, beside the footprint)
+    mem: MLX peak prefill 29.7 / decode 29.2 GB; at the end active 29.1, cache 0.4, footprint 30.2 GB; lifetime peak after prefill 30.8 -> after decode 30.8 GB
+  gate+t: tok/s 35.2 (steady state 37.5), cycle 395.1 ms, check + commit 371.0 ms, misses 1011, demand SSD 216.9 ms per check (medians over valid runs, then prompts)
+  gate+t where the time goes (medians per check): check + commit 371.0 ms, demand SSD busy 216.9 ms (57% of the check), gate service on misses 226.0 ms (the GPU's spin bound; OOO overlaps part of it), draft 16.4 ms (SSD idle)
+  gate+t per kept token (pooled over valid runs): SSD 99.2 MB, misses 68.4 (775 kept tokens; median per prompt 104.1 MB, 72.4 misses)
+  tier flags: TIER_COMBINE True, OOO True (3612 OOO calls); EVICT_PRIOR None; REFTOK None: every token equal True
+  K-73 engagement: exact MoE block calls 3612; ref2 att_rope 900, idx_prep 1944, hc_write 3612 (counted at graph build); K-83: hc_gate / hc_read 7224, gdn_inproj_x 2712, drafter forms + chain_fused
+  C1 NAX6 (ref2 tier_nax_ooo): engagement nax6_ooo 3612 OOO calls, nax6 0 other tier calls (counted at graph build); tokens are NAX6's own reference: compare across NAX processes only
+  chat switch: MTP head d22_b5 (md5 pinned) resident, K15, cut t 0.3 with early exit; type rule runs: {'chat': 1, 'code': 3, 'math': 0, 'agent': 0} (chat -> MTP, the rest -> DFlash2)
+  footprint now 30.0 GB, lifetime peak 30.8 GB; 62 s
+03:01:56 RPL-OWN-DONE rc 0
