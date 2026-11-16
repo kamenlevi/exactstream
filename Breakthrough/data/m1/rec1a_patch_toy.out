@@ -1,0 +1,29 @@
+[ptoy] record s=5: {'ENC': 1, 'END': 1, 'COMMIT': 2, 'PSO': 8, 'BUF': 17, 'BYTES': 11, 'DT': 8, 'BAR': 4, 'FUPD': 1}; s=6: {'ENC': 1, 'END': 1, 'COMMIT': 2, 'PSO': 8, 'BUF': 17, 'BYTES': 11, 'DT': 8, 'BAR': 4, 'FUPD': 1}
+[ptoy] dispatch kernels (s=6): ['v_copyint32float32', 'arangeint32', 'all_reduce_sumfloat32', 'v_copyint32float32', 'arangefloat32', 'vv_Multiplyfloat32', 'vv_Addfloat32', 'vs_Addfloat32']
+[ptoy] same op sequence, kernels and payload layout in both records: True
+[ptoy] changed word: setBytes k=1 off=0 (dispatch 1: arangeint32): int32 2023 -> 663, float32 2.83483e-42 -> 9.29061e-43
+[ptoy] changed word: setBytes k=6 off=0 (dispatch 4: arangefloat32): int32 1084227584 -> 1086324736, float32 5 -> 6
+[ptoy] (1) diff: 2 changed words, 2 matched to a seq rule, 0 unexplained -> PASS
+[ptoy] rule: k=1 off=0 int32 = ((seq*48 + 7) mod 128) * 17 + 0 -> 1 rules
+[ptoy] rule: k=6 off=0 float32 = ((seq*1 + 0) mod 0) * 1 + 0 -> 2 rules
+[ptoy] ICB build: 8 commands 
+[ptoy] s=7 st=1479: control (stale words) bitwise False; patched mode 2 True (rc 0); patched ICB True
+[ptoy] s=8 st=119: control (stale words) bitwise False; patched mode 2 True (rc 0); patched ICB True
+[ptoy] s=9 st=935: control (stale words) bitwise False; patched mode 2 True (rc 0); patched ICB True
+[ptoy] s=10 st=1751: control (stale words) bitwise False; patched mode 2 True (rc 0); patched ICB True
+[ptoy] s=11 st=391: control (stale words) bitwise False; patched mode 2 True (rc 0); patched ICB True
+[ptoy] s=12 st=1207: control (stale words) bitwise False; patched mode 2 True (rc 0); patched ICB True
+[ptoy] s=13 st=2023: control (stale words) bitwise False; patched mode 2 True (rc 0); patched ICB True
+[ptoy] s=14 st=663: control (stale words) bitwise False; patched mode 2 True (rc 0); patched ICB True
+[ptoy] s=15 st=1479: control (stale words) bitwise False; patched mode 2 True (rc 0); patched ICB True
+[ptoy] s=16 st=119: control (stale words) bitwise False; patched mode 2 True (rc 0); patched ICB True
+[ptoy] s=17 st=935: control (stale words) bitwise False; patched mode 2 True (rc 0); patched ICB True
+[ptoy] s=18 st=1751: control (stale words) bitwise False; patched mode 2 True (rc 0); patched ICB True
+[ptoy] s=19 st=391: control (stale words) bitwise False; patched mode 2 True (rc 0); patched ICB True
+[ptoy] s=20 st=1207: control (stale words) bitwise False; patched mode 2 True (rc 0); patched ICB True
+[ptoy] s=21 st=2023: control (stale words) bitwise False; patched mode 2 True (rc 0); patched ICB True
+[ptoy] s=22 st=663: control (stale words) bitwise False; patched mode 2 True (rc 0); patched ICB True
+[ptoy] (2) patched replays bitwise == MLX: mode 2 16/16, ICB 16/16 -> PASS
+[ptoy] (3) control misses: 16/16 -> PASS
+[ptoy] (4) rules_apply per call (2 rules, ctypes included): median 0.50 us, min 0.46, p99 0.62 -> PASS
+[ptoy] RESULT: PASS: (1) True (2) True (3) True (4) True; lifetime peak 0.05 GB

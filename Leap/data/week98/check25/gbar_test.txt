@@ -1,0 +1,37 @@
+GBAR test: grid barriers inside one kernel (capped spins) vs dependent launches
+  P  20 x  32 threads, plain          ,  2 barriers: spin-cap FAILs 0, stale / wrong reads 491 of 800 -> BAD
+  P  20 x  32 threads, plain          , 64 barriers: spin-cap FAILs 0, stale / wrong reads 15506 of 25600 -> BAD
+  P  20 x  32 threads, atomic         ,  2 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 800 -> OK
+  P  20 x  32 threads, atomic         , 64 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 25600 -> OK
+  P  20 x  32 threads, plain + fences ,  2 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 800 -> OK
+  P  20 x  32 threads, plain + fences , 64 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 25600 -> OK
+  P  20 x  32 threads, atomic + fences,  2 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 800 -> OK
+  P  20 x  32 threads, atomic + fences, 64 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 25600 -> OK
+  P  20 x 352 threads, plain          ,  2 barriers: spin-cap FAILs 0, stale / wrong reads 516 of 800 -> BAD
+  P  20 x 352 threads, plain          , 64 barriers: spin-cap FAILs 0, stale / wrong reads 16218 of 25600 -> BAD
+  P  20 x 352 threads, atomic         ,  2 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 800 -> OK
+  P  20 x 352 threads, atomic         , 64 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 25600 -> OK
+  P  20 x 352 threads, plain + fences ,  2 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 800 -> OK
+  P  20 x 352 threads, plain + fences , 64 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 25600 -> OK
+  P  20 x 352 threads, atomic + fences,  2 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 800 -> OK
+  P  20 x 352 threads, atomic + fences, 64 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 25600 -> OK
+  P  40 x 352 threads, plain          ,  2 barriers: spin-cap FAILs 0, stale / wrong reads 1728 of 3200 -> BAD
+  P  40 x 352 threads, plain          , 64 barriers: spin-cap FAILs 0, stale / wrong reads 53572 of 102400 -> BAD
+  P  40 x 352 threads, atomic         ,  2 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 3200 -> OK
+  P  40 x 352 threads, atomic         , 64 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 102400 -> OK
+  P  40 x 352 threads, plain + fences ,  2 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 3200 -> OK
+  P  40 x 352 threads, plain + fences , 64 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 102400 -> OK
+  P  40 x 352 threads, atomic + fences,  2 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 3200 -> OK
+  P  40 x 352 threads, atomic + fences, 64 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 102400 -> OK
+  P  80 x 128 threads, plain          ,  2 barriers: spin-cap FAILs 0, stale / wrong reads 6008 of 12800 -> BAD
+  P  80 x 128 threads, plain          , 64 barriers: spin-cap FAILs 0, stale / wrong reads 191132 of 409600 -> BAD
+  P  80 x 128 threads, atomic         ,  2 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 12800 -> OK
+  P  80 x 128 threads, atomic         , 64 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 409600 -> OK
+  P  80 x 128 threads, plain + fences ,  2 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 12800 -> OK
+  P  80 x 128 threads, plain + fences , 64 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 409600 -> OK
+  P  80 x 128 threads, atomic + fences,  2 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 12800 -> OK
+  P  80 x 128 threads, atomic + fences, 64 barriers: spin-cap FAILs 0, stale / wrong reads 0 of 409600 -> OK
+  TIME (ROUGH, shared GPU): grid barrier 1.41 us each (P 20 x 352, plain + fences, 1,024 barriers)
+  TIME (ROUGH, shared GPU): grid barrier 1.58 us each (P 40 x 352, plain + fences, 1,024 barriers)
+  TIME (ROUGH, shared GPU): grid barrier 1.45 us each (P 80 x 128, plain + fences, 1,024 barriers)
+  TIME (ROUGH, shared GPU): dependent kernel boundary 10.23 us each (1,024 step kernels of 7,040 threads; includes ~Python per launch)

@@ -1,0 +1,24 @@
+[rec] MLX 0.32.2; slice G; route stock; 2.21 GB active; lifetime 2.59 GB; load 3 s
+[rec] scope layer; record: {'ops': 891, 'encoders': 5, 'dispatches': 101, 'blits': 0, 'commits': 6, 'set_bytes_total': 2488}; outputs: (1, 32, 10240) mlx.core.bfloat16 + 2 state arrays (3.2 MB); ssm_mask None; lifetime 3.18 GB
+[rec] ICB build: 101 commands
+[rec] (a) replay (mode 9) on the recorded inputs: rc 0; outputs bitwise == recorded: True [True, True, True]; cpu encode 76 us, commit+wait 8532 us, gpu 8000 us, 101 dispatches
+[rec] op types: {'ENC': 5, 'END': 5, 'COMMIT': 6, 'PSO': 101, 'BUF': 300, 'BYTES': 308, 'DTG': 29, 'DT': 72, 'BAR': 55, 'FWAIT': 5, 'FUPD': 5}
+[rec] (b1) mode 2: OK (262 us); mode 9: OK (81 us)
+[rec] (b2) mode 2: OK (286 us); mode 9: OK (74 us)
+[rec] (b3) mode 2: OK (285 us); mode 9: OK (153 us)
+[rec] (b4) mode 2: OK (295 us); mode 9: OK (81 us)
+[rec] (b5) mode 2: OK (257 us); mode 9: OK (77 us)
+[rec] (b6) mode 2: OK (308 us); mode 9: OK (69 us)
+[rec] (b7) mode 2: OK (250 us); mode 9: OK (73 us)
+[rec] (b8) mode 2: OK (321 us); mode 9: OK (94 us)
+[rec] (b9) mode 2: OK (243 us); mode 9: OK (108 us)
+[rec] (b10) mode 2: OK (251 us); mode 9: OK (72 us)
+[rec] (b11) mode 2: OK (280 us); mode 9: OK (125 us)
+[rec] (b12) mode 2: OK (286 us); mode 9: OK (75 us)
+[rec] (b13) mode 2: OK (400 us); mode 9: OK (139 us)
+[rec] (b14) mode 2: OK (264 us); mode 9: OK (162 us)
+[rec] (b15) mode 2: OK (418 us); mode 9: OK (151 us)
+[rec] (b16) mode 2: OK (337 us); mode 9: OK (83 us)
+[rec] mode 2: 16/16 windows bitwise == MLX
+[rec] mode 9: 16/16 windows bitwise == MLX
+[rec] RESULT: route stock, slice G, scope layer: (a) True, (b) mode 2 16/16, mode 9 16/16 bitwise; 101 dispatches in 5 encoders / 6 commits (891 ops); CPU encode per replay over 40 repeats: min 66, median 90, max 607 us (0.89 us per dispatch); repeats still bitwise: True; lifetime peak 3.18 GB; wall 4 s

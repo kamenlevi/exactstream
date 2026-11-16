@@ -1,0 +1,22 @@
+[guard] pid 41106, MAXGB 2, swap at start 7530.62 MB (kill at +1 GB)
+Traceback (most recent call last):
+  File "/Users/kamen/MoonShots/week98/m2/m2_mma8.py", line 104, in <module>
+    mx.eval(o16, o8a, o8b, oh)
+RuntimeError: [metal::Device] Unable to build metal library from source
+mlx/backend/metal/kernels/utils.h:635:21: error: no member named 'get_mask' in 'metal::cooperative_tensor<bfloat, metal::extents<int, 18446744073709551615, 18446744073709551615>, mpp::tensor_ops::__mutmul2d_detail::__operand_layout<{8, 32, 32, false, true, true, 1}, mpp::tensor_ops::__mutmul2d_detail::__matmul2d_cooperative_operand_index::left, metal::execution_simdgroups<1>, bfloat, metal::uint4b_format, float, int>>'
+            if (!ca.get_mask(i)) continue;
+                 ~~ ^
+mlx/backend/metal/kernels/utils.h:650:200: note: in instantiation of function template specialization 'custom_kernel_m2mma_gen8__bfloat16_t_8_8_bfloat16_t_uint32_t_float<bfloat, 8, 8>' requested here
+template [[host_name("custom_kernel_m2mma_gen8__bfloat16_t_8_8_bfloat16_t_uint32_t_float")]] [[kernel]] decltype(custom_kernel_m2mma_gen8__bfloat16_t_8_8_bfloat16_t_uint32_t_float<bfloat16_t, 8, 8>) custom_kernel_m2mma_gen8__bfloat16_t_8_8_bfloat16_t_uint32_t_float<bfloat16_t, 8, 8>;
+                                                                                                                                                                                                       ^
+mlx/backend/metal/kernels/utils.h:643:17: error: no member named 'get_mask' in 'metal::cooperative_tensor<float, metal::extents<int, 18446744073709551615, 18446744073709551615>, mpp::tensor_ops::__mutmul2d_detail::__operand_layout<{8, 32, 32, false, true, true, 1}, mpp::tensor_ops::__mutmul2d_detail::__matmul2d_cooperative_operand_index::destination, metal::execution_simdgroups<1>, bfloat, metal::uint4b_format, float, int>>'
+        if (!cg.get_mask(i)) continue;
+             ~~ ^
+
+
+[guard] exit 1, peak footprint 6 MB
+[guard] pid 41272, MAXGB 2, swap at start 7530.62 MB (kill at +1 GB)
+M2 MMA8 256 tiles: generic M=16 == the kernels' hardcoded map bitwise: True
+  M=8 (rows 0-7, 8-15) == M=16 bitwise, per row: True; rows differing 0 of 4096
+  max |M=16 - fp64| 1.144e-05, max |M=8 - fp64| 1.144e-05 (scale 268.3)
+[guard] exit 0, peak footprint 6 MB

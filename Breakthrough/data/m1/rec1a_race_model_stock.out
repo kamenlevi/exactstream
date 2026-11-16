@@ -1,0 +1,24 @@
+[rec] MLX 0.32.2; slice G; route stock; 2.21 GB active; lifetime 2.59 GB; load 2 s
+[rec] scope model; record: {'ops': 993, 'encoders': 6, 'dispatches': 114, 'blits': 0, 'commits': 8, 'set_bytes_total': 2704}; outputs: (1, 32, 248320) mlx.core.bfloat16 + 2 state arrays (3.2 MB); ssm_mask None; lifetime 3.17 GB
+[rec] (a) replay on the recorded inputs: rc 0; outputs bitwise == recorded: True [True, True, True]; cpu encode 352 us, commit+wait 15557 us, gpu 15206 us, 114 dispatches
+[rec] op types: {'ENC': 6, 'END': 6, 'COMMIT': 8, 'PSO': 114, 'BUF': 342, 'BYTES': 325, 'DTG': 32, 'DT': 82, 'BAR': 65, 'FWAIT': 7, 'FUPD': 6}
+[rec] (b1) mode 0: OK (452 us); mode 2: OK (237 us); MLX twice bitwise: True
+[rec] (b2) mode 0: OK (385 us); mode 2: OK (307 us); MLX twice bitwise: True
+[rec] (b3) mode 0: OK (422 us); mode 2: OK (402 us); MLX twice bitwise: True
+[rec] (b4) mode 0: OK (462 us); mode 2: OK (344 us); MLX twice bitwise: True
+[rec] (b5) mode 0: OK (330 us); mode 2: OK (313 us); MLX twice bitwise: True
+[rec] (b6) mode 0: OK (319 us); mode 2: OK (300 us); MLX twice bitwise: True
+[rec] (b7) mode 0: DIFF out False states 0/2 (547 us); mode 2: OK (348 us); MLX twice bitwise: True
+[rec] (b8) mode 0: OK (405 us); mode 2: OK (351 us); MLX twice bitwise: True
+[rec] (b9) mode 0: OK (522 us); mode 2: OK (478 us); MLX twice bitwise: True
+[rec] (b10) mode 0: OK (363 us); mode 2: OK (410 us); MLX twice bitwise: True
+[rec] (b11) mode 0: OK (378 us); mode 2: OK (338 us); MLX twice bitwise: True
+[rec] (b12) mode 0: OK (501 us); mode 2: OK (303 us); MLX twice bitwise: True
+[rec] (b13) mode 0: OK (447 us); mode 2: OK (413 us); MLX twice bitwise: True
+[rec] (b14) mode 0: OK (600 us); mode 2: OK (307 us); MLX twice bitwise: True
+[rec] (b15) mode 0: OK (429 us); mode 2: OK (437 us); MLX twice bitwise: True
+[rec] (b16) mode 0: OK (365 us); mode 2: OK (421 us); MLX twice bitwise: True
+[rec] mode 0: 15/16 windows bitwise == MLX
+[rec] mode 2: 16/16 windows bitwise == MLX
+[rec] MLX determinism: 16/16 windows bitwise between two MLX forwards
+[rec] RESULT: route stock, slice G, scope model: (a) True, (b) mode 0 15/16, mode 2 16/16 bitwise; 114 dispatches in 6 encoders / 8 commits (993 ops); CPU encode per replay over 20 repeats: min 299, median 393, max 597 us (3.45 us per dispatch); repeats still bitwise: True; lifetime peak 3.27 GB; wall 4 s

@@ -1,0 +1,15 @@
+
+M2 PROF Mon 16 Nov 21:16:15: MLX 0.32.2; layer 20's pools (all 512 resident); 12 code windows -> 99 32-row blocks (profiling 2); MSB / LSB piece 2.064 / 0.720 MB; kept experts per block mean 48.5
+  block  0: staged == ref True; 61 segments (61 live), 47 experts, 13 LSB; MB grp 135.3 / uniq 106.4 | GPU us: grp 19.9, xs 3.8, A 427.8, hs 5.0, B 201.5, comb 14.2 | sum 672.1, whole 1146.2 | A ycut 417.9 empty 10.9; B ycut 2269.8 empty 18.1
+  block  1: staged == ref True; 66 segments (66 live), 50 experts, 13 LSB; MB grp 145.6 / uniq 112.6 | GPU us: grp 41.4, xs 15.5, A 514.3, hs 20.7, B 2135.0, comb 10.5 | sum 2737.4, whole 744.4 | A ycut 742.7 empty 139.3; B ycut 1110.0 empty 220.6
+
+means over 2 blocks (GPU us; each stage alone in its own command buffer): grp 30.6, xs 9.6, A 471.1, hs 12.9, B 1168.2, comb 12.3; sum 1704.8; whole call in one command buffer 945.3
+  MB per call: grp 140.4 (A 93.6, B 46.8), distinct 109.5; segments 63.5 of P = 320 grid rows
+  rates: A 198.8 GB/s, B 40.1, A + B 85.7 (segment bytes); whole call 115.8 GB/s on distinct bytes
+  empty threadgroups: A with y cut to the segments 580.3 (vs 471.1), all returning at once 75.1; B 1689.9 (vs 1168.2), empty 119.4
+  exp32's way on these blocks: 2058.2 us per call wall, GPU busy 1493.9 us per call
+  fit A vs A MB: fixed -705.9 us + 12.57 us/MB (rate 79.6 GB/s), R2 nan
+  fit B vs B MB: fixed -25141.2 us + 561.971 us/MB (rate 1.8 GB/s), R2 nan
+  fit whole vs grp MB: fixed 6412.4 us + -38.926 us/MB (rate None GB/s), R2 nan
+  fit whole vs uniq MB: fixed 8048.2 us + -64.876 us/MB (rate None GB/s), R2 nan
+all staged == ref: True; peak 1.50 GB; 0 s

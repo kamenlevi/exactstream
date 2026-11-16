@@ -5116,3 +5116,48 @@ Order: after S17 (one job of mine at a time). Disk: s16 / sn overwrite mhd1_c2_s
     cut today).
   - 6-bit would need a 6-bit QAT pass from b5 (~6 h at 15.6 GB, t30b's recipe), which doesn't fit Wed's 1.5 h slot.
 - Next: S18 (the screen in training), already running.
+
+## WEEK98 S18 SCREEN RESULT (run Mon 16 Nov 21:03-22:0x; read 22:07; LAB, sandbox 2B): FAIL, training under the screen does not recover its loss
+| read (screened '!s') | vs | MBPP t16 | MBPP t32 | HE t16 | HE t32 |
+|---|---|---|---|---|---|
+| s30!s, the post-hoc screen | s30 | - | x0.968 | - | x0.983 |
+| s16!s, trained under the screen (c16's recipe) | c16 | x0.966 | x0.957 | x0.994 | x0.977 |
+| sn!s, trained under the screen (s30's recipe) | s30 | x0.975 | x0.962 | x0.976 | x0.970 |
+- The post-hoc screen is informative and close to the 125B's size: MBPP x0.968, HE x0.983 here, vs M3's H8 on the
+  125B (x0.985 MBPP, x0.963 HE+).
+  - Top-1 agreement with unscreened s30 stays at 98.4-99.5 % at every depth, as on the 125B (>= 99.3 %).
+- Training under the screen makes it slightly WORSE than post hoc (sn: MBPP x0.962, HE x0.970 at tree-32).
+- The loss is COVERAGE: a true token outside the screen cannot be drafted, and no training changes that. The screened
+  loss also drops the out-of-screen gradient signal.
+- So the screen's lever is its size or content, not training. Next: S19, a post-hoc N sweep.
+
+## WEEK98 S19 SCREENN: post-hoc screen size sweep (pre-registered Mon 16 Nov 22:1x, before any run)
+Reads of s30 under the S18 screen rule at SCREEN_N = 16,384 and 32,768 (the top-N ids of shortlist_counts + the
+committed session ids), tree8.py, MBPP-50 / HE-30, one process per N, <= 4 GB.
+Line: the smallest N whose post-hoc screen holds >= 0.99 x s30 at tree-16 AND tree-32 on both sets.
+125B bytes per level (FAR's 8K = ~10.5 MB, scaled linearly): 16K ~21 MB, 32K ~42 MB. With 8-bit Linears (~31.5 MB):
+~52 / ~73 MB per level.
+Prediction [G]: 16K reaches 0.99 (55 %); 32K (85 %).
+
+## WEEK98 S19 SCREENN RESULT (read Mon 16 Nov 22:26; LAB sandbox): the post-hoc screen holds 0.99 at N = 32K, not at 16K
+| post-hoc screen on s30 | MBPP t16 | MBPP t32 | HE t16 | HE t32 | verdict |
+|---|---|---|---|---|---|
+| 8K (S18) | - | x0.968 | - | x0.983 | FAIL |
+| 16K | x0.985 | x0.982 | x0.989 | x0.987 | FAIL |
+| 32K | x0.997 | x0.995 | x0.999 | x0.996 | PASS |
+- HEAD PLAN from S16-S19 (sandbox LAB; the 125B checks are MoonShots' M3 Q8 + H-N cuts):
+  - 8-bit Linears are free (S17).
+  - 4-bit is not, even with QAT (S16).
+  - Training does not recover the screen (S18). The screen must be ~32K for >= 0.99; 16K costs 1.3-1.8 %, 8K 1.7-3.2 %.
+- 125B bytes per level (FAR's 8K = 10.5 MB, scaled linearly) with 8-bit Linears (~31.5 MB):
+  - 8K ~42 MB, kept ~x0.97-0.98;
+  - 16K ~52 MB, ~x0.98-0.99;
+  - 32K ~73 MB, >= x0.99;
+  - vs t30b's 177.6 MB today.
+- Caveat: the sandbox's rank comes from Magicoder + training answers; the 125B uses FR-Spec's rank. The 125B's own
+  N curve may differ (its H8 cost is x0.963 / x0.985 vs the sandbox's x0.983 / x0.968).
+- CORRECTION (Mon 22:3x, NewIdeas): my messages said 32K costs ~0.07 ms per level over 8K. It is +31 MB per level =
+  +0.11 ms at 280 GB/s, ~+2.3 ms per tree-32 draft at f 0.269. Against ~+2-3 % kept that is near-neutral in tok/s,
+  with 8K slightly ahead. The 125B's own curve decides: MoonShots' M3 H32 (+ H16) beside Q8, Wed 06:30.
+- Note: S18 / S19's screens are NOT static-only. Like the 125B's screen_masks, they add the session's committed ids
+  (ids[0 .. s + 1], first appearance; ~20 per HE window beyond the top-N).

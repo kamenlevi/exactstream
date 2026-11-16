@@ -1627,6 +1627,111 @@ every arm]
 - **Implementation note:** the barrier-free ordering (an unused anchor input + mx.depends) is reusable. Every arm was
   bit-equal to fused2, and the touches did run: the arms' costs differ by placement.
 
+## MODULE 2 (Leap's split, 11-16). The lossy expert one-call: where the time goes (diagnostic, quiet, Mon 22:43)
+Leap's line (exp32_bench default, per 32-row call on ~105 MB, quiet): PASS <= 400 us, BETWEEN 400-480, KILL > 480; today
+571-614. Bits: == ooo1cq on ooo1c_m32_check's 24 scenarios and exp32's 24 real blocks. This window is a diagnostic
+(NewIdeas' quiet ticket 22:43-22:44, GPU 0 % at the grant, away 1,521 s); Leap's verdict bench is Wed.
+[K ~/MoonShots/week98/m2/m2_prof_w1.{txt,json}, m2_abl_w1.*, m2_bits_w1*.*; layer 20, all 512 resident, exp32's blocks]
+
+**Per stage (24 blocks, each stage alone in a command buffer, GPU us):** grp 19.3, rowsum64(x) 3.3, kernel A 388.3,
+rowsum64(h) 4.3, kernel B 197.9, combine 9.2; whole call in one command buffer 615.7. exp32's way: 582.6 us per call wall,
+534.3 GPU busy; 8.0 dispatches, 2.7 barriers, 2.88 command buffers per call. Bytes per call: 138.2 MB read by the
+segments (A 92.1, B 46.1), 105.6 MB distinct (62.1 segments, ~5.2 pairs each).
+
+**Fixed cost or rate? Neither: the kernels are compute-bound.** (8-block ablations, GPU us, A / B)
+
+| variant | A | B |
+|---|---|---|
+| base (== ooo1cq) | 351.9 | 180.9 |
+| no code loads (decode + MMA kept) | 331.0 | 168.9 |
+| no activation loads | 340.6 | 173.4 |
+| no decode | 318.5 | 166.3 |
+| no MMA (activation loads die with it) | 247.1 | 125.1 |
+| pure read of the same bytes | 234.0 | 114.8 |
+| every threadgroup returns at once | 11.2 | 13.7 |
+
+- The pure reads stream the segments' bytes at 370 / 378 GB/s, i.e. ~285-300 GB/s on distinct bytes: DRAM peak, with
+  the tier re-reads served from cache. That is the memory floor: ~349 us for A + B on these blocks.
+- Without its code loads A still takes 331 us: the memory adds only ~21 us on top of the compute. The MMA (+ the
+  activation loads) costs ~105 / 56 us, the decode ~33 / 15. The MMA runs 16-row tiles on ~5.2 pairs per segment
+  (~2/3 padding).
+- The fit fixed + MB / rate across blocks is uninformative (R2 0.08-0.15: the blocks span too few MB).
+- Fixed parts on the critical path: grp 19 + rowsum64(h) 4 + combine 9 us; empty threadgroups (grid y = P = 320 rows)
+  ~10 (A) + ~3.5 (B) us.
+
+**Every bit-exact form tried is SLOWER than ooo1cq** (exp32's way, us per call, two interleaved passes; all == ooo1cq bit
+for bit on both gates, negative controls fail): ref 584.0 / 580.0; C3B (B in tile rounds) 585.6 / 585.5; C1 (register
+prefetch) 598.1 / 597.0; C3 (A: 2 tiles per threadgroup + writes rowsum64(h)) 611.0 / 610.4; C2 (grid capped,
+segment loop) 611.2 / 611.9; C1d2 635.8 / 629.2; C1C3C3BC2 640.2 / 645.6; C1x (activation prefetch) 781.6 / 781.9.
+C4 (the combine folded into B by counters) on the graph way: 573.1 vs ref 569.2. Round / cap variants (TPB 2 / 8,
+TPT 4, GY 128) don't change the picture. Reading: in a compute-bound kernel, extra registers (prefetch), loops (C2) or
+fewer threadgroups (C3, C3B) cost occupancy; that outweighs what they save.
+
+**What this means for the line:** at today's bytes the call's floor is ~364 us for A + B (105.6 MB at ~290 GB/s) +
+~32 us of grp / rowsum64(h) / combine on the critical path + exp32's ~48 us of wall over GPU busy = ~444 us (exp32's
+way), even with the compute fully hidden under the memory. So kernel work alone can reach BETWEEN (~430-450), not PASS;
+PASS needs the wall overhead gone (module 1) or fewer bytes as well. Next levers, all bit-exact in principle: smaller MMA
+tiles for <= 8-pair segments (the padding), a cheaper decode, a faster grouping kernel (19 us for one threadgroup).
+- **Building block for the first lever (22:5x, m2_mma8.py, 256 random tiles with cancellation columns):** MPP's
+  matmul2d at M = 8 (rows 0-7, then 8-15) gives every row's 32 outputs bit-identical to M = 16 (0 of 4,096 rows
+  differ; both within 1.1e-5 of fp64 at scale 268), with the kernels' operand layouts and two K halves accumulated.
+  So a <= 8-pair segment can run an 8-row tile and keep ooo1cq's bits; its speed is the open question.
+  [K ~/MoonShots/week98/m2/m2_mma8.log]
+- **Timing screen (Leap 22:5x: time first; quiet, 22:51 inside NewIdeas' slot, away 2,012 s): 8-row tiles run
+  PADDED. M8T (the MMA at M = 8, timing only) gives kernel A 396.2 vs 388.8 us, exp32's way 599.8 / 599.4 vs
+  584.3 / 581.3 us per call. The accelerator's cost doesn't fall below a 16-row tile, so lever (1) is dead.
+  [K ~/MoonShots/week98/m2/m2_bits_m8t.txt]
+  - Reading: the MMA's ~94 / 48 us is not overlapped with the streaming (base ~ memory floor + MMA).
+    The bit-exact levers left are small: the decode, at most ~33 + 15 us per call. The big one, overlapping the
+    MMA with the loads, means restructuring the kernels' threadgroup memory: the epilogue reuses the double
+    code buffer for the chunk partials, so occupancy can't rise without a rewrite. Or a FAST (not bit-exact)
+    small-segment path.
+
+## Q8. Is post-hoc 8-bit free on the 125B? (NewIdeas 21:1x; pre-registered Mon 16 Nov 21:2x, before any Q8 run)
+- **Why (NewIdeas):**
+  - MTP Head's sandbox S17 (LAB, s30) found post-hoc 8-bit free: tree-16 / 32 MBPP x0.997 / x1.001, HE x0.995 / x1.000.
+  - 4-bit fails even with QAT (S16).
+  - The 125B's 4-bit loss (M3's Q4: x0.922 HE+ / x0.899 MBPP at tree-32) matched the sandbox's, so 8-bit is likely free
+    on the 125B too. Saturday's numbers still need it measured.
+  - Under PUSH800 the head plan is 8-bit Linears + the 8K screen (~42 MB per level).
+- **Run:** M3's harness (p3_dd_tree.py; gate PASS Mon 08:4x: --cut none == BigMoE's tree_t30b dumps bitwise) with a new
+  cut Q8 = Q4 with every 4 -> 8.
+  - Fake-quantized bf16 -> affine g64 8-bit -> dequantized: t30b's trained Linears (q / k / v / o, the shared expert,
+    fc_hidden / fc_embedding) and the head's bf16 HC mixes. Router at 8, as in Q4.
+  - Full head, experts top-10.
+  - Both sets: heplus24 (24 windows) and mbppbank (100 windows).
+  - TRUE-STATE (lab): teacher-forced, the 125B's true state at every anchor.
+- **Score:** `p3_score.py --cuts none,Q4,Q8 --tag q8`.
+  - Kept per check at rows 16 and 32 under certify98's walk, against the full head (BigMoE's tree_t30b dumps).
+  - Window-clustered 95 % CI (2,000 resamples, seed 1115).
+  - Q4 is re-scored beside it as the anchor: it must reproduce M3's x0.9626 / x0.9224 HE+ and x0.9376 / x0.8993 MBPP
+    (rows 16 / 32).
+- **Line (NewIdeas):** PASS = Q8 >= 0.99x at tree-16 AND tree-32 on both sets (point estimates; CIs reported beside
+  them). FAIL otherwise, naming the failing cells.
+- **Baseline note:** the reference is t30b's fp32 checkpoint as BigMoE dumped it (M3's "none"), not a bf16 copy. Q8's
+  fake-quantizer casts to bf16 first, so bf16 rounding is inside Q8's delta.
+- **Slot:** Wed 18 Nov 06:30 (NewIdeas: the released QAT slot, under the away rule).
+  - It must finish before the band-screen fallback (latest start 07:15), so no dump starts after 07:10.
+  - ~12 GB peak, ~30 min, under a share lock "MEM 12 GB".
+  - Earlier only in a >= 12 GB window that NewIdeas or the orchestrator opens.
+  - Runner week98/p3_q8.sh. Outputs: p3/q8_run.log, p3/dump_Q8_*.log, p3/tree_t30b_*_Q8.{npz,json} and
+    p3/q8_scores.{txt,json}.
+- **Context, not part of the line:** the 8K screen alone (M3's H8) costs x0.963 HE+ / x0.985 MBPP at tree-32. If Q8
+  passes, the plan's 8-bit + 8K head is bounded by the screen, not by the bits.
+- **Amendment (NewIdeas 22:3x, before any run): the screen's size, beside Q8.**
+  - Why (NewIdeas): MTP Head's sandbox S19 (static Magicoder rank, no session extras) gave 8K x0.968-0.983,
+    16K x0.982-0.989 (FAIL), 32K x0.995-0.999 (PASS). Training under the screen doesn't help (S18), so the screen's size
+    sets its cost. 8K vs 32K is near-neutral in tok/s on NewIdeas' arithmetic (+31 MB per level), so the 125B's own
+    H8 vs H32 (+ Q8) decides the head plan.
+  - New cuts (fp32 weights unless stacked): H32 = FR-Spec top-32K + the session extras (screen_masks, cap 4096, as H8);
+    H16 = the same at top-16K; Q8H32 = Q8's weights with the 32K screen.
+  - Order (NewIdeas' priority): Q8 > H32 > H16, then Q8H32 if time is left; heplus24 then mbppbank per cut; no dump
+    starts after 07:10. A cut cut short reports the sets it has.
+  - Line, per cut (as Q8): PASS = >= 0.99x at tree-16 AND tree-32 on both sets vs the full head (point estimates, CIs
+    beside). M3's H8 is re-scored beside them (must reproduce x0.9759 / x0.9631 HE+, x0.9896 / x0.9847 MBPP).
+  - Start: 06:30, or earlier if the Mac is free (no other session's quiet lock held or queued, no other GPU job over
+    4 GB, >= 20 GB available, away >= 900 s), per NewIdeas' "or earlier in any >= 12 GB window".
+
 ## Ranked (final, 01:3x)
 1. **The 2B audits and repairs the head's deep tokens: CONFIRMED on HE+** (D). On MBPP, the frozen schedule was chosen
    on those rows (C). Training-free.

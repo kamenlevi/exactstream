@@ -1,0 +1,14 @@
+[rec] MLX 0.32.2; slice G; route FAST; 2.19 GB active; lifetime 2.68 GB; load 3 s
+[rec] scope layer; record: {'ops': 1049, 'encoders': 5, 'dispatches': 123, 'blits': 0, 'commits': 6, 'set_bytes_total': 2173}; outputs: (1, 32, 10240) mlx.core.bfloat16 + 2 state arrays (3.2 MB); ssm_mask None; lifetime 3.18 GB
+[rec] ICB build: 123 commands
+[rec] (a) replay (mode 9) on the recorded inputs: rc 0; outputs bitwise == recorded: True [True, True, True]; cpu encode 138 us, commit+wait 8668 us, gpu 8097 us, 123 dispatches
+[rec] op types: {'ENC': 5, 'END': 5, 'COMMIT': 6, 'PSO': 123, 'BUF': 451, 'BYTES': 272, 'DTG': 13, 'DT': 110, 'BAR': 54, 'FWAIT': 5, 'FUPD': 5}
+[rec] (b1) mode 9: OK (70 us)
+[rec] (b2) mode 9: OK (99 us)
+[rec] (b3) mode 9: OK (76 us)
+[rec] (b4) mode 9: OK (100 us)
+[rec] mode 9: 4/4 windows bitwise == MLX
+[rec] RESULT: route FAST, slice G, scope layer: (a) True, (b) mode 9 4/4 bitwise; 123 dispatches in 5 encoders / 6 commits (1049 ops); CPU encode per replay over 40 repeats: min 61, median 73, max 179 us (0.59 us per dispatch); repeats still bitwise: True; lifetime peak 3.18 GB; wall 4 s
+[rec] ICB + useResources (203 buffers): encode median 77 us (min 57) = command buffer 7.3 + encoder 23.8 + useResources 37.5 + execute/end 7.2 us
+[rec] residency set: 204 allocations
+[rec] ICB + residency set: 4/4 windows bitwise == MLX; encode median 45 us (min 31) = command buffer 8.3 + encoder 27.7 + useResources 0.0 + execute/end 9.7 us

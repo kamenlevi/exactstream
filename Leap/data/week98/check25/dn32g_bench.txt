@@ -1,0 +1,9 @@
+DN32G bench #1 (WITHDRAWN: independent calls, not a chain, so the separate calls could overlap; ROUGH):
+  GDN qkv|z + b|a              M 32: grouped   444.7 us, separate   340.6 us per fold (2 -> 1 dispatch): +104.1 us
+  att q + k + v + indexer      M 32: grouped   460.5 us, separate   439.6 us per fold (4 -> 1 dispatch): +21.0 us
+DN32G bench (ROUGH, share lock, int8 native, M 32, chained reps):
+  GDN qkv|z + b|a              M 32, us per fold (2 -> 1 dispatch): engine ks: grouped  373.5 vs separate  365.7 (+7.8); all ks 1 (FAST): grouped  358.9 (-6.8 vs the engine's separate), separate  492.9
+  att q + k + v + indexer      M 32, us per fold (4 -> 1 dispatch): engine ks: grouped  401.7 vs separate  395.2 (+6.5); all ks 1 (FAST): grouped  366.4 (-28.9 vs the engine's separate), separate  444.3
+DN32G bench (ROUGH, share lock, int8 native, M 32, chained reps):
+  GDN qkv|z + b|a              M 32, us per fold (2 -> 1 dispatch): engine ks (bitwise): grouped  403.0 (rounds) /  419.1 (one pass) vs separate  325.5 (+77.5 / +93.6); all ks 1 (FAST): grouped  329.4 (+3.9 vs the engine's separate), separate  426.5
+  att q + k + v + indexer      M 32, us per fold (4 -> 1 dispatch): engine ks (bitwise): grouped  385.8 (rounds) /  363.7 (one pass) vs separate  358.3 (+27.5 / +5.4); all ks 1 (FAST): grouped  314.7 (-43.6 vs the engine's separate), separate  435.1

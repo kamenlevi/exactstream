@@ -91,6 +91,115 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Tue 17 01:0x (NewIdeas, ~/NewIdeas/research/week98/ADAPTK.md, f36cb3c): **ADAPTIVE K screen PASS (exact): choose 16
+  or 32 rows PER CHECK by the drafter's own path_p. HE+ +8-10 % on today's kernels, MBPP ~0.**
+  - The rule: best-first drafting pops while the next pop's path_p >= tau, and the rows round up to 16 / 32. Under
+    calibration this is the optimal form.
+  - path_p IS calibrated (expected kept 12.83 vs realised 12.82, HE+ 16 rows) and non-increasing in pop order.
+  - Replay of the t30b 127-node dumps on E14 costs, draft cost per level counted (0.40-0.92 ms), tau from the other
+    set:
+    - KERN2 (16 / 32): HE+ +8.0-10.3 %, MBPP -0.2..+0.2 %;
+    - one-pass up to 128 rows [est]: HE+ +10.3-15.6 %;
+    - repeated passes for > 32 rows: +5.5-6.4 %;
+    - hindsight ceiling: HE+ +17-34 %, MBPP +9.5-12.4 %.
+  - Needs a 32-row TREE verify path. Next kill: fresh cells (Wed capture) at the frozen tau. Engine timing is the
+    orchestrator's call.
+- Tue 17 01:0x (NewIdeas; Leap's E14 00:54-00:55): **K* = tree-16, FINAL for the exact engine. CORRECTED: R32/R16 is
+  ~1.44, not 1.480.** (~/NewIdeas/research/week98/KSTAR_E14.md, 1f0dd99)
+  - E14: C32one / A16 = 1.433 paired median (E2's statistic), 1.437 ratio of means. The 1.480 quoted since Monday
+    (CHECK55 a082f8c; Leap's costs v2 onepass 1.478) was a ratio of POOLED MEDIANS, a cross-window artifact. Monday's
+    own records give 1.444 / 1.438.
+  - K* (treek_final, E14 costs, drafting hidden): HE+ is a tie within +-1 % (plain 32 +0.9 %; BOF 16 +0.8 %;
+    contract 16 +0.4 %). MBPP is tree-16 by 18.7-20.5 %. Draft cost and the flat lossy frontier only push further
+    toward 16. Monday's "tree-16 on HE+ by ~4 %" (below) was really ~1-2 %.
+  - Like for like, the levers RAISE R: BOF 1.46, contract 1.46 (they save the same ms on both shapes).
+  - Lossy model (information): HE+ prefers tree-32 (+11.1 %), MBPP tree-16 (+7.7 %); pooled it is a tie.
+  - CERTIFY98 amendment 8a: R = 1.433. T32/16's power was never 0.00: at 1.433 the bar is 1.535 vs dev 1.531.
+- Tue 17 00:5x (NewIdeas; BigMoE's key test 00:38-00:48): **M4 -> TUESDAY NIGHT; G1 key test 7 / 9 PASS (the
+  comments-only pair fails a probe gap, not a defect).**
+  - M4 NOT RUN Monday: Kamen was on the Mac up to its 23:50 latest start (the away gate; NOMARK + m4_1116_AWAY_SKIP).
+    New slot: Tue night FIRST, chained with BigMoE's capture in one script after the 23:30 quit. M4 latest start Wed
+    01:30, then the capture by 04:00 (MoonShots' early start is 05:24). Not tonight: try B (00:49) -> E14 -> night1117
+    -> T0A fill the night, and T0A gates Leap's slot #1, so a push costs B2 / V2 / G1 on Tuesday. TREE16's engine arm
+    is Thu night, so the t16c freeze still has Wed by day.
+  - g1b key test: 7 / 9 PASS. Scored keys exact vs lx45cc1 27 / 27, swap +0, peak 42.4 GB. g1c / g1cr fail only the
+    COMQOM engagement probe (com_rows 0). The probe key mbpp/115 was picked on lx45cc1's answer (two '#' lines); g1's
+    own answer leaves it at token 8 ('d' for 'dicts') and has no '#' line. So the '#' path is untested. D engaged
+    through the mbpp/146 docstring (106 / 107 rows), which doesn't exercise '#' either.
+  - Next: BigMoE re-runs g1c / g1cr on keys with early '#' lines (mbpp/303 + mbpp/237 proposed) in a race-free gap.
+    5d fallback sent to EvalSuite: comments-only picked without a PASS -> D unless D's kill-test arm is KILL, else
+    lambda 0.8e-2.
+- Tue 17 01:3x (NewIdeas, ADAPTK.md f36cb3c; CPU replay of the t30b 127-node dumps on E14 costs): **LEAD, exact:
+  ADAPTIVE K, i.e. choose the tree size per check.** Best-first drafting pops while the next node's path_p >= tau; the
+  check takes 16 or 32 rows to fit.
+  - With today's two kernels (16 / 32), at the other set's tau: HE+ +8.0-10.3 % over the best fixed K; MBPP +-0.2 %.
+  - One-pass checks to 128 rows [est]: HE+ +10-16 %. Hindsight ceiling: HE+ +17-34 %, MBPP +10-12 %.
+  - path_p is calibrated (expected kept 12.83 vs realised 12.82). HE+'s docstring stretches want big trees.
+  - It needs a 32-row TREE verify path: TREE16 is 16 rows, and C32one exists only as a chain check.
+  - **Orchestrator's call (01:4x): gated build.**
+    1. Wed: the fresh-cell re-read at the frozen tau (KILL if HE+ < +3 % at L 0.66, KERN2).
+    2. M4 (Tue night) must certify the 16-row tree verify exact on the full model.
+    3. If both pass, BigMoE (owner of the tree path, with Leap reviewing the C32one hook) builds a 32-row tree verify
+       Wed-Thu as an opt-in switch, bit-tested against one-token decoding.
+    4. It joins Saturday's measured run only if it is bitwise and its C T T C engine A/B passes by Fri 12:00.
+       Otherwise it waits until after Saturday.
+    Leap's GPU-side work (chain folds, modules) keeps priority, since it is worth more ms per check.
+- Tue 17 00:5x (Leap, E14; data/week98/e14/e14_run.txt, verified by the orchestrator): **exact engine levers 5 of 6
+  PASS, 1 BETWEEN; every bit as pre-registered.**
+  - Times (48 checks per arm, quiet): A16 61.3 ms, C32 102.23, C32one 90.61.
+  - E2 step 1: C32one / A16 = 1.433, BETWEEN (1.35-1.45).
+  - **NewIdeas 01:0x CORRECTION + DECISION:**
+    - The engine's R32 / R16 is ~1.44 (E14 paired median 1.433, ratio of means 1.437), not the 1.480 quoted since
+      Monday. 1.480 was a ratio of pooled medians, a cross-window artifact; Monday's own records give 1.444 / 1.438.
+    - **K* = tree-16 is final for the exact engine.** HE+ is a tie within +-1 % (plain, BOF, contract); MBPP picks
+      tree-16 by 19-20 %.
+    - Lossy (information): HE+ prefers tree-32 (+11 %), MBPP tree-16 (+8 %); pooled, a tie.
+  - Exact levers, all PASS: BOF -2.36 ms (A16), BOF2-O -2.16 ms (C32one), hc_b -0.81 ms (A16). They go into ref2 behind
+    switches for the exact-45 path after BigMoE's review.
+  - **The reference contract** (CHECK55_LEVERS #6: fixed K-chunks and summation order for every dense GEMM, the HC read
+    and the head, so the arithmetic doesn't depend on the row count) PASSES both lines: A16c - A16 -5.76 ms, C32c -
+    C32one -7.04 ms (the estimate was -4). It changes the exact REFERENCE, so adopting it is KAMEN'S call (asked
+    01:0x).
+  - Orchestrator [P]: exact levers + contract take the exact 16-row check ~61 -> ~52-56 ms (overlap unknown: hc_b and
+    the contract both touch the HC read), so exact tree-16 goes ~144 -> ~150-165 tok/s.
+- Tue 17 00:5x (Leap, try B; data/week98/c25/gpubB_run.txt, verified by the orchestrator): **the lossy 32-row check is
+  GPU-PACED: GPU busy 54.16 of 56.14 ms (96 %), idle 1.98.**
+  - CPU thread 23.2 ms, fully hidden. Build + submit 50.72 = Python build 12.00 + MLX encode 11.17 + blocked in eval
+    27.38.
+  - 3,172 dispatches per check (7.7 us of CPU each) in 266 command buffers.
+  - The other arms agree: F16 38.64 (97 %), F32s 67.74 (96 %), F32o 58.48 (97 %).
+  - Per the pre-registered rule, the modules are now ranked by GPU ms. A perfect CPU replay (1a) wins <= ~2 ms today. It
+    binds once the GPU side is under ~23 ms, so it is still needed for a ~25 ms check. 1a's SLOTS kernel also removes
+    the GPU-side loader poll and ~480 dispatches.
+> (a quote from the project owner, kept private)
+  - **Module 2 (experts, MoonShots) bit-exact track = KILL:** 583 us per call vs the 480 line. The call is
+    compute-bound, and the 8-row tiles run padded. Experts stay at ~23 ms of GPU per check, so every other module at
+    PASS sums to ~46 ms of GPU, not ~40.
+  - Left for module 2: a FAST small-segment path (SIMD FMAs for <= 8 pairs). Per Kamen's standing FAST-track rule
+    (11-02; adoption on EvalSuite same-scores, orchestrator 11-04), it needs EvalSuite's gate, not a separate Kamen call.
+  - The GPU-side lead: 54 ms over 3,172 dispatches is ~17 us of GPU per dispatch, and a grid barrier costs ~1.5 us.
+    So fold dependent chains (GDN core, attention core, MoE tail) into one launch. The HC read in one launch already
+    does it: 72/72 bitwise, -5.6..-6.4 ms per check (rough), 288 -> 96 launches.
+  - Saturday, priced by the orchestrator [P] with ladder v4's other inputs; NewIdeas re-prices: at a ~46 ms check,
+    HE+ lossy at quality is ~277-282 (f 0.269, overhead 4) / ~290-295 (overhead 1.5) / ~309-315 (f 0.10). Ladder
+    v4's ~385-428 needs ~14 ms more off the check, from the chain folds and / or the FAST expert path.
+- Tue 17 00:38-00:48 (BigMoE): **G1 key test (g1b, base + 8 int8-free envs) = 7 / 9 PASS.**
+  - Scored keys exact 27 / 27, swap +0.00, 0 swapouts.
+  - g1c / g1cr fail only the COMQOM probe: g1's mbpp/115 answer has no '#' line, so the comments-only path is untested,
+    not failed. BigMoE re-runs it on keys with '#' lines; the 5d fallback went to EvalSuite.
+  - It ran at gate 33 (orchestrator 00:3x). Chrome had been reopened at 23:06 after the 23:00 quit and was re-quit at
+    00:33; NO-SWAP went 22.3 -> 34.2. One run compressed ~14 GB of idle pages (NO-SWAP 47-49 after it).
+  - M4 moves to TUE NIGHT first (NewIdeas 00:5x): chained with BigMoE's capture after the 23:30 quit; M4 latest start
+    Wed 01:30, capture by 04:00.
+- Mon 16 22:2x (MTP Head, REPORT 288e8c7; LAB sandbox S16-S19): **smaller-drafter head plan = 8-bit Linears (free post
+  hoc) + a ~32K vocab screen (kept >= x0.99); 4-bit fails even with QAT; training can't recover the screen (its loss
+  is coverage).**
+  - Kept at tree-16/32: 8-bit x0.995-1.001; screen 8K x0.968-0.983, 16K x0.982-0.989, 32K x0.995-0.999.
+  - 125B estimate, with 8-bit Linears: 8K ~42, 16K ~52, 32K ~73 MB per level vs 177.6 today.
+  - To confirm on the 125B: MoonShots' M3 Q8 + H16 / H32.
+  - **CORRECTED 22:3x (MTP Head):** 32K over 8K costs +31 MB per level = +0.11 ms at 280 GB/s (not ~0.07 ms), so
+    ~+2.3 ms per tree-32 draft. That is near-neutral in tok/s against its ~+2-3 % kept, with 8K slightly ahead.
+    Wed 06:30: MoonShots runs the 125B's H32 (+ H16) beside Q8, and that curve picks N.
 - Mon 16 18:2x (MTP Head, REPORT 2fed5f1; LAB sandbox): **S13 QAT screen FAIL (no anneal), S14 shallow tap COLLAPSES ->
   tapmlp closes; S16 QAT-with-anneal running.**
   - Post-hoc 4-bit costs x0.928 / x0.906 at tree-32 (MBPP / HE), which reproduces M3's 125B loss.
@@ -487,6 +596,23 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
       - Slot (NewIdeas): Breakthrough's one-load 4-arm map screen (~25 min, ~14-16 GB, 24 code windows): C6 bytes, G1
         with int8 fake-quant, DENSE-3 alone, lambda 2.0e-2. It runs right after EvalSuite's 1c-tiers chain ends and
         finishes before 22:30 (fallback Tue ~07:00-08:30).
+  - **22:2x (orchestrator; Breakthrough's 21:1x report reached me at 22:2x):**
+    - **Breakthrough MODULE 1a milestone 1 MET (rough), two days early** (docs/MODULE1A.md; fac1f0f, c33be8b, 3a2fa85).
+      - FAST layer 0 (GDN + MoE, 32 rows, real weights, the check's route) is recorded once and replayed as ONE Metal
+        indirect command buffer (123 commands). It is bit for bit equal to MLX on new inputs: 16/16 windows, layer
+        output + both GDN states.
+      - CPU per replay: 45 us median (min 31) with an MTLResidencySet, vs 327 us for a plain re-encode. 36 us of it is
+        per-check setup (command buffer + encoder); the layer's own part is ~10 us.
+      - So a 48-layer check in one ICB projects to ~0.05-0.1 ms of CPU [P], vs ~30-35 ms today.
+      - Rough: a share lock beside other load. The official number is Leap's Wed quiet bench.
+      - Milestone 2 still needs: Fable B's SLOTS kernel + BigMoE's no-slot-reuse rule (the slice's MoE is the
+        all-resident gather_qmm); the SDPA's KV length from a buffer; the tree mask, positions and SVH ids as input
+        buffers; MLX's cache limit at 0 while a record lives. The record is one fixed 32-row shape.
+      - What it buys depends on tonight's try B GPU-busy number (~01:15). GPU busy >= 90 % of the check: the replay
+        saves only the gaps (~2-6 ms). GPU idle >= 30 %: ~15-20 ms.
+    - MTP Head's head plan (22:2x, corrected 22:3x; entry under THE TWO GOALS). Orchestrator's check: draft per tree-32
+      block ~8.8 ms with the 8K head, ~11.2 ms with 32K (f 0.269 ms + bytes at the 273 GB/s that today's 0.92 ms per
+      level implies), vs 19.1 today. At today's 56.4 ms check, both give ~235-240 tok/s vs ~213.
   - **20:4x:**
     - MTP Head S17 p8 (post-hoc 8-bit Linears; TrainLab data/sb98/s17_p8.json) PASSES its line: vs s30, tree-16 x0.9968
       MBPP / x0.9948 HE, tree-32 x1.0005 / x1.0000 (CIs include 1). So 8-bit Linears are free. The head's remaining byte

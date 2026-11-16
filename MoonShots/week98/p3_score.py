@@ -78,6 +78,7 @@ def agreement(ref, d):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--cuts", default="none,C1,C3,C8,Q4,H8")
+    ap.add_argument("--tag", default="m3", help="outputs p3/<tag>_scores.{json,txt} (q8: NewIdeas' 21:1x ask)")
     a = ap.parse_args()
     TA.say = lambda s="": None
     rng = np.random.default_rng(1115)
@@ -117,17 +118,19 @@ def main():
             row["screen_kernel_bitwise_windows"] = J.get("screen_kernel_bitwise_windows")
             row["full_top1_outside_screened_set"] = J.get("full_top1_outside_screened_set")
             row["within_1pct_tree32"] = bool(row[32]["ratio"] >= 0.99)
+            row["within_1pct_16_and_32"] = bool(row[16]["ratio"] >= 0.99 and row[32]["ratio"] >= 0.99)
             row["agree_by_depth"] = agreement(ref, d)                   # bucket: [n, top-1 same, top-3 set same]
             res[s][cut] = row
             say(f"  {cut:4s}: rows 16 kept {row[16]['kept']:.3f} (x{row[16]['ratio']:.4f} [{row[16]['ci95'][0]:.4f}, "
                 f"{row[16]['ci95'][1]:.4f}]) | rows 32 kept {row[32]['kept']:.3f} (x{row[32]['ratio']:.4f} "
                 f"[{row[32]['ci95'][0]:.4f}, {row[32]['ci95'][1]:.4f}]) | within 1 % at 32: {row['within_1pct_tree32']}"
+                f", at 16 and 32: {row['within_1pct_16_and_32']}"
                 + (f" | screened kernel bitwise {row['screen_kernel_bitwise_windows']} windows, full top-1 outside the "
                    f"set {100 * row['full_top1_outside_screened_set']:.3f} %" if row["screen_kernel_bitwise_windows"] else ""))
             say("        agreement with the full head by prediction depth j (n, top-1 same, top-3 set same): " + "; ".join(
                 f"j {b}: {v[0]}, {v[1]:.3f}, {v[2]:.3f}" for b, v in row["agree_by_depth"].items()))
-    json.dump(res, open(os.path.join(P3, "m3_scores.json"), "w"), indent=1)
-    open(os.path.join(P3, "m3_scores.txt"), "w").write("\n".join(lines) + "\n")
+    json.dump(res, open(os.path.join(P3, f"{a.tag}_scores.json"), "w"), indent=1)
+    open(os.path.join(P3, f"{a.tag}_scores.txt"), "w").write("\n".join(lines) + "\n")
 
 
 if __name__ == "__main__":

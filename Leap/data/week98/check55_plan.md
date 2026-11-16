@@ -375,3 +375,26 @@ scripts/week98/c7d_r24.py (the docstring has the full design).
   _tier_block_l2 only in an m arm. The head test still imports moe_dense from Breakthrough's check55 folder, so
   Breakthrough keeps that module importable to Tue 03:00.
 - **All other lines as pre-registered (E14, Sun 20:5x).** About 20 % less run time per window.
+
+## E14 RESULT (Tue 00:5x; run 00:54-00:55 in the night chain, quiet lock) [lab: G32T's 3 windows x 16 rounds, 48 checks per arm]
+- **Bits:** every pre-registered pair holds on every window.
+  - C32one and C32oneB == C32 (32/32 rows); A16b and A16h == A16 (16/16).
+  - C32[:16] == A16; C32c[:16] == A16c. A16c vs A16: 0/16, as designed.
+- **Medians (ms per check):** A16 61.27, C32 102.23, C32one 90.61, C32oneB 88.43, A16b 58.91, A16h 60.61, A16c 55.75,
+  C32c 83.50.
+
+| pair | measure | median [IQR] | verdict | prediction |
+|---|---|---|---|---|
+| E2 step 1: C32one / A16 | ratio | 1.433 [1.418, 1.473] | **BETWEEN** (partial) | 1.40-1.50 |
+| C32 / A16 (reference) | ratio | 1.629 [1.603, 1.672] | info | 1.55-1.65 |
+| BOF: A16b - A16 | ms | -2.356 [-2.600, -2.144] | **PASS** | -1.5..-2.5 |
+| BOF2-O: C32oneB - C32one | ms | -2.163 [-2.352, -1.976] | **PASS** | -1..-2 |
+| hc_b: A16h - A16 | ms | -0.807 [-1.020, -0.602] | **PASS** | -0.5..-1 |
+| contract 16: A16c - A16 | ms | -5.764 [-5.949, -5.364] | **PASS** | -2.5..-4 |
+| contract 32: C32c - C32one | ms | -7.037 [-7.222, -6.878] | **PASS** | -2..-4 |
+
+- **Use (as pre-registered):**
+  - BOF, BOF2-O and hc_b go into ref2 behind switches for the exact-45 path, after BigMoE's review. Asked 00:5x.
+  - The contract arms are evidence for Kamen's reference switch; adopting it is his call.
+- **Sent 00:5x** to the orchestrator, BigMoE, EvalSuite, Breakthrough and NewIdeas.
+- **Files:** data/week98/e14/e14_run.txt, e14.json and run_e14.log; marker data/week98/screens/E1E4_1117_DONE.

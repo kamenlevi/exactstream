@@ -82,3 +82,33 @@ verdict by Monday 23:05. The runner (scripts/m4_night.sh) now applies an **M1 co
   - S1: PASS line present, straight to C1 T1 T2 C2;
   - S2: no line, M1 PASS, then the A/B;
   - S3: no line, M1 FAIL, stop with the marker, no A/B.
+
+## Amendment 2 (Mon 16 Nov 21:0x, before any run; the orchestrator 20:4x / 21:0x)
+
+Kamen is on the Mac this evening and asked for lower-RAM tests while he uses it. Tonight every job above ~6 GB waits until
+he has been away for 15 minutes (away_secs = HIDIdleTime >= 900), checked before and after the memory reads. The runner
+(scripts/m4_night.sh) now has that **away gate**. The runs, keys, flags and the analysis are unchanged.
+- **Where it is checked:** before the ticket, after the grant, after the NO-SWAP reads and before each run. If Kamen is
+  back after the NO-SWAP reads, the runner waits, then reads memory again.
+- **How long it waits:** to the same latest start as a PAUSE (23:50, since Sunday's M1 PASS is in; between runs, the
+  latest start of the next run).
+- **Not started by 23:50:** NOT RUN, with no end marker (NOMARK) and a skip file data/r57/m4_1116_AWAY_SKIP. M4 is then
+  re-planned with NewIdeas.
+- **Kamen back between runs, until the next run's latest start:** the runner stops at that process boundary and writes
+  the end marker. The "window cut short" rule of Amendment 1 applies.
+
+**Tested before arming (21:05-21:10):**
+- Head test: M1 + the four runs reach the model load.
+- Simulations (M4_SIM=1: fake times, ticket, memory and away readings; each run a short sleep):
+  - A: away never reached: NOT RUN at the latest start, NOMARK + the skip file, no marker;
+  - B: away: C1 T1 T2 C2, marker;
+  - C: Kamen back during the memory reads: wait, then memory read again, then the four runs, marker;
+  - D: Kamen back during C1: stop at the C1 / T1 boundary with the marker.
+
+## Outcome Mon 16 Nov: NOT RUN (the away gate)
+
+Kamen was on the Mac from 23:05 until the latest start, 23:50 (away 0 s at 23:05, 193 s at 23:50:09). The runner ended
+NOT RUN with no end marker (NOMARK) and wrote data/r57/m4_1116_AWAY_SKIP (log: data/r57/m4_1116.log). No ticket was
+taken and nothing was measured. M4 goes back to NewIdeas for a new slot. The per-run away check stays for that slot
+(the orchestrator 23:5x): no start while Kamen is at the Mac; if he comes back mid-run, stop at the next run boundary.
+The G1 key test went ahead on its own gates.

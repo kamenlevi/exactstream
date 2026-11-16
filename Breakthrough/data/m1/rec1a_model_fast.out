@@ -1,0 +1,23 @@
+[rec] MLX 0.32.2; slice G; route FAST; 2.19 GB active; lifetime 2.68 GB; load 2 s
+[rec] scope model; record: {'ops': 1310, 'encoders': 7, 'dispatches': 153, 'blits': 0, 'commits': 9, 'set_bytes_total': 2693}; outputs: (1, 32, 248320) mlx.core.bfloat16 + 2 state arrays (3.2 MB); ssm_mask None; lifetime 3.18 GB
+[rec] (a) replay on the recorded inputs: rc 0; outputs bitwise == recorded: True [True, True, True]; cpu encode 662 us, commit+wait 7348 us, gpu 6876 us, 153 dispatches
+[rec] op types: {'ENC': 7, 'END': 7, 'COMMIT': 9, 'PSO': 153, 'BUF': 541, 'BYTES': 358, 'DTG': 20, 'DT': 133, 'BAR': 69, 'FWAIT': 6, 'FUPD': 7}
+[rec] (b1) mode 0: DIFF out False states 2/2 (491 us); mode 2: OK (474 us)
+[rec] (b2) mode 0: DIFF out False states 2/2 (430 us); mode 2: OK (532 us)
+[rec] (b3) mode 0: DIFF out False states 2/2 (412 us); mode 2: OK (512 us)
+[rec] (b4) mode 0: DIFF out False states 2/2 (565 us); mode 2: OK (462 us)
+[rec] (b5) mode 0: DIFF out False states 2/2 (603 us); mode 2: OK (347 us)
+[rec] (b6) mode 0: DIFF out False states 2/2 (659 us); mode 2: OK (495 us)
+[rec] (b7) mode 0: DIFF out False states 2/2 (612 us); mode 2: OK (614 us)
+[rec] (b8) mode 0: DIFF out False states 2/2 (600 us); mode 2: OK (367 us)
+[rec] (b9) mode 0: DIFF out False states 2/2 (528 us); mode 2: OK (585 us)
+[rec] (b10) mode 0: DIFF out False states 2/2 (408 us); mode 2: OK (542 us)
+[rec] (b11) mode 0: DIFF out False states 2/2 (528 us); mode 2: OK (435 us)
+[rec] (b12) mode 0: DIFF out False states 2/2 (449 us); mode 2: OK (540 us)
+[rec] (b13) mode 0: DIFF out False states 2/2 (492 us); mode 2: OK (574 us)
+[rec] (b14) mode 0: DIFF out False states 2/2 (651 us); mode 2: OK (521 us)
+[rec] (b15) mode 0: DIFF out False states 2/2 (623 us); mode 2: OK (410 us)
+[rec] (b16) mode 0: DIFF out False states 2/2 (509 us); mode 2: OK (516 us)
+[rec] mode 0: 0/16 windows bitwise == MLX
+[rec] mode 2: 16/16 windows bitwise == MLX
+[rec] RESULT: route FAST, slice G, scope model: (a) True, (b) mode 0 0/16, mode 2 16/16 bitwise; 153 dispatches in 7 encoders / 9 commits (1310 ops); CPU encode per replay over 20 repeats: min 362, median 510, max 708 us (3.33 us per dispatch); repeats still bitwise: True; lifetime peak 3.23 GB; wall 4 s

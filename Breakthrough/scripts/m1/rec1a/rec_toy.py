@@ -52,3 +52,20 @@ for k in range(3):
           f"{st['cpu_commit_wait_us']:.1f} us, gpu {st['gpu_us']:.1f} us, {st['dispatches']} dispatches")
 rc, st = R.replay(1)
 print(f"serial replay: rc {rc}; bitwise == last MLX: {np.array_equal(np.array(y), ref_np)}; {st}")
+
+# ---- ICB form: build from the record, then new inputs in place -> one execute vs MLX
+n, err = R.build_icb()
+print(f"ICB build: {n} commands {('(error: ' + err + ')') if n < 0 else ''}")
+if n > 0:
+    for k in range(3):
+        x1 = mx.array(rng.standard_normal((32, 2560)).astype(np.float32)).astype(mx.bfloat16)
+        mx.eval(x1)
+        ref = f(x1)
+        mx.eval(ref)
+        ref_np = np.array(ref).copy()
+        bits(x0)[:] = bits(x1)
+        np.frombuffer(memoryview(y).cast("B"), dtype=np.uint8)[:] = 0
+        rc, st = R.replay_icb()
+        out = np.array(y)
+        print(f"(icb{k}) rc {rc}; bitwise == MLX: {np.array_equal(out, ref_np)}; cpu encode {st['cpu_encode_us']:.1f} us, "
+              f"commit+wait {st['cpu_commit_wait_us']:.1f} us, gpu {st['gpu_us']:.1f} us, {st['dispatches']} commands")

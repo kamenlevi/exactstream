@@ -1,0 +1,15 @@
+[guard] pid 63212, MAXGB 5, swap at start 7554.62 MB (kill at +1 GB)
+mtlprof: 13 hooks on AGXG17XFamilyComputeContext / AGXG17XFamilyCommandBuffer / AGXG17SDevice
+
+M2 SETUP Mon 16 Nov 22:08:46: MLX 0.32.2; layer 20's pools (all 512 resident); 12 code windows -> 99 32-row blocks (profiling 4); MSB / LSB piece 2.064 / 0.720 MB; kept experts per block mean 45.8
+  block  0: C4NEG bits {'h': True, 'hs': True, 'rs_m': True, 'rs_l': True, 'y': True, 'out': False} | GPU us A ref 2829.0, C4NEG 1185.6 | B ref 3094.2, C4NEG 1399.1 | whole call ref 2709.8, C4NEG 2666.3
+  block  1: C4NEG bits {'h': True, 'hs': True, 'rs_m': True, 'rs_l': True, 'y': True, 'out': False} | GPU us A ref 1119.3, C4NEG 1222.9 | B ref 1191.4, C4NEG 1387.4 | whole call ref 2824.7, C4NEG 2797.3
+  block  2: C4NEG bits {'h': True, 'hs': True, 'rs_m': True, 'rs_l': True, 'y': True, 'out': False} | GPU us A ref 1012.8, C4NEG 1111.5 | B ref 1080.0, C4NEG 1630.0 | whole call ref 2792.5, C4NEG 2278.5
+  block  3: C4NEG bits {'h': True, 'hs': True, 'rs_m': True, 'rs_l': True, 'y': True, 'out': False} | GPU us A ref 1137.5, C4NEG 664.4 | B ref 431.2, C4NEG 482.8 | whole call ref 1211.7, C4NEG 978.3
+
+M2 BITS Mon 16 Nov 22:08:46, 4 blocks: C4NEG == ooo1cq bit for bit (h, rs_m, rs_l, y, combined): False
+  mean GPU us: A ref 1524.7, B ref 1449.2; C4NEG: A 1046.1, B 1224.8  (indicative unless quiet; 1 s)
+  whole call in one command buffer, mean GPU us: ref 2384.7; C4NEG 2180.1
+  exp32's way (4 calls per graph, us per call, wall / GPU busy; two interleaved passes): ref 1381.0 / 1201.7 & 909.2 / 757.8
+  graph way (4 whole calls per graph on the captured inputs, no ref2 prep ops; us per call, wall / GPU busy; two interleaved passes): ref 876.3 / 764.8 & 2392.6 / 2274.3; C4NEG 1895.4 / 1765.0 & 1201.0 / 1058.6
+[guard] exit 0, peak footprint 5 MB

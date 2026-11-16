@@ -1002,6 +1002,10 @@
     per-env at-peak margins and swapouts; data/r57/G1A_KEYTEST_DONE). It runs after the resumed 1c-tiers chain ends;
   - G1's engagement key (CARD_ENGAGE);
   - the runner and the chain (from t1c_chain2.sh), with their dry runs and a stub sim.
+- **Dated Mon 21:2x (NewIdeas 21:0x), before any G1 run:** G1's chain carries the AWAY rule (4j's dated line, 21:2x).
+  No process starts while Kamen is at the Mac (away_secs.sh < 900, read before and after the memory reads). Mid-run,
+  two reads 30 s apart make the step yield (TERM; CARD_RESUME continues). The arming addendum shows it in the chain's
+  code and its stub sim.
 
 ## Amendment 5c (Mon 2026-11-16 13:0x, before any G2 config, snapshot or data): G2's composition (NewIdeas 13:0x); it replaces 5a's G2 condition
 - **Why:** Breakthrough found that G1 as built reads 6.22 GB per check, not 5.77. g1a is C6 + int8 on lossy-45's
@@ -1185,6 +1189,40 @@
   - **Information, from V1's complete code rows (14:1x, before V1's verdict):** variant-only runaways 10, base-only 3,
     both 11, out of 264. The exact two-sided McNemar p is 0.092 (evalsuite.report.mcnemar_p). The registered guard
     reads at V1's verdict, and pooled at V2.
+- **5d, dated Tue 00:5x (NewIdeas 00:5x), before the COMQOM map read, the kill test and V2's verdict: a fallback for
+  when the comments-only pick has no key-test PASS.** At filing, the map screen (Breakthrough's run_comqom_1117, for
+  >= Tue 07:00) and the kill test (Fit12, after the map's end marker) were armed and waiting, and B2 -> V2 had not
+  started.
+  - **THE LINE (NewIdeas):** if the 5d pick is comments-only (C) and g1c / g1cr has no key-test PASS when G1's base is
+    due, G1 takes D (comment-QOM with MBPP docstrings, g1cd / g1cdr) unless D's kill-test arm reads KILL; then lambda
+    0.8e-2 (g1l / g1lr). RES joins only by its 5c rule, as before.
+  - **Why:** BigMoE's g1b key test (00:38:40-00:48:28, ~/BigMoE/data/r57/g1_keytest_g1b.json) reads FAIL: 7 of the 9
+    envs PASS. EvalSuite read the record and decoded the probe answers at 00:5x:
+    - g1c and g1cr fail only the COMQOM engagement probe: com_rows and com_opt are 0 on both probe keys (mbpp/115,
+      mbpp/146).
+    - The probe key mbpp/115 was picked on lx45cc1's answer, which has two '#' lines (76 tokens). g1c's own answer
+      leaves it at token 8 ('d' for 'dicts') and has no '#' line (45 tokens). BigMoE and NewIdeas decoded it
+      independently too. So C's '#' path is untested, not failed.
+    - D (g1cd / g1cdr) tagged the mbpp/146 docstring rows (com_rows 106 / 107) and one row on mbpp/115.
+    - The scored keys (HumanEval/45, HumanEvalX/23, IFEval/2239) are token-exact vs lx45cc1 on all nine envs (27 / 27).
+      Swap +0.0 GB and 0 swapouts on all nine; peaks 42.3-42.4 GB.
+  - **For G1's arming addendum (NewIdeas):** BigMoE re-runs g1c / g1cr on keys with early '#' lines (mbpp/303 and
+    mbpp/237 proposed; ~42.4 GB, a few minutes) in a race-free gap. If the pick is comments-only, G1's base waits for
+    the re-run's end marker (any end), and THE LINE applies if there is no PASS. D's PASS came from docstring rows only;
+    its '#' path is C's, so the re-run checks both.
+  - **EvalSuite's readings** (NewIdeas may restate them before the re-run's data):
+    1. "g1c / g1cr" means the C env the pick needs: g1cr if RES joins by 5c, else g1c. The fallback keeps that choice
+       (g1cdr / g1lr with RES, g1cd / g1l without).
+    2. A re-run that engages the '#' path and then fails on it (an error on those rows, or a scored key no longer
+       exact) counts against D too, since D's '#' path is C's: G1 then takes lambda 0.8e-2. A re-run that again does
+       not engage leaves D's PASS standing. The addendum bounds the wait for the end marker; none by then counts as no
+       PASS.
+    3. 5e's condition is read per env: it holds for the seven envs that PASS, and C's two envs wait for the re-run. 5e
+       does not lapse.
+    - **CONFIRMED (NewIdeas, received Tue 01:0x, before the re-run's data):** all three as filed. NewIdeas adds to 2:
+      on the HE keys the C and D envs are identical (DOC_SETS = mbpp only); a re-run that again doesn't engage leaves
+      D's PASS standing, and C still has none.
+  - **Unchanged:** 5d's pick rule, the map read, the kill test and every line.
 
 ## Amendment 4i (Mon 2026-11-16 17:4x, during the 1c-tiers run, before any B2 / V2 data): B2 -> V2 after BigMoE's g1b key test (NewIdeas 17:3x); operational only
 - **Why:**
@@ -1445,6 +1483,75 @@
     - Tag dryn: runner 66, CARD_GATE=42, cutoff Tue 07:00. B0, V0, B1 and V1 were skipped as done. B2's and V2's
       runner calls returned rc 0. Runner 66 logged "CHAT gate 42 GB NO-SWAP, CARD_GATE", code pin 50118def96ea, pins OK.
     - Tag dryd: runner 65, cutoff Tue 17:00. The same.
+- **Dated Mon 21:2x (NewIdeas 21:0x, relaying the orchestrator 21:0x), before any B2 / V2 data: the AWAY rule;
+> (a quote from the project owner, kept private)
+  above. It holds for this follower, for G1's chain (5b's dated line) and for G2's on Wednesday (5f's dated line).
+  - **The rule (NewIdeas):** no process start while Kamen is at the Mac (away_secs.sh < 900, read before and after the
+    memory reads). A running process yields on two reads 30 s apart: TERM at a process boundary, and CARD_RESUME
+    continues from there. This is night1117's chain's rule.
+  - **Why:** Kamen asked tonight for lower-RAM tests while he uses the Mac. The orchestrator (21:0x) rules that this
+    holds by day too, whenever he is at the Mac, until he says otherwise. Tuesday is a school day, so it should rarely
+    bite (NewIdeas).
+  - **Unchanged (NewIdeas):** every gate, cutoff and line. The leftovers still go first on Wednesday.
+  - **The mechanics:** tools/t1c_tue_follower3.sh (sha256 e7cbf8732bd978f5...) = follower2 + three changes. It replaces
+    follower2 (the switch below).
+> (a quote from the project owner, kept private)
+       in chain2). The follower reads the conditions before the first NO-SWAP read and again after the second.
+    2. chain2 runs with its own at-Mac rule (no CHAIN_NOYIELD=1). It reads the rule again before its runner starts.
+       Mid-run, two reads 30 s apart stop the runner and its children (TERM) and `peer unlock`. Once nothing holds,
+       the step resumes (CARD_RESUME=1).
+       - A resume continues a job that has started, within the cutoff's prices: chain2 starts nothing in the last
+         15 min before its cutoff, and runner 65 / 66 price each process at 900 s. The 14:30 line bounds the
+         follower's start of the chain, as filed and armed in 4j; V2's start after B2 was never bound by it either.
+       - Still held when no start is left before the cutoff: B2 or V2 rc 75. By night that resumes in step 3, as
+         filed. By day it is a leftover, first in Wednesday's queue.
+    3. The first start keeps its bound. chain2 has no separate last start, so it could otherwise wait out a visit
+       past 14:30. If chain2 has started no runner by 14:30 (by day), or by the night's last priced start (07:00 less
+       190 min = 03:50), the follower stops it (TERM; checked every 5 s) and records "no start by". By night that goes
+       to step 3, like a cut. By day it ends the follower, and the leftovers go first on Wednesday.
+    - The end marker is results/T1C_TUEF3_END (log tag [tuef3]), still copied to T1C_RESF2_END. G1's chain gates on
+      T1C_TUEF3_END plus V2's verdict.
+  - **Checked:**
+    - bash -n passes. The code differs from follower2 only by the three changes and the marker and tag names.
+    - A sim against a byte copy of the REAL chain2 (sha256 822c2fc2db41f880) in a sandbox HOME per scenario, with a
+      stand-in runner, away_secs.sh and peer: 11 scenarios, all as designed (21:16-21:3x;
+      results/lossygate/t1c_tue_follower3_sim_2026-11-16.txt). chain2's own sleeps are real.
+      - a1: away throughout. chain2's first line has no "no at-Mac rule"; B2, then V2; done.
+> (a quote from the project owner, kept private)
+      - a3: he arrives mid-B2. The yield comes on two reads 30 s apart (runner TERM, peer unlock). He leaves: B2
+        resumes with CARD_RESUME=1, then V2; done.
+      - a4: he arrives right after the chain's launch and stays past the last start. The follower stops the chain at
+        it, with no runner call, and the day route ends (rc 143).
+      - a5: the same by night: "no start by" the night's bound, then step 3. The day start waits for him to leave;
+        done.
+      - a6: he arrives mid-B2 and stays: the yield 45 s later, then no start left before the cutoff: B2 rc 75. The
+        day route ends without V2.
+      - a7: a yield after the last start: the resume runs (the last start bounds only the first start); done.
+      - a8: away_secs.sh prints nothing: counts as away; done.
+      - a9: TERM mid-B2: the chain stops its runner and unlocks; both markers say "stopped by a signal".
+      - a10: NO-SWAP 42: runner 66 with CARD_GATE=42; done.
+      - a11: an 8 s visit mid-B2 (shorter than two reads 30 s apart): no yield; done.
+      - At every end, T1C_RESF2_END equals T1C_TUEF3_END, and no chain or runner process is left.
+      - The first driver waited for the text "yields", which follower3's own first line contains. So in its a3 and
+        a7 the stand-in Kamen left after 5 s and no yield was tested. Both were rerun with the fix, and a11 was
+        added. The record keeps both runs.
+    - follower2's 17 stub-chain scenarios, rerun on follower3 with an away read of 1000 s: the same outcomes. No
+      chain call carries CHAIN_NOYIELD.
+    - DRY chain passes as follower3 calls them (tags dry3n / dry3d, 21:18:38-21:19:39): both rc 0, with no "no at-Mac
+      rule" in chain2's first line. Runner 66 logged "CHAT gate 42 GB NO-SWAP, CARD_GATE" and code pin 50118def96ea;
+      the env blobs c9ebc0cf / d4b1217d are registered.
+  - **The switch, done 21:29-21:30:**
+    - 21:29:37: peer ls showed no lock and no ticket for this session, and no runner or chain was alive.
+    - 21:29:38: TERM follower2 (pid 63386; it was waiting for T0A_1117_END and had started nothing). It was gone at
+      21:30:03, with T1C_TUEF2_END "stopped by a signal during: waiting for T0A_1117_END".
+    - That marker and its T1C_RESF2_END copy were moved aside at once (T1C_TUEF2_END.awayswitch,
+      T1C_RESF2_END.tuef2stop), so T1C_RESF2_END keeps meaning the 1c-tiers end. No armed script of another session
+      reads either now: BigMoE's key test runs with its EvalSuite gate off, and Breakthrough's map screen and
+      Sandbox98's SIB, which read T1C_RESF2_END, are not running.
+    - 21:30:10: follower3 armed, pid 8136 (sha256 e7cbf8732bd978f5...). Its first line names T0A_1117_END (pid 45029
+      gone); the night window from 11-17 03:00, priced at 190 min to end by 07:00; else after Leap's slot #1 (window
+      to 12:00); cutoff 17:00, no start after 14:30; no start while Kamen is at the Mac, and chain2 yields to him
+      mid-run.
 
 ## Amendment 5f (Mon 2026-11-16 20:0x, before any G2 config, snapshot or data): G2 without V1, the SVH / full head in V1's place (NewIdeas 20:0x); it amends 5c
 - **Why** (NewIdeas 20:0x, from Breakthrough's paired read). The source is section 7 of ~/Breakthrough's
@@ -1490,3 +1597,5 @@
     pin.
   - So int8 is in neither G1 (5e) nor G2 this week. g2a's env carries no R57_INT8D / R57_INT8D_SETS, and its arming
     amendment checks that.
+- **Dated 21:2x (NewIdeas 21:0x), before any G2 config or data:** G2's chain on Wednesday carries the AWAY rule, as
+  G1's does (4j's dated line, 21:2x).

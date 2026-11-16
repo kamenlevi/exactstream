@@ -2709,3 +2709,46 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
     mentions BigMoE); a fake peer that refuses twice for a quiet lock then grants -> PASS, and refuses for another reason
     -> STOPPED at once; the wrapper waits out a quiet lock in a sim, then PASS.
   - Re-armed 18:29.
+- **Mon 20:4x-21:10, the key test moves to the night window behind an away gate** (the orchestrator 20:4x / 21:0x).
+  Kamen is on the Mac and asked for lower-RAM tests while he uses it, so tonight every job above ~6 GB waits until he
+  has been away 15 minutes (away_secs = HIDIdleTime >= 900), checked before and after the memory reads.
+  - 20:51: the pre-22:50 waiter stopped without a marker. It was only waiting for NO-SWAP >= 40 (reads 21-26 GB).
+  - g1_follow.sh gained two settings:
+    - AWAYMIN: the away seconds needed, checked in the loop and again after the two NO-SWAP reads. The key test itself
+      keeps --away-min 0, because its one-shot check would end STOPPED and write a marker.
+    - PREVALT: another end file of the previous job.
+  - M4 got the same away gate (TREE16_M4_PREREG amendment 2). If it cannot start by 23:50, it ends NOT RUN without a
+    marker and writes data/r57/m4_1116_AWAY_SKIP.
+  - Re-armed 21:09:
+    - M4 at 23:05: quiet ticket, NO-SWAP >= 36, hard end 00:25.
+    - The key test starts after M4's marker OR the skip file (newer than 23:00) and M4's runner gone, then needs away
+      >= 900 and NO-SWAP >= 40. Start by 01:30, hard stop 01:45.
+    - Leap's try B -> E14 now chain on G1A_KEYTEST_DONE.
+  - Wrapper simulations, all as designed:
+    - Away flips during the NO-SWAP reads: it waits, then starts when away. PASS end to end.
+    - An empty away reading counts as at the Mac: NOT RUN at the deadline. A bad AWAYMIN is refused.
+    - The skip file alone starts it, as M4's marker does. With neither file: NOT RUN at the deadline.
+- **Mon 23:50, M4 NOT RUN (the away gate):** Kamen was on the Mac from 23:05 to M4's 23:50 latest start, so M4 ended
+  with NOMARK and the skip file (TREE16_M4_PREREG "Outcome Mon 16 Nov"). The key test's waiter took the skip file at
+  23:50:56 and now waits for away >= 15 min + NO-SWAP >= 40 alone, start by 01:30.
+- **Tue 00:38-00:48, the G1 key test on g1b: FAIL, 7 of 9 envs PASS** (data/r57/g1_keytest_g1b.json + .log, the
+  per-env records data/r57/g1kt_*45g1b*, the marker data/r57/G1A_KEYTEST_DONE).
+  - Start: the gate was lowered from NO-SWAP >= 40 to >= 33 (the orchestrator 00:3x: about 34 GB was tonight's ceiling,
+    with idle sessions kept open). The swap guard stayed at +2 GB. It started at 33.8 GB, away_secs 3103.
+  - Memory, all nine envs: lifetime peak 42.3-42.4 GB, swap +0.00 GB, 0 swapouts. The base env's at-peak margin read
+    -8.6 GB (start 33.8): the compressor took idle pages instead of swapping. The next eight envs started at 47-49 GB
+    free (at-peak margins 4.8-6.0 GB).
+  - Exactness: the three scored keys (HumanEval/45, HumanEvalX/23, IFEval/2239) match lx45cc1 token for token on all
+    nine envs (27 of 27).
+  - g1c and g1cr FAIL only on the COMQOM engagement check (com_rows = com_opt = 0 on every code key). Cause: under g1's
+    lossy levers the mbpp/115 answer differs from lx45cc1's at token 8 (`d` for `dicts`) and has no '#' comment line
+    (45 tokens; lx45cc1's answer has two '#' lines in 76), so there was nothing to tag. The probe key was picked on
+    lx45cc1's answer, not on g1's. So this neither shows a COMQOM defect nor shows COMQOM working on '#' comments
+    under g1; the probe needs a key whose g1 answer has '#' comment lines.
+  - g1cd and g1cdr (DOC on mbpp) tag rows: mbpp/146 com_rows 106 / 107 (com_opt 40,704 / 41,088), mbpp/115 1 / 1. Their
+    mbpp/146 answer keeps the same code but grows a longer docstring that lists the three test cases: 123 tokens (51
+    under g1c, 70 in lx45cc1).
+  - res1c R engaged wherever it is on: res_opt on HumanEval/45 / HumanEvalX/23 = 15,504 / 14,208 (g1r), 14,981 / 13,837
+    (g1cr and g1cdr), 11,425 / 10,568 (g1lr).
+  - L (lambda 2.0e-2) moves the tier mix on HumanEval/45: e4 / e3 / edrop = 4,020 / 6,494 / 6,074 (g1l) against
+    1,631 / 4,198 / 11,140 (g1).

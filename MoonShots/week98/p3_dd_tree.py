@@ -13,10 +13,14 @@ PILLAR 3's draft-only byte cuts (the C1-C8 ladder of p3_m012.py):
     screened KERNEL (Leap's ScreenedHead: gathered 4-bit rows) is checked against the full head bitwise on real states
     (each window's roots), and the share of nodes whose full-head top-1 falls outside the set (the pick change) is counted.
   - Q4 / H8: the 4-bit weights alone (full head, top-10) and the 8K head alone (fp32 weights), to split C1's cost.
+  - Q8 (Mon 16 Nov 21:1x, NewIdeas' ask after MTP Head's S17): Q4 with every 4 -> 8 (all trained parts + the head's HC
+    mixes at 8 bits, g64; router 8; full head, top-10): is post-hoc 8-bit free on the 125B?
+  - H16 / H32 / Q8H32 (Mon 16 Nov 22:3x, NewIdeas): the screen at FR-Spec top-16K / top-32K + the session extras (as
+    H8), fp32 weights; and Q8 with the 32K screen stacked.
 Gate: --cut none at --run t30b must reproduce BigMoE's tree_t30b_<set>.npz bitwise (every array): --gate compares.
 Kept is TRUE-STATE (lab): teacher-forced, the 125B's true state at every anchor; score with NewIdeas' treek_final.py
 (--dump-dir ~/MoonShots/week98/p3 --dump-fmt tree_t30b_{tag}_<cut>.npz --out <a MoonShots path>).
-usage: ~/BigMoE/.venv/bin/python -I -B p3_dd_tree.py --set heplus24|mbppbank --cut none|Q4|H8|C1..C8 [--part i/n]
+usage: ~/BigMoE/.venv/bin/python -I -B p3_dd_tree.py --set heplus24|mbppbank --cut none|Q4|Q8|H8|H16|H32|Q8H32|C1..C8 [--part i/n]
        [--merge n] [--gate]     (MEM ~11-12 GB: the day's one big GPU job; share lock with MEM, after `peer ls`)"""
 import argparse, json, os, sys, time
 import numpy as np
@@ -31,6 +35,10 @@ RANK_F = H("~/Leap/data/frspec_rank.npy")
 CUTS = {                                                    # qo / kv / se / fc / hc bits (router 8 always), top-k, head rows
     "none": None,
     "Q4": dict(qo=4, kv=4, se=4, fc=4, hc=4, top=10, nh=None),
+    "Q8": dict(qo=8, kv=8, se=8, fc=8, hc=8, top=10, nh=None),
+    "H16": dict(qo=None, kv=None, se=None, fc=None, hc=None, top=10, nh=16384),
+    "H32": dict(qo=None, kv=None, se=None, fc=None, hc=None, top=10, nh=32768),
+    "Q8H32": dict(qo=8, kv=8, se=8, fc=8, hc=8, top=10, nh=32768),
     "H8": dict(qo=None, kv=None, se=None, fc=None, hc=None, top=10, nh=8192),
     "C1": dict(qo=4, kv=4, se=4, fc=4, hc=4, top=10, nh=8192),
     "C2": dict(qo=4, kv=4, se=4, fc=4, hc=4, top=4, nh=8192),

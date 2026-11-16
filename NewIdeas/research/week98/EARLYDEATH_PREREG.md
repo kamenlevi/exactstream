@@ -85,3 +85,34 @@ taskpolicy -b, <= 4 GB.
   off-spine nodes are all rejected. Fable B's tree lines above are unchanged and remain the test.
 - Stage 1 (research/week98/earlydeath_probe.py, earlydeath_stage1.txt) keeps the untruncated chain numbers plus the
   drafter-only baseline: -8.7 % at <= 2 % kept loss. That baseline is essentially the engine's existing truncation.
+
+## Amendment 3 (Mon 16 Nov 21:2x, before ANY capture data): the stage-2 code, its truth label and P-tuned's form, fixed by a stand-in self-check
+The stage-2 driver is research/week98/ed_stage2.py. Its lens is ed_lens.py, the 125B's own final hyper-connection mixer +
+lm_head. Lens self-check on the bank's final states: top-1 = the stored tk on 192 / 192 rows, median |lp diff| 0.030 nats;
+the hc_norm weight is used raw, with no +1 shift.
+It was run with the FINAL layer standing in for layer L (the bank's wd). There P-lens IS the 125B, so it must drop ~all
+off-spine children. That run fixed three things, all before any mid-layer data exists:
+1. **TRUTH = the 125B's stored argmax at the unit's row (tk[row, 0], the capture pass), not the bank's text.**
+   - On HE+, 319 of 15,327 on-true children (2.08 % of units; ~0.5 % of rows) are not the stored argmax: near-ties that
+     flip between the generating pass and the capture pass. MBPP: 0 of 57,572.
+   - Under the bank-text truth, even the 125B itself reads 1.88 % false drops on HE+, i.e. the whole 2 % budget.
+   - The argmax is also what an exact check accepts, and it comes from the same pass as the captured mid-layer states.
+     The bank-text reading is printed beside it as information.
+2. **Every probe scores a child as a GAP to its unit's best child** (P-draft included), so a unit's best child is never
+   dropped. That is conservative: units whose argmax is not among the children keep one child.
+3. **P-tuned = a RESIDUAL ridge:** layer-L widened state -> (final widened state - layer-L state), dual form, alpha by
+   inner CV on the training parity's rows, cross-fitted by file parity, then the real mixer + lm_head.
+   - A plain ridge to the final state collapsed to 26-29 % droppable even AT the final layer (HE+: ~790 rows per parity
+     in 10,240 dims project onto a tiny subspace).
+   - The residual form shrinks to the plain lens instead of to zero, so it can only add to P-lens where the data
+     supports a correction.
+Stand-in ceilings (final layer as L; argmax truth; <= 2 % false drops; gap form):
+| set | P-draft | P-lens | P-tuned | P-comb |
+|---|---|---|---|---|
+| HE+ (16,170 units) | 31.4 % [26.5, 36.9] | 97.0 % at 0.41 % | = P-lens | 97.0 % |
+| MBPP (60,801 units) | 35.3 % [33.5, 37.8] | 97.4 % at 0.67 % | = P-lens | 97.5 % |
+- So the gap form's ceiling is ~97 %, and the drafter-only baseline is ~31-35 %.
+- Fable B's lines are unchanged: PASS >= 90 % at layer 16 by the best held-out non-oracle probe, beating P-draft by
+  >= 10 pt; KILL < 60 %.
+- Wednesday's run: `taskpolicy -b ~/BigMoE/.venv/bin/python -I -B ed_stage2.py --set he|mbpp --capture <mid_<tag>.npz>`
+  (layers 8,16,24; peak ~5.4 GB on MBPP, so by day when Kamen is away).

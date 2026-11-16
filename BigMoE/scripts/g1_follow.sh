@@ -11,7 +11,7 @@
 #   - no other session's lock of MEM >= 16 GB held or queued; no t30c drafter job; no process matching AFTER (optional);
 #   - no HOLD / PAUSE, the lid open;
 #   - NO-SWAP >= GATE on two reads 30 s apart (default 40: the orchestrator's peak - 2.6, as for t1c1).
-# The at-Mac yield is lifted (the orchestrator 11:5x, relaying Kamen), so there is no away gate; the memory gate stays.
+# The at-Mac yield is lifted (the orchestrator 11:5x, relaying Kamen), so the away gate is off by default; the memory gate stays.
 # The key test: --gate GATE --away-min 0 --start-by DEADLINE --hard DEADLINE + HARDMIN (default 8 min: clear of M4 at 23:05).
 # EVERY end writes $W/G1A_KEYTEST_DONE: "G1A KEYTEST END <mm-dd HH:MM:SS>: <PASS|FAIL|STOPPED|NOT RUN> (<why>)" (Breakthrough's
 # 4-arm map screen gates on it), unless $W/G1A.NOMARK exists.
@@ -22,13 +22,22 @@
 # drops the EvalSuite chain gate; PREVMK / PREVMIN = another job's end marker (mtime >= PREVMIN) to wait for; KT_ABSENT
 # = a pgrep -f pattern the key test checks before each env (it stops if one matches: EvalSuite's runner 65 waits in a
 # memory loop that does not re-check the shared-lock yield, so it could launch between two envs).
+# Mon 20:5x (the orchestrator 20:4x, relaying Kamen: lower-RAM tests while he uses the Mac; the key test waits for the night
+# window, right after M4): AWAYMIN = the seconds since Kamen last touched the Mac (away_secs.sh, HIDIdleTime) needed to start
+# (0 = off; 900 = the orchestrator's 15 min). Checked in the loop and again after the two NO-SWAP reads; the key test itself
+# keeps --away-min 0 (its one-shot check would end STOPPED and write the marker that releases the jobs chained behind it).
+# FAKE_AWAYF (simulation only): a file holding the away seconds.
+# Mon 21:0x (the orchestrator: if M4 does not run tonight, the key test runs on away + NO-SWAP alone, start by 01:30):
+# PREVALT = another end file of the previous job, also mtime >= PREVMIN: M4's data/r57/m4_1116_AWAY_SKIP (M4 NOT RUN
+# because Kamen stayed on the Mac to its latest start; it ends with NOMARK, so it writes no M4 marker).
 set -u
 cd ~/BigMoE || exit 1
 DEADLINE=${DEADLINE:?YYYY-mm-dd HH:MM}; POLL=${POLL:-60}; STUB=${STUB:-}; GATE=${GATE:-40}; AFTER=${AFTER:-}; HARDMIN=${HARDMIN:-8}
 SNAP=${SNAP:-g1a}; VARIANTS=${VARIANTS:-g1x}
 W=${SIMD:-data/r57}; L=$W/g1_follow.log; MK=$W/G1A_KEYTEST_DONE; NOMARK=$W/G1A.NOMARK; GO=$W/G1A_GO; Q=$HOME/.local/share/quiet
 ES=${FAKE_ES:-$HOME/EvalSuite/results}; ESPID=${ESPID:-}; ESPAT=${ESPAT:-}; ESMK=${ESMK:-T1C_RESF2_END}; KT_EXTRA=${KT_EXTRA:-}
-ESGATE=${ESGATE:-1}; PREVMK=${PREVMK:-}; PREVMIN=${PREVMIN:-}; KT_ABSENT=${KT_ABSENT:-}
+ESGATE=${ESGATE:-1}; PREVMK=${PREVMK:-}; PREVMIN=${PREVMIN:-}; KT_ABSENT=${KT_ABSENT:-}; AWAYMIN=${AWAYMIN:-0}; PREVALT=${PREVALT:-}
+case "$AWAYMIN" in ""|*[!0-9]*) echo "AWAYMIN must be a whole number of seconds" >&2; exit 2;; esac
 [ "$ESGATE" = 0 ] || [ -n "$ESPID$ESPAT" ] || { echo "ESPID (a pid) or ESPAT (a pgrep -f pattern) is required" >&2; exit 2; }
 ESMIN=${ESMIN:-$(date '+%Y-%m-%d %H:%M:%S')}
 DL=$(date -j -f "%Y-%m-%d %H:%M:%S" "$DEADLINE:00" +%s) || exit 2
@@ -50,6 +59,10 @@ quiet_held() {    # another session's quiet lock held (a benchmark): a share run
 }
 t30c_up() { ps -axo args | grep -qE "^(/bin/)?bash [^ ]*sb98/t30c_run\.sh|^[^ ]*python[^ ]* (-B )?scripts/dd_ttt\.py (train|eval) .*t30c"; }
 after_up() { [ -n "$AFTER" ] && pgrep -f "$AFTER" > /dev/null; }
+away_ok() {      # Kamen away >= AWAYMIN s (no reading = at the Mac); AW = the last reading
+  local a; if [ -n "${FAKE_AWAYF:-}" ]; then a=$(cat "$FAKE_AWAYF" 2>/dev/null); else a=$(bash $Q/away_secs.sh 2>/dev/null); fi
+  AW=${a:-none}; case "$a" in ""|*[!0-9]*) return 1;; esac; [ "$a" -ge "$AWAYMIN" ]
+}
 es_gone() { if [ -n "$ESPAT" ]; then ! pgrep -f "$ESPAT" > /dev/null; else ! kill -0 $ESPID 2>/dev/null; fi; }
 noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages free/ || /^Pages purgeable/ || /^File-backed pages/ {s+=$3} END {printf "%.1f", s*ps/1e9}'; }
 gate_ok() { local r1 r2; r1=$(noswap); sleep 30; r2=$(noswap); GR="$r1 / $r2"   # g1_keytest.py's noswap_gb (GB = 1e9)
@@ -60,21 +73,24 @@ cleanup() { if [ -n "$CP" ] && kill -0 $CP 2>/dev/null; then kill -TERM $CP 2>/d
             if [ -e $NOMARK ]; then say "END without the marker (NOMARK): $STATUS"
             else echo "G1A KEYTEST END $(date '+%m-%d %H:%M:%S'): $STATUS" > $MK; say "END: $STATUS (marker $MK)"; fi; }
 trap cleanup EXIT; trap 'STATUS="STOPPED (a signal while ${PHASE:-waiting})"; exit 1' INT TERM
-say "armed: snap $SNAP, variants $VARIANTS; deadline $(date -r $DL '+%m-%d %H:%M'); gate $GATE; after '${AFTER:-none}'; EvalSuite end marker $ES/$ESMK (mtime >= $ESMIN, ${ESPAT:+no process matching '$ESPAT'}${ESPID:+pid $ESPID gone}); go file $GO; marker $MK; EvalSuite gate $ESGATE; previous job ${PREVMK:-none}${PREVMK:+ (mtime >= $PREVMIN)}; key-test absent pattern '${KT_ABSENT:-none}'"
+say "armed: snap $SNAP, variants $VARIANTS; deadline $(date -r $DL '+%m-%d %H:%M'); gate $GATE; after '${AFTER:-none}'; EvalSuite end marker $ES/$ESMK (mtime >= $ESMIN, ${ESPAT:+no process matching '$ESPAT'}${ESPID:+pid $ESPID gone}); go file $GO; marker $MK; EvalSuite gate $ESGATE; previous job ${PREVMK:-none}${PREVALT:+ or $PREVALT}${PREVMK:+ (mtime >= $PREVMIN)}; key-test absent pattern '${KT_ABSENT:-none}'; away gate ${AWAYMIN} s"
 PHASE=waiting
 while :; do
   now=$(date +%s)
   [ $now -ge $DL ] && { STATUS="NOT RUN (the deadline $(date -r $DL '+%m-%d %H:%M') passed while waiting: ${LASTW:-?})"; exit 0; }
   [ -e $Q/HOLD ] && { STATUS="NOT RUN (HOLD)"; exit 0; }
   if [ "$ESGATE" != 0 ] && ! { newer $ES/$ESMK $ESMT && es_gone; }; then w="EvalSuite's chain ($ESMK${ESPAT:+, '$ESPAT'}${ESPID:+, pid $ESPID})"
-  elif [ -n "$PREVMK" ] && ! newer "$PREVMK" $PVT; then w="the previous job's end marker ($PREVMK, mtime >= $PREVMIN)"
+  elif [ -n "$PREVMK" ] && ! newer "$PREVMK" $PVT && ! { [ -n "$PREVALT" ] && newer "$PREVALT" $PVT; }; then
+       w="the previous job's end marker ($PREVMK${PREVALT:+ or $PREVALT}, mtime >= $PREVMIN)"
   elif [ ! -e $GO ]; then w="Leap's slice test (no $GO)"
   elif big_lock; then w="another session's MEM >= 16 GB lock"
   elif quiet_held; then w="another session's quiet lock (a benchmark)"
   elif t30c_up; then w="t30c"
   elif after_up; then w="a process matching '$AFTER'"
   elif [ -e $Q/PAUSE ] || lid_closed; then w="PAUSE or the lid closed"
-  elif gate_ok; then break
+> (a quote from the project owner, kept private)
+  elif gate_ok; then
+> (a quote from the project owner, kept private)
   else w="NO-SWAP $GR GB < $GATE"
        [ $(( $(date +%s) - LASTG )) -ge 300 ] && { say "waiting: $w"; LASTG=$(date +%s); }
   fi
@@ -82,7 +98,7 @@ while :; do
   sleep $POLL
 done
 [ $(date +%s) -ge $DL ] && { STATUS="NOT RUN (the deadline $(date -r $DL '+%m-%d %H:%M') passed during the gate reads)"; exit 0; }
-say "start: the gates are open (EvalSuite gate $ESGATE${PREVMK:+, the previous job ended}, G1A_GO, no big lock / t30c / AFTER match), NO-SWAP $GR GB >= $GATE; the key test's own gate next"
+say "start: the gates are open (EvalSuite gate $ESGATE${PREVMK:+, the previous job ended}, G1A_GO, no big lock / t30c / AFTER match), NO-SWAP $GR GB >= $GATE$( [ "$AWAYMIN" -gt 0 ] && echo "; away_secs $AW >= $AWAYMIN"); the key test's own gate next"
 PHASE="the key test"
 HARDT=$(date -r $(( DL + 60 * HARDMIN )) '+%Y-%m-%d %H:%M'); SBY=$(date -r $DL '+%Y-%m-%d %H:%M')
 if [ -n "$STUB" ]; then ( exec .venv/bin/python $STUB ) >> $L 2>&1 & else

@@ -41,6 +41,12 @@ static long nR = 0, capR = 0;
 static _Atomic int recording = 0;
 static __thread int depth = 0;
 static long n_enc = 0, n_disp = 0;
+static long *BIX = 0, nBIX = -1;   // record indices of the setBytes ops, in order (built on demand; -1 = stale)
+// A patch rule (milestone 2): word `off` of the k-th setBytes payload gets ((seq * a + b) mod m) * s + c per check
+// (no mod when m <= 0); type 0 = int32, 1 = float32, 2 = int64.
+typedef struct { long k, off, a, b, m, s, c; int type; } prule;
+static prule *RU = 0;
+static long nRU = 0, capRU = 0;
 
 static rop *push(int op) {
   if (nR == capR) {
@@ -72,6 +78,35 @@ typedef id (*ret1_t)(id, SEL, NSUInteger);
 typedef id (*ret0_t)(id, SEL);
 typedef void (*bcopy_t)(id, SEL, id, NSUInteger, id, NSUInteger, NSUInteger);
 typedef void (*bfill_t)(id, SEL, id, NSRange, uint8_t);
+typedef id (*psod_t)(id, SEL, id, NSUInteger, id *, NSError **);
+typedef id (*psof_t)(id, SEL, id, NSError **);
+typedef id (*psofo_t)(id, SEL, id, NSUInteger, id *, NSError **);
+static psod_t o_psod;
+static psof_t o_psof;
+static psofo_t o_psofo;
+static NSMutableDictionary *PSOFN = nil;   // NSValue(pso pointer) -> @[function, maxTotalThreadsPerThreadgroup, tgMultiple]
+static void note_pso(id pso, id fn, NSUInteger maxT, BOOL mult) {
+  if (!pso || !fn) return;
+  @synchronized(PSOFN) { PSOFN[[NSValue valueWithPointer:(__bridge void *)pso]] = @[fn, @(maxT), @(mult), pso]; }
+}
+static id h_psod(id s, SEL c, id desc, NSUInteger opt, id *refl, NSError **err) {
+  id r = o_psod(s, c, desc, opt, refl, err);
+  @try {
+    MTLComputePipelineDescriptor *d = (MTLComputePipelineDescriptor *)desc;
+    note_pso(r, d.computeFunction, d.maxTotalThreadsPerThreadgroup, d.threadGroupSizeIsMultipleOfThreadExecutionWidth);
+  } @catch (id ex) {}
+  return r;
+}
+static id h_psof(id s, SEL c, id fn, NSError **err) {
+  id r = o_psof(s, c, fn, err);
+  note_pso(r, fn, 0, NO);
+  return r;
+}
+static id h_psofo(id s, SEL c, id fn, NSUInteger opt, id *refl, NSError **err) {
+  id r = o_psofo(s, c, fn, opt, refl, err);
+  note_pso(r, fn, 0, NO);
+  return r;
+}
 static disp_t o_dtg, o_dt;
 static v1_t o_bar;
 static vres_t o_barr;
@@ -247,6 +282,11 @@ __attribute__((constructor)) static void mtlrec_init(void) {
     o_enc0 = (ret0_t)hook(cbc, @selector(computeCommandEncoder), (IMP)h_enc0, "enc0");
     o_blit = (ret0_t)hook(cbc, @selector(blitCommandEncoder), (IMP)h_blit, "blit");
     o_commit = (v0_t)hook(cbc, @selector(commit), (IMP)h_commit, "commit");
+    PSOFN = [NSMutableDictionary new];
+    Class dc = object_getClass(DEV);
+    o_psod = (psod_t)hook(dc, @selector(newComputePipelineStateWithDescriptor:options:reflection:error:), (IMP)h_psod, "psod");
+    o_psof = (psof_t)hook(dc, @selector(newComputePipelineStateWithFunction:error:), (IMP)h_psof, "psof");
+    o_psofo = (psofo_t)hook(dc, @selector(newComputePipelineStateWithFunction:options:reflection:error:), (IMP)h_psofo, "psofo");
     RQ = [DEV newCommandQueue];
     fprintf(stderr, "mtlrec: %d hooks on %s / %s / %s\n", hooked, class_getName(ce), class_getName(bc), class_getName(cbc));
   }
@@ -265,10 +305,16 @@ static void free_ops(void) {
     free(r->bytes);
   }
   nR = 0; n_enc = 0; n_disp = 0;
+  nBIX = -1; nRU = 0;
 }
 void rec_start(void) { free_ops(); atomic_store(&recording, 1); }
 void rec_stop(void) { atomic_store(&recording, 0); }
 void rec_clear(void) { atomic_store(&recording, 0); free_ops(); }
+// per op type: o[k] = number of ops with op == k, k = 0..19
+void rec_opcounts(long *o) {
+  for (int k = 0; k < 20; k++) o[k] = 0;
+  for (long i = 0; i < nR; i++) if (R[i].op >= 0 && R[i].op < 20) o[R[i].op]++;
+}
 // counts: ops, encoders, dispatches, blits, commits, setBytes bytes total
 void rec_counts(long *o) {
   long nb = 0, nbl = 0, nc = 0, by = 0;
@@ -286,7 +332,9 @@ static inline double ns_now(void) {
   return (double)mach_absolute_time() * tb.numer / tb.denom;
 }
 
-// Replay the record. serial: 1 = every compute encoder serial (barriers kept), 0 = the recorded dispatch type.
+// Replay the record. serial: 0 = each recorded encoder as recorded; 1 = each encoder serial (barriers kept);
+// 2 = MERGED: one concurrent compute encoder for the whole record, the recorded barriers kept, a full buffer barrier
+// at every original encoder boundary, fences dropped (blits, if any, still split it).
 // out (doubles): [0] CPU ns to encode, [1] CPU ns commit -> completed, [2] GPU ns (GPUEndTime - GPUStartTime),
 // [3] status (MTLCommandBufferStatus), [4] ops issued. Returns 0 on success, -1 on an error.
 int rec_replay(int serial, double *out) {
@@ -301,11 +349,20 @@ int rec_replay(int serial, double *out) {
       rop *r = &R[i];
       switch (r->op) {
         case OP_ENC:
-          ce = [cb computeCommandEncoderWithDispatchType:(serial ? MTLDispatchTypeSerial : (MTLDispatchType)r->i0)];
+          if (serial == 2) {
+            if (!ce) ce = [cb computeCommandEncoderWithDispatchType:MTLDispatchTypeConcurrent];
+            else [ce memoryBarrierWithScope:MTLBarrierScopeBuffers];
+          } else {
+            ce = [cb computeCommandEncoderWithDispatchType:(serial ? MTLDispatchTypeSerial : (MTLDispatchType)r->i0)];
+          }
           break;
-        case OP_BLIT: be = [cb blitCommandEncoder]; break;
+        case OP_BLIT:
+          if (ce) { [ce endEncoding]; ce = nil; }
+          be = [cb blitCommandEncoder];
+          break;
         case OP_END:
-          if (ce) { [ce endEncoding]; ce = nil; } else if (be) { [be endEncoding]; be = nil; }
+          if (be) { [be endEncoding]; be = nil; }
+          else if (ce && serial != 2) { [ce endEncoding]; ce = nil; }
           break;
         case OP_COMMIT: break;   // one command buffer for the whole replay
         case OP_PSO: [ce setComputePipelineState:(__bridge id<MTLComputePipelineState>)r->o0]; break;
@@ -317,8 +374,8 @@ int rec_replay(int serial, double *out) {
         case OP_DT: [ce dispatchThreads:r->a threadsPerThreadgroup:r->b]; issued++; break;
         case OP_BAR: [ce memoryBarrierWithScope:(MTLBarrierScope)r->i0]; break;
         case OP_BARR: [ce memoryBarrierWithResources:(__unsafe_unretained id<MTLResource> *)r->bytes count:(NSUInteger)r->nb]; break;
-        case OP_FWAIT: if (ce) [ce waitForFence:(__bridge id<MTLFence>)r->o0]; break;
-        case OP_FUPD: if (ce) [ce updateFence:(__bridge id<MTLFence>)r->o0]; break;
+        case OP_FWAIT: if (ce && serial != 2) [ce waitForFence:(__bridge id<MTLFence>)r->o0]; break;
+        case OP_FUPD: if (ce && serial != 2) [ce updateFence:(__bridge id<MTLFence>)r->o0]; break;
         case OP_USE:
           if (r->nb == 1) [ce useResource:(__bridge id<MTLResource>)((void **)r->bytes)[0] usage:(MTLResourceUsage)r->i0];
           else [ce useResources:(__unsafe_unretained id<MTLResource> *)r->bytes count:(NSUInteger)r->nb usage:(MTLResourceUsage)r->i0];
@@ -341,4 +398,276 @@ int rec_replay(int serial, double *out) {
     out[3] = (double)cb.status; out[4] = (double)issued;
     return cb.status == MTLCommandBufferStatusCompleted ? 0 : -1;
   }
+}
+
+// ---- ICB form (mode 2's semantics in one indirect command buffer)
+static id<MTLIndirectCommandBuffer> ICB = nil;
+static id<MTLBuffer> CONSTB = nil;
+static NSMutableArray *RES = nil;            // every buffer the ICB's commands reference (for useResources)
+static NSMutableDictionary *ICBPSO = nil;    // NSValue(recorded pso) -> ICB-capable pso
+static long ICBN = 0;
+static __unsafe_unretained id<MTLResource> *RESARR = NULL;   // RES keeps them alive
+static NSUInteger RESN = 0;
+static char icb_err[512];
+const char *rec_icb_error(void) { return icb_err; }
+
+static id<MTLComputePipelineState> icb_pso(void *recorded) {
+  NSValue *k = [NSValue valueWithPointer:recorded];
+  id<MTLComputePipelineState> p = ICBPSO[k];
+  if (p) return p;
+  NSArray *e = nil;
+  @synchronized(PSOFN) { e = PSOFN[k]; }
+  if (!e) return nil;
+  MTLComputePipelineDescriptor *d = [MTLComputePipelineDescriptor new];
+  d.computeFunction = e[0];
+  if ([e[1] unsignedIntegerValue]) d.maxTotalThreadsPerThreadgroup = [e[1] unsignedIntegerValue];
+  d.threadGroupSizeIsMultipleOfThreadExecutionWidth = [e[2] boolValue];
+  d.supportIndirectCommandBuffers = YES;
+  NSError *err = nil;
+  p = [DEV newComputePipelineStateWithDescriptor:d options:MTLPipelineOptionNone reflection:nil error:&err];
+  if (!p) { snprintf(icb_err, sizeof icb_err, "pso: %s", err ? [[err description] UTF8String] : "nil"); return nil; }
+  ICBPSO[k] = p;
+  return p;
+}
+
+// Build the ICB from the record. Returns the command count, or < 0 (rec_icb_error says why).
+long rec_build_icb(void) {
+  @autoreleasepool {
+    icb_err[0] = 0;
+    if (!ICBPSO) ICBPSO = [NSMutableDictionary new];
+    long nd = 0, cb = 0;
+    for (long i = 0; i < nR; i++) {
+      if (R[i].op == OP_DTG || R[i].op == OP_DT) nd++;
+      if (R[i].op == OP_BYTES) cb += (R[i].nb + 255) & ~255L;
+      if (R[i].op == OP_BLIT || R[i].op == OP_BCOPY || R[i].op == OP_BFILL) { snprintf(icb_err, sizeof icb_err, "blit ops cannot go in an ICB"); return -2; }
+    }
+    if (!nd) { snprintf(icb_err, sizeof icb_err, "no dispatches"); return -3; }
+    CONSTB = [DEV newBufferWithLength:(cb ? cb : 256) options:MTLResourceStorageModeShared];
+    MTLIndirectCommandBufferDescriptor *d = [MTLIndirectCommandBufferDescriptor new];
+    d.commandTypes = MTLIndirectCommandTypeConcurrentDispatch | MTLIndirectCommandTypeConcurrentDispatchThreads;
+    d.inheritPipelineState = NO;
+    d.inheritBuffers = NO;
+    d.maxKernelBufferBindCount = 31;
+    d.maxKernelThreadgroupMemoryBindCount = 31;
+    ICB = [DEV newIndirectCommandBufferWithDescriptor:d maxCommandCount:(NSUInteger)nd options:MTLResourceStorageModeShared];
+    if (!ICB) { snprintf(icb_err, sizeof icb_err, "newIndirectCommandBuffer failed"); return -4; }
+    RES = [NSMutableArray new];
+    NSMutableSet *seen = [NSMutableSet new];
+    [RES addObject:CONSTB];
+    id bbuf[31]; NSUInteger boff[31], tgl[31]; int bset[31], tset[31];
+    memset(bset, 0, sizeof bset); memset(tset, 0, sizeof tset);
+    for (int k = 0; k < 31; k++) bbuf[k] = nil;
+    id<MTLComputePipelineState> pso = nil;
+    long ci = 0, coff = 0;
+    int bar = 0, any = 0;
+    char *cbase = (char *)CONSTB.contents;
+    for (long i = 0; i < nR; i++) {
+      rop *r = &R[i];
+      switch (r->op) {
+        case OP_ENC:
+          if (any) bar = 1;                        // mode 2: a full barrier at every original encoder boundary
+          memset(bset, 0, sizeof bset); memset(tset, 0, sizeof tset);
+          for (int k = 0; k < 31; k++) bbuf[k] = nil;
+          pso = nil;
+          break;
+        case OP_PSO:
+          pso = icb_pso(r->o0);
+          if (!pso) { if (!icb_err[0]) snprintf(icb_err, sizeof icb_err, "no function recorded for a pipeline (created before the hook?)"); return -5; }
+          break;
+        case OP_BUF:
+          if (r->i0 < 31) { bbuf[r->i0] = (__bridge id)r->o0; boff[r->i0] = (NSUInteger)r->n0; bset[r->i0] = 1; }
+          if (r->o0 && ![seen containsObject:[NSValue valueWithPointer:r->o0]]) {
+            [seen addObject:[NSValue valueWithPointer:r->o0]]; [RES addObject:(__bridge id)r->o0];
+          }
+          break;
+        case OP_BUFOFF: if (r->i0 < 31) boff[r->i0] = (NSUInteger)r->n0; break;
+        case OP_BYTES:
+          memcpy(cbase + coff, r->bytes, (size_t)r->nb);
+          if (r->i0 < 31) { bbuf[r->i0] = CONSTB; boff[r->i0] = (NSUInteger)coff; bset[r->i0] = 1; }
+          r->n1 = coff + 1;                        // its slot in the constants buffer (+1; 0 = none), for patching
+          coff += (r->nb + 255) & ~255L;
+          break;
+        case OP_TGMEM: if (r->i0 < 31) { tgl[r->i0] = (NSUInteger)r->n0; tset[r->i0] = 1; } break;
+        case OP_BAR: case OP_BARR: bar = 1; break;
+        case OP_DTG: case OP_DT: {
+          id<MTLIndirectComputeCommand> c = [ICB indirectComputeCommandAtIndex:(NSUInteger)ci];
+          [c setComputePipelineState:pso];
+          for (int k = 0; k < 31; k++) if (bset[k]) [c setKernelBuffer:bbuf[k] offset:boff[k] atIndex:(NSUInteger)k];
+          for (int k = 0; k < 31; k++) if (tset[k]) [c setThreadgroupMemoryLength:tgl[k] atIndex:(NSUInteger)k];
+          if (bar) { [c setBarrier]; bar = 0; }
+          if (r->op == OP_DTG) [c concurrentDispatchThreadgroups:r->a threadsPerThreadgroup:r->b];
+          else [c concurrentDispatchThreads:r->a threadsPerThreadgroup:r->b];
+          ci++; any = 1;
+          break;
+        }
+        default: break;                            // END / COMMIT / fences / USE: mode 2 drops them
+      }
+    }
+    ICBN = ci;
+    free(RESARR);
+    RESN = [RES count];
+    RESARR = (__unsafe_unretained id<MTLResource> *)malloc(sizeof(id) * (RESN ? RESN : 1));
+    for (NSUInteger k = 0; k < RESN; k++) RESARR[k] = RES[k];
+    return ci;
+  }
+}
+
+// Replay the ICB: one compute encoder, useResources (array prebuilt at build), one execute; commit + wait. out as
+// rec_replay (CPU ns to encode, CPU ns commit -> completed, GPU ns, status, commands). Returns 0 on success.
+int rec_replay_icb(double *out) {
+  @autoreleasepool {
+    if (!ICB || !ICBN) return -9;
+    double t0 = ns_now();
+    id<MTLCommandBuffer> cb = [RQ commandBufferWithUnretainedReferences];
+    depth++;
+    id<MTLComputeCommandEncoder> ce = [cb computeCommandEncoderWithDispatchType:MTLDispatchTypeConcurrent];
+    [ce useResources:RESARR count:RESN usage:(MTLResourceUsageRead | MTLResourceUsageWrite)];
+    [ce executeCommandsInBuffer:ICB withRange:NSMakeRange(0, (NSUInteger)ICBN)];
+    [ce endEncoding];
+    double t1 = ns_now();
+    [cb commit];
+    [cb waitUntilCompleted];
+    depth--;
+    double t2 = ns_now();
+    out[0] = t1 - t0; out[1] = t2 - t1; out[2] = (cb.GPUEndTime - cb.GPUStartTime) * 1e9;
+    out[3] = (double)cb.status; out[4] = (double)ICBN;
+    return cb.status == MTLCommandBufferStatusCompleted ? 0 : -1;
+  }
+}
+
+// ---- residency set (macOS 15+): built once from the ICB's resources, attached to the replay queue; then a replay needs
+// no useResources. rec_build_rset returns the allocation count, or < 0.
+static id<MTLResidencySet> RSET = nil;
+long rec_build_rset(void) {
+  @autoreleasepool {
+    if (!RES || !RESN) return -1;
+    MTLResidencySetDescriptor *rd = [MTLResidencySetDescriptor new];
+    rd.initialCapacity = RESN;
+    NSError *e = nil;
+    RSET = [DEV newResidencySetWithDescriptor:rd error:&e];
+    if (!RSET) { snprintf(icb_err, sizeof icb_err, "residency set: %s", e ? [[e description] UTF8String] : "nil"); return -2; }
+    for (NSUInteger k = 0; k < RESN; k++) [RSET addAllocation:(id<MTLAllocation>)RES[k]];
+    [RSET addAllocation:(id<MTLAllocation>)ICB];
+    [RSET commit];
+    [RSET requestResidency];
+    [RQ addResidencySet:RSET];
+    return (long)RSET.allocationCount;
+  }
+}
+// ICB replay with the per-replay CPU split. use_rs: 1 = rely on the queue's residency set (no useResources).
+// out (doubles): [0] encode total ns, [1] commit -> completed ns, [2] GPU ns, [3] status, [4] commands,
+// [5] command buffer ns, [6] encoder ns, [7] useResources ns, [8] execute + endEncoding ns.
+int rec_replay_icb2(int use_rs, double *out) {
+  @autoreleasepool {
+    if (!ICB || !ICBN) return -9;
+    double t0 = ns_now();
+    id<MTLCommandBuffer> cb = [RQ commandBufferWithUnretainedReferences];
+    double t1 = ns_now();
+    depth++;
+    id<MTLComputeCommandEncoder> ce = [cb computeCommandEncoderWithDispatchType:MTLDispatchTypeConcurrent];
+    double t2 = ns_now();
+    if (!use_rs) [ce useResources:RESARR count:RESN usage:(MTLResourceUsageRead | MTLResourceUsageWrite)];
+    double t3 = ns_now();
+    [ce executeCommandsInBuffer:ICB withRange:NSMakeRange(0, (NSUInteger)ICBN)];
+    [ce endEncoding];
+    double t4 = ns_now();
+    [cb commit];
+    [cb waitUntilCompleted];
+    depth--;
+    double t5 = ns_now();
+    out[0] = t4 - t0; out[1] = t5 - t4; out[2] = (cb.GPUEndTime - cb.GPUStartTime) * 1e9; out[3] = (double)cb.status;
+    out[4] = (double)ICBN; out[5] = t1 - t0; out[6] = t2 - t1; out[7] = t3 - t2; out[8] = t4 - t3;
+    return cb.status == MTLCommandBufferStatusCompleted ? 0 : -1;
+  }
+}
+long rec_icb_nres(void) { return (long)RESN; }
+
+// ---- setBytes inspection and per-check patching (MODULE 1a milestone 2). The engine's per-pass values (the pass's
+// seq, the table and region offsets derived from it) ride in setBytes payloads; a replay must rewrite them per check.
+// Find them by diffing two records made at different seqs (rec_bytes_meta + the payload dump), then register one rule
+// per word; rec_rules_apply(seq) rewrites every rule in ONE call, in the recorded copies (plain replays) and in the ICB's
+// constants buffer (if built). Patch only while no replay is in flight.
+static void bix_build(void) {
+  if (nBIX >= 0) return;
+  long n = 0;
+  for (long i = 0; i < nR; i++) if (R[i].op == OP_BYTES) n++;
+  BIX = realloc(BIX, sizeof(long) * (size_t)(n ? n : 1));
+  n = 0;
+  for (long i = 0; i < nR; i++) if (R[i].op == OP_BYTES) BIX[n++] = i;
+  nBIX = n;
+}
+long rec_bytes_n(void) { bix_build(); return nBIX; }
+// meta: 4 longs per setBytes op [payload length, bind index, ordinal of the first dispatch after it (-1 if none),
+// offset of its payload in dst]; dst: every payload, concatenated in record order. Returns the op count, or -1 when
+// nmax or cap is too small.
+long rec_bytes_meta(long *meta, long nmax, char *dst, long cap) {
+  long k = 0, off = 0, disp = 0, pend = 0;
+  for (long i = 0; i < nR; i++) {
+    rop *r = &R[i];
+    if (r->op == OP_BYTES) {
+      if (k >= nmax || off + r->nb > cap) return -1;
+      meta[4 * k] = r->nb; meta[4 * k + 1] = r->i0; meta[4 * k + 2] = -1; meta[4 * k + 3] = off;
+      memcpy(dst + off, r->bytes, (size_t)r->nb);
+      off += r->nb; k++;
+    } else if (r->op == OP_DTG || r->op == OP_DT) {
+      for (long j = pend; j < k; j++) meta[4 * j + 2] = disp;
+      pend = k; disp++;
+    }
+  }
+  return k;
+}
+// The kernel (function) name of every dispatch, in order, one per line, into dst. Returns bytes written, or -1.
+long rec_disp_names(char *dst, long cap) {
+  long off = 0;
+  void *pso = 0;
+  for (long i = 0; i < nR; i++) {
+    rop *r = &R[i];
+    if (r->op == OP_PSO) pso = r->o0;
+    if (r->op != OP_DTG && r->op != OP_DT) continue;
+    const char *nm = "?";
+    NSArray *e = nil;
+    if (pso) { @synchronized(PSOFN) { e = PSOFN[[NSValue valueWithPointer:pso]]; } }
+    if (e) nm = [[(id<MTLFunction>)e[0] name] UTF8String];
+    long l = (long)strlen(nm);
+    if (off + l + 1 > cap) return -1;
+    memcpy(dst + off, nm, (size_t)l); off += l; dst[off++] = '\n';
+  }
+  return off;
+}
+// Write n bytes at byte offset off of the k-th setBytes payload. Returns 0, or -1 when out of range.
+int rec_bytes_patch(long k, long off, const void *src, long n) {
+  bix_build();
+  if (k < 0 || k >= nBIX) return -1;
+  rop *r = &R[BIX[k]];
+  if (off < 0 || n < 0 || off + n > r->nb) return -1;
+  memcpy((char *)r->bytes + off, src, (size_t)n);
+  if (CONSTB && r->n1 > 0) memcpy((char *)CONSTB.contents + (r->n1 - 1) + off, src, (size_t)n);
+  return 0;
+}
+// Register a rule (see prule). Returns the rule count, or -1 when the word is out of range.
+long rec_rule_add(long k, long off, int type, long a, long b, long m, long s, long c) {
+  bix_build();
+  long w = type == 2 ? 8 : 4;
+  if (k < 0 || k >= nBIX || off < 0 || off + w > R[BIX[k]].nb) return -1;
+  if (nRU == capRU) { capRU = capRU ? capRU * 2 : 64; RU = realloc(RU, sizeof(prule) * (size_t)capRU); }
+  RU[nRU++] = (prule){k, off, a, b, m, s, c, type};
+  return nRU;
+}
+void rec_rules_clear(void) { nRU = 0; }
+// Apply every rule for this seq. Returns the rule count.
+long rec_rules_apply(long seq) {
+  char *cb = CONSTB ? (char *)CONSTB.contents : 0;
+  for (long j = 0; j < nRU; j++) {
+    prule *u = &RU[j];
+    long v = seq * u->a + u->b;
+    if (u->m > 0) { v %= u->m; if (v < 0) v += u->m; }
+    v = v * u->s + u->c;
+    rop *r = &R[BIX[u->k]];
+    char *p = (char *)r->bytes + u->off;
+    char *q = (cb && r->n1 > 0) ? cb + (r->n1 - 1) + u->off : 0;
+    if (u->type == 0) { int32_t x = (int32_t)v; memcpy(p, &x, 4); if (q) memcpy(q, &x, 4); }
+    else if (u->type == 1) { float x = (float)v; memcpy(p, &x, 4); if (q) memcpy(q, &x, 4); }
+    else { int64_t x = (int64_t)v; memcpy(p, &x, 8); if (q) memcpy(q, &x, 8); }
+  }
+  return nRU;
 }

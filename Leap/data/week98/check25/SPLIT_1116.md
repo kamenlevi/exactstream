@@ -76,6 +76,26 @@ up instead of overlapping.
 
 **Either way, module 1 is required:** a check under ~35 ms cannot carry ~30-35 ms of CPU.
 
+**RESULT (try B, Tue 00:51; quiet lock; 3 G32T windows x 8 rounds = 24 checks per arm) [lab, c25 harness]:
+GPU-PACED.** File: data/week98/c25/gpubB_run.txt.
+
+| arm | wall | GPU busy | GPU idle | CPU thread | dispatches | command buffers |
+|---|---:|---:|---:|---:|---:|---:|
+| F32c6i | 56.14 | 54.16 (96 %) | 1.98 | 24.36 | 3,172 | 266 |
+| F16 | 38.64 | 37.33 (97 %) | 1.32 | 24.50 | 3,242 | 242 |
+| F32s | 67.74 | 65.35 (96 %) | 2.39 | 37.95 | 5,690 | 340 |
+| F32o | 58.48 | 56.47 (97 %) | 2.01 | 26.03 | 3,801 | 266 |
+
+- **The CPU split for F32c6i:** build + submit 50.72 = Python build 12.00 + MLX encode 11.17 + blocked in eval 27.38.
+  - Thread CPU is 23.20 ms over 23 async_evals. The GPU is 97 % busy during build + submit.
+  - Expert misses 0, SSD 0 ms.
+- **Verdict by the rule:** idle 3.5 % <= 10 %, so rank the modules by GPU ms.
+  - A perfect CPU replay wins <= ~2 ms of wall today.
+  - Module 1 binds once the GPU is under ~23 ms: today's thread CPU, lower than the ~30-35 estimate.
+  - MoonShots stays on the GPU side: the FAST small-segment expert path first, then module 5.
+- **Caveat:** spin_wait (the loader-release poll) counts as GPU busy. 1a's SLOTS kernel removes it on the GPU side.
+- **Sent** 00:5x to the orchestrator, Breakthrough and MoonShots.
+
 ## 1. The modules
 
 | # | module | owner | today | line (PASS / BETWEEN / KILL) | check effect if PASS | days |
@@ -182,6 +202,37 @@ up instead of overlapping.
   EvalSuite gates it and Kamen adopts it.
 - **Baseline:** Leap sends Tue 13:00 numbers: the quiet exp32 prof / nlv from slot #1.
 - **If tonight says CPU-paced,** MoonShots joins 1a instead (its offer, 17:5x).
+- **MoonShots' diagnostic** (Mon 22:4x, quiet; layer 20, exp32's 24 blocks; GPU us per call; ~/MoonShots/week98/m2/,
+  commit b384412):
+  - Per kernel: A 388, B 198, grouping 19, combine 9, rowsum64(h) 4, xs 3.
+  - exp32's way: 582.6 wall / 534.3 GPU busy; 8 dispatches, 2.7 barriers, 2.88 command buffers per call.
+  - Ablations (A / B): base 352 / 181; no code loads 331 / 169; no decode 319 / 166; no MMA (the x loads go with it)
+    247 / 125; a pure read of the same bytes 234 / 115 (~290-300 GB/s).
+  - **So the call is COMPUTE-bound, not fixed cost or rate:** memory adds ~20 us over the compute. The excess is the
+    MMA (16-row matmul2d tiles on ~5.2 pairs per segment: ~2/3 padding) and the decode.
+  - Five bit-exact forms (register prefetch, grid y capped at 96, two tiles per threadgroup, B in tile rounds, the
+    combine folded into B) are all == ooo1cq, and none is faster. Best: 585.6 vs 584.0.
+  - **Floor at today's bytes:** 364 (105.6 MB at ~290 GB/s) + 32 (grouping / rowsum64 / combine) + 48 (wall over busy)
+    = **~444 us wall, ~396 us busy**, even with the compute fully hidden. Kernel work alone tops out at BETWEEN. PASS
+    also needs the wall over busy gone (module 1) or fewer bytes.
+  - **Leap's call (22:5x):**
+    - Screen 8-row tiles. Kernel A is matmul2d 16 x 32 x 32, so time the M=8 form first; run the bit sweep only if it
+      is faster. Moved row bits make it a FAST candidate.
+    - Then a cheaper decode, only if A stays > ~300 us.
+    - Skip the grouping kernel (<= ~10 us to gain).
+    - The 1a move follows the pre-registered rule on tonight's number.
+  - **The 8-row screen** (MoonShots 22:51, quiet; LEVERS_A 'MODULE 2', d50e76a) **is NEGATIVE.**
+    - M=8 tiles run padded on the accelerator: A 396.2 vs 388.8 GPU us; exp32's way 599.8 vs 584.3 us wall.
+    - Their row bits do match M=16 (0 of 4,096 rows differ on 256 random tiles), so speed alone kills the lever.
+  - **Verdict (Mon 22:5x): module 2's bit-exact track is KILL** (583 us > 480).
+    - The excess is the MMA not overlapping the stream (memory floor 234 + MMA ~105 us in A).
+    - Overlap needs more occupancy, which means a threadgroup-memory rewrite (the epilogue reuses the double code buffer
+      for the chunk partials): days of work, and not sure to pay.
+  - **What is left:**
+    - A FAST small-segment path: <= 8 pairs on SIMD FMAs. It is not bit-exact, so it needs max rel vs ooo1cq and vs
+      fp32, plus EvalSuite's gate. It is now first in line, since tonight said GPU-paced. It is adopted on EvalSuite's
+      same-scores gate (Kamen's two-track rule; orchestrator 01:0x); NewIdeas orders when.
+    - The cheaper decode, worth ~-1 ms per check: parked.
 
 ### Module 3: dense matmuls at 32 rows (Leap)
 - **The folds** (bitwise per tile):
@@ -257,6 +308,12 @@ up instead of overlapping.
 - **The check is max(GPU, CPU)** if they overlap, and more if they serialize. **Tonight's number says which.**
 - **Every module at PASS gives ~40 ms GPU (63 % of the bound). Every module at stretch gives ~32 (78 %).** 85 % needs
   every module beyond its stretch.
+- **The experts' 17.5 ms assumes ~400 us of GPU busy per call** (Mon 22:5x, from MoonShots' diagnostic). Each +50 us of
+  busy per call adds ~2.2 ms per check (17.5 / 400 x 50). Today's 534 us busy is ~23 ms. The busy floor (~396, compute
+  fully hidden) is still inside the term, but no bit-exact form has hidden the compute yet.
+- **With module 2's bit-exact track KILLed (22:5x), the experts stay at ~23 ms of busy per check.** That holds unless
+  the FAST small-segment path or the occupancy rewrite lands. "Every other module at PASS" then sums to ~46 ms GPU, not
+  ~40.
 - **The dense side is the gap.** The experts at the exact path's rate are 95-100 % of their term. Dense, HC, glue and
   cores total 7.6 + 1.2 = 8.8 ms in the bound, but are ~16 at stretch: per-layer latency and fill, ~25 dependent
   launches per layer [est].

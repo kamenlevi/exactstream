@@ -13,6 +13,16 @@
 #   marker data/deepdraft/bank/M4_1116_BIGMOE_DONE (unless data/r57/m4_1116.NOMARK exists: a deliberate stop to re-arm).
 # M4_HEADTEST=1: no waits, gates or ticket: each run's exact command through scripts/headtest_r57.py (the real loop up to
 # its model load); prints PASS / FAIL per run.
+> (a quote from the project owner, kept private)
+# ~6 GB waits for away_secs (HIDIdleTime) >= 900, checked before and after the memory reads): AWAYMIN (default 900) is
+# required before the ticket, after the grant, after the NO-SWAP reads (Kamen back there: wait, then read memory again)
+# and before each run; waited out up to the same latest start as a PAUSE. If M4 cannot start by its latest start (23:50)
+# it ends NOT RUN with NOMARK (no marker; the orchestrator 21:0x: re-plan with NewIdeas) and writes
+# data/r57/m4_1116_AWAY_SKIP (the key test's g1_follow.sh takes it as M4's end). Between runs a timeout ends the runner at
+# that process boundary WITH the marker (the A/B analysed on what ran).
+# M4_SIM=1 (simulation only): SIMD = the log / marker dir; START now + 5 s; HARD now + M4_SIM_MIN (6) min; latest start
+# HARD - M4_SIM_LATE (150) s; first run guess M4_SIM_EST (5) s; a fake grant; FAKE_NOSWAP / FAKE_AWAYF = files holding
+# NO-SWAP GB / away seconds; reads M4_SIM_GS (3) s apart; each run = sleep M4_SIM_RUN (3) s; no analysis.
 cd ~/BigMoE || exit 9
 L=data/r57/m4_1116.log
 MK=data/deepdraft/bank/M4_1116_BIGMOE_DONE
@@ -28,6 +38,14 @@ M1KEYS=humaneval/HumanEval/1,mbpp/16,ifeval/1219              # Sunday night's M
 M1ENV="R57_PRESET=45 R57_REPS=1 R57_WARM=1 R57_TAG=t16am1w R57_KEYS=$M1KEYS R57_CHATSW=1 R57_MTP_ALL=1 R57_MTP_CKPT=$HOME/datasets/deepdraft/ckpt/dd_t30b.safetensors R57_TREE16_M1TEST=1"
 M1SCREEN=data/r57/snap/t16a/r57_screen_t16a.py
 ORDER="C1 T1 T2 C2"
+AWAYMIN=${AWAYMIN:-900}; SKIP=data/r57/m4_1116_AWAY_SKIP; LATE_A=2100; LATE_M1=3000; EST0=720; GS=30; WS=30; SETTLE=20
+SIM=${M4_SIM:-0}
+case "$AWAYMIN" in ""|*[!0-9]*) echo "AWAYMIN must be a whole number of seconds" >&2; exit 2;; esac
+if [ "$SIM" = 1 ]; then                                  # simulation only (the header)
+  W=${SIMD:?SIMD is required with M4_SIM=1}; L=$W/m4.log; MK=$W/M4_DONE; NOMARK=$W/m4.NOMARK; SKIP=$W/AWAY_SKIP
+  START=$(( $(date +%s) + 5 )); HARD=$(( $(date +%s) + 60 * ${M4_SIM_MIN:-6} ))
+  LATE_A=${M4_SIM_LATE:-150}; LATE_M1=$LATE_A; EST0=${M4_SIM_EST:-5}; GS=${M4_SIM_GS:-3}; WS=1; SETTLE=1
+fi
 armenv() { case $1 in C*) echo "R57_TAG=${2:-t16b}$1";; T*) echo "R57_TAG=${2:-t16b}$1 R57_TREE16=1";; esac; }
 if [ "${M4_HEADTEST:-0}" = 1 ]; then
   out=$(env $ENVA ${M1ENV/R57_TAG=t16am1w/R57_TAG=t16am1whead} .venv/bin/python scripts/headtest_r57.py $M1SCREEN 160 128 2>&1 | tail -1)
@@ -39,9 +57,13 @@ if [ "${M4_HEADTEST:-0}" = 1 ]; then
   exit 0
 fi
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" >> $L; }
-noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
+noswap() { if [ "$SIM" = 1 ] && [ -n "${FAKE_NOSWAP:-}" ]; then cat "$FAKE_NOSWAP"; return; fi
+           vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 swapmb() { sysctl -n vm.swapusage | sed -E 's/.*used = ([0-9.]+)M.*/\1/' | cut -d. -f1; }
 lid_closed() { ioreg -r -k AppleClamshellState -d 1 | grep -q '"AppleClamshellState" = Yes'; }
+away_ok() {    # Kamen away >= AWAYMIN s (no reading = at the Mac); AW = the last reading
+  local a; if [ "$SIM" = 1 ] && [ -n "${FAKE_AWAYF:-}" ]; then a=$(cat "$FAKE_AWAYF" 2>/dev/null); else a=$(bash $Q/away_secs.sh 2>/dev/null); fi
+  AW=${a:-none}; case "$a" in ""|*[!0-9]*) return 1;; esac; [ "$a" -ge "$AWAYMIN" ]; }
 STATUS="not started"; LOCKED=0; CP=""; GUARD=""; WD=""; RAN=0
 killtree() { local c; for c in $(pgrep -P $1 2>/dev/null); do killtree $c; done; kill -TERM $1 2>/dev/null; }
 cleanup() { [ -n "$GUARD" ] && kill $GUARD 2>/dev/null; [ -n "$WD" ] && kill $WD 2>/dev/null
@@ -50,8 +72,8 @@ cleanup() { [ -n "$GUARD" ] && kill $GUARD 2>/dev/null; [ -n "$WD" ] && kill $WD
               for i in $(seq 1 120); do kill -0 $CP 2>/dev/null || break; sleep 1; done
               kill -0 $CP 2>/dev/null && { kill -KILL $CP 2>/dev/null; sleep 2; }
             fi
-            [ $LOCKED = 1 ] && { peer unlock >/dev/null 2>&1; say "ticket released"; }
-            [ $RAN = 1 ] && say "$(.venv/bin/python scripts/tree16_m4ab.py 2>&1 | tail -1)"
+            [ $LOCKED = 1 ] && { [ "$SIM" = 1 ] || peer unlock >/dev/null 2>&1; say "ticket released"; }
+            [ $RAN = 1 ] && [ "$SIM" != 1 ] && say "$(.venv/bin/python scripts/tree16_m4ab.py 2>&1 | tail -1)"
             if [ -e $NOMARK ]; then
               say "END without the marker (NOMARK): $STATUS"
             else
@@ -74,24 +96,48 @@ stop_checks() { # $1 = the latest time (epoch) to wait out a PAUSE (the orchestr
     done
     [ -e $Q/PAUSE ] && { STATUS="$STATUS; STOP: PAUSE still present at $(date -r $dl '+%H:%M:%S') (the latest start)"; exit 0; }
     say "PAUSE cleared"
+  fi
+  if [ "$AWAYMIN" -gt 0 ] && ! away_ok; then     # the away gate (the header): waited out to the same latest time
+    say "Kamen on the Mac (away_secs $AW < $AWAYMIN): waiting until $(date -r $dl '+%H:%M:%S') at the latest"
+    while ! away_ok && [ "$(date +%s)" -lt $dl ]; do
+      sleep 10
+      [ -e $Q/HOLD ] && { STATUS="$STATUS; STOP: HOLD (during the away wait)"; exit 0; }
+      lid_closed && { STATUS="$STATUS; STOP: lid closed (during the away wait)"; exit 0; }
+    done
+    if ! away_ok; then
+      if [ $RAN = 0 ]; then       # never started: NOT RUN, NOMARK (no marker) + the skip file for the key test
+        touch $NOMARK
+        echo "$(date '+%m-%d %H:%M:%S') BigMoE M4 16->17 NOT RUN: Kamen on the Mac (away_secs $AW < $AWAYMIN) until the latest start $(date -r $dl '+%H:%M:%S')" > $SKIP
+> (a quote from the project owner, kept private)
+      fi
+> (a quote from the project owner, kept private)
+    fi
+    say "away again (away_secs $AW)"
   fi; }
-rm -f $MK
-say "armed: waits for Mon 23:05; M1 condition (a Sunday-night PASS -> the A/B, else M1 first); a PAUSE is waited out to 23:35 (M1 needed) / 23:50; C1 T1 T2 C2 on t16b; hard end 00:25"
-while [ "$(date +%s)" -lt $START ]; do sleep 30; done
+rm -f $MK $SKIP
+say "armed: waits for Mon 23:05; M1 condition (a Sunday-night PASS -> the A/B, else M1 first); a PAUSE is waited out to 23:35 (M1 needed) / 23:50; C1 T1 T2 C2 on t16b; hard end 00:25; away >= $AWAYMIN s before the ticket, after the grant, after the memory reads and before each run (NOT RUN = NOMARK + $SKIP)$( [ "$SIM" = 1 ] && echo "; SIMULATION")"
+while [ "$(date +%s)" -lt $START ]; do sleep $WS; done
 if grep -q "#3 M1 rc 0: PASS" data/r57/night1115.log; then M1OK=1; STATUS="Sunday night's M1 PASS"
 else M1OK=0; STATUS="no Sunday-night M1 PASS: M1 runs first in the window"; fi
 say "$STATUS"
-if [ $M1OK = 1 ]; then LATEST=$(( HARD - 2100 )); else LATEST=$(( HARD - 3000 )); fi   # the latest start that still fits: 23:50 / 23:35
+if [ $M1OK = 1 ]; then LATEST=$(( HARD - LATE_A )); else LATEST=$(( HARD - LATE_M1 )); fi   # the latest start that still fits: 23:50 / 23:35
 stop_checks $LATEST
 [ "$(date +%s)" -lt $HARD ] || { STATUS="$STATUS; past the hard end before the ticket"; exit 7; }
 say "queue the quiet ticket (NO-SWAP $(noswap) GB)"
+if [ "$SIM" = 1 ]; then say "SIMULATION: a fake quiet grant"; else
 PEER_QUEUE_TIMEOUT=$(( HARD - $(date +%s) )) peer lock quiet --queue 80m "BigMoE M4: TREE16 engine A/B (t16b C T T C), exact-45 at C 160, MEM 32 GB, hard end 00:25" >> $L 2>&1 \
   || { STATUS="$STATUS; the quiet ticket left the queue without a grant: not run"; exit 4; }
-LOCKED=1; say "granted; settle 20 s"; sleep 20
+fi
+LOCKED=1; say "granted; settle $SETTLE s"; sleep $SETTLE
 stop_checks $LATEST
 ( while [ "$(date +%s)" -lt $HARD ]; do sleep 5; done; echo "$(date '+%m-%d %H:%M:%S') HARD END 00:25: stopping" >> $L; kill -TERM $$ ) & WD=$!
-ok=0; for i in $(seq 1 20); do a=$(noswap); sleep 30; b=$(noswap); say "  gate 36: reads $a / $b GB"; [ $a -ge 36 ] && [ $b -ge 36 ] && { ok=1; break; }; done
-[ $ok = 1 ] || { STATUS="$STATUS; NO-SWAP below 36 GB for 10 min under the ticket: not run"; exit 3; }
+while :; do
+  ok=0; for i in $(seq 1 20); do a=$(noswap); sleep $GS; b=$(noswap); say "  gate 36: reads $a / $b GB"; [ $a -ge 36 ] && [ $b -ge 36 ] && { ok=1; break; }; done
+  [ $ok = 1 ] || { STATUS="$STATUS; NO-SWAP below 36 GB for 10 min under the ticket: not run"; exit 3; }
+  { [ "$AWAYMIN" = 0 ] || away_ok; } && break
+  say "Kamen back on the Mac after the memory reads (away_secs $AW < $AWAYMIN): wait, then read memory again"
+  stop_checks $LATEST
+done
 s0=$(swapmb); ( while :; do [ $(( $(swapmb) - s0 )) -gt 2048 ] && { echo "$(date +%T) SWAP GUARD: $(swapmb) MB" >> $L; kill -TERM $$; exit; }; sleep 5; done ) & GUARD=$!
 if [ $M1OK = 0 ]; then                                   # the M1 condition: t16a, Sunday night's #3 verbatim (tag t16am1w)
   [ $(( $(date +%s) + 660 )) -le $HARD ] || { STATUS="$STATUS; no room for M1 before the hard end"; exit 7; }
@@ -114,15 +160,18 @@ PY
                  *) STATUS="$STATUS; M1 not PASS: the A/B is not run"; exit 6;; esac
   stop_checks $(( HARD - 720 * 11 / 10 ))                # a PAUSE: waited out while C1 can still start
 fi
-EST=720                                                  # a first guess of one run (s): load + warm-up + 16 keys x 256 tokens
+EST=$EST0                                                  # a first guess of one run (s): load + warm-up + 16 keys x 256 tokens
 for r in $ORDER; do
   [ $(( $(date +%s) + EST * 11 / 10 )) -le $HARD ] || { STATUS="$STATUS; stopped before $r at a process boundary (~$EST s per run, hard end 00:25)"; break; }
   say "run $r start ($(armenv $r); NO-SWAP $(noswap) GB)"
   t0=$(date +%s); RAN=1
-  ( exec env $ENVA $COMMON $(armenv $r) .venv/bin/python $SCREEN 160 256 ) >> data/r57/m4_1116_runs.log 2>&1 &   # exec env: $! = the job
+  if [ "$SIM" = 1 ]; then ( exec sleep ${M4_SIM_RUN:-3} ) >> $L 2>&1 &
+  else ( exec env $ENVA $COMMON $(armenv $r) .venv/bin/python $SCREEN 160 256 ) >> data/r57/m4_1116_runs.log 2>&1 &   # exec env: $! = the job
+  fi
   CP=$!; wait $CP; RC=$?; CP=""
   EST=$(( $(date +%s) - t0 ))
   say "run $r rc $RC ($EST s)"; STATUS="$STATUS; $r rc $RC"
   [ $RC = 0 ] || { STATUS="$STATUS; stopped after $r rc $RC"; exit 5; }
-  stop_checks $(( HARD - EST * 11 / 10 ))                # a PAUSE: waited out while the next run can still start
+  [ "$r" = "${ORDER##* }" ] || stop_checks $(( HARD - EST * 11 / 10 ))   # a PAUSE / Kamen on the Mac: waited out while the next
+                                                         # run can still start (none after the last run)
 done

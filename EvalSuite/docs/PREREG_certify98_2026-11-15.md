@@ -509,6 +509,8 @@
     / A16 61.11 ms). The orchestrator corrected its earlier 1.445 at 08:2x.
   - At 1.480 x 1.04, the T32/16 bar is 1.539 (point 1.585), against dev 1.531. Tree-32 would lose to chain-16 on HE+,
     and K* would be 16 there.
+  - **CORRECTED, dated Tue 01:0x (NewIdeas 01:0x):** the 1.480 prior was a ratio of pooled medians, a cross-window
+    artifact. E2 measured 1.433 (see section 7's dated line).
 - **K*:** amendment 8a names it per set: 32 or 16 for HE+-like code, by the measured bar; 16 for MBPP-like. The
   sentence names K*.
 - **T8's node count:** the line reads T8's first 31 pops, so amendment 7's 32-node T8 suffices. Tree-64 and tree-128 from
@@ -550,6 +552,28 @@ tools/certify98_lines.py power: 2,000 draws of windows with replacement from the
   - 1.00 at 1.40 x 1.03.
   - So it passes only if E2 measures R32/R16 at or below ~1.43.
 - These are draws from 24 HE+ windows, with the dev point taken as the truth. The shifted rows are the sensitivity.
+- **CORRECTED, dated Tue 01:0x (NewIdeas 01:0x), before any capture: the prior R32/R16 of 1.480 was a ratio of pooled
+  medians, a cross-window artifact. At E2's measured 1.433, T32/16's power is 0.39 (c32 1.04), not 0.00.**
+  - **E2's measurement** (Leap's E14, Tue 00:54-00:55, quiet lock; 3 windows x 16 paired rounds;
+    ~/Leap/data/week98/e14/e14.json): C32one / A16 = 1.433, the median of the 48 paired ratios (E2's statistic). The
+    ratio of means is 1.437, and the ratio of the pooled medians 1.479.
+  - **Monday's CHECK55 records** (Breakthrough a082f8c, data/m1/check55/engine/c55eng_c55engine.json, its 48 "same"
+    rounds) give a paired median of 1.438, a ratio of means of 1.444, and a ratio of pooled medians of 1.480.
+    - The 1.480 quoted in section 4 and above is that last figure. The two arms' pooled medians fall in different
+      windows (per-window ratios of means 1.414-1.484), so their ratio overstates the cost ratio by ~3 %.
+    - So the line was never at power 0.00: Monday's own 1.438 / 1.444 sit between the 1.437 and 1.445 rows below
+      (0.29 and 0.14 at c32 1.04).
+  - EvalSuite recomputed all six figures from the two records (check time = sum(w) per record).
+  - **The power, re-run** with the pinned scorer's own code (579a60ac...), with the R loop extended to E2's figures.
+    Every registered row reproduces on the same draws (results/certify98/power_t3216_e2_2026-11-17.txt and its .py):
+    - at 1.433 (the paired median): 0.78 / 0.39 / 0.11 at c32 1.03 / 1.04 / 1.05;
+    - at 1.437 (the ratio of means): 0.68 / 0.29 / 0.06.
+    - At 1.433 x 1.04 the bar is 1.490 (point 1.535), against dev 1.531 [LB 1.470].
+  - **Information (NewIdeas, ~/NewIdeas/research/week98/KSTAR_E14.md, 1f0dd99):** K* on E14's costs is tree-16 for the
+    exact engine: a tie on HE+ (within +-1 %), and tree-16 by 19-20 % on MBPP. NewIdeas reads T32/16 as a side claim.
+    It stays gated as filed (one of section 6's eight).
+  - **Unchanged:** amendment 8a pins c32 and R32/R16 from E2 before the capture and names K* per set. No bar is set
+    here.
 
 ### 8. The scorer (pinned again in the proof-run amendment)
 - tools/certify98_lines.py (new; sha256 579a60ac9ed4e329...): `lab`, `c1`, `c2`, `treek ... --c32 X --r3216 Y`,
