@@ -1,2 +1,334 @@
 Mon 13:07:23 armed (pid 51915): waits for EvalSuite's T1C_MON3_END (>= 12:58:15, follower pid 23473 't1c_resume_follower' gone (alive now: y), no 'tools/t1c_chain[2][.]sh' process) AND BigMoE's G1A_KEYTEST_DONE (>= 13:00), or /Users/kamen/Breakthrough/data/m1/g1g2_map/GO; latest start Mon 22:00, hard stop Mon 22:28
 Mon 13:12:24 DISARMED: EvalSuite 13:1x changed its end marker (T1C_MON3_END can be written mid-run at the orchestrator's second pause; pid 23473 gone) -> re-arm on T1C_RESF2_END
+Mon 13:16:36 armed (pid 55686): waits for EvalSuite's T1C_RESF2_END (>= 13:15:00, no 'tools/t1c_resume_follower[2][.]sh' process (running now: y), no 'tools/t1c_chain[2][.]sh' process) AND BigMoE's G1A_KEYTEST_DONE (>= 13:00), or /Users/kamen/Breakthrough/data/m1/g1g2_map/GO; latest start Mon 22:00, hard stop Mon 22:28
+Mon 14:15:37 waiting (EvalSuite done n, BigMoE done n)
+Mon 15:15:38 waiting (EvalSuite done n, BigMoE done n)
+Mon 16:15:39 waiting (EvalSuite done n, BigMoE done n)
+Mon 17:15:40 waiting (EvalSuite done n, BigMoE done n)
+Mon 17:30:41 manual GO file: GO Mon 16 Nov 17:29:53: amendment (g) bae3508; NewIdeas 17:2x yes, EvalSuite 17:2x no objection; yield watcher on B2 runner 24651
+Mon 17:30:41 NO-SWAP 38 GB (need 26); power:  powermode 2
+shared run reserved until 18:15 (about 300% CPU, 60% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done.
+Free for it now: about 17 cores (1765% CPU) and about 100% of the GPU. It fits: use about 3 workers or -j 3.
+Mon 17:30:41 running (NO-SWAP 38 GB, swap 7650 MB)
+[g1g2] running /Users/kamen/FableGod/decision_map/run_map.py bt_g1h8 bt_dense3 bt_l20g2 bt_g1h8_res bt_g1 bt_restore bt_l20comb bt_c6comb --max 24 --skip-done (DM_OUT /Users/kamen/FableGod/decision_map/out_code24, DM_SETS code, DM_C 51, self-guard 22.0 GB)
+[dm] runs: ['bt_g1h8', 'bt_dense3', 'bt_l20g2', 'bt_g1h8_res', 'bt_g1', 'bt_restore', 'bt_l20comb', 'bt_c6comb']
+[dm] loaded in 1s (C 51)
+[dm] discover_layers: 48 layers, {'gdn': 36, 'hc': 96, 'moe': 48, 'att': 12}; missing []
+[dm] MoE block: top_k 10, norm_topk_prob True
+[dm] model /Users/kamen/BigMoE/models/bare; MoE layers 48 (0..47); capture ranks 10
+[dm] hc8w: 194 linears at 8 bits, group 64 (ple False)
+[dm] bt_int8: 420 projections wrapped ({'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180}); answer rows only
+bt_g1h8 code tf_code_HumanEval_10.npz 272 positions 26s; k 
+bt_g1h8 code tf_code_HumanEval_103.npz 241 positions 51s; k 
+[g1g2] SELF-GUARD: lifetime footprint 22.099 GB > 22.0 GB: ending the run (exit 7)
+[g1g2] PEAK FOOTPRINT 22.099 GB (lifetime max phys_footprint), MLX peak active 15.35 GB, wall 55 s (DM_C 51)
+Mon 17:31:41 run ended rc 7; swap 7650 MB (start 7650)
+G1 / G2 map pre-screens: code flips % vs the exact baseline (out_code24, 24 windows), [95 % window bootstrap]; ties = the baseline's p1 - p2 <= 0.1; lines all-row 1.34 / non-tie 0.87
+VALIDITY bt_restore: not run (restore unverified)
+| arm | head read | windows | all-row % | non-tie % | verdict | identical-to-baseline rows (INVALID if all) |
+|---|---|---|---|---|---|---|
+| bt_g1h8: G1 as built (g1x45g1a) = C6 + HC8 + int8 (answer rows); full head | - | - | - | - | NOT RUN | - |
+| bt_g1h8_res: G1 as built + RES (resident-only MSB-3 tier at C 256; RES on windows 1-12 only) | - | - | - | - | NOT RUN | - |
+| bt_l20g2: G2 no-V4 route = lambda 2.0e-2 + V3 + int8 (answer rows) + V1 | - | - | - | - | NOT RUN | - |
+| bt_g1: G1 with the plan's dense = C6 + V3 + int8 (answer rows) + V1 | - | - | - | - | NOT RUN | - |
+| bt_c6comb: C6 combined = C6 + V3 + V1 (G1's bytes) | - | - | - | - | NOT RUN | - |
+| bt_dense3: DENSE-3 alone (V4's quality; exact experts, no shortlist) | - | - | - | - | NOT RUN | - |
+| bt_l20comb: lambda 2.0e-2 combined (+ V3 + V1) | - | - | - | - | NOT RUN | - |
+Mon 17:31:41 END: run rc 7; read-out written (data/m1/g1g2_map.out)
+Mon 17:34:37 armed (pid 37423): waits for EvalSuite's T1C_RESF2_END (>= 13:15:00, no 'tools/t1c_resume_follower[2][.]sh' process (running now: n), no 'tools/t1c_chain[2][.]sh' process) AND BigMoE's G1A_KEYTEST_DONE (>= 13:00), or /Users/kamen/Breakthrough/data/m1/g1g2_map/GO; latest start Mon 22:00, hard stop Mon 22:28
+Mon 17:34:37 manual GO file: GO Mon 16 Nov 17:29:53: amendment (g) bae3508; NewIdeas 17:2x yes, EvalSuite 17:2x no objection; yield watcher on B2 runner 24651
+Mon 17:34:37 NO-SWAP 38 GB (need 26); power:  powermode 2
+shared run reserved until 18:19 (about 300% CPU, 60% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done.
+Free for it now: about 17 cores (1749% CPU) and about 100% of the GPU. It fits: use about 3 workers or -j 3.
+Mon 17:34:37 running (NO-SWAP 38 GB, swap 7650 MB)
+[g1g2] running /Users/kamen/FableGod/decision_map/run_map.py bt_g1h8 bt_dense3 bt_l20g2 bt_g1h8_res bt_g1 bt_restore bt_l20comb bt_c6comb --max 24 --skip-done (DM_OUT /Users/kamen/FableGod/decision_map/out_code24, DM_SETS code, DM_C 51, self-guard 22.0 GB, MLX cache cap 2.0 GB)
+[dm] runs: ['bt_g1h8', 'bt_dense3', 'bt_l20g2', 'bt_g1h8_res', 'bt_g1', 'bt_restore', 'bt_l20comb', 'bt_c6comb']
+[dm] loaded in 1s (C 51)
+[dm] discover_layers: 48 layers, {'gdn': 36, 'hc': 96, 'moe': 48, 'att': 12}; missing []
+[dm] MoE block: top_k 10, norm_topk_prob True
+[dm] model /Users/kamen/BigMoE/models/bare; MoE layers 48 (0..47); capture ranks 10
+[dm] hc8w: 194 linears at 8 bits, group 64 (ple False)
+[dm] bt_int8: 420 projections wrapped ({'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180}); answer rows only
+bt_g1h8 code tf_code_HumanEval_10.npz 272 positions 25s; k 
+bt_g1h8 code tf_code_HumanEval_103.npz 241 positions 49s; k 
+[g1g2] SELF-GUARD: lifetime footprint 22.097 GB > 22.0 GB: ending the run (exit 7)
+[g1g2] PEAK FOOTPRINT 22.097 GB (lifetime max phys_footprint), MLX peak active 15.35 GB, wall 53 s (DM_C 51)
+Mon 17:35:37 run ended rc 7; swap 7650 MB (start 7650)
+G1 / G2 map pre-screens: code flips % vs the exact baseline (out_code24, 24 windows), [95 % window bootstrap]; ties = the baseline's p1 - p2 <= 0.1; lines all-row 1.34 / non-tie 0.87
+VALIDITY bt_restore: not run (restore unverified)
+| arm | head read | windows | all-row % | non-tie % | verdict | identical-to-baseline rows (INVALID if all) |
+|---|---|---|---|---|---|---|
+| bt_g1h8: G1 as built (g1x45g1a) = C6 + HC8 + int8 (answer rows); full head | - | - | - | - | NOT RUN | - |
+| bt_g1h8_res: G1 as built + RES (resident-only MSB-3 tier at C 256; RES on windows 1-12 only) | - | - | - | - | NOT RUN | - |
+| bt_l20g2: G2 no-V4 route = lambda 2.0e-2 + V3 + int8 (answer rows) + V1 | - | - | - | - | NOT RUN | - |
+| bt_g1: G1 with the plan's dense = C6 + V3 + int8 (answer rows) + V1 | - | - | - | - | NOT RUN | - |
+| bt_c6comb: C6 combined = C6 + V3 + V1 (G1's bytes) | - | - | - | - | NOT RUN | - |
+| bt_dense3: DENSE-3 alone (V4's quality; exact experts, no shortlist) | - | - | - | - | NOT RUN | - |
+| bt_l20comb: lambda 2.0e-2 combined (+ V3 + V1) | - | - | - | - | NOT RUN | - |
+Mon 17:35:38 END: run rc 7; read-out written (data/m1/g1g2_map.out)
+Mon 17:38:21 armed (pid 41194): waits for EvalSuite's T1C_RESF2_END (>= 13:15:00, no 'tools/t1c_resume_follower[2][.]sh' process (running now: n), no 'tools/t1c_chain[2][.]sh' process) AND BigMoE's G1A_KEYTEST_DONE (>= 13:00), or /Users/kamen/Breakthrough/data/m1/g1g2_map/GO; latest start Mon 22:00, hard stop Mon 22:28
+Mon 17:38:21 manual GO file: GO Mon 16 Nov 17:29:53: amendment (g) bae3508; NewIdeas 17:2x yes, EvalSuite 17:2x no objection; yield watcher on B2 runner 24651
+Mon 17:38:21 NO-SWAP 38 GB (need 26); power:  powermode 2
+shared run reserved until 18:23 (about 300% CPU, 60% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done.
+Free for it now: about 17 cores (1738% CPU) and about 100% of the GPU. It fits: use about 3 workers or -j 3.
+Mon 17:38:21 running (NO-SWAP 38 GB, swap 7650 MB)
+[g1g2] running /Users/kamen/FableGod/decision_map/run_map.py bt_g1h8 bt_dense3 bt_l20g2 bt_g1h8_res bt_g1 bt_restore bt_l20comb bt_c6comb --max 24 --skip-done (DM_OUT /Users/kamen/FableGod/decision_map/out_code24, DM_SETS code, DM_C 51, self-guard 30.0 GB, MLX cache cap 2.0 GB)
+[dm] runs: ['bt_g1h8', 'bt_dense3', 'bt_l20g2', 'bt_g1h8_res', 'bt_g1', 'bt_restore', 'bt_l20comb', 'bt_c6comb']
+[dm] loaded in 1s (C 51)
+[dm] discover_layers: 48 layers, {'gdn': 36, 'hc': 96, 'moe': 48, 'att': 12}; missing []
+[dm] MoE block: top_k 10, norm_topk_prob True
+[dm] model /Users/kamen/BigMoE/models/bare; MoE layers 48 (0..47); capture ranks 10
+[dm] hc8w: 194 linears at 8 bits, group 64 (ple False)
+[dm] bt_int8: 420 projections wrapped ({'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180}); answer rows only
+bt_g1h8 code tf_code_HumanEval_10.npz 272 positions 25s; k 
+bt_g1h8 code tf_code_HumanEval_103.npz 241 positions 50s; k 
+bt_g1h8 code tf_code_HumanEval_109.npz 398 positions 79s; k 
+bt_g1h8 code tf_code_HumanEval_118.npz 297 positions 105s; k 
+bt_g1h8 code tf_code_HumanEval_121.npz 148 positions 126s; k 
+bt_g1h8 code tf_code_HumanEval_124.npz 398 positions 154s; k 
+bt_g1h8 code tf_code_HumanEval_129.npz 398 positions 182s; k 
+bt_g1h8 code tf_code_HumanEval_132.npz 398 positions 208s; k 
+bt_g1h8 code tf_code_HumanEval_135.npz 144 positions 229s; k 
+bt_g1h8 code tf_code_HumanEval_136.npz 211 positions 252s; k 
+bt_g1h8 code tf_code_HumanEval_146.npz 252 positions 276s; k 
+bt_g1h8 code tf_code_HumanEval_151.npz 209 positions 300s; k 
+bt_g1h8 code tf_code_HumanEval_153.npz 385 positions 328s; k 
+bt_g1h8 code tf_code_HumanEval_158.npz 254 positions 352s; k 
+bt_g1h8 code tf_code_HumanEval_39.npz 249 positions 376s; k 
+bt_g1h8 code tf_code_HumanEval_40.npz 245 positions 401s; k 
+bt_g1h8 code tf_code_HumanEval_47.npz 149 positions 421s; k 
+bt_g1h8 code tf_code_HumanEval_59.npz 196 positions 443s; k 
+bt_g1h8 code tf_code_HumanEval_60.npz 123 positions 463s; k 
+bt_g1h8 code tf_code_HumanEval_64.npz 210 positions 486s; k 
+bt_g1h8 code tf_code_HumanEval_67.npz 306 positions 513s; k 
+bt_g1h8 code tf_code_HumanEval_96.npz 295 positions 538s; k 
+bt_g1h8 code tf_code_HumanEval_97.npz 151 positions 559s; k 
+bt_g1h8 code tf_code_HumanEval_99.npz 398 positions 588s; k 
+[dm] bt_int8: 24 windows; answer rows x modules quantized 2667420 (want 2667420); windows with a mismatch 0; census {'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180} -> /Users/kamen/FableGod/decision_map/out_code24/bt_int8_census.jsonl
+[dm] bt_g1h8 done in 588s
+[dm] dense3: 228 modules at MSB-3 (1509 MB of 4-bit weights rewritten)
+bt_dense3 code tf_code_HumanEval_10.npz 272 positions 7s
+bt_dense3 code tf_code_HumanEval_103.npz 241 positions 14s
+bt_dense3 code tf_code_HumanEval_109.npz 398 positions 23s
+bt_dense3 code tf_code_HumanEval_118.npz 297 positions 30s
+bt_dense3 code tf_code_HumanEval_121.npz 148 positions 36s
+bt_dense3 code tf_code_HumanEval_124.npz 398 positions 45s
+bt_dense3 code tf_code_HumanEval_129.npz 398 positions 53s
+bt_dense3 code tf_code_HumanEval_132.npz 398 positions 61s
+bt_dense3 code tf_code_HumanEval_135.npz 144 positions 67s
+bt_dense3 code tf_code_HumanEval_136.npz 211 positions 75s
+bt_dense3 code tf_code_HumanEval_146.npz 252 positions 82s
+bt_dense3 code tf_code_HumanEval_151.npz 209 positions 90s
+bt_dense3 code tf_code_HumanEval_153.npz 385 positions 98s
+bt_dense3 code tf_code_HumanEval_158.npz 254 positions 106s
+bt_dense3 code tf_code_HumanEval_39.npz 249 positions 113s
+bt_dense3 code tf_code_HumanEval_40.npz 245 positions 120s
+bt_dense3 code tf_code_HumanEval_47.npz 149 positions 127s
+bt_dense3 code tf_code_HumanEval_59.npz 196 positions 134s
+bt_dense3 code tf_code_HumanEval_60.npz 123 positions 140s
+bt_dense3 code tf_code_HumanEval_64.npz 210 positions 148s
+bt_dense3 code tf_code_HumanEval_67.npz 306 positions 156s
+bt_dense3 code tf_code_HumanEval_96.npz 295 positions 164s
+bt_dense3 code tf_code_HumanEval_97.npz 151 positions 170s
+bt_dense3 code tf_code_HumanEval_99.npz 398 positions 179s
+[dm] bt_dense3 done in 179s
+[dm] bt swap: 292 linears at 4 bits ({'mix': 194, 'inject': 96, 'ple': 2})
+[dm] bt_int8: 422 projections wrapped ({'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180, 'ple': 2}); answer rows only
+bt_l20g2 code tf_code_HumanEval_10.npz 272 positions 26s; k 
+bt_l20g2 code tf_code_HumanEval_103.npz 241 positions 52s; k 
+bt_l20g2 code tf_code_HumanEval_109.npz 398 positions 81s; k 
+bt_l20g2 code tf_code_HumanEval_118.npz 297 positions 107s; k 
+bt_l20g2 code tf_code_HumanEval_121.npz 148 positions 129s; k 
+bt_l20g2 code tf_code_HumanEval_124.npz 398 positions 158s; k 
+bt_l20g2 code tf_code_HumanEval_129.npz 398 positions 186s; k 
+bt_l20g2 code tf_code_HumanEval_132.npz 398 positions 211s; k 
+bt_l20g2 code tf_code_HumanEval_135.npz 144 positions 233s; k 
+bt_l20g2 code tf_code_HumanEval_136.npz 211 positions 257s; k 
+bt_l20g2 code tf_code_HumanEval_146.npz 252 positions 283s; k 
+bt_l20g2 code tf_code_HumanEval_151.npz 209 positions 308s; k 
+bt_l20g2 code tf_code_HumanEval_153.npz 385 positions 338s; k 
+bt_l20g2 code tf_code_HumanEval_158.npz 254 positions 363s; k 
+bt_l20g2 code tf_code_HumanEval_39.npz 249 positions 389s; k 
+bt_l20g2 code tf_code_HumanEval_40.npz 245 positions 414s; k 
+bt_l20g2 code tf_code_HumanEval_47.npz 149 positions 435s; k 
+bt_l20g2 code tf_code_HumanEval_59.npz 196 positions 459s; k 
+bt_l20g2 code tf_code_HumanEval_60.npz 123 positions 479s; k 
+bt_l20g2 code tf_code_HumanEval_64.npz 210 positions 504s; k 
+bt_l20g2 code tf_code_HumanEval_67.npz 306 positions 532s; k 
+bt_l20g2 code tf_code_HumanEval_96.npz 295 positions 557s; k 
+bt_l20g2 code tf_code_HumanEval_97.npz 151 positions 579s; k 
+bt_l20g2 code tf_code_HumanEval_99.npz 398 positions 608s; k 
+[dm] bt_int8: 24 windows; answer rows x modules quantized 2680122 (want 2680122); windows with a mismatch 0; census {'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180, 'ple': 2} -> /Users/kamen/FableGod/decision_map/out_code24/bt_int8_census.jsonl
+[dm] bt_l20g2 done in 608s
+[dm] hc8w: 194 linears at 8 bits, group 64 (ple False)
+[dm] bt_int8: 420 projections wrapped ({'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180}); answer rows only
+bt_g1h8_res code tf_code_HumanEval_10.npz 272 positions 29s; k 
+bt_g1h8_res code tf_code_HumanEval_103.npz 241 positions 56s; k 
+bt_g1h8_res code tf_code_HumanEval_109.npz 398 positions 87s; k 
+bt_g1h8_res code tf_code_HumanEval_118.npz 297 positions 115s; k 
+bt_g1h8_res code tf_code_HumanEval_121.npz 148 positions 138s; k 
+bt_g1h8_res code tf_code_HumanEval_124.npz 398 positions 169s; k 
+bt_g1h8_res code tf_code_HumanEval_129.npz 398 positions 199s; k 
+bt_g1h8_res code tf_code_HumanEval_132.npz 398 positions 226s; k 
+bt_g1h8_res code tf_code_HumanEval_135.npz 144 positions 248s; k 
+bt_g1h8_res code tf_code_HumanEval_136.npz 211 positions 277s; k 
+bt_g1h8_res code tf_code_HumanEval_146.npz 252 positions 303s; k 
+bt_g1h8_res code tf_code_HumanEval_151.npz 209 positions 329s; k 
+bt_g1h8_res code tf_code_HumanEval_153.npz 385 positions 360s; k 
+bt_g1h8_res code tf_code_HumanEval_158.npz 254 positions 387s; k 
+bt_g1h8_res code tf_code_HumanEval_39.npz 249 positions 412s; k 
+bt_g1h8_res code tf_code_HumanEval_40.npz 245 positions 438s; k 
+bt_g1h8_res code tf_code_HumanEval_47.npz 149 positions 461s; k 
+bt_g1h8_res code tf_code_HumanEval_59.npz 196 positions 485s; k 
+bt_g1h8_res code tf_code_HumanEval_60.npz 123 positions 506s; k 
+bt_g1h8_res code tf_code_HumanEval_64.npz 210 positions 531s; k 
+bt_g1h8_res code tf_code_HumanEval_67.npz 306 positions 559s; k 
+bt_g1h8_res code tf_code_HumanEval_96.npz 295 positions 586s; k 
+bt_g1h8_res code tf_code_HumanEval_97.npz 151 positions 608s; k 
+bt_g1h8_res code tf_code_HumanEval_99.npz 398 positions 640s; k 
+[dm] bt_int8: 24 windows; answer rows x modules quantized 2667420 (want 2667420); windows with a mismatch 0; census {'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180} -> /Users/kamen/FableGod/decision_map/out_code24/bt_int8_census.jsonl
+[dm] bt_g1h8_res done in 640s
+[dm] bt swap: 292 linears at 4 bits ({'mix': 194, 'inject': 96, 'ple': 2})
+[dm] bt_int8: 422 projections wrapped ({'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180, 'ple': 2}); answer rows only
+bt_g1 code tf_code_HumanEval_10.npz 272 positions 28s; k 
+bt_g1 code tf_code_HumanEval_103.npz 241 positions 58s; k 
+bt_g1 code tf_code_HumanEval_109.npz 398 positions 93s; k 
+bt_g1 code tf_code_HumanEval_118.npz 297 positions 122s; k 
+bt_g1 code tf_code_HumanEval_121.npz 148 positions 146s; k 
+bt_g1 code tf_code_HumanEval_124.npz 398 positions 207s; k 
+bt_g1 code tf_code_HumanEval_129.npz 398 positions 282s; k 
+bt_g1 code tf_code_HumanEval_132.npz 398 positions 352s; k 
+bt_g1 code tf_code_HumanEval_135.npz 144 positions 410s; k 
+bt_g1 code tf_code_HumanEval_136.npz 211 positions 471s; k 
+bt_g1 code tf_code_HumanEval_146.npz 252 positions 537s; k 
+bt_g1 code tf_code_HumanEval_151.npz 209 positions 600s; k 
+bt_g1 code tf_code_HumanEval_153.npz 385 positions 674s; k 
+bt_g1 code tf_code_HumanEval_158.npz 254 positions 721s; k 
+bt_g1 code tf_code_HumanEval_39.npz 249 positions 787s; k 
+bt_g1 code tf_code_HumanEval_40.npz 245 positions 857s; k 
+bt_g1 code tf_code_HumanEval_47.npz 149 positions 914s; k 
+bt_g1 code tf_code_HumanEval_59.npz 196 positions 976s; k 
+bt_g1 code tf_code_HumanEval_60.npz 123 positions 1030s; k 
+bt_g1 code tf_code_HumanEval_64.npz 210 positions 1098s; k 
+bt_g1 code tf_code_HumanEval_67.npz 306 positions 1178s; k 
+bt_g1 code tf_code_HumanEval_96.npz 295 positions 1250s; k 
+bt_g1 code tf_code_HumanEval_97.npz 151 positions 1310s; k 
+bt_g1 code tf_code_HumanEval_99.npz 398 positions 1393s; k 
+[dm] bt_int8: 24 windows; answer rows x modules quantized 2680122 (want 2680122); windows with a mismatch 0; census {'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180, 'ple': 2} -> /Users/kamen/FableGod/decision_map/out_code24/bt_int8_census.jsonl
+[dm] bt_g1 done in 1393s
+bt_restore code tf_code_HumanEval_10.npz 272 positions 18s
+bt_restore code tf_code_HumanEval_103.npz 241 positions 35s
+bt_restore code tf_code_HumanEval_109.npz 398 positions 51s
+bt_restore code tf_code_HumanEval_118.npz 297 positions 67s
+bt_restore code tf_code_HumanEval_121.npz 148 positions 83s
+bt_restore code tf_code_HumanEval_124.npz 398 positions 101s
+bt_restore code tf_code_HumanEval_129.npz 398 positions 121s
+bt_restore code tf_code_HumanEval_132.npz 398 positions 138s
+bt_restore code tf_code_HumanEval_135.npz 144 positions 154s
+bt_restore code tf_code_HumanEval_136.npz 211 positions 170s
+bt_restore code tf_code_HumanEval_146.npz 252 positions 187s
+bt_restore code tf_code_HumanEval_151.npz 209 positions 204s
+bt_restore code tf_code_HumanEval_153.npz 385 positions 223s
+bt_restore code tf_code_HumanEval_158.npz 254 positions 239s
+bt_restore code tf_code_HumanEval_39.npz 249 positions 254s
+bt_restore code tf_code_HumanEval_40.npz 245 positions 271s
+bt_restore code tf_code_HumanEval_47.npz 149 positions 285s
+bt_restore code tf_code_HumanEval_59.npz 196 positions 299s
+bt_restore code tf_code_HumanEval_60.npz 123 positions 313s
+bt_restore code tf_code_HumanEval_64.npz 210 positions 329s
+bt_restore code tf_code_HumanEval_67.npz 306 positions 346s
+bt_restore code tf_code_HumanEval_96.npz 295 positions 363s
+bt_restore code tf_code_HumanEval_97.npz 151 positions 378s
+bt_restore code tf_code_HumanEval_99.npz 398 positions 397s
+[dm] bt_restore done in 397s
+[dm] bt swap: 292 linears at 4 bits ({'mix': 194, 'inject': 96, 'ple': 2})
+bt_l20comb code tf_code_HumanEval_10.npz 272 positions 66s; k 
+bt_l20comb code tf_code_HumanEval_103.npz 241 positions 130s; k 
+bt_l20comb code tf_code_HumanEval_109.npz 398 positions 208s; k 
+bt_l20comb code tf_code_HumanEval_118.npz 297 positions 276s; k 
+bt_l20comb code tf_code_HumanEval_121.npz 148 positions 331s; k 
+bt_l20comb code tf_code_HumanEval_124.npz 398 positions 405s; k 
+bt_l20comb code tf_code_HumanEval_129.npz 398 positions 473s; k 
+bt_l20comb code tf_code_HumanEval_132.npz 398 positions 539s; k 
+bt_l20comb code tf_code_HumanEval_135.npz 144 positions 593s; k 
+bt_l20comb code tf_code_HumanEval_136.npz 211 positions 650s; k 
+bt_l20comb code tf_code_HumanEval_146.npz 252 positions 712s; k 
+bt_l20comb code tf_code_HumanEval_151.npz 209 positions 774s; k 
+bt_l20comb code tf_code_HumanEval_153.npz 385 positions 852s; k 
+bt_l20comb code tf_code_HumanEval_158.npz 254 positions 916s; k 
+bt_l20comb code tf_code_HumanEval_39.npz 249 positions 977s; k 
+bt_l20comb code tf_code_HumanEval_40.npz 245 positions 1039s; k 
+bt_l20comb code tf_code_HumanEval_47.npz 149 positions 1090s; k 
+bt_l20comb code tf_code_HumanEval_59.npz 196 positions 1147s; k 
+bt_l20comb code tf_code_HumanEval_60.npz 123 positions 1198s; k 
+bt_l20comb code tf_code_HumanEval_64.npz 210 positions 1258s; k 
+bt_l20comb code tf_code_HumanEval_67.npz 306 positions 1325s; k 
+bt_l20comb code tf_code_HumanEval_96.npz 295 positions 1385s; k 
+bt_l20comb code tf_code_HumanEval_97.npz 151 positions 1444s; k 
+bt_l20comb code tf_code_HumanEval_99.npz 398 positions 1530s; k 
+[dm] bt_l20comb done in 1530s
+[dm] bt swap: 292 linears at 4 bits ({'mix': 194, 'inject': 96, 'ple': 2})
+bt_c6comb code tf_code_HumanEval_10.npz 272 positions 81s; k 
+bt_c6comb code tf_code_HumanEval_103.npz 241 positions 163s; k 
+bt_c6comb code tf_code_HumanEval_109.npz 398 positions 258s; k 
+bt_c6comb code tf_code_HumanEval_118.npz 297 positions 343s; k 
+bt_c6comb code tf_code_HumanEval_121.npz 148 positions 412s; k 
+bt_c6comb code tf_code_HumanEval_124.npz 398 positions 507s; k 
+bt_c6comb code tf_code_HumanEval_129.npz 398 positions 600s; k 
+bt_c6comb code tf_code_HumanEval_132.npz 398 positions 667s; k 
+bt_c6comb code tf_code_HumanEval_135.npz 144 positions 713s; k 
+bt_c6comb code tf_code_HumanEval_136.npz 211 positions 766s; k 
+bt_c6comb code tf_code_HumanEval_146.npz 252 positions 824s; k 
+bt_c6comb code tf_code_HumanEval_151.npz 209 positions 881s; k 
+bt_c6comb code tf_code_HumanEval_153.npz 385 positions 948s; k 
+bt_c6comb code tf_code_HumanEval_158.npz 254 positions 1004s; k 
+bt_c6comb code tf_code_HumanEval_39.npz 249 positions 1058s; k 
+bt_c6comb code tf_code_HumanEval_40.npz 245 positions 1113s; k 
+bt_c6comb code tf_code_HumanEval_47.npz 149 positions 1159s; k 
+bt_c6comb code tf_code_HumanEval_59.npz 196 positions 1211s; k 
+bt_c6comb code tf_code_HumanEval_60.npz 123 positions 1255s; k 
+bt_c6comb code tf_code_HumanEval_64.npz 210 positions 1309s; k 
+bt_c6comb code tf_code_HumanEval_67.npz 306 positions 1371s; k 
+bt_c6comb code tf_code_HumanEval_96.npz 295 positions 1429s; k 
+bt_c6comb code tf_code_HumanEval_97.npz 151 positions 1476s; k 
+bt_c6comb code tf_code_HumanEval_99.npz 398 positions 1541s; k 
+[dm] bt_c6comb done in 1542s
+| perturbation | code sure / tie / mid flip % (n) | ifeval sure / tie / mid | multi sure / tie / mid | mean dmargin |
+|---|---|---|---|---|
+| bt_c6comb | 0.00 / 43.48 / 7.40 (6327) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -1.691 |
+| bt_comb | 0.00 / 43.48 / 6.14 (6327) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -1.600 |
+| bt_dense3 | 0.00 / 60.87 / 14.17 (6327) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -1.777 |
+| bt_g1 | 0.00 / 42.03 / 7.72 (6327) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -1.702 |
+| bt_g1h8 | 0.00 / 39.13 / 5.20 (6327) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -0.918 |
+| bt_g1h8_res | 0.00 / 39.13 / 5.51 (6327) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -0.926 |
+| bt_l20comb | 0.00 / 46.38 / 7.09 (6327) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -1.779 |
+| bt_l20g2 | 0.00 / 42.03 / 8.03 (6327) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -1.785 |
+| bt_restore | 0.00 / 0.00 / 0.00 (6327) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | +0.000 |
+| scapture | 0.00 / 0.00 / 0.00 (6327) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | +0.000 |
+[g1g2] PEAK FOOTPRINT 23.688 GB (lifetime max phys_footprint), MLX peak active 16.76 GB, wall 6879 s (DM_C 51)
+Mon 19:33:05 run ended rc 0; swap 7594 MB (start 7650)
+G1 / G2 map pre-screens: code flips % vs the exact baseline (out_code24, 24 windows), [95 % window bootstrap]; ties = the baseline's p1 - p2 <= 0.1; lines all-row 1.34 / non-tie 0.87
+VALIDITY bt_restore == baseline bit for bit (top-8 ids and log-probs, every row of 24 windows): PASS
+VALIDITY int8 arm 1 (run order: bt_g1h8, bt_l20g2, bt_g1h8_res, bt_g1): 24 windows, answer rows x modules quantized 2667420 (want 2667420), windows with a mismatch 0, census {'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180}: PASS
+VALIDITY int8 arm 2 (run order: bt_g1h8, bt_l20g2, bt_g1h8_res, bt_g1): 24 windows, answer rows x modules quantized 2680122 (want 2680122), windows with a mismatch 0, census {'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180, 'ple': 2}: PASS
+VALIDITY int8 arm 3 (run order: bt_g1h8, bt_l20g2, bt_g1h8_res, bt_g1): 24 windows, answer rows x modules quantized 2667420 (want 2667420), windows with a mismatch 0, census {'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180}: PASS
+VALIDITY int8 arm 4 (run order: bt_g1h8, bt_l20g2, bt_g1h8_res, bt_g1): 24 windows, answer rows x modules quantized 2680122 (want 2680122), windows with a mismatch 0, census {'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180, 'ple': 2}: PASS
+| arm | head read | windows | all-row % | non-tie % | verdict | identical-to-baseline rows (INVALID if all) |
+|---|---|---|---|---|---|---|
+| bt_g1h8: G1 as built (g1x45g1a) = C6 + HC8 + int8 (answer rows); full head | full | 24 (6327 rows) | 0.95 [0.49, 1.53] | 0.53 [0.29, 0.81] | **PASS** | 0/6327 |
+| bt_g1h8_res: G1 as built + RES (resident-only MSB-3 tier at C 256; RES on windows 1-12 only) | full | 24 (6327 rows) | 0.98 [0.49, 1.65] | 0.56 [0.31, 0.85] | **PASS** | 0/6327 |
+| bt_l20g2: G2 no-V4 route = lambda 2.0e-2 + V3 + int8 (answer rows) + V1 | sl-registered (in sample) | 24 (6327 rows) | 1.26 [0.63, 2.05] | 0.81 [0.40, 1.27] | **PASS** | 0/6327 |
+| bt_l20g2: G2 no-V4 route = lambda 2.0e-2 + V3 + int8 (answer rows) + V1 | v1-16k + session rows | 24 (6327 rows) | 1.53 [0.81, 2.50] | 1.09 [0.57, 1.69] | **OVER (all-row, non-tie)** | 0/6327 |
+| bt_l20g2: G2 no-V4 route = lambda 2.0e-2 + V3 + int8 (answer rows) + V1 | v1-32k + session rows | 24 (6327 rows) | 1.36 [0.66, 2.22] | 0.93 [0.44, 1.47] | **OVER (all-row, non-tie)** | 0/6327 |
+| bt_g1: G1 with the plan's dense = C6 + V3 + int8 (answer rows) + V1 | sl-registered (in sample) | 24 (6327 rows) | 1.23 [0.62, 2.03] | 0.78 [0.40, 1.21] | **PASS** | 0/6327 |
+| bt_g1: G1 with the plan's dense = C6 + V3 + int8 (answer rows) + V1 | v1-16k + session rows | 24 (6327 rows) | 1.50 [0.82, 2.44] | 1.05 [0.58, 1.60] | **OVER (all-row, non-tie)** | 0/6327 |
+| bt_g1: G1 with the plan's dense = C6 + V3 + int8 (answer rows) + V1 | v1-32k + session rows | 24 (6327 rows) | 1.33 [0.65, 2.20] | 0.89 [0.46, 1.39] | **OVER (non-tie)** | 0/6327 |
+| bt_c6comb: C6 combined = C6 + V3 + V1 (G1's bytes) | sl-registered (in sample) | 24 (6327 rows) | 1.22 [0.66, 1.91] | 0.75 [0.40, 1.14] | **PASS** | 0/6327 |
+| bt_c6comb: C6 combined = C6 + V3 + V1 (G1's bytes) | v1-16k + session rows | 24 (6327 rows) | 1.50 [0.84, 2.34] | 1.04 [0.56, 1.57] | **OVER (all-row, non-tie)** | 0/6327 |
+| bt_c6comb: C6 combined = C6 + V3 + V1 (G1's bytes) | v1-32k + session rows | 24 (6327 rows) | 1.31 [0.69, 2.06] | 0.86 [0.43, 1.32] | **PASS** | 0/6327 |
+| bt_dense3: DENSE-3 alone (V4's quality; exact experts, no shortlist) | full | 24 (6327 rows) | 2.09 [1.11, 3.42] | 1.44 [0.77, 2.30] | **FAIL** | 0/6327 |
+| bt_l20comb: lambda 2.0e-2 combined (+ V3 + V1) | sl-registered (in sample) | 24 (6327 rows) | 1.23 [0.62, 2.05] | 0.74 [0.40, 1.13] | **PASS** | 0/6327 |
+| bt_l20comb: lambda 2.0e-2 combined (+ V3 + V1) | v1-16k + session rows | 24 (6327 rows) | 1.52 [0.82, 2.44] | 1.01 [0.56, 1.52] | **OVER (all-row, non-tie)** | 0/6327 |
+| bt_l20comb: lambda 2.0e-2 combined (+ V3 + V1) | v1-32k + session rows | 24 (6327 rows) | 1.34 [0.68, 2.23] | 0.85 [0.45, 1.30] | **OVER (all-row)** | 0/6327 |
+RES increment, paired on the 12 windows with residency (3366 rows): all-row 1.19 -> 1.25 (+0.06 pt; Fit12's price +0.046), non-tie 0.63 -> 0.69 (+0.06 pt; price +0.033)
+Mon 19:33:06 END: run rc 0; read-out written (data/m1/g1g2_map.out)

@@ -1,0 +1,24 @@
+G1 / G2 map pre-screens: code flips % vs the exact baseline (out_code24, 24 windows), [95 % window bootstrap]; ties = the baseline's p1 - p2 <= 0.1; lines all-row 1.34 / non-tie 0.87
+VALIDITY bt_restore == baseline bit for bit (top-8 ids and log-probs, every row of 24 windows): PASS
+VALIDITY int8 arm 1 (run order: bt_g1h8, bt_l20g2, bt_g1h8_res, bt_g1): 24 windows, answer rows x modules quantized 2667420 (want 2667420), windows with a mismatch 0, census {'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180}: PASS
+VALIDITY int8 arm 2 (run order: bt_g1h8, bt_l20g2, bt_g1h8_res, bt_g1): 24 windows, answer rows x modules quantized 2680122 (want 2680122), windows with a mismatch 0, census {'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180, 'ple': 2}: PASS
+VALIDITY int8 arm 3 (run order: bt_g1h8, bt_l20g2, bt_g1h8_res, bt_g1): 24 windows, answer rows x modules quantized 2667420 (want 2667420), windows with a mismatch 0, census {'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180}: PASS
+VALIDITY int8 arm 4 (run order: bt_g1h8, bt_l20g2, bt_g1h8_res, bt_g1): 24 windows, answer rows x modules quantized 2680122 (want 2680122), windows with a mismatch 0, census {'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180, 'ple': 2}: PASS
+| arm | head read | windows | all-row % | non-tie % | verdict | identical-to-baseline rows (INVALID if all) |
+|---|---|---|---|---|---|---|
+| bt_g1h8: G1 as built (g1x45g1a) = C6 + HC8 + int8 (answer rows); full head | full | 24 (6327 rows) | 0.95 [0.49, 1.53] | 0.53 [0.29, 0.81] | **PASS** | 0/6327 |
+| bt_g1h8_res: G1 as built + RES (resident-only MSB-3 tier at C 256; RES on windows 1-12 only) | full | 24 (6327 rows) | 0.98 [0.49, 1.65] | 0.56 [0.31, 0.85] | **PASS** | 0/6327 |
+| bt_l20g2: G2 no-V4 route = lambda 2.0e-2 + V3 + int8 (answer rows) + V1 | sl-registered (in sample) | 24 (6327 rows) | 1.26 [0.63, 2.05] | 0.81 [0.40, 1.27] | **PASS** | 0/6327 |
+| bt_l20g2: G2 no-V4 route = lambda 2.0e-2 + V3 + int8 (answer rows) + V1 | v1-16k + session rows | 24 (6327 rows) | 1.53 [0.81, 2.50] | 1.09 [0.57, 1.69] | **OVER (all-row, non-tie)** | 0/6327 |
+| bt_l20g2: G2 no-V4 route = lambda 2.0e-2 + V3 + int8 (answer rows) + V1 | v1-32k + session rows | 24 (6327 rows) | 1.36 [0.66, 2.22] | 0.93 [0.44, 1.47] | **OVER (all-row, non-tie)** | 0/6327 |
+| bt_g1: G1 with the plan's dense = C6 + V3 + int8 (answer rows) + V1 | sl-registered (in sample) | 24 (6327 rows) | 1.23 [0.62, 2.03] | 0.78 [0.40, 1.21] | **PASS** | 0/6327 |
+| bt_g1: G1 with the plan's dense = C6 + V3 + int8 (answer rows) + V1 | v1-16k + session rows | 24 (6327 rows) | 1.50 [0.82, 2.44] | 1.05 [0.58, 1.60] | **OVER (all-row, non-tie)** | 0/6327 |
+| bt_g1: G1 with the plan's dense = C6 + V3 + int8 (answer rows) + V1 | v1-32k + session rows | 24 (6327 rows) | 1.33 [0.65, 2.20] | 0.89 [0.46, 1.39] | **OVER (non-tie)** | 0/6327 |
+| bt_c6comb: C6 combined = C6 + V3 + V1 (G1's bytes) | sl-registered (in sample) | 24 (6327 rows) | 1.22 [0.66, 1.91] | 0.75 [0.40, 1.14] | **PASS** | 0/6327 |
+| bt_c6comb: C6 combined = C6 + V3 + V1 (G1's bytes) | v1-16k + session rows | 24 (6327 rows) | 1.50 [0.84, 2.34] | 1.04 [0.56, 1.57] | **OVER (all-row, non-tie)** | 0/6327 |
+| bt_c6comb: C6 combined = C6 + V3 + V1 (G1's bytes) | v1-32k + session rows | 24 (6327 rows) | 1.31 [0.69, 2.06] | 0.86 [0.43, 1.32] | **PASS** | 0/6327 |
+| bt_dense3: DENSE-3 alone (V4's quality; exact experts, no shortlist) | full | 24 (6327 rows) | 2.09 [1.11, 3.42] | 1.44 [0.77, 2.30] | **FAIL** | 0/6327 |
+| bt_l20comb: lambda 2.0e-2 combined (+ V3 + V1) | sl-registered (in sample) | 24 (6327 rows) | 1.23 [0.62, 2.05] | 0.74 [0.40, 1.13] | **PASS** | 0/6327 |
+| bt_l20comb: lambda 2.0e-2 combined (+ V3 + V1) | v1-16k + session rows | 24 (6327 rows) | 1.52 [0.82, 2.44] | 1.01 [0.56, 1.52] | **OVER (all-row, non-tie)** | 0/6327 |
+| bt_l20comb: lambda 2.0e-2 combined (+ V3 + V1) | v1-32k + session rows | 24 (6327 rows) | 1.34 [0.68, 2.23] | 0.85 [0.45, 1.30] | **OVER (all-row)** | 0/6327 |
+RES increment, paired on the 12 windows with residency (3366 rows): all-row 1.19 -> 1.25 (+0.06 pt; Fit12's price +0.046), non-tie 0.63 -> 0.69 (+0.06 pt; price +0.033)

@@ -1296,3 +1296,197 @@
      - A difference read (RES's increment) is unaffected to first order.
      - A ratio read (comment-QOM <= 0.5x / 0.8x the control) is pulled toward 1. That is the conservative direction: it
        makes CONFIRMED harder, never easier. 5d's non-tie read limits it too.
+- **BigMoE 18:29 (to NewIdeas and EvalSuite): YES to 5e, built (BigMoE a808a932).** Half of the condition is met; the
+  key test's PASS is still to come.
+  - Eight int8-free envs on g1b (the same snapshot; the int8 code stays in, inert when unset). Each env is its x-env's
+    line minus R57_INT8D=1 R57_INT8D_SETS=humaneval,humanevalx,mbpp.
+  - EvalSuite checked the blobs at 19:4x (git hash-object of ~/BigMoE/data/stack/<n>45g1b_env.txt). All match BigMoE's
+    list: g1 b736d293, g1r e42de6d9, g1c bfd66ced, g1cr 78f7932b, g1cd efb0de2b, g1cdr f4eac1d6, g1l 1c3e2358,
+    g1lr caab7915. The base lx45g1b 2e5b7167 is unchanged. In all eight, R57_INT8D appears only in the comment line,
+    never in the env line.
+  - The key test's int8 check is now "int8 absent" (no int8 / int8_rows in lossy_check on any key); all else as before.
+  - The key test was re-armed at 18:29 (pid 51974) on the base + the eight. It runs after the map screen, at NO-SWAP
+    >= 40 twice, with a start by 22:50 (hard 23:03), else right after M4. At 19:39 it read 34.8 GB.
+  - G1's arming addendum re-checks the blobs and needs the key test's PASS before any G1 run.
+- **Breakthrough 19:5x: the map priors for G1 and G2, received before any G1 / G2 data.** They are information, not a
+  gate (agreed 12:5x), and change no line or rule here. Source: Breakthrough d40a3b2, docs/CHECK_BYTES_900.md, "Section
+  2 result".
+  - The setup: 24 code windows, on the exact-45 decision map. The lines are 1.34 / 0.87 % code flips (all-row /
+    non-tie). All validity checks pass.
+  - G1 as gated (g1a's stack: C6 + HC8 mixers + int8 on the answer rows): 0.95 / 0.53, PASS. With RES: 0.98 / 0.56,
+    PASS. These map arms carry int8; 5e's second reading applies.
+  - G2: DENSE-3 alone is 2.09 / 1.44, FAIL (> 2.01), so there is no V4. The no-V4 route reads 1.36 / 0.93, over both
+    lines. V1-16k is over on every arm.
+  - NewIdeas orders G2's arming.
+
+## Amendment 4j (Mon 2026-11-16 19:4x, before any B2 / V2 data): B2 -> V2 on Tuesday; 4d's cutoff lifted to 17:00, a night start only if they end by 07:00 (NewIdeas 19:2x); operational only
+- **Why:**
+  - B2 -> V2 cannot start tonight (NewIdeas 19:2x).
+    - NO-SWAP read 15 GB with the map screen and Sandbox98 loaded (NewIdeas). It read 33-35 GB at 19:33-19:45.
+    - BigMoE's g1b key test goes first. It waits for NO-SWAP 40, which is expected only after the 23:00 app quit.
+    - There is no early-quit answer. So 4i's follower4 lapses at 20:00 with no start, and 4d's Tuesday route takes
+      B2 -> V2.
+  - NewIdeas, as slot orderer, gave its word on that route (19:2x). It is under Kamen's standing 11:5x lift of the day
+    limits ("until I tell you"), as 4f was for Monday:
+    1. The start gate stays T0A_1117_END as filed, but B2 -> V2 start there only if they can END by 07:00. The morning
+       chain (COMQOM 07:00 -> kill test, latest 08:30 -> band screen, latest 09:00) and Leap's slot #1 (09:30-12:00)
+       keep their armed windows.
+    2. Otherwise B2 -> V2 start right after Leap's slot #1 ends, at the usual memory gate.
+    3. The cutoff lifts from 14:30 to 17:00, with no start after 14:30.
+  - Then (NewIdeas): 5d's pick at V2's verdict, then G1's base, then G1 (5e's int8-free envs, key-tested tonight after
+    M4). On that path G1's verdict is ~Tue 18:00. Leap's work on G1's config starts Wednesday either way.
+  - Unchanged (NewIdeas): every line, the memory gate, the +2 GB swap guard, HOLD / PAUSE / lid.
+- **The mechanics** (NewIdeas: "your mechanics win"; 4j as filed is "right", NewIdeas 19:5x): tools/t1c_tue_follower2.sh
+  (sha256 93a59a6aefdbfa8f..., revised 19:5x; first version a55767cf265ceb8a..., never armed).
+  1. **T0A_1117_END** (any end; mtime >= Mon 08:40, as filed), with the tier-0a follower (pid 45029) gone, read twice
+     30 s apart.
+  2. **The night window: only if B2 -> V2 is priced to END by 07:00,** re-priced at every read.
+     - The price is 190 min: B1 85 + V1 67 = 152 min on their own path (Monday's runner logs, 11:38:45-13:05:34 less
+       the 1.5 min stop, and 13:14:49-14:22:03), + 25 %. The reverse order runs the same rows.
+     - Runner 65's own check prices each process at 900 s (R57_HARD 600 + 300). Applied to all 38 processes of B2 -> V2,
+       that would be 9.5 h, which never fits. So the whole job is priced from its own path, and the runner's
+       per-process check stays as the backstop at the 07:00 cutoff.
+     - Not before 03:00 (E14's armed end). night1117 runs after E14. An early T0A_1117_END, from a night1117 that failed
+       or was held, therefore cannot put B2 -> V2 into tonight's earlier slots (the key test, M4, E14).
+     - Then the start conditions (below), then tools/t1c_chain2.sh's wed phase on 11-17: tag tuen (log [tuen], end
+       results/T1C_TUEN_END), cutoff 07:00.
+     - A cut by 07:00 (B2 or V2 rc 75) resumes in step 3; tier-1 runs resume (amendment 4). Any other end is final
+       (HOLD rc 8, VOID / INCOMPLETE rc 9, a runner stop): a decision, not a re-run.
+     - Expected: no night start. night1117 (delta 1, then delta 2, each with its reverse on a PASS) starts after E14
+       ends (hard end 03:00), and tier 0a follows it. A night start would need T0A_1117_END by ~03:50.
+  3. **Otherwise, or after such a cut: once Leap's slot #1 is over** (run_c25_tue1.sh, armed 09:30-12:00; its marker
+     ~/Leap/data/week98/c25/C25_tue1_DONE is removed at each arming and written on any end).
+     - **Revised 19:5x, before arming, on NewIdeas' word: keyed on the slot's end marker, not its pid.** Leap re-arms
+       often, and the first version (589161b) keyed on pid 13160, so a re-arm under a new pid would have read as an end
+       before 09:30 and cost ~2 h. NewIdeas asked Leap to tell EvalSuite of any re-arm of slot #1.
+     - The slot is over when, on two reads 30 s apart, both hold:
+       - no slot #1 process: no shell running a run_c25_tue1*.sh script, any pid. A re-armed slot counts as the slot.
+         A monitor or a command that only names the script does not.
+       - EITHER the end marker is dated 09:30 or later and is not "stopped by a signal" (a stop for a re-arm), OR it
+         is 12:00, the window's end.
+     - So a slot stopped before or inside its window and not re-armed keeps its window until 12:00. A re-armed slot is
+       waited for.
+     - Leap's slot itself waits for T0A_1117_END, and for no other process above 16 GB.
+     - Then the start conditions, then chain2's wed phase on 11-17: tag tued (log [tued], end results/T1C_TUED_END),
+       cutoff 17:00. No start after 14:30.
+     - Anything left after Tuesday's 17:00 goes to Wednesday by day, FIRST in Wednesday's queue, ahead of G2 (NewIdeas
+       19:5x: G2 stacks on G1, and G1's pick needs V2). That takes a re-arm.
+     - NewIdeas 19:5x, FYI: Breakthrough's band-lambda screen moved to tonight (after ~20:15, hard stop 22:50).
+       Tuesday's morning chain is COMQOM -> kill test only. No change to 4j.
+  - **The start conditions,** read at every poll; the follower waits for them, so the chain's first process starts at
+    once:
+    - no HOLD, PAUSE or shut lid (no external display). There is no Kamen-at-the-Mac rule (Kamen 11:5x, as in 4f).
+    - no BigMoE key-test process (scripts/g1_follow.sh or scripts/g1_keytest.py). The key test stops itself when a
+      day_runner6x process appears (KT_ABSENT), and it goes before B2 in NewIdeas' order.
+    - no other session's shared MEM run above 5 GB (runner 65's yield rule, read the same way).
+    - NO-SWAP >= 43 GB on two reads 30 s apart: runner 65 (gate 43). From 10 min after the step's start condition, if
+      43 is not open, >= 42: runner 66 at CARD_GATE=42 (amendment 4e, carried over as in 4i).
+  - The runner's own gates, its +2 GB swap guard, its per-process yield and its stops are unchanged.
+  - **The end:** results/T1C_TUEF2_END on every end of the follower, and only then, copied to results/T1C_RESF2_END.
+    T1C_RESF2_END keeps meaning the 1c-tiers end (4i). follower4's 20:00 lapse writes T1C_RESF2_END too; EvalSuite moves
+    that one aside (T1C_RESF2_END.mon5lapse), as 4i did.
+- **The switch, after follower4's 20:00 lapse:**
+  - TERM, by pid: 4d's follower (pid 95134), then the tue phase (pid 86926). Neither has started anything.
+  - The tue phase must go:
+    - Its finish trap runs `peer unlock`, which releases this session's locks.
+    - Left armed, it would end within a minute of T0A_1117_END and could drop B2's share lock on a night start.
+    - It also keeps the at-Mac rule, which is lifted.
+    - With B0, V0, B1 and V1 recorded, it has nothing else to run.
+  - Before the TERMs, peer ls is checked: this session must hold no lock and queue no ticket.
+  - Then follower2 is armed.
+  - **Done, 20:00-20:02:**
+    - 20:00:18: follower4 lapsed (rc 6): "no start by 11-16 20:00 (the key test not ended): no run; 4d's Tuesday
+      follower is the route". Its T1C_RESF2_END was moved to T1C_RESF2_END.mon5lapse at 20:00:24.
+    - 20:00:24: peer ls showed no lock and no ticket for this session.
+    - 20:00:24 TERM 95134: gone at 20:00:56, with T1C_TUEF_END "stopped by a signal during: armed".
+    - 20:00:56 TERM 86926: gone at 20:01:52, with T1C_TUE_END "stopped by a signal during: armed".
+    - 20:02:01: follower2 armed, pid 63386 (sha256 93a59a6aefdbfa8f...). Its first line names T0A_1117_END (pid 45029
+      gone); the night window from 11-17 03:00, priced at 190 min to end by 07:00; else once Leap's slot #1 is over
+      (C25_tue1_DONE, window to 12:00); cutoff 17:00, no start after 14:30.
+  - Their markers (T1C_TUEF_END, T1C_TUE_END: "stopped by a signal during: armed") have no reader in the other
+    sessions' scripts (grep of BigMoE, Leap, NewIdeas, Breakthrough, Sandbox98, TrainLab, deepdraft).
+- **Unchanged:**
+  - every pin and every scoring rule;
+  - runner 65 and its 43 GB gate, unless 4e's fallback fires;
+  - the +2 GB swap guard, the per-process yield, and HOLD / PAUSE / lid;
+  - 4d's leftover rule, now after 17:00, with the leftovers first on Wednesday (NewIdeas 19:5x).
+- **Checked:**
+  - bash -n passes.
+  - A stub simulation of the revised file, 17 scenarios, all as designed (19:52-19:53;
+    results/lossygate/t1c_tue_follower2_sim_2026-11-16.txt).
+    - It ran the real follower with a stand-in chain and stand-in processes. The slot stand-in, like run_c25, removes
+      its marker at arming and writes it on any end.
+    - T1C_RESF2_END equals T1C_TUEF2_END in every scenario.
+    - The first, pid-keyed version passed its 14 scenarios the same way (19:42-19:46).
+    - S1: the night fits: tag tuen, the night cutoff, runner 65, no at-Mac rule, phase wed on 11-17; done.
+    - S2: the night does not fit. It waits while slot #1 runs, and its in-window end ("ran") starts tag tued with the
+      day cutoff; done.
+    - S3: the night chain is cut (B2 rc 75): tuen, then tued after Leap's slot; done.
+    - S4: slot #1 was stopped before its window and not re-armed: no start until the window's end, then tued.
+    - S5: T0A_1117_END comes before the night window: it waits for the window, then tuen.
+    - S6: Leap's slot never ends: no run at the last start (rc 6), no chain call.
+    - S7: NO-SWAP 42: after the fallback delay, runner 66 with CARD_GATE=42.
+    - S8: TERM mid-chain: the chain gets TERM and is gone before the follower writes "stopped by a signal".
+    - S9: HOLD, a key-test process, another session's MEM run, the lid and PAUSE each hold the start in turn; the
+      chain starts 2 s after the last clears.
+    - S10: the night chain ends B2 rc 9: final, no day chain.
+    - S11: a stale T0A_1117_END (Mon 08:00) is ignored; a fresh one starts.
+    - S12: T0A_1117_END with the tier-0a follower still alive: it waits until the follower is gone.
+    - S14: the night fits at first, but memory stays shut: priced out, then after Leap's slot, then memory, then tued.
+    - S15: no T0A_1117_END and past the last start: no run (rc 6).
+    - S16: slot #1 is re-armed under a new pid, with a 4 s gap after the old one's "stopped by a signal" marker. No
+      start in the gap or while the new slot runs; the start follows its end.
+    - S17: slot #1 is stopped by a signal inside its window and not re-armed: no start until the window's end.
+    - S18: slot #1 is over ("ran") while two monitors name its script (a bash -c and a tail -f). They don't count as the
+      slot, and tued starts.
+    - The slot pattern was also checked live: it matches Leap's armed slot (pid 13160) and nothing else.
+  - DRY chain passes, 19:45:20-19:46:20, as follower2 calls them. Both rc 0. The revision changed only the slot check,
+    not the chain calls.
+    - Tag dryn: runner 66, CARD_GATE=42, cutoff Tue 07:00. B0, V0, B1 and V1 were skipped as done. B2's and V2's
+      runner calls returned rc 0. Runner 66 logged "CHAT gate 42 GB NO-SWAP, CARD_GATE", code pin 50118def96ea, pins OK.
+    - Tag dryd: runner 65, cutoff Tue 17:00. The same.
+
+## Amendment 5f (Mon 2026-11-16 20:0x, before any G2 config, snapshot or data): G2 without V1, the SVH / full head in V1's place (NewIdeas 20:0x); it amends 5c
+- **Why** (NewIdeas 20:0x, from Breakthrough's paired read). The source is section 7 of ~/Breakthrough's
+  docs/CHECK_BYTES_900.md, pre-registered in 6ee5d66 (19:54), result in fee3207. EvalSuite checked the figures below
+  against that doc.
+  - The no-V4 route with the full head (bt_l20g2: lambda 2.0e-2 + V3 + int8) reads 1.26 % (80 rows) / 0.81 % (51).
+    That is inside both lines (<= 84 / 54 rows): PASS.
+  - V1-32k is what put the route over (section 2: 1.36 / 0.93). It costs +0.095 pt all-row (+6 rows) on three of four
+    arms, for 0.09 GB.
+  - V3 costs +0.284 pt (+18 rows) for ~0.34 GB. lambda 2.0e-2 vs C6 costs +0.000-0.032 pt (0-2 rows) for 0.38 GB.
+  - So V1 has the worst bytes per row, and dropping it alone puts G2 under both lines.
+  - Without int8 (5e), the same route is bt_l20comb (lambda 2.0e-2 + V3). Its full-head read is 1.22 % (77) / 0.72 %
+    (45): PASS.
+  - int8's paired cost reads +0.016 / +0.032 pt (bt_g1 - bt_c6comb) and +0.047 / +0.096 pt (bt_l20g2 - bt_l20comb).
+    Both CIs include 0.
+  - These reads are information. G2's own gate is the test.
+- **G2 = G1 (C6, int8-free per 5e) + V3 + lambda 2.0e-2, with the SVH / full head in place of V1.**
+  - RES joins only by 5c's rule (refined 13:4x).
+  - 5c's on-FAIL make-up (G1 + V1 + V3 + lambda 2.0e-2) becomes G1 + V3 + lambda 2.0e-2, with the full head.
+  - DENSE-3 FAILED (2.09 / 1.44 > 2.01; Breakthrough d40a3b2), so there is no V4.
+  - 5e's clause for G2 (int8 joins only at <= 0 ms in Leap's quiet paired A/B) was kept as filed here, then REPLACED
+    the same hour: G2 is int8-free outright this week (the dated line below).
+  - BigMoE builds g2a's env without R57_LMSL / V1. NewIdeas tells BigMoE and Breakthrough.
+- **Unchanged:**
+  - every line;
+  - the rules: against the base, V0 -> V1 -> V2, CODE-ONLY, bisecting only on a FAIL;
+  - the IFEval rule (the arming amendment states whether every change in G2 is code-scoped);
+  - the base-path identity route for G2's base;
+  - g2a's real-loop key test before arming;
+  - the drop deadline (~10:00 Wed).
+  - Wednesday's queue now starts with 1c-tiers' leftovers, if any (4j).
+- **The engagement check** (5c): one counter per mechanism, on each kept code run: the 1c tiers at lambda 2.0e-2, V3,
+  and RES if it joins. V1 has none now. The arming amendment names the counters.
+- **Information, not a condition:** 5c's "<= 5.5 GB" aim is not met on this route. It is ~6.44 GB per check with dense
+  at real sizes (6.35 -> 6.44 for the full head). That is the price of staying under the quality lines.
+- **Dated 20:0x (NewIdeas), before any G2 config or data: G2 is int8-free OUTRIGHT this week.** This replaces 5e's G2
+  clause.
+  - In G2's composition, int8 costs +3 / +6 rows (bt_l20g2 - bt_l20comb, fee3207). That is about half of G2's margin:
+    77 / 45 rows against the 84 / 54 lines.
+  - In the engine it is +1.13 ms SLOWER today (Leap's check25 README, "ENGINE A/B run2b": F32if - F32df, as cited in
+    5e). Even at "<= 0 ms" (a tie) it would spend those rows for no speed.
+  - Only a clear gain would pay for them. That would be a separate gate after this week, not a late swap before G2's
+    pin.
+  - So int8 is in neither G1 (5e) nor G2 this week. g2a's env carries no R57_INT8D / R57_INT8D_SETS, and its arming
+    amendment checks that.

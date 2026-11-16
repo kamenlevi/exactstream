@@ -1,0 +1,75 @@
+# Stub simulations of tonight's band screen pieces (Mon 16 Nov 19:48-19:53; scratch dirs, stub job, echo lock, no real lock or run).
+# SIM 1-2: launcher + gate + runner copy (+ Tuesday fallback). The first pass of SIM 3-4 is VOID: its fake follower ran as
+# bash -c 'sleep 60', which execs sleep and drops the name, so pgrep never saw it (a sim bug). The fixed re-run follows (SIM 3-5).
+== SIM 1: Sandbox98 lock ends at +8 s -> GO -> run -> all 4 arms -> no fallback
+Mon 19:49:53 tonight's runner rc 0: LBAND END 11-16 19:49:53: run rc 0; read-out skipped (simulation)
+all 4 arms done tonight: no Tuesday fallback
+-- gate log:
+Mon 19:48:12 armed (pid 46168): GO -> <scratch>/d1/GO once Sandbox98's lock is gone, no live quiet lock and no key test (two reads 2 s apart); if NO-SWAP >= 40 while BigMoE's follower waits, it gets 480 s to start first; gives up Mon 19:50
+Mon 19:48:23 GO written (NO-SWAP 35 GB)
+-- runner log:
+Mon 19:48:12 armed (pid 46171): starts at >= Mon 19:48 once <scratch>/d1/GO is newer than now AND no 'zz_no_such_ma[p]' process runs (read twice); latest start Mon 19:50, hard stop Mon 19:53
+Mon 19:49:43 trigger: LBAND GO 11-16 19:48:23: Sandbox98 lock gone, no quiet lock, no key test (NO-SWAP 35 GB; follower waiting n; key test seen 0) | no map process (read twice)
+Mon 19:49:43 NO-SWAP 39 GB (need 1)
+8m --cpu 300 --gpu 60 MEM 24 GB: Breakthrough per-layer lambda band screen (4 arms x 24 code windows), to 19:53 at the latest
+Mon 19:49:43 running (NO-SWAP 39 GB, swap 7594 MB)
+[lb] stub job done (BG_PEAK_MAX=30)
+Mon 19:49:53 run ended rc 0; swap 7594 MB (start 7594)
+Mon 19:49:53 END: run rc 0; read-out skipped (simulation)
+-- d1b (fallback) log:
+(none, as expected)
+== SIM 2: a live quiet lock -> gate gives up at the latest start -> runner SKIPs -> fallback runs on its marker
+Mon 19:50:53 tonight's runner rc 7: LBAND END 11-16 19:50:53: SKIP: not started by the latest start (marker: n, map process running: n)
+Mon 19:50:53 missing arms: bt_c6tiers bt_lb0 bt_lb1 bt_lb2 -> Tuesday fallback on <scratch>/kd2
+Mon 19:52:33 Tuesday fallback rc 0: LBAND END 11-16 19:52:33: run rc 0; read-out skipped (simulation)
+-- gate log:
+Mon 19:49:53 armed (pid 47419): GO -> <scratch>/d2/GO once Sandbox98's lock is gone, no live quiet lock and no key test (two reads 2 s apart); if NO-SWAP >= 40 while BigMoE's follower waits, it gets 480 s to start first; gives up Mon 19:50
+Mon 19:50:45 GIVE UP: no GO by 19:50 (Sandbox98 lock n, quiet lock y, key test n, NO-SWAP 35 GB)
+-- runner log:
+Mon 19:49:53 armed (pid 47422): starts at >= Mon 19:49 once <scratch>/d2/GO is newer than now AND no 'zz_no_such_ma[p]' process runs (read twice); latest start Mon 19:50, hard stop Mon 19:53
+Mon 19:50:53 SKIP: not started by the latest start (marker: n, map process running: n)
+Mon 19:50:53 END: SKIP: not started by the latest start (marker: n, map process running: n)
+-- fallback log:
+Mon 19:50:53 armed (pid 48879): starts at >= Mon 19:49 once <scratch>/kd2 is newer than now AND no 'zz_no_such_ma[p]' process runs (read twice); latest start Mon 19:56, hard stop Mon 19:58
+Mon 19:52:23 trigger: KILL DONE sim | no map process (read twice)
+Mon 19:52:23 NO-SWAP 32 GB (need 1)
+10m --cpu 300 --gpu 60 MEM 24 GB: Breakthrough per-layer lambda band screen (4 arms x 24 code windows), to 19:58 at the latest
+Mon 19:52:23 running (NO-SWAP 32 GB, swap 7594 MB)
+[lb] stub job done (BG_PEAK_MAX=30)
+Mon 19:52:33 run ended rc 0; swap 7594 MB (start 7594)
+Mon 19:52:33 END: run rc 0; read-out skipped (simulation)
+bt_c6tiers.json
+bt_lb0.json
+bt_lb1.json
+bt_lb2.json
+== SIM 3: NO-SWAP 42 + follower waiting; its key test starts at +4 s for 8 s -> wait -> GO after it (no grace message)
+gate rc 0
+Mon 19:52:33 armed (pid 54124): GO -> <scratch>/GO3 once Sandbox98's lock is gone, no live quiet lock and no key test (two reads 1 s apart); if NO-SWAP >= 40 while BigMoE's follower waits, it gets 20 s to start first; gives up Mon 19:53
+Mon 19:52:35 GO written (NO-SWAP 42 GB)
+<scratch>/sim.sh: line 22: 54120 Terminated: 15          bash -c 'sleep 60' zz_fake_follow
+LBAND GO 11-16 19:52:35: Sandbox98 lock gone, no quiet lock, no key test (NO-SWAP 42 GB; follower waiting n; key test seen 0)
+== SIM 4: NO-SWAP 42 + follower waiting, no key test -> GO after a 5 s grace
+gate rc 0
+Mon 19:52:35 armed (pid 54338): GO -> <scratch>/GO4 once Sandbox98's lock is gone, no live quiet lock and no key test (two reads 1 s apart); if NO-SWAP >= 40 while BigMoE's follower waits, it gets 5 s to start first; gives up Mon 19:53
+Mon 19:52:36 GO written (NO-SWAP 42 GB)
+<scratch>/sim.sh: line 26: 54336 Terminated: 15          bash -c 'sleep 60' zz_fake_follow
+LBAND GO 11-16 19:52:36: Sandbox98 lock gone, no quiet lock, no key test (NO-SWAP 42 GB; follower waiting n; key test seen 0)
+== SIMS DONE 19:52:36
+
+== FIXED RE-RUN (fake processes as bash -c 'sleep N; true' NAME, visible to pgrep: checked y before each gate)
+-- SIM 3 gate log:
+Mon 19:52:57 armed (pid 55873): GO -> <scratch>/GO3b once Sandbox98's lock is gone, no live quiet lock and no key test (two reads 1 s apart); if NO-SWAP >= 40 while BigMoE's follower waits, it gets 20 s to start first; gives up Mon 19:53
+Mon 19:52:57 BigMoE's key test is running: wait for its end
+Mon 19:53:10 GO written (NO-SWAP 42 GB)
+LBAND GO 11-16 19:53:10: Sandbox98 lock gone, no quiet lock, no key test (NO-SWAP 42 GB; follower waiting y; key test seen 1)
+-- SIM 4 gate log:
+Mon 19:53:11 armed (pid 56743): GO -> <scratch>/GO4b once Sandbox98's lock is gone, no live quiet lock and no key test (two reads 1 s apart); if NO-SWAP >= 40 while BigMoE's follower waits, it gets 5 s to start first; gives up Mon 19:54
+Mon 19:53:12 NO-SWAP 42 GB >= 40 while BigMoE's follower waits: it gets 5 s to start its key test
+Mon 19:53:18 BigMoE's key test did not start within 5 s
+Mon 19:53:18 GO written (NO-SWAP 42 GB)
+LBAND GO 11-16 19:53:18: Sandbox98 lock gone, no quiet lock, no key test (NO-SWAP 42 GB; follower waiting y; key test seen 0)
+-- SIM 5 gate log:
+Mon 19:53:18 armed (pid 57310): GO -> <scratch>/GO5 once Sandbox98's lock is gone, no live quiet lock and no key test (two reads 1 s apart); if NO-SWAP >= 40 while BigMoE's follower waits, it gets 20 s to start first; gives up Mon 19:54
+Mon 19:53:20 GO written (NO-SWAP 35 GB)
+LBAND GO 11-16 19:53:20: Sandbox98 lock gone, no quiet lock, no key test (NO-SWAP 35 GB; follower waiting y; key test seen 0)
+RESULT: 5/5 as designed (1 GO after Sandbox98's lock, MEM 24 lock to the hard stop, no fallback; 2 give-up -> SKIP -> fallback on its marker; 3 key test seen -> wait -> GO, no grace; 4 grace 5 s -> GO; 5 NO-SWAP < 40 -> GO at once)

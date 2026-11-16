@@ -17,9 +17,16 @@ from sb import core as C
 
 C.limit_memory(4.5)
 OUT, SPECS = sys.argv[1], sys.argv[2:]
+SCRN = [sp.endswith("!s") for sp in SPECS]             # S18: 'spec!s' reads the run under the vocab screen (levers/scr.py)
+SPECS = [sp[:-2] if sc else sp for sp, sc in zip(SPECS, SCRN)]
 RUNS = [sp.partition("@")[0] for sp in SPECS]
 KEYS = [r + ("@" + os.path.basename(sp.partition("@")[2]) if RUNS.count(r) > 1 and "@" in sp else "")
         for r, sp in zip(RUNS, SPECS)]                       # a run read twice (e.g. s30 and s30@qat4) keys by lever
+KEYS = [k + ("!s" if sc else "") for k, sc in zip(KEYS, SCRN)]
+if any(SCRN):
+    import importlib.util as _iu
+    _sp = _iu.spec_from_file_location("mh_scr", os.path.expanduser("~/TrainLab/sb98/levers/scr.py"))
+    SCR = _iu.module_from_spec(_sp); _sp.loader.exec_module(SCR)
 SETS = (("mbpp", 50), ("he", 30))
 DEP, K8, KS, GAMMAS = 31, 8, (16, 32), (0.5, 1.0, 2.0)
 BANDS = ((0, 0), (1, 2), (3, 6), (7, 14), (15, 22), (23, 30))
@@ -30,7 +37,7 @@ def files(d, n):
     return sorted(f for f in glob.glob(os.path.join(C.ROOT, "data", d, "*.npz")) if not f.endswith(".taps.npz"))[:n]
 
 
-def cells(D, f, fn):
+def cells(D, f, fn, scr=False):
     """-> R [n, 31] the true token's slot in the top-8 (8 = below, -1 = no target), Q [n, 31, 8] top-8 probs,
     T1 [n, 31] top-1 ids, right [n, 31], gen, a0"""
     z = np.load(f)
@@ -48,9 +55,12 @@ def cells(D, f, fn):
             hs.append((j, m, D.norm(h[0, :m]).astype(mx.bfloat16)))
     C.chain(D, W, mx.array(ids), DEP, on_depth, a0)
     Hs = mx.concatenate([x for _, _, x in hs], 0)
+    anc_rows = np.concatenate([a0 + np.arange(m) for _, m, _ in hs])   # each row's anchor (the screen's)
     top, val = [], []
     for c0 in range(0, Hs.shape[0], 512):
         lg = C.lm_logits(Hs[c0:c0 + 512])
+        if scr:
+            lg = mx.where(mx.array(SCR.row_mask(ids, anc_rows[c0:c0 + 512], lg.shape[-1])), lg, -mx.inf)
         lse = mx.logsumexp(lg, -1, keepdims=True)
         i8 = mx.argpartition(-lg, K8 - 1, axis=-1)[:, :K8]
         v8 = mx.take_along_axis(lg, i8, -1)
@@ -98,7 +108,7 @@ def walk(n, r0, accept):
 
 
 RES, T1REF = {}, {}
-for ri, (run, spec, key) in enumerate(zip(RUNS, SPECS, KEYS)):
+for ri, (run, spec, key, scr) in enumerate(zip(RUNS, SPECS, KEYS, SCRN)):
     lev = spec.partition("@")[2]
     D = C.load_drafter(run, strict=not lev); fn = None
     if lev:
@@ -112,8 +122,8 @@ for ri, (run, spec, key) in enumerate(zip(RUNS, SPECS, KEYS)):
         per = {k: [] for k in ["chain"] + [f"K{N}|g{g}" for N in KS for g in GAMMAS]}
         agree = np.zeros((2, DEP))
         for wi, f in enumerate(files(st, nw)):
-            R, Q, T1, right, gen, a0 = cells(D, f, fn)
-            if wi == 0:
+            R, Q, T1, right, gen, a0 = cells(D, f, fn, scr)
+            if wi == 0 and not scr:              # screened reads: core's chain_table is unscreened
                 ref = C.chain_table(D, f, DEP, fn=fn)[0]
                 mx.clear_cache()
                 ok = ref.shape == right.shape and bool((ref == right).all())

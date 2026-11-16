@@ -5049,3 +5049,54 @@ Line:
   QAT pass (q16), or a QAT t30b-style pass from b5 (qn, ~6 h, only if q16 fails).
 Prediction [G]: q16 PASS 45 %, qn PASS 55 %.
 Disk flat: c16 / q16 / qn overwrite mhx_q4a / mhx_q4b (S13, read) and mhd1_n1 (S4, read).
+
+## WEEK98 S16 QATCOS RESULT (run Mon 16 Nov 18:2x-19:4x; read 19:50; LAB, sandbox 2B, MBPP-50 / HE-30): both arms FAIL the 0.99 line
+| run | vs | t16 MBPP | t32 MBPP | t16 HE | t32 HE |
+|---|---|---|---|---|---|
+| c16 (bf16, p2s's annealed recipe) | s30 | x1.005 | x0.998 | x0.993 | x0.984 |
+| q16 (c16's recipe + 4-bit QAT) | c16 | x0.970 | x0.971 | x0.980 | x0.980 |
+| qn (s30's recipe from native + 4-bit QAT) | s30 | x0.983 | x0.970 | x0.993 | x0.985 |
+| (S13) post-hoc 4-bit s30@qat4 | s30 | - | x0.928 | - | x0.906 |
+- Determinism check PASS: c16's chain-32 kept 4.258 / 6.048 equals p2s's. The anneal keeps the bf16 control at s30's
+  level, so S13's control drift is gone.
+- 4-bit QAT recovers most of the loss but not to the line:
+  - qn (from native) recovers 58 % (MBPP) and 84 % (HE) of the post-hoc tree-32 loss;
+  - q16 (a 680-step continuation) ~60 % / ~80 %.
+- Top-1 agreement with s30 at 23-30: qn 74.1 / 81.6 %, c16 72.7 / 80.6 %. A bf16 retrain disagrees about as much,
+  so the trees change but kept is what counts.
+- VERDICT: FAIL (q16 and qn). Under the registered rule the Wed 06:30 125B 4-bit QAT slot is not used for 4-bit.
+
+## WEEK98 S17 BITS: post-hoc 8 / 6-bit and 6-bit QAT from native (pre-registered Mon 16 Nov 19:5x, before any run)
+Why: 4-bit QAT tops out at ~x0.97-0.985 (S16). Per level, 115 of t30b's 177.6 MB are the vocab side (the 8K screen's
+target); the trained Linears are ~63 MB. Bytes per level with the 8K screen, per FAR: 4-bit ~26, 6-bit ~34, 8-bit ~42.
+42 MB is still under Lunatic's ~47 MB bound. So the questions are whether 8-bit is free and whether 6-bit is
+reachable.
+Arms (lever qat4 with QAT_BITS; read-out sb98/tree8.py; one process per bit width):
+- p8: s30@qat4 at 8 bits, post-hoc. p6: s30@qat4 at 6 bits, post-hoc.
+- qn6: s30's full recipe from native + QAT at 6 bits (as S16's qn), 1,889 steps, <= 4 GB.
+Line, each vs s30: PASS if kept >= 0.99 x s30 at tree-16 AND tree-32 on both sets.
+Prediction [G]: p8 PASS (90 %), p6 PASS (40 %), qn6 PASS (70 %).
+Disk: qn6 overwrites mhd1_n1_s380 (S4, read).
+
+## WEEK98 S18 SCREEN: train the head under the 8K vocab screen (NewIdeas 19:5x; pre-registered Mon 16 Nov 19:55, before any run)
+Why: the screen is the head's big byte cut (115 of t30b's 177.6 MB per level is the vocab side; ~10.5 MB with 8K).
+Its post-hoc cost on the 125B (M3's H8) is x0.963 HE+ / x0.985 MBPP at tree-32, the largest kept cost left on the
+draft side. If S17 shows 8-bit Linears are free, 8-bit + a recovered screen (~42 MB per level) is the Saturday head
+plan (NewIdeas).
+Screen (sb98/levers/scr.py; M3's H8 rule on the 2B): per row anchored at s, the 8,192 most frequent ids of
+Sandbox98's data/shortlist_counts.npy (Magicoder python + training answers; no MBPP / HumanEval text) + every id the
+window has committed by the anchor (ids[0 .. s + 1]). Logits outside are masked.
+- Smoke on HE window 0: ~8,211 ids per row; the depth-1 true token is inside on 98.85 % of rows; 0 leaks from future
+  positions.
+Training under the screen: the per-depth KL is computed on the screened softmax. The target's out-of-screen top-32
+mass goes to kl_top's rest bucket, and survival uses the screened argmax.
+Read-out: sb98/tree8.py, a spec suffixed '!s' is read under the same screen (the chain is unchanged; only the head's
+distribution is screened). Kept under the walk at chain-32 / tree-16 / tree-32, S9b proxy at gamma 1.
+Arms (train_multi, one process each, <= 4 GB):
+- s16: c16's recipe (s30 + 680 pool2 slices, seed 1116, cosine 1e-5 -> 1e-6) + scr. Control: c16, read unscreened.
+- sn: s30's full recipe from native + scr. Control: s30, read unscreened.
+- Post-hoc: s30!s vs s30 (the sandbox's H8).
+Line (NewIdeas'), per arm: PASS if kept(arm, screened) >= 0.99 x kept(its control, unscreened) at tree-16 AND tree-32
+on BOTH sets. UNINFORMATIVE if the post-hoc screen costs < 1 % at tree-32 on both sets.
+Prediction [G]: post-hoc s30!s x0.96-0.985 (70 %); s16 PASS 45 %; sn PASS 55 %.
+Order: after S17 (one job of mine at a time). Disk: s16 / sn overwrite mhd1_c2_s380 / mhd1_c2h_s380 (S4, read).

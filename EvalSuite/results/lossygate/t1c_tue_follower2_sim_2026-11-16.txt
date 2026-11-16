@@ -1,0 +1,421 @@
+# tools/t1c_tue_follower2.sh stub simulation, Mon 2026-11-16 19:52-19:53 (PREREG_lossygate amendment 4j, revised 19:5x)
+# follower2 sha256 93a59a6aefdbfa8f... (the revised file: Leap's slot #1 keyed on its end marker, not its pid). The real follower ran
+# with test overrides: a stand-in chain (t1c_chain_stubF2.sh: logs its settings, sleeps 2 s, writes T1C_<TAG>_END and, when
+# told, V2's DONE); stand-in processes named like the real ones (night1117_t0a; run_c25_tue1_<s>.sh = leap_stub.sh, which,
+# like run_c25, removes its marker at arming and writes it on any end, 'stopped by a signal' on TERM); files for NO-SWAP,
+# another MEM run, the lid, HOLD and PAUSE. Times around the run time: the night window opened 10 min before (S5: ~1 min
+# after), the night cut 1 h after (S14: ~2 min), Leap's slot window from 10 min before to 50 min after (S4: from 30 min
+# after; S4 / S17: its end ~1 min after), the last start 1 h after (S6: ~1 min; S15: 1 min before), the day cut 2 h
+# after. Price 60 s (night fits) or 36000 s (night does not fit); poll 1 s, read pair 1 s; S7 with a 3 s fallback.
+# All 17 scenarios ran in parallel, each in its own dir and with its own slot pattern. Earlier runs on the first version
+# (pid-keyed; 19:42-19:46, 14 scenarios) passed the same way; this run is on the revised, armed file.
+=================== S1
+== s1: night fits: tag tuen (cutoff = the night cut, runner 65), done
+follower rc 0
+-- chain calls:
+19:52:12 call tag=tuen phase=wed day=2026-11-17 cutoff=2026-11-16 20:52 noyield=1 runner=tools/day_runner65.sh gate=unset mypid=63835
+-- follower log:
+[tuef2] follower2 (pid 50262; session 63835): Tuesday's B2 -> V2 (amendment 4j): after T0A_1117_END (pid 1 gone); in the night window from 11-16 19:42 only if priced (1 min) to end by 11-16 20:52; else once Leap's slot #1 is over (C25_
+[tuef2] T0A_1117_END (read twice, 1 s apart): T0A 1117 END: done (stub) 
+[tuef2] the night window: B2 -> V2 priced 1 min, to end by 11-16 20:52: the start conditions
+[tuef2] start conditions hold: NO-SWAP 50 / 50 GB >= 43: runner 65
+[tuef2] the chain (tag tuen, runner 65, cutoff 2026-11-16 20:52) runs as pid 51739
+[tuef2] the chain (tag tuen) ended rc 0: T1C TUEN END 11-16 19:52:14: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+[tuef2] end (rc 0): done: B2 -> V2 ran in the night window (tag tuen): T1C TUEN END 11-16 19:52:14: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) ; wrote <sim path>
+-- T1C_TUEF2_END: T1C TUEF2 END 11-16 19:52:14: done: B2 -> V2 ran in the night window (tag tuen): T1C TUEN END 11-16 19:52:14: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+-- T1C_RESF2_END is the same file: yes
+=================== S2
+== s2: night does not fit: waits while slot #1 runs; its in-window end (ran) starts tag tued (the day cut); done
+follower rc 0
+-- chain calls:
+19:52:18 call tag=tued phase=wed day=2026-11-17 cutoff=2026-11-16 21:52 noyield=1 runner=tools/day_runner65.sh gate=unset mypid=63835
+-- note: slot #1 stand-in ends (rc 0, ran) at 19:52:15; a chain call before it: no
+-- follower log:
+[tuef2] follower2 (pid 50955; session 63835): Tuesday's B2 -> V2 (amendment 4j): after T0A_1117_END (pid 1 gone); in the night window from 11-16 19:42 only if priced (600 min) to end by 11-16 20:52; else once Leap's slot #1 is over (C2
+[tuef2] T0A_1117_END (read twice, 1 s apart): T0A 1117 END: done (stub) 
+[tuef2] the night window: B2 -> V2 (600 min) cannot end by 11-16 20:52: after Leap's slot #1
+[tuef2] waiting: a slot #1 process runs or waits for its window
+[tuef2] Leap's slot #1 is over (read twice, 1 s apart): c25 end 11-16 19:52:15: rc 0 (ran) 
+[tuef2] start conditions hold: NO-SWAP 50 / 50 GB >= 43: runner 65
+[tuef2] the chain (tag tued, runner 65, cutoff 2026-11-16 21:52) runs as pid 52816
+[tuef2] the chain (tag tued) ended rc 0: T1C TUED END 11-16 19:52:20: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+[tuef2] end (rc 0): done: B2 -> V2 ran after Leap's slot #1 (tag tued): T1C TUED END 11-16 19:52:20: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) ; wrote <sim path>
+-- T1C_TUEF2_END: T1C TUEF2 END 11-16 19:52:20: done: B2 -> V2 ran after Leap's slot #1 (tag tued): T1C TUED END 11-16 19:52:20: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+-- T1C_RESF2_END is the same file: yes
+=================== S3
+== s3: the night chain cut (B2 rc 75): tuen, then tued once slot #1 is over, done
+follower rc 0
+-- chain calls:
+19:52:12 call tag=tuen phase=wed day=2026-11-17 cutoff=2026-11-16 20:52 noyield=1 runner=tools/day_runner65.sh gate=unset mypid=63835
+19:52:16 call tag=tued phase=wed day=2026-11-17 cutoff=2026-11-16 21:52 noyield=1 runner=tools/day_runner65.sh gate=unset mypid=63835
+-- follower log:
+[tuef2] follower2 (pid 50286; session 63835): Tuesday's B2 -> V2 (amendment 4j): after T0A_1117_END (pid 1 gone); in the night window from 11-16 19:42 only if priced (1 min) to end by 11-16 20:52; else once Leap's slot #1 is over (C25_
+[tuef2] T0A_1117_END (read twice, 1 s apart): T0A 1117 END: done (stub) 
+[tuef2] the night window: B2 -> V2 priced 1 min, to end by 11-16 20:52: the start conditions
+[tuef2] start conditions hold: NO-SWAP 50 / 50 GB >= 43: runner 65
+[tuef2] the chain (tag tuen, runner 65, cutoff 2026-11-16 20:52) runs as pid 51729
+[tuef2] the chain (tag tuen) ended rc 0: T1C TUEN END 11-16 19:52:14:  B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 75; stopped: B2 rc 75 (75: cut by the window, it resumes after the proofs; 9: VOID or INCOMPLETE) 
+[tuef2] the night chain was cut by 11-16 20:52 (it resumes): after Leap's slot #1
+[tuef2] Leap's slot #1 is over (read twice, 1 s apart): c25 end 11-17 10:05:00: rc 0 (ran) 
+[tuef2] start conditions hold: NO-SWAP 50 / 50 GB >= 43: runner 65
+[tuef2] the chain (tag tued, runner 65, cutoff 2026-11-16 21:52) runs as pid 52575
+[tuef2] the chain (tag tued) ended rc 0: T1C TUED END 11-16 19:52:18: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+[tuef2] end (rc 0): done: B2 -> V2 ran after Leap's slot #1 (tag tued): T1C TUED END 11-16 19:52:18: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) ; wrote <sim path>
+-- T1C_TUEF2_END: T1C TUEF2 END 11-16 19:52:18: done: B2 -> V2 ran after Leap's slot #1 (tag tued): T1C TUED END 11-16 19:52:18: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+-- T1C_RESF2_END is the same file: yes
+=================== S4
+== s4: slot #1 stopped before its window, no re-arm: no start until the window's end, then tued
+follower rc 0
+-- chain calls:
+19:53:02 call tag=tued phase=wed day=2026-11-17 cutoff=2026-11-16 21:52 noyield=1 runner=tools/day_runner65.sh gate=unset mypid=63835
+-- note: slot end 2026-11-16 19:53 = 1794851580
+-- follower log:
+[tuef2] follower2 (pid 50427; session 63835): Tuesday's B2 -> V2 (amendment 4j): after T0A_1117_END (pid 1 gone); in the night window from 11-16 19:42 only if priced (600 min) to end by 11-16 20:52; else once Leap's slot #1 is over (C2
+[tuef2] T0A_1117_END (read twice, 1 s apart): T0A 1117 END: done (stub) 
+[tuef2] the night window: B2 -> V2 (600 min) cannot end by 11-16 20:52: after Leap's slot #1
+[tuef2] waiting: no slot #1 process; its end marker: c25 end 11-16 21:00:00: rc 1 (stopped by a signal)  (the window is kept to 11-16 19:53)
+[tuef2] waiting: no slot #1 process; its end marker: c25 end 11-16 21:00:00: rc 1 (stopped by a signal)  (the window is kept to 11-16 19:53)
+[tuef2] Leap's slot #1 window is over (11-16 19:53), with no slot #1 process and no in-window end marker (c25 end 11-16 21:00:00: rc 1 (stopped by a signal) )
+[tuef2] start conditions hold: NO-SWAP 50 / 50 GB >= 43: runner 65
+[tuef2] the chain (tag tued, runner 65, cutoff 2026-11-16 21:52) runs as pid 56301
+[tuef2] the chain (tag tued) ended rc 0: T1C TUED END 11-16 19:53:04: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+[tuef2] end (rc 0): done: B2 -> V2 ran after Leap's slot #1 (tag tued): T1C TUED END 11-16 19:53:04: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) ; wrote <sim path>
+-- T1C_TUEF2_END: T1C TUEF2 END 11-16 19:53:04: done: B2 -> V2 ran after Leap's slot #1 (tag tued): T1C TUED END 11-16 19:53:04: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+-- T1C_RESF2_END is the same file: yes
+=================== S5
+== s5: T0A before the night window: waits until it opens, then tuen
+follower rc 0
+-- chain calls:
+19:53:01 call tag=tuen phase=wed day=2026-11-17 cutoff=2026-11-16 20:52 noyield=1 runner=tools/day_runner65.sh gate=unset mypid=63835
+-- note: night opens 2026-11-16 19:53 = 1794851580
+-- follower log:
+[tuef2] follower2 (pid 50393; session 63835): Tuesday's B2 -> V2 (amendment 4j): after T0A_1117_END (pid 1 gone); in the night window from 11-16 19:53 only if priced (1 min) to end by 11-16 20:52; else once Leap's slot #1 is over (C25_
+[tuef2] T0A_1117_END (read twice, 1 s apart): T0A 1117 END: done (stub) 
+[tuef2] the night window opens at 11-16 19:53: waiting
+[tuef2] the night window: B2 -> V2 priced 1 min, to end by 11-16 20:52: the start conditions
+[tuef2] start conditions hold: NO-SWAP 50 / 50 GB >= 43: runner 65
+[tuef2] the chain (tag tuen, runner 65, cutoff 2026-11-16 20:52) runs as pid 56241
+[tuef2] the chain (tag tuen) ended rc 0: T1C TUEN END 11-16 19:53:03: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+[tuef2] end (rc 0): done: B2 -> V2 ran in the night window (tag tuen): T1C TUEN END 11-16 19:53:03: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) ; wrote <sim path>
+-- T1C_TUEF2_END: T1C TUEF2 END 11-16 19:53:03: done: B2 -> V2 ran in the night window (tag tuen): T1C TUEN END 11-16 19:53:03: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+-- T1C_RESF2_END is the same file: yes
+=================== S6
+== s6: slot #1 never ends: no run at the last start (rc 6), no chain call
+follower rc 6
+-- chain calls:
+(none)
+-- follower log:
+[tuef2] follower2 (pid 50966; session 63835): Tuesday's B2 -> V2 (amendment 4j): after T0A_1117_END (pid 1 gone); in the night window from 11-16 19:42 only if priced (600 min) to end by 11-16 20:52; else once Leap's slot #1 is over (C2
+[tuef2] T0A_1117_END (read twice, 1 s apart): T0A 1117 END: done (stub) 
+[tuef2] the night window: B2 -> V2 (600 min) cannot end by 11-16 20:52: after Leap's slot #1
+[tuef2] waiting: a slot #1 process runs or waits for its window
+[tuef2] waiting: a slot #1 process runs or waits for its window
+[tuef2] no run: Leap's slot #1 not over by 11-16 19:53
+[tuef2] end (rc 6): no run: Leap's slot #1 not over by 11-16 19:53; wrote s6/res/T1C_TUEF2_END and T1C_RESF2_END
+-- T1C_TUEF2_END: T1C TUEF2 END 11-16 19:53:00: no run: Leap's slot #1 not over by 11-16 19:53
+-- T1C_RESF2_END is the same file: yes
+=================== S7
+== s7: NO-SWAP 42: after the fallback time, runner 66 with CARD_GATE=42 (4e)
+follower rc 0
+-- chain calls:
+19:52:14 call tag=tuen phase=wed day=2026-11-17 cutoff=2026-11-16 20:52 noyield=1 runner=tools/day_runner66.sh gate=42 mypid=63835
+-- follower log:
+[tuef2] follower2 (pid 50290; session 63835): Tuesday's B2 -> V2 (amendment 4j): after T0A_1117_END (pid 1 gone); in the night window from 11-16 19:42 only if priced (1 min) to end by 11-16 20:52; else once Leap's slot #1 is over (C25_
+[tuef2] T0A_1117_END (read twice, 1 s apart): T0A 1117 END: done (stub) 
+[tuef2] the night window: B2 -> V2 priced 1 min, to end by 11-16 20:52: the start conditions
+[tuef2] waiting for memory: NO-SWAP 42 GB (gate 43)
+[tuef2] start conditions hold: NO-SWAP 42 / 42 GB >= 42: runner 66 (amendment 4e's fallback: 43 not open 0 min after the start condition)
+[tuef2] the chain (tag tuen, runner 66, cutoff 2026-11-16 20:52) runs as pid 52156
+[tuef2] the chain (tag tuen) ended rc 0: T1C TUEN END 11-16 19:52:16: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+[tuef2] end (rc 0): done: B2 -> V2 ran in the night window (tag tuen): T1C TUEN END 11-16 19:52:16: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) ; wrote <sim path>
+-- T1C_TUEF2_END: T1C TUEF2 END 11-16 19:52:16: done: B2 -> V2 ran in the night window (tag tuen): T1C TUEN END 11-16 19:52:16: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+-- T1C_RESF2_END is the same file: yes
+=================== S8
+== s8: TERM mid-chain: the stub chain gets TERM, the end marker says stopped by a signal
+follower rc 143
+-- chain calls:
+19:52:12 call tag=tuen phase=wed day=2026-11-17 cutoff=2026-11-16 20:52 noyield=1 runner=tools/day_runner65.sh gate=unset mypid=63835
+19:52:15 stub tuen got TERM
+-- note: the stub chain (pid 51722) after the follower's end: gone
+-- follower log:
+[tuef2] follower2 (pid 50295; session 63835): Tuesday's B2 -> V2 (amendment 4j): after T0A_1117_END (pid 1 gone); in the night window from 11-16 19:42 only if priced (1 min) to end by 11-16 20:52; else once Leap's slot #1 is over (C25_
+[tuef2] T0A_1117_END (read twice, 1 s apart): T0A 1117 END: done (stub) 
+[tuef2] the night window: B2 -> V2 priced 1 min, to end by 11-16 20:52: the start conditions
+[tuef2] start conditions hold: NO-SWAP 50 / 50 GB >= 43: runner 65
+[tuef2] the chain (tag tuen, runner 65, cutoff 2026-11-16 20:52) runs as pid 51722
+[tuef2] end (rc 143): stopped by a signal during: the chain (tag tuen, runner 65, cutoff 2026-11-16 20:52): B2 -> V2; wrote s8/res/T1C_T
+-- T1C_TUEF2_END: T1C TUEF2 END 11-16 19:52:16: stopped by a signal during: the chain (tag tuen, runner 65, cutoff 2026-11-16 20:52): B2 -> V2
+-- T1C_RESF2_END is the same file: yes
+=================== S9
+== s9: HOLD, the key test, another MEM run, the lid and PAUSE each hold the start; tuen after the clear
+follower rc 0
+-- chain calls:
+19:52:27 call tag=tuen phase=wed day=2026-11-17 cutoff=2026-11-16 20:52 noyield=1 runner=tools/day_runner65.sh gate=unset mypid=63835
+-- note: all clear at 19:52:25
+-- follower log:
+[tuef2] follower2 (pid 50332; session 63835): Tuesday's B2 -> V2 (amendment 4j): after T0A_1117_END (pid 1 gone); in the night window from 11-16 19:42 only if priced (1 min) to end by 11-16 20:52; else once Leap's slot #1 is over (C25_
+[tuef2] T0A_1117_END (read twice, 1 s apart): T0A 1117 END: done (stub) 
+[tuef2] the night window: B2 -> V2 priced 1 min, to end by 11-16 20:52: the start conditions
+[tuef2] waiting: HOLD
+[tuef2] waiting: BigMoE's key test is armed or running (pid 51964 )
+[tuef2] waiting: another session's shared MEM run above 5 GB
+[tuef2] waiting: the lid shut, no external display
+[tuef2] waiting: PAUSE
+[tuef2] start conditions hold: NO-SWAP 50 / 50 GB >= 43: runner 65
+[tuef2] the chain (tag tuen, runner 65, cutoff 2026-11-16 20:52) runs as pid 53684
+[tuef2] the chain (tag tuen) ended rc 0: T1C TUEN END 11-16 19:52:29: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+[tuef2] end (rc 0): done: B2 -> V2 ran in the night window (tag tuen): T1C TUEN END 11-16 19:52:29: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) ; wrote <sim path>
+-- T1C_TUEF2_END: T1C TUEF2 END 11-16 19:52:29: done: B2 -> V2 ran in the night window (tag tuen): T1C TUEN END 11-16 19:52:29: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+-- T1C_RESF2_END is the same file: yes
+=================== S10
+== s10: the night chain ends B2 rc 9: final, no tued
+follower rc 0
+-- chain calls:
+19:52:12 call tag=tuen phase=wed day=2026-11-17 cutoff=2026-11-16 20:52 noyield=1 runner=tools/day_runner65.sh gate=unset mypid=63835
+-- follower log:
+[tuef2] follower2 (pid 50272; session 63835): Tuesday's B2 -> V2 (amendment 4j): after T0A_1117_END (pid 1 gone); in the night window from 11-16 19:42 only if priced (1 min) to end by 11-16 20:52; else once Leap's slot #1 is over (C25_
+[tuef2] T0A_1117_END (read twice, 1 s apart): T0A 1117 END: done (stub) 
+[tuef2] the night window: B2 -> V2 priced 1 min, to end by 11-16 20:52: the start conditions
+[tuef2] start conditions hold: NO-SWAP 50 / 50 GB >= 43: runner 65
+[tuef2] the chain (tag tuen, runner 65, cutoff 2026-11-16 20:52) runs as pid 51721
+[tuef2] the chain (tag tuen) ended rc 0: T1C TUEN END 11-16 19:52:14:  B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 9; stopped: B2 rc 9 (75: cut by the window, it resumes after the proofs; 9: VOID or INCOMPLETE) 
+[tuef2] ended without V2's verdict: the night chain (tag tuen) ended rc 0: T1C TUEN END 11-16 19:52:14:  B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 9; stopped: B2 rc 9 (75: cut by the window, it resumes after the proofs; 9: VOID or INCO
+[tuef2] end (rc 0): ended without V2's verdict: the night chain (tag tuen) ended rc 0: T1C TUEN END 11-16 19:52:14:  B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 9; stopped: B2 rc 9 (75: cut by the window, it resumes after the proofs; 9: 
+-- T1C_TUEF2_END: T1C TUEF2 END 11-16 19:52:14: ended without V2's verdict: the night chain (tag tuen) ended rc 0: T1C TUEN END 11-16 19:52:14:  B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 9; stopped: B2 rc 9 (75: cut by the window, it resumes after the proofs; 9: VOID or INCOMPLETE) 
+-- T1C_RESF2_END is the same file: yes
+=================== S11
+== s11: a stale T0A (Mon 08:00) is ignored; the fresh one starts tuen
+follower rc 0
+-- chain calls:
+19:52:17 call tag=tuen phase=wed day=2026-11-17 cutoff=2026-11-16 20:52 noyield=1 runner=tools/day_runner65.sh gate=unset mypid=63835
+-- note: fresh T0A at 19:52:14; a chain call before it: no
+-- follower log:
+[tuef2] follower2 (pid 50330; session 63835): Tuesday's B2 -> V2 (amendment 4j): after T0A_1117_END (pid 1 gone); in the night window from 11-16 19:42 only if priced (1 min) to end by 11-16 20:52; else once Leap's slot #1 is over (C25_
+[tuef2] T0A_1117_END (read twice, 1 s apart): T0A 1117 END: done (stub, fresh) 
+[tuef2] the night window: B2 -> V2 priced 1 min, to end by 11-16 20:52: the start conditions
+[tuef2] start conditions hold: NO-SWAP 50 / 50 GB >= 43: runner 65
+[tuef2] the chain (tag tuen, runner 65, cutoff 2026-11-16 20:52) runs as pid 52657
+[tuef2] the chain (tag tuen) ended rc 0: T1C TUEN END 11-16 19:52:19: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+[tuef2] end (rc 0): done: B2 -> V2 ran in the night window (tag tuen): T1C TUEN END 11-16 19:52:19: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) ; wrote <sim path>
+-- T1C_TUEF2_END: T1C TUEF2 END 11-16 19:52:19: done: B2 -> V2 ran in the night window (tag tuen): T1C TUEN END 11-16 19:52:19: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+-- T1C_RESF2_END is the same file: yes
+=================== S12
+== s12: T0A present but the t0a follower alive: waits until it is gone
+follower rc 0
+-- chain calls:
+19:52:17 call tag=tuen phase=wed day=2026-11-17 cutoff=2026-11-16 20:52 noyield=1 runner=tools/day_runner65.sh gate=unset mypid=63835
+-- note: t0a stub stopped at 19:52:15; a chain call before it: no
+-- follower log:
+[tuef2] follower2 (pid 50984; session 63835): Tuesday's B2 -> V2 (amendment 4j): after T0A_1117_END (pid 50313 gone); in the night window from 11-16 19:42 only if priced (1 min) to end by 11-16 20:52; else once Leap's slot #1 is over (
+[tuef2] T0A_1117_END (read twice, 1 s apart): T0A 1117 END: done (stub) 
+[tuef2] the night window: B2 -> V2 priced 1 min, to end by 11-16 20:52: the start conditions
+[tuef2] start conditions hold: NO-SWAP 50 / 50 GB >= 43: runner 65
+[tuef2] the chain (tag tuen, runner 65, cutoff 2026-11-16 20:52) runs as pid 52749
+[tuef2] the chain (tag tuen) ended rc 0: T1C TUEN END 11-16 19:52:19: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+[tuef2] end (rc 0): done: B2 -> V2 ran in the night window (tag tuen): T1C TUEN END 11-16 19:52:19: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) ; wrote <sim path>
+-- T1C_TUEF2_END: T1C TUEF2 END 11-16 19:52:19: done: B2 -> V2 ran in the night window (tag tuen): T1C TUEN END 11-16 19:52:19: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+-- T1C_RESF2_END is the same file: yes
+=================== S14
+== s14: night priced out while memory stays shut -> slot #1 over -> memory -> tued
+follower rc 0
+-- chain calls:
+19:53:07 call tag=tued phase=wed day=2026-11-17 cutoff=2026-11-16 21:52 noyield=1 runner=tools/day_runner65.sh gate=unset mypid=63835
+-- note: memory freed at 19:53:05
+-- follower log:
+[tuef2] follower2 (pid 50367; session 63835): Tuesday's B2 -> V2 (amendment 4j): after T0A_1117_END (pid 1 gone); in the night window from 11-16 19:42 only if priced (1 min) to end by 11-16 19:54; else once Leap's slot #1 is over (C25_
+[tuef2] T0A_1117_END (read twice, 1 s apart): T0A 1117 END: done (stub) 
+[tuef2] the night window: B2 -> V2 priced 1 min, to end by 11-16 19:54: the start conditions
+[tuef2] waiting for memory: NO-SWAP 30 GB (gate 43)
+[tuef2] waiting for memory: NO-SWAP 30 GB (gate 43)
+[tuef2] no night start: B2 -> V2 would no longer end by 11-16 19:54: after Leap's slot #1
+[tuef2] Leap's slot #1 is over (read twice, 1 s apart): c25 end 11-17 10:05:00: rc 0 (ran) 
+[tuef2] waiting for memory: NO-SWAP 30 GB (gate 43)
+[tuef2] start conditions hold: NO-SWAP 50 / 50 GB >= 43: runner 65
+[tuef2] the chain (tag tued, runner 65, cutoff 2026-11-16 21:52) runs as pid 56551
+[tuef2] the chain (tag tued) ended rc 0: T1C TUED END 11-16 19:53:09: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+[tuef2] end (rc 0): done: B2 -> V2 ran after Leap's slot #1 (tag tued): T1C TUED END 11-16 19:53:09: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) ; wrote <sim path>
+-- T1C_TUEF2_END: T1C TUEF2 END 11-16 19:53:09: done: B2 -> V2 ran after Leap's slot #1 (tag tued): T1C TUED END 11-16 19:53:09: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+-- T1C_RESF2_END is the same file: yes
+=================== S15
+== s15: no T0A and past the last start: no run (rc 6)
+follower rc 6
+-- chain calls:
+(none)
+-- follower log:
+[tuef2] follower2 (pid 50358; session 63835): Tuesday's B2 -> V2 (amendment 4j): after T0A_1117_END (pid 1 gone); in the night window from 11-16 19:42 only if priced (1 min) to end by 11-16 20:52; else once Leap's slot #1 is over (C25_
+[tuef2] no run: no T0A_1117_END by 11-16 19:51
+[tuef2] end (rc 6): no run: no T0A_1117_END by 11-16 19:51; wrote s15/res/T1C_TUEF2_END and T1C_RESF2_END
+-- T1C_TUEF2_END: T1C TUEF2 END 11-16 19:52:09: no run: no T0A_1117_END by 11-16 19:51
+-- T1C_RESF2_END is the same file: yes
+=================== S16
+== s16: slot #1 re-armed under a new pid with a gap: no start in the gap or during the new slot; start after its end
+follower rc 0
+-- chain calls:
+19:52:24 call tag=tued phase=wed day=2026-11-17 cutoff=2026-11-16 21:52 noyield=1 runner=tools/day_runner65.sh gate=unset mypid=63835
+-- note: re-arm: old stopped, 4 s gap (a chain call in the gap: no), new slot ran 3 s (a chain call: no); new slot ends (ran) at 19:52:21
+-- follower log:
+[tuef2] follower2 (pid 50959; session 63835): Tuesday's B2 -> V2 (amendment 4j): after T0A_1117_END (pid 1 gone); in the night window from 11-16 19:42 only if priced (600 min) to end by 11-16 20:52; else once Leap's slot #1 is over (C2
+[tuef2] T0A_1117_END (read twice, 1 s apart): T0A 1117 END: done (stub) 
+[tuef2] the night window: B2 -> V2 (600 min) cannot end by 11-16 20:52: after Leap's slot #1
+[tuef2] waiting: a slot #1 process runs or waits for its window
+[tuef2] waiting: no slot #1 process; its end marker: c25 end 11-16 19:52:14: rc 1 (stopped by a signal)  (the window is kept to 11-16 20:42)
+[tuef2] waiting: a slot #1 process runs or waits for its window
+[tuef2] Leap's slot #1 is over (read twice, 1 s apart): c25 end 11-16 19:52:21: rc 0 (ran) 
+[tuef2] start conditions hold: NO-SWAP 50 / 50 GB >= 43: runner 65
+[tuef2] the chain (tag tued, runner 65, cutoff 2026-11-16 21:52) runs as pid 53461
+[tuef2] the chain (tag tued) ended rc 0: T1C TUED END 11-16 19:52:26: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+[tuef2] end (rc 0): done: B2 -> V2 ran after Leap's slot #1 (tag tued): T1C TUED END 11-16 19:52:26: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) ; wrote <sim path>
+-- T1C_TUEF2_END: T1C TUEF2 END 11-16 19:52:26: done: B2 -> V2 ran after Leap's slot #1 (tag tued): T1C TUED END 11-16 19:52:26: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+-- T1C_RESF2_END is the same file: yes
+=================== S17
+== s17: slot #1 stopped by a signal in its window, no re-arm: no start until the window's end, then tued
+follower rc 0
+-- chain calls:
+19:53:02 call tag=tued phase=wed day=2026-11-17 cutoff=2026-11-16 21:52 noyield=1 runner=tools/day_runner65.sh gate=unset mypid=63835
+-- note: slot stopped in its window (no re-arm) at 19:52:14; slot end 2026-11-16 19:53 = 1794851580
+-- follower log:
+[tuef2] follower2 (pid 51003; session 63835): Tuesday's B2 -> V2 (amendment 4j): after T0A_1117_END (pid 1 gone); in the night window from 11-16 19:42 only if priced (600 min) to end by 11-16 20:52; else once Leap's slot #1 is over (C2
+[tuef2] T0A_1117_END (read twice, 1 s apart): T0A 1117 END: done (stub) 
+[tuef2] the night window: B2 -> V2 (600 min) cannot end by 11-16 20:52: after Leap's slot #1
+[tuef2] waiting: a slot #1 process runs or waits for its window
+[tuef2] waiting: no slot #1 process; its end marker: c25 end 11-16 19:52:14: rc 1 (stopped by a signal)  (the window is kept to 11-16 19:53)
+[tuef2] waiting: no slot #1 process; its end marker: c25 end 11-16 19:52:14: rc 1 (stopped by a signal)  (the window is kept to 11-16 19:53)
+[tuef2] Leap's slot #1 window is over (11-16 19:53), with no slot #1 process and no in-window end marker (c25 end 11-16 19:52:14: rc 1 (stopped by a signal) )
+[tuef2] start conditions hold: NO-SWAP 50 / 50 GB >= 43: runner 65
+[tuef2] the chain (tag tued, runner 65, cutoff 2026-11-16 21:52) runs as pid 56271
+[tuef2] the chain (tag tued) ended rc 0: T1C TUED END 11-16 19:53:04: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+[tuef2] end (rc 0): done: B2 -> V2 ran after Leap's slot #1 (tag tued): T1C TUED END 11-16 19:53:04: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) ; wrote <sim path>
+-- T1C_TUEF2_END: T1C TUEF2 END 11-16 19:53:04: done: B2 -> V2 ran after Leap's slot #1 (tag tued): T1C TUED END 11-16 19:53:04: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+-- T1C_RESF2_END is the same file: yes
+=================== S18
+== s18: slot #1 over (ran) while monitors name its script: they do not count as the slot; tued starts
+follower rc 0
+-- chain calls:
+19:52:13 call tag=tued phase=wed day=2026-11-17 cutoff=2026-11-16 21:52 noyield=1 runner=tools/day_runner65.sh gate=unset mypid=63835
+-- note: two monitors named the script (bash -c ... run_c25_tue1_s18.sh; tail -f .../run_c25_tue1_s18.sh) during the run
+-- follower log:
+[tuef2] follower2 (pid 50976; session 63835): Tuesday's B2 -> V2 (amendment 4j): after T0A_1117_END (pid 1 gone); in the night window from 11-16 19:42 only if priced (600 min) to end by 11-16 20:52; else once Leap's slot #1 is over (C2
+[tuef2] T0A_1117_END (read twice, 1 s apart): T0A 1117 END: done (stub) 
+[tuef2] the night window: B2 -> V2 (600 min) cannot end by 11-16 20:52: after Leap's slot #1
+[tuef2] Leap's slot #1 is over (read twice, 1 s apart): c25 end 11-17 10:05:00: rc 0 (ran) 
+[tuef2] start conditions hold: NO-SWAP 50 / 50 GB >= 43: runner 65
+[tuef2] the chain (tag tued, runner 65, cutoff 2026-11-16 21:52) runs as pid 52011
+[tuef2] the chain (tag tued) ended rc 0: T1C TUED END 11-16 19:52:15: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+[tuef2] end (rc 0): done: B2 -> V2 ran after Leap's slot #1 (tag tued): T1C TUED END 11-16 19:52:15: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) ; wrote <sim path>
+-- T1C_TUEF2_END: T1C TUEF2 END 11-16 19:52:15: done: B2 -> V2 ran after Leap's slot #1 (tag tued): T1C TUED END 11-16 19:52:15: done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files) 
+-- T1C_RESF2_END is the same file: yes
+=================== the driver (drive.sh), the stand-in chain (t1c_chain_stubF2.sh), the slot stand-in (leap_stub.sh)
+#!/bin/bash
+# drive.sh: the stub sim of tools/t1c_tue_follower2.sh (PREREG_lossygate 4j, revised 19:5x: Leap's slot keyed on its end
+# marker). Each scenario runs the real follower with a stand-in chain (t1c_chain_stubF2.sh), stand-in processes and markers
+# in its own dir; all scenarios run in parallel. Each scenario's Leap stand-in is its own run_c25_tue1_<s>.sh (leap_stub.sh:
+# removes the marker at arming, writes it on any end; TERM = "stopped by a signal"), matched by that scenario's pattern.
+D=<sim>
+F=$HOME/EvalSuite/tools/t1c_tue_follower2.sh
+t() { date -r $(( $(date +%s) + $1 )) '+%Y-%m-%d %H:%M'; }
+e() { date -j -f '%Y-%m-%d %H:%M:%S' "$1:00" +%s; }
+setup() { S=$D/$1; rm -rf "$S"; mkdir -p "$S/res" "$S/q"; echo 50 > "$S/free"; echo "T0A 1117 END: done (stub)" > "$S/T0A_1117_END"
+  cp $D/leap_stub.sh "$S/run_c25_tue1_$1.sh"; }
+leap() { "$D/$1/run_c25_tue1_$1.sh" "$D/$1/C25_tue1_DONE" "$D/$1/leap_go" & LP=$!; sleep 0.5; }   # a slot #1 stand-in runs
+ran() { echo "c25 end 11-17 10:05:00: rc 0 (ran)" > "$D/$1/C25_tue1_DONE"; }                     # an in-window end marker
+run() {         # dir, then overrides: the follower with the sim's defaults (night fits; no slot #1 process); FPID = its pid
+  local S=$D/$1 s=$1; shift
+  env CHAIN_MYPID=63835 SIM="$S" CHAIN_SCRIPT=$D/t1c_chain_stubF2.sh CHAIN_RES="$S/res" CHAIN_T0A="$S/T0A_1117_END" \
+    CHAIN_T0APID=1 CHAIN_LEAPMK="$S/C25_tue1_DONE" CHAIN_LEAPPAT="run_c25_tue1_$s\.sh" CHAIN_KTPAT='kt_stub_[n]one\.sh' \
+    CHAIN_QDIR="$S/q" CHAIN_FREEGB="cat $S/free" CHAIN_MEMBUSY="test -e $S/membusy" CHAIN_LIDSHUT="test -e $S/lid" \
+    CHAIN_POLL=1 CHAIN_PAIR=1 CHAIN_NIGHTOPEN="$(t -600)" CHAIN_NIGHTCUT="$(t 3600)" CHAIN_PRICE_S=60 \
+    CHAIN_SLOTSTART="$(t -600)" CHAIN_SLOTEND="$(t 3000)" CHAIN_LASTSTART="$(t 3600)" CHAIN_DAYCUT="$(t 7200)" STUB_SLEEP=2 \
+    "$@" bash "$F" > "$S/follower.out" 2>&1 &
+  FPID=$!
+}
+waitlog() { local i; for i in $(seq 1 "${3:-120}"); do grep -q -- "$2" "$D/$1/res/t1c_chain.log" 2>/dev/null && return 0; sleep 1; done; return 1; }
+calls() { [ -s "$D/$1/calls.txt" ] && echo YES || echo no; }
+report() {      # dir, the follower's rc, what is expected
+  local S=$D/$1
+  { echo "== $1: $3"; echo "follower rc $2"
+    echo "-- chain calls:"; if [ -s "$S/calls.txt" ]; then cut -d' ' -f2- "$S/calls.txt"; else echo "(none)"; fi
+    [ -e "$S/note" ] && echo "-- note: $(cat "$S/note")"
+    echo "-- follower log:"; cut -c16-250 "$S/res/t1c_chain.log"
+    echo "-- T1C_TUEF2_END: $(cat "$S/res/T1C_TUEF2_END" 2>/dev/null || echo MISSING)"
+    echo "-- T1C_RESF2_END is the same file: $(cmp -s "$S/res/T1C_TUEF2_END" "$S/res/T1C_RESF2_END" && echo yes || echo NO)"; } > "$S/report.txt"
+}
+NF="CHAIN_PRICE_S=36000"   # the night does not fit
+s1() { setup s1; touch $D/s1/v2_tuen; run s1; wait $FPID; report s1 $? "night fits: tag tuen (cutoff = the night cut, runner 65), done"; }
+s2() { setup s2; touch $D/s2/v2_tued; leap s2; run s2 $NF; waitlog s2 "a slot #1 process runs" 60; sleep 3
+  echo "slot #1 stand-in ends (rc 0, ran) at $(date +%T); a chain call before it: $(calls s2)" > $D/s2/note; touch $D/s2/leap_go
+  wait $FPID; report s2 $? "night does not fit: waits while slot #1 runs; its in-window end (ran) starts tag tued (the day cut); done"; }
+s3() { setup s3; touch $D/s3/v2_tued; ran s3
+  echo " B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 75; stopped: B2 rc 75 (75: cut by the window, it resumes after the proofs; 9: VOID or INCOMPLETE)" > $D/s3/status_tuen
+  run s3; wait $FPID; report s3 $? "the night chain cut (B2 rc 75): tuen, then tued once slot #1 is over, done"; }
+s4() { setup s4; touch $D/s4/v2_tued; echo "c25 end 11-16 21:00:00: rc 1 (stopped by a signal)" > $D/s4/C25_tue1_DONE
+  local SE; SE=$(t 90); echo "slot end $SE = $(e "$SE")" > $D/s4/note
+  run s4 $NF CHAIN_SLOTSTART="$(t 1800)" CHAIN_SLOTEND="$SE"; wait $FPID
+  report s4 $? "slot #1 stopped before its window, no re-arm: no start until the window's end, then tued"; }
+s5() { setup s5; touch $D/s5/v2_tuen; local O; O=$(t 90); echo "night opens $O = $(e "$O")" > $D/s5/note
+  run s5 CHAIN_NIGHTOPEN="$O"; wait $FPID; report s5 $? "T0A before the night window: waits until it opens, then tuen"; }
+s6() { setup s6; leap s6; run s6 $NF CHAIN_LASTSTART="$(t 60)"; wait $FPID; local rc=$?; kill $LP
+  report s6 $rc "slot #1 never ends: no run at the last start (rc 6), no chain call"; }
+s7() { setup s7; touch $D/s7/v2_tuen; echo 42 > $D/s7/free
+  run s7 CHAIN_FB_S=3; wait $FPID; report s7 $? "NO-SWAP 42: after the fallback time, runner 66 with CARD_GATE=42 (4e)"; }
+s8() { setup s8; touch $D/s8/v2_tuen; run s8 STUB_SLEEP=60
+  local i; for i in $(seq 1 60); do [ -s $D/s8/calls.txt ] && break; sleep 1; done; sleep 3; kill -TERM $FPID; wait $FPID; local rc=$?
+  local CP; CP=$(grep -o 'runs as pid [0-9]*' $D/s8/res/t1c_chain.log | awk '{print $4}')
+  echo "the stub chain (pid $CP) after the follower's end: $(ps -o command= -p "$CP" 2>/dev/null | grep -q t1c_chain && echo ALIVE || echo gone)" > $D/s8/note
+  report s8 $rc "TERM mid-chain: the stub chain gets TERM, the end marker says stopped by a signal"; }
+s9() { setup s9; touch $D/s9/v2_tuen; touch $D/s9/q/HOLD; cp $D/kt_stub.sh $D/s9/kt_stub_s9.sh
+  run s9 CHAIN_KTPAT='kt_stub_s[9]\.sh'; waitlog s9 "waiting: HOLD" 30; sleep 2
+  $D/s9/kt_stub_s9.sh & local KP=$!; rm $D/s9/q/HOLD; waitlog s9 "key test" 30; sleep 2
+  touch $D/s9/membusy; kill $KP; waitlog s9 "shared MEM run" 30; sleep 2
+  touch $D/s9/lid; rm $D/s9/membusy; waitlog s9 "lid shut" 30; sleep 2
+  touch $D/s9/q/PAUSE; rm $D/s9/lid; waitlog s9 "waiting: PAUSE" 30; sleep 2
+  echo "all clear at $(date +%T)" > $D/s9/note; rm $D/s9/q/PAUSE
+  wait $FPID; report s9 $? "HOLD, the key test, another MEM run, the lid and PAUSE each hold the start; tuen after the clear"; }
+s10() { setup s10; echo " B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 9; stopped: B2 rc 9 (75: cut by the window, it resumes after the proofs; 9: VOID or INCOMPLETE)" > $D/s10/status_tuen
+  run s10; wait $FPID; report s10 $? "the night chain ends B2 rc 9: final, no tued"; }
+s11() { setup s11; touch $D/s11/v2_tuen; touch -t 202611160800 $D/s11/T0A_1117_END; run s11; sleep 5
+  echo "fresh T0A at $(date +%T); a chain call before it: $(calls s11)" > $D/s11/note
+  echo "T0A 1117 END: done (stub, fresh)" > $D/s11/T0A_1117_END; wait $FPID; report s11 $? "a stale T0A (Mon 08:00) is ignored; the fresh one starts tuen"; }
+s12() { setup s12; touch $D/s12/v2_tuen; $D/night1117_t0a_stub.sh & local TP=$!; sleep 0.5
+  run s12 CHAIN_T0APID=$TP; sleep 5; echo "t0a stub stopped at $(date +%T); a chain call before it: $(calls s12)" > $D/s12/note; kill $TP
+  wait $FPID; report s12 $? "T0A present but the t0a follower alive: waits until it is gone"; }
+s14() { setup s14; touch $D/s14/v2_tued; echo 30 > $D/s14/free; ran s14
+  run s14 CHAIN_NIGHTCUT="$(t 150)"; waitlog s14 "no night start" 200; sleep 3; echo "memory freed at $(date +%T)" > $D/s14/note; echo 50 > $D/s14/free
+  wait $FPID; report s14 $? "night priced out while memory stays shut -> slot #1 over -> memory -> tued"; }
+s15() { setup s15; rm $D/s15/T0A_1117_END; run s15 CHAIN_LASTSTART="$(t -60)"; wait $FPID; report s15 $? "no T0A and past the last start: no run (rc 6)"; }
+s16() { setup s16; touch $D/s16/v2_tued; leap s16; local A=$LP; run s16 $NF; waitlog s16 "a slot #1 process runs" 60; sleep 2
+  kill -TERM $A; sleep 4; local n1; n1=$(calls s16)                # the old slot stopped (in-window marker: by a signal); a 4 s gap
+  leap s16; sleep 3; local n2; n2=$(calls s16)                     # the re-armed slot (a new pid) removes the marker and runs
+  echo "re-arm: old stopped, 4 s gap (a chain call in the gap: $n1), new slot ran 3 s (a chain call: $n2); new slot ends (ran) at $(date +%T)" > $D/s16/note
+  touch $D/s16/leap_go; wait $FPID; report s16 $? "slot #1 re-armed under a new pid with a gap: no start in the gap or during the new slot; start after its end"; }
+s17() { setup s17; touch $D/s17/v2_tued; leap s17; local A=$LP SE; SE=$(t 90); run s17 $NF CHAIN_SLOTEND="$SE"; waitlog s17 "a slot #1 process runs" 60; sleep 2
+  kill -TERM $A; echo "slot stopped in its window (no re-arm) at $(date +%T); slot end $SE = $(e "$SE")" > $D/s17/note
+  wait $FPID; report s17 $? "slot #1 stopped by a signal in its window, no re-arm: no start until the window's end, then tued"; }
+s18() { setup s18; touch $D/s18/v2_tued; ran s18; bash -c "sleep 20; true # watching run_c25_tue1_s18.sh" & local M1=$!
+  tail -f $D/s18/run_c25_tue1_s18.sh > /dev/null & local M2=$!; sleep 0.5
+  run s18 $NF; wait $FPID; local rc=$?; kill $M1 $M2 2>/dev/null
+  echo "two monitors named the script (bash -c ... run_c25_tue1_s18.sh; tail -f .../run_c25_tue1_s18.sh) during the run" > $D/s18/note
+  report s18 $rc "slot #1 over (ran) while monitors name its script: they do not count as the slot; tued starts"; }
+ALL="s1 s2 s3 s4 s5 s6 s7 s8 s9 s10 s11 s12 s14 s15 s16 s17 s18"
+for s in $ALL; do $s & done
+wait
+for s in $ALL; do cat $D/$s/report.txt; echo; done
+-----
+#!/bin/bash
+# a stand-in for tools/t1c_chain2.sh in the follower2 sim: records its settings, sleeps, writes its end marker
+SIM=${SIM:?}; RES=${CHAIN_RES:?}; TAG=${CHAIN_TAG:?}; UT=$(echo "$TAG" | tr a-z A-Z)
+echo "$(date +%s) $(date +%H:%M:%S) call tag=$TAG phase=$CHAIN_PHASE day=$CHAIN_DAY cutoff=$CHAIN_CUTOFF noyield=$CHAIN_NOYIELD runner=${CHAIN_RUNNER:-tools/day_runner65.sh} gate=${CARD_GATE:-unset} mypid=$CHAIN_MYPID" >> "$SIM/calls.txt"
+ST="done: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0 (verdicts in the CARD_*_DONE files)"
+[ -e "$SIM/status_$TAG" ] && ST=$(cat "$SIM/status_$TAG")
+trap 'echo "T1C $UT END $(date "+%m-%d %H:%M:%S"): stopped by a signal during: B2" > "$RES/T1C_${UT}_END"; echo "$(date +%s) $(date +%H:%M:%S) stub $TAG got TERM" >> "$SIM/calls.txt"; kill $! 2>/dev/null; exit 143' TERM
+sleep "${STUB_SLEEP:-2}" & wait $!
+[ -e "$SIM/v2_$TAG" ] && echo "LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (n 528): stub (both orders: stub)" > "$RES/CARD_t1cx45t1c1_rev_DONE"
+echo "T1C $UT END $(date '+%m-%d %H:%M:%S'): $ST" > "$RES/T1C_${UT}_END"
+exit 0
+-----
+#!/bin/bash
+# a stand-in for Leap's run_c25_tue1.sh: removes its marker at arming; writes it on any end (TERM: a stop by a signal)
+MK=$1; TRIG=$2
+rm -f "$MK"
+trap 'echo "c25 end $(date "+%m-%d %H:%M:%S"): rc 1 (stopped by a signal)" > "$MK"; exit 1' TERM
+while [ ! -e "$TRIG" ]; do sleep 0.2; done
+echo "c25 end $(date '+%m-%d %H:%M:%S'): rc 0 (ran)" > "$MK"; exit 0

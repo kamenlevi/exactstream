@@ -461,3 +461,153 @@ NOT CARRIED >= 0.8x, else BETWEEN).
     then BigMoE's key test, then its B2 -> V2. The yield watcher exited (B2's runner gone).
     scripts/m1/g1g2_softstop.sh (stop after the next complete arm file, or at a deadline; stub simulation 4/4) was
     built for the withdrawn stop and is not running.
+
+### Section 2 result (Mon 16 Nov 19:33; run 3, 17:38:21-19:33:05, all 8 arms, rc 0)
+
+Data: data/m1/g1g2_map.out (+ .json), data/m1/g1g2_map/run.log, footprint.log and pins.txt (sha256 of the arm files in
+~/FableGod/decision_map/out_code24).
+
+**Validity: all PASS.**
+- bt_restore equals the baseline bit for bit: top-8 ids and log-probs, every row of the 24 windows.
+- Each of the 4 int8 arms quantized exactly the answer rows: 2,667,420 / 2,680,122 row-modules, as wanted, with no
+  window mismatch. The census is logged; 2 extra PLE modules appear where PLE is 4-bit.
+- No arm equals the baseline on any row (0 of 6,327 rows identical).
+- RES masks: 3.11 % of MSB-3-tier experts dropped as non-resident (Fit12 at 1c: 3.58 %).
+
+**Verdicts.** 24 windows, 6,327 rows (6,258 non-tie). The lines are 1.34 % (at most 84 rows) and 0.87 % (at most 54
+non-tie rows). Ranges are the 95 % window bootstrap; the full table, with every head read, is in data/m1/g1g2_map.out.
+
+| arm | head read | all-row % (rows) | non-tie % (rows) | verdict | [P] |
+|---|---|---|---|---|---|
+| bt_g1h8 = G1 as gated (C6 + HC8 mixers + int8) | full | 0.95 [0.49, 1.53] (60) | 0.53 [0.29, 0.81] (33) | **PASS** | 1.3-1.5 / 0.65 |
+| bt_g1h8_res = G1 as gated + RES | full | 0.98 [0.49, 1.65] (62) | 0.56 [0.31, 0.85] (35) | **PASS** | - |
+| bt_dense3 = DENSE-3 alone (V4's quality) | full | 2.09 [1.10, 3.42] (132) | 1.44 [0.77, 2.30] (90) | **FAIL** (> 2.01) | 3.5-4, FAIL |
+| bt_l20g2 = G2 no-V4 (lambda 2.0e-2 + V3 + int8 + V1) | V1-32k (G2's read) | 1.36 [0.66, 2.22] (86) | 0.93 [0.45, 1.47] (58) | **OVER** (both) | 1.4-1.6 / 0.85 |
+| bt_g1 = C6 + V3 + int8 + V1 | V1-32k | 1.33 [0.65, 2.20] (84) | 0.90 [0.46, 1.39] (56) | **OVER** (non-tie) | - |
+| bt_c6comb = C6 + V3 + V1 | V1-32k | 1.31 [0.69, 2.06] (83) | 0.86 [0.43, 1.32] (54) | PASS | 1.22-1.33 / 0.71 |
+| bt_l20comb = lambda 2.0e-2 + V3 + V1 | V1-32k | 1.34 [0.68, 2.23] (85) | 0.85 [0.45, 1.30] (53) | **OVER** (all-row, 1 row) | 1.34 / 0.80 |
+
+- **RES increment**, paired on windows 1-12 (3,366 rows): all-row 1.19 -> 1.25 (+0.06 pt), non-tie 0.63 -> 0.69
+  (+0.06 pt). Fit12 priced it at +0.046 / +0.033, and the prediction was ~+0.05. There is no large surprise (< +0.3 pt).
+- **V1-16k + session rows is OVER on every arm** (1.50-1.53 / 1.01-1.09). The in-sample registered reads (1.22-1.26 /
+  0.74-0.82) are void as V1 evidence (section 3).
+
+**Decisions, as registered.**
+- **G1 PASS** (0.95 / 0.53): Tuesday's G1 gate stands as gated, with no bisect.
+- **DENSE-3 FAIL** (2.09 > 2.01): nobody builds V4, and G2 takes the no-V4 route, G1 + V1 + V3 + lambda 2.0e-2
+  (amendment (b)).
+  - It did much better than predicted (3.5-4), since the MSB-3 midpoint beats RTN.
+  - It is over BETWEEN's ceiling too, so the decision is the same either way.
+- **G2's no-V4 route at its V1 read (32K + session rows, no drafts) is OVER both lines**, by 2 / 4 rows. That read adds
+  no drafts, so it is an upper bound on V1's cost (section 3). This is a prior for EvalSuite's Wednesday gate, not a
+  gate.
+- **RES** (+0.06 pt paired, as priced) can join G2.
+
+**Post hoc** (unregistered): unpaired differences of the arms' points on the same rows; a paired read is still to do.
+- **V1 vs each arm's in-sample read** (which misses 2 rows by construction):
+  - 32K costs +0.09-0.11 pt all-row (5-6 rows);
+  - 16K costs +0.27-0.29.
+- **int8 on the answer rows** (bt_g1 - bt_c6comb and bt_l20g2 - bt_l20comb, every head read): +0.00-0.03 pt all-row,
+  below the predicted +0.05-0.3; +0.02-0.08 pt non-tie.
+- **lambda 2.0e-2 vs C6** (bt_l20comb - bt_c6comb): +0.01-0.03 pt all-row for 0.38 GB per check (section 5).
+- **V3 vs G1's HC8 mixers** (the in-sample reads of bt_c6comb / bt_g1 minus bt_g1h8): +0.27-0.29 pt all-row for
+  ~0.34 GB per check (section 5: V1 + V3 save 0.46 GB, V1 at 16K ~0.12).
+  - Per 0.1 GB saved, V3 (~0.08 pt) and V1-32K (~0.1 pt) cost about the same.
+  - lambda 2.0e-2 costs ~0.005 pt per 0.1 GB, ~20x cheaper.
+  - So V3 is what puts G2's no-V4 route at the line.
+
+**Run notes.**
+- Wall 6,879 s (1 h 55 min, against ~40 min planned).
+  - Arms 5-8 (bt_g1, bt_restore, bt_l20comb, bt_c6comb) took 24 / 6 / 26 / 26 min, against ~10 min for each int8 arm
+    before them.
+  - The GPU was shared with other share-locked runs then (at 19:3x: MTP Head 25 %, Sandbox98 40 %; GPU 89 %).
+- The share lock, renewed to 19:15, ran out 18 min before the end. Next time the lock runs to the hard stop.
+- Peak footprint 23.69 GB lifetime, MLX peak active 16.76 GB. Swap went 7,650 -> 7,594 MB.
+
+**Amendment (h), Mon 16 Nov 19:5x, before any band arm runs: section 6 moves to tonight (NewIdeas 19:3x).**
+- **Why.** It frees ~45 min of Tuesday's crowded morning (B2 -> V2, G1 base and G1 all moved there), so G1's verdict
+  lands earlier.
+- **No data dependency.** lband_run_map.py and lband_read.py read only out_code24 and the 14:0x masks. Fit12's kill-test
+  marker was only the slot gate.
+- **Window.**
+  - Start after Sandbox98's screen 2 (its share lock, to ~20:15).
+  - Latest start 21:00, hard stop 22:50 (M4 at 23:05; apps quit at 23:00).
+  - If BigMoE's key test or Leap's gpub start first, wait for them (NewIdeas).
+  - Order guard: if NO-SWAP reads >= 40 while BigMoE's g1_follow waits, its gate is open, so its key test gets 8 min to
+    start first.
+- **Pieces.**
+  - scripts/m1/lband_go_1116.sh: the GO gate. It reads lock files and process lists only.
+  - data/m1/lband_map/run_lband_1116.frozen.sh: run_lband.frozen.sh with only the share lock changed. The lock reads
+    "MEM 24 GB: ..." and runs to the hard stop + 5 min.
+    - 24 GB is the same machinery's measured peak today on the same 24 windows (23.7 GB lifetime).
+    - The 15-s samples were 18-20 GB in every arm, int8 or not.
+  - scripts/m1/lband_tonight_1116.sh: the launcher (gate + runner, NO-SWAP >= 32, self-guard 30 GB). If any arm is
+    missing afterwards, a Tuesday fallback on Fit12's KILL_DONE (07:00-09:00, hard stop 09:25) runs only those arms
+    (--skip-done).
+- Stub simulations 5/5 (data/m1/lband_map/sim_1116.out).
+- **The old Tuesday runner (pid 88753) is stopped.** Arms, lines, verdict and read-out are unchanged.
+
+## 7. Paired attribution of the map arms (pre-registered Mon 16 Nov 19:5x, before computing; CPU, the arm files only)
+
+Section 2's post-hoc differences are unpaired points. This reads the same files paired, for NewIdeas' G2 arming. No
+decision rests on it alone.
+
+**Reads** (scripts/m1/g1g2_paired.py -> data/m1/g1g2_paired.out; section 2's flip rule, ties, pooled ratio and
+window bootstrap: 10,000 draws, seed 20261116, windows resampled with replacement).
+- **A full-head read of the four V1 arms** (pick "full" = the recorded top-1). The recorded top-8 is the full head's,
+  and V1 is applied offline, so this is the true no-V1 read that replaces the void in-sample one.
+- **Paired differences** in flips per row on the same 6,327 rows (6,258 non-tie), all-row and non-tie:
+  1. V3 vs HC8 mixers: bt_g1 (full) - bt_g1h8. Both are C6 + int8; they differ in V3 vs hc8w_mix, plus int8 on PLE.
+  2. int8: bt_g1 - bt_c6comb, and bt_l20g2 - bt_l20comb (full).
+  3. lambda 2.0e-2 vs C6: bt_l20comb - bt_c6comb, and bt_l20g2 - bt_g1 (full).
+  4. V1-32k: each V1 arm's 32K read minus its full read.
+  5. G2 no-V4 without V1: bt_l20g2 (full), on the lines.
+
+**Predictions [P].**
+- Full reads within 2 rows of the in-sample reads.
+- 1: about +0.27 pt all-row, with a CI that excludes 0.
+- 2 and 3: +0.00-0.03 pt, with CIs that include 0.
+- 4: +0.09-0.11 pt, with a CI that excludes 0.
+- 5: ~1.26 / ~0.82, PASS.
+
+### Section 7 result (Mon 16 Nov 19:5x, CPU 0.34 s, peak 58 MB): G2's no-V4 route passes with the full head; V1-32k adds 6 rows
+
+Data: data/m1/g1g2_paired.out. Paired, one shared bootstrap draw matrix; CIs are 95 %.
+
+**Full-head reads of the V1 arms.** They are within 1 row of the in-sample reads [P: within 2]:
+
+| arm | all-row % (rows) | non-tie % (rows) | lines |
+|---|---|---|---|
+| bt_g1 | 1.23 (78) | 0.78 (49) | PASS |
+| bt_c6comb | 1.22 (77) | 0.75 (47) | PASS |
+| bt_l20comb | 1.22 (77) | 0.72 (45) | PASS |
+| bt_l20g2 = G2 no-V4, no V1 | 1.26 (80) | 0.81 (51) | PASS |
+
+So **G2's no-V4 route passes with the full head**, 4 / 3 rows inside the lines [P: ~1.26 / ~0.82, PASS]. SVH serves
+32-row checks with the full head, so that is G2 without V1, at +0.09 GB per check (6.35 -> 6.44).
+
+**Paired differences** (pt all-row [CI] / non-tie [CI]):
+
+| difference | all-row | non-tie | [P] |
+|---|---|---|---|
+| 1. V3 vs HC8 mixers (bt_g1 - bt_g1h8) | +0.284 [-0.015, +0.587] (+18 rows) | +0.256 [+0.016, +0.499] (+16) | ~+0.27, CI excludes 0: all-row CI just touches 0, non-tie excludes it |
+| 2a. int8 (bt_g1 - bt_c6comb) | +0.016 [-0.174, +0.212] | +0.032 [-0.103, +0.178] | CI includes 0: yes |
+| 2b. int8 (bt_l20g2 - bt_l20comb) | +0.047 [-0.086, +0.229] | +0.096 [-0.033, +0.262] | yes |
+| 3a. lambda 2.0e-2 vs C6 (bt_l20comb - bt_c6comb) | +0.000 [-0.182, +0.191] | -0.032 [-0.167, +0.111] | yes |
+| 3b. lambda 2.0e-2 vs C6 (bt_l20g2 - bt_g1) | +0.032 [-0.139, +0.229] | +0.032 [-0.128, +0.213] | yes |
+| 4. V1-32k vs full (bt_g1, bt_c6comb, bt_l20g2) | +0.095 [+0.000, +0.206] (+6 rows) | +0.112 [+0.029, +0.221] (+7) | +0.09-0.11, CI excludes 0: all-row lower bound at 0, non-tie excludes it |
+| 4. V1-32k vs full (bt_l20comb) | +0.126 [+0.031, +0.241] (+8) | +0.128 [+0.032, +0.245] (+8) | yes |
+
+**Reading.**
+- **V1-32k is what puts G2's no-V4 route over the lines.**
+  - Its cost is the same 6 rows on three of four arms: forced misses where the baseline's top-1 is outside the list and
+    the session rows.
+  - Drafts are not in this read. V1's rule adds them per check, so the shipped V1's cost lies between 0 and these
+    6-8 rows.
+- **V3 is the costliest piece per GB**, 18 rows for ~0.34 GB, but under the full head G2 carries it and still passes.
+- **lambda 2.0e-2 vs C6 is free within noise** (0-2 rows for 0.38 GB). That matches the band screen's question about
+  where the expert lever is cheap.
+- **Options for G2's arming** (NewIdeas' call):
+  - (a) the SVH / full head instead of V1 (+0.09 GB);
+  - (b) V1-32k with drafts, letting EvalSuite's gate measure it;
+  - (c) HC8 in place of V3 (+0.34 GB).
