@@ -1,0 +1,36 @@
+# LOSSY32 SCOREBOARD v3.1 (Fit12 lossy32_board.py; real piece sizes), 12 code windows, 99 32-row blocks
+SELF-CHECK: the rule at lambda 1.6e-2 vs Breakthrough's tiers_1c masks: 0 differing slots (PASS)
+per 32-row check: union 114.2 per layer; REF2-T experts 12.39 GB; misses at C 256 (res_c256 masks): exact 454.3, QOM cf 0 (a lower bound of QOM) 44.9
+  lambda 8.0e-03: kept 71.3 per layer (4-bit tier 30.8, MSB-3 40.5), map 4-bit-eq 62.3; experts 7.87 GB (engine); misses 164.4, with RES 26.2
+  lambda 1.6e-02: kept 46.0 per layer (4-bit tier 15.3, MSB-3 30.7), map 4-bit-eq 39.2; experts 5.04 GB (engine); misses 60.4, with RES 7.6
+  lambda 1.8e-02: kept 42.1 per layer (4-bit tier 13.4, MSB-3 28.7), map 4-bit-eq 35.7; experts 4.60 GB (engine); misses 49.6, with RES 6.2
+  lambda 2.0e-02: kept 38.7 per layer (4-bit tier 11.8, MSB-3 27.0), map 4-bit-eq 32.7; experts 4.22 GB (engine); misses 41.6, with RES 5.2
+ms per expert GB 4.06 = 1.14 x the byte floor (real piece sizes)
+
+| candidate | GB (dense + experts) | floor ms | Leap bound at 100 % | GPU warm ms (one pass) | CPU ms | misses / ms | realistic ms | today's > 16-row route | launches per check | tok/s HE+ at K* |
+|---|---|---|---|---|---|---|---|---|---|---|
+| C1 lossy-45 as shipped, 32 rows (QOM) | 14.98 (2.59 + 12.39) | 53.5 | 54.7 | 77.3-78.9 | 27.9 | 52.2 / 13.1 | **90.3-91.9** | 102.9-102.9 | 4,022 | 176-179 |
+| C3 = 1c-tiers (lam 1.6e-2), being gated | 7.64 (2.59 + 5.04) | 27.3 | 28.5 | 49.3-52.5 | 38.5 | 60.4 / 15.1 | **64.4-67.6** | 77.0-78.6 | 5,654 | 236-247 |
+| C3 + RES | 7.64 (2.59 + 5.04) | 27.3 | 28.5 | 49.3-52.5 | 38.5 | 7.6 / 1.9 | **51.2-54.4** | 63.8-65.4 | 5,654 | 290-306 |
+| C5 = C3 + V1 + V3 (the plan) | 7.18 (2.13 + 5.04) | 25.6 | 27.7 | 46.1-50.5 | 38.5 | 60.4 / 15.1 | **61.2-65.6** | 72.3-75.8 | 5,654 | 243-259 |
+| C5 + RES | 7.18 (2.13 + 5.04) | 25.6 | 27.7 | 46.1-50.5 | 38.5 | 7.6 / 1.9 | **48.0-52.4** | 59.1-62.6 | 5,654 | 300-325 |
+| C5 + RES, int8 dense (bound only differs) | 7.18 (2.13 + 5.04) | 25.6 | 26.8 | 46.1-50.5 | 38.5 | 7.6 / 1.9 | **48.0-52.4** | 59.1-62.6 | 5,654 | 300-325 |
+| C6 = C5 at lam 1.8e-2 (code) | 6.74 (2.13 + 4.60) | 24.1 | 26.2 | 44.3-48.7 | 38.5 | 49.6 / 12.4 | **56.7-61.1** | 67.8-71.3 | 5,654 | 260-279 |
+| C6 + RES | 6.74 (2.13 + 4.60) | 24.1 | 26.2 | 44.3-48.7 | 38.5 | 6.2 / 1.5 | **45.8-50.2** | 56.9-60.5 | 5,654 | 312-339 |
+| C6 + RES, int8 dense | 6.74 (2.13 + 4.60) | 24.1 | 25.3 | 44.3-48.7 | 38.5 | 6.2 / 1.5 | **45.8-50.2** | 56.9-60.5 | 5,654 | 312-339 |
+| C6 + V4 + RES, int8 dense (V4: map FAIL) | 6.40 (1.80 + 4.60) | 22.9 | 24.1 | 42.1-47.1 | 38.5 | 6.2 / 1.5 | **43.6-48.6** | 53.7-58.3 | 5,654 | 321-355 |
+| C5 at lam 2.0e-2 + RES (today's map arm) | 6.36 (2.13 + 4.22) | 22.7 | 24.8 | 42.7-47.1 | 38.5 | 5.2 / 1.3 | **44.0-48.4** | 55.1-58.7 | 5,654 | 322-352 |
+| C7 1d (lam 8e-3) + V1 + V3 + RES | 10.00 (2.13 + 7.87) | 35.7 | 37.8 | 57.5-61.9 | 38.5 | 26.2 / 6.6 | **64.1-68.5** | 75.2-78.7 | 5,654 | 233-248 |
+
+Launches: 4,022 = C32one [K]; + 1,632 for the 1c glue [K count, Leap cf70494]; Leap's fused t1cf cuts ~1,350 of it [K count]; Fable B's diet from built pieces ~2,500; 25 ms needs ~400 [Fable B]. The FAST one-pass route's own count is not measured yet (taken as C32one's).
+Misses: counted on the map's residency masks (C 256 base pool, exact-pass LRU replay). The engine anchor (lossy-45, 16-row HE: measured median 35 vs the masks' QOM cf 0 lower bound 18-20) says the masks may undercount by up to ~1.7x.
+
+MONTH LADDER v3, C5 (ms per 32-row check; realistic = max(GPU, CPU) + misses):
+| step | GPU warm | CPU | misses ms | realistic | tok/s HE+ at K* |
+|---|---|---|---|---|---|
+| 0 today's route (two 16-row calls) | 57.2-60.7 | 38.5 | 15.1 | **72.3-75.8** | 212-222 |
+| 1 + FAST one-pass forms > 16 rows (dn32 matmuls MEASURED -6.1 of it [K]) | 46.1-50.5 | 38.5 | 15.1 | **61.2-65.6** | 243-259 |
+| 2 + Leap's FAST 1b list [P] | 42.3-45.2 | 38.5 | 15.1 | **57.4-60.3** | 263-275 |
+| 3 + RES (CHEAP on the map law; needs a map arm) | 42.3-45.2 | 38.5 | 1.9 | **44.2-47.1** | 331-351 |
+| 4 + the 1c glue fused (Leap's t1cf, built + equal on 384K slots) | 40.5-41.8 | 27.9 | 1.9 | **42.4-43.7** | 355-364 |
+Leap's own estimate for the measured C5 check by Friday: ~40-46 ms GPU warm (check25_plan 12:2x); its bound 23.9 ms at 100 % of every peak. 900 needs ~15 ms at kept 16.91.

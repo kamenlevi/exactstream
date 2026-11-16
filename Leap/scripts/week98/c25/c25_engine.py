@@ -17,6 +17,8 @@ Arms (C25_ARMS selects), each a set of components (CFG below):
   F32if6   F32if at lambda 1.8e-2 (C6's experts) + int8
   F32c5    F32df + V3 (HC mixers at 4-bit: hc4i -> hc4r / hc4r32) + V1 (a 16K screened head): C5's bytes (Friday's number 1)
   F32c6i   F32c5 + int8d at lambda 1.8e-2: C6 + int8 (Friday's number 2)
+  F32g     F32o + f32one.FASTGDN (gdn_fast.py: the GDN core bit for bit == mlx_lm's; must equal F32o in every row)
+  F32c6g   F32c6i + FASTGDN (C25_ARMS selects these two; the default stays the 11-16 nine)
   V1 / V3 here are TIMING emulations (4-bit mixers requantized from the 8-bit copies; the 16K head = FR-Spec's top 16,384
   ids, not the code list): their bytes and kernels are C5's, their tokens are not EvalSuite's V1 / V3.
   (the chunked gated delta rule, gdn32c.py, is correct but 3x slower as built (Mon 12:58): not an arm until redesigned)
@@ -32,19 +34,23 @@ import mlx.core as mx
 
 REC = []
 S = dict(ok=False, bits={}, notes=[])
-ALL = ["F16", "F32s", "F32o", "F32d", "F32df", "F32if", "F32if6", "F32c5", "F32c6i"]
+ALL = ["F16", "F32s", "F32o", "F32d", "F32df", "F32if", "F32if6", "F32c5", "F32c6i", "F32g", "F32c6g"]
 CFG = {"F16": {}, "F32s": {}, "F32o": dict(one=True, form="qmm32n"), "F32d": dict(one=True, form="dn32"),
        "F32df": dict(one=True, form="dn32", t1cf=True), "F32if": dict(one=True, form="dn32", t1cf=True, int8=True),
        "F32if6": dict(one=True, form="dn32", t1cf=True, int8=True, lam=0.018),
        "F32c5": dict(one=True, form="dn32", t1cf=True, hc4=True, v1=True),
-       "F32c6i": dict(one=True, form="dn32", t1cf=True, hc4=True, v1=True, int8=True, lam=0.018)}
-ARMS = [a for a in os.environ.get("C25_ARMS", ",".join(ALL)).split(",") if a]
+       "F32c6i": dict(one=True, form="dn32", t1cf=True, hc4=True, v1=True, int8=True, lam=0.018),
+       "F32g": dict(one=True, form="qmm32n", fastgdn=True),          # F32o + gdn_fast (bitwise: == F32o in every row)
+       "F32c6g": dict(one=True, form="dn32", t1cf=True, hc4=True, v1=True, int8=True, lam=0.018, fastgdn=True)}
+ARMS = [a for a in os.environ.get("C25_ARMS", ",".join(ALL[:9])).split(",") if a]   # the 11-16 nine by default
 assert ARMS and all(a in ALL for a in ARMS) and "F32s" in ARMS, ARMS
 PAIRS = [("F32s", "F16", "ratio"), ("F32o", "F16", "ratio"), ("F32df", "F16", "ratio"), ("F32if6", "F16", "ratio"),
          ("F32o", "F32s", "diff"), ("F32d", "F32o", "diff"), ("F32df", "F32d", "diff"), ("F32if", "F32df", "diff"),
          ("F32if6", "F32if", "diff"), ("F32df", "F32s", "diff"), ("F32if6", "F32s", "diff"), ("F32c5", "F32df", "diff"),
-         ("F32c6i", "F32c5", "diff"), ("F32c5", "F16", "ratio"), ("F32c6i", "F16", "ratio")]
-E4_MB, E3_MB = 2.135, 2.135 * 0.778                      # MB per expert: 4-bit / MSB-3 plane (records3), Fit12's constants
+         ("F32c6i", "F32c5", "diff"), ("F32c5", "F16", "ratio"), ("F32c6i", "F16", "ratio"), ("F32g", "F32o", "diff"),
+         ("F32c6g", "F32c6i", "diff"), ("F32c6g", "F16", "ratio")]
+E4_MB, E3_MB = 2.784, 2.064                              # MB per expert READ: records3 pieces, 4-bit = MSB + LSB part, MSB-3 =
+                                                         # the MSB part (corrected 11-16 13:4x from 2.135 / 1.661: check25_bound_real.py)
 
 
 def _say(G, s):
@@ -98,6 +104,7 @@ def setup(G):
     S.update(hc4i=hc4i, HC=HC, sh0=sh_, sh16=v1)
     S.update(f32one=f32one, int8d=int8d, lam0=float(G["TIERS_LAM"]), G=G,
              vocab=int(G["model"].language_model.lm_head.weight.shape[0]))
+    S["ae0"] = mx.async_eval                           # the original (pass K flushes with it; c25_passk.py)
     S["ok"] = True
     _say(G, f"C25: setup done (arms {ARMS}; f32one / hc4i / int8d installed off; V3 4-bit mixer copies {len(S['HC'])} modules; "
             f"V1 16K head {'ready' if S['sh16'] else 'NOT AVAILABLE (no SVH state)'}; lambda {S['lam0']}; TIERS {G.get('TIERS')!r}; "
@@ -111,6 +118,7 @@ def knobs(G, arm, n):
     f.ON[0] = bool(c.get("one"))
     f.FORM[0] = c.get("form", "qmm32n")
     f.CHUNK[0] = bool(c.get("chunk"))
+    f.FASTGDN[0] = bool(c.get("fastgdn"))
     G["C25_T1CF"][0] = bool(c.get("t1cf"))
     i.ON[0] = bool(c.get("int8"))
     G["TIERS_LAM"] = c.get("lam", S["lam0"])
@@ -134,6 +142,7 @@ def _swap(G, hc4, v1):
 def unknob(G):
     S["f32one"].ON[0] = False
     S["f32one"].CHUNK[0] = False
+    S["f32one"].FASTGDN[0] = False
     G["C25_T1CF"][0] = False
     _swap(G, False, False)
     S["int8d"].ON[0] = False
@@ -145,23 +154,46 @@ def check(G, P, toks, n, arm, key, phase, rnd=-1):
     """one verify + the logits' read + a full-accept commit; the caller rolls back"""
     model, ref2, CS, states = G["model"], G["ref2"], G["CS"], G["states"]
     knobs(G, arm, n)
+    MP = _mp()
+    prof = None
     try:
         sn = CS.snapshot_untrimmable_cache_lazy(P)
         st0 = G["stats"]()
         ext = G["BG"].ext
         ov0 = ext.overflow_count() if hasattr(ext, "overflow_count") else 0
         mx.synchronize()
+        pso = MP is not None and phase == "same" and rnd == 0       # the kernels by name, once per arm and window
+        if MP is not None:
+            p0 = MP.psos() if pso else None
+            c0 = MP.counts()
+            m0, tc0 = MP.now(), time.thread_time()
         w0 = time.perf_counter()
         with ref2.verify_scope(model):
             lg = model(mx.array([toks]), cache=P)
         w1 = time.perf_counter()
+        if MP is not None:
+            m1, tc1 = MP.now(), time.thread_time()
         lg = lg[0].astype(mx.float32)
         mx.eval(lg)
         w2 = time.perf_counter()
+        if MP is not None:
+            m2, tc2 = MP.now(), time.thread_time()
         assert model.commit_verified_window(P, sn.states, keep_tokens=n, verified_tokens=n)
         mx.eval(states(P))
         mx.synchronize()
         w3 = time.perf_counter()
+        if MP is not None:
+            m3, tc3 = MP.now(), time.thread_time()
+            c1 = MP.counts()
+            cb = MP.cbs(c0["ncb"], c1["ncb"])
+            rd = cb["ready"] > 0
+            prof = dict(busy=MP.busy(cb, m0, m3), busy_p=[MP.busy(cb, m0, m1), MP.busy(cb, m1, m2), MP.busy(cb, m2, m3)],
+                        cpu=[tc1 - tc0, tc2 - tc1, tc3 - tc2], disp=c1["disp"] - c0["disp"], ncb=c1["ncb"] - c0["ncb"],
+                        bar=c1["bar"] - c0["bar"], enc=c1["enc"] - c0["enc"], unready=int((~rd).sum()),
+                        first=float(cb["start"][rd].min() - m0) if rd.any() else float("nan"),
+                        last=float(m3 - cb["end"][rd].max()) if rd.any() else float("nan"))
+            if pso:
+                S.setdefault("pso", {}).setdefault(key, {})[arm] = MP.pso_delta(p0, MP.psos())
         st = G["stats"]() - st0
         ov = (ext.overflow_count() if hasattr(ext, "overflow_count") else 0) - ov0   # a 17+-row gate call that overflowed
         tn = G["FG"]["t1cn"] or []
@@ -173,8 +205,13 @@ def check(G, P, toks, n, arm, key, phase, rnd=-1):
         unknob(G)
     gb = (c[0] * E4_MB + c[1] * E3_MB) / 1e3
     REC.append(dict(arm=arm, key=key, phase=phase, round=rnd, n=n, w=(w1 - w0, w2 - w1, w3 - w2),
-                    miss=float(st[0]), ssd_ms=1e3 * float(st[1]), t1c=c, exp_gb=gb, layers=len(tn), ovf=int(ov)))
+                    miss=float(st[0]), ssd_ms=1e3 * float(st[1]), t1c=c, exp_gb=gb, layers=len(tn), ovf=int(ov), prof=prof))
     return lg
+
+
+def _mp():
+    """libmtlprof, if the loop loaded it (C25_PROF; patch_c25_prof.py)"""
+    return sys.modules.get("mtlprof") if os.environ.get("C25_PROF") else None
 
 
 def back(G, P, S0, n):
@@ -207,14 +244,23 @@ def window(G, key, P, S0, gids, gen, Greq, first):
                 LG[a] = lg
     b = {}
     for x, y in (("F32o", "F32s"), ("F32d", "F32s"), ("F32df", "F32d"), ("F32if", "F32df"), ("F32if6", "F32if"),
-                 ("F32c5", "F32df"), ("F32c6i", "F32c5"), ("F32s", "F16")):
+                 ("F32c5", "F32df"), ("F32c6i", "F32c5"), ("F32s", "F16"), ("F32g", "F32o"), ("F32c6g", "F32c6i")):
         if x in LG and y in LG:
             A, B = (LG[x][:16], LG[y]) if y == "F16" else (LG[x], LG[y])
             b[f"{x}_vs_{y}"] = cmp(A, B)                        # (rows bitwise, argmax rows, rows, max |diff|)
     S["bits"][key] = b
+    if os.environ.get("C25_PASSK") and first and _mp() is not None:   # per-class GPU time (first window only; guarded)
+        try:
+            import c25_passk
+            t_k = time.time()
+            S.setdefault("passk", {})[key] = c25_passk.run(sys.modules[__name__], G, P, S0, gids, gen, key, LG)
+            _say(G, f"C25 pass K {key}: done in {time.time() - t_k:.0f} s")
+        except Exception as e_:
+            _say(G, f"C25 pass K {key}: FAILED {e_!r} (the timing pass is unaffected)")
     _say(G, f"C25 {key}: {WU} warm-up + {TMR} timed rounds of {len(ARMS)} arms in {time.time() - t_w:.0f} s; (rows bitwise, "
             f"argmax rows, rows, max |logit diff|): {b}; f32one {dict((k, v) for k, v in S['f32one'].COUNTS.items() if v)}; "
-            f"int8d {dict((k, v) for k, v in S['int8d'].COUNTS.items() if v and k != 'passthru')}")
+            f"int8d {dict((k, v) for k, v in S['int8d'].COUNTS.items() if v and k != 'passthru')}; "
+            f"hc4i {dict(S['hc4i'].COUNTS) if S.get('hc4i') is not None and hasattr(S['hc4i'], 'COUNTS') else None}")
     dump(G)
 
 
@@ -249,11 +295,49 @@ def finish(G):
             _say(G, f"  {x} {'/' if kind == 'ratio' else '-'} {y}: median {m(xs):+.3f}{'' if kind == 'ratio' else ' ms'} "
                     f"[IQR {lo:+.3f}, {hi:+.3f}] over {len(xs)} paired rounds")
     S["pairs"] = out
-    _say(G, f"  forms over the run: f32one {dict(S['f32one'].COUNTS)}; int8d {dict(S['int8d'].COUNTS)}")
+    _say(G, f"  forms over the run: f32one {dict(S['f32one'].COUNTS)}; int8d {dict(S['int8d'].COUNTS)}; hc4i "
+            f"{dict(S['hc4i'].COUNTS) if S.get('hc4i') is not None and hasattr(S['hc4i'], 'COUNTS') else None}")
+    if any(r.get("prof") for r in REC):                   # libmtlprof (C25_PROF): GPU busy vs wall, CPU, dispatches
+        _say(G, "  PROFILE (libmtlprof; per check medians; ms): wall | GPU busy (fwd / read / commit) | GPU idle | CPU thread "
+                "(fwd / read / commit) | dispatches | command buffers | first GPU start | GPU end -> check end")
+        for a in ARMS:
+            rs = [v[a] for v in W.values() if a in v and v[a].get("prof")]
+            if not rs:
+                continue
+            P_ = [r["prof"] for r in rs]
+            wall = 1e3 * m([sum(r["w"]) for r in rs])
+            bz = 1e3 * m([p["busy"] for p in P_])
+            bzp = " / ".join(f"{1e3 * m([p['busy_p'][j] for p in P_]):.2f}" for j in range(3))
+            cpu = 1e3 * m([sum(p["cpu"]) for p in P_])
+            cpup = " / ".join(f"{1e3 * m([p['cpu'][j] for p in P_]):.2f}" for j in range(3))
+            nd = m([p["disp"] for p in P_])
+            _say(G, f"  {a:6s} wall {wall:7.2f} | GPU {bz:7.2f} ({bzp}) = {bz / wall:.0%} | idle {wall - bz:6.2f} | CPU "
+                    f"{cpu:6.2f} ({cpup}) | {nd:.0f} disp ({1e3 * cpu / max(nd, 1):.1f} us CPU each) | "
+                    f"{m([p['ncb'] for p in P_]):.0f} cbs | first {1e3 * m([p['first'] for p in P_]):.2f} | "
+                    f"last {1e3 * m([p['last'] for p in P_]):.2f}; unready cbs {sum(p['unready'] for p in P_)}")
+        for a in ("F16", "F32s", "F32o", "F32df", "F32if", "F32c6i", "F32c6g"):
+            ks = [d[a] for d in S.get("pso", {}).values() if a in d]
+            if ks:
+                tot = {}
+                for d in ks:
+                    for k_, v_ in d.items():
+                        tot[k_] = tot.get(k_, 0) + v_
+                top = sorted(tot.items(), key=lambda kv: -kv[1])[:20]
+                _say(G, f"  kernels {a} (dispatches per check, mean over {len(ks)} windows): "
+                        + "; ".join(f"{k_[:48]} {v_ / len(ks):.0f}" for k_, v_ in top))
+    if S.get("passk"):
+        try:
+            import c25_passk
+            for key_, PK in S["passk"].items():
+                _say(G, f"  PASS K (window {key_}; classes flushed into their own command buffers, scaled to pass T):")
+                c25_passk.report(sys.modules[__name__], G, PK)
+        except Exception as e_:
+            _say(G, f"  PASS K report FAILED {e_!r}")
     dump(G)
 
 
 def dump(G):
     out = os.path.join(G.get("OUT", os.path.expanduser("~/Leap/data/week98/c25")), "c25.json")
     with open(out, "w") as f:
-        json.dump(dict(arms=ARMS, rec=REC, bits=S["bits"], pairs=S.get("pairs", {}), notes=S["notes"]), f)
+        json.dump(dict(arms=ARMS, rec=REC, bits=S["bits"], pairs=S.get("pairs", {}), notes=S["notes"],
+                       pso=S.get("pso", {}), passk=S.get("passk", {})), f)

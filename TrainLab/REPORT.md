@@ -4896,3 +4896,113 @@ Disk stays flat: fca / ftm / f30 overwrite the PASS2 scratch files (p2f_s680, p2
   move: walk-strict depth 0 for p2b is 83.4 -> 82.6 (MBPP) and 87.7 -> 86.2 (HE).
 - So more training of either kind buys the deep band but not the shallow ones, which bind kept.
 - Under NewIdeas' recipe rule, p2b's pass would have meant "mixed (B)", but p2f failed, so the rule ends at no t30c.
+
+## WEEK98 S12 FULLSTATE RESULT (runs Mon 16 Nov 09:41-11:5x, read Mon 13:1x; LAB, sandbox 2B, MBPP-50 / HE-30): tapmlp PROMISING, carryac NO EFFECT
+f30 vs s30: weights BITWISE EQUAL (15 / 15 keys). So s30 is the exact same-code control, and S7's earlier use of s30
+as the control was right. Each arm vs f30 (= s30), 23-30 band (CI, sign p), exact kept/32 under the walk:
+| arm | MBPP 23-30 | MBPP kept/32 | HE 23-30 | HE kept/32 | call |
+|---|---|---|---|---|---|
+| fca (carryac) | 55.47 -> 58.06, +2.60 pt (+1.88..+3.34, p 3e-6) | 4.319 -> 4.357 (+0.9 %) | 68.72 -> 68.72, +0.00 pt (p 1) | 6.239 -> 5.989 (-4.0 %) | NO EFFECT |
+| ftm (tapmlp) | 55.47 -> 60.25, +4.78 pt (+4.18..+5.39, p 7e-13) | 4.319 -> 4.436 (+2.7 %) | 68.72 -> 73.27, +4.55 pt (+3.87..+5.31, p 2e-9) | 6.239 -> 6.554 (+5.1 %) | PROMISING |
+- tapmlp's walk-strict per band (s30 -> ftm):
+  - HE: 0 87.7 -> 85.9; 1-2 83.3 -> 83.4; 3-6 81.7 -> 82.5; 7-14 86.3 -> 88.4; 15-22 85.2 -> 88.7; 23-30 89.3 -> 92.4 (n 302).
+  - MBPP: 0 83.4 -> 83.7; 7-14 74.6 -> 78.1; the deep bands have tiny n.
+- tapmlp is the first state lever to clear the line. It reads the TARGET's true layer-12 residual at the drafted row
+  through a zero-init MLP added to the carried stand-in. The 300-step screen read only +0.6 / +0.8 pt, so it learns
+  slowly and the full budget was needed.
+- Its gain grows with depth (7-30), which is the drift. Depth 0 does not gain (HE -1.8 pt walk-strict).
+- COST CAVEAT, before any 125B use: at runtime the tap needs a partial trunk pass over every drafted token. On the 2B
+  that is 13 of 24 layers. On the 125B the drafted tokens arrive one per depth, so it is sequential. It must be priced
+  (Leap's partial-trunk pricing) against the 900 draft budget, and the 125B's early taps under LINEAR maps were worse
+  than the chain (LAYERS: tap 5 41.66 vs 72.13).
+- carryac lifts MBPP's marginal deep band (+2.6 pt, the same size as p2b's second epoch) but not HE, and costs HE kept
+  -4.0 %.
+- Prediction [G] check: carryac NO EFFECT, as called (80 %). tapmlp NO EFFECT was called at 70 %, and it was WRONG.
+
+## WEEK98 S13 QATSCREEN: does QAT recover the 4-bit head's lost kept? (sandbox first test; pre-registered Mon 16 Nov 13:17, before any run)
+Ask: the orchestrator 13:1x (YOUR JOB: a smaller drafter with t30b's accuracy; Fable FAR's QAT-distilled t30b at
+~26 MB per level vs 177.6) and NewIdeas 12:2x ("FIRST TEST, sandbox, <= 4 GB, ~15 min: does QAT recover what
+MoonShots' M3 lost untrained?"). M3 on t30b, TRUE-STATE: post-hoc Q4 of the trained parts costs x0.922 / x0.899 kept
+at tree-32 (HE+ / MBPP), and the 8K screen alone x0.963 / x0.985.
+Lever qat4 (sb98/levers/qat4.py): fake quantization of the sandbox head's 8 Linears (fc, q / k / v / o,
+gate / up / down) as M3 reads them: bf16 -> affine group-64 quantize -> dequantize, 4 bits, straight-through.
+- No new parameters. Reading a run as run@qat4 scores it through the same fake quant.
+- Smoke: the outputs equal a manual dequantized matmul (9.5e-7); 4-bit moves q_proj's output by 9.5 %; the gradient
+  reaches the latent weight.
+Arms (Sandbox98's validated screen recipe, screen.sh: sb/train.py --start s30 --files pool --steps 300 --const after
+a 20-step warm-up, seed 1115):
+- q4a: QAT at lr 2e-6. Control: ctl_s30_300_lr2e-6 (cached, bf16, the same recipe).
+- q4b: QAT at lr 1e-5. Control: ctl_s30_300_lr1e-5 (cached).
+- post-hoc Q4: s30@qat4, no training (the sandbox analog of M3's Q4).
+Read-out (sb98/tree8.py, new; MBPP-50 / HE-30, the teacher-forced chain to depth 31 with the head's top-8):
+- kept per check under the walk for chain-32, tree-16 and tree-32. Trees use S9b's EAGLE-2 proxy at gamma 1, with
+  the band at gamma 0.5 .. 2.
+- top-1 agreement with bf16 s30 per depth band.
+- Ratios vs each control, with a window bootstrap CI. Self-check: each run's first window equals core.chain_table
+  with its lever fn.
+Line (NewIdeas'), per QAT arm: PASS if kept(arm@qat4) >= 0.99 x kept(its bf16 control) at tree-16 AND tree-32
+(gamma 1), on BOTH sets. vs s30 is printed beside.
+- Informative only if post-hoc Q4 costs >= 2 % at tree-32 on at least one set. If it doesn't, the 2B head doesn't
+  reproduce t30b's 4-bit loss: UNINFORMATIVE, go straight to the 125B screen.
+- Top-1 agreement at depths 15-30 < 97 % = FAR's "4-bit too tight" flag (reported, not judged here).
+Next on PASS (or UNINFORMATIVE): the 125B screen FAR specified, after EvalSuite's 45 GB gate frees memory (~16:00):
+- QAT t30b in M3's exact Q4 format for 300 steps on bank true-state cells.
+- Then M3's harness (p3_dd_tree.py --cut Q4, ~12 GB) at tree-16 / 32, HE+ 24 + MBPP bank. PASS = kept >= 0.99 x
+  bf16 t30b.
+- If 4-bit fails: 6 / 8 bits (QAT_BITS).
+Prediction [G]: post-hoc Q4 costs 2-6 % at tree-32 (60 %); QAT at 1e-5 recovers to >= 0.99 (55 %), at 2e-6 (35 %).
+Disk flat: q4a / q4b overwrite mhx_f30 (bitwise s30) and mhx_fca (carryac, NO EFFECT).
+
+## WEEK98 S14 SHALLOWTAP: tapmlp with the shallowest stored tap (layer 2 of 24) at full budget (NewIdeas 13:2x; pre-registered Mon 16 Nov 13:19, before any run)
+Why: S12's tapmlp (tap 12) passed, but on the 125B a mid-depth tap is infeasible. It needs a partial trunk pass per
+drafted token, sequential over the block. NewIdeas prices it at ~2 GB per drafted token, ~60 GB per block, 7-10x a
+whole check's bytes. A shallow tap costs a few layers per drafted token; on the 125B, ~1-2 of 48 without experts might
+be tolerable. Sandbox98 stores taps after layers (2, 7, 12, 17, 22). Tap 2 (layers 0-2 of 24) is the shallowest; it
+matches the 125B's tap 5 of 48.
+Arm ft2: S12's ftm exactly (tapmlp, s30's recipe: native head, fresh Adam, base files, seed 1114, depth 30, 1,889
+steps), with TAPMLP_TAP=2. One process, <= 4 GB, run_paused. It runs after S13 (one job of mine at a time).
+Read-out: evalx and cc_readout for s30 and mhx_ft2@tapmlp (TAPMLP_TAP=2), MBPP-50 / HE-30, depth 31. The control is
+s30 (bitwise f30, S12). Tap 12's S12 numbers are the reference: MBPP +4.78 pt, kept +2.7 %; HE +4.55 pt, kept +5.1 %.
+Line, NewIdeas' "most of the +4.5 pt survives" made numeric:
+- SURVIVES (price it properly): on BOTH sets, 23-30 gain >= 0.5 x tap 12's (MBPP >= +2.39, HE >= +2.28 pt) AND
+  kept/32 >= +2 %.
+- COLLAPSES (tapmlp closes): 23-30 gain < 0.25 x tap 12's on both sets (MBPP < +1.20, HE < +1.14 pt).
+- Otherwise: PARTIAL (reported).
+Prediction [G]: PARTIAL 45 %, COLLAPSES 35 %, SURVIVES 20 %. A layer-2 residual is mostly token identity plus local
+context, which the head's inputs already carry.
+
+### Desk item for Leap (the orchestrator 13:2x): does the check already compute a tap that helps, at check starts only?
+- What the check computes: the 125B's states at every layer for the rows it verifies, i.e. the drafted rows of the
+  block just checked.
+- At a check start the head already reads the anchor's FULL true state, so a check-computed tap adds nothing at
+  depth 0. S12 agrees: tapmlp's gain is at depths 7-30, and walk-strict depth 0 doesn't gain (HE 87.7 -> 85.9).
+- The current block's drafted rows have no tap until they are checked. tapmlp's gain needs exactly those rows'
+  taps, so a check-computed tap can't supply it.
+- The one exception: in a tree check, the REJECTED siblings' states (THINK_1115 #2 SIBLING-STATE, Sandbox98's SIB)
+  are computed. They are states of a sibling prefix, not the drafted row's own.
+- So the open questions for Leap are cost only:
+  (1) The 125B's per-drafted-token cost of a 1-row partial pass through the first T layers (T = 6 for tap 5, also 2
+      or 3 with attention only), x 30 sequential depths, against the 900 draft budget (~3-5 ms per block).
+  (2) Whether the 30 sequential 1-row partial passes can overlap the head's own level work, since they only need the
+      drafted token.
+  S14 says whether a shallow tap is worth pricing at all.
+
+## WEEK98 S15 SPARSETAP: tap 2 refreshed only every K depths (NewIdeas 13:3x; pre-registered Mon 16 Nov 13:22, before S14's result; runs only if S14 is SURVIVES or PARTIAL)
+Why: NewIdeas' 125B price for tap 2/24 (~ the 125B's tap 5/48) is ~0.5 GB per drafted token, ~15 GB per 31-token
+block, ~3x a whole check. That's not viable even on a SURVIVES. With a sparse refresh the partial trunk pass is one
+batched K-row pass per refresh. At K = 8 that's ~4 refreshes x 0.5 GB = ~2 GB per block (~40 % of a check).
+Lever tapmlpk (sb98/levers/tapmlpk.py): Sandbox98's tapmlp, loaded read-only and unchanged. The tap is read only at
+depths 2, 2 + K, 2 + 2K, ... and depth j uses the tap of the last refresh depth jr <= j, so the head carries the last
+tap in between. At K = 1 it equals tapmlp.
+Arms (S14's ft2 recipe exactly: TAPMLP_TAP=2, s30's full budget from native, 1,889 steps, seed 1114, base files):
+- fk8: TAPMLP_K=8 (refreshes at 2 / 10 / 18 / 26).
+- fk4: TAPMLP_K=4 (8 refreshes).
+One process each, <= 4 GB, after S14. Read-outs: evalx + cc_readout vs s30, one process per K (the lever reads K at
+import).
+Line, each arm vs s30, against S14's every-depth tap-2 gain (ft2):
+- KEEPS: on BOTH sets, 23-30 gain >= 0.5 x ft2's gain AND kept/32 >= +2 %.
+- LOSES IT: 23-30 gain < 0.25 x ft2's on both sets.
+- Otherwise: PARTIAL.
+- If S14's ft2 itself gains < +0.5 pt on a set, the ratio there is not judged; that set reads PARTIAL.
+Prediction [G]: fk4 PARTIAL-or-KEEPS 55 %, fk8 PARTIAL-or-KEEPS 40 %.
+Disk flat: fk8 / fk4 overwrite S2's 400-step scratch (mhc2a_cac, mhc2a_n1; their read-outs are committed).

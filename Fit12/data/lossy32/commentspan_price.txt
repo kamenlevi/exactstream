@@ -1,0 +1,35 @@
+# COMMENT-EXACT price (Fit12 commentspan_price.py)
+(a) tagged-row share, EvalSuite's lossy-45 base rows (tokens of its own answers):
+  humaneval: 60 keys, 15914 rows: '#' comment 22.1 %, docstring 42.8 %, either 64.9 %
+  humanevalx: 104 keys, 29721 rows: '#' comment 20.0 %, docstring 47.1 %, either 67.0 %
+  mbpp: 100 keys, 28367 rows: '#' comment 29.3 %, docstring 42.9 %, either 72.2 %
+(a') the map's 12 code windows (3366 rows): '#' comment 15.0 %, docstring 60.4 %, either 75.4 %
+
+(c) MEASURED 1c map flips per row (bt_1c top-1 != baseline top-1), by the row's tag:
+  all code rows: 3366 rows, flips 38 (1.13 %); non-tie 3316 rows, flips 16 (0.48 %)
+  '#' comment rows: 505 rows, flips 35 (6.93 %); non-tie 462 rows, flips 16 (3.46 %)
+  docstring rows: 2033 rows, flips 0 (0.00 %); non-tie 2033 rows, flips 0 (0.00 %)
+  other (code / prose) rows: 828 rows, flips 3 (0.36 %); non-tie 821 rows, flips 0 (0.00 %)
+  if '#' comments exempt (upper bound: their flips removed): all-row 0.09 % (from 1.13), non-tie 0.00 % (from 0.48)
+  if comments + docstrings exempt (upper bound: their flips removed): all-row 0.09 % (from 1.13), non-tie 0.00 % (from 0.48)
+  law, reach-weighted E 1c: 0.01997 -> predicted all-row flips 1.08 %
+  law, reach-weighted E x_com: 0.01762 -> predicted all-row flips 0.96 %
+  law, reach-weighted E x_both: 0.00377 -> predicted all-row flips 0.23 %
+
+(b) per check (48 layers): expert GB / expert ms / misses / miss ms
+| rows | REF2-T | 1c | 1c + '#' exempt | 1c + '#' + RES | 1c + '#' + doc exempt | 1c + '#' + doc + RES |
+|---|---|---|---|---|---|---|
+| 16 | 6.54 GB / 31.3 ms / 231.7 / 57.9 ms | 2.51 GB / 12.0 ms / 29.3 / 7.3 ms | 3.00 GB / 14.4 ms / 50.3 / 12.6 ms | 2.97 GB / 14.2 ms / 29.4 / 7.4 ms | 5.69 GB / 27.3 ms / 189.2 / 47.3 ms | 5.69 GB / 27.2 ms / 184.9 / 46.2 ms |
+| 32 | 9.81 GB / 50.2 ms / 454.3 / 113.6 ms | 3.99 GB / 20.4 ms / 60.4 / 15.1 ms | 4.75 GB / 24.3 ms / 101.9 / 25.5 ms | 4.68 GB / 24.0 ms / 59.9 / 15.0 ms | 8.75 GB / 44.8 ms / 384.8 / 96.2 ms | 8.75 GB / 44.8 ms / 379.2 / 94.8 ms |
+
+realistic 32-row check (scoreboard v3's model: FAST dense one pass + experts + 1c glue, max with the CPU, + misses):
+  C3 1c: 64.3-67.5 ms -> 236-248 tok/s HE+ at K*
+  C3 + '#' exempt: 78.6-81.8 ms -> 197-205 tok/s HE+ at K*
+  C3 + '#' exempt + RES: 67.7-70.9 ms -> 226-236 tok/s HE+ at K*
+  C3 + '#' + doc exempt: 169.8-173.0 ms -> 96-97 tok/s HE+ at K*
+  C3 + '#' + doc exempt + RES: 168.4-171.6 ms -> 96-98 tok/s HE+ at K*
+  C5 1c: 61.1-65.5 ms -> 243-260 tok/s HE+ at K*
+  C5 + '#' exempt: 75.4-79.8 ms -> 202-213 tok/s HE+ at K*
+  C5 + '#' exempt + RES: 64.5-68.9 ms -> 232-247 tok/s HE+ at K*
+  C5 + '#' + doc exempt: 166.6-171.0 ms -> 97-99 tok/s HE+ at K*
+  C5 + '#' + doc exempt + RES: 165.2-169.6 ms -> 97-100 tok/s HE+ at K*

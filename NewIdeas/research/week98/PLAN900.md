@@ -2,6 +2,18 @@
 
 Mon 16 Nov 12:2x (`date`); revised 12:2x for Kamen's comment decision.
 
+> **CORRECTED Mon 13:5x (`date`): expert bytes were priced 23-30 % low in every check budget (Leap; NewIdeas verified
+> from the engine's records3 L01.bin: 1,426,063,360 B / 512 = 2.785 MB per 4-bit expert, vs 2.135 used; MSB-3 2.064 vs
+> 1.661; Breakthrough re-checked against the checkpoint, f6bbf36).**
+> - Measured times don't move (engine 56.4 ms); floors, bounds and desk byte prices rise ~27 %.
+> - A 25 ms lossy 32-row check is at the physical edge: at 100 % of every peak only C6 + V4 + int8 is under 25 ms
+>   (24.0); C6 + int8 25.2; C5 26.8-27.7. At ~80-85 % it needs experts <= ~3.7-3.8 GB per check (C6: 4.60).
+> - So section 1's "check 25 ms" is NOT reachable with any priced lever; 900 needs a byte lever beyond every priced plan
+>   AND near-zero overhead (whole checks run at 35-45 % of peak today; the best kernels 74-84 %) AND kept 26.6.
+> - Exact byte floors on real sizes (Leap 13:5x, 280 GB/s): 32 rows code 47.3 -> 57.9 ms; 16 rows 38.8 -> 46.9;
+>   1 row 15.9 -> 17.1. GOAL B's "~55 ms realistic exact target" is below the real floor.
+> - The expert kernel runs at 1.52-1.64x its real floor (171-184 GB/s), not 2x.
+
 > (a quote from the project owner, kept private)
 until Saturday."
 
@@ -165,3 +177,70 @@ time. The drafter certification (capture Wed, proofs Thu-Fri) is untouched.
   - V1 + V3 measured +0.12 / +0.12 flips on the map (12 windows) and save ~0.46 GB.
   - Build: BigMoE if it fits by Wed morning, else Breakthrough codes and BigMoE wires. If neither, G2 is dropped this
     week.
+
+## UPDATES (Mon 13:4x, `date`): the measured engine check + the 1c-tiers comment fix
+- **Leap, real engine, quiet (run2b; Leap data/week98/check25/README.md; every expert resident, misses 0):**
+  - The best lossy 32-row check (C5 + C6 + int8, F32c6i) = **56.41 ms**, R32 1.440 of F16 38.88 (paired). 25 ms is
+    **2.26x** away; the C6 + int8 byte floor is 18.2 ms (3.10x).
+  - The one-pass form is real: -9.46 ms paired (F32o vs F32s).
+  - **The expert kernel runs at ~2x its byte floor at 16 AND 32 rows, whatever the split** (135-145 GB/s; ~28 ms of
+    experts alone at the map's bytes). That is above the whole 25 ms budget: the check pillar's main wall now.
+  - int8 dense +1.13 ms and t1cf +0.49 ms SLOWER in the engine (the benches said faster; open).
+  - Number check (NewIdeas): 56.41 / 25 = 2.26; 82.6 MB per call / 571-614 us = 135-145 GB/s; the "vs F16" column is
+    the paired median, ~0.8 % below the ratio of medians. Consistent.
+  - With 1c's misses (~60 per 32-row check, Fit12) the real lossy check is ~56-60 ms with RES. At K* lossy kept 16.9 +
+    tree-16 draft 4.8 + 1.5 ms: **~260-270 tok/s HE+ today.**
+  - Suggested to Leap (option): a no-math read kernel over the same expert bytes, one launch, to split the 2x into
+    kernel structure (>= 250 GB/s) vs access pattern (~140 GB/s; 1.9 MB experts).
+- **Fit12, 1c-tiers flips by tag (12 HumanEval windows; Fit12 PLAN "COMMENT-EXACT PRICE RESULT"):**
+  - 35 of 1c's 38 flips are on "#" comment rows (6.93 % of them), all 16 non-tie flips; 0 on docstrings; 3 elsewhere
+    (0.36 % = QOM's rate). Comment rows are fragile under any change: QOM 2.18 %, path noise 1.78 %.
+  - Per 32-row check (1c alone 64.3-67.5; + RES 51.1-54.3): comments on QOM **+3 ms (+5 with RES)**, quality ~QOM's
+    [P] ~0.42 / ~0.06; comments exact +14 ms (misses 60 -> 102); comments + docstrings exact ~170 ms.
+  - Open: MBPP docstrings (authored; 2 of the 4 runaway divergences; the map has no MBPP windows).
+- **Decision (NewIdeas 13:4x):** Fit12 builds ONE installer NOW (comment-QOM switch first, RES by Tue 18:00;
+  docstrings a per-set option). The RES hold is lifted because both verdicts need it: PASS -> RES for G2; FAIL ->
+  comment-QOM (+ RES) for G1. FAIL looks likely (4 of 45 keys vs 0; the guard fails at 6-0).
+  - **Kill test (pre-registered):** free-decode the 4 runaway keys under 1c + comment-QOM, without and with MBPP
+    docstrings. The fix dies if >= 3 of 4 still cap or loop; BETWEEN at 2; it survives at <= 1 (weak: any change
+    moves these paths). The gate's RUNAWAY guard stays the real test.
+  - **Map read (Breakthrough, Tue ~07:00-07:15, slot (c); 12-window map, Fit12's 1c masks):** bt_cq_ctrl (1c +
+    hc8w_mix + int8) / bt_cq (comment rows on QOM) / bt_cq_res. Pre-registered, all-row flips: CONFIRMED if bt_cq <=
+    0.5x bt_cq_ctrl -> G1's fix = comment-QOM; NOT CARRIED if >= 0.8x -> a lower lambda; BETWEEN -> the kill test
+    decides. Runs under either verdict.
+  - If RUNAWAY fails: G1 = 1c + comment-QOM (+ RES) by EvalSuite's dated two-branch amendment before Tuesday's gate.
+
+## UPDATES (Mon 14:0x, `date`): amendment 5d's open items (G1's branches), fixed before data
+- EvalSuite filed 5d before 1c-tiers' V1 verdict: PASS -> G1 as filed (or + RES); RUNAWAY FAIL -> by Breakthrough's
+  Tue 07:15 comment-QOM map read + Fit12's 4-key kill test.
+- NewIdeas fixed the four open items (14:0x):
+  0. The map read is judged on NON-TIE flips (all-row beside). hc8w_mix + int8 in both arms dilute the all-row ratio
+     (~0.5 expected even if comment-QOM works as measured); all 16 of 1c's non-tie flips were comment rows.
+  1. Lower lambda = 0.8e-2 (s 0.98): predicted code flips 0.51 / 0.15 vs 1c's 1.08 / 0.50 (~80 % of the excess over
+     QOM removed); ~+50 % expert bytes vs 1c (54.8 vs 36.4 4-bit-eq). 1.2e-2 removes only ~40 %.
+  2. Between 0.5x and 0.8x: comment-QOM only if the kill test SURVIVES, else lambda 0.8e-2. At <= 0.5x: comment-QOM
+     unless the kill test KILLS. No key-tested installer by 07:15 -> lambda 0.8e-2.
+  3. Kill test = the 4 cap-hit keys (fixed list); still runaway = cap or loop (3a); the comments-only arm counts.
+     KILL >= 3 / 4, SURVIVE <= 1, BETWEEN 2; VOID if the OFF control reproduces <= 2 / 4.
+  4. IFEval identity FAIL = a scope bug: G1 not run. Pooled delta / decision-4 FAIL: the same branch rule as RUNAWAY.
+  5. (14:0x, filed by EvalSuite) The MBPP-docstring arm D is DECISIVE: if the comments-only arm C fails to SURVIVE
+     and D SURVIVES -> comment-QOM WITH MBPP docstrings; C KILL and D not SURVIVE -> lambda 0.8e-2. 3 of the 4 keys are
+     MBPP (mbpp/122, mbpp/147, mbpp/13, HumanEval/147; Fit12 confirms).
+  6. No map read by 09:15 (not 07:15) -> lambda 0.8e-2. The comment-QOM branch runs 1c at lambda 1.6e-2 (confirmed).
+  7. Every branch has a with-RES and a without-RES env; RES joins only if its own 5c rule holds. g1b key-test envs (9):
+     lx, g1x, g1rx, g1cx, g1crx, g1cdx, g1cdrx, g1lx, g1lrx (lambda is env R57_TIERS_LAM; ~7-8 min; waits on res1c).
+  8. **CORRECTED 14:1x (Fit12 14:0x):** under 3a's rule with the gate's per-item caps (MBPP 1024, HE 768), only 2 of
+     the 4 keys are 1c-only runaways (mbpp/122, mbpp/147: base eos -> 1c length); mbpp/13 and HumanEval/147 cap in the
+     base too. The signal is 2 of 45 vs 0 (McNemar p 0.5), so the 13:4x "FAIL looks likely" was WRONG; the branches are
+     insurance. The kill test counts DISCORDANT keys only (variant runaway + base eos): mbpp/122, mbpp/147 + any more
+     from the full tier-1 rows at the runner's start (<= 6); KILL >= 75 % still runaway, SURVIVE <= 25 %, else BETWEEN;
+     VOID if the OFF control reproduces < 75 %. The comment-spiral evidence for Kamen's comment question rests on 2 keys.
+  9. **RE-CORRECTED 14:1x (EvalSuite, full V1 code rows, 264 keys):** 1c-only runaways 10 (mbpp/122, mbpp/147, HE/77,
+     HEx/113, HEx/116, mbpp/243, mbpp/244, mbpp/304, HEx/83, HEx/99), base-only 3, both 11: exact McNemar p 0.092
+     (recomputed), so V1's single-order guard should PASS; if V2 repeats, pooled ~20 vs 6, p ~0.01 = FAIL. A RUNAWAY
+     FAIL is plausible again; the 5d branches are likely NEEDED. Kill test: up to 6 discordant keys (either order).
+- BigMoE: g1b = g1a + res1c (switches OFF); tonight's key test per env: base / G1 / G1+RES / 1c + COMQOM + RES + int8
+  (corrected 14:0x from C6 to 1c's lambda) / 1c lambda 0.8e-2 + int8 (asked). If res1c lands after ~17:00: g1a as armed.
+- Breakthrough (b) per-layer lambda: experts-only band arms on 24 code windows (C6 vs lambda_hi on layers 0-15 / 16-31
+  / 32-47), ~20 min, Tue after Fit12's kill test, latest start 09:00. (a) chain reach-weighting = already C6's s^d
+  (s 0.98 + the s 0.935 scan): no screen. (c) 2-bit tier: PARKED (format change).

@@ -1,0 +1,53 @@
+# LOSSY32 price (Fit12 lossy32_price.py), code windows 12, 32-row blocks 99
+A. per layer per 32-row block (code): union 114.2 (all 36 windows 99.9); distinct top-2 experts 31.0
+   REF2-T reads: 31.0 at 4-bit + 83.3 at MSB-3
+   1c (lambda 1.6e-2, s 0.98) ENGINE semantics: kept 46.0 distinct, of them 14.1 at 4-bit + 31.9 at MSB-3
+   1c MAP semantics: 4-bit 15.3 + MSB-3 30.7 = 39.2 4-bit-eq (Breakthrough: 36.4 of a 99.9 union)
+   expert GB per 32-row check: all-4-bit 15.27; REF2-T 12.39; 1c engine 5.04; 1c map 5.08 (engine / map 0.992)
+   SELF-CHECK (c): union 99.9 vs 99.9 / code 114.2 vs 109.7 within 10 %: PASS; 1c map 4-bit-eq 39.2 vs 36.4 within 3 %: FAIL
+B. dense GB: exact 3.435; lossy-45 (HC8 + SVH) 2.594; + V1 2.470; + V3 2.133 (Breakthrough's plan 2.14 counts the full head as the base); + V4 1.798
+C. engine [K]: experts 31.31 / 47.54 ms (A16 / C32, pass-T scale); dense side A16 28.44, C32one 41.74; CPU at C32one 27.94 ms
+   experts: 4.06 ms per REF2-T GB = 1.14 x the byte floor (REF2-T bytes); 0.92 x on an all-4-bit basis
+D. FAST dense side: 16 rows 19.81 ms [K]; 32 rows one pass 27.0-28.6 [P]; cross-check (engine C32one x FAST/exact at 16) 29.1
+   two 16-row native calls instead (today's only > 16-row route without the DNR unpack) ~39.6
+   union per layer, code windows: 16 rows 76.6, 32 rows 114.2 (x1.49)
+E. lossy-45 HE 16-row checks [K]: n 229, check median 61.2 ms, misses 35, service 8.8 ms (0.250 ms per miss)
+   SELF-CHECK (a): model at 16 rows 61.4 ms vs measured 61.2: +0.2 % -> PASS (line +-10 %)
+   SELF-CHECK (b): exact-45 one pass at 32 rows 89.28 vs C32one GPU busy 89.28 (wall 90.46): PASS (calibration identity)
+
+| candidate | GB / 32-row check (dense + experts) | floor ms | FAST dense ms | experts ms | GPU ms | CPU ms | 45 GB misses ms | realistic ms | x floor | today's > 16-row route ms | tok/s HE+ / MBPP at K* (drafting hidden) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| C0 exact-45 (REF2-T), 32 rows one pass, warm, C 160 [K] | 15.82 (3.44 + 12.39) | 56.5 | 41.7 | 47.5 | 89.3 | 27.9 | 0.0 | **90.5** | 1.60-1.60 | 102.1 | 179-179 / 101-101 |
+| C0b exact-45 one pass on the map code windows' bytes [P] | 15.82 (3.44 + 12.39) | 56.5 | 41.7 | 50.3 | 92.0 | 27.9 | 0.0 | **93.2** | 1.65-1.65 | 104.8 | 174-174 / 98-98 |
+| C1 lossy-45 as shipped, at 32 rows | 14.98 (2.59 + 12.39) | 53.5 | 27.0-28.6 | 50.3 | 77.3-78.9 | 27.9 | 13.1 | **90.3-92.0** | 1.69-1.72 | 103.0 | 176-179 / 99-101 |
+| C2 C1 + V1 (16K code lm_head list) | 14.86 (2.47 + 12.39) | 53.1 | 26.1-28.0 | 50.3 | 76.4-78.3 | 27.9-28.9 | 13.1 | **89.5-91.4** | 1.69-1.72 | 101.7-102.1 | 177-181 / 100-102 |
+| C3 C1 + V2 (1c tiers, lam 1.6e-2) | 7.64 (2.59 + 5.04) | 27.3 | 27.0-28.6 | 22.3-23.9 | 49.2-52.5 | 38.5 | 5.3 | **54.5-57.8** | 2.00-2.12 | 67.1-68.7 | 274-289 / 154-162 |
+| C4 C1 + V1 + V2 | 7.51 (2.47 + 5.04) | 26.8 | 26.1-28.0 | 22.3-23.9 | 48.4-51.9 | 38.5-39.5 | 5.3 | **53.7-57.1** | 2.00-2.13 | 65.9-67.9 | 277-293 / 155-165 |
+| C5 C4 + V3 (HC + PLE 4-bit) = the 5.86 GB plan | 7.18 (2.13 + 5.04) | 25.6 | 23.8-26.6 | 22.3-23.9 | 46.1-50.5 | 38.5-39.5 | 5.3 | **51.3-55.8** | 2.00-2.18 | 62.5-66.0 | 283-306 / 159-172 |
+| C6 C5 at lam 1.8e-2 (frontier) | 6.59 (2.13 + 4.45) | 23.5 | 23.8-26.6 | 19.9-21.5 | 43.7-48.1 | 38.5-39.5 | 4.5 | **48.2-52.6** | 2.05-2.24 | 59.3-62.8 | 299-324 / 168-182 |
+| C7 1d pooled-safe (lam 8e-3) + V1 + V3 | 9.40 (2.13 + 7.26) | 33.6 | 23.8-26.6 | 31.3-32.9 | 55.1-59.5 | 38.5-39.5 | 7.4 | **62.4-66.9** | 1.86-1.99 | 73.6-77.1 | 239-255 / 134-143 |
+| C8 C5 + V4 (GDN / attention 3-bit) | 6.84 (1.80 + 5.04) | 24.4 | 21.6-25.0 | 22.3-23.9 | 43.8-48.8 | 38.5-39.5 | 5.3 | **49.1-54.1** | 2.01-2.21 | 59.2-63.6 | 291-319 / 164-179 |
+
+G. C5 (the 5.86 GB plan) at its low end, 51.3 ms: FAST dense 23.8 (its bytes' floor 7.6: excess 16.2, of it cores 5.0); experts 22.3 (floor 18.0); misses 5.3; CPU 38.5 (a bound: hidden while the GPU is longer)
+   25 ms needs, all together: misses -> 0 (a resident-only rule or no SSD), the dense side's weight passes at ~1.2x their floor (9.1) + cores ~5.0, experts at ~1.1x (19.8), and the CPU build + encode under ~25 ms (today 27.9)
+   -> 33.9 ms GPU at best for C5's bytes
+
+H. MONTH LADDER for C3 = 1c-tiers (the gated variant) (realistic = max(GPU, CPU) + misses; ms per 32-row check; lo-hi):
+| step | FAST dense | experts + 1c glue | GPU | CPU | misses | realistic | binds | tok/s HE+ at K* |
+|---|---|---|---|---|---|---|---|---|
+| 0 today's route (two 16-row calls) | 39.6 | 22.3-23.9 | 61.9-63.5 | 38.5 | 5.3 | **67.1-68.7** | GPU | 232-238 |
+| 1 + FAST one-pass forms > 16 rows (not built) | 27.0-28.6 | 22.3-23.9 | 49.2-52.5 | 38.5 | 5.3 | **54.5-57.8** | GPU | 274-289 |
+| 2 + Leap's FAST 1b list (~3 days; P) | 22.6-23.0 | 22.3-23.9 | 44.9-46.8 | 38.5 | 5.3 | **50.1-52.1** | GPU | 301-312 |
+| 3 + resident-only MSB-3 rule (not in TRIED; quality unpriced) | 22.6-23.0 | 22.3-23.9 | 44.9-46.8 | 38.5 | 1.6 | **46.5-48.4** | GPU | 322-335 |
+| 4 (bound) misses 0 | 22.6-23.0 | 22.3-23.9 | 44.9-46.8 | 38.5 | 0.0 | **44.9-46.8** | GPU | 333-346 |
+| 5 + 1c glue fused into router_fused (Leap's lever A part) | 22.6-23.0 | 20.5 | 43.1-43.4 | 27.9 | 1.6 | **44.7-45.0** | GPU | 345-347 |
+
+H. MONTH LADDER for C5 = the 5.86 GB plan (6.12 GB on code) (realistic = max(GPU, CPU) + misses; ms per 32-row check; lo-hi):
+| step | FAST dense | experts + 1c glue | GPU | CPU | misses | realistic | binds | tok/s HE+ at K* |
+|---|---|---|---|---|---|---|---|---|
+| 0 today's route (two 16-row calls) | 34.9-36.8 | 22.3-23.9 | 57.2-60.7 | 38.5-39.5 | 5.3 | **62.5-66.0** | GPU | 242-254 |
+| 1 + FAST one-pass forms > 16 rows (not built) | 23.8-26.6 | 22.3-23.9 | 46.1-50.5 | 38.5-39.5 | 5.3 | **51.3-55.8** | GPU | 283-306 |
+| 2 + Leap's FAST 1b list (~3 days; P) | 20.0-21.5 | 22.3-23.9 | 42.3-45.4 | 38.5-39.5 | 5.3 | **47.6-50.6** | GPU | 310-328 |
+| 3 + resident-only MSB-3 rule (not in TRIED; quality unpriced) | 20.0-21.5 | 22.3-23.9 | 42.3-45.4 | 38.5-39.5 | 1.6 | **43.9-47.0** | GPU | 332-353 |
+| 4 (bound) misses 0 | 20.0-21.5 | 22.3-23.9 | 42.3-45.4 | 38.5-39.5 | 0.0 | **42.3-45.4** | GPU | 342-365 |
+| 5 + 1c glue fused into router_fused (Leap's lever A part) | 20.0-21.5 | 20.5 | 40.5-42.0 | 27.9-28.9 | 1.6 | **42.1-43.6** | GPU | 355-367 |

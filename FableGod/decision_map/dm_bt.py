@@ -423,7 +423,14 @@ def _three(a_name, b_name, c_name):
     return setup
 
 
-ABLATIONS["bt_g1h8"] = _three("bt_c6tiers", "hc8w", "bt_int8")
+# Amendment (c), Mon 13:2x, before any run: g1a's HC8 is hc8r.hc8_install(model) with its defaults (ple=False): the 194
+# mixers at 8-bit, block_inject and PLE stay bf16 (snapshot r57_screen_g1a.py:945-951). So G1 as gated = hc8w_mix, not
+# hc8w; with PLE bf16, int8 leaves it (as int8d can never touch it in g1a).
+ABLATIONS["bt_g1h8"] = _three("bt_c6tiers", "hc8w_mix", "bt_int8")
 # Amendment (b), Mon 13:1x, before any run (NewIdeas 13:0x: V1 + V3 ride with G2; if DENSE-3 fails, G2 = G1 + V1 + V3 +
 # lambda 2.0e-2): G2's no-V4 route = lambda 2.0e-2 tiers + bt_mix4 (V3) + int8; V1 is applied offline in the read-out.
 ABLATIONS["bt_l20g2"] = _three("bt_l20tiers", "bt_mix4", "bt_int8")
+# Amendment (e), Mon 13:3x, before any run (NewIdeas 13:2x): G1 as gated + RES (Fit12's resident-only MSB-3 tier at
+# C 256): masks out_code24/bt/tiers_c6res (g1g2_map.py resmasks; RES applied on the 12 windows with residency).
+ABLATIONS["bt_c6restiers"] = tiers("bt/tiers_c6res")
+ABLATIONS["bt_g1h8_res"] = _three("bt_c6restiers", "hc8w_mix", "bt_int8")

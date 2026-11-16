@@ -1,0 +1,29 @@
+== test_hc4.py (CPU) Mon 13:27
+PASS census: 7 GatedResiduals (6 with inject + the final mixer) x 2 mixers, 6 injects, 2 PLE; the MTP layer skipped ({'mix': 14, 'inject': 6, 'ple': 2})
+PASS all 22 copies == dm_d2._requant(lin, 4) bit for bit (the map's bt_mix4)
+PASS dense_native_convert saw the 2 PLE copies only
+PASS prepare() changed nothing in the model; extra 0.085 MB
+PASS prepare() after HC8 refuses (the bf16 originals are gone)
+PASS engage(True): every target is its 4-bit copy (identity)
+PASS a repeated engage(True) is a no-op
+PASS take(): hc4 1, and the HC8 8-bit mixers + bf16 inject / PLE are back by identity ({'hc4': 1})
+PASS take() on a disengaged item: hc4 0
+PASS engage(True) then engage(False): the unset path is the very objects HC8 put there
+PASS the MTP layer's modules were never swapped
+ALL PASS
+== test_lmsl.py (GPU, real lm_head) 13:2x
+head: (248320, 320) mlx.core.bfloat16, 358 MB
+PASS install: the list state (32768 ids, 53 MB) registered beside SVH's
+PASS ON off: the wrapped SVH call == the original, bit for bit
+PASS ON on outside the verify phase: SVH's own state
+PASS screened_head_add: the session ids reach SVH's state and the list state
+PASS add_drafts: 3 drafts join the list state only
+PASS engaged: finite exactly on the union (32776 ids: list + 8 session / draft ids), -inf elsewhere
+PASS engaged: values == the float32 reference within 3.6e-03 of the row max (line 2e-2)
+PASS engaged: argmax == the reference's over the union on the 13 rows with gap > 0.05
+PASS engaged: the added drafts are scored (finite)
+PASS take(): lmsl_rows 16, lmsl_fallback 16 == the numpy recount 16; ON off after take (False)
+PASS ref2._qlin on the head takes the list state when engaged
+PASS remove(): ref2._screened back, the list state unregistered
+ALL PASS
+note: test_lmsl's random hidden states make every row a near-tie (fallback 16 of 16 == the recount); real items give real counts

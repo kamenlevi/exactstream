@@ -202,7 +202,21 @@ def k_up(BN, SN, TN, mean_mode, cpt=8):
     return _KS[key]
 
 
-def hc_read(gr, hyper, pending=None, down=(8, 32, 4), up=(1, 32, 4), mean_mode=0, cpt=8):
+_CONST = {}
+
+
+def _const(key, make):
+    """small constant inputs made once (a fresh mx.zeros / mx.array per call would add work to every level)"""
+    if key not in _CONST:
+        _CONST[key] = make()
+        mx.eval(_CONST[key])
+    return _CONST[key]
+
+
+DEFAULT_MEAN_MODE = 0      # 0 = the stock order; a test sets 1 to run a deliberately wrong level (negative control)
+
+
+def hc_read(gr, hyper, pending=None, down=(8, 32, 4), up=(1, 32, 4), mean_mode=None, cpt=8):
     """the fused read of GatedResidual `gr` on hyper [10240] (F = 1). Returns (mixed [2560], inject [4] or None,
     the written stream [10240] (hyper itself without a pending write), normed [10240])"""
     combine = "block_inject_weight" in gr
@@ -211,16 +225,18 @@ def hc_read(gr, hyper, pending=None, down=(8, 32, 4), up=(1, 32, 4), mean_mode=0
     if pending is not None:
         bout, pinj = pending[0].reshape(-1), pending[1].reshape(-1)
     else:
-        bout, pinj = mx.zeros((2560,), mx.bfloat16), mx.zeros((4,), mx.bfloat16)
+        bout = _const("z2560", lambda: mx.zeros((2560,), mx.bfloat16))
+        pinj = _const("z4", lambda: mx.zeros((4,), mx.bfloat16))
     wi = gr.block_inject_weight.weight if combine else gr.input_mix_weight_down.weight
     BN, SN, TN = down
     kd = k_down(BN, SN, TN, combine, pending is not None)
     mix1, inj, normed, hw = kd(
         inputs=[hyper.reshape(-1), bout, pinj, gr.hc_norm.weight, gr.input_mix_weight_down.weight, wi,
-                mx.array([gr.hc_norm.eps], mx.float32)],
+                _const(("eps", gr.hc_norm.eps), lambda: mx.array([gr.hc_norm.eps], mx.float32))],
         template=[("PENDING", pending is not None), ("COMBINE", combine), ("NDOWN", ndown), ("NTG", ntg)],
         grid=(ntg * BN * 32, 1, 1), threadgroup=(BN * 32, 1, 1),
         output_shapes=[(320,), (4,), (10240,), (10240,)], output_dtypes=[mx.bfloat16] * 4)
+    mean_mode = DEFAULT_MEAN_MODE if mean_mode is None else mean_mode
     BNu, SNu, TNu = up
     ku = k_up(BNu, SNu, TNu, mean_mode, cpt)
     mixed = ku(inputs=[mix1, gr.input_mix_weight_up.weight, normed], template=[("MEAN_MODE", mean_mode), ("CPT", cpt)],

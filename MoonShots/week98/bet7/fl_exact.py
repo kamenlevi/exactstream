@@ -55,6 +55,43 @@ METAL_FUNC float fl_rms_inv(const device T* x, float eps, threadgroup float* par
   threadgroup_barrier(mem_flags::mem_threadgroup);   // part[] may be reused by the caller
   return inv;
 }
+
+// the same statistic for a row in any address space (P = a device / threadgroup / constant pointer)
+template <int AXIS, typename P>
+METAL_FUNC float fl_rms_inv_p(P x, float eps, threadgroup float* part, uint lane, uint sg, uint nsg) {
+  constexpr int LOOPED = AXIS > 4096 ? 1 : 0;
+  constexpr int NV = LOOPED ? 1024 : ((AXIS + 3) / 4 + 31) / 32 * 32;
+  constexpr int NVS = NV / 32;
+  for (uint g = sg; g < uint(NVS); g += nsg) {
+    uint vl = g * 32 + lane;
+    float acc = 0.0f;
+    if (LOOPED) {
+      for (uint r = 0; r < uint(AXIS); r += NV * 4) {
+        for (int i = 0; i < 4; i++) {
+          uint idx = r + vl * 4 + i;
+          if (idx < uint(AXIS)) { float xi = x[idx]; acc += xi * xi; }
+        }
+      }
+    } else {
+      for (int i = 0; i < 4; i++) {
+        uint idx = vl * 4 + i;
+        if (idx < uint(AXIS)) { float xi = x[idx]; acc += xi * xi; }
+      }
+    }
+    acc = simd_sum(acc);
+    if (lane == 0) { part[g] = acc; }
+  }
+  threadgroup_barrier(mem_flags::mem_threadgroup);
+  if (sg == 0) {
+    float v = (lane < uint(NVS)) ? part[lane] : 0.0f;
+    float tot = simd_sum(v);
+    if (lane == 0) { part[32] = metal::precise::rsqrt(tot / float(AXIS) + eps); }
+  }
+  threadgroup_barrier(mem_flags::mem_threadgroup);
+  float inv = part[32];
+  threadgroup_barrier(mem_flags::mem_threadgroup);
+  return inv;
+}
 """
 
 # test kernel: one threadgroup per row (NSG simdgroups), writes the normed row (with weight, as nn.RMSNorm does)

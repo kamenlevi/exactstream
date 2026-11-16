@@ -36,6 +36,8 @@ REF = os.path.join(ES, "results/card_lx45cc1_t1code/decode.jsonl")     # lx45cc1
 UNSETS = ("EVALSUITE_BIGMOE_CODE", "EVALSUITE_RELAX_VARIANT", "EVALSUITE_STAGE_ENV", "R57_KEYS", "R57_TAG", "BIGMOE_TIER",
           "BIGMOE_TIER_GLU", "BIGMOE_TIER_CL", "BIGMOE_TIER_COMBINE", "BIGMOE_OOO", "BIGMOE_MAXK")   # runner 64's UNSETS
 GATE_GB, SWAP_GB, WALL_S, PAUSE_S, MIN_ENV_S = 47, 2.0, 900, 900, 180
+REQ = {"g1x": ("int8",), "g1rx": ("int8", "eres"), "g1crx": ("int8", "eres", "ecomqom"), "g1lx": ("int8",),
+       "g1cx": ("int8", "ecomqom")}   # lossy_check keys > 0 on code (g1cx: COMQOM without RES, if NewIdeas picks it)
 
 
 def env_pairs(path):
@@ -107,9 +109,12 @@ def main():
     ap.add_argument("--hard", default=None)                 # "YYYY-mm-dd HH:MM": TERM the run and stop (clean) at this time
     ap.add_argument("--away-min", type=int, default=0)      # do not start if away_secs.sh < this (orchestrator: 900)
     ap.add_argument("--rescore", action="store_true")       # no run: re-score the last run's envs from its logs + records
+    ap.add_argument("--variants", default="g1x")            # the variant envs' prefixes, after the base: g1x (G1), g1rx (G1 +
+                                                             # RES), g1crx (G1 + COMQOM + RES); each must show its REQ counters
     a = ap.parse_args()
     global ENVS
-    ENVS = (f"lx45{a.snap}", f"g1x45{a.snap}")
+    assert all(v_ in REQ for v_ in a.variants.split(",")), (a.variants, sorted(REQ))
+    ENVS = (f"lx45{a.snap}",) + tuple(f"{v_}45{a.snap}" for v_ in a.variants.split(","))
     ep = lambda s_: time.mktime(time.strptime(s_, "%Y-%m-%d %H:%M")) if s_ else None
     start_by, hard = ep(a.start_by), ep(a.hard)
     py = os.path.join(BM, ".venv/bin/python")
@@ -149,7 +154,8 @@ def main():
         except (OSError, ValueError):
             pass
         per, fails, tk_ = {}, [], {}
-        variant = n.startswith("g1x")
+        vp_ = n[:n.index("45")] if "45" in n else n          # the env's prefix: lx (the base) or a REQ key
+        variant = vp_ in REQ
         for k in KEYS:
             r_ = R_.get(k)
             if r_ is None:
@@ -174,7 +180,10 @@ def main():
                 fails.append(f"{k}: 1c not engaged ({lc})")
             if variant and st_ in ("humaneval", "humanevalx") and not (lc and lc.get("int8", 0) > 0):
                 fails.append(f"{k}: int8 dense not engaged ({lc})")
-            if variant and st_ == "ifeval" and lc is not None and any(lc.get(x_) for x_ in ("e3", "edrop", "lmsl_rows", "int8")):
+            for c_ in (REQ[vp_] if variant else ()):         # g1rx: eres; g1crx: eres + ecomqom (each > 0 on code)
+                if c_ != "int8" and st_ in ("humaneval", "humanevalx") and not (lc and lc.get(c_, 0) > 0):
+                    fails.append(f"{k}: {c_} not engaged ({lc})")
+            if variant and st_ == "ifeval" and lc is not None and any(lc.get(x_) for x_ in ("e3", "edrop", "lmsl_rows", "int8", "eres", "ecomqom")):
                 fails.append(f"{k}: G1 engaged on IFEval ({lc})")
             if variant and st_ == "humaneval" and (qo or 0) != 0:
                 fails.append(f"{k}: variant pf.qom_opt {qo} (want 0: 1c replaces QOM)")

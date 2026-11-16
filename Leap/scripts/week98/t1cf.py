@@ -30,6 +30,7 @@ _SRC = r"""
     threadgroup float v_s[P_C];
     threadgroup int t_s[P_C];
     const float T4 = as_type<float>((uint)T4B), T3 = as_type<float>((uint)T3B);
+    if (i < 3u) counts[i] = 0;                               // zeroed here (no init_value: no fill dispatches)
     if ((int)i < P) {
         id_s[i] = (int)ids[i];
         const float wf = static_cast<float>(scores[i]);
@@ -49,7 +50,7 @@ _SRC = r"""
         const int rk = (int)i % K;
         if (rk < 2) nolsb[((int)i / K) * 2 + rk] = t != 0;
     }
-    threadgroup_barrier(mem_flags::mem_threadgroup);
+    threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device);
     if ((int)i < P) {
         const int e = id_s[i];
         bool first = true;
@@ -90,7 +91,7 @@ def fused(ids, scores, s=0.98, lam=0.016):
                                   template=[("P_C", P), ("K_C", K), ("T4B", T4), ("T3B", T3), ("ST", sc2.dtype)],
                                   grid=(tg, 1, 1), threadgroup=(tg, 1, 1),
                                   output_shapes=[(M, K), (M, K), (M, 2), (3,), (M, K)],
-                                  output_dtypes=[sc2.dtype, ids2.dtype, mx.bool_, mx.int32, mx.uint8], init_value=0)
+                                  output_dtypes=[sc2.dtype, ids2.dtype, mx.bool_, mx.int32, mx.uint8])
     return sc.reshape(scores.shape), idn.reshape(ids.shape), nl, cnt, tier
 
 

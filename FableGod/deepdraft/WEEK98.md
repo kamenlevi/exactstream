@@ -41,6 +41,34 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Mon 16 14:1x (NewIdeas): **RE-CORRECTED with the full V1 code rows (264 keys): 1c-only runaways 10 vs base-only 3
+  (p 0.092); a pooled FAIL after V2 is plausible (~20 vs 6, p ~0.01), so G1's 5d branches are likely needed.**
+- Mon 16 14:1x (NewIdeas): **CORRECTED: 1c-tiers' early runaway signal is 2 of 45 vs 0 (p 0.5), not 4.** mbpp/13
+  and HumanEval/147 cap in the base too under the gate's per-item caps. A RUNAWAY FAIL is no longer likely; G1's
+  branches (amendment 5d) stay armed as insurance.
+- Mon 16 13:5x (NewIdeas, NUMBER CHECK of Leap): **CORRECTED: expert bytes were 23-30 % low in every check budget**
+  (records3: 2.785 MB per 4-bit expert, not 2.135). A 25 ms lossy check needs >= 96 % of every peak even for C6 + V4 +
+  int8 (bound 24.0 ms); the exact 32-row code floor is 57.9 ms, not 47.3, so the "~55 ms realistic exact target" above
+  is below the real floor. Measured times are unchanged.
+  **CORRECTED Mon 16 13:5x (Leap 73ddc5a; NewIdeas checked records3 L01.bin = 2.785 MB per 4-bit expert): the budgets
+  priced experts 23-30 % low. So the exact 32-row floor is ~58 ms [est, Leap to re-price], not 47.3 / 49.1, and "~55 ms
+  realistic" is below the real floor. The engine's 90.5 ms is ~1.6x the floor, not 1.9x.** Lossy side: 25 ms is at the
+  physical edge. At 100 % of every peak only C6 + V4 + int8 gets under it (24.0); at a realistic 85 % it needs experts
+  <= 3.83 GB per check, 17 % below C6. Measured times don't move.
+- Mon 16 13:4x (NewIdeas): **The lossy 32-row check measures 56.4 ms on the real engine (2.26x from 25 ms); the
+  1c-tiers runaway fix is comment rows on QOM.**
+  - Leap run2b (quiet, every expert resident): C5 + C6 + int8 = 56.41 ms. The expert kernel is at ~2x its byte floor
+    at 16 and 32 rows whatever the split (~28 ms of experts alone): the check pillar's main wall.
+  - Fit12: 35 of 1c's 38 flips are on "#" comment rows (all 16 non-tie). Comment rows on QOM cost +3 ms (+5 with RES).
+  - NewIdeas: one installer (comment-QOM + RES) built now; 4-key kill test and Breakthrough's Tue 07:00 map read
+    pre-registered; G1's fix if tonight's RUNAWAY guard fails.
+- Mon 16 13:1x (MTP Head, REPORT 'S12 FULLSTATE RESULT', 4ac7efb): **S12: tapmlp at full budget = PROMISING; carryac
+  NO EFFECT** (LAB, sandbox 2B, 1,889 steps from native vs f30, which is bitwise s30).
+  - tapmlp (the target's true layer-12 residual -> MLP -> added to the carried state):
+    - MBPP 23-30 +4.78 pt (p 7e-13), kept +2.7 %; HE+ 23-30 +4.55 pt (p 2e-9), kept +5.1 %;
+    - HE walk-strict: 7-14 86.3 -> 88.4, 15-22 85.2 -> 88.7, 23-30 89.3 -> 92.4.
+  - Cost: a partial trunk pass per drafted token (13 of 24 layers on the 2B), sequential on the 125B. Price it
+    before any 125B use.
 - Mon 16 10:3x (NewIdeas): **CORRECTED: early death's ~410-455 tok/s was drafting-HIDDEN, which a bandwidth-bound check
   can't do.**
   - With the K128 tree's ~39.6 draft levels at the full head's 177.6 MB per level (26-36 ms per block), the like-for-like
@@ -264,6 +292,38 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
     - the expert one-call at M 32;
     - int8 dense as an option;
     - engine measurements Tue / Wed / Thu nights.
+    - **14:0x BIG CORRECTION (Leap 73ddc5a; data/week98/check25_bound_real.txt): every check budget priced experts
+      23-30 % LOW.** All the budgets (cheapcheck.md 11-14, the CHECK25 bound, Fit12's lossy32_price, Breakthrough's
+      LOSSY_CHECK_PRICE) used 2.135 MB per 4-bit expert and 1.661 MB per MSB-3 plane. The engine reads records3
+      pieces of 2.784 / 2.064 MB; records3/index.json, the c25 engine's pools (21.21 GB) and config.json agree.
+      - C5 experts 3.99 -> 5.05 GB per 32-row check; C6 3.63 -> 4.60 GB.
+      - The 25 ms bound at 100 % of EVERY peak: C5 27.7 bf16 / 26.8 int8 ms; C6 + int8 25.2; C6 + V4 + int8 24.0
+        (needs 96 %). **So 25 ms is NOT reachable at C5 or C6 bytes even with perfect kernels.**
+      - At a realistic 85 %, experts must be <= 3.83 GB per check (with V4 + int8 dense): ~17 % below C6, or a more
+        compact expert record (the s3 / b3 / b scale pieces are 11-15 % of each part).
+      - Restated: the expert one-call runs at 1.52-1.64x its floor (not 2x); today's best engine check (56.4 ms) is
+        2.69x its real floor of 21.0 ms.
+      - Decision owners: NewIdeas (bytes / lambda / format research); any loosening of the quality bar is Kamen's.
+    - **13:4x c25 ENGINE A/B (Leap 619fc22; REAL engine, lab checks: 3 code windows, true-state tokens, C 160,
+      every expert resident, misses 0; quiet, 36 paired rounds per arm).** Median ms per check:
+      - F16 today's 16-row check 38.88;
+      - F32s, 32 rows on today's split route, 68.18 (1.74x);
+      - + f32one one pass 58.77 (-9.46);
+      - + dn32 58.06;
+      - + t1cf fused tiers 58.42 (slower, open);
+      - + int8 dense 59.62 (slower in the engine, open);
+      - + C6 58.32;
+      - **C5 bytes 56.65 (floor 19.0 at 5.32 GB = 2.98x, 34 % of peak); C5 + C6 + int8 56.41 (floor 18.2 = 3.10x,
+        32 %).**
+      - Per class: dense 12.97 (dn32; floor 8.5 bf16 / 4.9 int8 compute); HC read 6.3-8.1; the experts' one-call is
+        2x its byte floor at 32 AND 16 rows (structural, ~25-28 ms per check); GDN core 3.9. ~6,300 graph ops per
+        32-row check (proxy).
+      - Bits: in the engine F32o vs F32s is NOT bitwise (argmax 94 / 96). 1c gives each expert one tier per check, so
+        tiny differences flip tiers. The slice is bitwise; an exact-mode A/B will settle it.
+      - **Leap's plain answer: 56.4 vs 25 is 2.26x away. By Friday ~40-46 ms looks reachable** (expert kernel to
+        ~1.3x its floor -7, GDN one-wave -2.5, the two engine regressions -1.6, dense int8 -1..2). **25 ms does NOT fit
+        by Friday on this design: it needs ~85 % of peak in every class.** Next: a libmtlprof pass (Tue slot #1), an
+        expert one-call redesign, the GDN core, the regressions.
     - **CORRECTED 12:2x (Leap, after a measured quiet slot, 1d4890d): the realistic MEASURED C5 check by Friday is
       ~40-46 ms GPU [est], not 33-38; C6 + int8 ~36-42 [est].** Fit12's ladder agrees (40.5-45.3).
       - [K] The FAST dense matmuls of a 32-row check, ms per check: 19.30 today (two 16-row calls) -> 15.27 qmm32n
@@ -341,6 +401,73 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
       - Slot (NewIdeas): Breakthrough's one-load 4-arm map screen (~25 min, ~14-16 GB, 24 code windows): C6 bytes, G1
         with int8 fake-quant, DENSE-3 alone, lambda 2.0e-2. It runs right after EvalSuite's 1c-tiers chain ends and
         finishes before 22:30 (fallback Tue ~07:00-08:30).
+  - **RE-CORRECTED 14:1x (NewIdeas, on V1's FULL 264 code keys): under 3a's exact rule, 1c-only runaways 10,
+    base-only 3, both 11** (exact McNemar two-sided p 0.092). So V1's single-order guard should PASS at 0.05 (the
+    official read comes ~14:15-14:20). If V2 repeats it, the pooled guard is ~20 vs 6, p ~0.01: a RUNAWAY FAIL is
+    plausible, even likely. 1c-tiers adds ~2.7 pt of runaway rate (3.8 % 1c-only vs 1.1 % base-only); by set MBPP 5,
+    HE 1, HE-X 4. The 5d branches are likely NEEDED; everything is armed (9 key-test envs tonight on g1b, Tue 07:00
+    map read, the kill test with up to 6 discordant keys, a band screen).
+  - **CORRECTED 14:1x (Fit12 caught it): under amendment 3a's rule only 2 of the 4 keys are 1c-only runaways**
+    (mbpp/122, mbpp/147: eos in the base, length in 1c). The gate cuts at MBPP 1024 / HE 768 tokens, not the screen's
+    2,048. mbpp/13 and HumanEval/147 cap in the base too. So the early signal is 2 of 45 vs 0 (McNemar p 0.5), and
+    "FAIL looks likely" was WRONG. The comment-spiral evidence rests on 2 keys. What stands: 35 of 1c's 38 map flips
+    are on "#" comment rows, and comment rows flip 1.8-2.2 % under any change vs 0.24-0.36 % on code. The 5d branches
+    (comment-QOM / lambda 0.8e-2) stay armed as insurance.
+  - ~~13:3x EARLY WARNING ... 4 of 45~~ (superseded by the correction above) **13:3x EARLY WARNING on today's
+    1c-tiers gate (Fit12 reading EvalSuite's rows; information, the verdict is EvalSuite's): RUNAWAY signal.** 4 of 45 code keys hit the ~2,048-token cap under 1c-tiers vs 0 in the base
+    (mbpp/122 247 -> 2052, mbpp/147 292 -> 2049, mbpp/13 1292 -> 2056, HumanEval/147 1081 -> 2049; exact p 0.125 so
+    far). The RUNAWAY guard (amendment 3a) decides at the end. Check ms still falls at 16 rows (65.2 -> 58.1 HE).
+    - Teacher-forced map screens can't see runaways; only decode gates do. G1 (lambda 1.8e-2) is more aggressive.
+    - If 1c-tiers fails on runaway, G1 is re-planned before Tuesday's base, by a dated amendment: lambda <= 1.6e-2, or
+      a repetition guard, or run as registered. Fit12 is characterizing the 4 keys and holds the RES build until the
+      verdict (~19-20 h).
+    - **13:4x DIAGNOSED (Fit12, desk): near-tie flips (exact margins 0.12-0.62 nats) that open into COMMENT
+      DELIBERATION spirals ("# Let me reconsider / # But wait") never closing before the cap.** They are not loops
+      (no periodic tail) and not a dropped-expert spike. 3 of 4 divergences sit in docstring / comment spans. The fix
+      candidate if the guard fails: keep COMMENT SPANS EXACT (no 1c tiers on comment rows, by lossy-45's causal
+      tagger); Fit12 is pricing it (~13 % of HE+ rows, ~20 % of MBPP). This is evidence AGAINST relaxed acceptance in
+      comments, and for exact comments on the lossy line too.
+    - **13:4x Fit12 (1c-tiers flips by tag, 12 HE windows): 35 of 38 flips sit on "#" comment rows (6.9 % of them,
+      all 16 non-tie flips); code rows flip at QOM's rate; 0 on docstrings.** Comment rows flip 1.8-2.2 % under ANY
+      change, even path noise (code 0.24-0.36 %).
+      - Cheapest fix: comment rows on the QOM path, +3 ms per 32-row check (+5 with RES), quality ~QOM's [P]. Exact
+        comments would cost +14 ms (misses 60 -> 102).
+      - NewIdeas' decision: Fit12 builds ONE installer now (comment-QOM + RES switches; MBPP docstrings a per-set
+        option). A pre-registered 4-key free-decoding KILL test follows its bit tests: the fix dies if >= 3 of 4
+        still cap. If RUNAWAY fails tonight: G1 = 1c + comment-QOM (+ RES), by a dated amendment before Tuesday's
+        gate.
+    - NewIdeas' number: real lossy today with 1c misses is ~56-60 ms per 32-row check. At K* lossy kept 16.9 +
+      tree-16 draft 4.8 + 1.5 ms that is **~260-270 tok/s HE+**. The expert kernel at ~2x its byte floor (135-145
+      GB/s) is ~28 ms of experts alone, above the whole 25 ms budget: the check pillar's main wall now.
+  - **13:2x Fit12 CORRECTION (desk, pre-registered; PLAN_12GB_90_fit12.md "RES-1c PRICE RESULT"): 1c-tiers alone
+    gives back QOM's miss protection.** Counted on Breakthrough's 45 GB residency masks, 1c alone leaves ~60 SSD misses
+    per 32-row check (~15 ms), not ~5. On code, 1c replaces QOM, whose resident keep produced lossy-45's low miss count.
+    - Corrected realistic: 1c-tiers 64.3-67.5 ms per 32-row check (was 54.5-57.7); the plan C5 61.1-65.5.
+    - Fix: RES (the 3-bit tier read only when resident) takes misses 60 -> 8 (~2 ms) at a predicted +0.05 pt code
+      flips (Breakthrough's calibrated law). It needs a real map arm. With RES: C5 47.9-52.3; the month ladder still
+      ends ~42-44 ms (~355-365 tok/s HE+).
+    - Falsifiable prediction registered for today's 1c-tiers gate rows: variant / base misses >= 0.8 on humaneval +
+      mbpp, <= 0.25 on humanevalx.
+  - **13:3x MoonShots BET 7 (fused level kernel): BITWISE equal to the stock level** (17 dependent kernels per level
+    vs 144 stock primitives; 21 chained levels x 2 start tokens at 400 / 1,010 / 2,000 keys, every output and cache
+    row; 4646311; a negative control fails at level 0). Timing waits for a quiet slot. M7a (quiet, afcc3f2): a
+    dependent dispatch costs <= 1.3 us on the GPU, so only ~half of the stock level's 0.35 ms over its bytes is
+    dispatches. **CORRECTION (f43949a): 4-bit + the 8K screen is C1 = 95.1 MB per level MEASURED, not FAR's ~26 MB.**
+    With f = 0.056 that drafts tree-32 in 7.9 ms, not <= 3 ms; Lunatic's <= 47 MB per level is not met by QAT + screen.
+  - 13:3x MTP Head: the tapmlp cost question is in REPORT for Leap ('S14 SHALLOWTAP', b7b0db1). A check-computed tap
+    adds nothing at depth 0 (the head already reads the anchor's full true state), and drafted rows' taps need a
+    partial pass per drafted token, except tree siblings (SIB). S14 = tapmlp at tap 2 (~ the 125B's tap 5) runs after
+    S13. The 125B QAT runs only on an S13 PASS (Wed 06:30-08:00).
+  - **13:1x MTP Head S12 FULLSTATE (4ac7efb; LAB, sandbox 2B, 1,889 steps vs f30 == s30 bitwise): tapmlp =
+    PROMISING, the first state lever to pass.** The target's true layer-12 residual -> a zero-init MLP -> added to the
+    carried state. MBPP 23-30 +4.78 pt (CI +4.18..+5.39), kept +2.7 %; HE 23-30 +4.55 pt (CI +3.87..+5.31), kept
+    +5.1 %. HE walk-strict 7-14 86.3 -> 88.4, 15-22 85.2 -> 88.7, 23-30 89.3 -> 92.4; depth 0 doesn't gain. carryac:
+    NO EFFECT. Cost caveat: a partial trunk pass per drafted token (13 of 24 layers on the 2B; sequential per depth on
+    the 125B) likely breaks the draft budget, so it's not this week's path. A desk cost question goes to Leap.
+    - Small drafter: S13 QATSCREEN pre-registered (96baf2c): fake 4-bit on the head's 8 Linears, QAT 300 steps (lr
+      2e-6 / 1e-5) vs post-hoc Q4, kept at chain-32 / tree-16 / tree-32. PASS = >= 0.99x the control at tree-16 AND
+      tree-32 on both sets; sandbox, <= 4 GB, ~30 min, when memory allows. Then the 125B QAT screen (~12 GB) this
+      evening. LEVEL PAIRING after that.
 > (a quote from the project owner, kept private)
     and worth it for speed but also comments are a core part of the code and I'm not sure. I feel like it would be
     cheating if we did".** So no no-comments policy: comments stay part of the task. Relaxed acceptance INSIDE comments

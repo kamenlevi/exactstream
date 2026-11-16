@@ -1,0 +1,91 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=25.2 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=175 C_l=112 per layer, 21.21 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.45 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R57_WIRED: mx.set_wired_limit(55.66 GB), was 0.00 GB
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 160), loaded in 2 s, 26.9 GB active; REF2 + SB; gate rows MAXK 320 (ext build_g32), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 2048
+[r57] DENSE-N-RAM: 180 weights native (1531 MB, in place)
+[r57] HC8: 194 mixers 8-bit (1271 -> 675 MB), hc8_fast v4
+[r57] FAST-TAX: gdn_inproj skipped under R57_DNR=1 (K-83's gdn_inproj_x stays)
+[r57] FAST-TAX: att on (ref2 att_single True, gdn_inproj False, fatt_verify False)
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 28.0 tok/s; MLX peak prefill 29.8 / decode 29.7 GB, lifetime peak 30.8 -> 30.9 GB
+[mtplx] verify SDPA head-chunked: q_len=3 heads_per_chunk=10 chunks=4
+  warm-up (discarded): gsm8k/708 [gate+t, mtp] 64 tokens, 58.4 tok/s; MLX peak prefill 30.1 / decode 29.7 GB, lifetime peak 31.1 -> 31.1 GB
+  warm-up (discarded): gsm8k/708 [gate+t, d7b] 64 tokens, 71.3 tok/s; MLX peak prefill 30.1 / decode 29.7 GB, lifetime peak 31.1 -> 31.1 GB
+G32TEST: v32 /Users/kamen/Leap/scripts/week98/v32.py; block _moeblock; MAXK 320, XLINES 9, ext build_g32; FAST QOM
+G32TEST dd__mc_27921: prompt 378, gate_req 142
+C25: setup done (arms ['F16', 'F32s', 'F32o', 'F32d', 'F32df', 'F32if', 'F32if6', 'F32c5', 'F32c6i']; f32one / hc4i / int8d installed off; V3 4-bit mixer copies 97 modules; V1 16K head ready; lambda 0.016; TIERS '1c'; FAST 'QOM'; ref2 dn_ks 1, small_native True, hc8_fast True, att_single True, screened_head True, gdn_lazy False; DNR weights 216)
+C25 dd__mc_27921: 2 warm-up + 12 timed rounds of 9 arms in 9 s; (rows bitwise, argmax rows, rows, max |logit diff|): {'F32o_vs_F32s': (0, 32, 32, 6.6562), 'F32d_vs_F32s': (0, 32, 32, 6.5312), 'F32df_vs_F32d': (32, 32, 32, 0.0), 'F32if_vs_F32df': (0, 32, 32, 6.207), 'F32if6_vs_F32if': (0, 32, 32, 9.2188), 'F32c5_vs_F32df': (0, 25, 32, 9.375), 'F32c6i_vs_F32c5': (0, 31, 32, 2.3594), 'F32s_vs_F16': (0, 16, 16, 2.4219)}; f32one {'dense32': 8064, 'small32': 6048, 'dn32': 10584, 'hc32': 6720, 'hc32x2': 98, 'sdpa32': 1176, 'svh32': 98, 'passthru': 5880, 'gdn32': 3528, 'att32': 1176, 'inproj32': 3528, 'gdnx32': 3528}; int8d {'int8': 10612, 'int8_rows': 339136, 'quant': 8092}
+G32TEST dd__mc_2753: prompt 255, gate_req 154
+C25 dd__mc_2753: 2 warm-up + 12 timed rounds of 9 arms in 8 s; (rows bitwise, argmax rows, rows, max |logit diff|): {'F32o_vs_F32s': (0, 30, 32, 2.6562), 'F32d_vs_F32s': (0, 31, 32, 2.875), 'F32df_vs_F32d': (32, 32, 32, 0.0), 'F32if_vs_F32df': (0, 31, 32, 1.9609), 'F32if6_vs_F32if': (0, 31, 32, 2.375), 'F32c5_vs_F32df': (0, 20, 32, 4.5459), 'F32c6i_vs_F32c5': (0, 32, 32, 3.9688), 'F32s_vs_F16': (0, 15, 16, 3.2344)}; f32one {'dense32': 16128, 'small32': 12096, 'dn32': 21168, 'hc32': 13440, 'hc32x2': 196, 'sdpa32': 2352, 'svh32': 196, 'passthru': 11760, 'gdn32': 7056, 'att32': 2352, 'inproj32': 7056, 'gdnx32': 7056}; int8d {'int8': 21224, 'int8_rows': 678272, 'quant': 16184}
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (433, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (410, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (386, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (284, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (314, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (340, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (344, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (357, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (280, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (292, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (291, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (338, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (324, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (301, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (206, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (236, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (302, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (346, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (306, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (354, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (407, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (304, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (285, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (318, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (272, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (325, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (300, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (316, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (226, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (251, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (315, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (349, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (259, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (298, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (339, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (327, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (319, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (330, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (296, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+G32TEST dd__mc_28056: prompt 442, gate_req 156
+C25 dd__mc_28056: 2 warm-up + 12 timed rounds of 9 arms in 8 s; (rows bitwise, argmax rows, rows, max |logit diff|): {'F32o_vs_F32s': (0, 32, 32, 3.0625), 'F32d_vs_F32s': (0, 32, 32, 2.2891), 'F32df_vs_F32d': (32, 32, 32, 0.0), 'F32if_vs_F32df': (0, 32, 32, 1.7812), 'F32if6_vs_F32if': (0, 32, 32, 1.6875), 'F32c5_vs_F32df': (0, 24, 32, 4.5469), 'F32c6i_vs_F32c5': (0, 31, 32, 2.8516), 'F32s_vs_F16': (0, 16, 16, 2.4688)}; f32one {'dense32': 24192, 'small32': 18144, 'dn32': 31752, 'hc32': 20160, 'hc32x2': 294, 'sdpa32': 3528, 'svh32': 294, 'passthru': 17640, 'gdn32': 10584, 'att32': 3528, 'inproj32': 10584, 'gdnx32': 10584}; int8d {'int8': 31836, 'int8_rows': 1017408, 'quant': 24276}
+C25 report: 36 (window, round) samples; arms ['F16', 'F32s', 'F32o', 'F32d', 'F32df', 'F32if', 'F32if6', 'F32c5', 'F32c6i']
+  F16    median    38.88 ms over 36 checks (build+submit 34.90, wait 3.64, commit 0.34); expert GB 1.89; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F32s   median    68.18 ms over 36 checks (build+submit 60.51, wait 7.22, commit 0.44); expert GB 3.12; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F32o   median    58.77 ms over 36 checks (build+submit 52.34, wait 6.01, commit 0.35); expert GB 3.15; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F32d   median    58.06 ms over 36 checks (build+submit 51.77, wait 5.96, commit 0.35); expert GB 3.12; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F32df  median    58.42 ms over 36 checks (build+submit 52.08, wait 6.01, commit 0.36); expert GB 3.12; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F32if  median    59.62 ms over 36 checks (build+submit 53.08, wait 6.12, commit 0.35); expert GB 3.12; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F32if6 median    58.32 ms over 36 checks (build+submit 51.90, wait 6.07, commit 0.35); expert GB 2.92; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F32c5  median    56.65 ms over 36 checks (build+submit 51.16, wait 5.09, commit 0.34); expert GB 3.19; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F32c6i median    56.41 ms over 36 checks (build+submit 50.95, wait 5.05, commit 0.35); expert GB 2.96; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F32s / F16: median +1.741 [IQR +1.721, +1.758] over 36 paired rounds
+  F32o / F16: median +1.498 [IQR +1.484, +1.516] over 36 paired rounds
+  F32df / F16: median +1.497 [IQR +1.477, +1.510] over 36 paired rounds
+  F32if6 / F16: median +1.489 [IQR +1.479, +1.506] over 36 paired rounds
+  F32o - F32s: median -9.463 ms [IQR -9.673, -9.247] over 36 paired rounds
+  F32d - F32o: median -0.754 ms [IQR -0.843, -0.545] over 36 paired rounds
+  F32df - F32d: median +0.494 ms [IQR +0.288, +0.818] over 36 paired rounds
+  F32if - F32df: median +1.133 ms [IQR +0.987, +1.216] over 36 paired rounds
+  F32if6 - F32if: median -1.198 ms [IQR -1.405, -1.078] over 36 paired rounds
+  F32df - F32s: median -9.596 ms [IQR -9.794, -9.382] over 36 paired rounds
+  F32if6 - F32s: median -9.717 ms [IQR -9.907, -9.553] over 36 paired rounds
+  F32c5 - F32df: median -1.904 ms [IQR -2.118, -1.679] over 36 paired rounds
+  F32c6i - F32c5: median -0.246 ms [IQR -0.438, -0.091] over 36 paired rounds
+  F32c5 / F16: median +1.448 [IQR +1.428, +1.463] over 36 paired rounds
+  F32c6i / F16: median +1.440 [IQR +1.421, +1.453] over 36 paired rounds
+  forms over the run: f32one {'dense32': 24192, 'small32': 18144, 'dn32': 31752, 'hc32': 20160, 'hc32x2': 294, 'sdpa32': 3528, 'svh32': 294, 'passthru': 17640, 'gdn32': 10584, 'att32': 3528, 'inproj32': 10584, 'gdn_chunk': 0, 'gdnx32': 10584}; int8d {'int8': 31836, 'int8_rows': 1017408, 'quant': 24276, 'layout': 0, 'layout_mb': 0.0, 'passthru': 95976}
+G32TEST verdict: TIME MODE (T1 / T2 not run; C32 == B2x16 logits checked per window above); peak 31.4 GB

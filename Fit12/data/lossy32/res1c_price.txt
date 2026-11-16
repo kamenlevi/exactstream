@@ -1,0 +1,13 @@
+# RES-1c price (Fit12 res1c_price.py): 12 code windows, 99 32-row blocks, 3168 rows (50 tie rows); tier inconsistencies within an expert: 0
+SELF-CHECK: 1c reach-weighted code E 0.01997 vs 0.01994 behind Breakthrough's 1.08 / 0.50 (within 3 %): PASS (+0.1 %)
+residency (C 256 base pool, res_c256): union experts per block-layer non-resident 8.29 %; MSB-3-tier experts non-resident 3.58 % (52.8 per 32-row block, dropped by RES)
+misses per 32-row check (48 layers): 1c 60.4 (median 51) -> 1c + RES 7.6 (median 4); x 0.25 ms = 15.1 -> 1.9 ms (v2's scaled model: 5.3 -> 1.6)
+
+| measure | E 1c | E 1c + RES | dE | pred flips 1c | pred 1c + RES | increment | 1c measured (map) | 1c + RES [P] | line |
+|---|---|---|---|---|---|---|---|---|---|
+| all-row, reach-weighted (Breakthrough's form) | 0.01997 | 0.02088 | +0.00091 | 1.08 | 1.13 | +0.046 | 1.13 | 1.18 | within +0.10 |
+| non-tie law on the reach-weighted E (Breakthrough's form) | 0.01997 | 0.02088 | +0.00091 | 0.50 | 0.53 | +0.033 | 0.48 | 0.51 | within +0.05 |
+| all-row, unweighted | 0.02043 | 0.02137 | +0.00093 | 1.10 | 1.15 | +0.047 | 1.13 | 1.18 | within +0.10 |
+| non-tie rows, unweighted | 0.02052 | 0.02146 | +0.00093 | 0.52 | 0.55 | +0.034 | 0.48 | 0.51 | within +0.05 |
+
+VERDICT (pre-registered line, Breakthrough's form): CHEAP (increment all-row +0.046, non-tie +0.033); a real map arm comes before any gate

@@ -1433,6 +1433,45 @@ fl_floor_quiet.log / .json; GPU busy 0 % at the grant; 30 rounds, 2 dropped]
   - PASS therefore turns on the kernels' own efficiency (GEMVs at full bandwidth, a fast tail) as much as on the step
     count. That is the design constraint now, beside bitwise.
 
+**Deliverable (2), RESULT: the fused level is BITWISE equal to the stock level (Mon 13:1x, 4646311)**
+[K ~/MoonShots/week98/bet7/fl_bittest_level.json, fl_bittest_steps.json; code fl_fused.py, fl_hc.py, fl_moe.py,
+fl_attn.py, fl_level.py]
+- **The whole level:** 21 chained levels x 2 start tokens, at 400, 1,010 and 2,000 cached keys. The 1,010 run crosses
+  the stock SDPA's switch from 1 pass to 2 passes at 1,024 keys.
+  - Bit-equal: every array a level hands on (hh, token, path score, top-K ids and log-probs, candidates, frontier
+    pick) and every cache row the levels wrote (KV keys and values, the indexer's raw keys and pooled blocks).
+- **17 dependent kernels per level** (18 at >= 1,024 keys), against 144 stock primitives:
+  - S1 prep; S2-S3 attention HC read; S4 projections; S5 attention (+1 kernel at >= 1,024 keys); S6 o_proj;
+  - S7-S8 MLP HC read; S9 / S9b / S10 / S11 MoE; S12-S13 mixer; S14 head; S15 tail.
+  - The cache maintenance stays the stock's own code, run on the fused outputs (off the critical path).
+- **Each step was bit-tested alone first:**
+  - HC read: all three modules, every output;
+  - MoE: 40 trials (router logits, top-10 ids in order, output);
+  - attention: 5 cache lengths across both SDPA forms (output after o_proj, the new key row);
+  - S1 / S4 / S6 / S14 / S15: 12 trials each.
+- **The stock's kernel choices, pinned by bit-matching candidates built from MLX's shipped headers** (MLX's dispatch
+  code isn't shipped):
+  - bf16 GEMVs: HC down / inject = gemv BN8 SN32 TN4; fc_embedding / HC up = BN1 SN32 TN4; fc_hidden (M = 4) =
+    gemv_wide k_lanes 32;
+  - quantized: qmv_fast for q / k / v / o, the router, the shared gate / up and the head; plain qmv for the shared
+    down (K = 640) and the shared-expert gate (N = 1);
+  - SDPA: 1 pass below 1,024 keys; 2 passes with 64 blocks at exactly 1,024 and 128 above (the gqa form is unused);
+  - reductions: the HC mean and the expert combine = col_reduce with 8 threads along the rows (rows j, j + 8 per
+    thread, partials folded in order); the score sum is a bf16 running sum; top-k = argpartition's stable merge
+    sort, i.e. the k largest by (value, index) in ascending order;
+  - elementwise: standalone sigmoid = precise exp / divide; compiled silu / swiglu = the JIT functor (fast exp); the
+    two differ on 1 of 65,280 bf16 inputs.
+- **Sensitivity:** the wrong mean orders for the HC read fail on ~30 % of elements. Ambiguous GEMV matches resolved
+  only with cancellation inputs (random +-H column pairs); plain random inputs let 17-72 candidates through.
+- **Negative control on the whole level** [K fl_bittest_level_control.json]: the HC reads' 4-stream mean in float
+  order instead of the stock bf16 order (one rounding step) FAILS at once.
+  - hh, path scores, log-probs and candidates differ from level 0, the top-K ids by level 0-1, the tokens by level
+    3-5, and every cache row differs.
+  - So the 21-level comparison would have caught any order slip. It also shows how fast a last-bit difference reaches
+    the head's picks: within 3-5 levels.
+- **Efficiency reworks, each re-verified bitwise (710151d):** S15's top-K merge (2 barriers, not 24), the router's
+  top-10 as packed keys, and Fused2 (the next level's input norms folded into S15, so S1 is pure GEMVs).
+
 ## Ranked (final, 01:3x)
 1. **The 2B audits and repairs the head's deep tokens: CONFIRMED on HE+** (D). On MBPP, the frozen schedule was chosen
    on those rows (C). Training-free.

@@ -104,6 +104,10 @@ sys.path.insert(0, os.path.expanduser("~/BigMoE"))
 sys.path.insert(0, os.path.expanduser("~/Leap/scripts"))
 sys.path.insert(0, os.path.expanduser("~/EvalSuite"))
 sys.path.insert(1, os.path.expanduser("~/Leap/third_party"))
+if os.environ.get("C25_PROF"):                          # C25 (Leap 11-16): libmtlprof before mlx (patch_c25_prof.py)
+    sys.path.insert(0, os.path.expanduser("~/Leap/third_party/mtlprof"))
+    import mtlprof as _c25mp
+    _c25mp.load(int(os.environ.get("C25_PROFLIB", "2")))
 import evalsuite.env                                     # EvalSuite's forced / refused env (read-only use), before mlx
 if os.environ.get("R57_MODEL_DIR"):                      # a scratch model dir (scratch/model_mix: records3 with converted layers,
     evalsuite.env.REF_MODEL = os.path.expanduser(os.environ["R57_MODEL_DIR"])   # the rest symlinks; PLAN_records3_convert.md)

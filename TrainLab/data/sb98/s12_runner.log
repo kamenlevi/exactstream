@@ -1,0 +1,32 @@
+[Mon 09:41:25] train fca (lever /Users/kamen/TrainLab/sb98/levers/carryac): s30's recipe, 1,889 steps from native
+09:41:25 lock try 1 rc 0: shared run reserved until 10:26 (about 200% CPU, 25% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done. Free for it now: abo
+09:41:25 start s12_fca (swap 6804 MB, NO-SWAP 22 GB)
+10:20:54 done s12_fca (exit 0)
+[Mon 10:20:54] [tm] DONE mhx: 1889 steps x 1 arms in 2365s (1.25s/step); peak 3.5 GB
+[Mon 10:20:54] train ftm (lever tapmlp): s30's recipe, 1,889 steps from native
+10:20:54 lock try 1 rc 0: shared run reserved until 11:05 (about 200% CPU, 25% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done. Free for it now: abo
+10:20:54 start s12_ftm (swap 6804 MB, NO-SWAP 30 GB)
+10:48:36 done s12_ftm (exit 0)
+[Mon 10:48:36] [tm] DONE mhx: 1889 steps x 1 arms in 1658s (0.88s/step); peak 3.6 GB
+[Mon 10:48:36] train f30 (lever -): s30's recipe, 1,889 steps from native
+10:48:36 lock try 1 rc 0: shared run reserved until 11:23 (about 200% CPU, 25% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done. Free for it now: abo
+10:48:36 start s12_f30 (swap 6804 MB, NO-SWAP 29 GB)
+11:09:41 done s12_f30 (exit 0)
+[Mon 11:09:41] [tm] DONE mhx: 1889 steps x 1 arms in 1263s (0.67s/step); peak 3.4 GB
+11:09:41 lock try 1 rc 0: shared run reserved until 11:49 (about 200% CPU, 25% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done. Free for it now: abo
+11:09:41 start s12_eval (swap 6804 MB, NO-SWAP 40 GB)
+11:13:45 done s12_eval (exit 0)
+11:13:46 lock try 1 rc 0: shared run reserved until 11:53 (about 200% CPU, 25% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done. Free for it now: abo
+11:13:46 start s12_walk (swap 6804 MB, NO-SWAP 40 GB)
+11:17:49 done s12_walk (exit 0)
+f30 vs s30 weights: BITWISE EQUAL (keys 15 / 15, max abs diff 0)
+mhx_fca vs mhx_f30 mbpp: 23-30 55.47 -> 58.06 (+2.60 pt, CI +1.88..+3.34, p 3.31e-06); kept/32 4.319 -> 4.357 (+0.9 %) | walk-strict 0-0 83.4->83.8 (n 2629) 1-2 76.0->75.8 (n 3865) 3-6 74.6->74.3 (n 3363) 7-14 74.6->77.2 (n 1383) 15-22 78.9->77.2 (n 162) 23-30 40.0->80.0 (n 15)
+mhx_fca vs mhx_f30 he: 23-30 68.72 -> 68.72 (+0.00 pt, CI -0.82..+0.92, p 1); kept/32 6.239 -> 5.989 (-4.0 %) | walk-strict 0-0 87.7->87.1 (n 1319) 1-2 83.3->82.7 (n 2094) 3-6 81.7->81.2 (n 2310) 7-14 86.3->85.7 (n 1620) 15-22 85.2->82.5 (n 412) 23-30 89.3->89.7 (n 117)
+mhx_fca vs s30 mbpp: 23-30 55.47 -> 58.06 (+2.60 pt, CI +1.88..+3.34, p 3.31e-06); kept/32 4.319 -> 4.357 (+0.9 %) | walk-strict 0-0 83.4->83.8 (n 2629) 1-2 76.0->75.8 (n 3865) 3-6 74.6->74.3 (n 3363) 7-14 74.6->77.2 (n 1383) 15-22 78.9->77.2 (n 162) 23-30 40.0->80.0 (n 15)
+mhx_fca vs s30 he: 23-30 68.72 -> 68.72 (+0.00 pt, CI -0.82..+0.92, p 1); kept/32 6.239 -> 5.989 (-4.0 %) | walk-strict 0-0 87.7->87.1 (n 1319) 1-2 83.3->82.7 (n 2094) 3-6 81.7->81.2 (n 2310) 7-14 86.3->85.7 (n 1620) 15-22 85.2->82.5 (n 412) 23-30 89.3->89.7 (n 117)
+VERDICT mhx_fca: NO EFFECT vs f30 (the line); NO EFFECT vs s30 (beside)
+mhx_ftm vs mhx_f30 mbpp: 23-30 55.47 -> 60.25 (+4.78 pt, CI +4.18..+5.39, p 6.82e-13); kept/32 4.319 -> 4.436 (+2.7 %) | walk-strict 0-0 83.4->83.7 (n 2580) 1-2 76.0->76.1 (n 3785) 3-6 74.6->75.0 (n 3380) 7-14 74.6->78.1 (n 1478) 15-22 78.9->76.1 (n 176) 23-30 40.0->83.3 (n 18)
+mhx_ftm vs mhx_f30 he: 23-30 68.72 -> 73.27 (+4.55 pt, CI +3.87..+5.31, p 1.86e-09); kept/32 6.239 -> 6.554 (+5.1 %) | walk-strict 0-0 87.7->85.9 (n 1206) 1-2 83.3->83.4 (n 1907) 3-6 81.7->82.5 (n 2171) 7-14 86.3->88.4 (n 1688) 15-22 85.2->88.7 (n 582) 23-30 89.3->92.4 (n 302)
+mhx_ftm vs s30 mbpp: 23-30 55.47 -> 60.25 (+4.78 pt, CI +4.18..+5.39, p 6.82e-13); kept/32 4.319 -> 4.436 (+2.7 %) | walk-strict 0-0 83.4->83.7 (n 2580) 1-2 76.0->76.1 (n 3785) 3-6 74.6->75.0 (n 3380) 7-14 74.6->78.1 (n 1478) 15-22 78.9->76.1 (n 176) 23-30 40.0->83.3 (n 18)
+mhx_ftm vs s30 he: 23-30 68.72 -> 73.27 (+4.55 pt, CI +3.87..+5.31, p 1.86e-09); kept/32 6.239 -> 6.554 (+5.1 %) | walk-strict 0-0 87.7->85.9 (n 1206) 1-2 83.3->83.4 (n 1907) 3-6 81.7->82.5 (n 2171) 7-14 86.3->88.4 (n 1688) 15-22 85.2->88.7 (n 582) 23-30 89.3->92.4 (n 302)
+VERDICT mhx_ftm: PROMISING vs f30 (the line); PROMISING vs s30 (beside)

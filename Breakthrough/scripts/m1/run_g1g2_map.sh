@@ -1,10 +1,10 @@
 #!/bin/bash
 # run_g1g2_map.sh (Breakthrough, Mon 16 Nov 2026 13:xx): the G1 / G2 map pre-screens, pre-registered in
 # docs/CHECK_BYTES_900.md section 2 (9ac2850). NewIdeas' GO 12:4x and order 12:5x: BigMoE's G1 key test first, then
-# this screen, all before 22:30 (BigMoE's M4 at 23:05). EvalSuite's real end marker is MON3 (12:5x); BigMoE's 12:42.
+# this screen, all before 22:30 (BigMoE's M4 at 23:05). EvalSuite's end marker as of 13:1x: T1C_RESF2_END; BigMoE's 12:42.
 # Waits for BOTH:
-#   EvalSuite's resumed 1c-tiers chain end: ~/EvalSuite/results/T1C_MON3_END newer than this runner, with no
-#   t1c_chain2.sh process left;
+#   EvalSuite's 1c-tiers work end: ~/EvalSuite/results/T1C_RESF2_END (mtime >= 13:15; written by follower2 only at its
+#   very end or on a stop), with no t1c_resume_follower2.sh and no t1c_chain2.sh process left;
 #   BigMoE's G1 key test end: ~/BigMoE/data/r57/G1A_KEYTEST_DONE with mtime >= Mon 13:00.
 # Both are read twice, 30 s apart. A manual $D/GO starts it instead.
 # Latest start 22:00 (else SKIP: the screen moves to Tue ~07:00); hard stop 22:28 (TERM, KILL 20 s later; the finished
@@ -12,7 +12,8 @@
 # Then: HOLD / lid / HEALTH ACT skip; a PAUSE is waited out; NO-SWAP >= 26 GB (peak ~18 + 8), then a share lock
 # (MEM 18 GB); the run (g1g2_run_map.py, cwd ~/Breakthrough); swap guard +2 GB; unlock; the read-out (g1g2_map.py read);
 # an end marker $D/G1G2_MAP_END on every end.
-# Simulation overrides: G1G2_D, G1G2_E, G1G2_BM, G1G2_Q, G1G2_ESPAT, G1G2_BM_MIN / G1G2_LATEST / G1G2_HARD (epoch),
+# Simulation overrides: G1G2_D, G1G2_E, G1G2_BM, G1G2_Q, G1G2_ESMARK, G1G2_ESPAT, G1G2_ESPAT2, G1G2_ES_MIN,
+# G1G2_BM_MIN / G1G2_LATEST / G1G2_HARD (epoch),
 # G1G2_NS_MIN, G1G2_NOLOCK=1, G1G2_JOB (a stub command; the read-out is skipped).
 cd ~/Breakthrough || exit 9
 D=${G1G2_D:-$HOME/Breakthrough/data/m1/g1g2_map}
@@ -50,23 +51,24 @@ stop_checks() {
     say "PAUSE cleared ($1)"
   fi
 }
-# EvalSuite's own test (13:0x): T1C_MON3_END with mtime >= 12:58:15 AND its follower (pid 23473,
-# tools/t1c_resume_follower.sh; checked by command line, so a reused pid can't fool it) gone; plus no chain process.
-ESMIN=${G1G2_ES_MIN:-$(date -j -f "%Y-%m-%d %H:%M:%S" "2026-11-16 12:58:15" +%s)}
-ESPID=${G1G2_ESPID:-23473}
-ESPIDPAT=${G1G2_ESPIDPAT:-t1c_resume_follower}
-es_follower() { ps -p "$ESPID" -o args= 2>/dev/null | grep -q "$ESPIDPAT"; }
-es_done() { [ -f "$E/T1C_MON3_END" ] && [ "$(stat -f %m "$E/T1C_MON3_END")" -ge "$ESMIN" ] && ! es_follower && ! pgrep -f "$ESPAT" >/dev/null; }
+# EvalSuite's gate as of 13:1x (the orchestrator added a second pause before B2, so T1C_MON3_END can be written mid-run):
+# T1C_RESF2_END (written by follower2 only at its very end or on a stop) with mtime >= 13:15, AND no
+# tools/t1c_resume_follower2.sh process, AND no tools/t1c_chain2.sh process (both by command line).
+ESMARK=${G1G2_ESMARK:-T1C_RESF2_END}
+ESMIN=${G1G2_ES_MIN:-$(date -j -f "%Y-%m-%d %H:%M:%S" "2026-11-16 13:15:00" +%s)}
+ESPAT2=${G1G2_ESPAT2:-tools/t1c_resume_follower[2][.]sh}
+es_follower() { pgrep -f "$ESPAT2" >/dev/null; }
+es_done() { [ -f "$E/$ESMARK" ] && [ "$(stat -f %m "$E/$ESMARK")" -ge "$ESMIN" ] && ! es_follower && ! pgrep -f "$ESPAT" >/dev/null; }
 bm_done() { [ -f "$BM" ] && [ "$(stat -f %m "$BM")" -ge "$BM_MIN" ]; }
 yn() { "$@" && echo y || echo n; }
-say "armed (pid $$): waits for EvalSuite's T1C_MON3_END (>= $(date -r "$ESMIN" '+%H:%M:%S'), follower pid $ESPID '$ESPIDPAT' gone (alive now: $(yn es_follower)), no '$ESPAT' process) AND BigMoE's $(basename "$BM") (>= $(date -r "$BM_MIN" '+%H:%M')), or $D/GO; latest start $(date -r "$LATEST" '+%a %H:%M'), hard stop $(date -r "$HARD" '+%a %H:%M')"
+say "armed (pid $$): waits for EvalSuite's $ESMARK (>= $(date -r "$ESMIN" '+%H:%M:%S'), no '$ESPAT2' process (running now: $(yn es_follower)), no '$ESPAT' process) AND BigMoE's $(basename "$BM") (>= $(date -r "$BM_MIN" '+%H:%M')), or $D/GO; latest start $(date -r "$LATEST" '+%a %H:%M'), hard stop $(date -r "$HARD" '+%a %H:%M')"
 n=0
 while true; do
   if [ -f "$D/GO" ]; then say "manual GO file: $(head -1 "$D/GO" | cut -c1-160)"; break; fi
   if es_done && bm_done; then
     sleep 30
     if es_done && bm_done; then
-      say "triggers (read twice): EvalSuite: $(head -1 "$E/T1C_MON3_END" | cut -c1-160) | BigMoE: $(head -1 "$BM" | cut -c1-160)"
+      say "triggers (read twice): EvalSuite: $(head -1 "$E/$ESMARK" | cut -c1-160) | BigMoE: $(head -1 "$BM" | cut -c1-160)"
       break
     fi
   fi
@@ -86,7 +88,7 @@ while [ "$a" -lt "$NSMIN" ]; do
 done
 [ "$(date +%s)" -ge "$LATEST" ] && quit "SKIP: past the latest start before the run"
 if [ -z "${G1G2_NOLOCK:-}" ]; then
-  peer lock share 45m --cpu 300 --gpu 60 "Breakthrough: G1/G2 map pre-screens (6 arms x 24 code windows, ~30 min), MEM 18 GB" >> "$L" 2>&1 \
+  peer lock share 45m --cpu 300 --gpu 60 "Breakthrough: G1/G2 map pre-screens (7 arms x 24 code windows, ~35 min), MEM 18 GB" >> "$L" 2>&1 \
     || quit "SKIP: the share lock was refused"
   LOCKED=1
 fi

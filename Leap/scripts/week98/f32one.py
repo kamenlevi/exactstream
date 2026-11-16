@@ -35,7 +35,7 @@ import qmm32n as Q32
 
 LO, HI = 16, 32
 COUNTS = dict(dense32=0, small32=0, dn32=0, hc32=0, hc32x2=0, sdpa32=0, svh32=0, passthru=0, gdn32=0, att32=0, inproj32=0,
-              gdn_chunk=0)
+              gdn_chunk=0, gdnx32=0, gdn_fast=0)
 _ORIG = {}
 FORM = ["qmm32n"]
 
@@ -198,6 +198,8 @@ def _screened32(e, x, scales, biases):
 
 
 CHUNK = [False]                           # the chunked gated delta rule (gdn32c.py, FAST) for 17-32-row windows
+FASTGDN = [False]                         # gdn_fast.py (C 2, U 4): == mlx_lm's kernel bit for bit (182 / 182), fewer
+                                          # threads and its loads off the serial chain; 17-32-row windows while ON
 
 
 def _gdk32(q, k, v, g, beta, state, mask=None):
@@ -206,7 +208,21 @@ def _gdk32(q, k, v, g, beta, state, mask=None):
         import gdn32c
         COUNTS["gdn_chunk"] += 1
         return gdn32c.chunk(q, k, v, g, beta, state)
+    if FASTGDN[0] and mask is None and g.ndim == 3 and _mid(k.shape[1]):
+        import gdn_fast
+        COUNTS["gdn_fast"] += 1
+        return gdn_fast.fast(q, k, v, g, beta, state, None, C=2, U=4)
     return _ORIG["gdk"](q, k, v, g, beta, state, mask)
+
+
+def _gdn_rows32(self, B, S, mask, cache):
+    """MTPLX's fused conv-norm rows branch for a 17-32-row window: ref2's gdn_exact (MoonShots' exact prework, bitwise ==
+    the eager chain at any S) covers 2-16 rows; here also 17-32 in the verify phase (fewer glue dispatches, same bits)"""
+    if ref2._ON[0] and ref2.CFG.get("gdn_exact") and _mid(S) and ref2._gdnx_ok(self, B, mask, cache):
+        ref2._gdnx()
+        COUNTS["gdnx32"] += 1
+        return True
+    return _ORIG["gdn_rows"](self, B, S, mask, cache)
 
 
 def _gdn32(self, inputs, mask=None, cache=None):
@@ -270,6 +286,8 @@ def install(form="qmm32n"):
     import mlx_lm.models.gated_delta as _GD
     _ORIG["gdk"] = _GD.gated_delta_kernel
     _GD.gated_delta_kernel = _gdk32
+    _ORIG["gdn_rows"] = ref2.Q.GatedDeltaNet._fused_conv_norm_rows_applies
+    ref2.Q.GatedDeltaNet._fused_conv_norm_rows_applies = _gdn_rows32
 
 
 def remove():
@@ -284,4 +302,5 @@ def remove():
     ref2._InProjExact.__call__ = _ORIG["inproj"]
     import mlx_lm.models.gated_delta as _GD
     _GD.gated_delta_kernel = _ORIG["gdk"]
+    ref2.Q.GatedDeltaNet._fused_conv_norm_rows_applies = _ORIG["gdn_rows"]
     _ORIG.clear()

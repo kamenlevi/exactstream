@@ -14,7 +14,8 @@ Model (engine basis, every K-row value above 32 [est]):
   24 rows: the second tile is padded to 16 rows, so the rest costs as at 32 rows minus the cores' 8 rows (the cores are
   the measured gdn_core + att_core: 3.41 ms per 16 rows);
   each sum is scaled to the wall by the arm's measured wall / class-sum ratio (so 32 rows reproduces 1.671 / 1.480);
-  contract = one pass - 4 ms [est, C8]; floor = 3.44 GB dense + 48 x union x 2.135 MB at 280 GB/s.
+  contract = one pass - 4 ms [est, C8]; floor = 3.44 GB dense + 48 x union x 2.784 MB at 280 GB/s (the real records3
+  pieces; 2.135 MB until 11-16 13:4x, when the experts read ~1.26x "their floor": on real sizes ~0.97x, ~290 GB/s).
 Writes data/week98/treek_costs_v2.json (NewIdeas' costs_v0 format, A16_ms 61.11) and treek_price2.txt.
 usage: [BigMoE venv] python -I treek_price2.py"""
 import json
@@ -23,6 +24,7 @@ import os
 ENG = os.path.expanduser("~/Breakthrough/data/m1/check55/engine/c55eng_c55engine.json")
 OUT = os.path.expanduser("~/Leap/data/week98")
 A16W, C32W, C32ONEW, GPU_ONE = 61.11, 102.09, 90.46, -9.25          # walls (txt) and C32one - C32's GPU busy delta
+E4R = 2.784e-3                     # GB per 4-bit expert READ (records3 pieces); was 2.135e-3 until 11-16 13:4x
 UNION = {16: 73.2, 24: 93.3, 32: 109.7, 48: 135.5, 64: 156.5, 96: 187.4, 128: 211.1}
 KS = sorted(UNION)
 pk = json.load(open(ENG))["passk"]["dd__mc_27921"]
@@ -49,7 +51,7 @@ def rest(K, g, n32):
 
 
 def floor_ms(K):
-    return (3.44 + 48 * UNION[K] * 2.135e-3) / 280 * 1e3
+    return (3.44 + 48 * UNION[K] * E4R) / 280 * 1e3
 
 
 R = {"floor": {}, "today": {}, "onepass": {}, "contract": {}}

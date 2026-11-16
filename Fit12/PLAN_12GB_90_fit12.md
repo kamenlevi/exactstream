@@ -1231,3 +1231,397 @@ Method:
   - base tokens == lx45cc1's rows on humanevalx + IFEval (the deterministic sets);
   - counters;
   - QOM's opt count > 0 in the base and 0 in the variant.
+
+## RES-1c PRICE + SCOREBOARD v3 (pre-registered Mon 16 Nov 13:1x, before any number below is computed; NewIdeas PLAN900 bet 12, desk only)
+**Item 1, the resident-only MSB-3 rule ("RES"):** 1c-tiers, plus MSB-3-tier experts are read ONLY when resident in the
+C 256 base pool at the check's start. A non-resident MSB-3-tier expert is dropped (all its uses at weight 0). The 4-bit
+tier is always read and may miss.
+- **Data (all on disk, read-only):**
+  - the map's 12 code windows: xcap ids + normalised w;
+  - 1c tiers: ~/FableGod/decision_map/out/bt/tiers_1c (32-row blocks);
+  - residency: Breakthrough's res_c256 masks (~/FableGod/decision_map/dm_res_masks.py "res" mode: LRU per layer at
+    MoonShots' laysz45_256 C_m, mean 295 of 512, carried across windows in walk order; resident at each 16-row live
+    check's start);
+  - ties: ~/FableGod/floor_rows.json.
+- **Rule on the map [est approximation]:** an MSB-3-tier expert of a 32-row block-layer counts as non-resident if any of
+  its slots there has res keep False (residency at a 16-row check start stands in for the 32-row check's start).
+- **Quality, Breakthrough's calibrated code law** (lossy_check_price.out: all-row flips % = 41.5 E^0.932, non-tie
+  143 E^1.446). E per row = sum over layers and ranks of err x w^2 / 48, err 0 / 0.08 / 1 (4-bit / MSB-3 / drop), the
+  map's semantics.
+  - Reach-weighted by s^d (s 0.98) inside each 32-row block, as Breakthrough priced 1c. Unweighted is also shown.
+  - Reported: E and predicted flips for 1c and 1c + RES, and the increment added to 1c's MEASURED map flips 1.13 / 0.48
+    (12 code windows).
+- **Self-check:** my reach-weighted code E for 1c must reproduce the E behind Breakthrough's 1c prediction (1.08 / 0.50
+  -> E ~0.0200) within 3 %.
+- **Time side, from the same masks:**
+  - misses per 32-row block = kept experts not resident (1c), and 4-bit-tier experts not resident (1c + RES);
+  - x 0.25 ms per miss (lossy-45 rlh_256 [K]). This replaces v2's union-share scaling.
+- **LINE:**
+  - **CHEAP** if the predicted increment is <= +0.10 pt all-row AND <= +0.05 pt non-tie. That is under half of the room
+    1c leaves under the code lines (0.21 / 0.39).
+  - **MATERIAL** if > +0.10 all-row or > +0.05 non-tie.
+  - Either way a real map arm comes before any EvalSuite gate. The prediction only prices it.
+
+**Item 2, the SCOREBOARD v3 (lossy32_price.py):**
+- C6 / C7 at the CODE 4-bit-eq computed from the routing (tiers_np on the code windows at lambda 8e-3 / 1.6e-2 /
+  1.8e-2 / 2.0e-2), replacing the pooled 33.6 / 54.8 (Breakthrough's catch e62c405). Self-check: lambda 1.6e-2 ==
+  the masks' 39.2.
+- New columns:
+  - LAUNCHES per check: C32one 4,022 [K] + the 1c glue 1,632 [K count] (- ~1,350 with Leap's fused t1cf);
+  - Leap's bound at 100 % of every peak (check25_bound.txt);
+  - the RES row from item 1.
+- The ladder's landed pieces are marked [K] as their measurements arrive.
+  - Already landed: Leap's dn32 32-row dense matmuls, 19.30 -> 13.20 ms per check on the two-16-row route [K, quiet].
+
+## RES-1c PRICE RESULT + the 1c MISS CORRECTION + SCOREBOARD v3 (Mon 16 Nov 13:1x; desk; pre-registered above)
+**RES quality, the pre-registered line: CHEAP** (/Users/kamen/Fit12/scripts/res1c_price.py ->
+/Users/kamen/Fit12/data/lossy32/res1c_price.txt).
+- **Self-check PASS:** my 1c reach-weighted code E is 0.01997, vs 0.01994 behind Breakthrough's 1.08 / 0.50 (+0.1 %).
+- **Residency at C 256** (res_c256): 8.29 % of union experts per block-layer are non-resident, and 3.58 % of MSB-3-tier
+  experts (52.8 per 32-row block). RES drops those.
+- **Predicted code flips** (Breakthrough's law, reach-weighted):
+  - all-row 1.08 -> 1.13, **+0.046 pt**;
+  - non-tie law 0.50 -> 0.53, **+0.033 pt**;
+  - unweighted +0.047 / +0.034.
+  - Added to 1c's measured 1.13 / 0.48 that is ~1.18 / ~0.51, against the lines 1.34 / 0.87.
+- Needs a REAL map arm before any gate. Masks built for Breakthrough: /Users/kamen/Fit12/data/lossy32/masks_1c_res/<w>.npz
+  (tiers_1c's format, 36 windows; self-check E 0.02088 == the price's).
+
+**THE 1c MISS CORRECTION (time side; it changes LOSSY32 v2):**
+- Counted on the residency masks, 1c alone leaves **60.4 misses per 32-row check (median 51) = ~15.1 ms**, not v2's 5.3.
+  - v2 scaled lossy-45's measured misses, which are AFTER QOM's resident keep, by 1c's read share. But 1c REPLACES QOM
+    on the code sets, so that protection is gone.
+  - RES leaves 7.6 (median 4), ~1.9 ms. **So RES is a -13.2 ms rung, not -3.7.**
+- **POST-HOC 16-row comparison** (/Users/kamen/Fit12/scripts/res1c_16.py, same masks), misses per check, mean / median:
+
+  | rows | exact | QOM cf 0 (a lower bound of QOM) | 1c | 1c + RES |
+  |---|---|---|---|---|
+  | 16 | 231.7 / 238 | 20.2 / 18 | 29.3 / 23 | 3.2 / 1 |
+  | 32 | 454.3 / 463 | 44.9 / 42 | 60.4 / 51 | 7.6 / 4 |
+
+  - Engine anchor: lossy-45 measured a median 35 per 16-row HE check, so the masks may undercount by up to ~1.7x.
+
+**PREDICTION for EvalSuite's 1c-tiers gate rows** (registered 13:1x, before the variant's rows exist; the base B1 ran
+13:06): real decoding, C 256, <= 16-row checks, median demand misses per check, variant / base:
+- on humaneval + mbpp (the base runs QOM): **>= 0.8** (1c does not cut misses there; 1.0-1.5 expected);
+- on humanevalx (the base reads exact): **<= 0.25**.
+- humaneval + mbpp below 0.8 would mean my reading is wrong.
+
+**SCOREBOARD v3** (/Users/kamen/Fit12/scripts/lossy32_board.py -> /Users/kamen/Fit12/data/lossy32/lossy32_board.txt;
+NewIdeas folds it into TARGETS daily):
+- The rule at lambda 1.6e-2 == the masks (0 slots differ). Code 4-bit-eq comes from the routing (lambda 1.8e-2 -> 35.7,
+  8e-3 -> 62.3 = Breakthrough's e62c405).
+- Misses are counted on the masks. Launches: 4,022 (C32one) + 1,632 1c glue.
+
+| candidate | GB | floor | Leap bound | realistic (one pass) | today's route | tok/s HE+ at K* |
+|---|---|---|---|---|---|---|
+| C1 lossy-45 at 32 rows | 12.41 | 44.3 | 45.5 | 90.3-91.9 | 102.9 | 176-179 |
+| **C3 = 1c-tiers** | 6.58 | 23.5 | 24.7 | **64.3-67.5** (v2 54.5-57.7) | 76.9-78.5 | 236-248 |
+| C3 + RES | 6.58 | | | 51.1-54.3 | | 290-307 |
+| C5 (the plan) | 6.12 | 21.9 | 24.0 | 61.1-65.5 | | 243-260 |
+| **C5 + RES** | 6.12 | | | **47.9-52.3** | | 300-326 |
+| C6 + RES (lambda 1.8e-2, 5.77 GB) | 5.77 | | 21.8 (int8) | 45.8-50.2 | | 312-340 |
+| lambda 2.0e-2 + RES | 5.48 | | | 44.0-48.4 | | 323-352 |
+| C6 + V4 + RES, int8 | 5.44 | | 20.6 | 43.6-48.6 | | 322-355 |
+
+  - V4 is a map FAIL. Int8 is in Leap's bound only; its dn32q measured -0.44 ms on the matmuls.
+
+- **Month ladder v3, C5 [P]:**
+
+  | step | realistic ms |
+  |---|---|
+  | today's route | 72.2-75.7 |
+  | one-pass forms (dn32 measured -6.1 of it [K]) | 61.1-65.5 |
+  | + FAST 1b | 57.3-60.2 |
+  | **+ RES** | **44.1-47.0** |
+  | + the 1c glue fused | 42.3-43.6 (355-365 tok/s) |
+
+  - Same end as v2. RES now carries the big middle rung.
+- **Launches:** 5,654 for the 1c family today; Leap's t1cf -1,350; Fable B's built-pieces diet ~2,500; 25 ms needs ~400.
+
+## 1c-tiers gate rows, EARLY READ (Mon 16 Nov 13:2x; EvalSuite's tier 0 + h11 / h12; the same 45 code keys in both arms; information only, the verdict is EvalSuite's)
+Files: ~/EvalSuite/results/card/es_cd{lx45t1c1,t1cx45t1c1}_*_{t01,t02,h11,h12}_checks.json.
+- **My registered miss prediction (QOM sets) HOLDS so far:** median misses per check, base -> variant:
+  - humaneval 21 -> 31 (x1.48; mean 31.3 -> 54.3);
+  - mbpp 13 -> 15 (x1.15; mean 15.7 -> 23.5);
+  - line >= 0.8. humanevalx rows are not in yet.
+- **Median check ms still falls:** HE 65.2 -> 58.1, MBPP 69.7 -> 57.4. At 16 rows the RAM-byte cut outweighs the extra
+  misses.
+- **RUNAWAY SIGNAL:** 4 of 45 code keys run to the ~2,048-token cap in the variant, 0 in the base.
+  - mbpp/122: 247 -> 2052 kept tokens;
+  - mbpp/147: 292 -> 2049;
+  - mbpp/13: 1292 -> 2056;
+  - HumanEval/147: 1081 -> 2049.
+  - 4 / 0 so far (exact p 0.125). EvalSuite's RUNAWAY guard (amendment 3a) decides at the end. Sent to NewIdeas +
+    EvalSuite.
+
+## RES BUILD DESIGN (Mon 16 Nov 13:2x; NewIdeas 13:2x: "YOU BUILD RES"; 13:3x: design reading now, the BUILD HELD until the 1c-tiers gate reads out ~19-20 h)
+Read-only reading of the frozen t1c1 code (~/BigMoE/data/r57/snap/t1c1/r57_screen_t1c1.py; frozen_t1c1/Leap_scripts/
+ref2.py, ooo1cq.py).
+- **Mechanism: QOM's optional uses on 1c's MSB-3 tier, no host sync.**
+  - The 1c path already marks MSB-3-tier rank 0-1 uses in the sidecar post (2-D t["nolsb"] -> sidecar -2 = tier 3).
+  - RES also posts every use of an MSB-3-tier expert to the BASE post with bit 21 (QOM's optional form: t["qom"] =
+    (opt = tier == 1 [M, K], sure = all rows, cf None)).
+  - The loader's ensure() decides per expert: an optional-only expert that is not resident is not read (base slot -2).
+  - ooo1cq's kernel A drops that group (kernel B writes zeros, weight 0). A resident one is served at MSB-3 (sidecar
+    -2).
+  - The two marks are independent in ooo1cq (base -2 = drop; sidecar -2 = tier 3).
+  - 4-bit-tier experts are required (they may miss). Dropped (tier 2) uses keep the km path.
+- **THE BLOCKER: ref2's one-call refuses the combination** (frozen ref2.py line 944: a 2-D nolsb "never with t['qom']";
+  Leap's b43efc4 guard).
+  - The code after the guard composes on the FAST-NAX path: ids_p gets bit 21 from t["qom"], ids_s gets 1c's dup pick.
+    But the guard sits inside the function, so it cannot be lifted by wrapping.
+  - **Build route (mine, no file of Leap's edited):** res1c.install() replaces ref2's one-call with a source-transformed
+    copy that admits the pair only while RES is ON. The copy is md5-guarded on the original source; ooo1cq.py uses the
+    same pattern.
+  - **Fallback:** ask Leap for a CFG flag (~3 lines).
+- **Installer form (int8d's):** /Users/kamen/Fit12/res1c/res1c.py with ON = [False], COUNTS, install() / remove() /
+  check().
+  - install() after ref2.apply() + the t1c wiring: wraps BigMoE's screen-level _t1c (a module global, looked up at call
+    time) so that while ON[0], it also sets t["qom"] = (tier == 1, ones(M), None).
+  - Scope: BigMoE's screen sets ON[0] per item from R57_RES_SETS (= R57_TIERS_SETS).
+- **Counter (EvalSuite's sum):** lossy_check gains "res_opt" (MSB-3-tier uses posted optional) and "res_drop" (uses the
+  loader dropped: ref2.QCNT_1C's "uses dropped", read lazily per check like the screen's QC1C).
+  - Engagement: res_opt > 0 on code, absent on IFEval.
+  - res_drop can be 0 on a short prompt whose MSB-3 experts were all resident. Expected ~3-4 % of MSB-3-tier experts.
+- **Bit tests (mine, before BigMoE wires g2a):**
+  1. unset path: ON off -> tokens AND logits bitwise == 1c-tiers on t1c1 (one-call + kernel level);
+  2. engaged, kernel level (ooo1c_2d_check's form, one layer, real weights): with a forced pool state, the output ==
+     a reference that drops exactly the non-resident MSB-3-tier experts (weights 0) and runs the rest at MSB-3;
+  3. the counter == the dropped experts' uses;
+  4. the real-loop scored-key rule (one HE + one IFEval key per env).
+- **History:** RES makes code tokens depend on the pool state (as QOM does), so gates must pool both orders (NewIdeas:
+  covered).
+
+## RUNAWAY4: the 1c-tiers gate's 4 cap-hit keys characterized (Mon 16 Nov 13:2x; NewIdeas 13:3x ask; desk)
+Script /Users/kamen/Fit12/scripts/runaway4.py (+ a tail check) -> /Users/kamen/Fit12/data/lossy32/runaway4_run.txt.
+Inputs: tier-0 token rows (base lx45t1c1, variant t1cx45t1c1), exact-45's own rows + per-position REPLAY margins
+(x45rpl1), and the variant's per-check 1c counts.
+
+| key | base / variant / exact tokens | first divergence base vs variant | exact margin there | 1c drop share there vs prompt mean | where |
+|---|---|---|---|---|---|
+| mbpp/122 | 246 / 2048 cap / 1024 | token 23 (the base left exact at 16) | n/a; neighbours 0.75 / 0.38 nats | 0.625 / 0.625 | docstring: "A smart number is ... exactly 4 distinct" vs "Smart numbers are ... exactly 3 prime factors" |
+| mbpp/147 | 291 / 2048 / 288 | token 48 (base == exact to 53) | **0.62 nats** | 0.643 / 0.630 | docstring: "increasing length." vs "number of elements (padding ...)" |
+| mbpp/13 | 1292 / 2048 / 430 | token 3 (the base left exact at 3 too) | **0.12 nats** | 0.639 / 0.622 | code: "from collections import Counter" first vs "def count_common" first |
+| HumanEval/147 | 1080 / 2048 / 768 | token 177 (base == exact to 221) | **0.62 nats** | 0.662 / 0.619 | comment: "# Create array a" vs "# Create the array a" |
+
+- **Every divergence is at a near-tie** (0.12-0.62 nats where exact applies; mbpp/122 sits in a 0.38-0.75 cluster).
+- **The divergence check's drop share is typical:** not a single heavy dropped expert, but the general 1c perturbation
+  flipping a tie. Any lossy change, and even the bit-plane path's own noise, flips ties.
+- **They are NOT token loops:** no periodic tail (P <= 400, >= 3 repeats). The last-1,000-token 8-gram repeat share is
+  0.10-0.34, vs the base's 0.02-0.12.
+  - They are open-ended deliberation in code comments after a different early reading of the problem ("# Let me
+    reconsider", "# But wait", "# So the definition must be different").
+  - They never close the answer before the ~2,048 cap.
+- **Exact itself runs long on two of the four** (mbpp/122 1024 = its row cap; HumanEval/147 768). These prompts have
+  long-answer paths for the model; lossy-45 took short ones.
+- **For a fix, if the gate FAILs on RUNAWAY:**
+  - a repetition guard would not fire;
+  - a lower lambda cuts tie flips only in proportion to E;
+  - 3 of 4 divergences sit in docstring / comment spans, and the spirals run in comments.
+  - So the targeted candidate is an exact check inside comment / docstring spans: lossy-45 already has a causal comment
+    tagger, R57_RELAX_SPAN's CodeScan. Its speed cost scales with the comment share of code answers, to be priced.
+  - Whether the variant's runaway rate exceeds the base's in BOTH orders is the guard's real question.
+
+## COMMENT-EXACT PRICE (pre-registered Mon 16 Nov 13:3x, before any number below; NewIdeas 13:4x: G1's fix candidate if tonight's RUNAWAY guard fails)
+**The rule:** 1c-tiers, except rows inside comment spans skip the tiers. Their uses read the base's precision (REF2-T:
+ranks 0-1 LSB + MSB, ranks 2-9 MSB-3), so a tagged row's experts are all read. Two scopes:
+- "#" comments only (lossy-45's causal CodeScan.in_comment(), as R57_RELAX_SPAN uses it);
+- "#" comments + docstrings (CodeScan's doc state, inside the fence).
+
+**Data (read-only):**
+- the map's 12 code windows: answer tokens = baseline.json's per-row top-1 (the greedy answer); xcap routing;
+  tiers_1c masks (32-row blocks) and the copied tiers_np rule (16-row blocks); res_c256 residency; floor_rows.json ties;
+  bt_1c.json, the measured 1c arm's per-row top-1;
+- EvalSuite's lossy-45 base rows (lx45t1c1 tokens) for the comment shares by set.
+
+**Tag:** CodeScan fed the answer text causally. Row j is tagged by the state BEFORE its token (the span rule's
+convention).
+
+**Columns:**
+- (a) the tagged-row share per scope (map code windows; gate base rows by set);
+- (b) expert GB, ms (engine ms per GB: 5.12 at 32 rows, 4.79 at 16) and misses (residency masks, 0.25 ms each) per 16-
+  and 32-row check:
+  - 1c / 1c + exempt / 1c + exempt + RES, vs REF2-T;
+  - with RES, an MSB-3-tier expert still needed by a tagged row is read;
+- (c) the MEASURED 1c map flips per row split by tag (all-row and non-tie; flip = the arm's top-1 != baseline's). The
+  exemption removes up to the tagged rows' flips: an upper bound, since tagged rows still attend to perturbed earlier
+  rows. Plus the law's reach-weighted E with tagged rows at err 0;
+- (d) the build (env-only or code);
+- the realistic 32-row check for C3 / C5 + the rule (scoreboard v3's model).
+
+No pass / fail line: this is a price for NewIdeas' decision.
+
+## COMMENT-EXACT PRICE RESULT + comment-QOM (Mon 16 Nov 13:3x; desk; the pre-registered columns, then a POST-HOC cheaper variant)
+Scripts /Users/kamen/Fit12/scripts/commentspan_price.py and commentspan_qom.py -> /Users/kamen/Fit12/data/lossy32/
+commentspan_price.txt and commentspan_qom.txt.
+- Tagging note: CodeScan enters code only after a ``` fence line. The map's answers begin just after the prompt's fence,
+  so the scan is primed with "```python" there (the engine's state); the gate's answers carry their own fence.
+
+**(a) Tagged-row share** (CodeScan as R57_RELAX_SPAN uses it):
+
+| rows | "#" comment | docstring | either |
+|---|---|---|---|
+| gate base, humaneval | 22.1 % | 42.8 % | 64.9 % |
+| gate base, humanevalx | 20.0 % | 47.1 % | 67.0 % |
+| gate base, mbpp | 29.3 % | 42.9 % | 72.2 % |
+| map, 12 HumanEval windows | 15.0 % | 60.4 % | |
+
+- NewIdeas' lexer reads 13.1 / 19.6 % for comments. CodeScan tags every row whose context is inside the comment,
+  including the newline that ends it.
+
+**(c) MEASURED map flips per row by tag** (12 HumanEval code windows, 3,366 rows):
+
+| arm | all rows | "#" comment rows | docstring rows | other rows | non-tie: all / comment |
+|---|---|---|---|---|---|
+| 1c (bt_1c) | 38 (1.13 %) | **35 (6.93 %)** | 0 | 3 (0.36 %) | 16 / 16 |
+| QOM cf 0 (qom_0_live) | 14 (0.42 %) | 11 (2.18 %) | 0 | 3 (0.36 %) | 2 / 2 |
+| QOM cf 0.5 | 12 (0.36 %) | 10 (1.98 %) | 0 | 2 (0.24 %) | 2 / 2 |
+| t4_all (the path's own noise) | 11 (0.33 %) | 9 (1.78 %) | 0 | 2 (0.24 %) | 2 / 2 |
+| t3_all (MSB-3 everywhere) | 31 (0.92 %) | 27 (5.35 %) | 0 | 4 (0.48 %) | 12 / 11 |
+
+- **1c's excess over path noise is ALL on "#" comment rows:** 35 vs 9 there; 3 vs 2 elsewhere; every non-tie flip.
+- **HumanEval's docstrings, copied from the prompt, flip under no arm.**
+- Exempting comments (upper bound): 1c -> 0.09 % all-row / 0.00 % non-tie. Law, reach-weighted: 1.08 -> 0.96
+  (comments) / 0.23 (comments + docstrings).
+
+**(b) Cost per check** (experts at the engine's ms per GB; misses from the residency masks at 0.25 ms):
+
+| scope (32 rows) | experts | misses | C3 realistic | C3 + RES |
+|---|---|---|---|---|
+| 1c | 3.99 GB | 60.4 | 64.3-67.5 | 51.1-54.3 |
+| comments EXACT | 4.75 GB | 101.9 | 78.6-81.8 | 67.7-70.9 |
+| **comments on QOM cf 0** | 4.68 GB | 57.8 | **67.2-70.4** | **55.9-59.1** |
+| comments + docstrings exact | 8.75 GB | ~385 | ~170 | ~170 |
+
+- At 16 rows: 1c 2.51 GB / 29.3 misses; comments exact 3.00 / 50.3; comments on QOM 2.96 / 27.4 (+ RES 6.0).
+- C5: + comments on QOM 64.0-68.4 ms, + RES 52.7-57.1.
+- Exact comment rows read their non-resident experts, so misses rise. QOM rows read ranks 0-1 and resident 2-9 only.
+
+**(d) Build: code, not env-only.**
+- The per-row tags come from the span state the screen already computes for R57_RELAX_SPAN, which lossy-45 runs on code.
+- Comment rows on QOM need bit-21 optional uses next to 1c's 2-D nolsb: the SAME ref2 guard lift as RES. So ONE
+  installer serves RES and comment-QOM (two switches).
+
+**Docstrings:**
+- NO on HumanEval: copied, 0 flips in every arm, and 43-60 % of rows (near exact cost).
+- OPEN on MBPP: its docstrings are model-written. 2 of the 4 runaway divergences (mbpp/122, mbpp/147) sit there, and the
+  map has no MBPP windows, so their flips cannot be read here.
+
+**Map arms ready:** /Users/kamen/Fit12/data/lossy32/masks_1c_comqom and masks_1c_comqom_res (36 windows each,
+tiers_1c's format, self-check PASS) for Breakthrough's screen.
+- **Comment + DOCSTRING rows on QOM** (POST-HOC MBPP proxy, NewIdeas 13:4x; the HumanEval map windows with ~75 % of rows
+  exempt, close to MBPP's 72 %; commentspan_qom_doc.py -> commentspan_qom_doc.txt):
+  - 32 rows: 8.20 GB, misses 50.8, C3 **83.5-86.7 ms** (+ RES 80.6-83.8); C5 80.3-84.7 (+ RES 77.4-81.8);
+  - 16 rows: 5.42 GB, misses 23.2;
+  - vs comments only 67.2-70.4 and lossy-45's own 90.3-91.9.
+  - **So MBPP docstrings on QOM cancel most of 1c's gain on MBPP.** MBPP routing on disk has no weights, so the 1c
+    tiers can't be computed on MBPP itself; this is a proxy.
+
+## RES1C INSTALLER: build + bit tests + KILL TEST (pre-registered Mon 16 Nov 13:4x; NewIdeas 13:4x GO, hold lifted)
+**What:** /Users/kamen/Fit12/res1c/res1c.py, one opt-in installer with two switches (int8d's form).
+- **COMQOM (first):** on a 1c-tiers check, rows tagged by lossy-45's causal CodeScan run QOM cf 0 instead of the tiers.
+  - Tagged = '#' comments; docstrings too on the sets in R57_COMQOM_DOC_SETS.
+  - Ranks 0-1 are read at base precision (LSB + MSB). Ranks 2-9 are bit-21 optional uses (read only if resident).
+  - No tier drops on those rows.
+- **RES:** untagged rows' MSB-3-tier uses become bit-21 optional (read only if resident).
+- **Mechanics:**
+  - an md5-guarded source transform of ref2._ooo_1c_call that admits t["qom"] next to a 2-D t["nolsb"] only while the
+    installer's switch is ON (Leap's guard, line 944, otherwise unchanged);
+  - an md5-guarded replacement of the screen's _t1c that returns BigMoE's original verbatim while both switches are OFF;
+  - per-row tags from a copy of the run's CodeScan + the drafts (RELAX_SPAN's convention), passed as FG["crow"];
+  - counters added to lossy_check: com_rows, com_opt, res_opt, opt_drop (ref2.QCNT_1C's loader drops).
+**Bit tests (GPU kernel level, Leap's ooo1c_2d_check form: layers 20 / 44, real converted pools, a stand-in loader that
+reads bit 21; MEM ~4 GB, share lock).** PASS needs all of:
+1. **OFF:** the transformed _ooo_1c_call == the original on 2-D-only and 1-D scenarios, outputs bit for bit, and the
+   guard still raises for 2-D + qom.
+2. **ON, comment rows / RES / both, random residency:** y == an explicit reference, bit for bit. The reference drops each
+   optional-only non-resident expert (its row's rank-0 slot at weight 0), reads comment rows' ranks 0-1 with LSB, and
+   marks untagged MSB-3-tier rank 0-1 uses -2.
+3. **The counters:** opt_drop == the reference's dropped optional uses, exactly.
+
+**KILL TEST** (NewIdeas' lines, real loop, 45 GB, my COPY of t1c1's screen + the installer). Free-decode mbpp/122,
+mbpp/147, mbpp/13, HumanEval/147 under t1cx45t1c1's env + COMQOM, cap 2048. Two arms: A without MBPP docstrings, B with
+them.
+- Per arm, a key FAILS if it hits the cap or loops (periodic tail, P <= 400, >= 3 repeats, runaway4's detector).
+- **The fix dies at >= 3 of 4 failing; BETWEEN at 2; survives at <= 1.**
+- A survive is weak (any change moves these paths); only a kill is decisive. EvalSuite's RUNAWAY guard stays the test.
+
+## SCOREBOARD v3.1 (Mon 16 Nov 13:4x): the real records3 piece sizes (Leap 13:45, check25_bound_real.txt)
+- 4-bit 2.784 MB and MSB-3 2.064 MB per expert, not 2.135 / 1.661 (lossy32_board.py v3.1; the v3 script is kept as
+  lossy32_board_v3.py).
+- The engine's experts run at **4.06 ms per real GB = 1.14x their byte floor** (v3 said 1.43x on the low bytes).
+- **Bytes and floors rise; the realistic times don't move** (they are anchored on the measured engine time).
+
+| candidate (32 rows) | GB | floor ms | bound ms | realistic ms |
+|---|---|---|---|---|
+| C1 lossy-45 at 32 rows | 14.98 | 53.5 | 54.7 | 90.3-91.9 |
+| C3 1c-tiers | 7.64 | 27.3 | 28.5 | 64.4-67.6 |
+| C3 + RES | | | | 51.2-54.4 |
+| C5 | 7.18 | 25.6 | 27.7 | 61.2-65.6 |
+| C5 + RES | | | | 48.0-52.4 |
+| C6 + RES | 6.74 | 24.1 | 26.2 | 45.8-50.2 |
+| C6 + V4 + RES, int8 | 6.40 | 22.9 | 24.1 | 43.6-48.6 |
+
+- C5's bound of 27.7 ms matches Leap's corrected 26.8-27.7.
+- Ladder (C5): 72.3-75.8 -> 61.2-65.6 -> 57.4-60.3 -> 44.2-47.1 (RES) -> 42.4-43.7.
+- A bug caught before sending: the first v3.1 run divided by the layers twice (194.85 ms per GB). It was fixed and re-run
+  at once; the board file holds the corrected run.
+
+## RES1C INSTALLER: BUILT + KILL TEST ARMED (Mon 16 Nov 13:5x)
+- **Files:**
+  - /Users/kamen/Fit12/res1c/res1c.py (sha 61194417149a): COMQOM + RES switches;
+  - res1c_check.py (b46f3aa6b380): the GPU bit tests;
+  - screen/r57_screen_f12.py (1ac75ac9dea0): Fit12's COPY of BigMoE's t1c1 screen, outputs in
+    /Users/kamen/Fit12/data/res1c/killtest, 8 anchored hooks;
+  - killtest.py (30c1bf6dfaa0): the runner.
+- **CPU checks done:** all compile; masks() == a numpy reimplementation on 200 random cases (0 mismatches); the runner's
+  SKIP and TERM paths write KILL_DONE (scratch simulations).
+- **The hooks BigMoE copies into its own snapshot** (in screen/r57_screen_f12.py, each marked "Fit12 res1c"):
+  1. install() after `_SWC.__call__ = _fast_call`;
+  2. set_prompt() after the t1c_on_ line;
+  3. FG["crow"] = check_begin(sscan, the drafts' texts) around the verify FG.update;
+  4. FG["crow"] = None in the finally;
+  5. check_end() after the check's readback;
+  6. prompt_counts() merged into lossy_check.
+- **Bit tests: PENDING.** Their memory-gated runner (/Users/kamen/Fit12/res1c/res1c_check.sh) needs NO-SWAP >= 12 GB by
+  17:40; EvalSuite's 45 GB gate holds the memory. Otherwise the kill-test runner runs them first in its slot, and runs no
+  arm unless ALL PASS.
+- **KILL TEST ARMED 13:57:46** (pid 86915). Gate: Breakthrough's COMQOM_END newer than the arming + Tue >= 07:00 +
+  NO-SWAP >= 47 + no MEM >= 16 GB / quiet lock; latest start 08:30.
+  - Arms OFF -> COM -> COMDOC, one process each, keys in the gate's order.
+  - Marker /Users/kamen/Fit12/data/res1c/killtest/KILL_DONE on every end; verdict KILL_RESULT.txt (+ PLAN / TRIED
+    auto-append, peer send to NewIdeas).
+  - Next in line: Breakthrough's lambda band screen gates on my KILL_DONE.
+- EvalSuite confirmed the 4 keys in amendment 5d. The MBPP-docstring arm is DECISIVE there (D survives while C fails ->
+  comment-QOM with MBPP docstrings).
+
+## CORRECTION + KILL TEST RE-ARMED on 5d's corrected keys (Mon 16 Nov 14:0x)
+**CORRECTION to "1c-tiers gate rows, EARLY READ" and RUNAWAY4: 2 of the 4 "runaway" keys are NOT variant-only runaways
+under EvalSuite's amendment 3a.**
+- I measured length at the screen's 2,048 cap. EvalSuite's rows cut at the items' max_tokens (MBPP 1024, HumanEval 768).
+- In its scored rows, finish base -> variant:
+  - mbpp/13: length -> length;
+  - HumanEval/147: length -> length;
+  - mbpp/122: eos (246) -> length;
+  - mbpp/147: eos (291 / 386) -> length.
+- So the early signal was 2 of 45 variant-only runaways, not 4.
+- EvalSuite's own read on V1's complete code rows: 10 variant-only vs 3 the other way (p 0.092).
+- RUNAWAY4's divergence analysis stands. For mbpp/13 and HumanEval/147 it describes long answers in both arms.
+- Sent to NewIdeas + EvalSuite at once.
+
+**Amendment 5d (EvalSuite 7498f37, NewIdeas' rule):**
+- Keys: COUNTED = discordant only. 1c-tiers' row is a 3a runaway (finish length or decode_report.looped, at the item
+  caps), and the base's row ends eos and is not looped, in either order. Up to 6 keys in gate order. mbpp/13 and
+  HumanEval/147 are run and printed, never counted.
+- Lines as shares: KILL >= 75 %, SURVIVE <= 25 %, else BETWEEN; VOID if OFF < 75 %.
+
+**The runner, re-armed 14:05:06** (pid 94099; killtest.py sha eb174b96d2ab):
+- Scores with 3a's exact rule: EvalSuite's looped() source, md5-checked; the items' max_tokens; EOS {248044, 248046};
+  time-budget cuts dropped.
+- Builds the COUNTED set at its start from EvalSuite's full tier-1 rows, both orders when present. Any discovery failure
+  falls back to the fixed 2, and KILL_RESULT.txt names the choice.
+- Screen cap = the largest item cap among the keys.
+- Tested on today's rows: discovery picks mbpp/122, mbpp/147 + HumanEval/77, humanevalx/113, humanevalx/116, mbpp/243.
+  The read-out end to end on the gate's variant rows gives OFF VALID 6 / 6, KILL / KILL, as it must for identical rows.
+- Markers and gates are unchanged.

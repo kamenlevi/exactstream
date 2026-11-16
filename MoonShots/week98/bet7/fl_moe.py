@@ -68,18 +68,42 @@ _S9B = """
   normalizer = metal::precise::divide(1.0f, local_norm[0]);
   for (int i = 0; i < 4; i++) { P[lid * 4 + i] = static_cast<bfloat16_t>(ld[i] * normalizer); }
   threadgroup_barrier(mem_flags::mem_threadgroup);
-  // top-10 = the last 10 of the stable ascending sort: rank = elements ahead in (value, index) descending order
+  // top-10 = the last 10 of the stable ascending sort = the 10 largest by (value, index). Softmax outputs are
+  // non-negative bf16, whose bit patterns order like their values, so key = bits << 16 | index orders exactly as
+  // (value, index); 10 rounds of a simd_max over each lane's next key, then the same over the 4 simdgroup lists.
   threadgroup uint ti[10];
   threadgroup bfloat16_t tv[10];
+  threadgroup uint sgk[4 * 10];
+  uint key[4];
   for (int k = 0; k < 4; k++) {
     uint i = lid * 4 + k;
-    bfloat16_t v = P[i];
-    uint rank = 0;
-    for (uint j = 0; j < 512; j++) {
-      bfloat16_t u = P[j];
-      rank += (u > v || (u == v && j > i)) ? 1 : 0;
+    key[k] = (uint(as_type<ushort>(P[i])) << 16) | i;
+  }
+  for (int a = 0; a < 3; a++) {                         // sort the lane's 4 keys descending
+    for (int b = 0; b < 3 - a; b++) {
+      if (key[b] < key[b + 1]) { uint t = key[b]; key[b] = key[b + 1]; key[b + 1] = t; }
     }
-    if (rank < 10) { ti[9 - rank] = i; tv[9 - rank] = v; }
+  }
+  int hd = 0;
+  for (int r = 0; r < 10; r++) {
+    uint mine = hd < 4 ? key[hd] : 0u;
+    uint best = simd_max(mine);
+    if (hd < 4 && mine == best) { hd++; }
+    if (lane == 0) { sgk[sgi * 10 + r] = best; }
+  }
+  threadgroup_barrier(mem_flags::mem_threadgroup);
+  if (sgi == 0) {
+    int h2 = 0;
+    for (int r = 0; r < 10; r++) {
+      uint mine = (lane < 4 && h2 < 10) ? sgk[lane * 10 + h2] : 0u;
+      uint best = simd_max(mine);
+      if (lane < 4 && h2 < 10 && mine == best) { h2++; }
+      if (lane == 0) {
+        uint i = best & 0xffffu;
+        ti[9 - r] = i;                                   // ascending (value, index) order: the largest last
+        tv[9 - r] = P[i];
+      }
+    }
   }
   threadgroup_barrier(mem_flags::mem_threadgroup);
   if (lid == 0) {

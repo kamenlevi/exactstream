@@ -8,6 +8,26 @@ LOSSY_CHECK_PLAN (corrected 5fc4c34) and engine profile (a082f8c), and my record
 
 Labels: [K] measured, [P] priced from measured parts, [est] estimate.
 
+## DAY 1 PROGRESS (Mon 13:1x)
+- **Built and bit-tested** (data/week98/check25/README.md):
+
+  | piece | what it is | check | speed |
+  |---|---|---|---|
+  | qmm32n / dn32 / dn32q | 32-row dense matmuls | qmm32n bitwise | 19.3 -> 13.2 ms per check (quiet) |
+  | FAST-NAX one-call at M 32 | the experts | bitwise vs 2 x 16 | |
+  | int8d | G1's lever | slice PASS, no extra memory | |
+  | t1cf | fused 1c tiers | == BigMoE on 384K slots | ~1,350 fewer dispatches |
+  | hc8r32 | one-pass HC read | bitwise | ROUGH -2.5..-6.8 ms |
+  | hc4r / hc4i | V3's 4-bit HC read | PASS | |
+  | f32one | the one-pass FAST route | slice: == v32 on every shared logit, commit bitwise | |
+
+- **Parked:** the chunked GDN (correct, 3x slower as built).
+- **Engine harness c25 READY:**
+  - Arms F16 F32s F32o F32d F32df F32if F32if6 F32c5 F32c6i (C5 = 1c + V1 + V3 bytes; C6 + int8).
+  - Head test PASS. Smoke tonight behind Breakthrough's map screen; the full run in Tue's ~09:30 slot.
+- **Still open:** the experts at 32 rows (exp32 bench queued); the GDN core at 32 rows (sequential ~4.3 ms; a chunked v2
+  needs (dv, t) parallelism); the 32-row GDN / attention glue (the launch proxy shows MTPLX's eager ops at 32 rows).
+
 ## UPDATE Mon 12:2x: the Friday estimate CORRECTED to ~40-46 ms GPU at C5 (C6 + int8 ~36-42) [est]
 - **The measured 32-row dense matmuls** (data/week98/check25/README.md, quiet 12:22): 19.30 ms per check on today's
   two-16-row route -> 13.20 (dn32) / 12.76 (dn32q). That is ~-6 ms, not the -8..-10 I had assumed.

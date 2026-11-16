@@ -12,6 +12,7 @@ C. Leap's bound (~/Leap/scripts/week98/check25_bound.py's method) on code bytes:
 """
 import contextlib
 import hashlib
+import sys
 import io
 import json
 import os
@@ -19,8 +20,10 @@ import os
 import numpy as np
 
 H = os.path.expanduser
-OUTD = H("~/Breakthrough/data/m1/check_bytes_900")
-OUTF = H("~/Breakthrough/data/m1/check_bytes_900_price.out")
+PIECES = "--pieces" in sys.argv          # section 5: the engine's real records3 pieces (Leap 13:45)
+E4P, E3P = 2.784e-3, 2.064e-3           # GB per expert piece: 4-bit, MSB-3 (Leap: records3 index, pools, config)
+OUTD = H("~/Breakthrough/data/m1/check_bytes_900" + ("_pieces" if PIECES else ""))
+OUTF = H("~/Breakthrough/data/m1/check_bytes_900_price" + ("_pieces" if PIECES else "") + ".out")
 os.makedirs(OUTD, exist_ok=True)
 L = []
 
@@ -66,6 +69,8 @@ def option(s, lam):
     t = (err[None, :] * S[:, None] + lam * size[None, :]).argmin(1)
     keq_all = size[t].sum() / nbl
     keq_code = size[t][gdom == 0].sum() / nbl_code
+    if PIECES:                                   # bytes: n4 x 1 + n3 x (2.064 / 2.784); the policy (t) is unchanged
+        keq_code = np.array([1.0, E3P / E4P, 0.0])[t][gdom == 0].sum() / nbl_code
     Erow = (err[t][GIDX] * W2).sum((1, 2)) / NL
     sel = RDOM == 0
     Ec = float((Erow[sel] * rw[sel]).sum() / rw[sel].sum())
@@ -76,8 +81,8 @@ DENSE_INC = (1.25 - 1.13, 0.60 - 0.48)          # measured: bt_comb + shortlist 
 OPTS = [(0.98, 1.6e-2), (0.98, 1.8e-2), (0.98, 2.0e-2), (0.98, 2.2e-2), (0.935, 1.2e-2), (0.935, 1.6e-2)]
 A = {o: option(*o) for o in OPTS}
 ka, kc, _, pa, pn = A[(0.98, 1.8e-2)]
-scA = (round(ka, 1) == 33.6 and round(kc, 1) == 35.7 and [round(x, 2) for x in pa] == [1.21, 1.06, 1.28]
-       and [round(x, 2) for x in pn] == [0.59, 0.52, 0.63])
+scA = (round(ka, 1) == 33.6 and (PIECES or round(kc, 1) == 35.7) and [round(x, 2) for x in pa] == [1.21, 1.06, 1.28]
+       and [round(x, 2) for x in pn] == [0.59, 0.52, 0.63])            # pieces: the code column is the bytes-eq
 p("# CHECK BYTES (900 push): C6 / int8 / V4 and the <= 5.5 GB scan, code windows (Breakthrough check_bytes_900_price.py)")
 p()
 p(f"A. tiers (3 tiers: 4-bit / MSB-3 / drop) on the map's 32-row blocks; dense_cut_price.py re-run output identical to the "
@@ -95,8 +100,10 @@ p("   code lines: all-row 1.34, non-tie 0.87 (the map's verdict levels)")
 
 # ---------------------------------------------------------------- B. Fit12's v2 ladder with rows added
 FSRC = H("~/Fit12/scripts/lossy32_price.py")
-gB = run(FSRC, [('OUT = "/Users/kamen/Fit12/data/lossy32"', f"OUT = {os.path.join(OUTD, 'fit12_published')!r}")],
-         sha="74f11370dd78")
+RB = [('OUT = "/Users/kamen/Fit12/data/lossy32"', f"OUT = {os.path.join(OUTD, 'fit12_published')!r}")]
+if PIECES:
+    RB.append(("E4, E3 = 2.135e-3, 2.135e-3 * 0.778", f"E4, E3 = {E4P!r}, {E3P!r}"))
+gB = run(FSRC, RB, sha="74f11370dd78")
 scB_a = open(os.path.join(OUTD, "fit12_published", "lossy32_price.txt"), "rb").read() == open(
     H("~/Fit12/data/lossy32/lossy32_price.txt"), "rb").read()
 fast32, F16, GROW, miss32 = gB["fast32"], gB["F16"], gB["GROW"], gB["miss32"]
@@ -148,7 +155,7 @@ def share_of(eq):
 V123 = dict(v1=True, v2=True, v3=True)
 ROWSX = []
 for v4 in (False, True):
-    for nm, eq in (("C5 (1c, lambda 1.6e-2)", None), ("C6 (lambda 1.8e-2)", 35.7)):
+    for nm, eq in (("C5 (1c, lambda 1.6e-2)", None), ("C6 (lambda 1.8e-2)", round(A[(0.98, 1.8e-2)][1], 1))):
         for i8 in (False, True):
             lab = nm + (" + V4" if v4 else "") + (" + int8" if i8 else "")
             if nm.startswith("C6") and i8:
@@ -170,8 +177,12 @@ def same(a, b):
     return all(abs(x - y) < 1e-9 for x, y in zip(a["lo"] + a["hi"] + (a["gb"],), b["lo"] + b["hi"] + (b["gb"],)))
 
 
-scB_b = (same(ROWSX[0][0], FIT["C5"]) and same(ROWSX[4][0], FIT["C8"])
-         and round(ROWSX[2][0]["gb"], 2) == 5.77 and round(ROWSX[2][0]["floor"], 1) == 20.6)
+if PIECES:                                     # Leap 13:45: C5 experts 5.05 GB, C6 4.60
+    scB_b = (same(ROWSX[0][0], FIT["C5"]) and same(ROWSX[4][0], FIT["C8"])
+             and abs(ROWSX[0][0]["egb"] - 5.05) <= 0.02 and abs(ROWSX[2][0]["egb"] - 4.60) <= 0.02)
+else:
+    scB_b = (same(ROWSX[0][0], FIT["C5"]) and same(ROWSX[4][0], FIT["C8"])
+             and round(ROWSX[2][0]["gb"], 2) == 5.77 and round(ROWSX[2][0]["floor"], 1) == 20.6)
 
 # ---------------------------------------------------------------- C. Leap's bound on code bytes
 DC_BF16, DC_INT8, CORES = 8.53, 4.93, 0.81 + 0.35
@@ -184,13 +195,22 @@ def bound(c):
 
 b_c5 = (round(bound(ROWSX[0][0]), 1), round(bound(ROWSX[1][0]), 1))
 b_c8 = (round(bound(ROWSX[4][0]), 1), round(bound(ROWSX[5][0]), 1))
-scC = b_c5 == (23.9, 23.0) and b_c8 == (23.9, 21.8)
+b_c6 = (round(bound(ROWSX[3][0]), 1), round(bound(ROWSX[7][0]), 1))     # C6 + int8, C6 + V4 + int8
+scC = (b_c5 == (27.7, 26.8) and b_c6 == (25.2, 24.0)) if PIECES else (b_c5 == (23.9, 23.0) and b_c8 == (23.9, 21.8))
 
 p()
-p(f"B. Fit12's v2 ladder (its script, sha256 74f11370dd78). SELF-CHECK (a) published output reproduced byte for byte: "
-  f"{'PASS' if scB_a else 'FAIL'}; (b) C5 / C8 rows == Fit12's cand(), C6 == e62c405 (5.77 GB, 20.6 ms): "
-  f"{'PASS' if scB_b else 'FAIL'}")
-p(f"C. Leap's bound. SELF-CHECK (c) C5 {b_c5} == (23.9, 23.0) and C8 {b_c8} == (23.9, 21.8): {'PASS' if scC else 'FAIL'}")
+if PIECES:
+    p(f"MODE --pieces (section 5): E4 / E3 = {E4P * 1e3:.3f} / {E3P * 1e3:.3f} MB per expert piece (the engine's records3; "
+      f"Leap 13:45); carried rows count n4 x 2.784 + n3 x 2.064 MB; the tier policy unchanged")
+    p(f"B. SELF-CHECK (a) n/a (Fit12's constants replaced); (b) C5 / C8 == Fit12's cand() under the same constants, "
+      f"C5 experts {ROWSX[0][0]['egb']:.2f} ~ 5.05 and C6 {ROWSX[2][0]['egb']:.2f} ~ 4.60 GB (Leap): {'PASS' if scB_b else 'FAIL'}")
+    p(f"C. Leap's corrected bound. SELF-CHECK (c) C5 bf16 / int8 {b_c5} == (27.7, 26.8), C6 + int8 / + V4 {b_c6} == "
+      f"(25.2, 24.0): {'PASS' if scC else 'FAIL'}")
+else:
+    p(f"B. Fit12's v2 ladder (its script, sha256 74f11370dd78). SELF-CHECK (a) published output reproduced byte for byte: "
+      f"{'PASS' if scB_a else 'FAIL'}; (b) C5 / C8 rows == Fit12's cand(), C6 == e62c405 (5.77 GB, 20.6 ms): "
+      f"{'PASS' if scB_b else 'FAIL'}")
+    p(f"C. Leap's bound. SELF-CHECK (c) C5 {b_c5} == (23.9, 23.0) and C8 {b_c8} == (23.9, 21.8): {'PASS' if scC else 'FAIL'}")
 p()
 p("| candidate (code windows, 32-row check, engine semantics) | GB (dense + experts) | <= 5.5 GB | floor ms | FAST dense ms | "
   "experts ms | GPU ms | CPU ms | misses ms | realistic ms | today's > 16-row route ms | tok/s HE+ / MBPP at K* | "
@@ -227,7 +247,7 @@ p()
 p("Notes: int8 = int8 activations on the FAST dense matmuls (hc, attp, gdnw, moe, ple, head); model [est], Leap's measured "
   "dn32q / qmm32n ratio replaces it. V4 per Fit12 (dense -0.335 GB, GDN / attention time x0.80-0.85 [est]). Flips "
   "[composed] = the experts-only prediction + the measured V1 + V3 increment on 12 windows; unscreened unless marked.")
-json.dump(dict(selfchecks=dict(A=bool(scA), B_a=bool(scB_a), B_b=bool(scB_b), C=bool(scC)),
+json.dump(dict(pieces=PIECES, selfchecks=dict(A=bool(scA), B_a=None if PIECES else bool(scB_a), B_b=bool(scB_b), C=bool(scC)),
                scan={f"s{o[0]}_lam{o[1]:.1e}": dict(keq_all=round(A[o][0], 2), keq_code=round(A[o][1], 2),
                                                     flips_all=[round(x, 3) for x in A[o][3]],
                                                     flips_nontie=[round(x, 3) for x in A[o][4]]) for o in OPTS},

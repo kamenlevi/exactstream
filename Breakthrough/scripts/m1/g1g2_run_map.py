@@ -16,7 +16,7 @@ T0 = time.time()
 LIM = float(os.environ.get("BG_PEAK_MAX", "22"))
 os.environ["DM_OUT"] = os.path.expanduser("~/FableGod/decision_map/out_code24")
 os.environ["DM_SETS"] = "code"
-ARMS = os.environ.get("G1G2_ARMS", "bt_g1h8 bt_dense3 bt_l20g2 bt_g1 bt_restore bt_l20comb bt_c6comb").split()   # amendments (a), (b)
+ARMS = os.environ.get("G1G2_ARMS", "bt_g1h8 bt_dense3 bt_l20g2 bt_g1h8_res bt_g1 bt_restore bt_l20comb bt_c6comb").split()   # (a), (b), (e)
 
 
 class _RU(ctypes.Structure):   # rusage_info_v4: uuid, then 64-bit counters (u28 = lifetime max phys_footprint)

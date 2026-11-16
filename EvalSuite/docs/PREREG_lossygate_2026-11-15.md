@@ -936,6 +936,41 @@
   - The simulation caught a quoting bug first: a quoted "CHAIN_CUTOFF=..." word was taken as the command (rc 127). It
     was fixed before arming.
 
+## Amendment 4h (Mon 2026-11-16 13:2x, during the 1c-tiers run, during V1): V1 resumed early; pause 2 before B2 for Leap's c25 and SIB (the orchestrator 13:0x-13:1x); operational only
+- **What changed** (the orchestrator, in order):
+  - 13:0x: SIB's smoke check failed, so resume V1 at 13:30 unless SIB runs; then "RESUME V1 NOW".
+  - 13:1x, the final form: pause 2 comes after V1, before B2.
+    - (a) If ~/Sandbox98/logs/sib_READY is newer than 13:06, Leap's c25 engine A/Bs (quiet, MEM 43 GB, <= 30 min) run,
+      then SIB's main read-out (~15 min). Resume on SIB's rc 0 line, written after the pause began, or after 60 min.
+    - (b) Otherwise, Leap's c25 alone. Resume when its quiet lock is released, or after 35 min.
+  - No scoring change. The 22:30 cutoff and every guard stay.
+- **SIB's marker format**, read from scripts/sib_run.sh line 52: the line is "<day HH:MM:SS> rc <n>: <status>". Its rc 0
+  line therefore reads "Mon HH:MM:SS rc 0: main read-out done, rc 0 -- ...", not a line starting with "rc 0:".
+  - t1c_resume_follower.sh's start-anchored prefix check (4g) would never have matched it.
+  - The new followers accept the dated form (and the undated one). An "rc 5" / "rc 143" line never counts.
+- **The followers:**
+  - t1c_resume_follower.sh (pid 23473) was stopped at 13:11:15, before any resume.
+  - tools/t1c_resume_follower2.sh (sha256 0fbfc5202fc485e9..., pid 7785; stub sim P1-P7 all as intended,
+    results/lossygate/t1c_resume_follower2_sim_2026-11-16.txt) resumed V1 at 13:13:48 by EvalSuite's manual
+    trigger (results/T1C_RESUME_NOW). The resumed chain is chain2, tag mon3, pid 15032. V1 got its share lock after a
+    Leap ticket stood down (13:14:49).
+  - follower2's pause 2 knew case (a) only, with a 45-min cap. To change it without stopping V1, follower2 was killed
+    with SIGKILL on its own pid only (13:19:50). Its trap therefore neither stopped the chain nor wrote the end marker.
+    The chain was reparented and ran on.
+  - **tools/t1c_resume_follower3.sh** (sha256 d77def0202309794..., pid 82764) ADOPTS the running chain (pid 15032).
+    - At B2's start, it applies (a) or (b) above, with EvalSuite's manual trigger as an override.
+    - Then it runs B2 -> V2 as chain2 tag mon4. If the chain ends without reaching B2 (V1 did not pass), there is no
+      pause and no mon4.
+    - Stub sim Q1-Q7, all as intended (results/lossygate/t1c_resume_follower3_sim_2026-11-16.txt):
+      - (a) on the rc 0 line, and at the cap;
+      - (b) on the lock's release, at the cap with no lock, and at the cap with a lock that stays;
+      - no B2, so no pause;
+      - a stop during the pause.
+- **ONE end marker for the waiting runs:** results/T1C_RESF2_END, written by follower3 on every end and only then.
+  - BigMoE's G1 key-test wrapper (13:14) and Breakthrough's map screen gate on it (mtime >= 13:15), with no
+    t1c_chain2.sh / t1c_resume_follower2.sh process.
+  - T1C_MON3_END is written at pause 2 and is NOT an end.
+
 ## Amendment 5b (Mon 2026-11-16 13:0x, before any G1 run): G1's pins (BigMoE 12:5x), checked here; MEM, the key test and the chain follow in a dated addendum
 - **Snapshot g1a** (BigMoE abffe6e1, clean against HEAD):
 
@@ -1001,3 +1036,152 @@
     4. Leap's engine slot #3 (~40 min).
     - Worst case ~6 h, ending ~14:00-16:30.
   - **The drop deadline is ~10:00 Wed:** if V1 + V3 or the g2a key test aren't ready by then, G2 is dropped this week.
+- **13:2x (NewIdeas): G2's V1 is the 32K OUT-OF-SAMPLE list,** not the 16K one (Breakthrough 49de88d).
+  - The 16K "code list" was counted from the whole bank, which holds the map's 24 HE windows. So every earlier map read of
+    V1 is void as V1 evidence.
+  - Out of sample, forced misses on the 24 windows: 16K 0.35 %, 32K 0.14 %, SVH 98K 0.00 %.
+  - The no-V4 route stays <= 5.5 GB (5.49).
+- **13:2x (NewIdeas): G2 may add RES,** conditionally. RES is Fit12's resident-only 3-bit tier read at C 256, on top of 1c.
+  - Fit12 found that 1c replaces QOM's resident keep on code (~60 misses per 32-row check). RES cuts that to ~8, a -13 ms
+    rung. Its predicted quality cost is +0.046 pt code flips.
+  - RES joins G2 ONLY IF both hold:
+    - (a) tonight's map arm bt_g1h8_res (Breakthrough) reads <= 1.34 / 0.87;
+    - (b) Fit12's installer and BigMoE's g2a wiring are ready by Wednesday morning.
+  - Otherwise G2 goes without it.
+  - **Refined 13:4x (NewIdeas), before any map or RES data.** Breakthrough's map arm bt_g1h8_res (its amendment (e),
+    6185da2) is G1 as gated + RES. Residency replay exists only for windows 1-12, so RES applies there only. RES joins
+    G2 only if ALL hold:
+    - (a) bt_g1h8_res's code flips are within 1.34 / 0.87;
+    - (b) the PAIRED RES increment on windows 1-12 (bt_g1h8_res vs bt_g1h8, ~3,400 rows) is <= +0.3 pt. This only rules
+      out a large surprise. It cannot resolve Fit12's predicted +0.046 pt from 0; G2's own gate is the quality test;
+    - (c) Fit12's installer and BigMoE's g2a wiring are ready by Wednesday morning;
+    - (d) today's 1c-tiers verdict allows it. Fit12 holds the RES build until the 1c-tiers RUNAWAY guard reads out,
+      since 4 of 45 code keys hit the cap under 1c-tiers so far against 0 in the base.
+  - RES brings back pool-history dependence, which the two orders cover.
+  - RES needs its own engagement counter (e.g. eres).
+  - **The engagement check must prove EACH mechanism engaged,** not a sum. That holds for G1 (1c + int8) and for G2.
+    - Runner 65's CARD_ENGAGE sums one field's keys, so a dead mechanism could hide behind a live one.
+    - G1's addendum registers a per-term check (every listed counter > 0 on each kept code run) before G1 runs.
+
+## Amendment 5d (Mon 2026-11-16 13:5x, before any G1 run and before 1c-tiers' V1 verdict): G1's branches (NewIdeas 13:4x); open items marked, to be fixed before Tuesday's reads
+- **Why:** Fit12's early read of the 1c-tiers rows (13:2x, information) found 4 code keys at the ~2,048-token cap under the
+  variant and 0 under the base (exact p 0.125 so far). G1 holds C6, which is 1c at lambda 1.8e-2. So if 1c-tiers fails
+  its RUNAWAY guard (amendment 3a), G1 as filed carries the same risk. NewIdeas set the branches; its final call comes
+  after the verdict.
+- **The pick.** These rules are fixed NOW, before 1c-tiers' V1 / V2 verdicts and before Tuesday's map reads. The pick is
+  made and recorded in a dated arming addendum before G1's base starts.
+  1. **1c-tiers PASSES** (V1 forward and V2 pooled, the RUNAWAY guard included): G1 as filed (5b: C6 + int8 dense).
+     - It is G1 + RES instead if RES's entry rule (5c, refined 13:4x) holds and the RES env's key test passes.
+  2. **1c-tiers FAILS its RUNAWAY guard:** G1's 1c is replaced by NewIdeas' fix, picked by Breakthrough's Tue 07:15
+     comment-QOM map read:
+     - CONFIRMED (code flips <= 0.5x the control's): G1' = 1c + comment rows on QOM + int8 dense (+ RES if its rule
+       holds). It also needs Fit12's 4-key kill test (the MBPP docstring scope) to pass.
+     - >= 0.8x the control: G1' = 1c at a LOWER lambda + int8 dense.
+  3. **OPEN items** (NewIdeas fixes them before 07:15 Tue; until then they are unset, not defaulted):
+     - the lower lambda's value;
+     - the rule between 0.5x and 0.8x;
+     - the 4-key kill test's pass criterion;
+     - what happens if 1c-tiers FAILS on a line other than RUNAWAY.
+- **The rest:**
+  - Every branch's env runs on the pinned snapshot (g1a, or g1b if 5b's addendum pins it) and needs its own key-test
+    PASS.
+  - The base runs once on that snapshot.
+  - The rules are amendment 5's, and the engagement check is per term (runner 67): every mechanism in the branch is
+    listed.
+- **5d's open items FIXED (NewIdeas 14:0x, before any branch, map or kill-test data):**
+  0. **The map read is judged on NON-TIE flips** (the comment-QOM arm against its control); the all-row ratio is printed
+     beside it.
+     - Why (stated before data): hc8w_mix + int8 sit in BOTH arms and add all-row flips that dilute the ratio.
+     - Fit12: all 16 of 1c's non-tie flips were comment rows (QOM non-tie ~0.06), so non-tie isolates the mechanism.
+  1. **The lower lambda = 0.8e-2** (S 0.98, as the 1c rule).
+     - Breakthrough's quality law predicts code flips of 0.51 / 0.15 against 1c's 1.08 / 0.50. That removes ~80 % of 1c's
+       excess over QOM, for ~+50 % expert bytes (54.8 vs 36.4 4-bit-eq).
+     - 1.2e-2 would remove only ~40 %.
+  2. **The branch rule,** after a 1c-tiers FAIL per item 4:
+     - map read <= 0.5x the control: comment-QOM, unless the kill test KILLS (then lambda 0.8e-2);
+     - between 0.5x and 0.8x: comment-QOM only if the kill test SURVIVES. Otherwise (BETWEEN, KILL, VOID or not run)
+       it is lambda 0.8e-2;
+     - >= 0.8x: lambda 0.8e-2.
+     - If comment-QOM can't run (its installer not key-tested by 07:15): lambda 0.8e-2.
+     - EvalSuite adds one case the message did not name: no map read by 07:15 counts as "not confirmed", so lambda
+       0.8e-2. Comment-QOM needs evidence.
+     - RES joins either branch only by its own rule (5c).
+  3. **The kill test:** a fixed list of 4 keys, the cap hits Fit12 characterized at 13:2x / 13:3x: mbpp/122, mbpp/147,
+     mbpp/13 and humaneval/HumanEval/147 (Fit12 to confirm the ids).
+     - A key is still runaway if it hits the 2,048-token cap or loops (amendment 3a's definition).
+     - The COMMENTS-ONLY arm counts (MBPP docstrings off). The docstring arm is information.
+     - KILL: >= 3 of 4 still runaway. SURVIVE: <= 1. BETWEEN: 2. VOID: the OFF control reproduces <= 2 of 4.
+  4. **Other 1c-tiers fails:**
+     - An IFEval identity FAIL is a scope bug. G1 is NOT run, in any branch, until the bug is fixed and re-verified.
+     - A pooled-delta or per-set decision-4 FAIL, with or without RUNAWAY, takes the SAME branch rule as a RUNAWAY FAIL.
+       Fit12's tags put ~all of 1c's excess flips on comment rows.
+  - Every branch's env needs its own key-test PASS by ~07:30 Tue: G1 (g1x), G1 + RES (g1rx), comment-QOM (g1crx), and
+    the lambda 0.8e-2 env (asked of BigMoE).
+- **5d refined 14:0x (NewIdeas, before any data). This REPLACES item 2's comment-QOM rules, and the 07:15 cutoff.**
+  - **Why:** 3 of the 4 kill-test keys are MBPP, and Fit12 placed 2 of the 4 divergences in MBPP docstrings, which
+    comments-only does not cover.
+    - Fit12 prices MBPP docstrings at ~+16 ms, on MBPP only.
+    - lambda 0.8e-2 costs ~+50 % expert bytes on every set and doesn't target the mechanism. So when D shows the
+      docstrings are the cause, D's config is the better bet.
+  - **The kill test has two decisive arms on the same 4 keys** (confirmed by Fit12: mbpp/122, mbpp/147, mbpp/13,
+    humaneval/HumanEval/147):
+    - C = comments-only;
+    - D = comments + MBPP docstrings (R57_COMQOM_DOC_SETS=mbpp).
+    - Each reads KILL / SURVIVE / BETWEEN as in item 3.
+  - **The comment-QOM branch's 1c lambda is 1.6e-2** (BigMoE's env list 14:0x; NewIdeas' sixth-env spec). It is not
+    G1's 1.8e-2.
+  - **The pick, after a 1c-tiers FAIL per item 4:**
+    - **map CONFIRMED (<= 0.5x the control, non-tie flips):**
+      - C SURVIVE: comments-only;
+      - C not SURVIVE and D SURVIVE: comment-QOM WITH MBPP docstrings;
+      - C KILL and D not SURVIVE: lambda 0.8e-2;
+      - otherwise (C BETWEEN, D not SURVIVE): comments-only.
+    - **map BETWEEN (0.5x-0.8x):** C SURVIVE gives comments-only; otherwise D SURVIVE gives MBPP docstrings; otherwise
+      lambda 0.8e-2.
+    - **map >= 0.8x:** lambda 0.8e-2.
+    - **the control VOID, or no kill test:** CONFIRMED gives comments-only; BETWEEN gives lambda 0.8e-2.
+    - **no map read by 09:15 Tue** (not 07:15): lambda 0.8e-2. A slipped map screen (the Tue 07:00 fallback) lands
+      ~08:30-08:45, still before G1's ~10:00 start.
+  - **Key-test envs needed by the pick** (all on g1b, each with its own PASS and MEM):
+    - lx45g1b (base);
+    - g1x45g1b (G1);
+    - g1rx45g1b (G1 + RES);
+    - g1crx45g1b (1c 1.6e-2 + COMQOM + RES + int8);
+    - the MBPP-docstring env (1c 1.6e-2 + COMQOM with doc sets mbpp + RES + int8);
+    - g1lx45g1b (1c 0.8e-2 + int8).
+    - OPEN (asked 14:0x): whether the comment-QOM branches need RES-free envs for when RES's own rule fails.
+- **5d, 14:1x (NewIdeas):** the comment-QOM lambda of 1.6e-2 is CONFIRMED, and the RES question is settled by
+  generalizing (a).
+  - EVERY branch gets a with-RES and a without-RES env. RES joins the picked branch only if its own 5c rule holds.
+  - The key-test envs (9 with the base, all on g1b, each with its own PASS and MEM):
+    - lx45g1b (base);
+    - g1x / g1rx: G1 as filed, without / with RES;
+    - g1cx / g1crx: 1c 1.6e-2 + COMQOM + int8, without / with RES;
+    - g1cdx / g1cdrx: the same + MBPP docstrings;
+    - g1lx / g1lrx: 1c 0.8e-2 + int8, without / with RES.
+  - **The kill test's runaway definition is amendment 3a's,** as item 3 says: finish "length" (the 2,048 cap), or
+    evalsuite.decode_report.looped (a 20-token n-gram >= 3 times in the last 400 tokens).
+    - Fit12's runner (res1c/killtest.py) states its own form: >= 2,040 tokens, or a periodic tail with P <= 400 and
+      >= 3 repeats.
+    - Asked 14:1x to use 3a's functions, before the test runs. If it doesn't, both readings are printed and 3a's decides.
+- **5d's kill test re-based on DISCORDANT keys (NewIdeas 14:1x, from Fit12's 14:0x correction; before any kill-test data).**
+  - **Why:** under 3a's rule with the gate's per-item caps (MBPP 1024, HumanEval 768), only mbpp/122 and mbpp/147 are
+    variant-only runaways. mbpp/13 and HumanEval/147 hit the cap in the base too (Fit12 had read lengths at the
+    screen's 2,048). As written, SURVIVE was unreachable.
+  - **KEYS:** a code key counts if 1c-tiers' scored row is a 3a runaway (finish "length" or looped) AND the base's row
+    of the same order ends "eos", not looped. Today that is mbpp/122 and mbpp/147.
+    - The runner adds further discordant keys from 1c-tiers' full tier-1 rows present when it starts (Tue ~07:15), up
+      to 6 in total, in the gate's key order.
+    - EvalSuite's default for the open point: a key is discordant in EITHER order (V1 / B1 forward or V2 / B2 reverse).
+      NewIdeas may restate it before 07:15.
+    - mbpp/13 and HumanEval/147 are printed, not counted.
+  - **LINES,** as shares of the counted keys, on arm C (D the same for the docstring branch):
+    - KILL: >= 75 % still runaway. SURVIVE: <= 25 %. Otherwise BETWEEN. With 2 keys that is 2 / 2, 0 / 2 and 1 / 2.
+    - VOID: the OFF control reproduces < 75 % of the counted keys' runaways.
+  - **Caps** are the gate's per-item max_tokens, not the screen's 2,048. Fit12's runner uses 3a's looped (an md5-checked
+    copy of decode_report.py's source), the item's max_tokens, EOS {248044, 248046}, and drops time-budget cuts. It
+    prints the old 4-key and the discordant readings side by side; the discordant one decides.
+  - If the runner can't read new keys at its start, it scores the 2 fixed keys under the same lines.
+  - **Information, from V1's complete code rows (14:1x, before V1's verdict):** variant-only runaways 10, base-only 3,
+    both 11, out of 264. The exact two-sided McNemar p is 0.092 (evalsuite.report.mcnemar_p). The registered guard
+    reads at V1's verdict, and pooled at V2.

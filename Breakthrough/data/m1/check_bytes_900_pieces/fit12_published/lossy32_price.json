@@ -1,0 +1,385 @@
+{
+ "version": "v2 (1c glue from Leap cf70494)",
+ "mean": {
+  "union": 114.24010942760943,
+  "ref2t_lsb": 30.979587542087543,
+  "c1_kept": 45.995370370370374,
+  "c1_lsb": 14.076178451178452,
+  "c1_map_e4": 15.268097643097644,
+  "c1_map_e3": 30.727272727272727,
+  "top2u": 30.979587542087543
+ },
+ "gb_exp": {
+  "all4": 15.266134303030302,
+  "ref2t": 12.388650666666667,
+  "c1_eng": 5.043326060606061,
+  "c1_map": 5.084518787878787
+ },
+ "dense": {
+  "exact": 3.435,
+  "l45": 2.593628865979382,
+  "l45_v1": 2.4697128865979385,
+  "l45_v1v3": 2.132712886597939,
+  "l45_v1v3v4": 1.7977128865979388
+ },
+ "rows": [
+  {
+   "name": "C0 exact-45 (REF2-T), 32 rows one pass, warm, C 160 [K]",
+   "gb": 15.824,
+   "dense_gb": 3.435,
+   "exp_gb": 12.389,
+   "floor_ms": 56.51,
+   "realistic_ms": [
+    90.5,
+    90.5
+   ],
+   "gpu": [
+    89.3,
+    89.3
+   ],
+   "cpu": [
+    27.9,
+    27.9
+   ],
+   "miss_ms": 0.0,
+   "today_route_ms": [
+    102.1,
+    102.1
+   ]
+  },
+  {
+   "name": "C0b exact-45 one pass on the map code windows' bytes [P]",
+   "gb": 15.824,
+   "dense_gb": 3.435,
+   "exp_gb": 12.389,
+   "floor_ms": 56.51,
+   "realistic_ms": [
+    93.2,
+    93.2
+   ],
+   "gpu": [
+    92.0,
+    92.0
+   ],
+   "cpu": [
+    27.9,
+    27.9
+   ],
+   "miss_ms": 0.0,
+   "today_route_ms": [
+    104.8,
+    104.8
+   ]
+  },
+  {
+   "name": "C1 lossy-45 as shipped, at 32 rows",
+   "gb": 14.982,
+   "dense_gb": 2.594,
+   "exp_gb": 12.389,
+   "floor_ms": 53.51,
+   "realistic_ms": [
+    90.3,
+    92.0
+   ],
+   "gpu": [
+    77.3,
+    78.9
+   ],
+   "cpu": [
+    27.9,
+    27.9
+   ],
+   "miss_ms": 13.1,
+   "today_route_ms": [
+    103.0,
+    103.0
+   ]
+  },
+  {
+   "name": "C2 C1 + V1 (16K code lm_head list)",
+   "gb": 14.858,
+   "dense_gb": 2.47,
+   "exp_gb": 12.389,
+   "floor_ms": 53.07,
+   "realistic_ms": [
+    89.5,
+    91.4
+   ],
+   "gpu": [
+    76.4,
+    78.3
+   ],
+   "cpu": [
+    27.9,
+    28.9
+   ],
+   "miss_ms": 13.1,
+   "today_route_ms": [
+    101.7,
+    102.1
+   ]
+  },
+  {
+   "name": "C3 C1 + V2 (1c tiers, lam 1.6e-2)",
+   "gb": 7.637,
+   "dense_gb": 2.594,
+   "exp_gb": 5.043,
+   "floor_ms": 27.27,
+   "realistic_ms": [
+    54.5,
+    57.8
+   ],
+   "gpu": [
+    49.2,
+    52.5
+   ],
+   "cpu": [
+    38.5,
+    38.5
+   ],
+   "miss_ms": 5.3,
+   "today_route_ms": [
+    67.1,
+    68.7
+   ]
+  },
+  {
+   "name": "C4 C1 + V1 + V2",
+   "gb": 7.513,
+   "dense_gb": 2.47,
+   "exp_gb": 5.043,
+   "floor_ms": 26.83,
+   "realistic_ms": [
+    53.7,
+    57.1
+   ],
+   "gpu": [
+    48.4,
+    51.9
+   ],
+   "cpu": [
+    38.5,
+    39.5
+   ],
+   "miss_ms": 5.3,
+   "today_route_ms": [
+    65.9,
+    67.9
+   ]
+  },
+  {
+   "name": "C5 C4 + V3 (HC + PLE 4-bit) = the 5.86 GB plan",
+   "gb": 7.176,
+   "dense_gb": 2.133,
+   "exp_gb": 5.043,
+   "floor_ms": 25.63,
+   "realistic_ms": [
+    51.3,
+    55.8
+   ],
+   "gpu": [
+    46.1,
+    50.5
+   ],
+   "cpu": [
+    38.5,
+    39.5
+   ],
+   "miss_ms": 5.3,
+   "today_route_ms": [
+    62.5,
+    66.0
+   ]
+  },
+  {
+   "name": "C6 C5 at lam 1.8e-2 (frontier)",
+   "gb": 6.586,
+   "dense_gb": 2.133,
+   "exp_gb": 4.454,
+   "floor_ms": 23.52,
+   "realistic_ms": [
+    48.2,
+    52.6
+   ],
+   "gpu": [
+    43.7,
+    48.1
+   ],
+   "cpu": [
+    38.5,
+    39.5
+   ],
+   "miss_ms": 4.5,
+   "today_route_ms": [
+    59.3,
+    62.8
+   ]
+  },
+  {
+   "name": "C7 1d pooled-safe (lam 8e-3) + V1 + V3",
+   "gb": 9.396,
+   "dense_gb": 2.133,
+   "exp_gb": 7.264,
+   "floor_ms": 33.56,
+   "realistic_ms": [
+    62.4,
+    66.9
+   ],
+   "gpu": [
+    55.1,
+    59.5
+   ],
+   "cpu": [
+    38.5,
+    39.5
+   ],
+   "miss_ms": 7.4,
+   "today_route_ms": [
+    73.6,
+    77.1
+   ]
+  },
+  {
+   "name": "C8 C5 + V4 (GDN / attention 3-bit)",
+   "gb": 6.841,
+   "dense_gb": 1.798,
+   "exp_gb": 5.043,
+   "floor_ms": 24.43,
+   "realistic_ms": [
+    49.1,
+    54.1
+   ],
+   "gpu": [
+    43.8,
+    48.8
+   ],
+   "cpu": [
+    38.5,
+    39.5
+   ],
+   "miss_ms": 5.3,
+   "today_route_ms": [
+    59.2,
+    63.6
+   ]
+  }
+ ],
+ "ladder": {
+  "C3 1c-tiers": [
+   {
+    "step": "0 today's route (two 16-row calls)",
+    "realistic": [
+     67.1,
+     68.7
+    ],
+    "binds": "GPU"
+   },
+   {
+    "step": "1 + FAST one-pass forms > 16 rows (not built)",
+    "realistic": [
+     54.5,
+     57.8
+    ],
+    "binds": "GPU"
+   },
+   {
+    "step": "2 + Leap's FAST 1b list (~3 days; P)",
+    "realistic": [
+     50.1,
+     52.1
+    ],
+    "binds": "GPU"
+   },
+   {
+    "step": "3 + resident-only MSB-3 rule (not in TRIED; quality unpriced)",
+    "realistic": [
+     46.5,
+     48.4
+    ],
+    "binds": "GPU"
+   },
+   {
+    "step": "4 (bound) misses 0",
+    "realistic": [
+     44.9,
+     46.8
+    ],
+    "binds": "GPU"
+   },
+   {
+    "step": "5 + 1c glue fused into router_fused (Leap's lever A part)",
+    "realistic": [
+     44.7,
+     45.0
+    ],
+    "binds": "GPU"
+   }
+  ],
+  "C5 plan": [
+   {
+    "step": "0 today's route (two 16-row calls)",
+    "realistic": [
+     62.5,
+     66.0
+    ],
+    "binds": "GPU"
+   },
+   {
+    "step": "1 + FAST one-pass forms > 16 rows (not built)",
+    "realistic": [
+     51.3,
+     55.8
+    ],
+    "binds": "GPU"
+   },
+   {
+    "step": "2 + Leap's FAST 1b list (~3 days; P)",
+    "realistic": [
+     47.6,
+     50.6
+    ],
+    "binds": "GPU"
+   },
+   {
+    "step": "3 + resident-only MSB-3 rule (not in TRIED; quality unpriced)",
+    "realistic": [
+     43.9,
+     47.0
+    ],
+    "binds": "GPU"
+   },
+   {
+    "step": "4 (bound) misses 0",
+    "realistic": [
+     42.3,
+     45.4
+    ],
+    "binds": "GPU"
+   },
+   {
+    "step": "5 + 1c glue fused into router_fused (Leap's lever A part)",
+    "realistic": [
+     42.1,
+     43.6
+    ],
+    "binds": "GPU"
+   }
+  ]
+ },
+ "selfchecks": {
+  "a": [
+   61.37,
+   61.23,
+   true
+  ],
+  "b": [
+   89.28,
+   89.28,
+   true
+  ],
+  "c": [
+   true,
+   false
+  ]
+ }
+}

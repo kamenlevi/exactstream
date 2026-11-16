@@ -1,3 +1,8 @@
+> **CORRECTED Mon 16 Nov 13:5x (`date`): every byte floor below is ~20-27 % low (expert pieces 2.785 / 2.064 MB,
+> not 2.135 / 1.661; Leap, verified from records3).** Exact 32-row code floor 47.3 -> 57.9 ms (49.1 -> ~60); the lossy
+> 25 ms check needs >= 96 % of every peak even for C6 + V4 + int8 (bound 24.0 ms). Grids at "exact floor" / "lossy 25"
+> are further out of reach than shown. See PLAN900's 13:5x block.
+
 > **CORRECTED Mon 16 Nov 10:3x (`date`): every tok/s grid below that says "drafting hidden" is an UPPER bound that can't
 > be reached.**
 > - Pillar 3 closed. Draft bytes add in full on a bandwidth-bound check; no byte cut keeps kept within 1 % (M3).

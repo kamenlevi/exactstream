@@ -248,7 +248,7 @@ check(after_ok and C.run_window is toy_run_window and ToyText.__call__ is not No
 rep = os.path.join(os.environ["DM_OUT"], "bt_int8_census.jsonl")
 check(os.path.exists(rep), f"census report written ({rep})")
 C.Q.GatedDeltaNet, C.Q.Qwen4ExpTextModel, C.Q._linear = ORIG_GDN, ORIG_TEXT, ORIG_LIN
-for nm in ("bt_g1h8", "bt_l20g2", "bt_g1", "bt_c6comb", "bt_l20comb", "bt_dense3", "bt_restore"):
+for nm in ("bt_g1h8", "bt_l20g2", "bt_g1h8_res", "bt_g1", "bt_c6comb", "bt_l20comb", "bt_dense3", "bt_restore"):
     check(dm_ablations.ablation(nm) is not None, f"arm {nm} resolves")
 print(f"{'ALL PASS' if not fails else str(len(fails)) + ' FAIL'}", flush=True)
 sys.exit(1 if fails else 0)

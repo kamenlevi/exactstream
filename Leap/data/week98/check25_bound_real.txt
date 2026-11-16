@@ -1,0 +1,15 @@
+# check25 bound with the REAL expert sizes (Leap, Mon 16 Nov 2026): 4-bit 2.784 MB, MSB-3 2.064 MB (the budgets used 2.135 / 1.661)
+C5 map mix per layer: 15.27 at 4-bit + 30.73 at MSB-3 (4-bit-eq 39.2); experts per check 3.99 GB (old) -> 5.05 GB (real, x1.267); C6 3.63 -> 4.60 GB
+
+| bytes | dense MMA | GB real (dense + experts) | byte floor 280 / 295 | bound at 100 % of every peak | efficiency needed for 25 ms |
+|---|---|---|---|---|---|
+| C5 | bf16 | 7.18 (2.13 + 5.05) | 25.7 / 24.4 | **27.7** (dense 8.5, experts 18.0, cores 1.2) | 111 % |
+| C5 | int8 | 7.18 (2.13 + 5.05) | 25.7 / 24.4 | **26.8** (dense 7.6, experts 18.0, cores 1.2) | 107 % |
+| C6 | bf16 | 6.74 (2.13 + 4.60) | 24.1 / 22.8 | **26.1** (dense 8.5, experts 16.4, cores 1.2) | 104 % |
+| C6 | int8 | 6.74 (2.13 + 4.60) | 24.1 / 22.8 | **25.2** (dense 7.6, experts 16.4, cores 1.2) | 101 % |
+| C5 + V4 | bf16 | 6.85 (1.80 + 5.05) | 24.5 / 23.2 | **27.7** (dense 8.5, experts 18.0, cores 1.2) | 111 % |
+| C5 + V4 | int8 | 6.85 (1.80 + 5.05) | 24.5 / 23.2 | **25.6** (dense 6.4, experts 18.0, cores 1.2) | 102 % |
+| C6 + V4 | bf16 | 6.40 (1.80 + 4.60) | 22.9 / 21.7 | **26.1** (dense 8.5, experts 16.4, cores 1.2) | 104 % |
+| C6 + V4 | int8 | 6.40 (1.80 + 4.60) | 22.9 / 21.7 | **24.0** (dense 6.4, experts 16.4, cores 1.2) | 96 % |
+
+- For 25 ms at 100 % of every peak with C6 + V4's dense (int8): experts <= 4.88 GB per check (102 MB per layer = 36.5 4-bit or 49.2 MSB-3 experts). At 85 %: 3.83 GB.

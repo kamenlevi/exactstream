@@ -1,0 +1,87 @@
+# runner 67 checks (PREREG_lossygate 5c/5d: a per-term engagement check), EvalSuite 11-16 13:26
+# tools/day_runner67.sh sha256 97815262f50ec3463272c0cc2d3432846ed8910c562c6682ad8d10ca092985d2; runner 66 6032f95fe47e5f97; runner 65 9848a30c6a15d682 (both unchanged)
+## 1. diff runner 66 -> 67
+1a2,6
+> # EvalSuite runner 67 = runner 66 (runner 65 + CARD_GATE) with one change, the engagement check takes several terms
+> # (PREREG_lossygate amendment 5d; G1 = 1c + int8 dense, G2 adds more): CARD_ENGAGE is a comma list of field[:key+key]
+> # terms and EACH must hold (> 0 on every kept code run, 0 on chat), so a dead mechanism cannot hide behind a live one in
+> # a sum. One term is runner 66's check exactly. A new file, because runners 65 / 66 serve armed or registered chains.
+> # Its logs are results/day67_*.
+31c36
+< LOG=results/day66_${TG}_runner.log
+---
+> LOG=results/day67_${TG}_runner.log
+53c58
+< [ "$DRY" = 1 ] && LOG=results/day66_dry_${TG}.log
+---
+> [ "$DRY" = 1 ] && LOG=results/day67_dry_${TG}.log
+293,294c298,301
+< field, _, sub = eng.partition(":")                      # field, or field:key+key (a dict field's counts that prove the lossy path)
+< sub = [k for k in sub.split("+") if k]
+---
+> terms = []                                              # runner 67: comma-separated field[:key+key] terms; EACH must hold
+> for t_ in [x for x in eng.split(",") if x]:
+>     f_, _, s_ = t_.partition(":")                       # field, or field:key+key (a dict field's counts that prove the lossy path)
+>     terms.append((t_, f_, [k for k in s_.split("+") if k]))
+297c304
+< def val(r):                                             # a number, or a dict of counts: the listed keys summed (all keys if none listed)
+---
+> def val(r, field, sub):                                 # a number, or a dict of counts: the listed keys summed (all keys if none listed)
+303,308c310,322
+< off = [r["key"] for r in kept if field and not chat(r["key"]) and not val(r) > 0]
+< if os.environ.get("ENGMODE") == "any":                  # accept rules (LOSSY_GATE section 11): engaged where a draft qualifies,
+<     codes = [r for r in kept if not chat(r["key"])]     # so > 0 summed over this process's code runs, not on every one
+<     print(f"engagement mode any: {sum(val(r) for r in codes)} over {len(codes)} code runs; runs at 0: {len(off)}")
+<     off = [] if not codes or sum(val(r) for r in codes) > 0 else [r["key"] for r in codes]
+< lit = [r["key"] for r in kept if field and chat(r["key"]) and val(r) > 0]
+---
+> off, lit = [], []
+> for t_, field, sub in terms:
+>     o_ = [r["key"] for r in kept if not chat(r["key"]) and not val(r, field, sub) > 0]
+>     if os.environ.get("ENGMODE") == "any":              # accept rules (LOSSY_GATE section 11): engaged where a draft qualifies,
+>         codes = [r for r in kept if not chat(r["key"])] # so > 0 summed over this process's code runs, not on every one
+>         tot = sum(val(r, field, sub) for r in codes)
+>         print(f"engagement mode any, {t_}: {tot} over {len(codes)} code runs; runs at 0: {len(o_)}")
+>         o_ = [] if not codes or tot > 0 else [r["key"] for r in codes]
+>     l_ = [r["key"] for r in kept if chat(r["key"]) and val(r, field, sub) > 0]
+>     if len(terms) > 1:
+>         print(f"  term {t_}: not engaged {o_}; engaged on chat (must be off) {l_}")
+>     off += [k for k in o_ if k not in off]; lit += [k for k in l_ if k not in lit]
+> field = eng                                             # the summary line names the whole check
+447c461
+< [ "$STAGE" = arm ] || { say "runner 66 has the arm stage only: runner stops"; exit 2; }
+---
+> [ "$STAGE" = arm ] || { say "runner 67 has the arm stage only: runner stops"; exit 2; }
+456c470
+< say "runner 66 (the lossy gate, $TAG, tier $TIER, scope $SCOPE) start (pid $$)$([ "${CARD_RESUME:-0}" = 1 ] && echo ', a resume'): waits for $FENV (written after Wed 14:33); cutoff $(date -r "$CUTOFF" '+%m-%d %H:%M')"
+---
+> say "runner 67 (the lossy gate, $TAG, tier $TIER, scope $SCOPE) start (pid $$)$([ "${CARD_RESUME:-0}" = 1 ] && echo ', a resume'): waits for $FENV (written after Wed 14:33); cutoff $(date -r "$CUTOFF" '+%m-%d %H:%M')"
+646c660
+< say "runner 66 end"
+---
+> say "runner 67 end"
+
+## 2. bash -n: OK
+
+## 3. the engagement block (extracted from each runner's file), synthetic runs.json (scope code; panel of 4 keys)
+E1 two terms, both live (want 0): 0
+E2 two terms, int8 0 on one code run (want 1): 1
+E3 two terms, 1c dead, int8 live (want 1): 1
+E4 two terms, int8 on chat (want 1): 1
+E6 a base arm (want 0): 0
+E7 mode any, int8 summed 0 (want 1): 1
+E8 a run outside the panel (want 1): 1
+## 4. one term = runner 65 / 66's check: exit codes on the 6 data sets x 2 modes
+  e1 each: runner 65 rc 0, runner 67 rc 0 same
+  e1 any: runner 65 rc 0, runner 67 rc 0 same
+  e2 each: runner 65 rc 0, runner 67 rc 0 same
+  e2 any: runner 65 rc 0, runner 67 rc 0 same
+  e3 each: runner 65 rc 1, runner 67 rc 1 same
+  e3 any: runner 65 rc 1, runner 67 rc 1 same
+  e4 each: runner 65 rc 0, runner 67 rc 0 same
+  e4 any: runner 65 rc 0, runner 67 rc 0 same
+  e7 each: runner 65 rc 1, runner 67 rc 1 same
+  e7 any: runner 65 rc 0, runner 67 rc 0 same
+  e8 each: runner 65 rc 1, runner 67 rc 1 same
+  e8 any: runner 65 rc 1, runner 67 rc 1 same
+  (the output text differs only in the summary's label: runner 67 names the whole check, e.g. 'engagement (lossy_check:e3+edrop+lmsl_rows, ...)' vs runner 65's 'engagement (lossy_check, ...)')

@@ -1,0 +1,16 @@
+# commentspan_qom (Fit12, post-hoc): measured map flips per row by tag, for each arm (12 code windows)
+| arm | all rows | '#' comment rows | docstring rows | other rows | non-tie: all / '#' comment |
+|---|---|---|---|---|---|
+| bt_1c | 38 (1.13 %) | 35 (6.93 %) | 0 (0.00 %) | 3 (0.36 %) | 16 / 16 |
+| qom_0_live | 14 (0.42 %) | 11 (2.18 %) | 0 (0.00 %) | 3 (0.36 %) | 2 / 2 |
+| qom_0.5_live | 12 (0.36 %) | 10 (1.98 %) | 0 (0.00 %) | 2 (0.24 %) | 2 / 2 |
+| t4_all | 11 (0.33 %) | 9 (1.78 %) | 0 (0.00 %) | 2 (0.24 %) | 2 / 2 |
+| t3_all | 31 (0.92 %) | 27 (5.35 %) | 0 (0.00 %) | 4 (0.48 %) | 12 / 11 |
+
+bytes / misses per check with '#' comment rows on QOM cf 0 (ranks 0-1 read, 2-9 only if resident) instead of exact:
+  16 rows: 1c + comment-QOM 5.42 GB / 26.0 ms, misses 23.2 (5.8 ms); + RES 5.41 GB / 25.9 ms, misses 17.2 (4.3 ms)
+  32 rows: 1c + comment-QOM 8.20 GB / 42.0 ms, misses 50.8 (12.7 ms); + RES 8.18 GB / 41.9 ms, misses 39.8 (9.9 ms)
+  C3 1c + comment-QOM: 83.5-86.7 ms per 32-row check -> 186-193 tok/s HE+ at K*
+  C3 1c + comment-QOM + RES: 80.6-83.8 ms per 32-row check -> 193-200 tok/s HE+ at K*
+  C5 1c + comment-QOM: 80.3-84.7 ms per 32-row check -> 191-201 tok/s HE+ at K*
+  C5 1c + comment-QOM + RES: 77.4-81.8 ms per 32-row check -> 197-208 tok/s HE+ at K*

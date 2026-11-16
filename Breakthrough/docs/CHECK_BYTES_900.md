@@ -223,3 +223,196 @@ EvalSuite the same evening.
 - **Prediction [P]:** bt_l20comb ~1.34 / 0.80 + int8's increment, so ~1.4-1.6 / ~0.85. At or over the all-row line.
 - **V1 + V3 builds (NewIdeas 13:1x):** Breakthrough writes both as opt-in installers against the g1a snapshot. BigMoE
   wires, snapshots and key-tests them (Tue evening or Wed morning). G2's MEM counts V3's ~0.4 GB of extra 4-bit copies.
+
+**Amendment (c), Mon 16 Nov 13:2x, before any arm runs: bt_g1h8 uses hc8w_mix.**
+- g1a's HC8 is `hc8r.hc8_install(model)` with its defaults, ple=False (snapshot r57_screen_g1a.py:945-951). Only the 194
+  mixers are 8-bit; block_inject and PLE stay bf16.
+- So bt_g1h8 = C6 tiers + hc8w_mix (mixers only) + int8. With PLE in bf16, int8 leaves PLE alone, as int8d does in g1a.
+- dm_bt.py is reinstalled (432 lines, blob 05e098f9); CPU test ALL PASS (24). The armed runner loads it at run time.
+- Read-out of the shipped stack, for the record:
+  - SVH serves only calls of <= 16 rows (the full head above that).
+  - SVH never adds the drafted token: a draft outside its set gets -inf.
+  - G1's head is therefore lossy-45's SVH as already gated.
+
+**Amendment (d), Mon 16 Nov 13:2x, before any arm runs: the V1 read-out.**
+- The registered shortlist is IN SAMPLE (section 3). The bank it was counted from contains the 24 evaluated windows, and
+  the "16K" list is really every top-1 token of the bank (8,775), so it misses only 2 of their 6,327 rows by
+  construction.
+- Arms with V1 (bt_l20g2, bt_g1, bt_c6comb, bt_l20comb) therefore get three head reads:
+  - the registered one, kept for continuity;
+  - V1-16k + session rows;
+  - V1-32k + session rows (the list proposed to ship).
+- The out-of-sample lists are data/m1/lmsl_code16k.npy / 32k.npy: Magicoder top-1 tokens + FR-Spec fill. Session rows =
+  the prompt + the committed answer prefix. Drafts are not added, so the reads are conservative.
+- **G2's V1 decision reads V1-32k.** The runner was disarmed 13:12 for EvalSuite's gate change and re-arms with this.
+- The runner's EvalSuite gate is now T1C_RESF2_END (mtime >= 13:15) + no t1c_resume_follower2.sh / t1c_chain2.sh
+  (EvalSuite 13:1x: a second pause makes T1C_MON3_END a mid-run marker). BigMoE re-armed on the same gate at 13:14.
+
+## 3. V1's code list was in sample; out-of-sample lists (Mon 16 Nov 13:1x, CPU) [post hoc, unregistered]
+
+- **Found while designing V1.** The "16K code list" (LOSSY_CHECK_PLAN, dense_cut_price.py, the map's bt_comb +
+  shortlist, f755d70) was counted from all of ~/datasets/deepdraft/bank.
+  - The bank is 400 Magicoder + 100 MBPP + 24 HumanEval files, and the 24 HumanEval files ARE the map's 24 code windows
+    (same names; the windows' baseline top-1 sequence sits inside the bank's tk).
+  - The bank has only 8,775 distinct top-1 tokens, so "the top 16,384" was all of them. The list's map misses (0.03 %)
+    and the shortlist's share of the combined plan's flips were in sample, and say nothing about V1.
+  - The combined plan's 1.09 / 0.62 still stands for 1c + V3; the shortlist added ~nothing there.
+- **Out of sample (scripts/m1/v1_lmsl_lists.py -> data/m1/v1_lmsl_lists.out).** Lists from the Magicoder part only,
+  filled by FR-Spec rank. Forced misses = the baseline top-1 outside list U session rows, on the 24 windows' 6,327
+  answer rows, with no drafts:
+
+| list | size | outside the list | outside list + session rows |
+|---|---|---|---|
+| in-sample all-bank (as used) | 8,775 | 0.03 % | 0.03 % |
+| Magicoder only | 8,157 | 8.47 % | 1.03 % |
+| Magicoder + FR-Spec to 16,384 | 16,384 | 3.21 % | **0.35 %** |
+| Magicoder + FR-Spec to 32,768 | 32,768 | 1.61 % | **0.14 %** |
+| SVH base (FR-Spec top 98,304) | 98,304 | 0.08 % | 0.00 % |
+
+- **Proposal: ship V1 at 32K, not 16K.**
+  - 16K forces 0.35 % misses, a quarter of the 1.34 % code line, to save ~0.12 GB vs SVH.
+  - 32K forces 0.14 % and saves ~0.09 GB (65,536 fewer head rows x 2,560 x 0.5625 B).
+  - The extra 0.03 GB is ~0.1 ms at 280 GB/s. G2's no-V4 route stays <= 5.5 GB (5.49).
+  - Drafts added per check (V1's rule) lower the misses further: a draft equal to the true token is scored.
+
+**Amendment (e), Mon 16 Nov 13:3x, before any arm runs (NewIdeas 13:2x): bt_g1h8_res = G1 as gated + RES.**
+- **What RES is.** Fit12's resident-only 3-bit tier at C 256 (PLAN_12GB_90_fit12.md "RES-1c PRICE RESULT"). 1c replaces
+  QOM's resident keep on code, leaving ~60 misses per 32-row check; RES drops an MSB-3-tier expert that is not resident,
+  for ~8 misses and about -13 ms. Price: +0.046 / +0.033 pt code flips.
+- **The masks.** out_code24/bt/tiers_c6res (scripts/m1/g1g2_map.py resmasks) applies Fit12's rule to the C6 masks: per
+  32-row answer block and layer, an MSB-3-tier expert with any non-resident slot is dropped. Residency is out/res_c256
+  (my LRU replay of the 45 GB base pool, dm_res_masks.py).
+- **Window coverage.** Residency exists only for the 12 screen windows; windows 13-24 keep plain C6 masks.
+  - So RES's read is the increment paired on windows 1-12: bt_g1h8_res vs bt_g1h8.
+  - Self-check: the dropped share of MSB-3-tier experts is plausible next to Fit12's 3.58 % at 1c.
+- **The arm.** tiers_c6res + hc8w_mix + int8 (G1 as gated, + RES). Order: after bt_l20g2, before the rest (~40 min in
+  all).
+- **Prediction [P]:** a paired increment of ~+0.05 pt. 12 windows (~3,400 rows) cannot resolve that from 0, so the read
+  only rules out a large surprise (say > +0.3 pt) before RES joins G2.
+- Verdict and lines as for the other arms (bt_g1h8_res: PASS = both met on all 24 windows).
+
+## 4. G2's V1 + V3 installers (Mon 16 Nov 13:2x-13:3x; NewIdeas 13:1x; due Tue 18:00), BUILT and TESTED (210d95d)
+
+- **V1 = scripts/m1/g2/lmsl.py (R57_LMSL).**
+  - A second SVH state over data/m1/lmsl_code32k.npy (section 3), registered in ref2._SH. SVH's own feed (the prompt,
+    the first token, committed ids) reaches it.
+  - ref2._screened is wrapped: ON + the verify phase + the trunk head's <= 16-row call -> logits over list U session U
+    drafts. add_drafts(dr) runs per check.
+  - Counters: lmsl_rows, and lmsl_fallback (top-2 tie p1 - p2 <= 0.1, counted on the GPU, not acted on).
+  - GPU tests 12/12 on the real lm_head: unset path bitwise; engaged values within 3.6e-3 of a float32 reference; argmax
+    right; feed / drafts / counters / _qlin / remove.
+- **V3 = scripts/m1/g2/hc4.py (R57_HC4).**
+  - prepare() runs before hc8_install: 4-bit copies (== bt_mix4) of the 194 mixers, 96 injects and 2 PLE, the PLE DNR.
+  - engage() swaps the module objects per item after the prefill. Leap's hc4i / hc4r (7c3e149) read the 4-bit mixers.
+  - CPU tests 11/11.
+- **Wiring:** scripts/m1/g2/G2_WIRING.md, against g1a's lines, for BigMoE's g2a. Results: data/m1/g2_installer_tests.out.
+- **MEM:** + ~0.3-0.4 GB (V3 copies) + 53 MB (V1 state). The V1 list (32K vs 16K) is NewIdeas' call.
+
+**Amendment (f), Mon 16 Nov 13:5x, before any run: the optional comment-QOM arms (NewIdeas 13:4x, information only).**
+- **Why.** Fit12's read of the 12 HumanEval windows: 35 of 1c's 38 flips are on "#" comment rows, including all 16
+  non-tie flips; code rows flip at QOM's rate. The candidate fix, if 1c-tiers fails RUNAWAY, is comment rows on QOM.
+- **Map.** The ORIGINAL 12-window map (DM_OUT=out, DM_SETS=code, --max 12), where Fit12's masks and the residency exist.
+  - Masks: copies of Fit12's masks_1c_comqom (md5 537a81b1ab82) and masks_1c_comqom_res (4a085fd69800), in
+    out/bt/cq_comqom(_res).
+  - Arms registered in memory by scripts/m1/comqom_run_map.py; the armed G1 / G2 runner and dm_bt.py are untouched.
+- **Arms** (all with hc8w_mix + int8 on the answer rows, G1's dense form):
+  - bt_cq_ctrl = 1c tiers (the matched control);
+  - bt_cq = 1c with comment rows on QOM;
+  - bt_cq_res = bt_cq + RES.
+- **Slot:** Tue ~07:00-07:15, after tonight's screen; Leap's smoke stays as armed. Read-out (scripts/m1/comqom_read.py)
+  to NewIdeas, Fit12, EvalSuite and BigMoE by ~07:30.
+- **Reading** (NewIdeas' rule; a decision aid for G1's re-plan, not a gate line). On all-row flips, non-tie printed
+  beside:
+  - CONFIRMED if bt_cq <= 0.5 x bt_cq_ctrl (G1's fix = comment-QOM);
+  - NOT CARRIED if bt_cq >= 0.8 x bt_cq_ctrl (the re-plan falls back to a lower lambda);
+  - BETWEEN otherwise (Fit12's 4-key kill test decides).
+  - bt_cq_res - bt_cq is RES's paired increment, judged against <= +0.3 pt (as G2's rule).
+- **Prediction [P]** (Fit12): bt_cq ~0.42 / ~0.06, vs bt_cq_ctrl near 1c's measured 1.13 / 0.48 plus a little from
+  HC8 + int8: CONFIRMED.
+
+## 5. Re-price with the engine's real expert pieces (pre-registered Mon 16 Nov 13:5x, CPU, before computing)
+
+- **Leap 13:45:** every check budget priced experts 23-30 % low.
+  - The constant used was 2.135 MB (4-bit) / 1.661 MB (MSB-3), from Leap's 11-14 cheapcheck.md, in Fit12's lossy32_price
+    E4 / E3 and in my LOSSY_CHECK_PRICE.
+  - The engine reads records3 pieces: 4-bit 2.784 MB, MSB-3 2.064 MB (index, pools, config).
+  - My check from the checkpoint headers: one expert's 4-bit gate / up / down + bf16 scales / biases = 2.765 MB
+    (layer 5, 512 experts), within 1 % of Leap's piece.
+- **Method.**
+  - check_bytes_900_price.py --pieces re-runs everything with E4 = 2.784e-3 and E3 = 2.064e-3 GB in Fit12's script (its
+    E4 / E3 line replaced).
+  - Carried lambda rows count bytes as n4 x 2.784 + n3 x 2.064 MB per layer. The policy stays as defined: tiers chosen
+    with sizes 1 / 0.778 / 0, the masks unchanged.
+- **Self-checks.**
+  - C5 experts 5.05 GB and C6 4.60 GB (Leap).
+  - Leap's corrected bounds at 100 % of every peak: C5 27.7 (bf16), C6 + int8 25.2, C6 + V4 + int8 24.0, each within 0.1.
+- **Prediction.**
+  - G1 as built ~7.2 GB; G2 routes ~6.2-6.6 GB. Nothing on the table reaches 5.5 GB.
+  - The 25 ms check needs >= ~96 % of every peak even with V4. Bytes stop being "done": the experts dominate.
+
+### Result (Mon 16 Nov 13:5x, CPU): at the engine's real pieces, no lever on the table makes 25 ms reachable
+
+Data: data/m1/check_bytes_900_price_pieces.out (+ .json). All self-checks PASS:
+- C5 experts 5.04 GB and C6 4.60 GB, == Leap's;
+- Leap's corrected bounds reproduced exactly: C5 27.7 / 26.8, C6 + int8 25.2, C6 + V4 + int8 24.0;
+- the normal mode still reproduces ddd7a0b byte for byte.
+
+| candidate (code, 32-row check) | GB (old constant) | GB (real pieces) | floor ms | realistic ms | Leap's bound | efficiency for 25 ms |
+|---|---|---|---|---|---|---|
+| C5 | 6.12 | **7.18** | 25.6 | 51.3-55.8 | 27.7 | 111 % |
+| G1 = C6 + int8, with V1 + V3 | 5.77 | **6.73** | 24.0 | 45.3-52.0 | 25.2 | **101 %** |
+| G1 as built (lossy-45 dense 2.59, no V1 / V3) | 6.22 | **7.19** | 25.7 | - | - | - |
+| G2 = C6 + V4 + int8 | 5.43 | **6.40** | 22.8 | 43.5-50.4 | 24.0 | **96 %** |
+| G2 no-V4 = lambda 2.0e-2 + int8 | 5.46 | **6.35** | 22.7 | 43.3-50.0 | 23.8 | **95 %** |
+| lambda 2.2e-2 + int8 (flips 1.56 / 0.89: over) | 5.21 | 6.02 | 21.5 | 42.5-48.3 | 22.6 | 91 % |
+
+**Reading.**
+- **Times.** Realistic ms barely move: Fit12's time model is calibrated on measured engine ms, so it was right all
+  along. Only the GB, the floors and the bounds were understated (by ~1 GB per check).
+- **Bytes are binding again.** 25 ms needs 95-101 % of every peak for G1 / G2. Whole checks today reach 35-45 %; the
+  best single kernels reach 74-84 %.
+- **What would make 25 ms plausible at ~80-85 %:** a bound of <= ~21 ms. With V4 + int8 that means experts <= ~3.7 GB
+  per check, ~28 4-bit-eq per layer vs C6's 34.7. That is past every screened lambda's quality.
+- **So the bytes plan needs a new expert lever, not a lower lambda.** Candidates:
+  - reach-weighted tiers for TREE checks: off-spine nodes are rarely reached, so their exclusive experts can drop. The
+    900 line checks trees;
+  - per-layer lambda;
+  - a 2-bit tier, which needs a records plane the engine lacks.
+- **The <= 5.5 GB target** came from the old constant. At the real pieces it means ~4.6 GB at the old constant's scale.
+  It should be restated in ms.
+
+## 6. Per-layer lambda: a band screen (pre-registered Mon 16 Nov 14:0x, before any mask or run; NewIdeas 13:5x GO)
+
+**Question.** The quality law treats every layer alike: flips = a E^b, with E summed over layers / 48. Is any layer band
+cheaper in flips per GB saved? If one is, a higher lambda there is the expert lever that 25 ms needs (experts
+<= ~3.7 GB vs C6's 4.6).
+
+**Arms** (experts only: the exact dense path, tiers via dm_bt's tiers(); 24 code windows in out_code24, DM_SETS=code,
+--max 24; registered in memory, the armed runners untouched):
+- bt_c6tiers = C6 everywhere (lambda 1.8e-2): the reference.
+- bt_lb0 / bt_lb1 / bt_lb2 = lambda 3.2e-2 on layers 0-15 / 16-31 / 32-47, C6 elsewhere.
+- Masks: out_code24/bt/tiers_lb{0,1,2}, g1g2_map.py's rule with a per-layer lambda.
+
+**Bytes** (real pieces, full blocks, 24 windows; computed 14:0x): C6 experts 4.61 GB = L0-15 1.67 + L16-31 1.48 + L32-47
+1.46. lambda 3.2e-2 on one band saves 0.70 / 0.61 / 0.56 GB (-42 / -41 / -38 % of that band).
+
+**Uniform-law prediction [P]** (experts only, 12 screen windows): C6 1.21 / 0.59. The band arms:
+- L0-15: +0.27 / +0.22 pt;
+- L16-31: +0.23 / +0.19 pt;
+- L32-47: +0.22 / +0.17 pt;
+- about 0.04 pt per 0.1 GB saved in every band.
+
+**Read-out** (scripts/m1/lband_read.py). For each band arm vs bt_c6tiers, paired on the same rows: the all-row and
+non-tie increments, the GB saved, and the measured cost per 0.1 GB vs the uniform law's.
+
+**Verdict** (a decision aid for G2's expert lever):
+- A band is TOLERANT if its measured all-row cost per 0.1 GB is <= 0.5x the uniform law's, and SENSITIVE if >= 2x.
+- **PASS = at least one TOLERANT band.** The lever exists; a confirm arm at that allocation on G2's stack follows (Wed).
+- **KILL = no TOLERANT band.** Per-layer lambda gives no lever; the bytes need another route.
+
+**Slot:** Tue morning, after Fit12's 4-key kill test (which follows my COMQOM_END), gated on its end marker. Latest start
+09:00, hard stop 09:25 (Leap's slot #1 at 09:30). ~20 min, ~14 GB, NO-SWAP >= 24, share lock.
+
+**Amendment (f'), Mon 16 Nov 14:0x, before data (NewIdeas 14:0x):** the comment-QOM reading uses NON-TIE flips, with
+all-row printed beside: hc8w + int8 in both arms dilute an all-row ratio. Same cut-offs (CONFIRMED <= 0.5x the control,
+NOT CARRIED >= 0.8x, else BETWEEN).

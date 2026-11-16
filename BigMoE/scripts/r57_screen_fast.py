@@ -85,6 +85,12 @@ assert os.environ.get("R57_TIERS", "") in ("", "1c") and (not os.environ.get("R5
 assert os.environ.get("R57_INT8D", "") in ("", "0", "1") and (os.environ.get("R57_INT8D") != "1" or (   # R57_INT8D=1 (Mon 16 Nov)
     os.environ.get("R57_DNR") == "1" and os.environ.get("REF2_SMALL_NATIVE") == "1" and os.environ.get("R57_INT8D_SETS"))), \
     "R57_INT8D=1 needs R57_DNR=1 + REF2_SMALL_NATIVE=1 (ref2's native dense copies: otherwise int8 never fires) and R57_INT8D_SETS"
+assert os.environ.get("R57_LMSL", "") in ("", "0", "1") and (os.environ.get("R57_LMSL") != "1" or (   # R57_LMSL=1 (V1, Mon 16 Nov)
+    os.environ.get("R57_SVH") == "1" and os.environ.get("R57_LMSL_SETS"))), \
+    "R57_LMSL=1 needs R57_SVH=1 (its list is a second SVH state on the trunk head) and R57_LMSL_SETS"
+assert os.environ.get("R57_HC4", "") in ("", "0", "1") and (os.environ.get("R57_HC4") != "1" or (   # R57_HC4=1 (V3, Mon 16 Nov)
+    os.environ.get("R57_DNR") == "1" and os.environ.get("R57_HC4_SETS"))), \
+    "R57_HC4=1 needs R57_DNR=1 (its PLE copies take ref2's DENSE-N-RAM layout) and R57_HC4_SETS"
 TIER = os.environ.get("R57_TIER") == "1"                 # S45-T (NewIdeas 18:2x): REF2-T on the gate at C's RAM (M-08 sizing)
 if TIER:
     os.environ["BIGMOE_TIER"] = "4433333333"; os.environ["BIGMOE_TIER_GLU"] = "3c"
@@ -615,6 +621,21 @@ def _i8_take(c0_):
     """R57_INT8D: this run's int8 counters since c0_ (calls, rows), then int8 off"""
     I8.ON[0] = False
     return dict(int8=I8.COUNTS["int8"] - c0_[0], int8_rows=I8.COUNTS["int8_rows"] - c0_[1])
+
+
+# R57_LMSL=1 (V1) and R57_HC4=1 (V3) (Mon 16 Nov; Breakthrough ~/Breakthrough/scripts/m1/g2/lmsl.py + hc4.py at 210d95d,
+# their wiring note G2_WIRING.md; Leap's week98/hc4i.py + hc4r.py (7c3e149) + hc8r32.py; EvalSuite lossygate amendment 5:
+# G2), both opt-in and code-scoped like R57_INT8D, set per item after the prefill:
+# - V1: a second SVH state over the code list (R57_LMSL_IDS, default Breakthrough's 32K list) + the session ids + each
+#   check's drafts; the trunk head's <= 16-row verify calls score over that union (-inf elsewhere). lossy_check gets
+#   lmsl_rows / lmsl_fallback (replacing 1c's zero placeholders).
+# - V3: the 194 HC mixers, 96 injects and 2 PLE projections swap to 4-bit copies (made from the bf16 originals BEFORE
+#   HC8's install) on the item's set; hc4i routes the 4-bit-mixer reads. lossy_check gets hc4 = 1.
+LMSL_ON = os.environ.get("R57_LMSL") == "1"
+LMSL_SETS = {x_ for x_ in os.environ.get("R57_LMSL_SETS", "").split(",") if x_}
+HC4_ON = os.environ.get("R57_HC4") == "1"
+HC4_SETS = {x_ for x_ in os.environ.get("R57_HC4_SETS", "").split(",") if x_}
+LM = HC4 = None
 # R57_QOM_MTP=1|2 (Sun 8 Nov, CHAT150 M1; chs1 found QOM never engaged on chat: the FAST row gate ran on DFlash2 drafts only,
 # while chat drafts with the MTP head, so q1's qom_skip = qom_opt = 0): the gate on the MTP head's drafts too (sets listed in
 # R57_QOM_SETS). 1 = Breakthrough's M1-A (every drafted row sure at thr 0, the bonus row exact); 2 = M1-B's bonus row gated.
@@ -942,6 +963,11 @@ if os.environ.get("R57_DNR") == "1":                     # DENSE-N-RAM (Leap 219
     assert hasattr(ref2, "dense_native_convert"), "Leap's ref2 has no dense_native_convert (needs 2190e10)"   # N >= 1024
     _dn_n, _dn_mb = ref2.dense_native_convert(model)     # in place -> its native copy (one copy, no RAM): <= 16-row calls run
     print(f"[r57] DENSE-N-RAM: {_dn_n} weights native ({_dn_mb:.0f} MB, in place)", flush=True)   # qmm16n == qmm16c bitwise
+if HC4_ON:                                               # R57_HC4 (V3): the 4-bit copies from the bf16 ORIGINALS, BEFORE HC8
+    sys.path.insert(0, os.path.expanduser("~/Breakthrough/scripts/m1/g2"))   # replaces them (prepare() asserts that)
+    import hc4 as HC4
+    _c4, _mb4 = HC4.prepare(model)
+    print(f"[r57] HC4: 4-bit copies {_c4}, +{_mb4:.0f} MB beside HC8 (MEM)", flush=True)
 if os.environ.get("R57_HC8") == "1":                     # HC8-1P (Leap c805fd0, v4 34206f9; FAST: tokens differ from REF2-T):
     sys.path.insert(0, os.path.expanduser("~/Leap/scripts"))   # the trunk mixers -> 8-bit g64 (-0.6 GB) + the one-pass 8-bit
     import hc8r                                          # HC read at <= 16 rows; the install and the switch go together
@@ -1151,6 +1177,10 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
     ref_on(True)
     if I8 is not None:                                   # R57_INT8D: off through the prefill (set from fset after it)
         I8.ON[0] = False
+    if LM is not None:                                   # R57_LMSL / R57_HC4: off through the prefill too
+        LM.ON[0] = False
+    if HC4 is not None:
+        HC4.engage(False)
     p0, g0 = BG.PAUSED["pause_s"], BG.PAUSED["n_gap"]
     mx.reset_peak_memory()                               # C45 memory anatomy: MLX peak in prefill vs decode, cache, footprint
     cg = None
@@ -1240,6 +1270,12 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
         assert mx.quantized_matmul is I8._qmm8, "R57_INT8D: something re-wrapped mx.quantized_matmul over int8d"
         I8.ON[0] = i8_on_
     i8c0_ = (I8.COUNTS["int8"], I8.COUNTS["int8_rows"]) if i8_on_ else None
+    lm_on_ = LM is not None and fset in LMSL_SETS         # R57_LMSL (V1) on this prompt's set, from here on
+    if LM is not None:
+        LM.ON[0] = lm_on_
+    hc4_on_ = HC4 is not None and fset in HC4_SETS        # R57_HC4 (V3): the 4-bit copies on this prompt's set, from here on
+    if HC4 is not None:
+        HC4.engage(hc4_on_)
     rlog = RLD.Log(os.environ.get("R57_RELAX_LOG", "")) if RLX_D > 0 else None
     assert not (SPAN and fz and fz["loop"]), "R57_RELAX_SPAN replaces the FAST arm's comment loop: use an arm without it"
     sscan = RXC.CodeScan() if SPAN else None             # R57_RELAX_SPAN: the causal comment tagger, fed the answer's text
@@ -1526,6 +1562,8 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
             ref2.NW_RESET(); ref2.NWCNT = [] if NWC else None; ref2.NW_ON = True
         if QC1C:
             ref2.QCNT_1C = []                            # R57_QCNT1C (ported Fri 10:0x): this real check's one-call counters
+        if lm_on_:                                       # R57_LMSL: this check's drafts join the list's session rows
+            LM.add_drafts(dr)
         try:
             with ref2.verify_scope(model):
                 lg = model(mx.array([[tok] + dr]), cache=cache)
@@ -1789,7 +1827,8 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
                 p2=p2c_ if P2MAX else None,          # R57_P2: this prompt's decode-path chunks (0 = it took the prefill)
                 rlx=rst if RLX_D > 0 else None,      # R57_RELAX_DELTA: rows checked, kept exact / in all, relaxed accepts
                 close_call={"accepted": ccn_[0]} if rlx_ else None,   # CLOSE-CALL: only where R1(delta) is engaged
-                lossy_check={**(t1c_ if t1c_on_ else {}), **(_i8_take(i8c0_) if i8_on_ else {})} or None,   # 1c + INT8D
+                lossy_check={**(t1c_ if t1c_on_ else {}), **(_i8_take(i8c0_) if i8_on_ else {}),   # 1c + INT8D + V1 + V3
+                             **(LM.take() if lm_on_ else {}), **(HC4.take() if hc4_on_ else {})} or None,
                 t1c_ck=t1ck_ if t1c_on_ else None,   # R57_TIERS=1c
                 spn=sst if SPAN else None,           # R57_RELAX_SPAN: rows checked, kept exact / in all, relaxed, span rows
                 inert=dict(ist, arm=INERT["name"]) if INERT is not None else None,   # R57_INERT: rows checked, kept exact / in
@@ -2136,6 +2175,15 @@ if os.environ.get("R57_G32TEST"):
     say(f"G32TEST verdict: {('OVERFLOW GUARD OK: flagged, finite, and the 16 + 16 redo bitwise on every rep' if allok else 'OVERFLOW GUARD FAIL') if os.environ.get('R57_G32OVF') == '1' else 'TIME MODE (T1 / T2 not run; C32 == B2x16 logits checked per window above)' if int(os.environ.get('R57_G32TIME', '0') or 0) else 'ALL BITWISE: the 32-row check through the widened gate on the exact-45 loop equals <= 16-row checks' if allok else 'NOT BITWISE'}"
         f"; peak {mx.get_peak_memory() / 1e9:.1f} GB")
     sys.exit(0)
+if HC4_ON:                                               # R57_HC4: Leap's hc4i routes the 4-bit mixers' reads (before int8d)
+    sys.path.insert(0, os.path.expanduser("~/Leap/scripts/week98"))
+    import hc4i
+    ref_on(True); hc4i.install(); HC4.install(); ref_on(False)
+if LMSL_ON:                                              # R57_LMSL: the code list's head state beside SVH's (SVH is up here)
+    sys.path.insert(0, os.path.expanduser("~/Breakthrough/scripts/m1/g2"))
+    import lmsl as LM
+    ref_on(True); _lmn, _lmmb = LM.install(model.language_model.lm_head, os.environ.get("R57_LMSL_IDS") or None); ref_on(False)
+    say(f"LMSL: {_lmn} code ids, +{_lmmb:.0f} MB (MEM), on {', '.join(sorted(LMSL_SETS))}")
 if INT8D:                                                # R57_INT8D: Leap's installer LAST, over ref2 and every other wrapper
     sys.path.insert(0, os.path.expanduser("~/Leap/scripts/week98"))
     import int8d as I8

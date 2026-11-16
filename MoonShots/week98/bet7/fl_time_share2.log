@@ -1,0 +1,15 @@
+built at 0 s; active 2.45 GB; GPU busy 49 %
+T0 400: 10 rounds; fused tokens == stock tokens in every block: True; GPU busy at round start [74, 85, 88, 90, 87, 90, 90, 87, 90, 85, 90, 84]
+
+ms per level, median [p10-p90] | CPU ms per level | f = ms - MB / 292.7
+  400 stock 32768          1.4007 [1.0801-1.5194] | CPU 1.3244 | MB 177.6 | f 0.7939
+  400 fused 32768          1.4025 [1.3333-1.4721] | CPU 1.2015 | MB 177.6 | f 0.7958
+  400 stock 8192           1.4061 [0.9750-1.6525] | CPU 1.3029 | MB 142.2 | f 0.9202
+  400 fused 8192           1.2498 [1.1606-1.3680] | CPU 1.1006 | MB 142.2 | f 0.7640
+  400 stock fit            two-point fit over the screens: BW nan GB/s, f nan ms
+  400 fused fit            two-point fit over the screens: BW 231.8 GB/s, f 0.6364 ms
+
+ms per block (F = 1 chain shape; levels x ms per level) [P]:
+  T0 400 stock: full head (177.6 MB) tree-16 17.65 / tree-32 29.13 ms (measured per level); C1 95.1 MB 14.10 / 23.27; ~26 MB 11.12 / 18.36 [P]
+  T0 400 fused: full head (177.6 MB) tree-16 17.67 / tree-32 29.17 ms (measured per level); C1 95.1 MB 14.12 / 23.31; ~26 MB 11.15 / 18.40 [P]
+wrote /Users/kamen/MoonShots/week98/bet7/fl_time_share2.json (2 s)
