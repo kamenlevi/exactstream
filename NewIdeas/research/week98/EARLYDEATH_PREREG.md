@@ -49,3 +49,39 @@ ones from layers L+1..48? Dropping them shrinks the expert union, and so the byt
 ## Usage
 Script: research/week98/earlydeath_probe.py, written Tue / Wed once the capture's format is known. CPU only, under
 taskpolicy -b, <= 4 GB.
+
+## Amendment 1 (Mon 16:2x, before any capture data): the CHAIN version gets its own line
+- WHY: its byte bound (research/week98/ed_chain_bytes.py / .txt, CPU on the decision map's 24 code windows; 185 full
+  32-row blocks, Breakthrough's tier rule, real pieces) is large. With a PERFECT first-miss flag after layer 17, at
+  today's acceptance (p 0.95, E kept 16.1; measured 16.26):
+  - C6 (lambda 1.8e-2): -26.3 % expert bytes (4.61 -> 3.40 GB per check, below the ~3.7 GB line for 25 ms).
+  - 1c (1.6e-2): -25.9 %. Exact union (all top-10 at 4-bit, 15.28 GB): -23.0 %.
+  - The bound shrinks as the drafter improves: p 0.978 gives -14.3 %, p 0.988 gives -8.5 % (C6).
+  - It is EXACT: a false flag only costs kept, because the flagged row still runs every layer and gives the 125B's own
+    token.
+  - Pre-run line (in the script): a perfect flag < 8 % = dead whatever the probe; >= 15 % = keep. Result: -26.3 % ->
+    KEEP.
+- UNIT: per anchor, the chain = the top child by path_p at each depth. Rows up to the first miss are true-text rows, so
+  their layer-L states are in the capture. Flag row r if the probe says draft r+1 is rejected. Rows after the first flag
+  are dropped from layers > L.
+- METRIC: on held-out files, the realized share of the perfect-flag byte saving (the map's per-row routing, with each
+  block's flag position from the probe) at <= 2 % kept loss. Kept loss comes from flags before the true first miss.
+  Use the real first-miss positions from the dumps' walk, not a geometric model.
+- LINES (layer 16, best held-out non-oracle probe):
+  - PASS >= 50 % of the perfect saving (~-13 % expert bytes at today's drafter) at <= 2 % kept loss.
+  - KILL < 20 % (~-5 %).
+  - BETWEEN otherwise.
+  - It must also beat a drafter-confidence-only flag by >= 10 points of the perfect saving. Otherwise it's only a
+    shorter chain, which K* already optimizes.
+
+## Amendment 2 (Mon 16:3x, before any capture data): CORRECTION to amendment 1's bound
+- Amendment 1 priced UNTRUNCATED 32-row chains. The engine already truncates each draft at a running confidence
+  product of 0.3 (TRIED L1-14 / S45c, ADOPTED), so its chain checks average 16.7 rows (kept 12.33).
+- On those real checks, a PERFECT flag after layer 17 saves only -13.6 % of the expert bytes (-17.1 % after layer 9,
+  -10.0 % after 25). Details: research/week98/ed_chain_trunc.txt.
+- A realistic probe would reach ~-4-7 %, matching TRIED Rnd17#7's napkin (-3-5 %). So the CHAIN arm goes back to
+  INFORMATION ONLY, and amendment 1's chain lines are withdrawn.
+- The -26 / -30 % bound stands only as a proxy for the TREE version: tree-32 checks aren't truncated, and their
+  off-spine nodes are all rejected. Fable B's tree lines above are unchanged and remain the test.
+- Stage 1 (research/week98/earlydeath_probe.py, earlydeath_stage1.txt) keeps the untruncated chain numbers plus the
+  drafter-only baseline: -8.7 % at <= 2 % kept loss. That baseline is essentially the engine's existing truncation.

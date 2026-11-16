@@ -314,3 +314,11 @@ draft is MoonShots' fused2 measured (full head) or the QAT ~26 MB head [P].
   bound is >= 24 ms at 100 % of peak, so 900 is beyond the physical bound at 32 rows on today's byte plans.
 - Early death (Wed): pre-registered in research/week98/EARLYDEATH_PREREG.md (Fable B's lines + a chain version
   re-priced for the 32-row lossy check, information only).
+- **CHAIN EARLY DEATH byte bound (NewIdeas 16:2x, ed_chain_bytes.txt):** a PERFECT first-miss flag after layer 17
+  cuts C6's expert bytes -26.3 % at p 0.95 (4.61 -> 3.40 GB per check, below the ~3.7 GB line), exact union -23.0 %;
+  -14.3 % at p 0.978 and -8.5 % at p 0.988 (the gain shrinks as the drafter improves). Exact (false flags only cost
+  kept). It's the largest byte lever priced today; Wed's probe decides how much of it is real (amendment 1 lines).
+- **CORRECTED 16:3x:** that bound was on UNTRUNCATED 32-row chains. The engine already truncates drafts at a running
+  confidence of 0.3 (16.7 rows, kept 12.33 per check), where a perfect flag after layer 17 saves only -13.6 % (realistic
+  ~-4-7 %, = TRIED Rnd17#7). Chain early death is NOT a big lever. The -26/-30 % only proxies the TREE version (Fable
+  B's), which Wed tests (research/week98/ed_chain_trunc.txt; prereg amendment 2).

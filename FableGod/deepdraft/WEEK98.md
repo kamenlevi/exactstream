@@ -413,6 +413,22 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
       - Slot (NewIdeas): Breakthrough's one-load 4-arm map screen (~25 min, ~14-16 GB, 24 code windows): C6 bytes, G1
         with int8 fake-quant, DENSE-3 alone, lambda 2.0e-2. It runs right after EvalSuite's 1c-tiers chain ends and
         finishes before 22:30 (fallback Tue ~07:00-08:30).
+  - **16:1x NewIdeas SATURDAY LADDER v3 (measured anchors; HE+ lossy, 32-row tree check, kept 15.7-16.3; PLAN900
+    "SATURDAY LADDER v3"):**
+    - today 205-222 tok/s;
+    - + C6 + RES 217-240;
+    - + the QAT ~26 MB head [P, S13 tonight] 255-285;
+    - + Leap's lossy expert one-call fix [P, Tue / Wed] 277-345.
+    - **So the realistic Saturday lossy line is ~255-345.** 900 needs a check <= 18 ms at kept 26.6, and every priced
+      byte plan's bound is >= 24 ms at 100 % of peak, so 900 is beyond the physical bound at 32 rows on today's byte
+      plans. (Supersedes the orchestrator's 16:08 "~260-270 today / ~300-350 end of week" to Kamen.)
+    - Also in the batch:
+      - Leap's lead: the lossy one-call streams at 140-184 GB/s vs the exact path's ~290, a structure gap worth up to
+        -5..-10 ms per check (Tue 09:30 slot).
+      - BET 7 closed: fixed cost FAIL, overlap BETWEEN (0.699), prefetch KILL; the exact -8.7 % per level is banked.
+      - G1 branches are ready: Fit12's installer passed every GPU bit test; BigMoE key-tests 9 envs tonight; the Tue
+        07:00 chain is armed.
+      - EARLY DEATH is pre-registered for Wed (EARLYDEATH_PREREG.md).
   - **15:03 SIB MAIN READ-OUT (Sandbox98; LAB, true-state, teacher-forced on the 2B) = NOT PASS on the frozen head,
     KILL side. The sibling states are WORSE stand-ins than the head's own carried state at every band, on both sets.**
     - Walk-strict own / true / sib, and G = (sib - own) / (true - own) with its 95 % CI:
