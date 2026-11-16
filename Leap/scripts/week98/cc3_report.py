@@ -118,9 +118,15 @@ for tag in TAGS:
         if pm.get("d32") is not None and E16 is not None and sl is not None and M16 is not None:
             GROW = ((108.5 - 72.5) / 16) / ((72.5 - 45.5) / 8)   # 0.67: BigMoE step 0 (64c9d2d), mean distinct at windows 8 / 16 / 32
             est = pm["d32"] + E16 + 16 * sl * GROW + 1.5 * M16
+            # v3 (Mon 16 Nov 03:4x): est is a forward pass built from probe parts, so like for like it is over the probe's own
+            # cold 16-row pass (d16 + E16 + M16). v2 printed only est / lref, the whole live check (the loop's per-check
+            # work and its extra misses included): a mixed basis that read low (a45: 1.35x vs 1.70x like for like).
+            xo = lref - m["cold"] if lref and m["cold"] is not None else None
             print(f"   32 rows: two 16-row passes ~{f(2 * m['cold'])} ms; the slot path (measured) {f(pm.get('s32'))} ms; a gate "
-                  f"carrying 320 ids ~{f(est)} ms (estimate) = {f(est / lref if lref else None, 2)}x the in-run 16-row check "
-                  f"(line 1.35-1.4x); dense 32 / 16 = {f(pm['d32'] / pm['d16'], 2)}")
+                  f"carrying 320 ids ~{f(est)} ms (estimate) = {f(est / m['cold'] if m['cold'] else None, 2)}x the cold 16-row "
+                  f"pass, like for like (line 1.35-1.4x); {f((est + xo) / lref if xo is not None else None, 2)}x the in-run 16-row "
+                  f"check with its extra {f(xo)} ms over the cold pass added to both (v2's mixed basis est / in-run: "
+                  f"{f(est / lref if lref else None, 2)}x); dense 32 / 16 = {f(pm['d32'] / pm['d16'], 2)}")
     if "own" in trig:   # 24 GB: the live check right after the probe
         J = []
         for p in probes:

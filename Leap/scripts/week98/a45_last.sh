@@ -9,6 +9,9 @@
 #     check is now + est <= cutoff, est 420 s), so no a45 run starts after LATEST (06:00); a watchdog TERMs the runner at
 #     HARD (06:45); its trap kills the run tree and releases the ticket;
 #   - an end marker on ANY end: data/week98/cc3/A45_1116_DONE.
+# Mon 16 Nov 03:1x, the orchestrator 03:0x: re-armed with a45's start gate at its measured peak, CC3_G45=42 on the
+# lower of two reads (the 11-13 ad5f655 precedent; cc3_runner v7 reads CC3_G45); the +2 GB swap guard, HOLD / PAUSE /
+# lid / HEALTH ACT and the 06:00 latest start stay.
 # A HOLD while waiting ends it (marker written); a PAUSE is left to cc3_runner (it waits, holding nothing).
 # usage: a45_last.sh ["<LATEST START YYYY-MM-DD HH:MM:SS>" ["<HARD END ...>"]]   (defaults Mon 06:00:00 / 06:45:00)
 # Dry simulation only: DRY=1 (passed to cc3_runner: fake ticket, 1 GB gates, flagcheck.py in place of run.py), CC3_DIR (its
@@ -36,7 +39,7 @@ fin() {
 trap fin EXIT
 trap 'WHY="stopped by a signal"; RC=1; exit 1' INT TERM
 rm -f $MARK
-say "armed (pid $$$([ "${DRY:-0}" = 1 ] && echo ", DRY")): waits for the gate pids ($GATE) to end; then cc3_runner a45 with cutoff $CUTS (no run starts after $(date -r $LATEST '+%m-%d %H:%M')); hard end $(date -r $HARD '+%m-%d %H:%M')"
+say "armed (pid $$, a45 start gate ${CC3_G45:-47} GB$([ "${DRY:-0}" = 1 ] && echo ", DRY")): waits for the gate pids ($GATE) to end; then cc3_runner a45 with cutoff $CUTS (no run starts after $(date -r $LATEST '+%m-%d %H:%M')); hard end $(date -r $HARD '+%m-%d %H:%M')"
 while gate_alive; do
   [ -e $Q/HOLD ] && { WHY="HOLD while waiting"; RC=3; exit 3; }
   [ $(date +%s) -ge $GIVEUP ] && { WHY="the chain was still running at $(date -r $GIVEUP '+%H:%M'): skipped (no start after $(date -r $LATEST '+%H:%M'))"; RC=3; exit 3; }

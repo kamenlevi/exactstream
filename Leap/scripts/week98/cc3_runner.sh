@@ -17,7 +17,10 @@
 #     for tomorrow night).
 # Gates: NO-SWAP = free + purgeable + file-backed (the 11-14 05:4x formula), the lower of two reads 30 s apart, parts logged
 # (18:2x); the power mode logged at each grant and run (19:1x). Swap +2 GB stops; HOLD / PAUSE / lid / HEALTH ACT checked
-# before each run; no other engine may run. Never lowers a gate.
+# before each run; no other engine may run. Never lowers a gate on its own.
+# v7 (Mon 16 Nov 03:1x): CC3_G45 sets a45's start gate (default 47 = its peak + 4), set only on the orchestrator's word.
+# The orchestrator 03:0x: a45's start gate at its measured peak, 42 on the lower of two reads (the 11-13 ad5f655
+# precedent); the +2 GB swap guard, HOLD / PAUSE / lid / HEALTH ACT and the cutoff stay.
 # v6 (Sun 15 Nov 00:5x): CC3_ONLY=a45 runs exact-45 alone (no b24 ticket, no b24 flag check). Sat night's a45 never met
 # its gate (NO-SWAP 32-35 GB vs 47 to 00:49); the orchestrator 01:0x set the re-arm window Sun 21:00 -> Mon 01:00.
 # DRY=1: the head test of this script: fake lock, 1 s waits, gates 1 GB, and flagcheck.py in place of run.py (so each run's
@@ -27,7 +30,7 @@ D=${CC3_DIR:-/Users/kamen/Leap/data/week98/cc3}; W=/Users/kamen/Leap/scripts/wee
 Q=$HOME/.local/share/quiet; LOG=$D/cc3.log; PY=/opt/homebrew/opt/python@3.12/bin/python3.12
 KEYS=humaneval/HumanEval/68,humaneval/HumanEval/16,humaneval/HumanEval/91,humaneval/HumanEval/6
 FROM=$(date -j -f "%Y-%m-%d %H:%M:%S" "${1:?FROM}" +%s); CUT=$(date -j -f "%Y-%m-%d %H:%M:%S" "${2:?CUTOFF}" +%s)
-DRY=${DRY:-0}; G24=28; G45=47; ZZ=30; ST=20; PW=60; ONLY=${CC3_ONLY:-}
+DRY=${DRY:-0}; G24=28; G45=${CC3_G45:-47}; ZZ=30; ST=20; PW=60; ONLY=${CC3_ONLY:-}
 case "$ONLY" in ""|a45) ;; *) echo "CC3_ONLY must be empty or a45"; exit 2;; esac
 [ $DRY = 1 ] && { G24=1; G45=1; ZZ=1; ST=1; PW=1; }
 F24="CC3_EVERY=4 CC3_REFLOOSE=1"; F45="R57_WARMSPLIT=4 CC3_REFLOOSE=1"
@@ -64,7 +67,7 @@ args() {   # args <tag> <config> <mem> <passes> <flags>: run.py's arguments for 
   for e in $5; do a_="$a_ --env $e"; done
   echo "$a_ --out $D/$1"
 }
-say "armed (pid $$, v6$([ $DRY = 1 ] && echo ", DRY")): cc3 screen 3, $([ "$ONLY" = a45 ] && echo "a45 only" || echo "b24 then a45") with the probe; from $1, every run ends by $2"
+say "armed (pid $$, v7$([ $DRY = 1 ] && echo ", DRY")): cc3 screen 3, $([ "$ONLY" = a45 ] && echo "a45 only" || echo "b24 then a45") with the probe; from $1, every run ends by $2; a45 start gate $G45 GB"
 # the head test at arming: each run's exact arguments against the real loop's checks (flagcheck.py), before any ticket
 SPECS=("b24 lossy 24 d1,d16,d32,s32 $F24" "a45 exact 45 d1,d16,d32,s32 $F45"); [ "$ONLY" = a45 ] && SPECS=("${SPECS[1]}")
 for spec_ in "${SPECS[@]}"; do
@@ -100,7 +103,7 @@ run() {   # run <tag> <gate GB> <est s> <config> <mem> <passes> <flags>
     [ $(date +%s) -ge $lim ] && break
     sleep 5
   done
-  [ $ok = 1 ] || { say "SKIP $t: NO-SWAP below $gate (its peak + 4) on the lower of two reads $ZZ s apart; now $(noswap) GB ($(parts))"; RC=skip; return 1; }
+  [ $ok = 1 ] || { say "SKIP $t: NO-SWAP below $gate (its start gate) on the lower of two reads $ZZ s apart; now $(noswap) GB ($(parts))"; RC=skip; return 1; }
   [ $(( $(date +%s) + est )) -gt $CUT ] && { say "SKIP $t: it could end after the cutoff (est $est s)"; RC=skip; return 1; }
   say "run $t: $cfg-$mem, probe passes $pas, $fl (NO-SWAP $(noswap) GB, swap $(swap) MB, power mode $(pmode))"
   echo "power mode $(pmode) at $(date '+%m-%d %H:%M:%S')" > $D/${t}_pmode.txt

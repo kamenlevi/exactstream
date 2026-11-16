@@ -41,6 +41,17 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Mon 16 03:31 (Leap, 867b7b5): **at 45 GB a gated 32-row EXACT check is ~1.56-1.70x a 16-row check [est], MISSING
+  the <= 1.35-1.4x line a 32-row tree needs.** The run was real decoding on the shipped exact-45 (C 256), 4 HE keys,
+  tokens == REF2. Records: Leap data/week98/cc3/README.md "exact-45 (a45)".
+  - 16 rows: the cold check is 110.7 ms = dense 30.2 + experts 40.1 + misses 40.4. The live 16-row check is 139.1.
+  - 32 rows: the dense pass alone is 70.9 ms (2.35x 16 rows, GPU-bound). Today's slot path is 2.5 s (graph build). With
+    a gate carrying 320 ids, ~188.4 ms [est, from the parts].
+  - CORRECTED in the same commit: the printed 1.35x divided a forward-pass estimate by the whole live check. Like for
+    like it is 1.70x forward / forward, or 1.56x with the live extra on both sides.
+  - It agrees with the engine profile (one pass 1.48x at the profile's setting; REF2-T split 1.67x) and costs v2: on
+    today's engine a 32-row tree does not pay. The levers are the 32-row dense pass (70.9 ms; superlinear vs 16 rows)
+    and the 32-row misses (~60.6 ms).
 - Sun 15 22:2x (NewIdeas): **THINK_1115 #1 MARGIN-KEYED SHAPE = KILL as a chain/tree switch; the key is real on HE+**
   (research/week98/margin_keyed.*).
   - Keyed (chain-32 after an easy start, tree-32 after a hard one) vs always tree-32: -3.9 % HE+ / -4.9 % MBPP (line +3 %).
@@ -1064,12 +1075,34 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
       - The orchestrator's watcher woke only on swap, heat, disk, fans and the 03:00 check-in, so the stall went unseen.
         Fixed: night_watch_1116.sh also wakes on GPU < 5 % with no live lock for 20 min.
       - 03:0x asks to the owners:
-        - Leap re-arms a45 with the start gate at its measured peak (42 on the lower of two reads; the 11-13 precedent,
-          ad5f655) and goes first (~10 min).
-        - EvalSuite re-arms behind A45_1116_DONE (or from 03:45) with a gate <= MEM (45). Its calibration rows are
-          outputs and margins, not timing.
-      - Lesson: a +4 GB margin on a 45 GB run can't open on a weekday night (~42 GB NO-SWAP after the app quit). Start
-        gates go at the measured peak, and the +2 GB swap guard protects.
+        - Leap re-armed a45 at gate 42 (03:14, 2f3edf7; wrapper 69340 -> runner 69443). On the orchestrator's word it
+          moved to 41 at 03:16 (NO-SWAP 41.2; wrapper 22494 -> runner 22535). NO-SWAP slipped to 40.9 by 03:18, with
+          anon up ~0.04 GB/min across idle sessions, so 03:2x moved it to 40 (the orchestrator's second exception). It
+          goes first (~10 min). If it doesn't open by 03:40, EvalSuite goes first instead.
+        - The only memory left to free is Kamen's own sessions and apps, which stay untouched without his word.
+          - This is the FIRST start at a run's own peak (~42.5). ad5f655's 44 was a chain's lowest gate (its run's peak
+            35.6 + 8), so it is no precedent for this. CORRECTED (Leap).
+          - Pre-registered: a45_vm_1116.txt logs swap, NO-SWAP, the compressor and swapouts every 10 s. Swapouts inside
+            the timed window label the misses / SSD-wait part "tight memory: may read high". The dense part stands
+            either way.
+        - EvalSuite re-armed 03:22 as chain pid 68891, behind A45_1116_DONE written after today's "run a45" line
+          (fallback 03:45 if a45 hasn't started). The gate is 43 per process (47 for m1b), via CARD_MEM 39 / 43. Its
+          calibration rows are outputs and margins, and the base's speed read-out is kept per check, so neither is
+          timing-biased.
+          - The away rule replaces the hard 08:00 no-start (the orchestrator agreed): no start while Kamen is at the Mac.
+            If he comes back mid-run, it yields at once; S1, B1 and B2 resume with CARD_RESUME=1 once he's away.
+            Cutoffs stay 09:30 / 14:00.
+      - 03:23:44: a45 SKIPPED at gate 41 (read 2 was 40). 03:24:48: re-armed at 40 (runner 71188).
+      - **03:26:10 a45 RAN at gate 40; it ended 03:27:11, rc 0 (61 s).**
+        - 17 probe checks, 0 errors, tokens == REF2. Lifetime peak 42.71 GB.
+        - Swap +0 MB (6,884 -> 6,884) and swapouts +0 in the run. The compressor went 3.0 -> 8.3 GB at its peak. So
+          no "tight memory" label (pre-registered rule), and the split stands in full. Leap's write-up follows.
+        - NO-SWAP 50 GB at exit: the compressor effect.
+      - **03:28:10 EvalSuite's chain STARTED** on the a45 marker (NO-SWAP 49). S1 x45rpl1 process 1 runs under a
+        share lock (MEM 39 = the gate shift; ~39 GB RSS). GPU 75 %, swap flat.
+      - Lesson (one night's evidence): a +4 GB margin on a 45 GB run can't open on a weekday night (~40-42 GB NO-SWAP
+        after the app quit). A start at the run's own peak worked: the compressor took ~2.7 GB of idle pages with zero
+        swapouts, and the next run fit at once.
     - The app quit is armed for 23:30:00 (apps_2330_1115.sh, pid 61214).
     - Same order and markers, times +30 min:
       1. Leap a45 from 23:35 (every run ending by 01:30), then C7c;
