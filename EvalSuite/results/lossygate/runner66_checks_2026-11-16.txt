@@ -1,0 +1,84 @@
+# runner 66 checks (PREREG_lossygate amendment 4e), EvalSuite 11-16 11:23
+# tools/day_runner66.sh sha256 6032f95fe47e5f9709da52374b64496bfaa99da33d79b3791b58042570f7b558; runner 65 (unchanged) 9848a30c6a15d6822e6a3f3b96999f111a0509ae829f05fc86a4947247cfa02d
+
+## 1. diff tools/day_runner65.sh tools/day_runner66.sh
+1a2,5
+> # EvalSuite runner 66 = runner 65 with one change, the CHAT step's NO-SWAP gate (PREREG_lossygate amendment 4e, the
+> # orchestrator 11-16 11:3x fallback): CARD_GATE (whole GB, 41-49), inherited from the caller's environment, replaces
+> # MEM + 4. Unset, it is MEM + 4 as in runner 65. MEM (the share lock's "MEM <n> GB") and every other check and stop
+> # are runner 65's. A new file, because runner 65 serves armed chains. Its logs are results/day66_*.
+27c31
+< LOG=results/day65_${TG}_runner.log
+---
+> LOG=results/day66_${TG}_runner.log
+49c53
+< [ "$DRY" = 1 ] && LOG=results/day65_dry_${TG}.log
+---
+> [ "$DRY" = 1 ] && LOG=results/day66_dry_${TG}.log
+246c250
+<   BMPIN=1 gate "CHAT $3" "$((MEM - 4))" "${STEP:-900}"     # needs MEM + 4 GB NO-SWAP free (BigMoE's own margin)
+---
+>   BMPIN=1 gate "CHAT $3" "$((GATE - 8))" "${STEP:-900}"     # needs GATE GB NO-SWAP free (runner 65: MEM + 4)
+443c447
+< [ "$STAGE" = arm ] || { say "runner 65 has the arm stage only: runner stops"; exit 2; }
+---
+> [ "$STAGE" = arm ] || { say "runner 66 has the arm stage only: runner stops"; exit 2; }
+452c456
+< say "runner 65 (the lossy gate, $TAG, tier $TIER, scope $SCOPE) start (pid $$)$([ "${CARD_RESUME:-0}" = 1 ] && echo ', a resume'): waits for $FENV (written after Wed 14:33); cutoff $(date -r "$CUTOFF" '+%m-%d %H:%M')"
+---
+> say "runner 66 (the lossy gate, $TAG, tier $TIER, scope $SCOPE) start (pid $$)$([ "${CARD_RESUME:-0}" = 1 ] && echo ', a resume'): waits for $FENV (written after Wed 14:33); cutoff $(date -r "$CUTOFF" '+%m-%d %H:%M')"
+468a473,475
+> GATE=${CARD_GATE:-$((MEM + 4))}       # runner 66 (amendment 4e): the CHAT step's NO-SWAP gate, whole GB 41-49
+> case $GATE in ''|*[!0-9]*) say "CARD_GATE=$CARD_GATE is not a whole number of GB: runner stops"; exit 2;; esac
+> [ "$GATE" -ge 41 ] && [ "$GATE" -le 49 ] || { say "CARD_GATE=$GATE is outside 41-49 GB: runner stops"; exit 2; }
+493c500
+< say "C $C (MEM $MEM); BigMoE $BMC; ext $EB .so $QOMSO; code: $MODE${SNAP:+ $SNAP}${FZ:+ $FZ} (${SNAPP[*]:1}); screen $(shasum -a 256 "$SCREEN" | cut -c1-12)"
+---
+> say "C $C (MEM $MEM; CHAT gate $GATE GB NO-SWAP$([ -n "${CARD_GATE:-}" ] && echo ", CARD_GATE")); BigMoE $BMC; ext $EB .so $QOMSO; code: $MODE${SNAP:+ $SNAP}${FZ:+ $FZ} (${SNAPP[*]:1}); screen $(shasum -a 256 "$SCREEN" | cut -c1-12)"
+639c646
+< say "runner 65 end"
+---
+> say "runner 66 end"
+
+## 2. bash -n: OK
+
+## 3. stub test: runner 66's own gate() and CARD_GATE check, sourced from the file (sleep stubbed; freegb scripted)
+== validation
+ CARD_GATE=[unset]
+  GATE 43
+  rc 0
+ CARD_GATE=[42]
+  GATE 42
+  rc 0
+ CARD_GATE=[43]
+  GATE 43
+  rc 0
+ CARD_GATE=[41]
+  GATE 41
+  rc 0
+ CARD_GATE=[49]
+  GATE 49
+  rc 0
+ CARD_GATE=[40]
+  say: CARD_GATE=40 is outside 41-49 GB: runner stops
+  rc 2
+ CARD_GATE=[50]
+  say: CARD_GATE=50 is outside 41-49 GB: runner stops
+  rc 2
+ CARD_GATE=[4x]
+  say: CARD_GATE=4x is not a whole number of GB: runner stops
+  rc 2
+ CARD_GATE=[]
+  GATE 43
+  rc 0
+== gate 42: 41 x3 then 42
+  say: CHAT t: waiting for memory: 41 GB NO-SWAP (needs 42)
+  rc 0 reads 4 (want 4)
+== gate 43 (runner 65's): 42 x3 then 43
+  say: CHAT t: waiting for memory: 42 GB NO-SWAP (needs 43)
+  rc 0 reads 4 (want 4)
+== gate 42: 42 at once
+  rc 0 reads 1 (want 1)
+== gate 42 with 41 forever: stops at the cutoff
+  say: CHAT t: does not fit before the cutoff (1 min): runner stops
+(the last case exits the test shell with rc 6, as the runner would)

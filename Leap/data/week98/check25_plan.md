@@ -1,0 +1,150 @@
+# CHECK25: a measured 32-row lossy check at <= 25 ms (Leap's plan)
+
+> (a quote from the project owner, kept private)
+percent in 30 tokens and the check at 25ms ... no compromise. And all until Saturday"). The ask: the lossy 32-row
+check (1c-tiers bytes; C5 = 6.12 GB on code, floor 21.9 ms) MEASURED at <= 25 ms by Friday. A full-check microbenchmark
+on real weights counts. Inputs: Fit12's LOSSY32 ladder (~/Fit12/data/lossy32/lossy32_price.txt, v2), Breakthrough's
+LOSSY_CHECK_PLAN (corrected 5fc4c34) and engine profile (a082f8c), and my records (TABLE_350, screens README).
+
+Labels: [K] measured, [P] priced from measured parts, [est] estimate.
+
+## 1. Bottom line
+
+- **At C5's bytes, 25 ms is out of reach for any kernel work on this Mac.** This is the physics, not the schedule
+  (scripts/week98/check25_bound.py -> data/week98/check25_bound.txt).
+  - **The check is layer-sequential.** In each layer the routed experts wait for the router, the router waits for the
+    attention / GDN output, and the next layer waits for the experts. So the dense side and the experts cannot
+    overlap.
+  - **At 32 rows the dense side is compute-bound.** 3.73 B dense parameters x 32 rows = 119 G multiply-adds: 8.5 ms at
+    the measured matrix-unit peak (14.0 T MAC/s bf16 [K]), above its 7.6 ms byte floor. 4-bit or 3-bit weights do not
+    change that count.
+  - **The experts are DRAM-bound:** 3.99 GB = 14.2 ms at 280 GB/s.
+  - **With the cores (~1.2 ms) that is 23.9 ms at 100 % of every peak.** 25 ms needs 96 % of every peak, or 92 % with
+    int8 activations on the dense side. The best single kernels today reach ~74-84 % of streaming. Whole checks reach
+    53-60 % of the byte floor (exact-45 engine [K]); C5's projections reach 33-43 % [P], because the lossy levers cut
+    bytes, not the compute or the fixed costs. Fit12's own "at best" is 29.8 ms.
+- **What can reach 25 ms:** fewer bytes AND int8 dense math, then ~80-85 % whole-check efficiency.
+
+  | bytes (code, 32 rows) | dense math | bound at 100 % [P] | at 90 % | efficiency needed for 25 ms |
+  |---|---|---:|---:|---:|
+  | C5 = 1c-tiers + V1 + V3, 6.12 GB | bf16 | 23.9 | 26.6 | 96 % |
+  | C5 | int8 | 23.0 | 25.6 | 92 % |
+  | C6 = C5 at lambda 1.8e-2, 5.55 GB | int8 | 21.0 | 23.3 | 84 % |
+  | C6 + V4 (3-bit GDN / attention), 5.22 GB | int8 | 19.8 | 22.0 | 79 % |
+
+  - Every row past C5 is a quality call (EvalSuite's gate, then Kamen): lambda 1.8e-2, 3-bit GDN / attention, and int8
+    activations.
+  - The ~80-85 % whole-check efficiency is the megakernel / replayed-command-path class of work (dispatch-diet levers D
+    / E, cf70494): weeks, on top of everything below.
+- **What I commit to by Friday:** a MEASURED full check at C5's bytes on the engine.
+  - Real weights, real routing, 1c-tiers; warm 32-row re-checks (misses 0, labelled as such); GPU, CPU and wall.
+  - The C6 bytes as a timing variant.
+  - **My estimate: ~33-38 ms GPU per check [est].** Today's > 16-row route is 62-66 ms [P].
+
+## 2. Day by day
+
+**Mon to 14:30 (desk / CPU; EvalSuite's 45 GB gate holds the GPU):**
+- This plan, sent by 14:00.
+- **qmm32n source.** A true 32-row native-layout 4-bit GEMM on the matrix units:
+  - one weight read and one dequant per fragment, for all 32 rows;
+  - split-K for the narrow shapes;
+  - its accuracy harness (fp32 reference).
+- **The f32one installer skeleton.** Opt-in; no live-file edits. ref2 stays as it is until a change is landed with
+  BigMoE.
+
+**Mon 14:30 -> evening (GPU share slots from NewIdeas, <= 4 GB each):**
+- **qmm32n on every FAST dense shape:**
+  - accuracy vs fp32;
+  - speed on cold rotating weights (one32_bench's method), vs today's route (two 16-row qmm16n calls) and vs max(byte
+    floor, matrix floor).
+  - This doubles as the WEEK98 "32 vs 16 rows" microbench.
+- **hc8r at 32 rows** (one HC8 read for all 32 rows).
+
+**Mon night:** E14 as booked (00:30-03:00). Nothing else of mine.
+
+**Tue:**
+- **E14 read-out** to the orchestrator, EvalSuite (marker), BigMoE and Breakthrough.
+- **f32one wired: every FAST op at 17-32 rows in one pass:**
+  - qmm32n for the DNR / DENSE-N / SMALL-N weights;
+  - hc8r32;
+  - the GDN step at T 32;
+  - attention and SVH at 32;
+  - the router;
+  - the FAST-NAX one-call at M 32 with b43efc4's 2-D nolsb. First check groups of more than 16 pairs per expert (the
+    D8 bug class).
+- **4-layer slice:** f32one vs today's two-16-row FAST route (logits and argmax).
+- **12-layer slice timing** in a <= 10 min quiet slot (NewIdeas): F16x2 vs F32one, per class.
+- **V1 + V3 as bench options.** Neither exists in the engine (R57_LMSL / R57_HC4 are not built; BigMoE owns them per
+  LOSSY_CHECK_SPEC). For the bench:
+  - V1 = a gathered 16K head;
+  - V3 = HC mixers / inject / PLE at 4-bit at load + an HC4 read kernel.
+  - Timing only; quality stays EvalSuite's.
+- **The R(K) table to NewIdeas by Tuesday evening**, as committed, with E14's E2 numbers.
+
+**Tue night (a ~40 GB night slot, ~40 min, quiet): full-check measurement #1 on the engine.**
+- BigMoE's lossy-45 + 1c-tiers env; warm 32-row re-checks.
+- Arms: today's route vs f32one.
+- Per class (Breakthrough's pass K), GPU busy, CPU, wall.
+
+**Wed:**
+- **The 1c glue fused into one kernel after router_fused:** tiers + km + counter + the dup pick.
+  - ~1,630 dispatches per check: -1.8..-3.4 ms GPU, -10.6 ms CPU [est].
+  - The tiers equal BigMoE's tiers_mx on every slot.
+  - With BigMoE (its _t1c).
+- **Chunked GDN at T 32** (FAST: the WY / UT form on the matrix units).
+  - Error vs mlx_lm's step; the commit's per-position state handled.
+  - -2.5..-3 ms [est].
+- **Wed night: measurement #2.**
+
+**Thu:**
+- **The expert one-call at M 32 under 1c** (the biggest excess, 1.43x its floor): profile and fix the largest piece.
+  No promise.
+- **int8 dense activations as a FAST option in qmm32n** (the dense side's compute bound 8.5 -> 4.9 ms). Its error is
+  reported; adopting it is Kamen's call.
+- **If the engine's CPU binds:** Python specialization of the 32-row path (lever B, part).
+- **Thu night: measurement #3 = Friday's number**, at C5's bytes and at C6's (lambda 1.8e-2, timing only).
+
+**Fri:** the report:
+- the measured 32-row check (GPU, CPU, wall) at C5 and C6 bytes;
+- per class vs its floor;
+- the gap to 25 ms and what closes it.
+
+## 3. What does not fit by Friday (plainly)
+
+1. **25 ms at C5's bytes.** The bound is 23.9 ms at 100 % of every peak (section 1). No kernel plan reaches it.
+2. **25 ms at C6 + int8 (84 %) or C6 + V4 + int8 (79 %).**
+   - The bytes and the int8 math need EvalSuite's gates and Kamen's call.
+   - The ~80-85 % whole-check efficiency needs megakernels or a replayed command path (3-6 weeks [est]).
+3. **Experts at ~1.1x their floor.** I know no route: the exact NAX road past NAX6 is closed, and int8 (NAX-C) ran at
+   NAX6's speed. Thursday is an attempt.
+4. **The engine's CPU under 25 ms at 32 rows.**
+   - Today it is 27.9 ms, plus 10.6 for the 1c glue.
+   - By Friday ~28 with the glue fused.
+   - Under 25 needs lever B in full (3-5 days) and lever A (weeks).
+5. **Misses -> 0 in real decoding at 45 GB.** The bench is warm. A resident-only rule is a quality item, unpriced and
+   not mine.
+6. **Moved down:**
+   - C7d (exact R24) is deferred unless NewIdeas wants it for R(K).
+   - The command-buffer microbench stays lowest (Tuesday's slot).
+
+## 4. What I need
+
+- **GPU share slots by day, <= 4 GB each:** Mon from 14:30 (~2 x 20 min) and Tue-Thu (~3 x 20 min a day).
+- **One <= 10 min quiet slot by day on Tuesday** for the 12-layer slice (~26 GB: one big job, NewIdeas' call), or at
+  night.
+- **Night slots Tue / Wed / Thu:** ~40 GB, ~40 min each, quiet (the full-engine 32-row checks).
+- **From BigMoE:**
+  - its 1c env for the engine arms;
+  - V1 / V3 status;
+  - an OK on the fused 1c glue kernel (its _t1c).
+
+## 5. Lines (pre-registered)
+
+- **qmm32n, GDN qkv|z per call:**
+  - PASS <= 115 us (1.2x its 96 us matrix floor);
+  - KILL > 146 us (today's exact c2a; two FAST 16-row calls are 227).
+  - Accuracy first: the error vs fp32 must be within the 16-row FAST form's own error, else fix before timing.
+- **f32one on the slice:** each row's logits within the 16-row FAST route's error vs the exact route at 16 rows, and the
+  argmax agreeing on >= 99 % of rows.
+- **Engine measurement #1:** f32one - today's route <= -10 ms per warm 32-row check (Fit12's step 1 prices -11).
+- **Friday:** report the number. My prediction against 25 ms at C5's bytes is a MISS (section 1).

@@ -163,19 +163,13 @@ def tag(a):
     return "" if (a.nodes, a.k) == (32, 8) else f"_n{a.nodes}k{a.k}"
 
 
-def sha_manifest(paths):
-    """data/deepdraft/ceiling/dumps_sha256.json: sha256 + bytes per dump file (EvalSuite's CERTIFY98 manifest form)"""
-    import hashlib
-    mp = os.path.join(OUT, "dumps_sha256.json")
-    M_ = json.load(open(mp)) if os.path.exists(mp) else {}
-    for p in paths:
-        h = hashlib.sha256()
-        with open(p, "rb") as f:
-            for blk in iter(lambda: f.read(1 << 24), b""):
-                h.update(blk)
-        M_[os.path.basename(p)] = {"sha256": h.hexdigest(), "bytes": os.path.getsize(p),
-                                   "written": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(os.path.getmtime(p)))}
-    json.dump(M_, open(mp, "w"), indent=1, sort_keys=True)
+def sha_manifest(paths, a, parts, part=None, ckp=None, fsha=None):
+    """data/deepdraft/ceiling/dumps_sha256.json via dd_manifest (EvalSuite's CERTIFY98 manifest, amendments 7 / 7a): per
+    dump file sha256 + bytes + script + args (+ part), and the run's provenance under "_run" (a merge loads no model and
+    reads no capture file, so it passes no checkpoint / files manifest)"""
+    import dd_manifest as DMF
+    DMF.update(os.path.join(OUT, "dumps_sha256.json"), paths, "dd_tree", {"k": a.k, "nodes": a.nodes, "parts": parts},
+               part=part, checkpoint=ckp, files_sha=fsha)
 
 
 def nest_check(N_, A_, base_path, n0=32):
@@ -222,6 +216,8 @@ def main():
     ap.add_argument("--selftest", action="store_true"); ap.add_argument("--check-only", action="store_true")
     ap.add_argument("--part", default="", help="i/n: only windows [len*i/n, len*(i+1)/n) -> tree_<run>_<set>.part<i>of<n>.npz")
     ap.add_argument("--merge", type=int, default=0, help="n: concatenate the n parts in order -> tree_<run>_<set>.npz + report")
+    ap.add_argument("--files-manifest", default=None, help="the frozen capture files_sha256.json (CERTIFY98): refuse any "
+                    "input file whose sha256 differs; its sha256 goes to dumps_sha256.json's _run")
     a = ap.parse_args()
     if a.selftest:
         return selftest()
@@ -241,7 +237,7 @@ def main():
         assert (np.diff(A_["a_fi"]) >= 0).all(), "parts out of order"
         op_ = os.path.join(OUT, f"tree_{a.run}_{a.set}{tag(a)}.npz")
         np.savez_compressed(op_, files=TK["files"], nodes=a.nodes, k=a.k, **N_, **A_)
-        sha_manifest([op_])
+        sha_manifest([op_], a, a.merge)
         return report(a, N_, A_, TK, round(float(sum(z["wall_s"] for z in Z)), 1), round(float(max(z["peak_gb"] for z in Z)), 2))
     import mlx.core as mx
     import dd_ceiling as CE
@@ -251,10 +247,13 @@ def main():
     t0 = time.time()
     rt_, lm, head = M.load(a.frac)
     P = M.Trainable(head)
-    P.load_weights(os.path.join(DD.CKD, f"dd_{a.run}.safetensors")); mx.eval(P.parameters())
+    ckp = os.path.join(DD.CKD, f"dd_{a.run}.safetensors")
+    P.load_weights(ckp); mx.eval(P.parameters())
     emb, layer = lm.model.embed_tokens, head.layers[0]
     att = layer.self_attn
     FS = {"heplus24": CE.HEP, "mbppbank": CE.MBB}[a.set]
+    import dd_manifest as DMF
+    fsha = DMF.verify_inputs(a.files_manifest, FS) if a.files_manifest else None
     TK = np.load(os.path.join(OUT, f"topk_{a.run}_{a.set}.npz"))
     assert [str(x) for x in TK["files"]] == [os.path.basename(f) for f in FS], "TOPK's files differ"
     d0 = TK["depth"] == 0
@@ -338,15 +337,16 @@ def main():
     A_ = {k: np.concatenate(v) for k, v in A_.items()}
     if a.part:
         i_, n_ = a.part.split("/")
-        np.savez_compressed(os.path.join(OUT, f"tree_{a.run}_{a.set}{tag(a)}.part{i_}of{n_}.npz"), nodes=a.nodes, k=a.k,
-                            wall_s=time.time() - t0, peak_gb=mx.get_peak_memory() / 1e9, **N_, **A_)
+        pp_ = os.path.join(OUT, f"tree_{a.run}_{a.set}{tag(a)}.part{i_}of{n_}.npz")
+        np.savez_compressed(pp_, nodes=a.nodes, k=a.k, wall_s=time.time() - t0, peak_gb=mx.get_peak_memory() / 1e9, **N_, **A_)
+        sha_manifest([pp_], a, int(n_), part=a.part, ckp=ckp, fsha=fsha)
         nc_ = nest_check(N_, A_, os.path.join(OUT, f"tree_{a.run}_{a.set}.npz")) if a.k == 8 and a.nodes > 32 else None
         print(f"[tree] part {a.part}: windows {lo}..{hi - 1}, {len(A_['a_an'])} anchors, {time.time() - t0:.0f} s, "
               f"MLX peak {mx.get_peak_memory() / 1e9:.2f} GB" + (f"; nest vs the 32-node dump: {nc_}" if nc_ else ""), flush=True)
         return
     op_ = os.path.join(OUT, f"tree_{a.run}_{a.set}{tag(a)}.npz")
     np.savez_compressed(op_, files=TK["files"], nodes=a.nodes, k=a.k, **N_, **A_)
-    sha_manifest([op_])
+    sha_manifest([op_], a, 1, ckp=ckp, fsha=fsha)
     report(a, N_, A_, TK, round(time.time() - t0, 1), round(mx.get_peak_memory() / 1e9, 2))
 
 

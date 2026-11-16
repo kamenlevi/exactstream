@@ -1,0 +1,48 @@
+# 127-node bank (BigMoE scripts/n127_dry.sh 1622030f, Mon 11-16 09:05-11:03; dev sets), EvalSuite 11-16 11:08
+# .venv/bin/python tools/certify98_bank127.py
+## 1. The dump manifest, before any scoring (tools/certify98_dumpcheck.py)
+manifest ~/BigMoE/data/deepdraft/ceiling/dumps_sha256.json: sha256 6eb0fd1db07e340ff37a5afc73dfb73f47981e2e29be767ea40d42a894c2951e
+  OK               ~/BigMoE/data/deepdraft/ceiling/tree_t30b_heplus24_n127k8.npz: 37342596 bytes, sha256 c17b3eec60ad00c615d73f9634b86a8d9dc725ff5e71abdb9570f9f061cd6143
+  OK               ~/BigMoE/data/deepdraft/ceiling/tree_t30b_heplus24_n127k16.npz: 67623509 bytes, sha256 59ab9fd02f5c4d95f5fea2c1cb39541e19f8e6c578d4ff80f024e0d36f397dfd
+  OK               ~/BigMoE/data/deepdraft/ceiling/tree_t30b_mbppbank_n127k8.npz: 103241478 bytes, sha256 6ee5fb8ea20fdcbdff50a3d3498a05623031c0443da6123577ee38d348f4a395
+  OK               ~/BigMoE/data/deepdraft/ceiling/tree_t30b_mbppbank_n127k16.npz: 183020798 bytes, sha256 ebb4d9b995ee814092e768b855865c74494df5237770bad50df5bd49acfacf5c
+DUMP MANIFEST: PASS (4 files)
+
+## 2. certify98_tree.py per dump (the topk dumps are the 32-depth dev TOPK files)
+heplus24 n127 k8: 24 windows; tree dump k 8, 127 nodes; chain-16 10.625, chain-32 13.769 (= certify98 kept/32)
+  tree-16: 11.263 kept per check = x1.060 chain-16 (one-sided 95 % lower bound x1.031; se of log 0.0162)
+  tree-32: 16.263 kept per check = x1.531 chain-16 (one-sided 95 % lower bound x1.470; se of log 0.0234)
+  tree-64: 20.765 kept per check = x1.954 chain-16 (one-sided 95 % lower bound x1.833; se of log 0.0375)
+  tree-128: 23.699 kept per check = x2.230 chain-16 (one-sided 95 % lower bound x2.059; se of log 0.0468)
+  coverage chain-16 by band (targets only): 0-0 93.80  1-2 93.72  3-6 94.47  7-10 95.83  11-14 97.10
+  coverage tree-16 by band (targets only): 0-0 98.58  1-2 96.42  3-6 93.70  7-10 95.00  11-14 96.24
+heplus24 n127 k16: 24 windows; tree dump k 16, 127 nodes; chain-16 10.625, chain-32 13.769 (= certify98 kept/32)
+  tree-16: 11.263 kept per check = x1.060 chain-16 (one-sided 95 % lower bound x1.031; se of log 0.0162)
+  tree-32: 16.263 kept per check = x1.531 chain-16 (one-sided 95 % lower bound x1.470; se of log 0.0234)
+  tree-64: 20.765 kept per check = x1.954 chain-16 (one-sided 95 % lower bound x1.833; se of log 0.0375)
+  tree-128: 23.966 kept per check = x2.256 chain-16 (one-sided 95 % lower bound x2.106; se of log 0.0401)
+  coverage chain-16 by band (targets only): 0-0 93.80  1-2 93.72  3-6 94.47  7-10 95.83  11-14 97.10
+  coverage tree-16 by band (targets only): 0-0 98.58  1-2 96.42  3-6 93.70  7-10 95.00  11-14 96.24
+  nesting vs tree_t30b_heplus24.npz (32 nodes, k 8): tree-16 IDENTICAL, tree-32 IDENTICAL
+  k 16 vs k 8 at the same tree size (information, MTP Head's T16): tree-16 11.263 / 11.263 = x1.000  tree-32 16.263 / 16.263 = x1.000  tree-64 20.765 / 20.765 = x1.000  tree-128 23.966 / 23.699 = x1.011
+  kept per check vs chain-32 (13.769), k 8: tree-16 x0.818  tree-32 x1.181  tree-64 x1.508  tree-128 x1.721
+mbppbank n127 k8: 100 windows; tree dump k 8, 127 nodes; chain-16 6.588, chain-32 6.924 (= certify98 kept/32)
+  tree-16: 7.487 kept per check = x1.136 chain-16 (one-sided 95 % lower bound x1.119; se of log 0.0093)
+  tree-32: 9.031 kept per check = x1.371 chain-16 (one-sided 95 % lower bound x1.351; se of log 0.0086)
+  tree-64: 10.190 kept per check = x1.547 chain-16 (one-sided 95 % lower bound x1.519; se of log 0.0109)
+  tree-128: 11.285 kept per check = x1.713 chain-16 (one-sided 95 % lower bound x1.683; se of log 0.0105)
+  coverage chain-16 by band (targets only): 0-0 90.03  1-2 86.40  3-6 86.08  7-10 84.40  11-14 86.78
+  coverage tree-16 by band (targets only): 0-0 97.79  1-2 92.11  3-6 86.11  7-10 81.04  11-14 80.38
+mbppbank n127 k16: 100 windows; tree dump k 16, 127 nodes; chain-16 6.588, chain-32 6.924 (= certify98 kept/32)
+  tree-16: 7.487 kept per check = x1.136 chain-16 (one-sided 95 % lower bound x1.119; se of log 0.0093)
+  tree-32: 9.036 kept per check = x1.371 chain-16 (one-sided 95 % lower bound x1.352; se of log 0.0086)
+  tree-64: 10.183 kept per check = x1.546 chain-16 (one-sided 95 % lower bound x1.518; se of log 0.0108)
+  tree-128: 11.318 kept per check = x1.718 chain-16 (one-sided 95 % lower bound x1.689; se of log 0.0102)
+  coverage chain-16 by band (targets only): 0-0 90.03  1-2 86.40  3-6 86.08  7-10 84.40  11-14 86.78
+  coverage tree-16 by band (targets only): 0-0 97.84  1-2 92.08  3-6 86.11  7-10 81.04  11-14 80.38
+  nesting vs tree_t30b_mbppbank.npz (32 nodes, k 8): tree-16 IDENTICAL, tree-32 IDENTICAL
+  k 16 vs k 8 at the same tree size (information, MTP Head's T16): tree-16 7.487 / 7.487 = x1.000  tree-32 9.036 / 9.031 = x1.001  tree-64 10.183 / 10.190 = x0.999  tree-128 11.318 / 11.285 = x1.003
+  kept per check vs chain-32 (6.924), k 8: tree-16 x1.081  tree-32 x1.304  tree-64 x1.472  tree-128 x1.630
+
+BANK127: PASS (manifest PASS; scorer checks clean; nesting IDENTICAL)
+rc 0

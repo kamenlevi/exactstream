@@ -570,3 +570,58 @@ tools/certify98_lines.py power: 2,000 draws of windows with replacement from the
   - 97.8 % at walk-strict bands 1-14: every deployable lever is at 90.6-97.1, and even the true state is at 93.2-96.4
     for bands 0-6.
   - 450 exact: that needs a flat 98.0-98.4 % with the check at its byte floor (TARGETS_450_900.md).
+
+## Amendment 7a (Mon 2026-11-16 11:2x, before any capture or candidate): Thursday's fresh dumps are TOPK + T8 at 32 nodes; the fresh T16 is dropped
+- **Why:** amendment 7 said the bank passes would measure the window. They did:
+  - BigMoE's 127-node bank on the dev sets (scripts/n127_dry.sh 1622030f, Mon 09:05-11:03) costs 124-180 ms per anchor.
+    TOPK and the 32-node TREE cost 12-14 ms, so a 127-node anchor is ~10x, not ~4-4.5x (~55 ms).
+  - On ~105-120K fresh anchors, TOPK + T8 + T16 would take ~4.3-5.5 h, not 2.2-2.5 h. T16 alone is 3.6-4.7 h.
+  - Read in EvalSuite 11ffa06 / 696a937 (docs/RESULT_bank127_2026-11-16.md): the dump manifest check PASSES 4 / 4, and
+    the 127-node k = 8 dumps' tree-16 / tree-32 are IDENTICAL to the 32-node dumps.
+  - The order is NewIdeas' (11:1x). The window is the orchestrator's (11:1x; it reconciled its note with NewIdeas'
+    conditional, so point 3 stands).
+- **1. The fresh T16 is DROPPED.** It was information and never gated. On dev, k = 16 vs k = 8 at the same tree size:
+  - HE+ 24: x1.000 at tree-16 / 32 / 64, and x1.011 at tree-128;
+  - MBPP 100: x1.000 / 1.001 / 0.999 / 1.003, with tree-16's band-0 coverage 97.84 vs 97.79.
+  - MTP Head's truncation count can read the bank's k = 16 files (dev).
+  - NewIdeas may ask for T16 back, with a reason, by Wed 18:00 (the orchestrator).
+- **2. Thursday's window: TOPK + T8 at 32 nodes ONLY**, by day after the proof-run amendment as in amendment 7.
+  - It takes ~0.8 h by the bank's price: TOPK ~21-24 min and T8 ~22-27 min on ~105-120K anchors.
+  - Amendment 7's "32 nodes, or 127" is settled at 32. Every gated line reads T8's first 15 or 31 pops (tree-16,
+    tree-32, the tree-K line at K* = 32, C1).
+- **3. CONDITIONAL, information only, never gated: a fresh T8 at 127 nodes on HE+ fresh only** (~35-37K anchors,
+  ~1.2-1.4 h). It runs ONLY if both hold:
+  - (a) Wednesday's early-death probe PASSES (CPU, on BigMoE's Tuesday-night layer 8 / 16 / 24 dev pass);
+  - (b) a by-day window is left after the gated TOPK + T8-32 that does not touch the proofs (the orchestrator's call).
+  - Its file is separate (tree_*_n127k8), with its own manifest entries. Its first 32 pops must match the gated T8 file
+    BITWISE (BigMoE's nest check), or its read is VOID. It never changes the gated T8.
+  - **Wording settled with BigMoE (11:2x; the orchestrator 11:2x asked us to settle it):**
+    - HE+ T8(127) has k 8 and 127 nodes, and uses the same capture files, checkpoint and dd_tree as T8(32).
+    - It is INFORMATION (tree-64 / tree-128). It runs only BESIDE the gated HE+ T8(32), never instead of it.
+    - The gated tree-32 read stays on the T8(32) dump, as amendment 7 says.
+    - The T8(127) read-out is valid only if its first 32 pops equal the T8(32) dump BITWISE, on every node field, in
+      every window: dd_tree's nest check. On dev it gave 124 / 124 windows BITWISE (BigMoE 3e239ce8; EvalSuite 11ffa06).
+      Otherwise it is VOID, and the gated line is untouched.
+    - Both dumps and their args are in the manifest.
+    - Taking tree-32 from T8(127) itself would still need T8(32) on a named subset as the nest base, and it saves under
+      ~8 min (HE+ T8(32) is ~35-37K anchors x 12-14 ms). So it is not done.
+  - If either condition fails, no fresh 127-node dump is made. The dev K-curve stands as the record: EvalSuite 11ffa06
+    and NewIdeas' BIGGER_TREES.md.
+- **4. The dump manifest check** runs before any scoring:
+  - the command is `tools/certify98_dumpcheck.py <dumps_sha256.json> <files> --gated <files_sha256.json>` (sha256
+    ef6cadbeae099f07...);
+  - it needs amendment 7's run fields under `_run`: files_sha256_json, checkpoint_sha256, bigmoe_commit,
+    dd_topk_sha256, dd_tree_sha256 and args;
+  - the field names were proposed to BigMoE 11:1x. The proof-run amendment pins the final names and the tool's sha256.
+  - **Updated 11:4x on BigMoE's sample manifest** (37744f27: the dev bank heplus24, not the capture). The tool is now
+    sha256 92410754282d977d..., replacing ef6cadbeae099f07. `--gated` now also needs:
+    - checkpoint_path;
+    - `modules` ({path: sha256}) ALWAYS, because the dumpers import ~/TrainLab/mtp125.py, which is outside BigMoE's git;
+    - bigmoe_dirty as a bool;
+    - on each file, `script` + `args` that appear in _run.args.
+    - `--pins <json>` checks the proof-run amendment's values (modules as an exact map). `--fresh` checks that
+      files_sha256.json's manifest_sha256 is the frozen fresh manifest's (acdf3e62...).
+    - Checks: 26 / 26 as intended (results/certify98/dumpcheck_checks_2026-11-16.txt). The sample passes `--gated`.
+    - The proof-run amendment pins mtp125.py's sha256 with the other modules.
+- **Unchanged:** every line of amendments 6 / 6a / 8, and amendment 8's scorer pins. certify98_tree.py is still
+  4a0ba21625497be1....

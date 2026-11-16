@@ -224,7 +224,7 @@ def main():
                 + "; ".join(f"{k} {v['acc']} / {v['n']} (A {v['A']:.4f})" for k, v in reps.items())
                 + (f"; {err[0][:160]}" if err else ""))
             json.dump(res, open(RES, "w"), indent=1)
-        res["status"] = "PASS" if all(v["verdict"] == "PASS" for v in res["envs"].values()) else "FAIL"
+        res["status"] = "PASS" if len(res["envs"]) == len(ENVS) and all(v["verdict"] == "PASS" for v in res["envs"].values()) else "FAIL"   # never PASS over a missing env (t1c_keytest 11-16)
     except Stop as e:
         res["status"] = f"STOPPED: {e}"
         if child[0] is not None and child[0].poll() is None:

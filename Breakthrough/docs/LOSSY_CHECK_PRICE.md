@@ -325,3 +325,48 @@ domain and pooled:
     NewIdeas). So my note to it is a one-line confirmation, not a new finding.
 - **Context:** 84 % is a kernel target. Today's full engine runs the exact 32-row check in 102.1 ms (90.5 with v32one),
   GPU-bound (a082f8c). Fit12's realistic model of the plan on today's engine is 49.8-53.3 ms.
+
+## Carry check: Fit12's LOSSY32 C6 / C7 rows on code (Mon 16 Nov 12:0x). Pre-registered, CPU, before computing
+
+- **Claim.** Fit12's ~/Fit12/scripts/lossy32_price.py (v2, sha256 74f11370dd78, line 252) prices two rows from my map
+  4-bit-eq:
+  - C6 (C5 at lambda 1.8e-2) from 33.6;
+  - C7 (1d at lambda 8e-3 + V1 + V3) from 54.8.
+
+  Both are the POOLED all-domain means, the same issue its self-check (c) caught in my 1c number. On code blocks they
+  are 35.7 and 62.3 (5fc4c34, data/m1/lossy_check_domain_recount.out, rows "lam 1.8e-2" and "1d ... code").
+- **Check.** scripts/m1/fit12_c6c7_code_carry.py runs Fit12's script from its own file, unchanged except for two things:
+  - OUT, redirected to data/m1/fit12_c6c7_code/<variant>/;
+  - those two inputs.
+
+  Variant "published" keeps 33.6 / 54.8; variant "code" uses 35.7 / 62.3. Nothing in ~/Fit12 is written.
+- **Self-check.** The "published" variant's lossy32_price.txt must equal Fit12's data/lossy32/lossy32_price.txt byte for
+  byte. Otherwise: STOP, no claim.
+- **Prediction [P, by hand].**
+  - C6 on code: ~5.77 GB / ~20.6 ms floor (published 5.55 / 19.8).
+  - C7 on code: ~8.48 GB / ~30.3 ms floor (published 7.71 / 27.5).
+  - Realistic ms up ~1.5 (C6) and ~5 (C7).
+- **Action.** Tell Fit12; it's Fit12's table, and Fit12 decides whether to re-price.
+  - No verdict changes: C6 is "not a candidate".
+  - C7 is the fallback if 1c fails EvalSuite's gate (running now). Its realistic price is the number that changes.
+
+### Result (Mon 16 Nov 12:06, 1.7 s CPU): C6 and C7 cost more on code, and no verdict changes
+
+- **Self-check PASS.** The "published" variant's txt is byte-identical to Fit12's (md5 9a69fe82f100c6d3b4526ba06df9e2ce).
+- **Only the C6 and C7 rows change.** The unified diff is in data/m1/fit12_c6c7_code_carry.out; full tables are in
+  data/m1/fit12_c6c7_code/{published,code}/.
+
+| row (Fit12's model, 32-row check) | GB | floor ms | realistic ms | today's > 16-row route ms | tok/s HE+ / MBPP at K* |
+|---|---|---|---|---|---|
+| C6 = C5 at lambda 1.8e-2, as published (pooled) | 5.55 | 19.8 | 47.6-52.1 | 58.8-62.3 | 302-328 / 169-184 |
+| C6 on code | **5.77** | **20.6** | **49.0-53.4** | 60.2-63.6 | 294-319 / 165-179 |
+| C7 = 1d + V1 + V3, as published (pooled) | 7.71 | 27.5 | 61.5-66.0 | 72.7-76.2 | 242-258 / 136-145 |
+| C7 on code | **8.47** | **30.3** | **66.4-70.9** | 77.6-81.1 | 226-240 / 127-135 |
+
+- **As predicted.** C6 came out at 5.77 GB / 20.6 ms; C7 at 8.47 / 30.3. Realistic ms rose by +1.3-1.4 (C6) and +4.9
+  (C7).
+- **C5, the plan, is unchanged:** 6.12 GB, 21.9 ms floor, 51.3-55.7 ms realistic.
+- **C6 stays "not a candidate":** it is unscreened. Its predicted code all-row flips are at or over the 1.34 line: 1.65
+  by the plan's additive table, or ~1.33 with the measured dense increment (section above).
+- **C7, the fallback if 1c fails EvalSuite's gate, costs ~66-71 ms realistic on code, not 61.5-66.0.**
+- **Action taken:** told Fit12, since the table is Fit12's and re-pricing is its call.

@@ -98,6 +98,7 @@ def main():
     ap.add_argument("--start-by", default=None)             # "YYYY-mm-dd HH:MM": the first env's gate must open by then
     ap.add_argument("--hard", default=None)                 # "YYYY-mm-dd HH:MM": TERM the run and stop (clean) at this time
     ap.add_argument("--away-min", type=int, default=0)      # do not start if away_secs.sh < this (orchestrator: 900)
+    ap.add_argument("--rescore", action="store_true")       # no run: re-score the last run's envs from its logs + records
     a = ap.parse_args()
     global ENVS
     ENVS = (f"lx45{a.snap}", f"t1cx45{a.snap}")
@@ -125,6 +126,79 @@ def main():
     res = dict(started=time.strftime("%Y-%m-%d %H:%M:%S"), keys=KEYS, ref=REF, envs={}, status="running")
     refrows = {d_["key"]: d_["completion_ids"] for d_ in (json.loads(l_) for l_ in open(REF)) if d_["key"] in KEYS}
     locked, child = False, [None]
+
+    def score(n, rc, why, lp, swap_d, wall_s):
+        """one env's verdict from its run log + the screen's runs / tokens records, stored in res["envs"][n] (the store
+        was missing until Mon 16 Nov 11:3x: that run's final PASS was computed over an empty list; --rescore refills it)"""
+        txt = open(lp).read()
+        err = [l for l in txt.splitlines() if re.match(r"\w*(Error|Exception)\b", l)][-1:]
+        pk_ = [float(x) for l_ in txt.splitlines() if "lifetime peak" in l_    # every lifetime-peak figure (warm-ups,
+               for x in re.findall(r"([0-9]+\.[0-9]+) GB", l_.split("lifetime peak", 1)[1])]   # per key, the final line)
+        tag_ = f"t1ckt_{n}"; R_, T_ = {}, {}
+        try:
+            R_ = {x_["key"]: x_ for x_ in json.load(open(os.path.join(BM, "data/r57", f"{tag_}_runs.json")))}
+            T_ = json.load(open(os.path.join(BM, "data/r57", f"{tag_}_tokens.json")))
+        except (OSError, ValueError):
+            pass
+        per, fails, tk_ = {}, [], {}
+        variant = n.startswith("t1c")
+        for k in KEYS:
+            r_ = R_.get(k)
+            if r_ is None:
+                fails.append(f"{k}: no record"); continue
+            toks = (T_.get(k) or {}).get(r_["arm"], [[]])[0]
+            tk_[k] = toks
+            lc = r_.get("lossy_check"); qo = (r_.get("pf") or {}).get("qom_opt")
+            ck = r_.get("t1c_ck") or []
+            per[k] = dict(arm=r_["arm"], n=r_["n"], tokens_eq_lx45cc1=toks == refrows.get(k), lossy_check=lc,
+                          qom_opt=qo, t1c_union_per_check_layer=round(sum(sum(c_[:3]) for c_ in ck) / max(sum(c_[3] for c_ in ck), 1), 2) if ck else None,
+                          lifetime_peak_gb=round(max(r_["mem"][1], r_["mem"][-1]), 2) if isinstance(r_.get("mem"), list) and len(r_["mem"]) >= 7 else None)   # footprint peaks after prefill / at the key's end
+            st_ = k.split("/")[0]
+            if not toks:
+                fails.append(f"{k}: no tokens")
+            if st_ in ("humanevalx", "ifeval") and not variant and toks != refrows.get(k):
+                fails.append(f"{k}: base tokens != lx45cc1's")
+            if not variant and lc is not None:
+                fails.append(f"{k}: lossy_check on the base")
+            if not variant and st_ == "humaneval" and not (qo or 0) > 0:
+                fails.append(f"{k}: base pf.qom_opt {qo} (want > 0)")
+            if variant and st_ in ("humaneval", "humanevalx") and not (lc and lc["e3"] + lc["edrop"] + lc["lmsl_rows"] > 0):
+                fails.append(f"{k}: 1c not engaged ({lc})")
+            if variant and st_ == "ifeval" and lc is not None and any(lc[x_] for x_ in ("e3", "edrop", "lmsl_rows")):
+                fails.append(f"{k}: 1c engaged on IFEval ({lc})")
+            if variant and st_ == "humaneval" and (qo or 0) != 0:
+                fails.append(f"{k}: variant pf.qom_opt {qo} (want 0: 1c replaces QOM)")
+            if variant and st_ == "ifeval":                  # never skipped: no base tokens to compare is a failure
+                bt_ = res["envs"].get(ENVS[0], {}).get("tokens", {}).get(k)
+                if bt_ is None or toks != bt_:
+                    fails.append(f"{k}: IFEval tokens != the base's" if bt_ is not None else f"{k}: no base tokens to compare")
+        ok = rc == 0 and why is None and not fails and len(per) == len(KEYS)
+        res["envs"][n] = dict(rc=rc, stopped=why, wall_s=wall_s, verdict="PASS" if ok else "FAIL", keys=per, fails=fails,
+                              tokens=tk_, error=err[0] if err else None, log=os.path.relpath(lp, BM), swap_gb=swap_d,
+                              peak_gb=max(pk_) if pk_ else None)
+        return ok, per, fails, pk_, err
+
+    def verdict_all():                                       # never PASS over a missing env
+        return "PASS" if len(res["envs"]) == len(ENVS) and all(v["verdict"] == "PASS" for v in res["envs"].values()) else "FAIL"
+
+    if a.rescore:                                            # the last run's per-env lines: rc, swap; its start / end times
+        res = json.load(open(RES))
+        res["envs"] = {}
+        L_ = open(LOG).read().splitlines()
+        for n in ENVS:
+            ln = [l for l in L_ if re.search(rf" {n} rc -?\d+", l)][-1]
+            st = [l for l in L_ if f" {n} start: " in l][-1]
+            hm = lambda l_: time.mktime(time.strptime(time.strftime("%Y-") + l_[:14], "%Y-%m-%d %H:%M:%S"))
+            score(n, int(re.search(r" rc (-?\d+)", ln).group(1)), None, os.path.join(a.out, f"t1ckt_{n}.log"),
+                  float(re.search(r"swap ([+-][0-9.]+) GB", ln).group(1)), round(hm(ln) - hm(st)))
+        res["status"] = verdict_all()
+        res["rescored"] = (f"{time.strftime('%Y-%m-%d %H:%M:%S')}: envs refilled by --rescore from the run logs and the "
+                           "t1ckt_* runs / tokens records (the runner's per-env store was missing; its final status had "
+                           "been computed over an empty list)")
+        json.dump(res, open(RES, "w"), indent=1)
+        print(json.dumps({"status": res["status"], "envs": {k_: {x_: v_[x_] for x_ in ("verdict", "peak_gb", "swap_gb", "fails")}
+                                                              for k_, v_ in res["envs"].items()}}, indent=1))
+        return 0 if res["status"] == "PASS" else 1
 
     def on_signal(sig, _f):
         raise Stop(f"signal {sig}")
@@ -202,48 +276,7 @@ def main():
                         break
                 rc = child[0].returncode
                 child[0] = None
-            txt = open(lp).read()
-            err = [l for l in txt.splitlines() if re.match(r"\w*(Error|Exception)\b", l)][-1:]
-            pk_ = [float(x) for l_ in txt.splitlines() if "lifetime peak" in l_    # every lifetime-peak figure (warm-ups,
-                   for x in re.findall(r"([0-9]+\.[0-9]+) GB", l_.split("lifetime peak", 1)[1])]   # per key, the final line)
-            tag_ = f"t1ckt_{n}"; R_, T_ = {}, {}
-            try:
-                R_ = {x_["key"]: x_ for x_ in json.load(open(os.path.join(BM, "data/r57", f"{tag_}_runs.json")))}
-                T_ = json.load(open(os.path.join(BM, "data/r57", f"{tag_}_tokens.json")))
-            except (OSError, ValueError):
-                pass
-            per, fails = {}, []
-            variant = n.startswith("t1c")
-            for k in KEYS:
-                r_ = R_.get(k)
-                if r_ is None:
-                    fails.append(f"{k}: no record"); continue
-                toks = (T_.get(k) or {}).get(r_["arm"], [[]])[0]
-                lc = r_.get("lossy_check"); qo = (r_.get("pf") or {}).get("qom_opt")
-                ck = r_.get("t1c_ck") or []
-                per[k] = dict(arm=r_["arm"], n=r_["n"], tokens_eq_lx45cc1=toks == refrows.get(k), lossy_check=lc,
-                              qom_opt=qo, t1c_union_per_check_layer=round(sum(sum(c_[:3]) for c_ in ck) / max(sum(c_[3] for c_ in ck), 1), 2) if ck else None,
-                              lifetime_peak_gb=round(max(r_["mem"][1], r_["mem"][-1]), 2) if isinstance(r_.get("mem"), list) and len(r_["mem"]) >= 7 else None)   # footprint peaks after prefill / at the key's end
-                st_ = k.split("/")[0]
-                if not toks:
-                    fails.append(f"{k}: no tokens")
-                if st_ in ("humanevalx", "ifeval") and not variant and toks != refrows.get(k):
-                    fails.append(f"{k}: base tokens != lx45cc1's")
-                if not variant and lc is not None:
-                    fails.append(f"{k}: lossy_check on the base")
-                if not variant and st_ == "humaneval" and not (qo or 0) > 0:
-                    fails.append(f"{k}: base pf.qom_opt {qo} (want > 0)")
-                if variant and st_ in ("humaneval", "humanevalx") and not (lc and lc["e3"] + lc["edrop"] + lc["lmsl_rows"] > 0):
-                    fails.append(f"{k}: 1c not engaged ({lc})")
-                if variant and st_ == "ifeval" and lc is not None and any(lc[x_] for x_ in ("e3", "edrop", "lmsl_rows")):
-                    fails.append(f"{k}: 1c engaged on IFEval ({lc})")
-                if variant and st_ == "humaneval" and (qo or 0) != 0:
-                    fails.append(f"{k}: variant pf.qom_opt {qo} (want 0: 1c replaces QOM)")
-                if variant and st_ == "ifeval":
-                    bt_ = res["envs"].get(ENVS[0], {}).get("tokens", {}).get(k)
-                    if bt_ is not None and toks != bt_:
-                        fails.append(f"{k}: IFEval tokens != the base's")
-            ok = rc == 0 and why is None and not fails and len(per) == len(KEYS)
+            ok, per, fails, pk_, err = score(n, rc, why, lp, round(swap_gb() - sw0, 2), round(time.time() - t0))
             if why and why.startswith(("hard stop", "HOLD")):
                 json.dump(res, open(RES, "w"), indent=1)
                 raise Stop(f"{why} during {n}")
@@ -253,7 +286,7 @@ def main():
                 + (f"; FAILS {fails}" if fails else "")
                 + (f"; {err[0][:160]}" if err else ""))
             json.dump(res, open(RES, "w"), indent=1)
-        res["status"] = "PASS" if all(v["verdict"] == "PASS" for v in res["envs"].values()) else "FAIL"
+        res["status"] = verdict_all()
     except Stop as e:
         res["status"] = f"STOPPED: {e}"
         if child[0] is not None and child[0].poll() is None:

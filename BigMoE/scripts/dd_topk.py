@@ -108,6 +108,8 @@ def main():
     ap.add_argument("--set", choices=["heplus24", "mbppbank"])
     ap.add_argument("--run", default="t30b"); ap.add_argument("--frac", type=float, default=0.03)
     ap.add_argument("--k", type=int, default=8); ap.add_argument("--selftest", action="store_true")
+    ap.add_argument("--files-manifest", default=None, help="the frozen capture files_sha256.json (CERTIFY98): refuse any "
+                    "input file whose sha256 differs; its sha256 goes to dumps_sha256.json's _run")
     a = ap.parse_args()
     if a.selftest:
         return selftest()
@@ -118,8 +120,11 @@ def main():
     t0 = time.time()
     rt_, lm, head = M.load(a.frac)
     P = M.Trainable(head)
-    P.load_weights(os.path.join(DD.CKD, f"dd_{a.run}.safetensors")); mx.eval(P.parameters())
+    ckp = os.path.join(DD.CKD, f"dd_{a.run}.safetensors")
+    P.load_weights(ckp); mx.eval(P.parameters())
     FS = {"heplus24": CE.HEP, "mbppbank": CE.MBB}[a.set]
+    import dd_manifest as DMF
+    fsha = DMF.verify_inputs(a.files_manifest, FS) if a.files_manifest else None
     assert len(FS) == {"heplus24": 24, "mbppbank": 100}[a.set], (a.set, len(FS))
     C = {k: [] for k in ("depth", "fi", "row", "y", "right", "top_ids", "top_p", "p_y", "y_rank", "walk_start")}
     tie = 0
@@ -150,6 +155,7 @@ def main():
     files = np.array([os.path.basename(f) for f in FS])
     out = os.path.join(OUT, f"topk_{a.run}_{a.set}.npz")
     np.savez_compressed(out, files=files, k=a.k, **C)
+    DMF.update(os.path.join(OUT, "dumps_sha256.json"), [out], "dd_topk", {"k": a.k, "parts": 1}, checkpoint=ckp, files_sha=fsha)
     # alignment with dd_ceiling's cells (same order, same right) + the walk against checkstart_walk.py's counts
     R = {"run": a.run, "set": a.set, "cells": int(len(C["row"])), "k": a.k, "top1_neq_argmax_ties": tie,
          "wall_s": round(time.time() - t0, 1), "mlx_peak_gb": round(mx.get_peak_memory() / 1e9, 2)}

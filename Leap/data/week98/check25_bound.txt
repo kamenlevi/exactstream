@@ -1,0 +1,21 @@
+# check25_bound (Leap): the layer-sequential lower bound of a 32-row lossy check on this Mac
+dense params per check 3.733 B -> 119 G MAC at 32 rows = 8.53 ms bf16 / 4.93 ms int8 at the measured matrix peak
+expert slots per layer 227 (1c) -> 43 G MAC = 3.06 ms bf16 (the experts are DRAM-bound)
+cores at 1024 keys: GDN state 226 MB = 0.81 ms; attention KV 25 MB, 4.8 G MAC = 0.35 ms
+cores at 2048 keys: GDN state 226 MB = 0.81 ms; attention KV 50 MB, 9.7 G MAC = 0.69 ms
+
+| bytes | dense MMA | GB (dense + experts) | byte floor 280 | bound at 100 % of every peak | at 90 % | at 85 % | efficiency needed for 25 ms |
+|---|---|---|---|---|---|---|---|
+| C5 = 1c-tiers + V1 + V3 (the target's bytes) | bf16 | 6.12 (2.13 + 3.99) | 21.9 | **23.9** (dense 8.5, experts 14.2, cores 1.2) | 26.6 | 28.1 | 96 % |
+| C5 = 1c-tiers + V1 + V3 (the target's bytes) | int8 | 6.12 (2.13 + 3.99) | 21.9 | **23.0** (dense 7.6, experts 14.2, cores 1.2) | 25.6 | 27.1 | 92 % |
+| C6 = C5 at lambda 1.8e-2 | bf16 | 5.55 (2.13 + 3.42) | 19.8 | **21.9** (dense 8.5, experts 12.2, cores 1.2) | 24.3 | 25.8 | 88 % |
+| C6 = C5 at lambda 1.8e-2 | int8 | 5.55 (2.13 + 3.42) | 19.8 | **21.0** (dense 7.6, experts 12.2, cores 1.2) | 23.3 | 24.7 | 84 % |
+| C8 = C5 + V4 (GDN / attention 3-bit) | bf16 | 5.79 (1.80 + 3.99) | 20.7 | **23.9** (dense 8.5, experts 14.2, cores 1.2) | 26.6 | 28.1 | 96 % |
+| C8 = C5 + V4 (GDN / attention 3-bit) | int8 | 5.79 (1.80 + 3.99) | 20.7 | **21.8** (dense 6.4, experts 14.2, cores 1.2) | 24.2 | 25.7 | 87 % |
+| C6 + V4 | bf16 | 5.22 (1.80 + 3.42) | 18.6 | **21.9** (dense 8.5, experts 12.2, cores 1.2) | 24.3 | 25.8 | 88 % |
+| C6 + V4 | int8 | 5.22 (1.80 + 3.42) | 18.6 | **19.8** (dense 6.4, experts 12.2, cores 1.2) | 22.0 | 23.3 | 79 % |
+
+- At 295 GB/s (the best streaming read) every byte term is x0.949: C5 bf16 bound 23.2 ms.
+- Today, for scale [P, Fit12 v2]: C5 on today's > 16-row route 62.4-65.9 ms; with the one-pass FAST forms 51.3-55.7;
+  whole-check efficiency ~0.35-0.45 of the peaks. Best single kernels today: NAX6-N experts ~74 % of streaming,
+  DN-KS out / o_proj 236 GB/s, GDN in_proj 213 GB/s (16 rows); the 32-row c2a in_proj 1.52x its matrix floor.

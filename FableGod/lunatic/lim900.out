@@ -1,0 +1,32 @@
+BW 273 GB/s: 900 tok/s allows   303 MB of DRAM traffic per kept token
+BW 280 GB/s: 900 tok/s allows   311 MB of DRAM traffic per kept token
+BW 300 GB/s: 900 tok/s allows   333 MB of DRAM traffic per kept token
+
+-- at the byte floor (check 21.9 ms; draft = its bytes at 280 GB/s), MB per kept token in brackets
+  today lossy K* tree-32, t30b           kept 16.91 draft 3.69 GB ->   482 tok/s  [ 580 MB/kept]
+  flat 97.8 %, tree-32 t30b              kept 23.15 draft 3.69 GB ->   660 tok/s  [ 424 MB/kept]
+  flat 97.8 %, chain-30 t30b             kept 23.15 draft 5.33 GB ->   566 tok/s  [ 495 MB/kept]
+  perfect (33), tree-32 t30b             kept 33.00 draft 3.69 GB ->   942 tok/s  [ 297 MB/kept]
+  flat 97.8 %, 6 t30b levels             kept 23.15 draft 1.07 GB ->   902 tok/s  [ 310 MB/kept]
+  flat 97.8 %, 6 levels + 0.52 GB block  kept 23.15 draft 1.59 GB ->   841 tok/s  [ 333 MB/kept]
+  flat 97.8 %, free drafting             kept 23.15 draft 0.00 GB ->  1059 tok/s  [ 264 MB/kept]
+  kept 28, tree-32 t30b                  kept 28.00 draft 3.69 GB ->   799 tok/s  [ 351 MB/kept]
+  kept 28, 6 levels + 0.52 GB block      kept 28.00 draft 1.59 GB ->  1017 tok/s  [ 275 MB/kept]
+
+-- the spec's triplet: kept for 900 = 0.9 x (check ms + draft ms); flat accuracy a giving that kept/32
+  check 25.0 + draft  0.7 ms -> needs kept 23.13 = flat 97.79 % per guess
+  check 25.0 + draft  3.0 ms -> needs kept 25.20 = flat 98.40 % per guess
+  check 25.0 + draft  5.0 ms -> needs kept 27.00 = flat 98.88 % per guess
+  check 21.9 + draft  3.8 ms -> needs kept 23.13 = flat 97.79 % per guess
+  check 21.9 + draft  5.0 ms -> needs kept 24.21 = flat 98.12 % per guess
+  check 30.0 + draft  4.0 ms -> needs kept 30.60 = flat 99.71 % per guess
+  check 41.0 + draft  8.3 ms -> needs kept 44.37 = flat 100.00 % per guess  (beyond 32 rows)
+  check 45.0 + draft 13.8 ms -> needs kept 52.92 = flat 100.00 % per guess  (beyond 32 rows)
+  flat 97.8 % gives kept 23.15: at 25 + 3..5 ms =  827.. 772 tok/s
+
+-- width (aggregate, one user's B code streams in one pass): check bytes per kept x groups ratio [K WALL_L T2],
+   head levels batched across streams (one weight read per level for all B)
+  B1: kept  16.9 per pass, check  6.12 GB + draft 3.69 GB ->   482 tok/s aggregate ( 482 per stream) at the byte floor
+  B2: kept  33.8 per pass, check  9.55 GB + draft 3.69 GB ->   715 tok/s aggregate ( 358 per stream) at the byte floor
+  B4: kept  67.6 per pass, check 13.46 GB + draft 3.69 GB ->  1104 tok/s aggregate ( 276 per stream) at the byte floor
+  B8: kept 135.3 per pass, check 17.14 GB + draft 3.69 GB ->  1818 tok/s aggregate ( 227 per stream) at the byte floor

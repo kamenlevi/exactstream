@@ -1,0 +1,61 @@
+{
+ "workdir": "/private/tmp/claude-501/-Users-kamen-OjoX/686e655b-8e12-470d-a119-e25d3fcf670d/scratchpad/ddm_test",
+ "checks": {
+  "verify_ok_returns_manifest_sha": true,
+  "verify_refuses_missing_entry": true,
+  "verify_refuses_changed_file": true,
+  "run_fields_present": true,
+  "files_sha256_json": true,
+  "checkpoint": true,
+  "args_nested": true,
+  "modules_pin_this_code": true,
+  "each_file_args_in_run_args": true,
+  "file_sha_and_part": true,
+  "refuses_other_checkpoint": true,
+  "refuses_other_checkpoint_why": "dumps_sha256.json: this run differs from the manifest's pinned fields: checkpoint_path: /private/tmp/claude-501/-Users-kamen-OjoX/686e655b-8e12-470d-a119-e25d3f",
+  "refuses_other_capture_manifest": true,
+  "refuses_other_capture_manifest_why": "dumps_sha256.json: this run differs from the manifest's pinned fields: files_sha256_json: b79eb25a59218a8fa71f4e748c3db746fa266813f1f04a96811bfd48ff6c6c76 != 00",
+  "refuses_other_topk_args": true,
+  "refuses_other_topk_args_why": "dumps_sha256.json: this run differs from the manifest's pinned fields: dd_topk args {'k': 8, 'parts': 1} != {'k': 16, 'parts': 1}",
+  "refuses_changed_module": true,
+  "refuses_changed_module_why": "dumps_sha256.json: this run differs from the manifest's pinned fields: module ~/BigMoE/scripts/dd_manifest.py: 1823fadfb7b9 != ffffffffffff",
+  "commit_change_listed": true
+ },
+ "fails": [],
+ "verdict": "PASS",
+ "sample_run": {
+  "args": {
+   "dd_topk": {
+    "k": 8,
+    "parts": 1
+   },
+   "dd_tree": [
+    {
+     "k": 8,
+     "nodes": 32,
+     "parts": 2
+    },
+    {
+     "k": 8,
+     "nodes": 127,
+     "parts": 2
+    }
+   ]
+  },
+  "bigmoe_commit": "6710bbf9ae40371b2cc7066d528b9639b9b2310c",
+  "bigmoe_commits_seen": [
+   "6710bbf9ae40371b2cc7066d528b9639b9b2310c",
+   "deadbeef"
+  ],
+  "bigmoe_dirty": true,
+  "checkpoint_path": "/private/tmp/claude-501/-Users-kamen-OjoX/686e655b-8e12-470d-a119-e25d3fcf670d/scratchpad/ddm_test/dd_test.safetensors",
+  "checkpoint_sha256": "52fcc35981330ca47dbbafb7245c73a85d08399f783a033a5f0c17777fd5b402",
+  "dd_topk_sha256": "22c734a56bcf43f797f5df5abc9e183e70a3afc8247dfb7b32a76c9a8181d880",
+  "dd_tree_sha256": "8ff54b91e89cf101cd4c0646f795c0806eccff2a880f9d54e7cf5ac0d7163607",
+  "files_sha256_json": "b79eb25a59218a8fa71f4e748c3db746fa266813f1f04a96811bfd48ff6c6c76",
+  "modules": {
+   "~/BigMoE/scripts/dd_manifest.py": "1823fadfb7b92572796a9efed0513623696e6eba24dfde985e5975c1e421d506",
+   "~/BigMoE/scripts/test_dd_manifest.py": "4429937ddeae1eee1c8be3eaf0cab4c0e5406e5620f873b0d8033ab4812a400f"
+  }
+ }
+}

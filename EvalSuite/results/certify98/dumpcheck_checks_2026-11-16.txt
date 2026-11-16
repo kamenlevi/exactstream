@@ -1,0 +1,48 @@
+# tools/certify98_dumpcheck.py checks (PREREG_certify98 amendments 7 / 7a), EvalSuite 11-16 11:39
+# sha256 92410754282d977d4ee05c0891420cda0003324c689eb8c7b5df6de1179677a8
+## ungated (synthetic files)
+u1 all match (want 0): 0
+u2 a file not in the manifest (want 1): 1
+u3 a missing file (want 1): 1
+u4 one byte appended (want 1): 1
+u5 same size, one byte changed (want 1): 1
+u6 a size-only mismatch (want 1): 1
+u7 no files (want 2): 2
+u8 restored (want 0): 0
+
+## gated, on BigMoE's sample manifest (37744f27: ~/BigMoE/data/deepdraft/certify98_sample; the dev bank heplus24, NOT the capture) and edited copies
+1 sample, gated (want 0): 0
+     manifest ~/BigMoE/data/deepdraft/certify98_sample/dumps_sha256.json: sha256 50f7c6f60c41ffab7c3e12e223dee9b8e1886f3e1ca179428a47ec571aad780b
+       OK               ~/BigMoE/data/deepdraft/ceiling/topk_t30b_heplus24.npz: 6637544 bytes, sha256 ce99cc3faa96a65d4e57e0818fcd504696f7122e6f5a1f516df4ce5c909f50b4
+         script dd_topk, args {"k": 8, "parts": 1}: in _run.args
+       OK               ~/BigMoE/data/deepdraft/ceiling/tree_t30b_heplus24.npz: 8895176 bytes, sha256 912584224f87abf8e9bc250f8afd279a0d59422f1bf8d5fbc71386672e4e8d37
+         script dd_tree, args {"k": 8, "nodes": 32, "parts": 1}: in _run.args
+       OK               ~/BigMoE/data/deepdraft/ceiling/tree_t30b_heplus24_n127k8.npz: 37342596 bytes, sha256 c17b3eec60ad00c615d73f9634b86a8d9dc725ff5e71abdb9570f9f061c
+         script dd_tree, args {"k": 8, "nodes": 127, "parts": 2}: in _run.args
+       run fields: all present (bigmoe_dirty True; 5 modules)
+       files_sha256_json == sha256 of ~/BigMoE/data/deepdraft/certify98_sample/files_sha256.json (aef0713d0a3325bf0eaad9796d78d3cdd48d1b18e87c96f5e3f38c99c2e0c935)
+     DUMP MANIFEST: PASS (3 files; gated)
+2 sample, gated + pins from itself (want 0): 0
+       pin checkpoint_sha256: ==
+       pin dd_topk_sha256: ==
+       pin dd_tree_sha256: ==
+       pin modules: ==
+     DUMP MANIFEST: PASS (3 files; gated; pinned)
+3 pins: mtp125.py sha differs (want 1): 1
+       pin modules: != (manifest {"~/BigMoE/scripts/dd_ceiling.py": "b6811ae9b8f26b707310b9d14c73f68b9b734daa0f2bfe93b0af8667
+4 pins: one module fewer than the manifest (want 1): 1
+5 pins: checkpoint differs (want 1): 1
+6 no modules (want 1): 1
+       run fields: MISSING modules
+7 no checkpoint_path (want 1): 1
+8 bigmoe_dirty not a bool (want 1): 1
+9 a file without script (want 1): 1
+10 a file's args not in _run.args (want 1): 1
+11 _run.args lacks the 127-node pass (want 1): 1
+12 topk args differ from _run (want 1): 1
+13 --fresh on the SAMPLE (want 1): 1
+14 --fresh with the right manifest_sha256 (want 0): 0
+15 the bank manifest, ungated (want 0): 0
+16 the bank manifest, gated (want 1): 1
+17 --pins without --gated (want 2): 2
+18 a file not in the sample (want 1): 1

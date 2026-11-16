@@ -725,3 +725,92 @@
     - a FAIL end, or the tue phase gone without a marker: no run (rc 5);
     - a stale marker is ignored;
     - past the last start: rc 6.
+
+## Amendment 4e (Mon 2026-11-16 11:3x, before any 1c-tiers run): a memory-gate fallback for 1c-tiers, 43 -> 42 GB (the orchestrator 11:3x)
+- **Why:** runner 65 starts each CHAT process only at NO-SWAP >= MEM + 4 = 43 GB (CARD_MEM 39, amendment 4a).
+  - By day the Mac read 35.1-38.5 GB at 11:07-11:15, with MTP Head's S12 up, and 40.1-40.5 GB after S12 (11:18-11:21).
+  - BigMoE lowered its key test's start gate from 42 to 41, then to 40, for the same reason.
+- **Expected, with no change (the orchestrator):** the key test's ~43 GB process pushes idle memory into the compressor.
+  Its exit should lift NO-SWAP to ~48-50 GB, and back-to-back processes keep it there.
+  - The same happened at 06:55 (44.2 -> 48-50 after the first run).
+  - It happened at 03:27 too: a45's exit lifted it to 50, and that chain started at 49.
+- **The fallback** runs only if 43 has not opened 10 min after BigMoE's key-test PASS marker (the marker's mtime).
+  - The per-process gate drops to 42 GB for the mon and tue phases and for the Tuesday follower's B2 -> V2.
+  - The at-peak evidence (the orchestrator's figures):
+    - lx45cc1 peaked at 42.2 GB;
+    - a45 started at 40.7 GB against its 42.71 peak, with swap +0;
+    - the rpl2 key test started at 44.2 against 42.6, with swap +0.
+  - Unchanged:
+    - the +2 GB swap guard and every stop;
+    - CARD_MEM 39, so the share lock still says "MEM 39 GB";
+    - the cutoffs, the pins and every scoring rule.
+  - This is a gate change, not a scoring change.
+- **How, with no armed file changed:** tools/day_runner66.sh (sha256 6032f95fe47e5f97...) is runner 65 with one change.
+  - The CHAT step's gate is CARD_GATE, in whole GB from 41 to 49, inherited from the caller's environment. A value out
+    of range, or not a number, stops the runner. Unset, the gate is MEM + 4 as before.
+  - Its logs are results/day66_*.
+  - **Today:** TERM the mon phase (pid 86890) while its B0 waits for memory, with no GPU process running. Then start
+    t1c_chain.sh's mon phase again with `CHAIN_RUNNER=tools/day_runner66.sh CARD_GATE=42`. Its start gates already
+    hold: the dry-run marker and the key-test PASS.
+  - **Tuesday:**
+    - TERM the tue phase (pid 86926). The follower (pid 95134) then ends with "no run".
+    - Re-arm the tue phase the same way.
+    - Re-arm the follower on the new tue pid (CHAIN_TUEPID) with the same two settings. The wed phase it starts
+      inherits them.
+  - The chain's start line still prints "runner 65; NO-SWAP gate 43 GB", because its file is unchanged. Runner 66's log
+    names the gate it uses ("CHAT gate 42 GB NO-SWAP, CARD_GATE").
+  - If 43 opens in time, nothing changes and runner 66 is not used.
+- **Checked** (results/lossygate/runner66_checks_2026-11-16.txt):
+  - The diff against runner 65 is the header, the log names, the gate line, the CARD_GATE check and the start / end
+    labels. bash -n passes.
+  - A stub test of runner 66's own gate and check:
+    - unset gives 43; 42, 41 and 49 are accepted;
+    - 40, 50 and "4x" stop the runner (rc 2);
+    - the gate waits at 41 for 42 and at 42 for 43, passes at once at 42, and stops at the cutoff (rc 6).
+  - A DRY chain pass through CHAIN_RUNNER runs right after the key test, before any use.
+
+## Amendment 4f (Mon 2026-11-16 12:0x, during the 1c-tiers run, before B1's verdict): run the gate to completion today; operational only
+> (a quote from the project owner, kept private)
+  use its compute until I tell you". The day limits and the Kamen-at-the-Mac yield are lifted until he says otherwise.
+  - The orchestrator: run the 1c-tiers gate to completion today, past the 14:30 cutoff: B1 -> V1, then B2 -> V2 if V1
+    passes, with no at-Mac yield.
+  - Keep the memory gate, the +2 GB swap guard and HOLD / PAUSE / lid.
+- **The changes** (the cutoff and the yield only; NO scoring change):
+  - The cutoff is 22:30 today, and the last start 22:15. That is before tonight's 45 GB order (M4 23:05 -> E14 00:30
+    -> night1117).
+  - There is no Kamen-at-the-Mac rule, neither as a start condition nor as a mid-run yield.
+  - B2 -> V2 run today, right after V1, if V1 passes. Amendment 4d's Tuesday follower becomes the fallback.
+  - Unchanged:
+    - runner 65 and its 43 GB memory gate;
+    - the +2 GB swap guard, and the per-process yield to another session's MEM run above 5 GB;
+    - HOLD / PAUSE / lid;
+    - every pin and every scoring rule.
+- **How:** tools/t1c_chain2.sh (sha256 822c2fc2db41f880...) is t1c_chain.sh plus three settings and one fix.
+  - The settings:
+    - CHAIN_CUTOFF: the runner's cutoff;
+    - CHAIN_NOYIELD=1: no at-Mac rule;
+    - CHAIN_TAG: the log tag and the end marker.
+  - The fix: a recorded VOID / INCOMPLETE tier-1 verdict now stops the chain (rc 9, a decision). t1c_chain.sh counts it
+    as done.
+  - **12:01:21-31:** the mon phase (pid 86890) was stopped by TERM after B1's 7th process. B1's first half (132 rows)
+    is kept.
+    - The runner was in B1's CPU-only interim scoring, so no GPU work was lost.
+    - Its stack process and the share lock were released (checked). T1C_MON_END reads "stopped by a signal during: B1".
+  - **12:01:46:** chain2 started (pid 60135): phase wed on 11-16, tag mon2 (log [mon2], end results/T1C_MON2_END),
+    CHAIN_CUTOFF 22:30, CHAIN_NOYIELD=1.
+    - B0 and V0 were already done.
+    - B1 resumed at 12:02:16 (CARD_RESUME=1; 132 rows kept; the module manifest is checked against B0's).
+  - The tue phase (pid 86926) and the Tuesday follower (pid 95134) stay armed, as the fallback if today's run stops.
+    - Caveat: t1c_chain.sh counts a recorded VOID / INCOMPLETE tier-1 verdict as done.
+    - If one is recorded today, EvalSuite stops both before Tuesday.
+- **Checked:**
+  - The diff against t1c_chain.sh is the header, the three settings and the fix. bash -n passes.
+  - A stub simulation, 6 scenarios (results/lossygate/t1c_chain2_sim_2026-11-16.txt), from today's state (B0 and V0
+    recorded, B1 partial):
+    - N1: with Kamen at the Mac throughout and NOYIELD, B0 and V0 are skipped, B1 resumes, and V1, B2 and V2 run to
+      "done", with the 23:30 test cutoff passed to every runner call.
+    - N2: a V1 FAIL ends before B2.
+    - N3: a recorded VOID B1 stops with rc 9 (the fix).
+    - N4: without NOYIELD it waits while Kamen is at the Mac, then starts.
+    - N5: a HOLD during B2 gives rc 8, with the runner stopped.
+    - N6: a past cutoff means no start (rc 6).

@@ -92,6 +92,17 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
     [both drafting-hidden: SUPERSEDED by the 10:4x correction above]. Labels:
     at the byte floor, probe untested, the HE+ magnitude is copy-heavy code. MBPP walk-strict at K127: 99.6 / 97.2 /
     92.4 / 87.5 / 86.8 / 88.7 / 86.6 (knowledge-limited); K* on MBPP stays tree-16 under every cost.
+  - **11:1x Thursday's window cut to TOPK + T8 at 32 nodes (~0.8 h) by the orchestrator** (EvalSuite 696a937: a
+    127-node anchor costs ~10x a 32-node one, so TOPK + T8 + T16 would be ~4.3-5.5 h, not the approved 2.2-2.5 h). T16
+    is information only: on dev, k16 = k8 at tree-16/32/64 on HE+ (x1.000) and within 1.1 % at 127; MBPP tree-16
+    band-0 97.84 vs 97.79. No CERTIFY98 line reads trees beyond 32 rows. NewIdeas (11:1x, the same order) adds one
+    CONDITIONAL, information only: a fresh T8 at 127 nodes on HE+ (~1.2-1.4 h), only if Wednesday's early-death probe
+    PASSES and a by-day window remains after the gated work without touching the proofs. EvalSuite's independent dev
+    scoring matches NewIdeas' K-curve (HE+ x1.277 / x1.457 at 64 / 128 rows; MBPP x1.128 / x1.250).
+    BigMoE 11:2x: a 127-node T8 CONTAINS the 32-node T8 (first 32 pops bitwise on all 124 windows). If the
+    conditional runs, HE+ T8(127) runs BESIDE HE+ T8(32) (+~8 min), not instead. The gated tree-32 read stays on
+    T8(32) as pre-registered, and T8(127) is information, valid only if its first 32 pops match T8(32) bitwise
+    (else VOID). The default stays TOPK + T8(32) on both sets (~0.7-0.9 h).
   - **11:03 BigMoE's 127-node dry run DONE** (rc 0; all 4 dumps: heplus24 24 windows + mbppbank 100 windows at k 8 and
     k 16, 6,375 + 15,641 anchors; 1 h 58 min; MLX peak 13.1 GB; swap +0 on every part). The first 32 pops equal the
     32-node dumps BITWISE on all 124 windows; k 16 adds <= 0.008 kept. Marker N127_DRY_1117_DONE. (Its "all anchors"
@@ -194,7 +205,14 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
     (peaks <= 42.5 GB), under the away rule, at a 43 GB gate. Today: base mini-panel -> variant mini-panel (KILL ends
     it) -> base forward -> variant forward (FAIL ends it), as far as the 14:30 cutoff allows. Tuesday resumes after
     T0A_1117_END. The reverse pair (B2 -> V2) moved to Tuesday by day: follower pid 95134 (amendment 4d, 4cabcf6)
-    runs it only if V1 passes, after Tuesday's phase, cutoff 14:30. It runs on runner 65:
+    runs it only if V1 passes, after Tuesday's phase, cutoff 14:30. **11:24 BigMoE's t1c1 key test PASS** (started
+    at gate 40, read 40.5, against peaks 42.3 base / 42.4 variant; swap +0 on both; all 3 keys equal lx45cc1's
+    tokens). Its exit lifted NO-SWAP 40.5 -> 49.4, and **the 1c-tiers mon phase started B0 at 11:25:26 at 48 GB** (the
+    43 GB gate; amendment 4e's 42 GB fallback, 9429e48, unused). Next: B0 -> V0 -> B1 -> V1 by 14:30.
+    **11:31 B0 (the lossy-45 base on t1c1, tier 0 vs the exact refs): KILL, arm only 0 / reference only 4 on n 40
+    (exactly the kill line).** **11:38 V0 (1c-tiers vs B0): GO, arm only 1 / reference only 0.** B1 base forward runs
+    from 11:38. B0's KILL is lossy-45's own loss vs exact on the mini-panel, not 1c's (asked EvalSuite whether it is
+    lossy-45's known tier-0 read or a snapshot effect). It runs on runner 65:
     runner 64 would have voided every 1c run, because 1c replaces QOM in the checks (BigMoE caught it, amendment 4b).
   - **This MONTH's lossy-check ladder** (Fit12 LOSSY32 ADDENDUM vs TRIED; NewIdeas 8245427): C5 60.9-63.5 ms today
     (two 16-row calls) -> 49.8-53.3 with a one-pass > 16-row FAST form (not built; the biggest item) -> ~45-48 with
@@ -216,6 +234,52 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
   - **THINK #7 SLOT PRIOR = PASS on HE+:** in-comment rows are 13 % of HE+ answer rows but hold 71 % of the 125B's
     near-ties (m < 1), lift x5.4. MBPP x1.96 (KILL). A second key, next to #1's hard-start key, for Tuesday's
     widen / TIE-STUBS screen.
+- **Mon 16 11:4x KAMEN (verbatim): "We MUST get 900 lossy. We must get 97.8 percent in 30 tokens and the check at
+  25ms. This should be 100 percent clear. I mean yeah - no compromise. And all until Saturday".** WEEK98 is re-aimed on
+  three numbers, all needed at once for 900 tok/s lossy on code:
+  - (A) acceptance >= 97.8 % per guess to 30 deep (flat 97.8 = 23.15 kept per 32-row check; lossy rules allowed,
+    EvalSuite-gated). Today: tree-32 16.26 exact / 16.91 lossy K* (HE+); true state 20.77.
+  - (B) the lossy 32-row check <= 25 ms. Today: ~61 ms (two 16-row calls); realistic 50-55 with this week's 1c-tiers.
+  - (C) drafting ~<= 3-5 ms per block (900 at kept ~23-28 leaves a 26-31 ms cycle). Today: the t30b head reads 177.6 MB
+    per level: 8.3-11.5 ms for tree-16, ~20 ms for a 31-deep chain.
+  - Owners (orchestrator 11:5x): Leap the check, MTP Head a smaller same-accuracy drafter, NewIdeas the budget,
+    ranking and every other assignment, by 14:00.
+  - **12:0x Leap CHECK25 plan (79a850f): a 32-row lossy check at C5's bytes is bound at 23.9 ms on this Mac at 100 %
+    of every peak**, so 25 ms needs 96 % of every peak. The check is layer-sequential, and at 32 rows the dense side is
+    COMPUTE-bound: 3.73 B dense params x 32 rows = 119 G MAC = 8.5 ms at the measured 14.0 T MAC/s bf16 peak, above its
+    7.6 ms byte floor. Experts 14.2 ms, cores ~1.2. Today's best single kernels reach 74-84 % of peak, whole exact
+    checks 53-60 %. 25 ms needs fewer bytes AND int8 dense math AND ~80-85 % whole-check efficiency: C6 (lambda 1.8e-2,
+    5.55 GB) + int8 needs 84 %; C6 + V4 (3-bit GDN / attention) + int8 needs 79 %. The efficiency needs megakernels or
+    a replayed command path (3-6 weeks). **Leap commits to a MEASURED full check by Friday at ~33-38 ms GPU [est]:**
+    - qmm32n, a true 32-row native 4-bit GEMM;
+    - f32one, every FAST op at 17-32 rows in one pass;
+    - the 1c glue fused into one kernel;
+    - chunked GDN at T 32;
+    - the expert one-call at M 32;
+    - int8 dense as an option;
+    - engine measurements Tue / Wed / Thu nights.
+  - **THINK_1116 results (12:0x-12:2x; files in ~/FableGod/{lunatic,zero,far,fableb,fablec}/IDEAS_1116_*.md):**
+    - LUNATIC: 900 allows <= 303-333 MB of DRAM per kept token; the lossy check takes 264 MB per kept token at kept
+      23.15. So the head must read <= 47 MB per level (t30b reads 177.6): with t30b, 900 is out at any shape (flat 97.8 %
+      gives 660 at the floor). **The three targets don't compose: 97.8 % + 25 ms + 3-5 ms draft = 772-827 tok/s; 900
+      needs flat 98.4-98.9 % at 25 ms.** Best: deep runs off the head (head levels only on bands 0-6; copy / lookup for
+      the rest, since 58 % of HE+ positions sit in >= 8-token seen spans, right 99.2 %): 902 at the floor on HE+, weaker
+      on MBPP.
+    - FABLE C: misses are TIES or DRIFT. Even perfect tie forgiveness leaves bands 1-10 under 97.8, so no acceptance
+      rule on code rows certifies 97.8 per band. Best: COMMENT-FREE as an exact, drafter-independent policy (a
+      no-comments instruction; 71 % of HE+ ties and 52 % of first misses never generated; ~97-98 at bands 1-6 with
+      tree-32 + CC(1) [G]). It needs Kamen's OK as a product choice and one plain paired quality run.
+    - FABLE B: realistic check by Friday ~35-40 ms; 25 needs ~400 launches per check (2-3 weeks). The 4-day diet is
+      -1,500 launches (CPU 27.9 -> ~17).
+    - ZERO: SPAN TREE / DRAFT DEATH / WIDE-SHALLOW, all CPU tests on the 127-node dumps.
+  - FAR (THINK_1116): of the head's 177.6 MB per level, only ~63 MB are trained Linears; ~115 MB are the vocab side
+    (10.5 MB with the 8K screen). A QAT-distilled t30b (4-bit + 8K screen, trained) is ~26 MB per level; 15-min screen
+    proposed. ZERO: depth is the draft wall (marginal kept per level 0.76 -> 0.31 from level 6 to 30). 900 needs
+    ~0.1 ms levels AND kept tokens that cost no levels (span copying).
+> (a quote from the project owner, kept private)
+    you".** Day / night limits and the Kamen-at-the-Mac yield are lifted until he says otherwise. The memory gates,
+    the +2 GB swap guard, the disk floor, the fan cap and lid = pause stay. A thinking round on the three walls
+    (THINK_1116.md) starts 12:0x.
 - Mon 16 07:1x (Sandbox98, 8d0c9da; pre-reg d8611a9): **PLAN4D item 2, L1CF (lever 1c as a full-data distilled 2B
   auditor) = KILL.** [LAB: teacher-forced agreement with the 125B's top-1, not real decoding.]
   - One epoch over 3,032 files (805,005 answer rows). Control: HE+ 94.42 / MBPP 85.67 / val 87.29.

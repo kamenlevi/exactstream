@@ -2473,3 +2473,114 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
   - The variant: lossy_check e3 + edrop > 0 on the code keys, absent on IFEval; IFEval tokens == the base's;
     pf.qom_opt == 0.
   - Peaks per key.
+
+## Mon 16 Nov 09:05-11:03: the real 127-node tree dumps (the dry run for the CERTIFY98 capture): 4 dumps rc 0, the first 32 pops == the 32-node dumps BITWISE on all 124 windows, MLX peak 13.1 GB, swap +0 (scripts/n127_dry.sh; data/deepdraft/ceiling/tree_t30b_{heplus24,mbppbank}_n127k{8,16}.json)
+- **Runner** scripts/n127_dry.sh (1622030):
+  - dd_tree --nodes 127 on t30b, in parts (heplus24 2, mbppbank 5), k = 8 then k = 16, merged per set.
+  - NO-SWAP gate 18 GB, share lock "MEM 13 GB", swap guard +2 GB, one retry per part, a yield to the t30c drafter
+    line (t30c was cancelled today, so no yield).
+  - Marker data/deepdraft/ceiling/N127_DRY_1117_DONE on any end (EvalSuite's start gate).
+- **Run:** 09:05:06-11:03:05, Kamen away, beside MoonShots' M3 (to ~10:49, about 2x slower then) and MTP Head's S12.
+  - 14 parts, all rc 0 at the first try; swap +0 MB on every part.
+  - Marker: "N127 DRY END 11-16 11:03:05: rc 0 (all 4 runs done: heplus24:k8 mbppbank:k8 heplus24:k16
+    mbppbank:k16)", written after the runs exited and the lock was released.
+
+  | set | k | anchors | walk starts | tree time | MLX peak | nest vs the 32-node dump | TOPK roots: top-8 set / p8 absdiff | true-path nodes vs TOPK: top-1 / top-8 / found |
+  |---|---|---|---|---|---|---|---|---|
+  | heplus24 | 8 | 6,375 | 461 | 1,028 s | 12.33 GB | **BITWISE** (24 windows) | 1.0 / 0 | 0.9999 / 0.99263 / 0.9961 |
+  | heplus24 | 16 | 6,375 | 461 | 893 s | 12.33 GB | n/a | 1.0 / 0 | 0.9999 / 0.99263 / 0.9961 |
+  | mbppbank | 8 | 15,641 | 2,253 | 2,810 s | 13.10 GB | **BITWISE** (100 windows) | 1.0 / 0 | 0.99992 / 0.99913 / 0.9889 |
+  | mbppbank | 16 | 15,641 | 2,253 | 1,945 s | 13.10 GB | n/a | 1.0 / 0 | 0.99992 / 0.99913 / 0.98891 |
+
+  - At k = 16 the TOPK checks compare the first 8 children.
+  - The true-path check matches the 32-node runs' (heplus24 0.99996 / 0.99304 / 0.99642; mbppbank 0.99996 / 0.99939 /
+    0.98854).
+- **dd_tree's own preview** (kept per check; NOT the WEEK98 basis):
+
+  | set | k | tree-16 | tree-32 | tree-64 | tree-127 (all anchors) | tree-127 (walk starts) |
+  |---|---|---|---|---|---|---|
+  | heplus24 | 8 | 13.44 | 21.43 | 31.50 | 38.19 | 25.16 |
+  | heplus24 | 16 | 13.44 | 21.43 | 31.50 | 38.19 | 25.16 |
+  | mbppbank | 8 | 8.36 | 10.08 | 11.41 | 12.45 | 10.95 |
+  | mbppbank | 16 | 8.36 | 10.08 | 11.41 | 12.46 | 10.95 |
+
+  - k = 16 adds at most 0.008 kept per check over k = 8, so 8 children per node are enough.
+  - WEEK98 quotes NewIdeas' walk scores of these dumps (NewIdeas research/week98/BIGGER_TREES.md, a5be808): HE+ 23.70
+    and MBPP 11.29 at 127 nodes (MBPP K32 9.03).
+- **Files:**
+  - The .npz dumps stay on the Mac; the GitHub mirrors skip .npz and files over 20 MB.
+  - Their sizes and sha256 are in data/deepdraft/ceiling/dumps_sha256.json: heplus24 k8 37.3 MB, k16 67.6 MB; mbppbank
+    k8 103.2 MB, k16 183.0 MB.
+  - The reports (.json) and data/deepdraft/ceiling/n127_dry.log are committed.
+- **Next, the 1c-tiers key test:**
+  - The first wrapper's gate (42) read 37.0 / 36.9 GB beside S12, and the key test gives up after 10 min, which would
+    have written a STOPPED marker. It was stopped cleanly at 11:05 (no marker; share lock released).
+  - It was re-armed per the orchestrator 11:0x: after S12 ends, NO-SWAP >= 41 on two reads (peak - 2, the a45
+    precedent); every other stop is kept (t1c_follow.sh 6e4500e1: GATE, AFTER and a wrapper-level pre-gate; stub sims
+    PASS / NOT RUN as designed).
+
+## Mon 16 Nov 11:22-11:24: the 1c-tiers real-loop key test PASSES on both envs (snapshot t1c1; EvalSuite's section 6; scripts/t1c_keytest.py; data/r57/t1c_keytest_t1c1.json, data/r57/t1ckt_*)
+- **Slot:** after the 127-node dry run and MoonShots' M3 (the orchestrator's order), and after MTP Head's S12 ended
+  (~11:18).
+  - The orchestrator lowered the gate to NO-SWAP 41, then 40: peak - 2.6, against the a45 precedent's -2.0. The +2 GB
+    swap guard and every other stop were kept.
+  - Gate reads: 40.5 / 40.5 GB (env 1); 47.9 / 47.1 GB (env 2, after the compressor lift).
+> (a quote from the project owner, kept private)
+- **Results** (3 keys per env, end to end on the full 125B):
+
+  | env | key | tokens | == lx45cc1 | lossy_check (checks / e4 / e3 / edrop / lmsl_rows) | pf.qom_opt | lifetime peak |
+  |---|---|---|---|---|---|---|
+  | lx45t1c1 (base) | humaneval/HumanEval/45 | 60 | yes | absent | 20,513 | 42.34 GB |
+  | | humanevalx/HumanEval/23 | 53 | yes | absent | 0 | |
+  | | ifeval/2239 | 11 | yes | absent | 0 | |
+  | t1cx45t1c1 (1c-tiers) | humaneval/HumanEval/45 | 60 | yes | 5 / 1,869 / 4,597 / 10,543 / 0 | 0 | 42.38 GB |
+  | | humanevalx/HumanEval/23 | 53 | yes | 4 / 1,537 / 4,073 / 9,177 / 0 | 0 | |
+  | | ifeval/2239 | 11 | yes (== the base's) | absent | 0 | |
+
+  - Swap +0.00 GB on both envs; vm_stat swapouts +0 over the run.
+  - Union experts per check-layer on the variant's code keys: 70.87 and 77.02 (Fit12's 16-row reference: 76.6).
+  - On these 3 short keys the lossy variant's tokens also equal the exact reference's. That is an observation, not a
+    criterion.
+- **Every criterion holds:**
+  - Base: tokens == lx45cc1 on humanevalx + IFEval; no lossy_check; pf.qom_opt > 0 on humaneval.
+  - Variant: 1c engaged on both code keys (e3 + edrop > 0); absent on IFEval; IFEval tokens == the base's;
+    pf.qom_opt 0 (1c replaces QOM).
+  - Peaks <= 42.5 GB.
+- **A bug in my runner, corrected:**
+  - t1c_keytest.py had lost the line that stores each env's result, so the run's final PASS, and the marker's detail,
+    were computed over an empty list. The marker reads "T1C1 KEYTEST END 11-16 11:24:31: PASS (rc 0; PASS | )".
+  - The per-env verdicts were computed and logged correctly.
+  - The fix restores the store. The variant's IFEval-vs-base check can no longer be skipped, and there is no PASS over
+    a missing env (rpl2_keytest.py gets the same guard).
+  - `--rescore` refilled data/r57/t1c_keytest_t1c1.json from the run records: PASS on both envs, no fails.
+  - The marker stays as EvalSuite's gate saw it (EvalSuite's call); its RESULT records the correction.
+- **Then:** EvalSuite's 1c-tiers CODE-ONLY gate started 11:25:26 (its chain; B0 = base tier 0).
+
+## Mon 16 Nov 11:1x-11:31: the CERTIFY98 dump manifest in dd_topk / dd_tree (EvalSuite amendments 7 / 7a; scripts/dd_manifest.py): desk test PASS; EvalSuite's --gated check PASSES on a sample built from real inputs
+- **Spec** (settled with EvalSuite 11:2x), data/deepdraft/.../dumps_sha256.json beside the dumps:
+  - Per output file: sha256, bytes, written, script, args (+ "part" for a part file). A file's args is exactly one of
+    `_run.args`' entries.
+  - `_run`: files_sha256_json (the sha256 of the frozen capture manifest, set only after every input file's sha256
+    was checked against it); checkpoint_path + checkpoint_sha256 (the file P.load_weights reads); bigmoe_commit +
+    bigmoe_dirty; modules {path: sha256} for every local module the dumper imported; dd_topk_sha256, dd_tree_sha256;
+    args {"dd_topk": {k, parts}, "dd_tree": [{k, nodes, parts}, ...]}.
+  - Several runs (TOPK, the T8 parts, their merge, ...) merge into one manifest. A run whose pinned fields differ
+    (capture manifest, checkpoint, script or module sha256s, TOPK args) is refused, and the manifest is left
+    unchanged. A later commit with the same code is listed in bigmoe_commits_seen.
+  - `--files-manifest <files_sha256.json>` on both dumpers refuses any capture file whose sha256 differs.
+- **Desk test** scripts/test_dd_manifest.py (fake files; data/deepdraft/dd_manifest_test.json): **PASS**, 14 checks.
+  - verify_inputs: OK, a missing entry and a changed file refused.
+  - The `_run` fields after TOPK + T8 parts + merge + a T8(127) part; EvalSuite's args rule.
+  - Four refusals, each leaving the manifest byte-identical; bigmoe_commits_seen.
+- **dd_tree's merge path** (a scratch copy of the heplus24 n127 k8 parts):
+  - The merged .npz is byte-identical to the real one.
+  - The report equals the real merge's, apart from the nest check (no 32-node base in scratch).
+  - Peak RSS 0.6 GB.
+- **Sample** data/deepdraft/certify98_sample/:
+  - files_sha256.json covers the dev bank heplus24 (24 files): a SAMPLE, not the frozen capture.
+  - The manifest covers the dev dumps topk + T8(32) + T8(127).
+  - checkpoint_sha256 790c42db...d502 = amendment 8's head pin.
+  - EvalSuite's tools/certify98_dumpcheck.py --gated: **PASS** (3 files).
+- **A find for the pins:** the dumpers import ~/TrainLab/mtp125.py, which is outside BigMoE's git. bigmoe_commit alone
+  would not pin it; the always-written modules map does.
+- **Next:** the capture's files_sha256.json writer, with Wednesday's capture plumbing.
