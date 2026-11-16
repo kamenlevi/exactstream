@@ -5100,3 +5100,19 @@ Line (NewIdeas'), per arm: PASS if kept(arm, screened) >= 0.99 x kept(its contro
 on BOTH sets. UNINFORMATIVE if the post-hoc screen costs < 1 % at tree-32 on both sets.
 Prediction [G]: post-hoc s30!s x0.96-0.985 (70 %); s16 PASS 45 %; sn PASS 55 %.
 Order: after S17 (one job of mine at a time). Disk: s16 / sn overwrite mhd1_c2_s380 / mhd1_c2h_s380 (S4, read).
+
+## WEEK98 S17 BITS RESULT (run Mon 16 Nov 19:50-21:03; read 21:04; LAB, sandbox 2B, MBPP-50 / HE-30): 8-bit is FREE post hoc; 6-bit needs QAT (from native PASSES)
+| arm, vs s30 | MBPP t16 | MBPP t32 | HE t16 | HE t32 | verdict |
+|---|---|---|---|---|---|
+| p8, post-hoc 8-bit | x0.997 | x1.001 | x0.995 | x1.000 | PASS |
+| p6, post-hoc 6-bit | x1.005 | x0.996 | x0.997 | x0.989 | FAIL (HE t32 just under) |
+| qn6, 6-bit QAT from native | x1.009 | x1.001 | x0.997 | x0.995 | PASS |
+| (S16) qn, 4-bit QAT from native | x0.983 | x0.970 | x0.993 | x0.985 | FAIL |
+- Head Linears in M3's affine g64 format (LAB, sandbox): 8 bits are lossless with no training. 6 bits need QAT from
+  the start and then hold. 4 bits lose 1.5-3 % even with QAT.
+- 125B bytes per level with the 8K screen (FAR's numbers): 8-bit ~42 MB, 6-bit ~34 MB, 4-bit ~26 MB; t30b today is
+  177.6 MB.
+  - 8-bit needs no 125B training, only a confirmation of post-hoc Q8 on M3's harness (~12 GB, ~20 min; M3 has no Q8
+    cut today).
+  - 6-bit would need a 6-bit QAT pass from b5 (~6 h at 15.6 GB, t30b's recipe), which doesn't fit Wed's 1.5 h slot.
+- Next: S18 (the screen in training), already running.

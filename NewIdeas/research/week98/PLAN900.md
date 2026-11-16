@@ -322,3 +322,24 @@ draft is MoonShots' fused2 measured (full head) or the QAT ~26 MB head [P].
   confidence of 0.3 (16.7 rows, kept 12.33 per check), where a perfect flag after layer 17 saves only -13.6 % (realistic
   ~-4-7 %, = TRIED Rnd17#7). Chain early death is NOT a big lever. The -26/-30 % only proxies the TREE version (Fable
   B's), which Wed tests (research/week98/ed_chain_trunc.txt; prereg amendment 2).
+
+## SATURDAY LADDER v4 (NewIdeas, Mon 16 Nov 20:5x; PUSH800 frame, every input from today's records)
+tok/s = kept / (check + draft + overhead), HE+ lossy, 32-row tree check, AT QUALITY.
+- KEPT: 16.91 (tree-32 + CC(1)). The acceptance frontier at quality is FLAT (tree_frontier_t16.txt: guarded T16 adds
+  x1.00-1.02; wholesale INERT is the recorded CD16-DROP KILL). Times the head's 8K-screen loss: x0.963 post hoc
+  (MTP Head), ~x0.98 if S18's screen-aware training wins back half. So 16.3-16.6.
+- CHECK: Leap's SPLIT_1116 sums, ~40 ms with every module PASS, ~32 at stretch (85 % target 28-29.6). G2's bytes are
+  ~6.44 GB per check (5f).
+- DRAFT: 8-bit Linears are free (S17 p8 PASS, x0.995-1.0005), so with the 8K screen it is ~42 MB per level. Tree-32
+  ~21 levels x (f + 42 MB / 280 GB/s): 8.8 ms at bet 7's measured f 0.269, 5.2 ms at a stretch f 0.10.
+- OVERHEAD: 4 today, 1.5 target.
+| case | tok/s |
+|---|---|
+| modules PASS (40 ms), f 0.269, overhead 4 | 308-314 |
+| modules PASS, f 0.269, overhead 1.5 | 324-329 |
+| stretch check (32 ms), f 0.269, overhead 1.5 | 385-392 |
+| stretch check, f 0.10, overhead 1.5 | 420-428 |
+- **So Saturday's honest HE+ lossy line is ~310-430 tok/s (today ~213),** with the spread set by the engine modules and
+  the draft level's fixed cost f. 775 needs kept ~25-31 at these check times, and only a better DRAFTER moves kept
+  (Goal A; tonight's drift screens: ASSIM KILL, WALK-MIX BETWEEN). The remaining bet is the 125B's mid-layer states
+  (Tue-night capture, Wed screens).

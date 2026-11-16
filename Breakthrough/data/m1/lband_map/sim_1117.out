@@ -1,0 +1,76 @@
+# Stub simulations of Tuesday's pieces (Mon 16 Nov 20:55-21:01; scratch dirs, stub jobs, echo lock, away read from a file).
+# C1-C3: run_comqom_1117.frozen.sh. B1-B2: lband_tue_1117.sh + run_lband_1117.frozen.sh (+ the Wednesday fallback).
+
+## sim c1
+Mon 20:55:17 armed (pid 89034): starts at >= Mon 20:55 once no 'zz_no_ma[p]' process runs and Kamen is away (away_secs >= 900; read twice); latest start Mon 20:59, hard stop Mon 21:00
+Mon 20:56:47 trigger: the start time passed, no map process runs, Kamen away (away_secs 1000 s; read twice)
+Mon 20:56:47 NO-SWAP 18 GB (need 1)
+8m --cpu 300 --gpu 60 MEM 24 GB: Breakthrough comment-QOM map arms (3 arms x 12 code windows), to 21:00 at the latest
+Mon 20:56:47 running (NO-SWAP 18 GB, swap 7578 MB)
+[cq] stub start (sleep 3)
+[cq] stub done
+Mon 20:56:57 run ended rc 0; swap 7578 MB (start 7578)
+Mon 20:56:57 END: run rc 0; read-out skipped (simulation)
+COMQOM END 11-16 20:56:57: run rc 0; read-out skipped (simulation)
+
+## sim c2
+Mon 20:55:17 armed (pid 89037): starts at >= Mon 20:55 once no 'zz_no_ma[p]' process runs and Kamen is away (away_secs >= 900; read twice); latest start Mon 20:59, hard stop Mon 21:00
+Mon 20:55:47 trigger: the start time passed, no map process runs, Kamen away (away_secs 1000 s; read twice)
+Mon 20:55:47 NO-SWAP 17 GB (need 1)
+9m --cpu 300 --gpu 60 MEM 24 GB: Breakthrough comment-QOM map arms (3 arms x 12 code windows), to 21:00 at the latest
+Mon 20:55:47 running (NO-SWAP 17 GB, swap 7578 MB)
+[cq] stub start (sleep 150)
+Mon 20:56:37 stop: Kamen at the Mac (away_secs 5 s on two reads 30 s apart): yield
+Mon 20:56:57 run ended rc 143 (Kamen at the Mac (away_secs 5 s on two reads 30 s apart): yield); swap 7578 MB (start 7578)
+Mon 20:56:57 END: run rc 143 (Kamen at the Mac (away_secs 5 s on two reads 30 s apart): yield); read-out skipped (simulation)
+COMQOM END 11-16 20:56:57: run rc 143 (Kamen at the Mac (away_secs 5 s on two reads 30 s apart): yield); read-out skipped (simulation)
+
+## sim c3
+Mon 20:55:17 armed (pid 89040): starts at >= Mon 20:55 once no 'zz_no_ma[p]' process runs and Kamen is away (away_secs >= 900; read twice); latest start Mon 20:56, hard stop Mon 20:57
+Mon 20:57:17 SKIP: not started by the latest start (map process running: n, Kamen at the Mac: y)
+Mon 20:57:17 END: SKIP: not started by the latest start (map process running: n, Kamen at the Mac: y)
+COMQOM END 11-16 20:57:17: SKIP: not started by the latest start (map process running: n, Kamen at the Mac: y)
+
+## sim b1 launcher
+Mon 20:56:57 Tuesday runner rc 0: LBAND END 11-16 20:56:57: run rc 0; read-out skipped (simulation)
+all 4 arms done: no Wednesday fallback
+## sim b1 morning
+Mon 20:55:17 armed (pid 89058): starts at >= Mon 20:55 once <scratch>/b1/KD and <scratch>/b1/CQ are newer than now AND no 'zz_no_ma[p]' process runs AND Kamen is away (away_secs >= 900; read twice); latest start Mon 20:59, hard stop Mon 21:00
+Mon 20:56:47 trigger: kd + cq | no map process, Kamen away (away_secs 1000 s; read twice)
+Mon 20:56:47 NO-SWAP 18 GB (need 1)
+8m --cpu 300 --gpu 60 MEM 22 GB: Breakthrough per-layer lambda band screen (4 arms x 24 code windows), to 21:00 at the latest
+Mon 20:56:47 running (NO-SWAP 18 GB, swap 7578 MB)
+[lb] stub run 2: all 4 arms
+Mon 20:56:57 run ended rc 0; swap 7578 MB (start 7578)
+Mon 20:56:57 END: run rc 0; read-out skipped (simulation)
+## sim b1 wednesday
+(not armed)
+arms: bt_c6tiers.json bt_lb0.json bt_lb1.json bt_lb2.json 
+
+## sim b2 launcher
+data/m1/lband_map/run_lband_1117.frozen.sh: line 100: 91885 Terminated: 15          "${JOB[@]}" > >(grep --line-buffered -vE "^\[(tokenizer|mtplx|qwen4_exp|moe-sorted)" >> "$L") 2>&1
+Mon 20:58:58 Tuesday runner rc 0: LBAND END 11-16 20:58:58: run rc 143 (Kamen at the Mac (away_secs 5 s on two reads 30 s apart): yield); read-out skipped (simulation)
+Mon 20:58:58 missing arms: bt_lb0 bt_lb1 bt_lb2 -> Wednesday fallback (start 06:30, latest start 07:15, hard stop 08:15)
+Mon 21:00:38 Wednesday fallback rc 0: LBAND END 11-16 21:00:38: run rc 0; read-out skipped (simulation)
+## sim b2 morning
+Mon 20:55:17 armed (pid 89061): starts at >= Mon 20:55 once <scratch>/b2/KD and <scratch>/b2/CQ are newer than now AND no 'zz_no_ma[p]' process runs AND Kamen is away (away_secs >= 900; read twice); latest start Mon 21:01, hard stop Mon 21:03
+Mon 20:57:47 trigger: kd + cq | no map process, Kamen away (away_secs 1000 s; read twice)
+Mon 20:57:47 NO-SWAP 20 GB (need 1)
+10m --cpu 300 --gpu 60 MEM 22 GB: Breakthrough per-layer lambda band screen (4 arms x 24 code windows), to 21:03 at the latest
+Mon 20:57:47 running (NO-SWAP 20 GB, swap 7578 MB)
+[lb] stub run 1: 1 arm, sleeping 200
+Mon 20:58:38 stop: Kamen at the Mac (away_secs 5 s on two reads 30 s apart): yield
+Mon 20:58:58 run ended rc 143 (Kamen at the Mac (away_secs 5 s on two reads 30 s apart): yield); swap 7578 MB (start 7578)
+Mon 20:58:58 END: run rc 143 (Kamen at the Mac (away_secs 5 s on two reads 30 s apart): yield); read-out skipped (simulation)
+## sim b2 wednesday
+Mon 20:58:58 armed (pid 92953): starts at >= Mon 20:55 once <scratch>/b2/d2/GO are newer than now AND no 'zz_no_ma[p]' process runs AND Kamen is away (away_secs >= 900; read twice); latest start Mon 21:06, hard stop Mon 21:08
+Mon 21:00:28 trigger: LBAND MORNING END (for the Wednesday fallback): LBAND END 11-16 20:58:58: run rc 143 (Kamen at the Mac (away_secs 5 s on | no map process, Kamen away (away_secs 1000 s; read twice)
+Mon 21:00:28 NO-SWAP 17 GB (need 1)
+13m --cpu 300 --gpu 60 MEM 22 GB: Breakthrough per-layer lambda band screen (4 arms x 24 code windows), to 21:08 at the latest
+Mon 21:00:28 running (NO-SWAP 17 GB, swap 7578 MB)
+[lb] stub run 2: all 4 arms
+Mon 21:00:38 run ended rc 0; swap 7578 MB (start 7578)
+Mon 21:00:38 END: run rc 0; read-out skipped (simulation)
+arms: bt_c6tiers.json bt_lb0.json bt_lb1.json bt_lb2.json 
+
+RESULT: 5/5 as designed. C1 Kamen at the Mac at arming -> waits -> away -> run rc 0; C2 back mid-run -> yield rc 143 (marker written); C3 at the Mac to the latest start -> SKIP (Kamen at the Mac: y); B1 both markers + away -> run -> 4 arms -> no fallback; B2 waits for both markers -> run 1 arm -> back -> yield -> Wednesday fallback armed, waits while at the Mac, then runs the 3 missing arms -> 4 arms.

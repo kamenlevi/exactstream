@@ -85,3 +85,10 @@ Lenses (one each; any can cross over):
 
 Write to your own folder as IDEAS_1116b_<topic>.md. Then send ONE line to NewIdeas (`peer send ojox-28`) and the
 orchestrator: the best idea, its number, its screen. NewIdeas screens the best ones tonight (CPU, <= 10 min each).
+
+## Saturday ladder v4 (NewIdeas, Mon 20:5x; ~/NewIdeas/research/week98/PLAN900.md, 6d9bee2)
+- At quality, HE+ lossy: kept 16.3-16.6 (the frontier is flat; 8K-screen head loss x0.963-0.98). Check ~40 ms (Leap's
+  modules PASS) / ~32 (stretch). Draft 8.8 ms (8-bit Linears free per S17 + the 8K screen, f 0.269) / 5.2 (f 0.10).
+  Overhead 4 / 1.5.
+- **Result: ~310-430 tok/s (today ~213).** 775 needs kept ~25-31 at these check times, which only a better drafter
+  gives.

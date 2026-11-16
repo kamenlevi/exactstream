@@ -611,3 +611,47 @@ So **G2's no-V4 route passes with the full head**, 4 / 3 rows inside the lines [
   - (a) the SVH / full head instead of V1 (+0.09 GB);
   - (b) V1-32k with drafts, letting EvalSuite's gate measure it;
   - (c) HC8 in place of V3 (+0.34 GB).
+
+**Addendum to (h), Mon 16 Nov 20:5x: tonight's band run STOPPED at the orchestrator's request; 0 arms; slot to NewIdeas.**
+- **Run.** GO 20:26:11, when Sandbox98's lock ended. NO-SWAP was 36 GB (< 40, so BigMoE's key-test gate was closed and
+  no grace applied). Start 20:27:04, share lock "MEM 24 GB" to 22:54.
+- **Stop.** The orchestrator 20:47: Kamen is at the Mac and asked for the lower-RAM tests. TERM at 20:49:13; the runner
+  unlocked and wrote LBAND_END "run rc 143" at 20:49:26.
+- **No arm finished.** bt_c6tiers was on its last windows (1,286 s in), and run_map writes an arm only at its end. The
+  read-out says NOT RUN.
+- **Measured.**
+  - Experts-only peak footprint 21.68 GB lifetime, MLX peak active 15.35 GB (data/m1/lband_map/tonight1116/
+    footprint.log; 15-s samples 15-17 GB). So the int8 arms' extra ~2 GB (23.7) is int8's, and "MEM 22 GB" fits this
+    screen.
+  - Pace with the GPU shared (MTP Head at 25 %): ~22 min per arm.
+- **Disarmed.** The launcher's Tuesday fallback (07:00-09:00 on Fit12's KILL_DONE) was stopped too: Tuesday morning now
+  holds EvalSuite's B2 -> V2, and NewIdeas re-orders the slot. The pieces (6ee5d66) re-arm unchanged with a new gate and
+  times.
+
+**Amendment (i), Mon 16 Nov 21:0x, before any band arm runs: the band screen's slot is Tuesday morning (NewIdeas 20:5x),
+and both of my Tuesday-morning runs follow the away rule.**
+- **Slot.** It runs once all of these hold, read twice: Fit12's KILL_DONE AND my COMQOM_END (both newer than arming), no
+  'run_ma[p][.]py' process, and Kamen away.
+  - Not before Tue 07:00; latest start 08:45; hard stop 09:25. Leap's quiet slot #1 starts at 09:30, and EvalSuite's 4j
+    B2 -> V2 follows it.
+  - ~40 min on a free GPU. Finished arms are kept (--skip-done).
+- **Wednesday fallback** for unfinished arms: only after the morning run's end. Wed 06:30, latest start 07:15, hard
+  stop 08:15, so it ends before G2's day chain.
+- **Lock and memory.** Share lock "MEM 22 GB" (measured 21.7) to the hard stop; NO-SWAP >= 30; self-guard 30 GB.
+> (a quote from the project owner, kept private)
+  Mac):
+  - no start while ~/.local/share/quiet/away_secs.sh reads < 900 (read twice; no reading counts as away);
+  - a running job yields (TERM, finished arms kept, end marker written) when two reads 30 s apart say Kamen is back,
+    as EvalSuite's chains do. HOLD / PAUSE / lid / HEALTH ACT as before.
+- **The comment-QOM follower** gets the same away rule and a right-sized lock.
+  - Its arms run int8, which peaked at 23.7 GB today, so the lock reads "MEM 24 GB" (the old "MEM 16" undercounted)
+    and NO-SWAP must be >= 32.
+  - Unchanged: its times (Tue 07:00, latest start 08:20, hard stop 08:40), arms, read-out and COMQOM_END (written on
+    every end, so Fit12's kill test still chains on it).
+  - The old follower (pid 73554) is stopped.
+- **Pieces.**
+  - data/m1/comqom_map/run_comqom_1117.frozen.sh;
+  - data/m1/lband_map/run_lband_1117.frozen.sh;
+  - scripts/m1/lband_tue_1117.sh (the launcher: morning run, then the Wednesday fallback only if an arm is missing).
+- Stub simulations 5/5 in data/m1/lband_map/sim_1117.out: waits for away, yields mid-run, skips at the latest start,
+  both markers, and the Wednesday fallback after a yield.

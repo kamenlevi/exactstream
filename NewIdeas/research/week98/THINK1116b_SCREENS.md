@@ -63,3 +63,12 @@ walk-strict from now on.
   head's reading).
 - Consequence: the frozen head can't use injected state corrections. Fable C's fine-tune follow-up is not proposed.
   The open drafter levers are training-side (WALK-MIX, screen 2) and the check's own rows (early death, Wed).
+
+## RESULT screen 2 (Sandbox98 20:2x): FAR WALK-MIX = BETWEEN, leaning KILL
+- Tree-32 kept vs ctl: MBPP x1.014 [1.003, 1.027] (mix3) / x1.013 (mix5); HE x0.997 / x0.992 (flat). The shallow
+  line held.
+- Why: the off-path part (tree minus chain) did not move. Training lifted rows that are already dead: MBPP 23-30
+  marginal 55.0 -> 60.0 with kept flat. It is MTP Head's ALLROWS pattern.
+- Next (my call 20:3x): (a) a TREE-AWARE MASK (keep a missed row only if its true token was in the top-k at the miss
+  depth), Tuesday by day when memory allows. Suggested line: PASS +3 % tree-32 on both sets; KILL HE < +1 %.
+  (b) the depth-weight-only control is skipped (diagnostic).

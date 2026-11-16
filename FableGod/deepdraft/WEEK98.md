@@ -487,6 +487,39 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
       - Slot (NewIdeas): Breakthrough's one-load 4-arm map screen (~25 min, ~14-16 GB, 24 code windows): C6 bytes, G1
         with int8 fake-quant, DENSE-3 alone, lambda 2.0e-2. It runs right after EvalSuite's 1c-tiers chain ends and
         finishes before 22:30 (fallback Tue ~07:00-08:30).
+  - **20:4x:**
+    - MTP Head S17 p8 (post-hoc 8-bit Linears; TrainLab data/sb98/s17_p8.json) PASSES its line: vs s30, tree-16 x0.9968
+      MBPP / x0.9948 HE, tree-32 x1.0005 / x1.0000 (CIs include 1). So 8-bit Linears are free. The head's remaining byte
+      question is the 8K vocab screen (post-hoc x0.963 HE+ / x0.985 MBPP; S18 trains under it). 8-bit + a recovered
+      screen is ~42 MB per level vs 177.6. p6 and qn6 are still running.
+> (a quote from the project owner, kept private)
+      it. Breakthrough is asked to PAUSE the band screen (24 GB). The g1b key test and Leap's gpub wait for the night
+      window. The 23:00 app quit (Chrome included) is being confirmed with him.
+  - **20:3x NewIdeas evening batch (no new BIG result):**
+    - Drift screens: Fable B + C carried-state correction KILL (all 8 arms; the frozen head reads injected corrections
+      badly, as with SIB). FAR's WALK-MIX BETWEEN, leaning KILL (tree-32 +1.3 % on MBPP only, HE flat: the ALLROWS
+      pattern). ZERO's tail audit is a desk KILL (its own costs outweigh +3-4.6 %). Lunatic's line goes to Wednesday's
+      early-death probe. Next: Sandbox98's tree-aware mask variant, Tue by day.
+    - Draft bytes: the vocab side is 115 of 177.6 MB per level, so bits matter less than the 8K screen. S17
+      (post-hoc 8 / 6-bit) runs now; screen-aware training is next. The Wed 06:30 125B QAT slot is held until S17.
+    - Gates filed: G1 int8-free (5e). G2 (5f) = C6 + V3 + lambda 2.0e-2 with the full SVH head, int8-free (~6.44 GB per
+      check; twin 1.22 / 0.72).
+    - GPU: B2 -> V2 on Tue (4j), after Leap's slot #1 (cutoff 17:00), then 5d's pick -> G1 base -> G1 (verdict ~Tue
+      18:00). Breakthrough's band-lambda screen runs tonight (from 20:27).
+    - **OUTLOOK: no x1.43 drafter path is visible this week.** The best remaining drafter bet is the 125B's mid-layer
+      states (Tue-night capture, then Wed: early death's tree lines + mid-tap screens). Honest Saturday stays ~340-420
+      tok/s HE+ lossy at quality.
+  - **20:2x (orchestrator read of the records):**
+    - MTP Head S16 (QAT 4-bit WITH a cosine anneal; TrainLab data/sb98/s16_RESULT.txt) = FAIL vs its line (>= 0.99x).
+      q16 vs its anneal control c16: tree-32 x0.9795 HE / x0.9705 MBPP. qn vs s30: x0.985 / x0.970. So a 4-bit head still
+      costs ~2-3 % kept with the recipe fixed. S17 (pre-registered 19:5x) tests post-hoc 8 / 6-bit and 6-bit QAT: if
+      8-bit Linears are free, 8-bit + a recovered screen (~42 MB per level) is the Saturday head (Lunatic's 900 bound
+      was <= 47 MB). Due ~20:50.
+    - Breakthrough's G1 / G2 map screen DONE 19:33 (d40a3b2). G1 as gated PASS (0.95 / 0.53). DENSE-3 FAIL (2.09), so no
+      V4 (registered rule). G2 without V4 at V1-32k 1.36 / 0.93 is just OVER the line (2 / 4 rows). V3 is the costly
+      lever (+0.28 pt for 0.34 GB). The band screen moves to tonight.
+    - EvalSuite's B2 -> V2 moves to Tuesday (PREREG 4j). The g1b key test and Leap's GPU-busy run wait for NO-SWAP 40
+      (35-36 now, with the sandbox and MTP Head jobs running); latest start 22:50.
   - **19:0x Sandbox98 drift screen 1 (frozen s30, HE decides; pre-registered): ASSIM (Fable C) and ERRMEM (Fable B) =
     KILL.** G(3-8) is negative with CIs below zero (assim -3.57, errmem -3.61), and the correction RAISES the direction
     error instead of lowering it. FINAL 19:1x: KILL on all 8 arms, MBPP too (Sandbox98 dd61b92). Screen 2 (FAR's WALK-MIX, 3 arms x 400

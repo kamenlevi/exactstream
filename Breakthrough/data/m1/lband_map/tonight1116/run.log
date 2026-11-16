@@ -1,0 +1,41 @@
+Mon 19:54:33 armed (pid 58351): starts at >= Mon 19:54 once /Users/kamen/Breakthrough/data/m1/lband_map/tonight1116/GO is newer than now AND no 'run_ma[p][.]py' process runs (read twice); latest start Mon 21:00, hard stop Mon 22:50
+Mon 20:27:04 trigger: LBAND GO 11-16 20:26:11: Sandbox98 lock gone, no quiet lock, no key test (NO-SWAP 36 GB; follower waiting y; key test seen 0) | no map process (read twice)
+Mon 20:27:04 NO-SWAP 36 GB (need 32)
+shared run reserved until 22:54 (about 300% CPU, 60% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done.
+Free for it now: about 13 cores (1352% CPU) and about 7% of the GPU after other shared runs (ojox-f7: 200% CPU, 25% GPU). That's less than it asked for, so run it now sized to this rather than wait: about 13 workers or -j 13, and the GPU part in smaller batches or chunks. Others' shared runs keep their share.
+Mon 20:27:04 running (NO-SWAP 36 GB, swap 7594 MB)
+[lb] running /Users/kamen/FableGod/decision_map/run_map.py bt_c6tiers bt_lb0 bt_lb1 bt_lb2 --max 24 --skip-done (DM_OUT /Users/kamen/FableGod/decision_map/out_code24, DM_SETS code, self-guard 30.0 GB)
+[dm] runs: ['bt_c6tiers', 'bt_lb0', 'bt_lb1', 'bt_lb2']
+[dm] loaded in 2s (C 51)
+[dm] discover_layers: 48 layers, {'gdn': 36, 'hc': 96, 'moe': 48, 'att': 12}; missing []
+[dm] MoE block: top_k 10, norm_topk_prob True
+[dm] model /Users/kamen/BigMoE/models/bare; MoE layers 48 (0..47); capture ranks 10
+bt_c6tiers code tf_code_HumanEval_10.npz 272 positions 65s; k 
+bt_c6tiers code tf_code_HumanEval_103.npz 241 positions 123s; k 
+bt_c6tiers code tf_code_HumanEval_109.npz 398 positions 194s; k 
+bt_c6tiers code tf_code_HumanEval_118.npz 297 positions 258s; k 
+bt_c6tiers code tf_code_HumanEval_121.npz 148 positions 311s; k 
+bt_c6tiers code tf_code_HumanEval_124.npz 398 positions 385s; k 
+bt_c6tiers code tf_code_HumanEval_129.npz 398 positions 449s; k 
+bt_c6tiers code tf_code_HumanEval_132.npz 398 positions 507s; k 
+bt_c6tiers code tf_code_HumanEval_135.npz 144 positions 556s; k 
+bt_c6tiers code tf_code_HumanEval_136.npz 211 positions 612s; k 
+bt_c6tiers code tf_code_HumanEval_146.npz 252 positions 671s; k 
+bt_c6tiers code tf_code_HumanEval_151.npz 209 positions 730s; k 
+bt_c6tiers code tf_code_HumanEval_153.npz 385 positions 798s; k 
+bt_c6tiers code tf_code_HumanEval_158.npz 254 positions 854s; k 
+bt_c6tiers code tf_code_HumanEval_39.npz 249 positions 915s; k 
+bt_c6tiers code tf_code_HumanEval_40.npz 245 positions 973s; k 
+bt_c6tiers code tf_code_HumanEval_47.npz 149 positions 1023s; k 
+bt_c6tiers code tf_code_HumanEval_59.npz 196 positions 1070s; k 
+bt_c6tiers code tf_code_HumanEval_60.npz 123 positions 1116s; k 
+bt_c6tiers code tf_code_HumanEval_64.npz 210 positions 1151s; k 
+bt_c6tiers code tf_code_HumanEval_67.npz 306 positions 1190s; k 
+bt_c6tiers code tf_code_HumanEval_96.npz 295 positions 1232s; k 
+bt_c6tiers code tf_code_HumanEval_97.npz 151 positions 1286s; k 
+[lb] PEAK FOOTPRINT 21.683 GB (lifetime max phys_footprint), MLX peak active 15.35 GB, wall 1329 s
+Mon 20:49:25 run ended rc 143; swap 7578 MB (start 7594)
+Per-layer lambda band screen (experts only, 24 code windows): each band arm vs bt_c6tiers, paired; ties = the baseline's p1 - p2 <= 0.1
+bt_c6tiers NOT RUN: no paired read
+Mon 20:49:26 END: run rc 143; read-out written (data/m1/lband_map.out)
+Mon 20:50:14 DISARMED: the orchestrator 20:47 paused the band screen (Kamen at the Mac: lower-RAM tests); TERM 20:49:13; the launcher's Tuesday fallback (pid 84344) stopped by TaskStop; NewIdeas re-orders the slot

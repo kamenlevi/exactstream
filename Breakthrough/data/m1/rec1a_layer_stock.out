@@ -1,0 +1,7 @@
+[rec] MLX 0.32.2; slice G; route stock; 2.21 GB active; lifetime 2.59 GB; load 1 s
+[rec] record: {'ops': 993, 'encoders': 6, 'dispatches': 114, 'blits': 0, 'commits': 8, 'set_bytes_total': 2704}; outputs: logits (1, 32, 248320) mlx.core.bfloat16 + 2 state arrays (3.2 MB); lifetime 3.18 GB
+[rec] (a) replay on the recorded inputs: rc 0; outputs bitwise == recorded: True [True, True, True]...; cpu encode 572 us, commit+wait 14070 us, gpu 13722 us, 114 dispatches
+[rec] (b1) new tokens: rc 0; logits bitwise == MLX: True; states bitwise: True (2/2); cpu encode 382 us, commit+wait 13105 us, gpu 12913 us
+[rec] (b2) new tokens: rc 0; logits bitwise == MLX: True; states bitwise: True (2/2); cpu encode 302 us, commit+wait 11246 us, gpu 11069 us
+[rec] (b3) new tokens: rc 0; logits bitwise == MLX: True; states bitwise: True (2/2); cpu encode 220 us, commit+wait 13808 us, gpu 13614 us
+[rec] RESULT: route stock, slice G: (a) True, (b) 3/3 bitwise; 114 dispatches in 6 encoders / 8 commits; CPU encode per replay 220-382 us; lifetime peak 3.22 GB; wall 2 s
