@@ -82,6 +82,9 @@ assert os.environ.get("R57_TIERS", "") in ("", "1c") and (not os.environ.get("R5
     os.environ.get("R57_FAST") and os.environ.get("R57_NAX") == "1" and os.environ.get("REF2_OOO_1C") == "1"   # the gate's
     and os.environ.get("REF2_NAX_1CQ") == "1" and os.environ.get("R57_TIERS_SETS"))), \
     "R57_TIERS=1c needs R57_FAST (the gate's wrapper), R57_NAX=1 + REF2_OOO_1C=1 + REF2_NAX_1CQ=1 (ref2's one-call takes the 2-D nolsb) and R57_TIERS_SETS"
+assert os.environ.get("R57_INT8D", "") in ("", "0", "1") and (os.environ.get("R57_INT8D") != "1" or (   # R57_INT8D=1 (Mon 16 Nov)
+    os.environ.get("R57_DNR") == "1" and os.environ.get("REF2_SMALL_NATIVE") == "1" and os.environ.get("R57_INT8D_SETS"))), \
+    "R57_INT8D=1 needs R57_DNR=1 + REF2_SMALL_NATIVE=1 (ref2's native dense copies: otherwise int8 never fires) and R57_INT8D_SETS"
 TIER = os.environ.get("R57_TIER") == "1"                 # S45-T (NewIdeas 18:2x): REF2-T on the gate at C's RAM (M-08 sizing)
 if TIER:
     os.environ["BIGMOE_TIER"] = "4433333333"; os.environ["BIGMOE_TIER_GLU"] = "3c"
@@ -596,6 +599,22 @@ TIERS_S = float(os.environ.get("R57_TIERS_S", "0.98"))
 if TIERS:
     import bigmoe.tiers1c as T1C
     assert TIERS_SETS and not (set(RCUT_SETS) & TIERS_SETS), "R57_TIERS=1c: R57_TIERS_SETS set, no R57_RCUT_SETS on them"
+# R57_INT8D=1 (Mon 16 Nov; Leap ~/Leap/scripts/week98/int8d.py + dn32.py at 7536125; EvalSuite PREREG_lossygate amendments
+# 5 / 5a: G1 = C6 + int8 dense): int8 activations x the 4-bit weights on ref2's native dense calls (GDN qkv|z, b|a,
+# out_proj; attention q / k / v / o; the shared expert; PLE key / value; never the router, HC8, head or experts) at 1-32
+# rows in the verify phase only (the check's forward + its commit replay; never the prefill or the drafter), on prompts in
+# R57_INT8D_SETS only: int8d.ON is off through each run's prefill and set from this prompt's set after it. Installed LAST,
+# over ref2 and every other wrapper (ref2.apply() is idempotent, so it never re-wraps). runs.json "lossy_check" gains
+# {int8: calls, int8_rows} (at graph build) on those prompts; the discarded warm-up run has no set, so it never engages.
+INT8D = os.environ.get("R57_INT8D") == "1"
+INT8D_SETS = {x_ for x_ in os.environ.get("R57_INT8D_SETS", "").split(",") if x_}
+I8 = None
+
+
+def _i8_take(c0_):
+    """R57_INT8D: this run's int8 counters since c0_ (calls, rows), then int8 off"""
+    I8.ON[0] = False
+    return dict(int8=I8.COUNTS["int8"] - c0_[0], int8_rows=I8.COUNTS["int8_rows"] - c0_[1])
 # R57_QOM_MTP=1|2 (Sun 8 Nov, CHAT150 M1; chs1 found QOM never engaged on chat: the FAST row gate ran on DFlash2 drafts only,
 # while chat drafts with the MTP head, so q1's qom_skip = qom_opt = 0): the gate on the MTP head's drafts too (sets listed in
 # R57_QOM_SETS). 1 = Breakthrough's M1-A (every drafted row sure at thr 0, the bonus row exact); 2 = M1-B's bonus row gated.
@@ -1130,6 +1149,8 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
     mtp = drafter == "mtp"
     set_arm("slot")                                      # the prefill as shipped in every arm
     ref_on(True)
+    if I8 is not None:                                   # R57_INT8D: off through the prefill (set from fset after it)
+        I8.ON[0] = False
     p0, g0 = BG.PAUSED["pause_s"], BG.PAUSED["n_gap"]
     mx.reset_peak_memory()                               # C45 memory anatomy: MLX peak in prefill vs decode, cache, footprint
     cg = None
@@ -1214,6 +1235,11 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
     t1c_on_ = bool(TIERS) and fset in TIERS_SETS          # R57_TIERS=1c on this prompt's set: every verify check
     t1c_ = dict(checks=0, e4=0, e3=0, edrop=0, lmsl_rows=0, lmsl_fallback=0)   # runs.json "lossy_check" (spec key names)
     t1ck_ = []                                           # per check [e4, e3, edrop, MoE layers] (the union check)
+    i8_on_ = I8 is not None and fset in INT8D_SETS        # R57_INT8D on this prompt's set: from here (after the prefill) on
+    if I8 is not None:
+        assert mx.quantized_matmul is I8._qmm8, "R57_INT8D: something re-wrapped mx.quantized_matmul over int8d"
+        I8.ON[0] = i8_on_
+    i8c0_ = (I8.COUNTS["int8"], I8.COUNTS["int8_rows"]) if i8_on_ else None
     rlog = RLD.Log(os.environ.get("R57_RELAX_LOG", "")) if RLX_D > 0 else None
     assert not (SPAN and fz and fz["loop"]), "R57_RELAX_SPAN replaces the FAST arm's comment loop: use an arm without it"
     sscan = RXC.CodeScan() if SPAN else None             # R57_RELAX_SPAN: the causal comment tagger, fed the answer's text
@@ -1763,7 +1789,8 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
                 p2=p2c_ if P2MAX else None,          # R57_P2: this prompt's decode-path chunks (0 = it took the prefill)
                 rlx=rst if RLX_D > 0 else None,      # R57_RELAX_DELTA: rows checked, kept exact / in all, relaxed accepts
                 close_call={"accepted": ccn_[0]} if rlx_ else None,   # CLOSE-CALL: only where R1(delta) is engaged
-                lossy_check=dict(t1c_) if t1c_on_ else None, t1c_ck=t1ck_ if t1c_on_ else None,   # R57_TIERS=1c
+                lossy_check={**(t1c_ if t1c_on_ else {}), **(_i8_take(i8c0_) if i8_on_ else {})} or None,   # 1c + INT8D
+                t1c_ck=t1ck_ if t1c_on_ else None,   # R57_TIERS=1c
                 spn=sst if SPAN else None,           # R57_RELAX_SPAN: rows checked, kept exact / in all, relaxed, span rows
                 inert=dict(ist, arm=INERT["name"]) if INERT is not None else None,   # R57_INERT: rows checked, kept exact / in
                                                      # all, kept whole / by a rule, per region, rows open
@@ -2109,6 +2136,14 @@ if os.environ.get("R57_G32TEST"):
     say(f"G32TEST verdict: {('OVERFLOW GUARD OK: flagged, finite, and the 16 + 16 redo bitwise on every rep' if allok else 'OVERFLOW GUARD FAIL') if os.environ.get('R57_G32OVF') == '1' else 'TIME MODE (T1 / T2 not run; C32 == B2x16 logits checked per window above)' if int(os.environ.get('R57_G32TIME', '0') or 0) else 'ALL BITWISE: the 32-row check through the widened gate on the exact-45 loop equals <= 16-row checks' if allok else 'NOT BITWISE'}"
         f"; peak {mx.get_peak_memory() / 1e9:.1f} GB")
     sys.exit(0)
+if INT8D:                                                # R57_INT8D: Leap's installer LAST, over ref2 and every other wrapper
+    sys.path.insert(0, os.path.expanduser("~/Leap/scripts/week98"))
+    import int8d as I8
+    ref_on(True)                                         # ref2's patches exist first (its apply() is idempotent: no re-wrap)
+    I8.install()
+    ref_on(False)
+    assert mx.quantized_matmul is I8._qmm8, "R57_INT8D: int8d must be the outermost quantized_matmul wrapper"
+    say(f"INT8D: int8 dense on {', '.join(sorted(INT8D_SETS))} ({I8.__file__}, 1-{I8.HI} rows, verify phase only)")
 for n_p, (s, key) in enumerate(PICK):
     it = next(x for x in ED.load("dec_" + s) if x["key"] == key)
     ids, want = list(it["prompt_ids"]), REFROWS.get(key, {}).get("completion_ids", [])

@@ -1,0 +1,20 @@
+{
+ "fc_embedding": [
+  "gemv BM1 BN1 SM1 SN32 TM4 TN4"
+ ],
+ "hc down": [
+  "gemv BM1 BN8 SM1 SN32 TM4 TN4"
+ ],
+ "hc up": [
+  "gemv BM1 BN1 SM1 SN32 TM4 TN4"
+ ],
+ "hc inject": [
+  "gemv BM1 BN8 SM1 SN32 TM4 TN4"
+ ],
+ "fc_hidden (4 substreams)": [
+  "gemv_wide V1 k_lanes32",
+  "gemv_wide V2 k_lanes32",
+  "gemv_wide V4 k_lanes32",
+  "gemv_wide V8 k_lanes32"
+ ]
+}

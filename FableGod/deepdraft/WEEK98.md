@@ -212,7 +212,13 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
     **11:31 B0 (the lossy-45 base on t1c1, tier 0 vs the exact refs): KILL, arm only 0 / reference only 4 on n 40
     (exactly the kill line).** **11:38 V0 (1c-tiers vs B0): GO, arm only 1 / reference only 0.** B1 base forward runs
     from 11:38. B0's KILL is lossy-45's own loss vs exact on the mini-panel, not 1c's (asked EvalSuite whether it is
-    lossy-45's known tier-0 read or a snapshot effect). It runs on runner 65:
+    lossy-45's known tier-0 read or a snapshot effect).
+    **13:05 B1 (base forward vs exact) PASS: pooled code -1.14 pt (p 0.58), exactly lx45cc1 forward's line; the
+    unset-path check PASSES on all 364 keys** (tokens identical to lx45cc1 forward, QOM sets included). The chain then
+    PAUSED at 13:06 (amendment 4g, e1a798d) to give the GPU to Sandbox98's SIB. **SIB's smoke check FAILED at 13:06:57
+    (rc 5: "mbpp: true_r 89.18 vs true 90.38", a harness-control mismatch), so its main read-out didn't run.**
+    Sandbox98 is diagnosing. EvalSuite resumes V1 at 13:30 unless SIB is running, and pauses again after V1 if SIB is
+    ready (sib_READY). It runs on runner 65:
     runner 64 would have voided every 1c run, because 1c replaces QOM in the checks (BigMoE caught it, amendment 4b).
   - **This MONTH's lossy-check ladder** (Fit12 LOSSY32 ADDENDUM vs TRIED; NewIdeas 8245427): C5 60.9-63.5 ms today
     (two 16-row calls) -> 49.8-53.3 with a one-pass > 16-row FAST form (not built; the biggest item) -> ~45-48 with
@@ -258,7 +264,17 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
     - the expert one-call at M 32;
     - int8 dense as an option;
     - engine measurements Tue / Wed / Thu nights.
-  - **THINK_1116 results (12:0x-12:2x; files in ~/FableGod/{lunatic,zero,far,fableb,fablec}/IDEAS_1116_*.md):**
+    - **CORRECTED 12:2x (Leap, after a measured quiet slot, 1d4890d): the realistic MEASURED C5 check by Friday is
+      ~40-46 ms GPU [est], not 33-38; C6 + int8 ~36-42 [est].** Fit12's ladder agrees (40.5-45.3).
+      - [K] The FAST dense matmuls of a 32-row check, ms per check: 19.30 today (two 16-row calls) -> 15.27 qmm32n
+        (bitwise) -> 13.20 dn32 -> 12.76 dn32q int8 (11.21 with the quantize fused). Floor 6.90. GDN qkv|z per call:
+        213 -> 134 us (floors 84 bytes / 96 matrix). Small shapes run 3-34x their floors (fixed cost per dispatch), so
+        they need folding, not faster kernels.
+      - The dense side stays ~25-28 ms at 32 rows: one-pass matmuls ~13 + HC reads 4.7 / 7.5 + GDN recurrence ~4.3 +
+        router ~1.7 + attention ~1 + glue ~3. Experts ~20.4 + 1c glue 1.8-3.4.
+      - Left to cut: chunked GDN -2.8, fused 1c glue -1.8..-3.4, HC4 -1.2, row-dense tiles -1.5..-4 (unproven),
+        dead-row drop -2.7..-5.6.
+  - **THINK_1116 results (11:59-12:05; files in ~/FableGod/{lunatic,zero,far,fableb,fablec}/IDEAS_1116_*.md):**
     - LUNATIC: 900 allows <= 303-333 MB of DRAM per kept token; the lossy check takes 264 MB per kept token at kept
       23.15. So the head must read <= 47 MB per level (t30b reads 177.6): with t30b, 900 is out at any shape (flat 97.8 %
       gives 660 at the floor). **The three targets don't compose: 97.8 % + 25 ms + 3-5 ms draft = 772-827 tok/s; 900
@@ -276,6 +292,60 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
     (10.5 MB with the 8K screen). A QAT-distilled t30b (4-bit + 8K screen, trained) is ~26 MB per level; 15-min screen
     proposed. ZERO: depth is the draft wall (marginal kept per level 0.76 -> 0.31 from level 6 to 30). 900 needs
     ~0.1 ms levels AND kept tokens that cost no levels (span copying).
+  - **12:2x NewIdeas PLAN900 (914f322; PLAN900.md here):** today ~215-227 tok/s lossy (desk check) / ~144 exact
+    (measured engine, tree-16) on HE+ with drafting not hidden. **Kamen's three targets together give 681-827; 900
+    needs one of them beaten** (e.g. kept >= 26.6 = 98.8 % flat at 25 + 3 + 1.5 ms, or a ~20 ms check at 23.15).
+    - Ties cap the bands even with zero drift: the true-state chain reads 93.2 / 95.3 / 96.4 / 97.8 at bands 0 /
+      1-2 / 3-6 / 7-10. Trees cover ties: band 0 98.5; bands 1-2 96.6 at K32, 98.3 at K127; bands 3-14 stay 93-96
+      even at K127.
+    - So band 0 (trees) and bands 15-30 (the 2B audit, 98.3) are reachable. Bands 1-10 at 97.8 need trees AND a
+      drift fix: SIBLING-STATE drafting (the rejected rows' exact 125B states as the head's inputs; ceiling +51 %
+      kept) is the only untested true-state lever, and its sandbox analog goes to Sandbox98.
+    - Ranked bets, each with an owner:
+      1. SPAN TREE / copied deep runs (NewIdeas, CPU today);
+      2. the one-pass > 16-row check (Leap);
+      3. the CPU diet (Leap / Fable B);
+      4. check BYTES (C6 + int8 dense, <= 5.5 GB at quality; Breakthrough + EvalSuite);
+      5. the QAT small head (MTP Head, a COST lever);
+      6. the FUSED LEVEL KERNEL (MoonShots, multi-day, from now);
+      7. DRAFT DEATH / WIDE-SHALLOW (CPU);
+      8. SIBLING-STATE (Sandbox98);
+      9. close-call d1 / d2 (tonight);
+      10. early death (Tue-night data);
+      11. misses (Fit12).
+    - GPU plan to Saturday: Leap's engine slots Tue / Wed / Thu, the capture Wed night and the proofs Thu-Fri nights
+      untouched; Friday is Leap's MEASURED lossy check; Saturday reads out measured + projected from certified parts.
+  - **12:3x NewIdeas: PLAN900 bets #1 SPAN TREE and #9 DRAFT DEATH / WIDE-SHALLOW are both KILLs (f9c20b2, 2b0f0a2);
+    KEPT, not the draft, is the binding wall for 900.**
+    - SPAN TREE on the real 127-node dumps: HE+ x0.797 of tree-32 kept at <= 7 levels (copy spans fire on 30 % of
+      checks), MBPP x0.757 (line >= 0.90x). The deep half of tree-32's kept on HE+ is the head's own confident
+      drafting, not copies. It cuts levels 20.7 -> 6.9: +9 % tok/s at a 25 ms check, -4 % at today's realistic check.
+    - DRAFT DEATH / WIDE-SHALLOW: no depth cap (6-24) or confidence cut beats plain tree-32 on HE+; MBPP tree-16 wins
+      by +11 %. EAGLE-2's path-probability order is near-optimal on depth vs width.
+    - With today's kept (16.26 HE+), even ALL the draft fixes (the QAT 26 MB head + a fused level = 0.30 ms per level)
+      give HE+ ~449 tok/s at a 25 ms check. 900 needs kept ~26-28: the drift + ties wall. The drift levers left are
+      SIBLING-STATE (Sandbox98), S12 (MTP Head) and the audit (bands 15-30).
+    - Lossy check-bytes gates filed (EvalSuite amendment 5, 1e8b9a5): G1 = C6 + int8 dense (Tue by day, after Leap's
+      engine slot #1), G2 = G1 + V4 (Wed).
+      - ~~"V4 was never flip-tested" (a 12:3x "misread" correction)~~ **WITHDRAWN by NewIdeas, 12:4x: V4 WAS
+        flip-tested and FAILED.** Sun 15 Nov, 12 code windows: bt_ga3 (GDN + attention at 3-bit RTN) code flips 4.43 /
+        3.62 (d9b2db7); bt_ga3awq (AWQ-style) 3.86 / 2.99 (43ef47c). Both are over the 1.34 % line. The chat arm's
+        multi 3.86 % was a coincidence.
+      - Only 11-04's DENSE-3 variant (MSB-3 midpoint, ~27 % lower MSE than RTN-3) never ran; its prior is FAIL
+        (~3.5-4 %). G2 runs only on a DENSE-3 PASS.
+      - Breakthrough's price (ddd7a0b): on code G1 = C6 + int8 is 5.77 GB (bound 21.8 ms, so 25 ms needs 87 % of every
+        peak); G2 is 5.43 GB (82 %). The only no-V4 route to <= 5.5 GB is lambda 2.0e-2 (5.46 GB; predicted code flips
+        ~1.34, right at the line).
+      - Leap's measured price: int8 dense saves only 0.44 ms per 32-row check (2.0 fused); C6 alone carries most of
+        G1's -2.9 ms. G1 + G2 together buy ~-3..-6 ms, and 25 ms needs ~-28 ms.
+      - Slot (NewIdeas): Breakthrough's one-load 4-arm map screen (~25 min, ~14-16 GB, 24 code windows): C6 bytes, G1
+        with int8 fake-quant, DENSE-3 alone, lambda 2.0e-2. It runs right after EvalSuite's 1c-tiers chain ends and
+        finishes before 22:30 (fallback Tue ~07:00-08:30).
+> (a quote from the project owner, kept private)
+    and worth it for speed but also comments are a core part of the code and I'm not sure. I feel like it would be
+    cheating if we did".** So no no-comments policy: comments stay part of the task. Relaxed acceptance INSIDE comments
+    on the lossy line (comments kept, wording may differ at near-ties, EvalSuite-gated) was offered to him as a separate
+    question.
 > (a quote from the project owner, kept private)
     you".** Day / night limits and the Kamen-at-the-Mac yield are lifted until he says otherwise. The memory gates,
     the +2 GB swap guard, the disk floor, the fan cap and lid = pause stay. A thinking round on the three walls

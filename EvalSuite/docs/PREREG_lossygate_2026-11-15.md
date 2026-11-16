@@ -814,3 +814,190 @@
     - N4: without NOYIELD it waits while Kamen is at the Mac, then starts.
     - N5: a HOLD during B2 gives rc 8, with the runner stopped.
     - N6: a past cutoff means no start (rc 6).
+
+## Amendment 5 (Mon 2026-11-16 12:3x, before any config, snapshot or run): the check-bytes quality gates G1 and G2 (PLAN900 bet 5), the frame; the pins follow in 5a
+- **Why:** NewIdeas' 900 plan (~/NewIdeas/research/week98/PLAN900.md, 914f322), bet 5 "check BYTES".
+  - Three changes aim together at a code-scoped check of <= ~5.5 GB at quality: C6 (1c lambda 1.8e-2), int8 dense,
+    and V4 (GDN / attention at 3 bits).
+  - Breakthrough brings the bytes and Leap the kernels; BigMoE builds the stack, as for t1c1.
+  - NewIdeas 12:2x picked option A: two stacked gates, each against the base, bisecting only on a FAIL. That is
+    Breakthrough's rule: one combined same-scores test per batch.
+- **The arms:**
+  - **G1 = C6 + int8 dense:** Leap's Friday measured config.
+  - **G2 = G1 + V4:** GDN / attention at 3 bits.
+  - **The base:** lossy-45 as shipped (lx45cc1's line verbatim) on the snapshot that holds the new code, with that
+    code unset. It is the same line as 1c-tiers' base lx45t1c1.
+    - A config with no new code (env only on t1c1) uses today's lx45t1c1 runs (B0 / B1 / B2) as its base.
+- **The steps.** Once per snapshot, the base:
+  - B0: tier 0 against the exact refs. This is information, and it is V0's reference.
+  - B1: forward tier 1, with the unset-path check: tokens identical to lx45t1c1 forward on humanevalx 104 + IFEval 100
+    (tools/t1c_unset_path.py). The QOM sets are information.
+  - B2: reverse.
+  - Then each gate in order, G1 then G2:
+    - V0: tier 0 against B0;
+    - V1: forward against B1;
+    - V2: reverse against B2, with both orders pooled.
+- **The rules,** as amendment 4, CODE-ONLY:
+  - Tier 0: KILL if reference-only minus arm-only is >= 4 on the 40 code keys, or if any row is empty.
+  - Tier 1:
+    - each set: decision 4, i.e. delta > -5 pt AND exact McNemar p >= 0.05 (DIFFERS (HIGHER) passes);
+    - the pooled code line: delta > -3 pt AND p >= 0.05;
+    - the interim STOP-FAIL at z <= -2.8 after 132 code keys;
+    - the RUNAWAY guard (amendment 3a).
+  - IFEval: tokens identical to the base on 100 / 100 (the switch-off check), IF every change in the config engages
+    only on the code sets. Otherwise IFEval is decision 4 against the base ("no harm"). 5a states which applies to each
+    config.
+  - A KILL or FAIL ends that gate.
+  - **Bisect:**
+    - If G1 fails, G2 does not run. Its slot goes to C6 alone, then int8 dense alone, each against the same base.
+    - If G2 fails after G1 passed, V4 on top of G1 is the cause, and no further bisect is needed.
+- **What a PASS licenses:** a screening line, as for every lossy gate. A code-scoped PASS licenses a code-only mode.
+  Adoption stays Kamen's call after a full verdict (tier 2, the card gate).
+  - The speed read-outs (tools/lossy_speed.py) are information. The gate judges quality, never speed.
+- **Memory:** each process needs NO-SWAP >= MEM + 4 GB (runner 65's rule). The MEM comes from the config's key test,
+  whose every peak must be <= the gate - 0.5 GB. The +2 GB swap guard, HOLD / PAUSE / lid, and one > 16 GB job at a
+  time stay. Kamen 11:5x lifted the day limits and the at-Mac yield until he says otherwise.
+- **The slots** (NewIdeas 12:2x):
+  - **Tue by day:** Leap's engine slot #1 FIRST (~40 min, from ~09:30-10:00, after night1117). Then the new snapshot's
+    base (~2.5 h), then G1 (~2.5 h), so Leap has G1's verdict by Tue evening.
+  - **Wed by day:** G2 (~2.5 h) and Leap's engine slot #3. Everything ends >= 2 h before the capture (>= 23:30).
+  - If the inputs aren't ready Tue morning, the base slides and G1 / G2 follow in order on Wednesday. Anything left
+    after Wednesday waits until after the proofs (Thu-Fri nights).
+- **The inputs,** by Tue morning (Breakthrough / Leap, with BigMoE building the stack; NewIdeas forwarded the list):
+  - per config, BigMoE-format env file(s) pinned by blob;
+  - the snapshot: its tree hashes and the ext .so;
+  - MEM;
+  - a real-loop key test PASS like t1c1's.
+- **Amendment 5a** pins these, plus the runner, the chain and its dry runs, before the base starts.
+
+## Amendment 5a (Mon 2026-11-16 12:4x, before any config, snapshot, screen or run): G1's IFEval check and memory; G2 runs only on a DENSE-3 PASS (NewIdeas 12:3x); the pins follow in 5b
+- **G1's scope:**
+  - int8 dense is code-scoped. Leap: `R57_INT8D_SETS=humaneval,humanevalx,mbpp`, toggled per item's set like
+    R57_TIERS_SETS.
+  - C6 is an R57_TIERS env change on t1c1, so it is set-scoped as well.
+  - So G1's IFEval check is TOKEN IDENTITY against the base on 100 / 100 (amendment 5's switch-off check).
+- **G1's memory:** int8 dense adds +1.7 GB resident for its own weight layout.
+  - G1's MEM comes from G1's own key test, whose peak includes it. The gate is MEM + 4 GB NO-SWAP.
+  - Example: at t1cx45t1c1's 42.38 GB + 1.7, MEM is ~41, so the gate is ~45 GB. That opens by day only right after
+    another big process exits (the compressor effect, as at 11:24: 40.5 -> 49.4).
+  - If it does not open, the 4e fallback is NOT carried over. A lower gate for G1 needs its own amendment with its
+    at-peak evidence.
+  - The base on the new snapshot leaves int8 unset. Its MEM is its own key test's.
+- **G2 is CONDITIONAL. It runs only on a DENSE-3 PASS.**
+  - The screen is Breakthrough's DENSE-3 map arm: 3-bit dense on the decision map, Wed ~07:00-09:00, ~1 h, ~14 GB.
+  - G2 keeps its Wednesday slot only if Breakthrough records DENSE-3's verdict as PASS (<= 1.34 % code flips) before
+    the slot. BETWEEN or FAIL drops G2.
+  - Why (NewIdeas):
+    - The "3.86 % code flips" that closed V4 in Fable B's notes was the cf 0.3 chat arm's MULTI flips.
+    - DENSE-3's map arm never ran.
+    - The only prior is 17-18 % relative rms per projection (Leap, 11-04).
+  - **CORRECTED 12:4x (NewIdeas): the rationale above is wrong. The rule stands, and its prior is worse.**
+    - 3-bit dense WAS flip-tested on Sun 15 Nov, and it FAILED against the 1.34 % line: Breakthrough's
+      bt_ga3 (RTN) gave 4.43 % code flips and bt_ga3awq (AWQ) 3.86 %.
+    - Only Leap's DENSE-3 midpoint variant never ran. Its prior is FAIL (~3.5-4 %).
+  - If G2 drops, its slot goes to G1's bisect if G1 failed (amendment 5: C6 alone, then int8 dense alone). Otherwise it
+    goes to a sibling-state follow-up, if Sandbox98's analog passes (NewIdeas' call, under its own registration).
+  - EvalSuite reads only DENSE-3's recorded verdict word for this condition. The screen and its rules are Breakthrough's.
+- **Amendment 5b** pins the env blobs, the snapshot (its tree hashes and ext .so), each env's MEM and key test, the
+  runner, the chain and their dry runs, before the base starts.
+
+## Amendment 4g (Mon 2026-11-16 12:5x, during the 1c-tiers run, before V1): a pause after B1 for Sandbox98's SIB test (the orchestrator 12:4x); operational only
+- **Why:** the orchestrator 12:4x.
+  - Sandbox98's SIB (sibling-state drafting, PLAN900 9b) is the one test aimed at the binding wall for Kamen's
+    97.8 % / 900: the drafter's drift.
+  - Its runner needs NO-SWAP >= 13 GB, which never opens beside the 1c-tiers processes (~42 GB).
+  - MoonShots' quiet ticket may take a few minutes of the gap first.
+- **The pause:** chain2 (pid 60135) is stopped by TERM at the clean boundary right after B1's verdict is recorded.
+  - V1 is not started: its runner is in its CPU-only setup when the TERM lands.
+  - T1C_MON2_END then reads "stopped by a signal during: V1". That marker is a pause, not the gate's end. Breakthrough
+    was told (12:5x) to key tonight's map screen on T1C_MON3_END instead.
+- **The resume:** tools/t1c_resume_follower.sh (sha256 9a1004e54a55d3fd...).
+  - It waits until pid 60135 is gone; that moment is the pause's start.
+  - Then it waits for Sandbox98's ~/Sandbox98/logs/sib_END, or for 15:30, whichever comes first.
+  - The marker counts only if it was written after the pause's start AND its first line starts with
+    "rc 0: main read-out done" (the orchestrator 12:5x).
+    - A stale stop marker ("rc 143: stopped by a signal ... waiting for room", from a mistaken test arm) existed at
+      12:53, so neither a stopped attempt nor plain existence counts.
+    - SIB's fine-tune marker (logs/sib_ft_END) is ignored.
+  - Then it runs t1c_chain2.sh: phase wed on 11-16, tag mon3 (log [mon3], end results/T1C_MON3_END), cutoff 22:30,
+    no at-Mac rule.
+  - B0 / V0 / B1 are skipped as done; a recorded VOID / INCOMPLETE stops it.
+  - Then V1 -> B2 -> V2 run as planned (amendments 4d / 4f), inside the 22:30 cutoff.
+- **Unchanged:** every pin, gate, guard and scoring rule; the 22:30 cutoff; no at-Mac rule (amendment 4f).
+- **Checked** with a stub simulation, 7 scenarios (results/lossygate/t1c_resume_follower_sim_2026-11-16.txt):
+  - R1: an "rc 0: main read-out done" mark written after the pause began starts it. It passes phase wed, day 11-16,
+    cutoff "2026-11-16 23:59" (the space kept), NOYIELD 1 and tag mon3.
+  - R2: the resume time already passed starts it.
+  - R3: a stale "rc 0" mark (an old mtime) is ignored; it starts at the time.
+  - R4: an "rc 0" mark written while the paused chain was alive (before the pause) is ignored; it starts at the time.
+  - R5: past the last start, there is no start (rc 6).
+  - R6: a TERM while it waits starts no chain; its END reads "stopped by a signal" (rc 143).
+  - R7: an "rc 143" stop marker written after the pause is ignored; it starts at the time.
+  - The simulation caught a quoting bug first: a quoted "CHAIN_CUTOFF=..." word was taken as the command (rc 127). It
+    was fixed before arming.
+
+## Amendment 5b (Mon 2026-11-16 13:0x, before any G1 run): G1's pins (BigMoE 12:5x), checked here; MEM, the key test and the chain follow in a dated addendum
+- **Snapshot g1a** (BigMoE abffe6e1, clean against HEAD):
+
+  | piece | pin |
+  |---|---|
+  | data/r57/snap/g1a tree | bd3d827025324c56445f6a79506fdf90ddfc9bcf |
+  | data/r57/snap/frozen_g1a tree | f018c23c3747b7f05d9e91163846959637d7b23f |
+  | bigmoe tree | d92cdb4b9e81d386e4170323d50f11b34147aa5f (t1c1's, unchanged) |
+  | screen data/r57/snap/g1a/r57_screen_g1a.py | sha256 aa00c0bb204d5fc5... (CARD_SCREEN_SHA aa00c0bb204d) |
+  | ext .so | ff69fa24a745 (unchanged) |
+
+- **The envs** (BigMoE data/stack/; the blobs equal HEAD):
+  - base **lx45g1a_env.txt**, blob 022d03e6128e38a014f11e22f3e5dd18543a96af: exactly lx45t1c1's 34 pairs (the same line,
+    checked here).
+  - G1 **g1x45g1a_env.txt**, blob 849a7c242aa1cf600ee7d0483414a7e4adb2cf32: the base plus exactly R57_TIERS=1c,
+    R57_TIERS_LAM=0.018, R57_TIERS_S=0.98, R57_TIERS_SETS=humaneval,humanevalx,mbpp, R57_INT8D=1 and
+    R57_INT8D_SETS=humaneval,humanevalx,mbpp (checked here).
+- **What g1a changes,** checked here with the paths normalized:
+  - frozen_g1a = frozen_t1c1 + Leap's week98/int8d.py and dn32.py (7536125). The 407 other changed files differ only in
+    their own paths: 712 lines removed = 712 added once the paths are normalized.
+  - In the working dir, pflm.py differs only in paths.
+  - The screen adds 36 int8 lines, behind `I8 is not None` / R57_INT8D, and changes one line: lossy_check now merges
+    the int8 counters. With R57_TIERS and R57_INT8D unset it is None, as before.
+  - So by inspection the base path (both unset) is unchanged. B1's unset-path check on g1a tests it.
+- **BigMoE's checks:** its head test PASSES on both envs, and the 1c wiring test on g1a PASSES. runs.json lossy_check
+  gains "int8" / "int8_rows" on the code sets; they are absent on IFEval.
+- **Pending,** for a dated addendum before the base starts:
+  - each env's MEM, from BigMoE's key test (scripts/g1_keytest.py: section 6's criteria + int8 > 0 on the code keys +
+    per-env at-peak margins and swapouts; data/r57/G1A_KEYTEST_DONE). It runs after the resumed 1c-tiers chain ends;
+  - G1's engagement key (CARD_ENGAGE);
+  - the runner and the chain (from t1c_chain2.sh), with their dry runs and a stub sim.
+
+## Amendment 5c (Mon 2026-11-16 13:0x, before any G2 config, snapshot or data): G2's composition (NewIdeas 13:0x); it replaces 5a's G2 condition
+- **Why:** Breakthrough found that G1 as built reads 6.22 GB per check, not 5.77. g1a is C6 + int8 on lossy-45's
+  HC8 + SVH, and V1 (the 16K head list) and V3 (HC mixers / inject / PLE at 4 bits) aren't built.
+- **G1 stays as built** (5b) for Tuesday, unchanged.
+- **G2 is ONE stacked gate on Wednesday,** its make-up set by tonight's DENSE-3 map arm (in Breakthrough's 4-arm map
+  screen):
+  - on a PASS (<= 1.34 % code flips): G2 = G1 + V1 + V3 + V4;
+  - on a FAIL: G2 = G1 + V1 + V3 + lambda 2.0e-2, the no-V4 route to <= 5.5 GB;
+  - on a BETWEEN: the no-V4 route, as 5a kept V4 only on a PASS.
+- **The rules** are amendment 5's: against the base, V0 -> V1 -> V2, CODE-ONLY, bisecting only on a FAIL.
+  - IFEval is token identity only if every change in G2 is code-scoped; otherwise it is decision 4. The arming
+    amendment states which.
+- **Its snapshot** (V1 + V3 built by BigMoE or Breakthrough, wired by BigMoE) needs its own real-loop key test before
+  arming.
+- **G2's base.** Amendment 5 says the base runs once per snapshot. G2's snapshot may instead reuse g1a's base runs
+  (B0 / B1 / B2) if two things hold:
+  - by inspection, as for g1a, the snapshot adds only code that is inert when unset;
+  - a base-path identity run on it gives tokens identical to g1a's B1 on all 204 non-QOM keys. That run uses the base
+    env on humanevalx 104 + IFEval 100, ~35-40 min.
+  - Otherwise G2's snapshot gets its own base (~2.5 h).
+- **If V1 + V3 can't be built by Wednesday morning,** G2 is DROPPED this week. Its slot goes to G1's bisect if G1
+  failed, otherwise to the sibling-state follow-up (NewIdeas' call, under its own registration).
+- **Confirmed 13:1x (NewIdeas):**
+  - BETWEEN takes the no-V4 route.
+  - Aim for the base-path identity route. Breakthrough writes V1 / V3 as opt-in installers in int8d's form, and its
+    own test shows the unset path bitwise.
+  - **Wednesday's order,** by day ~08:00 -> 21:30, ending >= 2 h before the capture:
+    1. BigMoE's g2a key test (Tue night or early Wed);
+    2. ~08:00, the identity run (~35-40 min), or the full base (~2.5 h) if it FAILs;
+    3. G2: V0 -> V1 -> V2 (~2.5 h);
+    4. Leap's engine slot #3 (~40 min).
+    - Worst case ~6 h, ending ~14:00-16:30.
+  - **The drop deadline is ~10:00 Wed:** if V1 + V3 or the g2a key test aren't ready by then, G2 is dropped this week.

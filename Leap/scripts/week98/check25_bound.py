@@ -66,9 +66,11 @@ CORES = GDN_STATE / BW + max(by2 / BW, mac2 / MMA16)            # at 1K keys (Hu
 
 dn = F["dense"]
 eg = F["gb_exp"]["c1_eng"]
-e6 = 48 * 33.6 * 2.135e-3 * (F["gb_exp"]["c1_eng"] / F["gb_exp"]["c1_map"])   # Fit12's C6 (lambda 1.8e-2)
+# C6 (lambda 1.8e-2) ON CODE: 4-bit-eq 35.7 per layer (Breakthrough e62c405 / ddd7a0b data/m1/check_bytes_900_price.out),
+# not the pooled 33.6 Fit12's table carried (corrected Mon 12:4x on Breakthrough's note)
+e6 = 48 * 35.7 * 2.135e-3 * (F["gb_exp"]["c1_eng"] / F["gb_exp"]["c1_map"])
 CAND = [("C5 = 1c-tiers + V1 + V3 (the target's bytes)", dn["l45_v1v3"], eg),
-        ("C6 = C5 at lambda 1.8e-2", dn["l45_v1v3"], e6),
+        ("C6 = C5 at lambda 1.8e-2 (code)", dn["l45_v1v3"], e6),
         ("C8 = C5 + V4 (GDN / attention 3-bit)", dn["l45_v1v3v4"], eg),
         ("C6 + V4", dn["l45_v1v3v4"], e6)]
 p()

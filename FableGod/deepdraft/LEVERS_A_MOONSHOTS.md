@@ -1291,6 +1291,148 @@ M3, Pillar 3's lines are out of reach for the level-by-level drafter on this mac
 - **Next:** none from me on Pillar 3. (a') is closed on both legs; (b) and (c) stay parked (NewIdeas 08:4x). The
   hand-fused level is re-scoped above as an engine item, for NewIdeas / the orchestrator to weigh.
 
+## BET 7 (PLAN900). The fused level kernel (NewIdeas 12:2x; pre-registered Mon 16 Nov 12:3x, before any code ran)
+**Assignment (NewIdeas 12:2x):**
+- (1) the dependent-step plan: <= ~35 dependent steps per level, against ~144 today;
+- (2) a 1-level prototype, bitwise against the stock level on the full head;
+- (3) measured fixed cost per level, and ms per block at tree-16 / tree-32 depths, at the full head and at a ~26 MB
+  byte budget.
+
+**Definitions.**
+- **Stock level:** P2's C0 build, as timed in M0-M2 (p3_m012.py):
+  - the shipped MTP head as stored (mtp.safetensors header):
+    - bf16: fc_embedding, fc_hidden, the three hyper-connection mixes;
+    - 4-bit g64: q / k / v / o and the shared expert;
+    - 8-bit g64: the router and the indexer's qk projection;
+    - 4-bit g32: the routed experts (top-10 of 512);
+  - Leap's ScreenedHead (FR-Spec 32K screen, 4-bit g64);
+  - M0's tree tail: logsumexp, top-K = 8 per row, frontier top-F by path score;
+  - MLX 0.32.2 eager, engine flags off; 177.6 MB per level at F = 1 [K p3_m012_stock.log].
+- **"Full head" for the bitwise check:** both the 32K screen and the full 248,320-row head.
+- **Bitwise:** every array a level hands on, bit for bit:
+  - the widened state hh;
+  - the K / V cache rows, and the indexer's raw-key and pooled-bank rows;
+  - the top-K ids and log-probs, the path scores, the parents and the tokens.
+  - Checked over 21 chained levels x 3 contexts (T = 400 / 1,000 / 2,000 keys) x 3 seeds, on P2's synthetic states.
+- **Scope of the prototype:**
+  - F = 1 (one row per level) first; F = 2-3 are a stretch.
+  - Dense attention only: T <= 2,048 keys (the indexer's budget, where QSA selects the full causal set). Above that
+    the prototype hands the level back to the stock path.
+- **f:** async ms per level (M1's protocol: sync-free, one sync per block) minus MB / BW, with BW = 292.7 GB/s (M2's
+  async fit) [K p3_m012_stock.log]. If the fused level reaches a different BW, its own fit over the byte points it
+  supports is reported beside it.
+- **The ~26 MB point is a projection [P]:** levels x (f + 26 MB / BW).
+  - No head that small exists or can be built from today's formats: M2's most aggressive cut, C8, is 39.8 MB.
+  - "4-bit Linears + 8K screen" is C1 = 95.1 MB per level, measured [K M0-M2], not ~26.
+  - FAR's 26 MB treated ~115 MB as the vocabulary side. The 32K screen is 47.2 MB; the rest is the routed experts
+    (30.7 MB) and the parts already stored at 4 / 8 bits (~37 MB).
+
+**The line.**
+- **PASS (NewIdeas'):** bitwise AND f <= 0.056 ms per level at the stock head, in a quiet slot (medians over >= 20
+  rounds).
+- **BETWEEN (mine):** bitwise AND 0.056 < f <= 0.10. At f = 0.10, a <= 26 MB head would still draft a tree-32 block in
+  3.9 ms, inside Kamen's 3-5 ms window [P: 20.8 x (0.10 + 26 / 292.7)].
+- **FAIL:** not bitwise, or f > 0.10.
+- Reported beside the verdict: ms per block at both depths, stock vs fused, at the full head (measured) and at 26 MB
+  [P]. Levels per block: tree-16 12.6, tree-32 20.8 [K BIGGER_TREES.md].
+
+**What the line buys [P, f + MB / BW per level]:**
+
+| f (ms per level) | full head (177.6 MB): tree-16 / tree-32 | C1 (95.1 MB) | ~26 MB |
+|---|---|---|---|
+| 0.311 (stock, measured) | 11.6 / 19.1 | 8.0 / 13.2 | 5.0 / 8.3 |
+| 0.10 (BETWEEN) | 8.9 / 14.7 | 5.4 / 8.8 | 2.4 / 3.9 |
+| 0.056 (PASS) | 8.4 / 13.8 | 4.8 / 7.9 | 1.8 / 3.0 |
+
+- So a <= 3 ms tree-32 block needs BOTH: f <= ~0.056 AND <= ~26 MB per level. With C1's bytes, the fused level gives
+  7.9 ms.
+
+**Sub-measurement M7a, the dispatch floor (information):**
+- A chain of N dependent minimal kernels per level (N = 8 to 144), as stock MLX ops and as custom kernels, timed
+  async per level as in M1.
+- Reported: ms per dependent step (slope), the intercept, and the CPU-side cost per call.
+- Under a share lock beside EvalSuite's gate it is INDICATIVE; the verdict uses a quiet slot.
+
+**Expectation [G]:**
+- The plan below needs ~15-17 dependent steps per level. At ~1.5-2.1 us per dependent dispatch, the GPU-side floor is
+  ~0.025-0.035 ms, so PASS looks possible.
+- Main risks:
+  - (i) The CPU side: Python plus MLX's encode cost per custom-kernel call may bind when bytes are small.
+  - (ii) Bitwise copies of MLX kernels whose sources aren't shipped: RMSNorm, and the host-side tile choices for gemv
+    and the M = 4 GEMM (fc_hidden).
+  - (iii) A multi-day build. Today: the plan, the dispatch floor and the first exact building blocks. The whole level
+    comes later this week.
+
+**Deliverable (1): the dependent-step plan (F = 1; desk, from qwen4_exp.py's decode path).**
+- Today: 237 primitives per level, 144 that aren't reshape-type views [K p3_m012_stock.log, C1 graph]. That 144 is
+  the "~144 dependent steps" in PLAN900; some of it (slices, transposes) still runs without a kernel, so the stock
+  dispatch count is somewhat lower.
+- Fused: 15 dependent kernels per level (16 if the stock SDPA takes its 2-pass form at that T).
+- Each step is one custom kernel. Each threadgroup recomputes the small prologue it needs (a norm over <= 10,240
+  values, the router's 512-way softmax and top-10) instead of waiting for a separate kernel. Independent matrices
+  that read the same input go into one dispatch.
+
+| step | one kernel | stock ops it absorbs |
+|---|---|---|
+| S1 | prep | embedding-row gather + dequant, both pre-fc RMSNorms, fc_embedding (M = 1), fc_hidden (M = 4), the add |
+| S2 | attention HC, down | grouped RMSNorm x weight, down (320) and inject (4) bf16 GEMVs, silu(/4), 2 sigmoid(/4) |
+| S3 | attention HC, up | up GEMV (10,240), sigmoid, x normed, the mean over 4 streams -> mixed |
+| S4 | projections | q (12,288 incl. gate), k, v (512 each) at 4 bits, indexer qk (640) at 8 bits |
+| S5 | attention | q / k RMSNorms, partial RoPE, K / V cache writes, the indexer's q prep, raw-key and pooled-bank writes, SDPA over T keys |
+| S6 | o_proj | sigmoid output gate, 4-bit GEMV (2,560), the residual write h + out x inject |
+| S7 | MLP HC, down | as S2, on the written stream |
+| S8 | MLP HC, up | as S3 -> mixed2 |
+| S9 | router + shared | router (512, 8-bit), shared gate / up (640, 4-bit) with silu x up, shared-expert gate (1) |
+| S10 | routed gate / up | precise softmax + top-10 + renorm (per threadgroup), 10-expert gather GEMVs (4-bit g32), silu x up; shared down beside it |
+| S11 | routed down | 10-expert gather GEMV, the expert-weighted sum, + shared x sigmoid(gate), the residual write -> hh |
+| S12 | mixer, down | as S2, without inject |
+| S13 | mixer, up | as S3 -> x |
+| S14 | head | 4-bit GEMV over the 32K screen (or 248,320 rows) |
+| S15 | tail | logsumexp, top-K in the sort's order, path scores, top-F, token ids, parents (one threadgroup) |
+
+- **Exactness method:**
+  - MLX's own device code where the headers ship it, inlined into the kernels: quantized.h (qmv, gather_qmv),
+    gemv.h, sdpa_vector.h, softmax.h, logsumexp.h, steel GEMM.
+  - RMSNorm isn't shipped: rebuilt in the stock order and bit-tested.
+  - Elementwise ops use MLX's own functors at the stock dtypes, rounding to bf16 at every op boundary the stock graph
+    has (compiled and eager bf16 sigmoid differ at some inputs, per mtplx's attention_math notes; the stock here is
+    eager).
+  - Every step is bit-tested alone against the stock ops it replaces before it joins the level.
+- **Build order (riskiest first):**
+  1. the exact RMSNorm;
+  2. S2 / S3 (the HC read, used three times per level);
+  3. the qmv steps (S4, S6, S9);
+  4. the MoE (S10, S11);
+  5. attention (S5);
+  6. S1 (the M = 4 GEMM);
+  7. head and tail (S14, S15);
+  8. the whole level.
+- **Reuse:** none of mtplx's kernels as-is. Its exact ones are fixed M = 4 (verify widths); its M = 1 HC read is "not
+  bit-identical" by its own docstring. Its notes on stock order are read as references.
+
+**M7a, RESULT: the dispatch floor (quiet slot 12:46, NewIdeas'; information)** [K ~/MoonShots/week98/bet7/
+fl_floor_quiet.log / .json; GPU busy 0 % at the grant; 30 rounds, 2 dropped]
+- Chains of N = 8-144 dependent tiny kernels per level, async per level, cost per step on the wall clock:
+  - stock MLX op 1.31 us;
+  - custom Metal kernel 2.04 us (2.07 at 64 threadgroups);
+  - the custom chain under mx.compile 1.38 us;
+  - intercepts 0.012-0.015 ms per level.
+- In every arm, CPU time (graph building + async_eval) tracks the wall within 2 %. The chains are CPU-bound, so:
+  - a tiny dependent dispatch costs <= 1.3 us on the GPU (an upper bound);
+  - a custom-kernel call costs ~2.0 us on the CPU, ~0.7 us more than a stock op (compile takes it back to 1.4).
+- **The stock C0 level at F = 1: 0.954 ms per level** (M1: 0.921), 0.348 ms above its 177.6 MB at 292.7 GB/s.
+  - It is GPU-bound. C8 (the same ops on fewer bytes) ran at 0.46 ms in M2, so the level's CPU work is <= ~0.46 ms.
+    The 0.72 ms spent inside async_eval at C0 is waiting on the GPU.
+- **So today's ~0.31-0.35 ms isn't all launch overhead.**
+  - Dispatches account for <= 144 x 1.3 us = <= 0.19 ms.
+  - The rest (>= ~0.16 ms) is work off the bandwidth line: the sort-based top-K over the 32K logits, single-threadgroup
+    reductions, GEMVs below full bandwidth.
+- **For the fused level:**
+  - 15 calls are ~0.03-0.06 ms of CPU per level, hidden behind the GPU at the full head;
+  - <= 15 x 1.3 us = <= 0.02 ms of dispatches on the GPU.
+  - PASS therefore turns on the kernels' own efficiency (GEMVs at full bandwidth, a fast tail) as much as on the step
+    count. That is the design constraint now, beside bitwise.
+
 ## Ranked (final, 01:3x)
 1. **The 2B audits and repairs the head's deep tokens: CONFIRMED on HE+** (D). On MBPP, the frozen schedule was chosen
    on those rows (C). Training-free.

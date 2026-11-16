@@ -1,0 +1,12 @@
+INT8D check (dn32q at 1-32 rows): error vs fp32 next to the bf16 native form; row-invariance (rows of an M-row call == 1-row calls)
+  GDN qkv|z                            N  16384 K  2560 ks  1: int8 err 6.89e-03 (bf16 3.57e-03); row-invariant 36/36; native-staged == copy-staged (dn32q and dn32) 14/14
+  GDN b|a                              N     96 K  2560 ks 10: int8 err 6.59e-03 (bf16 2.93e-03); row-invariant 36/36; native-staged == copy-staged (dn32q and dn32) 14/14
+  out_proj / o_proj                    N   2560 K  6144 ks  6: int8 err 6.66e-03 (bf16 3.11e-03); row-invariant 36/36; native-staged == copy-staged (dn32q and dn32) 14/14
+  att q                                N  12288 K  2560 ks  1: int8 err 7.90e-03 (bf16 3.78e-03); row-invariant 36/36; native-staged == copy-staged (dn32q and dn32) 14/14
+  att k / v                            N    512 K  2560 ks 10: int8 err 7.43e-03 (bf16 3.15e-03); row-invariant 36/36; native-staged == copy-staged (dn32q and dn32) 14/14
+  indexer qk                           N    640 K  2560 ks 10: int8 err 7.82e-03 (bf16 3.29e-03); row-invariant 36/36; native-staged == copy-staged (dn32q and dn32) 14/14
+  shared gate|up|gate (SMALL-N pad)    N   1312 K  2560 ks  8: int8 err 7.44e-03 (bf16 3.15e-03); row-invariant 36/36; native-staged == copy-staged (dn32q and dn32) 14/14
+  shared down                          N   2560 K   640 ks  5: int8 err 7.11e-03 (bf16 3.11e-03); row-invariant 36/36; native-staged == copy-staged (dn32q and dn32) 14/14
+  PLE key                              N  10240 K  2560 ks  1: int8 err 6.91e-03 (bf16 3.72e-03); row-invariant 36/36; native-staged == copy-staged (dn32q and dn32) 14/14
+  PLE value                            N   2560 K  2560 ks  4: int8 err 7.07e-03 (bf16 3.23e-03); row-invariant 36/36; native-staged == copy-staged (dn32q and dn32) 14/14
+  head (V1 16K list)                   N  16448 K  2560 ks  1: int8 err 7.33e-03 (bf16 3.85e-03); row-invariant 36/36; native-staged == copy-staged (dn32q and dn32) 14/14

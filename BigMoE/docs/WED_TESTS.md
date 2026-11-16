@@ -2584,3 +2584,45 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
 - **A find for the pins:** the dumpers import ~/TrainLab/mtp125.py, which is outside BigMoE's git. bigmoe_commit alone
   would not pin it; the always-written modules map does.
 - **Next:** the capture's files_sha256.json writer, with Wednesday's capture plumbing.
+
+## Mon 16 Nov 12:3x-12:48: snapshot g1a for EvalSuite's G1 gate (C6 + int8 dense; PREREG_lossygate amendments 5 / 5a): Leap's int8 dense frozen in, envs lx45g1a / g1x45g1a, head tests + the 1c wiring test PASS, the key test and its wrapper stub-tested; the real key test waits for EvalSuite's chain end + Leap's slice test
+- **The int8 wiring** (scripts/r57_screen_fast.py, R57_INT8D=1 + R57_INT8D_SETS; Leap's ~/Leap/scripts/week98/int8d.py
+  at 7536125):
+  - int8 activations x the 4-bit weights on ref2's native dense calls (GDN, attention, the shared expert, PLE k / v),
+    at 1-32 rows, in the verify phase only.
+  - Installed LAST, over ref2. ref2's apply() is idempotent and its remove() only switches it off, so the stack stays
+    int8d -> ref2 -> MLX. Asserted at install and at every code prompt.
+  - int8d.ON is off through each run's prefill and set from the prompt's set after it.
+  - The check forward runs in ref2.verify_scope (decode_verify), so int8 sees exactly the verify forward + its commit
+    replay. The discarded warm-up run has no set, so it never engages.
+  - runs.json lossy_check gains int8 / int8_rows. With R57_INT8D unset, the screen behaves as before.
+  - A head-test guard: R57_INT8D=1 needs R57_DNR=1, REF2_SMALL_NATIVE=1 and R57_INT8D_SETS.
+- **Snapshot g1a** = t1c1's frozen set + Leap's week98/int8d.py (md5 4b6f14dc) + dn32.py (md5 65ba9193) at 7536125 +
+  the screen.
+  - Both files' runtime imports are os, sys, mlx.core, ref2, dn32 and mtplx's attention context. Their sys.path lines
+    point into the snapshot.
+  - FROZEN 411. Against t1c1: the 407 shared files are identical apart from the path, 2 files are new, and the screen
+    has +37 lines, all int8.
+  - Leap's ref2 is unchanged since b43efc4 (md5 33021885). That keeps the base path t1c1's.
+- **Envs:**
+  - data/stack/lx45g1a_env.txt (blob 022d03e6) = lx45t1c1's 34 pairs exactly.
+  - data/stack/g1x45g1a_env.txt (blob 849a7c24) = the base + R57_TIERS=1c, R57_TIERS_LAM=0.018 (C6), R57_TIERS_S=0.98,
+    R57_TIERS_SETS=humaneval,humanevalx,mbpp, R57_INT8D=1, R57_INT8D_SETS=humaneval,humanevalx,mbpp.
+- **Desk and head tests:**
+  - EvalSuite's head test: PASS on both envs (to the model load).
+  - R57_INT8D=1 without the sets fails at the guard.
+  - The 1c wiring test on g1a's screen: PASS (0 mismatches on 3.1 M slots; means as t1c1's;
+    data/deepdraft/t1c_wiring_test_g1a.json).
+- **The key test** scripts/g1_keytest.py (from t1c_keytest.py):
+  - G1 adds: int8 > 0 on the code keys, nothing engaged on IFEval, IFEval tokens == the base's.
+  - Per env it reports the start NO-SWAP reads, the lifetime peak, the at-peak margin (the lower read minus the peak),
+    the swap delta and vm_stat's swapouts.
+- **The wrapper** scripts/g1_follow.sh:
+  - It starts on EvalSuite's chain end marker T1C_MON3_END (+ the resumed mon3 chain's pid gone; T1C_MON2_END only marks the chain's pause for Sandbox98's SIB test) + data/r57/G1A_GO (created on Leap's slice-test PASS) + no
+    big lock / t30c + NO-SWAP >= 40 (two reads).
+  - Deadline 22:55; hard stop +8 min (M4 at 23:05).
+  - Marker data/r57/G1A_KEYTEST_DONE on every end; Breakthrough's map screen gates on it.
+- **Stub sims** (a fake EvalSuite marker; a stub screen writing records):
+  - All present -> PASS marker.
+  - int8 missing on humanevalx -> FAIL marker naming it.
+  - No go file -> NOT RUN at the deadline; no ESPID -> it refuses to arm; the end marker written after arming -> PASS.

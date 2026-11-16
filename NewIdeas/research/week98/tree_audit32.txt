@@ -1,0 +1,83 @@
+
+=== he (heplus24) ===
+SELF-CHECK heplus24: chain-32 kept 13.769 vs 13.77 -> PASS
+  join rows2b_heplus.npz: cells without a row 0, margin fingerprint mismatches 0
+  join rows4b_heplus.npz: cells without a row 0, margin fingerprint mismatches 0
+  y fingerprint (every on-true node's y == the 125B's top-1 tk0 at its row): 127654 / 127820
+  mismatches: depth 0 31, depths 1-2 56, 3+ 79; 125B margin median 0.125 nats, < 0.1 nats 29
+SELF-CHECK he: this walk's chain-32 13.769 vs 13.77 -> PASS
+SELF-CHECK he: EAGLE-2-16 kept 16.263 vs S9c 11.263 -> FAIL
+
+=== mbpp (mbppbank) ===
+SELF-CHECK mbppbank: chain-32 kept 6.924 vs 6.92 -> PASS
+  join rows2b_mbpp.npz: cells without a row 0, margin fingerprint mismatches 0
+  join rows4b_mbpp.npz: cells without a row 0, margin fingerprint mismatches 0
+  y fingerprint (every on-true node's y == the 125B's top-1 tk0 at its row): 141929 / 141929
+SELF-CHECK mbpp: this walk's chain-32 6.924 vs 6.92 -> PASS
+SELF-CHECK mbpp: EAGLE-2-16 kept 9.031 vs S9c 7.487 -> FAIL
+
+MoonShots' checkstart.json audit-chain-32 (P = 1, tau0 4), for the self-check:
+  2b heplus all tau0=4 P=1: kept/32 14.456
+  4b heplus all tau0=4 P=1: kept/32 15.399
+  2b mbpp all tau0=4 P=1: kept/32 7.427
+  4b mbpp all tau0=4 P=1: kept/32 7.713
+
+RESULTS (kept per check under the walk; walk-strict coverage by band 0 / 1-2 / 3-6 / 7-10 / 11-14)
+
+he: chain-16 13.769
+  chain-32                     kept  13.769  x1.000 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  92.0  91.5  92.4  94.3  96.6  96.7  97.7
+  tree-16 (EAGLE-2)            kept  16.263  x1.181 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.5  96.6  93.7  94.3  96.3  96.2  96.9
+  audit-chain-32 2b            kept  14.456  x1.050 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  92.7  90.6  92.8  95.2  96.6  97.6  98.2
+  audit-chain-32 2b P=2        kept  15.000  x1.089 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  92.7  91.0  93.2  94.8  97.1  98.3  98.3
+  audit-chain-32 2b P=inf      kept  15.179  x1.102 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  92.4  90.8  93.3  95.0  96.7  98.7  99.4
+  audit-chain-32 4b            kept  15.399  x1.118 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  93.0  92.1  94.0  95.1  96.7  97.5  98.2
+  audit-chain-32 4b P=2        kept  15.819  x1.149 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  93.5  91.6  93.9  95.7  97.1  98.3  98.3
+  audit-chain-32 4b P=inf      kept  16.263  x1.181 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  93.3  91.4  93.9  95.9  97.1  99.2  99.0
+  chain-16                     kept  13.769  x1.000 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  92.0  91.5  92.4  94.3  96.6  96.7  97.7
+  audit-chain-16 2b            kept  14.456  x1.050 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  92.7  90.6  92.8  95.2  96.6  97.6  98.2
+  tree+audit UB 2b             kept  18.640  x1.354 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.5  96.5  94.8  96.3  96.8  97.5  98.0
+  tree+audit BR-3 OPT 2b       kept  16.516  x1.200 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.4  96.8  93.8  94.5  96.0  96.6  96.2
+  tree+audit BR-3 PES 2b       kept  16.180  x1.175 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.7  96.5  93.2  95.3  94.8  96.7  96.4
+  tree+audit BR-5 OPT 2b       kept  16.776  x1.218 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.4  96.9  93.6  95.1  96.5  96.6  96.5
+  tree+audit BR-5 PES 2b       kept  16.263  x1.181 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.7  96.6  93.1  95.2  96.2  96.1  96.9
+  tree+audit BR-7 OPT 2b       kept  16.955  x1.231 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.4  97.3  93.2  95.5  96.3  96.8  96.8
+  tree+audit BR-7 PES 2b       kept  16.304  x1.184 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  99.0  96.5  92.8  95.1  95.6  96.9  97.2
+  audit-chain-16 4b            kept  15.399  x1.118 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  93.0  92.1  94.0  95.1  96.7  97.5  98.2
+  tree+audit UB 4b             kept  19.318  x1.403 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  99.1  97.0  95.5  96.3  96.8  97.2  98.4
+  tree+audit BR-3 OPT 4b       kept  16.776  x1.218 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.4  97.3  93.8  94.7  95.9  96.4  96.7
+  tree+audit BR-3 PES 4b       kept  16.516  x1.200 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  99.0  96.8  93.5  95.2  95.0  96.5  96.9
+  tree+audit BR-5 OPT 4b       kept  16.955  x1.231 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.4  97.1  94.2  94.5  96.4  96.4  97.0
+  tree+audit BR-5 PES 4b       kept  16.645  x1.209 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  99.0  96.9  93.9  94.6  96.1  96.0  97.3
+  tree+audit BR-7 OPT 4b       kept  17.183  x1.248 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.4  97.5  94.2  94.7  96.4  96.3  97.8
+  tree+audit BR-7 PES 4b       kept  16.732  x1.215 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.7  96.9  94.0  94.2  95.8  96.6  98.0
+  LINE 2b: max(tree-16, audit-chain-16) 16.263; UB 18.640 (x1.146); best BR OPT 16.955 (x1.043), PES 16.304 (x1.003) -> BETWEEN (OPT passes, PES does not)
+  LINE 4b: max(tree-16, audit-chain-16) 16.263; UB 19.318 (x1.188); best BR OPT 17.183 (x1.057), PES 16.732 (x1.029) -> PASS
+
+mbpp: chain-16 6.924
+  chain-32                     kept   6.924  x1.000 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  89.7  86.0  85.6  84.0  86.1  87.3  86.8
+  tree-16 (EAGLE-2)            kept   9.031  x1.304 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.6  94.3  89.2  84.7  82.1  84.9  84.2
+  audit-chain-32 2b            kept   7.427  x1.073 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  88.5  86.7  87.4  86.1  86.4  88.9  87.9
+  audit-chain-32 2b P=2        kept   7.671  x1.108 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  88.1  86.2  87.2  87.5  88.2  91.5  89.9
+  audit-chain-32 2b P=inf      kept   7.911  x1.143 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  87.9  86.1  87.2  87.9  89.6  93.2  93.6
+  audit-chain-32 4b            kept   7.713  x1.114 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  88.9  88.0  87.9  85.9  87.2  88.8  89.0
+  audit-chain-32 4b P=2        kept   8.104  x1.170 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  87.7  87.9  88.4  87.0  91.0  90.1  89.6
+  audit-chain-32 4b P=inf      kept   8.510  x1.229 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  87.7  87.4  88.1  88.0  92.5  93.6  94.5
+  chain-16                     kept   6.924  x1.000 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  89.7  86.0  85.6  84.0  86.1  87.3  86.8
+  audit-chain-16 2b            kept   7.427  x1.073 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  88.5  86.7  87.4  86.1  86.4  88.9  87.9
+  tree+audit UB 2b             kept  10.735  x1.550 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.6  94.8  91.8  88.2  88.2  88.9  86.7
+  tree+audit BR-3 OPT 2b       kept   9.366  x1.353 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.6  94.9  89.8  85.5  82.8  84.6  87.0
+  tree+audit BR-3 PES 2b       kept   9.195  x1.328 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.4  94.6  89.2  85.8  82.4  84.3  85.6
+  tree+audit BR-5 OPT 2b       kept   9.360  x1.352 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.5  94.8  89.9  85.1  83.4  85.1  86.2
+  tree+audit BR-5 PES 2b       kept   9.078  x1.311 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.1  94.5  88.6  85.8  83.5  84.8  84.8
+  tree+audit BR-7 OPT 2b       kept   9.383  x1.355 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.4  94.7  89.8  85.1  84.4  85.2  87.7
+  tree+audit BR-7 PES 2b       kept   8.984  x1.298 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.0  94.0  88.5  85.0  84.4  85.3  88.1
+  audit-chain-16 4b            kept   7.713  x1.114 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  88.9  88.0  87.9  85.9  87.2  88.8  89.0
+  tree+audit UB 4b             kept  11.007  x1.590 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.5  95.2  92.2  89.0  87.7  88.6  88.4
+  tree+audit BR-3 OPT 4b       kept   9.417  x1.360 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.5  95.2  89.8  85.6  83.0  84.0  86.4
+  tree+audit BR-3 PES 4b       kept   9.233  x1.333 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.5  94.8  89.2  85.6  83.1  84.1  84.2
+  tree+audit BR-5 OPT 4b       kept   9.468  x1.367 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.6  95.0  90.0  85.7  83.5  84.5  84.1
+  tree+audit BR-5 PES 4b       kept   9.163  x1.323 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.2  94.7  88.9  85.7  83.8  84.5  82.0
+  tree+audit BR-7 OPT 4b       kept   9.491  x1.371 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.5  95.0  89.9  85.8  84.1  84.7  85.3
+  tree+audit BR-7 PES 4b       kept   9.078  x1.311 vs chain-16  walk-strict 0|1-2|3-6|7-10|11-14|15-22|23-30:  98.0  94.5  88.7  85.3  83.9  85.6  84.7
+  LINE 2b: max(tree-16, audit-chain-16) 9.031; UB 10.735 (x1.189); best BR OPT 9.383 (x1.039), PES 9.195 (x1.018) -> BETWEEN (OPT passes, PES does not)
+  LINE 4b: max(tree-16, audit-chain-16) 9.031; UB 11.007 (x1.219); best BR OPT 9.491 (x1.051), PES 9.233 (x1.022) -> PASS

@@ -1,0 +1,31 @@
+self-check (all arms bit-equal to stock after 21 x 8 steps): {'stock': True, 'custom': True, 'wide': True, 'compiled': True}
+round 1/12 at 0 s (GPU busy at round start 74 %)
+round 2/12 at 1 s (GPU busy at round start 75 %)
+round 3/12 at 1 s (GPU busy at round start 76 %)
+round 4/12 at 1 s (GPU busy at round start 81 %)
+round 5/12 at 2 s (GPU busy at round start 49 %)
+round 6/12 at 2 s (GPU busy at round start 76 %)
+round 7/12 at 2 s (GPU busy at round start 70 %)
+round 8/12 at 3 s (GPU busy at round start 65 %)
+round 9/12 at 3 s (GPU busy at round start 63 %)
+round 10/12 at 4 s (GPU busy at round start 65 %)
+round 11/12 at 4 s (GPU busy at round start 64 %)
+round 12/12 at 4 s (GPU busy at round start 64 %)
+
+ms per level (median): wall | CPU build | CPU in async_eval
+N                         stock                      custom                        wide                    compiled
+8      0.0971 | 0.0085 | 0.0775    0.1070 | 0.0273 | 0.0698    0.1150 | 0.0264 | 0.0762    0.0828 | 0.0058 | 0.0676
+16     0.1108 | 0.0116 | 0.0889    0.1637 | 0.0469 | 0.1007    0.1753 | 0.0480 | 0.1079    0.1230 | 0.0080 | 0.1033
+24     0.1538 | 0.0169 | 0.1270    0.2190 | 0.0706 | 0.1391    0.2324 | 0.0675 | 0.1365    0.1685 | 0.0100 | 0.1476
+32     0.1886 | 0.0215 | 0.1488    0.2914 | 0.0938 | 0.1868    0.2734 | 0.0906 | 0.1648    0.2249 | 0.0133 | 0.1842
+48     0.2781 | 0.0335 | 0.2265    0.4193 | 0.1336 | 0.2659    0.4198 | 0.1436 | 0.2590    0.2922 | 0.0175 | 0.2614
+64     0.3891 | 0.0462 | 0.3175    0.6275 | 0.2008 | 0.3993    0.6064 | 0.1928 | 0.3996    0.4252 | 0.0228 | 0.3889
+96     0.5400 | 0.0674 | 0.4436    0.8635 | 0.3164 | 0.5307    0.8668 | 0.3154 | 0.5337    0.6091 | 0.0318 | 0.5647
+144    0.8200 | 0.1095 | 0.6981    1.3069 | 0.4702 | 0.8242    1.3262 | 0.4716 | 0.8243    0.8795 | 0.0462 | 0.8209
+
+stock    : wall = 0.0285 ms + 5.438 us x N; CPU (build + async_eval) = 0.0149 ms + 5.379 us x N
+custom   : wall = 0.0173 ms + 8.935 us x N; CPU (build + async_eval) = 0.0034 ms + 8.909 us x N
+wide     : wall = 0.0164 ms + 8.992 us x N; CPU (build + async_eval) = 0.0001 ms + 8.928 us x N
+compiled : wall = 0.0300 ms + 5.939 us x N; CPU (build + async_eval) = 0.0157 ms + 5.946 us x N
+stock C0 level, F = 1, T ~400: wall 2.1081 ms per level; CPU build 0.6951 + async_eval 1.3649 = 2.0600 ms; wall - 177.6 MB / 292.7 GB/s = 1.5013 ms
+wrote /Users/kamen/MoonShots/week98/bet7/fl_floor_share.json

@@ -8,6 +8,57 @@ LOSSY_CHECK_PLAN (corrected 5fc4c34) and engine profile (a082f8c), and my record
 
 Labels: [K] measured, [P] priced from measured parts, [est] estimate.
 
+## UPDATE Mon 12:2x: the Friday estimate CORRECTED to ~40-46 ms GPU at C5 (C6 + int8 ~36-42) [est]
+- **The measured 32-row dense matmuls** (data/week98/check25/README.md, quiet 12:22): 19.30 ms per check on today's
+  two-16-row route -> 13.20 (dn32) / 12.76 (dn32q). That is ~-6 ms, not the -8..-10 I had assumed.
+- **The rest of the dense side does not shrink with that work:**
+  - HC reads ~4.7 ms (one-pass, to build) or 7.5 (split);
+  - GDN recurrence ~4.3 (sequential at 32 rows);
+  - router ~1.7, attention ~1, glue ~3.
+  - So the dense side is ~25-28 ms.
+- **Experts:** 20.4 (1.43x) + 1c glue 1.8-3.4.
+- **So the measured C5 check by Friday is ~40-46 ms GPU (Fit12's ladder steps 2-5: 40.5-45.3), not 33-38.**
+- **Below that:** chunked GDN -2.8, fused 1c glue -1.8..-3.4, HC4 -1.2, row-dense expert tiles -1.5..-4
+  (unproven), early death's dead-row drop -2.7..-5.6 (not mine).
+- Sent to the orchestrator 12:2x.
+
+## UPDATE Mon 12:1x (after the plan was sent)
+- **The orchestrator 12:1x: plan ACCEPTED.**
+  - Slots are approved in principle. Kamen lifted the day limits until he says otherwise. NewIdeas sets the times
+    (early-death dev pass Tue night, capture Wed night, proofs Thu-Fri nights).
+  - Lossy is allowed: C6 (lambda 1.8e-2), int8 dense activations and V4 are EvalSuite-gated levers. NewIdeas
+    pre-registers the three gates this week; a gate PASS is the go.
+  - **Friday's report carries two numbers:** the measured check at C5 bytes, and the measured (or bench) check at
+    C6 + int8, each with its efficiency vs peak. Plus **the launch count** next to bytes and ms (Fable B's ask, backed by
+    the orchestrator).
+- **BigMoE 12:0x:**
+  - The t1c set: ~/BigMoE/data/stack/lx45t1c1_env.txt + t1cx45t1c1_env.txt, screen data/r57/snap/t1c1 (frozen;
+    EvalSuite pins it: copy, never edit). Env recipe: scripts/t1c_keytest.py run_env().
+  - V1 / V3 are NOT built and not on its list this week: I emulate both for timing.
+  - **The fused tiers kernel: yes in principle**, if it is opt-in and off by default, bitwise vs tiers_mx / km / 2-D
+    nolsb / the counter on every slot (scripts/test_t1c_wiring.py, 3.1 M slots), never in frozen t1c1, with a new
+    snapshot + key-test re-run after EvalSuite's gate.
+  - **The lossy engine never runs > 16 rows through the one-call:** R57_ROWS defaults to 16, and > 16 rows go to the
+    slot path. So no lossy 32-row engine route exists today. R57_ROWS=32 + 1c would trip the slot path's assert.
+  - => engine measurement #1 needs my own 32-row lossy route in a COPY of the screen, or a standalone full-check
+    bench. Mapping the G32T route now (read-only agent).
+- **Fable B (the orchestrator 12:1x, ~/FableGod/fableb/IDEAS_1116_check25.md) agrees with the bound** (~35-40 by
+  Friday). Folded in:
+  - (1) Dispatch diet from built pieces (eprep, GDNB, att_single / fs4, the a|b + k|v folds, router + shared as one
+    stream, HC-read glue): 4,022 -> ~2,500 launches, CPU ~17 ms. These come with the f32one wiring (Tue-Wed). Note
+    that eprep is bypassed under 2-D nolsb (b43efc4), so the fused 1c kernel replaces it there.
+  - (2) Row-dense expert tiles at 32 rows: ~2.9 rows per expert, so 16-row tiles are ~82 % padding. This is Thursday's
+    expert item, moved up as its first experiment (NAX6-N on layer 20's real 32-row routing; PASS <= 0.85x).
+  - (3) Dead-row drop and (4) misses -> 0: early death's and the loop's, not this bench's.
+- **The 32-row dense kernel is a race of three forms** (all written 12:0x-12:1x; they run when the GPU is free):
+  - qmm32n (scripts/week98/qmm32n.py): the native layout's register decode for both row tiles. Bitwise == two 16-row
+    FAST calls by construction.
+  - dn32 (scripts/week98/dn32.py): bf16 x uint4 from threadgroup memory, NAX6's operand form. No ALU decode.
+  - dn32q: int8 x int4 from threadgroup memory (NAX-C's form; M27-C: 1.55-1.73x bf16's rate). It gives the C6 + int8
+    number.
+  - Bench: scripts/week98/qmm32n_bench.py, cold per-check weight sets, independent and chained, vs byte and matrix
+    floors.
+
 ## 1. Bottom line
 
 - **At C5's bytes, 25 ms is out of reach for any kernel work on this Mac.** This is the physics, not the schedule
@@ -29,8 +80,8 @@ Labels: [K] measured, [P] priced from measured parts, [est] estimate.
   |---|---|---:|---:|---:|
   | C5 = 1c-tiers + V1 + V3, 6.12 GB | bf16 | 23.9 | 26.6 | 96 % |
   | C5 | int8 | 23.0 | 25.6 | 92 % |
-  | C6 = C5 at lambda 1.8e-2, 5.55 GB | int8 | 21.0 | 23.3 | 84 % |
-  | C6 + V4 (3-bit GDN / attention), 5.22 GB | int8 | 19.8 | 22.0 | 79 % |
+  | C6 = C5 at lambda 1.8e-2, 5.77 GB on code [CORRECTED 12:4x, Breakthrough: was the pooled 5.55] | int8 | 21.7 | 24.2 | 87 % (was 84) |
+  | C6 + V4 (3-bit GDN / attention), 5.43 GB on code | int8 | 20.6 | 22.8 | 82 % (was 79) |
 
   - Every row past C5 is a quality call (EvalSuite's gate, then Kamen): lambda 1.8e-2, 3-bit GDN / attention, and int8
     activations.
@@ -112,7 +163,7 @@ Labels: [K] measured, [P] priced from measured parts, [est] estimate.
 ## 3. What does not fit by Friday (plainly)
 
 1. **25 ms at C5's bytes.** The bound is 23.9 ms at 100 % of every peak (section 1). No kernel plan reaches it.
-2. **25 ms at C6 + int8 (84 %) or C6 + V4 + int8 (79 %).**
+2. **25 ms at C6 + int8 (87 %) or C6 + V4 + int8 (82 %)** [CORRECTED 12:4x: code bytes].
    - The bytes and the int8 math need EvalSuite's gates and Kamen's call.
    - The ~80-85 % whole-check efficiency needs megakernels or a replayed command path (3-6 weeks [est]).
 3. **Experts at ~1.1x their floor.** I know no route: the exact NAX road past NAX6 is closed, and int8 (NAX-C) ran at

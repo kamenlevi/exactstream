@@ -1,0 +1,12 @@
+DN32 check (errors vs fp32; bf16 output rounding included)
+  GDN qkv|z                            N  16384 K  2560 ks  1/ 1: max err / max |ref|: qmm32n 3.93e-03, dn32 3.93e-03, dn32q 6.17e-03
+  GDN b|a                              N     96 K  2560 ks 10/10: max err / max |ref|: qmm32n 3.27e-03, dn32 3.27e-03, dn32q 6.56e-03
+  out_proj / o_proj                    N   2560 K  6144 ks  6/ 6: max err / max |ref|: qmm32n 3.16e-03, dn32 3.16e-03, dn32q 7.39e-03
+  att q                                N  12288 K  2560 ks  1/ 1: max err / max |ref|: qmm32n 3.68e-03, dn32 3.68e-03, dn32q 7.21e-03
+  att k / v                            N    512 K  2560 ks 10/10: max err / max |ref|: qmm32n 3.18e-03, dn32 3.18e-03, dn32q 7.14e-03
+  indexer qk                           N    640 K  2560 ks 10/10: max err / max |ref|: qmm32n 3.17e-03, dn32 3.17e-03, dn32q 7.66e-03
+  shared gate|up|gate (SMALL-N pad)    N   1312 K  2560 ks  8/ 8: max err / max |ref|: qmm32n 3.07e-03, dn32 3.07e-03, dn32q 6.38e-03
+  shared down                          N   2560 K   640 ks  5/ 5: max err / max |ref|: qmm32n 3.45e-03, dn32 3.45e-03, dn32q 7.14e-03
+  PLE key                              N  10240 K  2560 ks  1/ 1: max err / max |ref|: qmm32n 4.28e-03, dn32 4.28e-03, dn32q 7.10e-03
+  PLE value                            N   2560 K  2560 ks  4/ 4: max err / max |ref|: qmm32n 3.20e-03, dn32 3.20e-03, dn32q 6.87e-03
+  head (V1 16K list)                   N  16448 K  2560 ks  1/ 1: max err / max |ref|: qmm32n 3.82e-03, dn32 3.82e-03, dn32q 7.27e-03

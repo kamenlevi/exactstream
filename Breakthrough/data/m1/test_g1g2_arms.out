@@ -1,0 +1,28 @@
+PASS numerics N 1024 K 2560: fake-quant == int8d formula (float64), max rel 4.0e-07
+PASS error profile N 1024 K 2560: int8 5.95e-03 vs bf16 2.74e-03 (x2.17; Leap: 6.6-7.9e-3 vs 2.9-3.9e-3)
+PASS numerics N 2560 K 1024: fake-quant == int8d formula (float64), max rel 2.8e-07
+PASS error profile N 2560 K 1024: int8 6.28e-03 vs bf16 2.57e-03 (x2.45; Leap: 6.6-7.9e-3 vs 2.9-3.9e-3)
+PASS numerics N 1280 K 2560: fake-quant == int8d formula (float64), max rel 4.5e-07
+PASS error profile N 1280 K 2560: int8 7.11e-03 vs bf16 3.16e-03 (x2.25; Leap: 6.6-7.9e-3 vs 2.9-3.9e-3)
+PASS numerics N 2560 K 640: fake-quant == int8d formula (float64), max rel 2.2e-07
+PASS error profile N 2560 K 640: int8 6.33e-03 vs bf16 3.02e-03 (x2.09; Leap: 6.6-7.9e-3 vs 2.9-3.9e-3)
+[dm] bt_int8: 13 projections wrapped ({'ple': 2, 'shared_gate': 1, 'shared_fused_gu+down': 1, 'att': 4, 'gdn': 5}); answer rows only
+PASS census: 5 GDN + 4 attention + shared_expert_gate + 2 PLE wrapped, 1 fused shared expert; 8-bit indexer, router, MTP untouched ({'_I8Lin': 12, '_I8FusedGU': 1})
+PASS 8-bit indexer and MTP projections left as they were
+PASS w1: prompt rows 0-20 == baseline bit for bit, answer rows differ (int8)
+PASS w2: prompt rows 0-4 == baseline bit for bit, answer rows differ (int8)
+PASS per-window checks: no mismatch ([])
+PASS w1 answer rows == a manual all-int8 forward bit for bit
+[dm] bt_int8 WARNING window 3: {'win': 3, 'n': 29, 'a': 5, 'cpos': 29, 'chunks': 2, 'mods_called': 11, 'mods': 13, 'calls': [2], 'rows_q': 264, 'want': 312, 'odd': 0}
+PASS negative control: a skipped module (PLE) in a window is flagged
+[dm] bt_int8: 3 windows; answer rows x modules quantized 784 (want 832); windows with a mismatch 1; census {'ple': 2, 'shared_gate': 1, 'shared_fused_gu+down': 1, 'att': 4, 'gdn': 5} -> /var/folders/z2/6l7f7bcs2c5gtxzfv2vm91zr0000gn/T/g1g2test_i6c1the6/bt_int8_census.jsonl
+PASS teardown: modules, run_window and the text call restored
+PASS census report written (/var/folders/z2/6l7f7bcs2c5gtxzfv2vm91zr0000gn/T/g1g2test_i6c1the6/bt_int8_census.jsonl)
+PASS arm bt_g1h8 resolves
+PASS arm bt_l20g2 resolves
+PASS arm bt_g1 resolves
+PASS arm bt_c6comb resolves
+PASS arm bt_l20comb resolves
+PASS arm bt_dense3 resolves
+PASS arm bt_restore resolves
+ALL PASS

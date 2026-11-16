@@ -1,0 +1,26 @@
+900 tok/s = kept per 32-row check / (check + draft + overhead). Kept needed (and its flat per-guess equivalent):
+  check 25.0 + draft 3.0 + overhead 1.5 = 29.5 ms -> kept >=  26.6 (flat 98.76 %)
+  check 25.0 + draft 3.0 + overhead 4.0 = 32.0 ms -> kept >=  28.8 (flat 99.31 %)
+  check 25.0 + draft 5.0 + overhead 1.5 = 31.5 ms -> kept >=  28.4 (flat 99.20 %)
+  check 25.0 + draft 5.0 + overhead 4.0 = 34.0 ms -> kept >=  30.6 (flat 99.71 %)
+  check 20.0 + draft 3.0 + overhead 1.5 = 24.5 ms -> kept >=  22.1 (flat 97.45 %)
+  check 20.0 + draft 3.0 + overhead 4.0 = 27.0 ms -> kept >=  24.3 (flat 98.15 %)
+  check 20.0 + draft 5.0 + overhead 1.5 = 26.5 ms -> kept >=  23.9 (flat 98.01 %)
+  check 20.0 + draft 5.0 + overhead 4.0 = 29.0 ms -> kept >=  26.1 (flat 98.64 %)
+  check 15.0 + draft 3.0 + overhead 1.5 = 19.5 ms -> kept >=  17.6 (flat 95.70 %)
+  check 15.0 + draft 3.0 + overhead 4.0 = 22.0 ms -> kept >=  19.8 (flat 96.64 %)
+  check 15.0 + draft 5.0 + overhead 1.5 = 21.5 ms -> kept >=  19.4 (flat 96.47 %)
+  check 15.0 + draft 5.0 + overhead 4.0 = 24.0 ms -> kept >=  21.6 (flat 97.30 %)
+
+The three stated targets together (97.8 % flat = kept 23.15, check 25, draft 3-5):
+  draft 3, overhead 0.0:   827 tok/s
+  draft 3, overhead 1.5:   785 tok/s
+  draft 3, overhead 4.0:   723 tok/s
+  draft 5, overhead 0.0:   772 tok/s
+  draft 5, overhead 1.5:   735 tok/s
+  draft 5, overhead 4.0:   681 tok/s
+
+Today (HE+, lossy tree-32 + close-call d1 kept 16.91; check C5 realistic 51.3-55.7 [desk]; draft tree-32 19.1 ms sync-free; overhead 4):
+  check 51.3:   227 tok/s
+  check 55.7:   215 tok/s
+  exact today at the measured engine, tree-16 HE+ (11.26 kept, 62.6 + 11.6 + 4 ms): 144 tok/s
