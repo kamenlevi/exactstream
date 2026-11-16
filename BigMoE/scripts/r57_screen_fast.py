@@ -75,6 +75,9 @@ if os.environ.get("BIGMOE_COPY_PAR") == "0":             # the ext turns the cop
     os.environ.pop("BIGMOE_COPY_PAR")
 assert not (os.environ.get("R57_NAX") == "1" and os.environ.get("REF2_OOO_1C") == "1" and os.environ.get("REF2_NAX_1CQ") != "1"), \
     "R57_NAX=1 with REF2_OOO_1C=1 needs REF2_NAX_1CQ=1 (the old one-call head's rs_l bug; HANDOVER Fri 03:3x)"
+assert not (os.environ.get("R57_FAST") == "QOM" and os.environ.get("R57_NAX") == "1") or (   # Mon 16 Nov (EvalSuite's tier 0a:
+    os.environ.get("REF2_OOO_1C") == "1" and os.environ.get("REF2_NAX_1CQ") == "1" and os.environ.get("R57_H1C") != "1"), \
+    "R57_FAST=QOM on R57_NAX=1 needs REF2_OOO_1C=1 + REF2_NAX_1CQ=1, no R57_H1C (ref2 _ooo_sel raises at the first verify)"   # lossycalx45rpl1)
 TIER = os.environ.get("R57_TIER") == "1"                 # S45-T (NewIdeas 18:2x): REF2-T on the gate at C's RAM (M-08 sizing)
 if TIER:
     os.environ["BIGMOE_TIER"] = "4433333333"; os.environ["BIGMOE_TIER_GLU"] = "3c"
@@ -215,6 +218,19 @@ if FAST:
     import importlib.util as _ilu2
     _sp2 = _ilu2.spec_from_file_location("relax_core", os.path.expanduser("~/BigMoE/scripts/relax_core.py"))
     RXC = _ilu2.module_from_spec(_sp2); _sp2.loader.exec_module(RXC)
+
+    def _gate_block(cf_, tail_, dr_, thr_, grams_):
+        """RXC.gate_rows on a drafted block of any length. R57_REPLAY (Mon 16 Nov, EvalSuite's tier 0a 05:0x): a block cut
+        by the reference's end holds < 15 drafts and gate_rows reads a full 15-draft window (IndexError at a key's end).
+        A short block is padded (cf -inf, draft -1: never gated, no prompt gram) and every row from its end on comes out
+        exact (0), as a full block's row 15 does (and as a block of exactly 15 at the reference's end: c16 None). A full
+        window takes the same gate_rows call as before. relax_delta.gate_flags pads its blocks the same way."""
+        n_ = RXC.R - 1
+        if len(cf_) >= n_ and (grams_ is None or len(dr_) >= n_):
+            return RXC.gate_rows(cf_, tail_, dr_, thr_, grams_)
+        m_ = len(cf_) if grams_ is None else min(len(cf_), len(dr_))
+        g_ = RXC.gate_rows(list(cf_[:m_]) + [float("-inf")] * (n_ - m_), tail_, (list(dr_[:m_]) + [-1] * n_)[:n_], thr_, grams_)
+        return list(g_[:m_]) + [0] * (RXC.R - m_)
     _S = lambda thr=None, copy=False, rules=(), loop=None, q1u=False, t3=False, cold=False, qom=False: dict(thr=thr, copy=copy,
                                                                     rules=tuple(rules), loop=loop, q1u=q1u, t3=t3, cold=cold, qom=qom)
     _G99 = dict(thr=0.99, copy=True)
@@ -1327,9 +1343,9 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
                 cg_ = (cf_raw if cg is None else            # a row whose draft the copy replaced: the drafter's cf is
                        [c_ if d_ == x_ else 0.0 for c_, d_, x_ in zip(cf_raw, d0_, dr)])   # about another token: no trust
                 if fz.get("q1u"):                        # U3: the sure rows (cf gate, row 15 never); the wrapper
-                    sq_ = np.array([g_ == 1 for g_ in RXC.gate_rows(cg_, tl_, dr, fz["thr"], None)])   # builds the union
-                else:                                    # mask per layer
-                    fk_ = RXC.keep_mask(RXC.gate_rows(cg_, tl_, dr, fz["thr"], grams))
+                    sq_ = np.array([g_ == 1 for g_ in _gate_block(cg_, tl_, dr, fz["thr"], None)])   # builds the union
+                else:                                    # mask per layer (_gate_block: a short R57_REPLAY block, 16 Nov)
+                    fk_ = RXC.keep_mask(_gate_block(cg_, tl_, dr, fz["thr"], grams))
             if rlx_ and (RLX_THR is not None or RLX_COPY):   # R57_RELAX_DELTA: the row gate, on the block before the cut
                 tlr = out[-RXC.COPY_N:] if len(out) >= RXC.COPY_N else ids[len(out) - RXC.COPY_N:] + out
                 cgr = (cf_raw if cg is None else [c_ if d_ == x_ else 0.0 for c_, d_, x_ in zip(cf_raw, d0_, dr)])

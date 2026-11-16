@@ -411,3 +411,66 @@
 - **The delta-2 env is registered (amendment 3b; BigMoE e7ba034):** ccx45cc1d2_env.txt, blob
   a5cb28ef13ec3221d24655c199b8e65e6ffb2ad1, clean. The only difference from ccx45cc1 is R57_RELAX_DELTA 1 -> 2 (checked
   here). Same cc1 pins. Dry run with the exact refs as a stand-in: rc 0.
+
+## Amendment 2a (Mon 2026-11-16 06:3x, after the calibration night): no tier-0a lines
+- **What ran** (docs/RESULT_lossygate_2026-11-16.md):
+  - steps 1 and 2 PASS: tier 0 GO, the unset path 40 / 40 token-identical, and the exact REPLAY self-check at A 1.0000
+    on 10,315 drafted rows with 0 flips;
+  - step 3 gave no rows. p2x45rpl1 and m1bx45rpl1 crashed in the rpl1 snapshot's REPLAY row gate (IndexError in
+    relax_core.gate_rows, from r57_screen_rpl1.py line 1324, on a block cut by the reference's end).
+    lossycalx45rpl1 crashed in ref2 ("QOM on the NAX path ... is not built"). Each runner stopped after 30 processes
+    (exit 3).
+- **So:**
+  - A_line and F_line are not computed and not adopted, since amendment 2 computes them from step 3's passes only;
+  - tier 0 stays the mini-panel KILL line, and a REPLAY pass stays information.
+- **A re-run** is a new dated amendment, registered before its rows. It needs:
+  - BigMoE's fix in a new snapshot, with its pins;
+  - a deliberately lossy arm whose env runs on a QOM-capable path;
+  - before arming, one scored key per env on the real loop. The head-test stops at the model load, and neither crash
+    came before the first scored key.
+
+## Amendment 2b (Mon 2026-11-16 07:0x, before its rows): the tier-0a re-run on snapshot rpl2, step 3 only
+- **The snapshot rpl2** (BigMoE 89a6798), checked here:
+  - screen data/r57/snap/rpl2/r57_screen_rpl2.py, sha256 d74d8b119e34; helpers data/r57/snap/frozen_rpl1, unchanged;
+  - its only differences from rpl1's screen (the diff, read here):
+    - a module-level assert: R57_FAST=QOM with R57_NAX=1 needs REF2_OOO_1C=1 and REF2_NAX_1CQ=1, and no R57_H1C;
+    - `_gate_block`, in place of both `gate_rows` calls in R57_FAST's row gate. A full window takes the same
+      `gate_rows` call as before. A block cut by the reference's end is padded, and every row from its end on is
+      exact, as a full block's row 15 is.
+  - With R57_FAST unset, neither change runs, so the exact path is rpl1's.
+  - Pins: CARD_TREES=data/r57/snap/rpl2=7038e9a8ca1e98f16a0e2b88df75fd5bd3efc097,data/r57/snap/frozen_rpl1=db72c3c1367e2c68f9a1365ed8d6137fce6c8af6,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f;
+    CARD_SCREEN_SHA=d74d8b119e34; CARD_SO_SHA=ff69fa24a745.
+- **Steps 1 and 2 carry over** from amendment 2a's night: the own rows card_x45rpl1_t0code and the merged margins
+  results/card/replay_margins_x45rpl1.json.
+  - The reason: the exact path is unchanged (above). BigMoE's key test also replayed those rows on x45rpl2 (exact-45
+    on rpl2, env blob d2e1b8fa2e12e73979961c20ba0f8f91e1f6b332) at A 1.0000: mbpp/118 16 / 16, mbpp/128 33 / 33.
+- **Step 3, re-run on rpl2.** Each arm uses CARD_TIER=0, CARD_SCOPE=code, CARD_REF=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2,
+  CARD_REPLAY=results/card/replay_margins_x45rpl1.json and CARD_REPLAY_ROWS=card_x45rpl1_t0code:
+
+| tag | what | env blob | NO-SWAP gate | known |
+|---|---|---|---|---|
+| p2x45rpl2 | p2x45rpl1's line verbatim (chat45_p2) | ff30bd2afd75c146b7676d2dfd15ba0d0eab9315 | 43 (CARD_MEM 39) | PASS (the 45 GB P2 gate) |
+| m1bx45rpl2 | m1bx45rpl1's line verbatim (card_m1b) | a59e13e024504b7083cea083b30400d1d0e4a8e3 | 47 (CARD_MEM 43; its card env's peak ~47 GB) | PASS (the card gates) |
+| lossycalx45rpl2 | m1bx45rpl2's line + R57_RCUT_SETS=humaneval:3,mbpp:3,ifeval:3 (each decode row of those sets keeps its top-3 of 10 experts, on top of QOM) | 741c4d2f0af44aca58c11304b61fd22963a0b4b1 | 47 (CARD_MEM 43) | untested; deliberately lossy, known-bad only if its own mini-panel KILLs |
+
+  - lossycalx45rpl2 replaces lossycalx45rpl1, which the engine refused (QOM on the NAX path without the one-call).
+  - Dry runs (07:01) on these pins: rc 0 on all three, 40 keys each, and the REPLAY guard passes.
+- **The pre-arming check (amendment 2a):** BigMoE's real-loop key test (a16e652, data/r57/rpl2_keytest.json, Mon
+  06:55-06:58).
+  - All four rpl2 envs were built as runner 64 builds them, with R57_REPLAY on these rows and margins.
+  - mbpp/118 and mbpp/128 were each replayed to the reference's end, through last checks of 1 and 3 drafts.
+  - Every run ended rc 0, with the FAST gate engaged up to each key's last check.
+  - p2 and m1b reached A 1.0000 with 0 flips. lossycal had mbpp/128 at 31 / 33 (A 0.9394; information).
+  - Lifetime peaks were 41.7-42.6 GB on these short keys.
+- **The lines and the adoption check: as in amendment 2,** from these three runs only.
+  - A_line = the lowest passing A (p2, m1b) minus 0.5 pt; F_line = twice the highest passing F_hi.
+  - If lossycal's mini-panel KILLs, lossycal must fall outside the lines, or the lines are not adopted. If it doesn't
+    KILL, it is reported, and the lines rest on the passes alone.
+  - A consequence, stated before the data: if both passes have F_hi 0.00, then F_line is 0. A single flip at an exact
+    margin >= 2 nats then KILLs at tier 0a. Tier 0 never adopts, so this errs toward killing, and the rule stays as
+    registered.
+- **The slot:** low priority (the orchestrator 06:4x), and not in night1117, which was armed before rpl2 was verified.
+  - Next is a free 45 GB slot later in the week: about 40 min for the three tier-0 passes, with each process gated as
+    in the table.
+  - The usual rules apply: HOLD, PAUSE and a shut lid hold it, and it yields to Kamen at the Mac.
+  - A REPLAY pass does not resume (its merge is per runner start). An arm whose pass yields is re-run whole.

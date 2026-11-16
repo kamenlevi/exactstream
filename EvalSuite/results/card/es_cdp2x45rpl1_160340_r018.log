@@ -1,0 +1,34 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=15.4 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=440 C_l=136 per layer, 32.32 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.45 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R57_WIRED: mx.set_wired_limit(55.66 GB), was 0.00 GB
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 256), loaded in 2 s, 38.0 GB active; REF2 + SB; gate rows MAXK 160 (ext build_qom), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 2048
+[r57] DENSE-N-RAM: 180 weights native (1531 MB, in place)
+[r57] HC8: 194 mixers 8-bit (1271 -> 675 MB), hc8_fast v4
+[r57] FAST-TAX: gdn_inproj skipped under R57_DNR=1 (K-83's gdn_inproj_x stays)
+[r57] FAST-TAX: att on (ref2 att_single True, gdn_inproj False, fatt_verify False)
+R57_REPLAY: 40 rows from results/card/replay_rows_p2x45rpl1.jsonl; margins results/card/replay_margins_x45rpl1.json (read: variant run); cap 2048 (and the run's CAP 2048)
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 44.3 tok/s; MLX peak prefill 40.7 / decode 40.8 GB, lifetime peak 42.2 -> 42.3 GB
+[mtplx] verify SDPA head-chunked: q_len=15 heads_per_chunk=2 chunks=12
+  warm-up (discarded): gsm8k/708 [gate+t, mtp] 64 tokens, 61.6 tok/s; MLX peak prefill 40.6 / decode 40.8 GB, lifetime peak 42.3 -> 42.3 GB
+  warm-up (discarded): gsm8k/708 [gate+t, d7b] 64 tokens, 53.1 tok/s; MLX peak prefill 40.6 / decode 40.8 GB, lifetime peak 42.3 -> 42.3 GB
+Traceback (most recent call last):
+  File "/Users/kamen/EvalSuite/tools/r57_wrap.py", line 23, in <module>
+    runpy.run_path(script, run_name="__main__")
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/kamen/BigMoE/data/r57/snap/rpl1/r57_screen_rpl1.py", line 1970, in <module>
+    r = run(ids, arm, f"{key.replace('/', '_').replace('.json', '')}_{arm}_{len(TOK.get(key, {}).get(arm, []))}", drafter,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/data/r57/snap/rpl1/r57_screen_rpl1.py", line 1324, in run
+    sq_ = np.array([g_ == 1 for g_ in RXC.gate_rows(cg_, tl_, dr, fz["thr"], None)])   # builds the union
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/scripts/relax_core.py", line 28, in gate_rows
+    if cf[j] >= thr:
+       ~~^^^
+IndexError: list index out of range

@@ -2335,3 +2335,63 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
     - the row log for offline LRU sizing in ng1bitB_ngram_rows.npz.
   - tok/s A / B: 61.6 / 58.4, 42.6 / 42.3, 42.6 / 42.3. These are back-to-back arms (warm-cache order bias), so
     information only, not a verdict.
+
+## Mon 16 Nov 06:3x-06:51: snapshot rpl2 = rpl1 + the R57_FAST row gate on a short R57_REPLAY block + a QOM-on-NAX head-test guard; lossycalx45rpl2 on a QOM-capable path (desk test PASS; EvalSuite's head test PASS on all 4 envs; the real-loop key test is built and waits for a 45 GB slot)
+- **What broke (EvalSuite's tier 0a, Mon 03:4x, RESULT def8934; no rows from step 3):**
+  - p2x45rpl1 and m1bx45rpl1, 30 / 30 processes: IndexError in relax_core.gate_rows (`cf[j]`), from the screen's U3 branch.
+    Under R57_REPLAY a check's block is the next reference tokens, so at a key's end it holds fewer than 15 drafts, and
+    gate_rows reads a full 15-draft window. The keep_mask branch calls it too (with copy grams it asserts a full window).
+    Exact-45 has no R57_FAST, so neither abe7772's certification nor EvalSuite's steps 1-2 reached this path.
+  - lossycalx45rpl1, 30 / 30: ref2 _ooo_sel raised "QOM on the NAX path ... is not built" at the first verify. Its env
+    was exact-45's flags (R57_NAX=1, no REF2_OOO_1C / REF2_NAX_1CQ) + R57_FAST=QOM + RCUT; QOM on NAX needs both.
+  - Both came after the model load, where both head tests stop.
+- **Fix (scripts/r57_screen_fast.py and snapshot rpl2):**
+  - `_gate_block`: gate_rows on a block of any length. A full window gets the same call as before. A short block is padded
+    (cf -inf, draft -1: never gated, no prompt gram), and every row from its end on is exact (0), like a full block's
+    row 15 and a 15-draft block at the reference's end (c16 None). relax_delta.gate_flags already padded its blocks.
+  - A module-level guard: R57_FAST=QOM with R57_NAX=1 needs REF2_OOO_1C=1 + REF2_NAX_1CQ=1 and no R57_H1C, so such an env
+    now fails at the head test instead of at the first verify.
+- **Snapshot rpl2** (data/r57/snap/rpl2, screen sha256 d74d8b119e34): rpl1's screen + those two changes (22 diff lines);
+  the frozen copies are rpl1's (frozen_rpl1, 5cdbcab, unchanged); relax_core.py (1af67f7e05ed) and copygate.py
+  (15728e224a81) load live from scripts/ as in rpl1, unchanged since 11-02. With R57_FAST unset, rpl2 runs rpl1's code.
+- **Envs (data/stack):** x45rpl2, p2x45rpl2, m1bx45rpl2 = the rpl1 lines verbatim on rpl2. **lossycalx45rpl2** = m1b's line
+  (QOM on NAX6-N's one-call, a known-PASS config) + R57_RCUT_SETS=humaneval:3,mbpp:3,ifeval:3 (every decode row keeps its
+  top-3 of 10 experts; RCUT ran on this path before in card_m1bs at 8). It is deliberately lossy and expected to FAIL.
+- **Tests (no model):**
+  - scripts/test_gate_block.py (data/r57/rpl2_gate_block_test.json) **PASS** on both screens:
+    - gate_rows on a short block raises IndexError, as in EvalSuite's logs;
+    - full windows give gate_rows' rows exactly (about 3,600 random cases per screen);
+    - short blocks of 0-14 drafts give 16 rows, with the rows past the block exact;
+    - the rows inside a short block equal gate_rows' rows on any full block that starts with it (about 10,700 checks);
+    - the helper is identical in both screens, and neither screen calls gate_rows outside it.
+  - EvalSuite's tools/r57_headtest.py: **PASS on all 4 rpl2 envs** (reached the model load, also with this test's
+    R57_REPLAY). Negative control: lossycalx45rpl1's line on rpl2 now **FAILS at the head test** with the guard's message.
+- **Still owed (EvalSuite's new rule: one scored key per env on the real loop before arming):** scripts/rpl2_keytest.py.
+  - What it runs: each env on the full 125B, built as runner 64 builds it, with R57_REPLAY on the tier-0a rows. Keys:
+    mbpp/118 (18 reference tokens: the last check holds 1 draft) and mbpp/128 (36 tokens: 3 drafts), each to the end.
+  - PASS: rc 0 and a replay summary per key, plus A 1.0000 for the exact env.
+  - Status: dry run (head tests) and stub simulations (PASS path, crash path) OK.
+  - Ran 06:55-06:58 in the orchestrator's slot: **PASS on all 4 envs** (next section).
+
+## Mon 16 Nov 06:55-06:58: rpl2 real-loop key test PASS on all 4 envs (EvalSuite's one-scored-key rule; scripts/rpl2_keytest.py; data/r57/rpl2_keytest.json, data/r57/rpl2kt_*)
+- **Slot:** the orchestrator 06:53, while Kamen was away (23,562 s) with his apps closed. One share lock with MEM 45 GB in
+  the reason, released 06:58:51. Gate NO-SWAP >= 44 GB on two reads (44.2 / 44.2 at the start, 48-50 later). Swap guard
+  +2 GB, hard stop 07:25.
+- **How:** snapshot rpl2 on the full 125B, each env built as EvalSuite's runner 64 builds it, R57_REPLAY on the tier-0a
+  rows. The variants read x45rpl1's margins; the exact env wrote its own. Keys mbpp/118 (18 reference tokens) and
+  mbpp/128 (36), each replayed to the reference's end, where rpl1's FAST gate crashed. Correctness only, no timing.
+- **Results** (every run: rc 0, swap +0.00 GB; in the three FAST envs QOM gated 17 / 18 and 35 / 36 rows, so the fixed
+  short-block path ran at each key's end):
+
+  | env | mbpp/118 drafted rows (A) | mbpp/128 drafted rows (A) | all rows | lifetime peak |
+  |---|---|---|---|---|
+  | x45rpl2 (exact; self-check) | 16 / 16 (1.0000) | 33 / 33 (1.0000) | 18 / 18, 36 / 36 | 41.7 GB |
+  | p2x45rpl2 | 16 / 16 (1.0000) | 33 / 33 (1.0000) | 18 / 18, 36 / 36 | 42.6 GB |
+  | m1bx45rpl2 | 16 / 16 (1.0000) | 33 / 33 (1.0000) | 18 / 18, 36 / 36 | 42.4 GB |
+  | lossycalx45rpl2 (deliberately lossy) | 16 / 16 (1.0000) | 31 / 33 (0.9394) | 18 / 18, 34 / 36 | 42.4 GB |
+
+- **Reading:** the rpl1 crashes are fixed on the real loop. The exact env passes its self-check on rpl2. lossycal's
+  deliberate loss shows even on 2 short keys: 2 flips by exact margin (one < 0.5 nat, one 0.5-1). That is information,
+  not a calibration line; tier 0a's A / F_hi lines come from EvalSuite's re-run under its amendment 2b.
+- **Peaks:** 41.7-42.6 GB on these short prompts. EvalSuite gates m1b and lossycal at 47 GB for card-length runs, its
+  own call. The runner's first peak parse read only the warm-up lines; fixed after the run, and the JSON keeps both.

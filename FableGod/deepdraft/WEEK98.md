@@ -1100,6 +1100,25 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
         - NO-SWAP 50 GB at exit: the compressor effect.
       - **03:28:10 EvalSuite's chain STARTED** on the a45 marker (NO-SWAP 49). S1 x45rpl1 process 1 runs under a
         share lock (MEM 39 = the gate shift; ~39 GB RSS). GPU 75 %, swap flat.
+      - **06:28:43 EvalSuite's chain ENDED (rc 0; results/night1116_chain.log, CHAIN_1116_END).**
+        - S1 x45rpl1 own rows: tier 0 GO. S2 x45rpl1 REPLAY=exact: GO, A 1.0000 (10,315 / 10,315 drafted rows),
+          F_hi 0.00 per 1,000. S1's unset-path check: PASS (40 identical).
+        - **Base lx45cc1 (the close-call arms' base for Monday night): tier 1 PASS both ways.** Forward: pooled code
+          (n 264) delta -1.14 pt, McNemar p 0.58 (arm only 5 / reference only 8). Reverse: delta +0.00 pt, p 1.00
+          (7 / 7). Line > -3 pt (a screening line).
+        - **S3 calibration (p2x45rpl1, lossycalx45rpl1, m1bx45rpl1) did NOT run: every process exited rc 1 in ~12 s
+          with no tokens, 30 tries each, then "runner stops" (rc 3).** A setup fault, not a verdict (EvalSuite
+          def8934):
+          - p2 and m1b: an IndexError in the rpl1 snapshot's REPLAY row gate. relax_core.gate_rows reads 15 rows, and
+            a block cut by a key's end is shorter. Exact-45 never calls it, so S2's self-check passed.
+          - lossycal: its env asks for QOM on the NAX path, which ref2 doesn't build.
+          - Amendment 2a: no A / F_hi lines; tier 0 stays the mini-panel KILL line. A re-run needs BigMoE's fixed
+            snapshot and a ~1.5 h 45 GB slot (low priority: nothing in WEEK98 waits on it; NewIdeas orders).
+          - **06:55-06:58 BigMoE's real-loop key test of the fix (rpl2, 89a6798): 4 / 4 envs PASS**
+            (data/r57/rpl2_keytest.log). Two MBPP keys, each replayed to the reference's end: x45 / p2 / m1b 16 / 16 +
+            33 / 33; lossycal 16 / 16 + 31 / 33 (A 0.9394, lossy by design). Peaks 41.5-42.6 GB, swap +0.00 on each.
+            It started on a 44 GB gate (read 44.2 / 44.2; then 48-50). The re-run is unblocked, but it is not in
+            night1117 (EvalSuite pid 52881, armed 06:52); it stays low priority.
       - Lesson (one night's evidence): a +4 GB margin on a 45 GB run can't open on a weekday night (~40-42 GB NO-SWAP
         after the app quit). A start at the run's own peak worked: the compressor took ~2.7 GB of idle pages with zero
         swapouts, and the next run fit at once.

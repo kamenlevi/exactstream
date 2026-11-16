@@ -1,0 +1,61 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=15.2 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=440 C_l=136 per layer, 32.32 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.45 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R57_WIRED: mx.set_wired_limit(55.66 GB), was 0.00 GB
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 256), loaded in 2 s, 38.0 GB active; REF2 + SB; gate rows MAXK 160 (ext build_qom), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 2048
+R57_REPLAY: 40 rows from results/card/replay_rows_lossycalx45rpl1.jsonl; margins results/card/replay_margins_x45rpl1.json (read: variant run); cap 2048 (and the run's CAP 2048)
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 28.2 tok/s; MLX peak prefill 39.9 / decode 40.3 GB, lifetime peak 40.9 -> 41.2 GB
+  warm-up (discarded): gsm8k/708 [gate+t, mtp] 64 tokens, 63.9 tok/s; MLX peak prefill 40.7 / decode 40.2 GB, lifetime peak 41.5 -> 41.5 GB
+Traceback (most recent call last):
+  File "/Users/kamen/EvalSuite/tools/r57_wrap.py", line 23, in <module>
+    runpy.run_path(script, run_name="__main__")
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/kamen/BigMoE/data/r57/snap/rpl1/r57_screen_rpl1.py", line 1970, in <module>
+    r = run(ids, arm, f"{key.replace('/', '_').replace('.json', '')}_{arm}_{len(TOK.get(key, {}).get(arm, []))}", drafter,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/data/r57/snap/rpl1/r57_screen_rpl1.py", line 1441, in run
+    lg = model(mx.array([[tok] + dr]), cache=cache)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 7032, in __call__
+    return self.language_model(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6772, in __call__
+    out = self.model(inputs, cache, input_embeddings)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6454, in __call__
+    return self._forward(inputs, cache, input_embeddings)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6489, in _forward
+    h = layer(h, input_ids=inputs, ssm_mask=ssm_mask, cache=c)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/data/r57/snap/frozen_rpl1/Leap_scripts/ref2.py", line 1797, in _dec_call
+    return _ORIG["dec_call"](self_, x, *a, **k)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/data/r57/snap/rpl1/r57_screen_rpl1.py", line 806, in _layer
+    out = _layer_pr(self, *a, **kw) if PR["on"] else _layer_call(self, *a, **kw)
+                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6277, in __call__
+    block_out = self.mlp(mixed)
+                ^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/data/r57/snap/rpl1/r57_screen_rpl1.py", line 415, in _exact_block
+    y = self.switch_mlp(x, inds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/data/r57/snap/rpl1/r57_screen_rpl1.py", line 623, in _fast_call
+    return _sw_call(self, x, indices, *a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/bigmoe/stream.py", line 122, in __call__
+    return _tier.tier_call(self, x, indices, bm, rt, post=pt)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/bigmoe/tier.py", line 176, in tier_call
+    return _ooo_call(x, ids, bm, t, post, t.pop("scores"), t.pop("shared", None))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/data/r57/snap/frozen_rpl1/Leap_scripts/ref2.py", line 1210, in _ooo_sel
+    raise RuntimeError("REF2: QOM on the NAX path, or on native records without ooo_1c, is not built (those two phases "
+RuntimeError: REF2: QOM on the NAX path, or on native records without ooo_1c, is not built (those two phases would ignore t['qom']); QOM runs on 3c (BigMoE's two phases or ref2's one-call) and 3c-N (one-call)
