@@ -1057,6 +1057,19 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
       - At R32 1.445, tree-32 ~ tree-16 on HE+. E2 (Tue) is the clean number.
       - A16 by class: experts 33.7 ms (52 %), HC read 9.4, GDN proj 8.3, attention proj 3.0, MoE dense side 3.8 (5.9 %).
       - Cold first check after a prefill: +74.9 ms (SSD 70.1, 364 misses). A cold 32-row check: 335 ms.
+    - **03:0x Mon: the night STALLED from ~00:50; nothing ran for ~2 h.**
+      - a45 (gate 47 = its peak 42.5 + 4) and EvalSuite's runner 64 (gate 49 = MEM 45 + 4; waiting since 23:41) are
+        both exact-45 C 256 runs.
+      - NO-SWAP read 45 at 00:51, right after the profile, then 42 from 01:51 on. GPU 0 %, swap 6.7 GB flat.
+      - The orchestrator's watcher woke only on swap, heat, disk, fans and the 03:00 check-in, so the stall went unseen.
+        Fixed: night_watch_1116.sh also wakes on GPU < 5 % with no live lock for 20 min.
+      - 03:0x asks to the owners:
+        - Leap re-arms a45 with the start gate at its measured peak (42 on the lower of two reads; the 11-13 precedent,
+          ad5f655) and goes first (~10 min).
+        - EvalSuite re-arms behind A45_1116_DONE (or from 03:45) with a gate <= MEM (45). Its calibration rows are
+          outputs and margins, not timing.
+      - Lesson: a +4 GB margin on a 45 GB run can't open on a weekday night (~42 GB NO-SWAP after the app quit). Start
+        gates go at the measured peak, and the +2 GB swap guard protects.
     - The app quit is armed for 23:30:00 (apps_2330_1115.sh, pid 61214).
     - Same order and markers, times +30 min:
       1. Leap a45 from 23:35 (every run ending by 01:30), then C7c;
