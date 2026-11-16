@@ -1,0 +1,58 @@
+Per-domain byte recount: 36 windows, 9568 rows in 299 full 32-row blocks; block-layers code 4752, ifeval 4704, multi 4896, all 14352
+
+EXACT UNION (distinct experts per layer per 32-row block) and the exact read (dense 3.44 GB, all experts at 4 bits):
+| domain | union / layer | GB | ms floor | ms at 84 % |
+|---|---|---|---|---|
+| code | 114.2 | 15.15 | 54.1 | 64.4 |
+| ifeval | 98.1 | 13.49 | 48.2 | 57.4 |
+| multi | 87.7 | 12.43 | 44.4 | 52.9 |
+| all | 99.9 | 13.68 | 48.9 | 58.2 |
+
+LEVERS, 4-bit-eq experts per layer by domain (tier counts per layer: 4-bit / MSB-3 / MSB-2 / drop):
+| lever | domain | 4-bit | MSB-3 | MSB-2 | drop | 4-bit-eq / layer | GB (exact dense) | GB (plan dense 2.14) | ms floor / 84 % (plan dense) |
+|---|---|---|---|---|---|---|---|---|---|
+| 1a acc-tiers s 0.935 lam 1.2e-2 | code | 11.2 | 22.7 | 3.6 | 76.7 | 30.9 | 6.61 | 5.31 | 18.9 / 22.6 |
+| 1a acc-tiers s 0.935 lam 1.2e-2 | ifeval | 12.8 | 21.5 | 2.9 | 61.0 | 31.1 | 6.62 | 5.32 | 19.0 / 22.6 |
+| 1a acc-tiers s 0.935 lam 1.2e-2 | multi | 11.6 | 16.5 | 2.3 | 57.4 | 25.7 | 6.07 | 4.77 | 17.0 / 20.3 |
+| 1a acc-tiers s 0.935 lam 1.2e-2 | all | 11.8 | 20.2 | 2.9 | 65.0 | 29.2 | 6.43 | 5.13 | 18.3 / 21.8 |
+| 1b acc-tiers s 0.98 lam 1.8e-2 | code | 13.4 | 25.9 | 4.0 | 71.0 | 35.7 | 7.10 | 5.80 | 20.7 / 24.6 |
+| 1b acc-tiers s 0.98 lam 1.8e-2 | ifeval | 15.2 | 24.1 | 3.1 | 55.7 | 35.6 | 7.09 | 5.79 | 20.7 / 24.6 |
+| 1b acc-tiers s 0.98 lam 1.8e-2 | multi | 13.4 | 18.7 | 2.6 | 53.0 | 29.4 | 6.45 | 5.15 | 18.4 / 21.9 |
+| 1b acc-tiers s 0.98 lam 1.8e-2 | all | 14.0 | 22.9 | 3.2 | 59.9 | 33.5 | 6.88 | 5.58 | 19.9 / 23.7 |
+| 1c acc-3tiers s 0.98 lam 1.6e-2 | code | 15.3 | 30.7 | 0.0 | 68.2 | 39.2 | 7.45 | 6.15 | 22.0 / 26.2 |
+| 1c acc-3tiers s 0.98 lam 1.6e-2 | ifeval | 17.3 | 27.2 | 0.0 | 53.6 | 38.4 | 7.38 | 6.08 | 21.7 / 25.8 |
+| 1c acc-3tiers s 0.98 lam 1.6e-2 | multi | 15.0 | 21.6 | 0.0 | 51.2 | 31.8 | 6.70 | 5.40 | 19.3 / 22.9 |
+| 1c acc-3tiers s 0.98 lam 1.6e-2 | all | 15.8 | 26.4 | 0.0 | 57.6 | 36.4 | 7.17 | 5.87 | 21.0 / 25.0 |
+| 1d acc-tiers s 0.98 lam 8e-3 | code | 30.8 | 36.9 | 5.0 | 41.6 | 62.3 | 9.82 | 8.52 | 30.4 / 36.2 |
+| 1d acc-tiers s 0.98 lam 8e-3 | ifeval | 32.3 | 27.6 | 3.2 | 35.0 | 55.5 | 9.13 | 7.83 | 28.0 / 33.3 |
+| 1d acc-tiers s 0.98 lam 8e-3 | multi | 26.4 | 24.0 | 3.0 | 34.3 | 46.8 | 8.23 | 6.93 | 24.8 / 29.5 |
+| 1d acc-tiers s 0.98 lam 8e-3 | all | 29.8 | 29.5 | 3.7 | 36.9 | 54.8 | 9.05 | 7.75 | 27.7 / 33.0 |
+
+SELF-CHECK (pooled reproduces the plan to 0.1: union 99.90 vs 99.9; 1a 29.17 vs 29.2, 1b 33.53 vs 33.5, 1c 36.40 vs 36.4, 1d 54.77 vs 54.8): PASS
+vs Fit12's code recount: union 114.24 vs 114.2 (+0.04 %); 1c 39.18 vs 39.2 (-0.06 %): WITHIN 1 %
+
+THE CODE PLAN RESTATED (1c experts + mixers at 4-bit + the 16K shortlist; dense 2.14 GB):
+- as published (pooled bytes): 5.87 GB, 21.0 ms at the floor, 25.0 ms at 84 %; 25 ms needs 83.9 % of 280 GB/s; tok/s HE+ at 84 % (today 13.8 / 98 % 23.3 kept, +7 ms drafting): 432 / 729
+- code blocks' bytes: 6.15 GB, 22.0 ms at the floor, 26.2 ms at 84 %; 25 ms needs 87.9 % of 280 GB/s; tok/s HE+ at 84 % (today 13.8 / 98 % 23.3 kept, +7 ms drafting): 416 / 702
+
+1c (3 tiers, s 0.98) OVER LAMBDA, code blocks vs pooled, with the plan's dense 2.14 GB (25 ms at 84 % = 5.88 GB):
+| lambda | 4-bit-eq code | GB code | ms floor / 84 % code | 4-bit-eq pooled | GB pooled | ms floor / 84 % pooled |
+|---|---|---|---|---|---|---|
+| 1.2e-02 | 48.2 | 7.08 | 25.3 / 30.1 | 43.7 | 6.62 | 23.6 / 28.1 |
+| 1.4e-02 | 43.3 | 6.58 | 23.5 / 28.0 | 39.7 | 6.21 | 22.2 / 26.4 |
+| 1.6e-02 | 39.2 | 6.15 | 22.0 / 26.2 | 36.4 | 5.87 | 21.0 / 25.0 |
+| 1.8e-02 | 35.7 | 5.80 | 20.7 / 24.7 | 33.6 | 5.58 | 19.9 / 23.7 |
+| 2.0e-02 | 32.7 | 5.50 | 19.6 / 23.4 | 31.1 | 5.33 | 19.0 / 22.6 |
+| 2.2e-02 | 30.2 | 5.23 | 18.7 / 22.3 | 29.0 | 5.11 | 18.2 / 21.7 |
+
+RESTATED FOR THE PLAN (pooled -> code blocks; tok/s HE+ at 84 %: kept 13.8 today / 23.3 98 %, +7 ms drafting):
+| plan row | dense GB | 4-bit-eq pooled -> code | GB pooled -> code | ms floor pooled -> code | ms 84 % pooled -> code | tok/s 84 % code (today / 98 %) |
+|---|---|---|---|---|---|---|
+| 1a (ranked levers) | 3.440 | 29.2 -> 30.9 | 6.43 -> 6.61 | 23.0 -> 23.6 | 27.3 -> 28.1 | 393 / 664 |
+| 1b (ranked levers) | 3.440 | 33.5 -> 35.7 | 6.88 -> 7.10 | 24.6 -> 25.3 | 29.2 -> 30.2 | 371 / 627 |
+| 1c (ranked levers) | 3.440 | 36.4 -> 39.2 | 7.17 -> 7.45 | 25.6 -> 26.6 | 30.5 -> 31.7 | 357 / 602 |
+| lam 1.2e-2 + mixers 8-bit + shortlist | 2.472 | 43.7 -> 48.2 | 6.95 -> 7.42 | 24.8 -> 26.5 | 29.6 -> 31.5 | 358 / 605 |
+| lam 1.2e-2 + mixers 4-bit + shortlist | 2.135 | 43.7 -> 48.2 | 6.61 -> 7.08 | 23.6 -> 25.3 | 28.1 -> 30.1 | 372 / 628 |
+| lam 1.6e-2 (1c) + mixers 8-bit + shortlist | 2.472 | 36.4 -> 39.2 | 6.20 -> 6.49 | 22.2 -> 23.2 | 26.4 -> 27.6 | 399 / 674 |
+| lam 1.6e-2 (1c) + mixers 4-bit + shortlist (THE CODE PLAN) | 2.135 | 36.4 -> 39.2 | 5.87 -> 6.15 | 20.9 -> 22.0 | 24.9 -> 26.1 | 416 / 703 |
+| lam 1.8e-2 + mixers 4-bit + shortlist | 2.135 | 33.6 -> 35.7 | 5.57 -> 5.80 | 19.9 -> 20.7 | 23.7 -> 24.6 | 436 / 736 |

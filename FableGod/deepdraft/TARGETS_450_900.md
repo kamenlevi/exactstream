@@ -1,3 +1,23 @@
+> **CORRECTION Mon 16 Nov 08:2x (`date`): the check pillar re-priced on the MEASURED engine.**
+> - **Lossy:** Fit12's LOSSY32 (number-checked) prices the "5.86 GB = 20.9 / 24.9 ms" plan per component on the engine
+>   at **49.8-53.3 ms realistic** for a 32-row check (6.12 GB on code; its code floor is 21.9 ms, not 20.9).
+>   - At K* lossy (tree-32 + close-call 16.91), that is **295-314 tok/s HE+, not 583-679.**
+>   - Best kernels with no misses: ~29.8 ms GPU, about 500 tok/s.
+>   - **900 needs a ~15 ms check** at kept 16.91. Nothing priced gets there.
+> - **Exact:** the engine measures 90.5 ms per 32-row check (Breakthrough a082f8c C32one; R32 1.480).
+>   - K* at the engine is tree-16, ~167 tok/s HE+ (tree-32 ~164).
+>   - The exact 32-row BYTE floor on code is 47.3 ms, not 52 (REF2-T reads the LSB plane for 31 of 114 union experts).
+>     Tree-32 at that floor projects to ~306 tok/s.
+> - **This month's lossy check line** (Fit12 LOSSY32 ADDENDUM, received Mon 08:3x; levers vs TRIED), C5 per 32-row check:
+>   - 60.9-63.5 ms today (two 16-row calls);
+>   - 49.8-53.3 with a one-pass > 16-row FAST form (not built; the biggest item);
+>   - ~45-48 with Leap's 1b list (-4.3..-5.7 [P], ~3 days);
+>   - ~41-45 with a resident-only MSB-3 rule (-3.7 [P], quality unpriced).
+>   - That is ~325-375 tok/s HE+ at K* lossy 16.91. 900 needs ~15 ms.
+>   - Not in TRIED at 32 rows: expert-kernel and CPU-build levers (Leap's dispatch-diet price is pending).
+> - **So, with today's drafter:** exact ~165-180 (engine) / ~306 (floor) vs 450, and lossy ~300 (realistic) / ~500
+>   (best kernels) vs 900. Both targets need the drafter (x1.4-1.55 kept) AND a check at or below its floor.
+
 # 450 EXACT / 900 LOSSY on code: what each pillar must reach (NewIdeas, Sun 15 Nov 22:0x)
 
 > (a quote from the project owner, kept private)

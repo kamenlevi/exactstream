@@ -1,0 +1,63 @@
+[guard] pid 41253, MAXGB 4, swap at start 6852.38 MB (kill at +1 GB)
+[qwen4_exp] sanitize fused gate+up: 2 modules
+[qwen4_exp] sanitize fused QSA qkv: 1 layers
+built E1 C1 + engine fusions (gate|up, MoE kernel, QSA qkv): 95.1 MB per level at F=1 (dense 52.6, head 11.8, experts 10 x 3.07); F=3: 156.6 own routing / 95.1 shared
+[qwen4_exp] sanitize fused gate+up: 2 modules
+[qwen4_exp] sanitize fused QSA qkv: 1 layers
+built E2 E1 + bf16 hc mixes + fused HC: 123.4 MB per level at F=1 (dense 80.9, head 11.8, experts 10 x 3.07); F=3: 184.8 own routing / 123.4 shared
+  parts (MB): layers.0.self_attn.qkv_fused 19.17, hyper_connection_mixer 13.13, layers.0.self_attn.o_proj 8.85, layers.0.attn_hyper_connection.input_mix_weight_down 6.55, layers.0.attn_hyper_connection.input_mix_weight_up 6.55, layers.0.mlp_hyper_connection.input_mix_weight_down 6.55, layers.0.mlp_hyper_connection.input_mix_weight_up 6.55, fc_embedding 3.69, fc_hidden 3.69, routed experts (per expert) 3.07, layers.0.mlp.shared_expert 2.76, layers.0.self_attn.indexer 1.74, layers.0.mlp.gate 1.39, layers.0.attn_hyper_connection.block_inject_weight 0.08
+[qwen4_exp] sanitize fused gate+up: 2 modules
+[qwen4_exp] sanitize fused QSA qkv: 1 layers
+built E3 C3 + engine fusions: 70.8 MB per level at F=1 (dense 52.6, head 5.9, experts 4 x 3.07); F=3: 95.4 own routing / 70.8 shared
+[qwen4_exp] sanitize fused gate+up: 2 modules
+[qwen4_exp] sanitize fused QSA qkv: 1 layers
+built EK1 E1 compiled: 95.1 MB per level at F=1 (dense 52.6, head 11.8, experts 10 x 3.07); F=3: 156.6 own routing / 95.1 shared
+all built at 0 s; active 2.52 GB; GPU busy 66 %
+[mtplx] verify SDPA head-chunked: q_len=3 heads_per_chunk=10 chunks=4
+self-checks: {"F1 sync == free == async": true, "F3 sync == free == async": true, "F1 tree level == P2 chain (argmax)": true, "EK F1 tokens == E1's (share)": 1.0, "EK F3 tokens == E1's (share)": 1.0}
+level graph: 225 primitives, 136 not views (F=1; /Users/kamen/MoonShots/week98/p3_level_graph_fused.dot)
+round 5/30 done at 10 s (GPU busy at round start 83 %)
+round 10/30 done at 18 s (GPU busy at round start 82 %)
+round 15/30 done at 27 s (GPU busy at round start 81 %)
+round 20/30 done at 35 s (GPU busy at round start 92 %)
+round 25/30 done at 43 s (GPU busy at round start 83 %)
+round 30/30 done at 52 s (GPU busy at round start 83 %)
+
+M0 (i): P2's chain, one sync per step (P2's published: as stored 1.147, 4-bit + head 8K 0.864 ms)
+  E1 C1 + engine fusions (gate|up, MoE kernel, QSA qkv): 0.886 ms [0.867-0.965] at 95.1 MB -> x1.026 of P2 (within 15 %)
+
+ms per level (median [p10-p90]); MB per level; build = CPU graph-building ms per level (free / async)
+variant | F | routing | MB | sync | free | async | build (free)
+E1 C1 + engine fusions (gate|up, MoE kernel, QSA qkv) | 1 | own | 95.1 | 0.935 [0.916-1.020] | 0.831 [0.817-0.837] | 0.676 [0.672-0.684] | 0.121
+E1 C1 + engine fusions (gate|up, MoE kernel, QSA qkv) | 2 | own | 125.8 | 1.176 [1.127-1.238] | 1.037 [1.029-1.057] | 0.880 [0.875-0.898] | 0.122
+E1 C1 + engine fusions (gate|up, MoE kernel, QSA qkv) | 3 | own | 156.6 | 1.427 [1.381-1.533] | 1.293 [1.283-1.308] | 1.124 [1.117-1.135] | 0.136
+E2 E1 + bf16 hc mixes + fused HC | 1 | own | 123.4 | 5.626 [5.537-5.842] | 5.411 [5.398-5.474] | 5.263 [5.252-5.306] | 0.114
+E2 E1 + bf16 hc mixes + fused HC | 2 | own | 154.1 | 5.798 [5.716-6.061] | 5.603 [5.588-5.633] | 5.445 [5.436-5.462] | 0.121
+E2 E1 + bf16 hc mixes + fused HC | 3 | own | 184.8 | 6.042 [5.949-6.295] | 5.830 [5.810-5.870] | 5.664 [5.646-5.691] | 0.136
+E3 C3 + engine fusions | 1 | own | 70.8 | 0.807 [0.786-0.892] | 0.691 [0.684-0.705] | 0.545 [0.541-0.554] | 0.113
+E3 C3 + engine fusions | 2 | own | 83.1 | 0.967 [0.915-1.019] | 0.820 [0.808-0.836] | 0.669 [0.663-0.677] | 0.120
+E3 C3 + engine fusions | 3 | own | 95.4 | 1.129 [1.081-1.176] | 1.000 [0.991-1.011] | 0.827 [0.822-0.835] | 0.137
+EK1 E1 compiled | 1 | own | 95.1 | 0.894 [0.873-0.977] | 0.776 [0.770-0.782] | 0.671 [0.668-0.692] | 0.077
+EK1 E1 compiled | 2 | own | 125.8 | 1.128 [1.079-1.185] | 0.988 [0.980-1.003] | 0.876 [0.872-0.886] | 0.084
+EK1 E1 compiled | 3 | own | 156.6 | 1.381 [1.327-1.442] | 1.251 [1.242-1.269] | 1.145 [1.111-1.163] | 0.103
+
+M2 fits at F=1, ms per level = f + MB / BW (BW in GB/s):
+  engine fusions E1/E3 | sync: {"f_ms": 0.4356, "bw_gbs": 190.4, "resid_ms": 0.0, "n": 2}
+  engine fusions E1/E3 | free: {"f_ms": 0.2823, "bw_gbs": 173.3, "resid_ms": 0.0, "n": 2}
+  engine fusions E1/E3 | async: {"f_ms": 0.1641, "bw_gbs": 185.7, "resid_ms": 0.0, "n": 2}
+
+per-block ms = levels x ms per level (best sync-free mode per arm); PASS needs <= 4.0 at HE+ tree-32
+E1 C1 + engine fusions (gate|up, MoE kernel, QSA qkv) | F=1 own | async 0.676 ms/level | HE+ tree-32 14.1 | MBPP tree-32 9.9 | HE+ tree-16 8.5 | MBPP tree-16 7.0
+E1 C1 + engine fusions (gate|up, MoE kernel, QSA qkv) | F=2 own | async 0.880 ms/level | HE+ tree-32 18.3 | MBPP tree-32 12.8 | HE+ tree-16 11.1 | MBPP tree-16 9.1
+E1 C1 + engine fusions (gate|up, MoE kernel, QSA qkv) | F=3 own | async 1.124 ms/level | HE+ tree-32 23.4 | MBPP tree-32 16.4 | HE+ tree-16 14.2 | MBPP tree-16 11.6
+E2 E1 + bf16 hc mixes + fused HC | F=1 own | async 5.263 ms/level | HE+ tree-32 109.5 | MBPP tree-32 76.8 | HE+ tree-16 66.3 | MBPP tree-16 54.2
+E2 E1 + bf16 hc mixes + fused HC | F=2 own | async 5.445 ms/level | HE+ tree-32 113.3 | MBPP tree-32 79.5 | HE+ tree-16 68.6 | MBPP tree-16 56.1
+E2 E1 + bf16 hc mixes + fused HC | F=3 own | async 5.664 ms/level | HE+ tree-32 117.8 | MBPP tree-32 82.7 | HE+ tree-16 71.4 | MBPP tree-16 58.3
+E3 C3 + engine fusions | F=1 own | async 0.545 ms/level | HE+ tree-32 11.3 | MBPP tree-32 8.0 | HE+ tree-16 6.9 | MBPP tree-16 5.6
+E3 C3 + engine fusions | F=2 own | async 0.669 ms/level | HE+ tree-32 13.9 | MBPP tree-32 9.8 | HE+ tree-16 8.4 | MBPP tree-16 6.9
+E3 C3 + engine fusions | F=3 own | async 0.827 ms/level | HE+ tree-32 17.2 | MBPP tree-32 12.1 | HE+ tree-16 10.4 | MBPP tree-16 8.5
+EK1 E1 compiled | F=1 own | async 0.671 ms/level | HE+ tree-32 14.0 | MBPP tree-32 9.8 | HE+ tree-16 8.5 | MBPP tree-16 6.9
+EK1 E1 compiled | F=2 own | async 0.876 ms/level | HE+ tree-32 18.2 | MBPP tree-32 12.8 | HE+ tree-16 11.0 | MBPP tree-16 9.0
+EK1 E1 compiled | F=3 own | async 1.145 ms/level | HE+ tree-32 23.8 | MBPP tree-32 16.7 | HE+ tree-16 14.4 | MBPP tree-16 11.8
+done in 52 s; peak 3.48 GB; GPU busy per round [87, 64, 84, 94, 83, 75, 68, 72, 72, 82, 84, 90, 85, 72, 81, 69, 80, 94, 83, 92, 89, 73, 80, 93, 83, 75, 79, 84, 87, 83]
+[guard] exit 0, peak footprint 3884 MB

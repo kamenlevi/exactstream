@@ -123,6 +123,18 @@ def hazards(new, old):
     if tn.get("hc_count") != to.get("hc_count") or tn.get("hc_lowrank") != to.get("hc_lowrank"):
         out.append("hc_count / hc_lowrank changed: the drafter tap reshape hard-codes hc 4 (r57:682, EvalSuite, TrainLab); "
                    "mtplx fast paths gate on hc 4 / lowrank 320; DEEPDRAFT taps = the mean of the 4 HC streams (dd_capture.py:12, 215)")
+    idx = ("indexer_budget", "indexer_compress_ratio", "indexer_head_dim", "indexer_kv_heads", "indexer_n_heads")
+    if any(tn.get(x) != to.get(x) for x in idx):
+        out.append("SILENT: QSA indexer changed (budget / micro-block / heads): BigMoE tree16_loop.py:34 BUDGET = 2048 is a "
+                   "literal; the MTP-head harnesses assume dense attention == QSA below ~2051 keys (TrainLab mtp125.py:9, "
+                   "sticky/d22_capture.py:23 MAXLEN 2051, BigMoE dd_d22_ttt.py:8), which moves with the budget; mtplx reads "
+                   "the rest from config. KV + indexer bytes per token set the context cap at each RAM line (setup.sh)")
+    ng = ("ngram_sidecar", "ngram_size", "ngram_vocab_size_base", "heads_per_ngram", "split_ngram_parts")
+    if any(tn.get(x) != to.get(x) for x in ng):
+        out.append("n-gram table changed: mtplx serves it as an SSD sidecar (memmapped ngram-table.safetensors, LRU hot "
+                   "cache MTPLX_NGRAM_HOT_MB, pread prefetch: row ids are a function of the token ids). It sizes the DISK "
+                   "and the download (today 32.0 GB, the 51B-param table at 4-bit g32), not the RAM lines, except the hot "
+                   "cache; re-measure decode's cold-row reads per token at the 12 GB line")
     q = new.get("quantization") if isinstance(new.get("quantization"), dict) else {}
     if not q or q.get("bits") != 4 or q.get("group_size") != 64:
         out.append("not 4-bit affine g64 (e.g. bf16 upstream): records3 / tiers / p11 / qmm16 / ref2 assume 4-bit g64 -> "

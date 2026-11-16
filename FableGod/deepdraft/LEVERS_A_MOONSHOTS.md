@@ -1161,6 +1161,71 @@ tree-32's own walk): (b) KILL on paper by its line. HE+ is marginal, and it hang
 - **Also from the dumps:** half the HE+ checks (50.4 %) stop at a leaf, and a quarter accept >= 30 of 31. So tree-32's
   depth binds on HE+, the K* story.
 
+**M0-M2, RESULT (Mon 16 Nov 08:35-08:38; week98/p3_m012.py, p3_m012_{stock,fused}.json / .log, p3_timing.log. TIMING
+under a quiet lock in NewIdeas' slot: Kamen away 8 h, GPU 0 % at the start. Synthetic states as P2, so no kept here.)
+Route (a') in stock MLX is a KILL by its line, on timing alone.**
+- The sync-free block cuts the fixed cost per level from 0.55 to 0.31 ms. But 0.31 ms x 20.8 levels = 6.5 ms per HE+
+  tree-32 block before any bytes.
+- The best measured cut is 9.3 ms per block (K8: 39.8 MB, compiled, F = 1), above the 8 ms BETWEEN line.
+- **M0 PASS:** P2's own chain reproduces: as stored 1.126 ms (x0.981 of P2's 1.147); 4-bit + head 8K 0.857 ms (x0.992 of
+  0.864).
+- **Self-checks PASS:**
+  - sync / free / async give the same tokens at F = 1 and 3, shared routing included;
+  - the F = 1 tree level equals P2's chain token for token;
+  - frontier-shared routing equals the stock MoE at one row (max diff 0.0);
+  - compiled sub-blocks equal eager (share 1.0: K1 / K3 / K8 / EK1).
+- **M2 fits** (F = 1; 9 eager cuts from 177.6 to 39.8 MB; residuals <= 0.015 ms):
+
+| level step | f, ms per level | BW, GB/s |
+|---|---|---|
+| one host sync per level (P2's design) | 0.549 | 260 |
+| sync-free, one eval per block | 0.452 | 288 |
+| sync-free, async_eval per level | **0.311** | 293 |
+| async + mx.compile of the pure sub-blocks (3 cuts) | 0.307 | 300 |
+
+- **Where the 0.31 ms goes.** One level is 237 MLX primitives, 144 of them not views.
+  - The async overlap hides the CPU graph build: 0.112-0.135 ms per level eager, 0.077-0.106 compiled.
+  - What's left is the GPU's chain of ~144 dependent dispatches, ~2.1 us each. TRIED's M5 record: a dependent dispatch
+    costs 1.3-1.6 us, and an in-kernel grid barrier is no cheaper (1.97-2.47 us; the megakernel row, KILL).
+  - Neither mx.compile (hc reads, MoE, tail, prepare) nor the engine's MTPLX fusions (gate|up, MoE kernel, QSA qkv)
+    cut it. Per level: C1 0.645 / K1 0.632 / E1 0.676 ms; C3 0.542 / K3 0.529 / E3 0.545.
+  - Side fact: MTPLX_FUSED_HC=1 on this head's bf16 mixes runs 5.26 ms per level, x8 slower.
+- **Per block** (ms; async; F = 2 / 3 with frontier-shared routing). Best-first trees need ~1.5 nodes per level on HE+
+  tree-32 and ~2.1 on MBPP, so F = 1 is a floor:
+
+| cut | MB per level | ms per level F1 / F2 / F3 | HE+ tree-32 (20.8) F1 / F2 | MBPP tree-32 (14.6) F2 / F3 | HE+ tree-16 (12.6) F1 / F2 | MBPP tree-16 (10.3) F1 / F2 |
+|---|---|---|---|---|---|---|
+| C1 4-bit + head 8K | 95.1 | 0.645 / 0.734 / 0.879 | 13.4 / 15.3 | 10.7 / 12.8 | 8.1 / 9.2 | 6.6 / 7.6 |
+| C3 + top-4, head 4K | 70.8 | 0.542 / 0.617 / 0.731 | 11.3 / 12.8 | 9.0 / 10.7 | 6.8 / 7.8 | 5.6 / 6.4 |
+| C6 + q/o 2-bit, top-2 | 52.9 | 0.477 / 0.553 / 0.676 | 9.9 / 11.5 | 8.1 / 9.9 | 6.0 / 7.0 | 4.9 / 5.7 |
+| C8 all 2-bit, top-2, head 2K | 39.8 | 0.460 / 0.514 / 0.640 | 9.6 / 10.7 | 7.5 / 9.3 | 5.8 / 6.5 | 4.7 / 5.3 |
+| K8 (C8 compiled) | 39.8 | 0.446 / 0.506 / 0.646 | 9.3 / 10.5 | 7.4 / 9.4 | 5.6 / 6.4 | 4.6 / 5.2 |
+
+- **The lines:**
+  - **PASS** (<= 4.0 ms = 0.192 ms per level) is unreachable as built: f alone is 0.31.
+  - **BETWEEN** (<= 8 ms = 0.385 ms per level) needs <= 21.7 MB per level at f = 0.311. The leanest cut reads 39.8 MB.
+  - **KILL (a')** (> 8 ms at every cut): yes, on timing alone. M3's kept can't rescue it.
+  - **(b)** stays parked: the sync-free fixed cost (0.31 ms) is below its ~1 ms revisit threshold.
+- **What a hand-fused level would need** (the pre-registered next step, since compile leaves > 0.1 ms; bytes at 293 GB/s):
+  - **BETWEEN:** f <= 0.060 ms at C1 (95.1 MB), 0.143 at C3, 0.204 at C6, 0.249 at C8.
+  - **PASS:** f <= 0.056 at C8, and impossible at C3 or above.
+  - At ~1.5 us per dependent step, f <= 0.056 means <= ~35 dependent steps per level, against ~144 today.
+  - By my count, the level's critical path has ~23 global dependencies (norms, GEMVs, the attention, top-k, from fc to
+    the head's frontier pick). So PASS sits at the floor even with perfect fusion, and needs C8's bytes within 1 % kept.
+  - BETWEEN at C3 needs ~90 steps or fewer: plausible with real op fusion, but it's a multi-day kernel build.
+- **Useful now, short of the line** (output exact by construction: the verify is untouched; kept is M3's):
+  - The sync-free level at C1's formats costs 0.645 ms, against 0.901 with a host sync per level (-28 %).
+  - HE+ tree-32 drafting comes to 13.4-15.3 ms per block, vs the brief's ~24 ms in the engine today.
+  - Tree-16 halves it again (HE+ 8.1 ms at C1, 6.8 at C3).
+- **My expectation was wrong on f.** I wrote "falls to ~0.1-0.2 ms per level once there's no sync"; it fell to 0.31,
+  because most of it is the GPU's dependent-dispatch chain, not the host sync. My BETWEEN prior (~6-8 ms) came out worse:
+  9.3-13.4 ms.
+- **Next:**
+  - M3 (kept, TRUE-STATE) on C1, C3, C8, plus Q4 / H8 to split C1's cost. Harness: week98/p3_dd_tree.py, a copy of
+    BigMoE's dd_tree.py with cut hooks. It runs in the day's big-job slot (~11-12 GB; after t30c or Tuesday), behind
+    its bitwise gate at --cut none.
+  - The hand-fused level is a separate build, priced above, and needs NewIdeas' / the orchestrator's go.
+
 ## Ranked (final, 01:3x)
 1. **The 2B audits and repairs the head's deep tokens: CONFIRMED on HE+** (D). On MBPP, the frozen schedule was chosen
    on those rows (C). Training-free.

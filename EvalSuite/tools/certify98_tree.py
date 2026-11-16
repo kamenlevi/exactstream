@@ -80,17 +80,29 @@ def load(topk, tree):
     return out, bad, ns, int(z["k"]), int(z["nodes"])
 
 
-def coverage(W, accf, cap=15):
-    """walk-strict COVERAGE per depth: P(the target's token is among the drafted nodes at depth d | covered at 0..d-1),
-    at the walk's check starts, in certify98's walk convention (a missing cell, or the walk's last start at the answer's
-    end, ends the run), so a chain's coverage is certify98.strict_counts(mode="walk") exactly"""
-    num, den = np.zeros(cap), np.zeros(cap)
+def coverage_w(W, accf, cap=15, targets_only=True):
+    """per window (num, den) of walk-strict COVERAGE per depth: P(the target's token is among the drafted nodes at depth
+    d | covered at 0..d-1), at the walk's check starts. A missing cell, or the walk's last start at the answer's end,
+    ends the run. Amendment 8 (targets only): the first uncovered depth counts only if its cell has a target, so a
+    chain's coverage is certify98.strict_counts(mode="walk", targets_only=True) exactly; targets_only=False is
+    amendment 6's count, certify98.strict_counts(mode="walk")"""
+    out = []
     for X in W:
-        a = accf(X)
+        a, rt = accf(X), X["rt"]
+        num, den = np.zeros(cap), np.zeros(cap)
         for p in walk(a)[2]:
-            k = np.arange(cap)
-            den += a[p] >= k; num += a[p] >= k + 1
-    return num, den
+            k = int(a[p])
+            num[:min(k, cap)] += 1; den[:min(k, cap)] += 1
+            if k < cap and (not targets_only or rt[p, k] != -1):
+                den[k] += 1
+        out.append((num, den))
+    return out
+
+
+def coverage(W, accf, cap=15, targets_only=True):
+    """coverage_w pooled over the windows"""
+    per = coverage_w(W, accf, cap, targets_only)
+    return sum(n for n, _ in per), sum(d for _, d in per)
 
 
 def ratio(T, Cc):
@@ -122,10 +134,12 @@ def score(topk, tree):
         bad.append(f"chain-32 {R['chain32']:.6f} != certify98's kept/32 {kept32:.6f}")
     R["cov_chain16"] = coverage(W, lambda X: chain_acc(X["rt"], 16))
     R["cov_tree16"] = coverage(W, lambda X: X["acc"][16])
-    S = C.strict_counts(C.windows(topk), mode="walk", cap=15)            # the nesting: chain coverage == walk-strict
-    sn, sd = sum(s[0] for s in S)[:15], sum(s[1] for s in S)[:15]
-    if not (np.array_equal(sn, R["cov_chain16"][0]) and np.array_equal(sd, R["cov_chain16"][1])):
-        bad.append("chain-16 coverage != certify98's walk-strict accuracy at cap 15")
+    for tgt in (False, True):                       # the nesting, under both counts: chain coverage == walk-strict
+        S = C.strict_counts(C.windows(topk), mode="walk", cap=15, targets_only=tgt)
+        sn, sd = sum(s[0] for s in S)[:15], sum(s[1] for s in S)[:15]
+        cn, cd = coverage(W, lambda X: chain_acc(X["rt"], 16), 15, tgt)
+        if not (np.array_equal(sn, cn) and np.array_equal(sd, cd)):
+            bad.append(f"chain-16 coverage != certify98's walk-strict accuracy at cap 15 (targets only: {tgt})")
     return R
 
 
@@ -140,8 +154,8 @@ def show(R, label):
         print(f"  tree-{' / tree-'.join(str(N) for N in NS if N not in R['ns'])}: n/a (the dump has {R['nodes']} nodes)")
     for lab in ("chain16", "tree16"):
         n, d = R[f"cov_{lab}"]
-        print(f"  coverage {lab[:-2]}-16 by band: " + "  ".join(f"{lo}-{hi} {100 * n[lo:hi + 1].sum() / d[lo:hi + 1].sum():.2f}"
-                                                               for lo, hi in COVB))
+        print(f"  coverage {lab[:-2]}-16 by band (targets only): "
+              + "  ".join(f"{lo}-{hi} {100 * n[lo:hi + 1].sum() / d[lo:hi + 1].sum():.2f}" for lo, hi in COVB))
     for b in R["bad"]:
         print(f"  CHECK FAILED: {b}")
 

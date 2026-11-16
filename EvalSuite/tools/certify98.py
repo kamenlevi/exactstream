@@ -95,11 +95,13 @@ def bandstat(W, lo, hi, sel=None):
     return np.array(y), np.array(x)
 
 
-def strict_counts(W, mode="all", cap=31):
+def strict_counts(W, mode="all", cap=31, targets_only=False):
     """per window (num[k], den[k]) of the STRICT conditional per-depth accuracy P(right at k | right at 0..k-1), what the
     engine pays on (the orchestrator 02:2x; PREREG_certify98 amendment 4). mode "all": every anchor from row R0 starts a
     check; a missing cell (the answer's end) leaves the denominator, since truncation is not a miss. mode "walk": only
-    the decode walk's check starts, a missing cell counting as the run's end, so 1 + sum_k prod_{j<=k} c_j = kept_walk."""
+    the decode walk's check starts, a missing cell counting as the run's end, so 1 + sum_k prod_{j<=k} c_j = kept_walk.
+    targets_only (amendment 8, the gate's convention): in mode "walk" a missing cell still ends the run but is not
+    counted, since a cell with no target is not a miss; kept_walk's identity holds only for the default counts."""
     out = []
     for rt, _ in W:
         num, den = np.zeros(DEPTHS), np.zeros(DEPTHS)
@@ -116,7 +118,7 @@ def strict_counts(W, mode="all", cap=31):
             for k in range(cap):
                 c = rt[a, k]
                 if c == -1:
-                    den[k] += mode == "walk"
+                    den[k] += mode == "walk" and not targets_only
                     break
                 den[k] += 1
                 if c != 1:
@@ -170,16 +172,18 @@ def summary(W):
     R["strict"] = {"bands": {f"{lo}-{hi}": strict_stats(C, lo, hi) for lo, hi in BANDS},
                    "depths": [dict(depth=j, **strict_stats(C, j, j)) for j in range(DEPTHS)]}
     R["strict"]["kept_approx"] = kept_from(C, 31)
-    CW, CW16 = strict_counts(W, "walk", 31), strict_counts(W, "walk", 15)
-    R["strict_walk"] = {"depths": [dict(depth=j, **strict_stats(CW, j, j)) for j in range(DEPTHS)],
-                        "bands": {f"{lo}-{hi}": strict_stats(CW, lo, hi) for lo, hi in GATE},
+    CW, CW16 = strict_counts(W, "walk", 31), strict_counts(W, "walk", 15)     # amendment 4's counts: the kept identity
+    CT = strict_counts(W, "walk", 31, targets_only=True)                     # amendment 8: the gate counts targets only
+    R["strict_walk"] = {"depths": [dict(depth=j, **strict_stats(CT, j, j)) for j in range(DEPTHS)],
+                        "bands": {f"{lo}-{hi}": strict_stats(CT, lo, hi) for lo, hi in GATE},
                         "kept_per_32": kept_from(CW, 31), "kept_per_16": kept_from(CW16, 15)}
     return R
 
 
 def report(R, label):
     print(f"{label}: {R['windows']} windows")
-    print("  PRIMARY: strict P(right at k | right at 0..k-1) at the decode walk's check starts (what the engine pays on)")
+    print("  PRIMARY: strict P(right at k | right at 0..k-1) at the decode walk's check starts (what the engine pays on; "
+          "targets only)")
     print(f"  {'band':>6} {'rows':>8} {'acc %':>7} {'SE pt':>6} {'LCB95 %':>8} {'K':>4}")
     for b, v in R["strict_walk"]["bands"].items():
         print(f"  {b:>6} {v['rows']:>8} {v['acc']:7.2f} {v['se']:6.3f} {v['lcb']:8.2f} {v['K']:>4}")
@@ -272,7 +276,9 @@ def selftest():
     CW = strict_counts([(rt, None)], "walk", 2)                                          # walk from row 1: starts 1, 3
     assert CW[0][1][:2].tolist() == [2, 2] and CW[0][0][:2].tolist() == [2, 0], CW       # row 3's end counts in the walk
     assert abs(kept_from(CW, 2) - np.mean(kept_walk(rt, 1, 2))) < 1e-12
-    print("CERTIFY98 selftest: PASS (walk, CR1, layout, strict counts, the strict -> kept identity)")
+    CT = strict_counts([(rt, None)], "walk", 2, targets_only=True)                      # ... but not under targets only
+    assert CT[0][1][:2].tolist() == [2, 1] and CT[0][0][:2].tolist() == [2, 0], CT
+    print("CERTIFY98 selftest: PASS (walk, CR1, layout, strict counts, targets only, the strict -> kept identity)")
     return 0
 
 

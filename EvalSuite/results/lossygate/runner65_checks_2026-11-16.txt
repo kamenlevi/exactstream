@@ -1,0 +1,20 @@
+runner 65 checks, Mon 2026-11-16 08:5x (PREREG_lossygate amendment 4b): runner 64 sha256 5cab78942ae9501c (unchanged), runner 65 9848a30c6a15d682
+== the QOM check extracted from each runner, on synthetic runs.json (QSETS = R57_QOM_SETS, TSETS = R57_TIERS_SETS)
+PASS base, QOM on its sets: runner 65 rc 0 (want 0); runner 64 rc 0
+PASS base, a humaneval run without QOM: runner 65 rc 1 (want 1); runner 64 rc 1
+PASS 1c variant, QOM replaced (0 on humaneval / mbpp): runner 65 rc 0 (want 0); runner 64 rc 1
+PASS 1c variant, QOM stacked on mbpp: runner 65 rc 1 (want 1); runner 64 rc 1
+PASS 1c variant, a cut run with QOM uses is ignored: runner 65 rc 0 (want 0); runner 64 rc 1
+PASS chat-QOM env + 1c: ifeval keeps QOM: runner 65 rc 0 (want 0); runner 64 rc 1
+PASS chat-QOM env + 1c: ifeval without QOM: runner 65 rc 1 (want 1); runner 64 rc 1
+QOM-RULE TESTS: PASS
+== dry runs of runner 65 (CARD_DRY=1; cc1 pins; tier 1 code)
+lx45cc1's env (the base stand-in):
+08:52:49 QOM's validity rule: pf.qom_opt > 0 on every run in humaneval,mbpp
+08:52:49 DRY: tier 1, scope code, order fwd (first humaneval/HumanEval/1,mbpp/100, last ifeval/3757), 364 keys; engagement field none; QOM sets humaneval,mbpp; 1c sets none; reference ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 holds 364 of 364; pin cc3fea99a298; bm_pi
+a scratch copy of lx45cc1's env + R57_TIERS=1c ... R57_TIERS_SETS=humaneval,humanevalx,mbpp (not BigMoE's env; it only exercises the parse):
+08:53:14 QOM's validity rule: pf.qom_opt > 0 on every run in humaneval,mbpp; R57_TIERS=1c on humaneval,humanevalx,mbpp: pf.qom_opt == 0 on the sets in both (1c replaced QOM)
+08:53:14 DRY: tier 1, scope code, order fwd (first humaneval/HumanEval/1,mbpp/100, last ifeval/3757), 364 keys; engagement field lossy_check:e3+edrop+lmsl_rows; QOM sets humaneval,mbpp; 1c sets humaneval,humanevalx,mbpp; reference ref2tnax,ref2tnaxn.r3,ref2tna
+the same with R57_TIERS=1c and no R57_TIERS_SETS:
+08:53:15 R57_TIERS=1c without R57_TIERS_SETS: runner stops
+the base's key files (results/card/*lx45cc1_t1code*.txt): md5 unchanged by the dry runs

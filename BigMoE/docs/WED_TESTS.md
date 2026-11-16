@@ -2395,3 +2395,56 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
   not a calibration line; tier 0a's A / F_hi lines come from EvalSuite's re-run under its amendment 2b.
 - **Peaks:** 41.7-42.6 GB on these short prompts. EvalSuite gates m1b and lossycal at 47 GB for card-length runs, its
   own call. The runner's first peak parse read only the warm-up lines; fixed after the run, and the JSON keeps both.
+
+## Mon 16 Nov 08:4x-08:55: the 127-node tree dump prepared for Tuesday's dry run (dd_tree, one-window smoke: nest BITWISE) + the 1c-tiers wiring on my side (desk test PASS, head tests OK; waits for Leap's ref2 2-D nolsb)
+- **dd_tree.py, for Tuesday (MTP Head 22:2x, the orchestrator, NewIdeas, EvalSuite):**
+  - Output names get `_n<nodes>k<k>` unless the shape is 32 / 8, so the 32-node files are never overwritten.
+  - At k = 16 the TOPK exactness check compares the first 8 children.
+  - A nest check: the first 32 pops of a k = 8 tree must equal the 32-node dump, bitwise.
+  - data/deepdraft/ceiling/dumps_sha256.json gets each new dump's sha256.
+- **Desk test (no model):**
+  - The report is unchanged on both banks at 32 / 8.
+  - The nest check reads BITWISE on nested trees built from the 32-node dumps (24 and 100 windows) and DIFFERS when one
+    path_p is changed.
+  - At k = 16 the first-8 compare equals k = 8's.
+  - The selftest is OK.
+- **One-window smoke (real, heplus24 window 0, 274 anchors; share lock MEM 13 GB, beside MTP Head's 3.4 GB pass; Kamen
+  away):**
+
+  | run | wall (incl. load) | MLX peak | swap | nest vs the 32-node dump |
+  |---|---|---|---|---|
+  | k = 8 | 58 s | 11.62 GB | +0 | **BITWISE** (first 32 pops) |
+  | k = 16 | 59 s | 11.62 GB | +0 | (not applicable) |
+
+  - Files: data/deepdraft/ceiling/smoke_1116/.
+  - Tuesday's dry run writes EvalSuite's start-gate marker data/deepdraft/ceiling/N127_DRY_1117_DONE on any end.
+- **1c-tiers, BigMoE's side** (Fit12 /Users/kamen/Fit12/LOSSY_1C_TIERS_SPEC.md; EvalSuite PREREG_lossygate amendments 4 /
+  4b):
+  - R57_TIERS=1c in r57_screen_fast.py. In each verify check of a prompt in R57_TIERS_SETS, `_t1c` runs per MoE layer
+    on the GPU with no sync: bigmoe.tiers1c.tiers_mx on the check's ids and fused-combine scores.
+  - Drops go through the km path. MSB-3 marks go in Leap's 2-D t["nolsb"] form `(mask [M, 2], None)`.
+  - Per-layer union counts are read in the check's existing argmax eval. It REPLACES QOM / U3's keep there.
+  - runs.json `lossy_check` {checks, e4, e3, edrop, lmsl_rows 0, lmsl_fallback 0}, absent outside the sets, plus
+    `t1c_ck` per check.
+  - Guards: R57_TIERS=1c needs R57_FAST, R57_NAX=1, REF2_OOO_1C=1, REF2_NAX_1CQ=1 and R57_TIERS_SETS (a head-test
+    assert), and no rank cut on its sets. My 3c copy (_ooo_call_t3) asserts it never receives the 2-D form.
+  - With R57_TIERS unset every new branch is off, so the code path is unchanged.
+- **Desk test** scripts/test_t1c_wiring.py (data/deepdraft/t1c_wiring_test.json) **PASS**:
+  - The screen's own `_t1c` ran on the decision map's 12 code windows, 3,095,040 slots.
+  - It has 0 mismatches against tiers_np in the drop mask, the MSB-3 marks and the counter.
+  - e4 + e3 + edrop = the union on every check-layer.
+  - Means against Fit12's reference: 16 rows 76.64 = 8.65 + 20.52 + 47.47 (ref 76.6 = 8.7 + 20.5 + 47.5); 32 rows
+    114.24 = 15.27 + 30.73 + 68.24 (ref 114.2 / 15.3 / 30.7 / 68.2).
+- **Head tests** (working copy, lossy-45 = lx45cc1's line):
+  - The base and base + 1c reach the model load.
+  - 1c without R57_TIERS_SETS fails at the guard.
+  - 1c without the one-call flags fails at the QOM guard.
+- **EvalSuite's QOM-validity rule:**
+  - pf.qom_opt only counts QOM's per-check optional uses, so the variant has 0 on its TIERS sets.
+  - EvalSuite re-registered the rule as amendment 4b: base > 0, variant == 0 on QOM ∩ TIERS sets (proof of replace,
+    not stack).
+- **Next:**
+  - Leap's ref2 change (2-D nolsb + GPU dup pick); I'll read its diff for the unset path.
+  - Then the new snapshot + env files lx45<snap> / t1cx45<snap>.
+  - Then section 6's real-loop key test (both envs, one HumanEval key + one IFEval key; tokens vs lx45cc1, counters,
+    pf.qom_opt, peaks) on Tuesday by day, after the dry run.

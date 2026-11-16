@@ -414,3 +414,159 @@
   estimate; Tuesday's bank passes measure it), in --part slices.
   - Proposed: Thursday by day, right after the proof-run amendment, as the one job above 4 GB. Scoring is then done
     Thursday evening, before the night's proof run.
+
+## Amendment 8 (Mon 2026-11-16 08:3x, before any capture or candidate): the pre-capture lines (LAB, C1, C2, tree-K) and the targets-only convention
+- **Why:** NewIdeas, the Goal A lead, sent the lines the orchestrator approved (Sun 21:5x; K* and T8 22:0x-22:1x), with
+  its Monday 08:1x updates: ~/NewIdeas/research/week98/AMENDMENT_INPUT_1116.md at 64d8a29. This amendment adapts them
+  to this PREREG's form.
+  - Amendment 8a (Tue evening, before the capture) pins c32 and R32/R16 from Leap's measured E2 and names K* per set.
+- **Every dev number below was recomputed here** with the scorer this amendment registers
+  (results/certify98/lines_dev_2026-11-16.txt). Dev numbers are information; only the fresh sets gate.
+
+### 0. The convention: walk-strict bands count targets only
+- A walk cell with no target (past the answer's end) still ends the check, but it is not a miss. This is MoonShots'
+  K98 definition, checked in 151d997.
+- It applies to every walk-strict count in this PREREG: amendment 4's gate, C2's bands, and tree coverage (amendment
+  6's information and C1).
+- kept_walk and kept/32 do not change. certify98.py keeps amendment 4's counts for its strict-to-kept identity, as a
+  code check.
+- **Dev effect on t30b's gate bands (HE+ 24):** 91.39 / 91.93 / 93.78 / 96.50 / 96.22 / 97.46 become 91.68 / 92.38 /
+  94.30 / 96.63 / 96.71 / 97.68. Still NOT CERTIFIED.
+- Amendment 4's power model still counts the end as a miss, which is now slightly conservative.
+
+### 1. LAB: the knowledge line (TRUE STATE; not deployable)
+- **What:** the head's guess with the 125B's true state at every depth.
+  - At depth d from anchor a, the head reads the trunk at row a + d, so its guess is the depth-0 guess of anchor a + d.
+  - lab[a, d] = the depth-0 cell of anchor a + d, wherever cell (a, d) exists. It comes from the capture's depth-0
+    cells, with no extra run.
+- **Metric:** MARGINAL accuracy per band over every cell (bands 0 / 1-2 / 3-6 / 7-10 / 11-14 / 15-22 / 23-30), with
+  certify98's lower bound.
+- **Line (HE+ 140):** every band's point >= 97.5 AND its lower bound >= 97.0. Each point is quoted against Kamen's 97.8.
+- **MBPP:** reported (dev 94.0-93.6, flat: knowledge-limited).
+- **Dev (HE+ 24):** 97.95 / 97.93 / 97.91 / 97.88 / 97.84 / 97.79 / 97.72. This matches NewIdeas' numbers to 0.00 pt.
+- **The REPLACE cross-check is mixed.** The input says the shortcut reproduces BigMoE's REPLACE oracle. NewIdeas' own
+  check (lab_truestate.txt) agrees on MBPP (kept/32 12.72 vs 12.76) but prints DIFFERS on HE+: 20.77 vs 20.90, 0.13
+  apart at its 0.05 tolerance.
+  - The line is defined by the shortcut above. REPLACE is information.
+  - Every LAB sentence says TRUE STATE (lab), never real decoding.
+
+### 2. C1: walk-strict coverage at band 0 (targets only)
+- **Candidates:** tree-16 (t30b + EAGLE-2-16, amendments 6 / 6a) and tree-32 (T8's first 31 pops).
+- **Line (HE+), per tree:** band 0's point >= 97.8 AND its lower bound >= 97.0. MBPP is reported.
+- **Dev:** HE+ tree-16 98.58 [LB 97.73 at 24 windows], tree-32 98.47 [96.54]; MBPP 97.79 / 98.61.
+- Section 4's "band-0 coverage at K*" is this line for the K* tree.
+
+### 3. C2: t30b + the frozen 2B audit (exact)
+- **Auditor:** mlx-community/Qwen3.5-2B-MLX-4bit, revision 93760be4f1f69842a46bc13dbdc0f19e291392a3, model.safetensors
+  sha256 713fe7e5d3c3965f7106b0d0ee17615f7869c23c8d327996df8c1196fbcf07d5. Checked here against the local copy, which
+  is already on disk, so there is no download. No training.
+- **Head:** dd_t30b.safetensors, sha256 790c42db393ad158f0f61e64962c868967995268babb816b27cbf8f4e215d502.
+- **Rule (MoonShots', frozen Sun 01:3x):**
+  - The 2B runs one teacher-forced pass over the bonus + drafts.
+  - At the first row where its top-1 differs from the draft and its margin >= tau(depth), its token replaces the draft,
+    and the head re-drafts the rest of the block. tau = 4 nats at depth 0, 2 at 1-2, 1 at 3-6 and 0.5 at 7-30.
+  - P audit passes per check: P = 2 is the headline; P = 1 is reported.
+  - Per cell this is the same as: where the 2B's margin >= tau, its outcome replaces the head's (a repair if it is
+    right, a break if it is wrong). The scorer walks that, with at most P repairs per check.
+- **Scored against the head's own label:** the 2B is right when its top-1 equals the dump's target y.
+  - The 2B rows join the dump on (file, row), and every cell must find its row.
+  - On the fresh files, the rows' 125B top-1 (tk0) must equal y on every row (the runtime-path validity), or C2 is VOID.
+  - On the dev HE+ answers, which were not decoded on the runtime path, tk0 and y differ on 35 near-tie rows (125B
+    margin <= 0.75 nats). MBPP has none. MoonShots scored against tk0 there.
+- **PRIMARY (HE+, P = 2):** walk-strict 15-22 and 23-30, each point >= 97.8 AND its lower bound >= 97.0.
+- **CO-PRIMARY (HE+, P = 2):** kept/32's paired difference, C2 minus t30b over the same windows. Its window-clustered
+  one-sided 95 % lower bound must be > 0.
+- **Reported:** P = 1, bands 0-14, MBPP, and the C2-4B arm.
+- **Dev, as registered (HE+ 24):**
+  - P = 2: 98.41 [LB 97.74] / 98.11 [97.42]; kept/32 15.07 vs 13.77 (+9.5 %; paired LB +0.33).
+  - P = 1: 97.65 / 98.22.
+  - In MoonShots' tk0 convention: 98.32 [97.62] / 98.28 [97.62], kept/32 15.00 (+8.9 %). That reproduces
+    walkstrict_bands.json (MoonShots d9d3148) to 0.0002 pt.
+  - MoonShots' quoted bounds (97.49 / 97.45) are bootstrap 2.5 % points. The line uses certify98's bound.
+- **The 2B rows on the fresh files:** MoonShots writes them in rows2b's layout (fname, row, top1, margin2b, tk0), by day,
+  after the proof-run amendment (GPU minutes, 2-4 GB).
+  - That amendment pins the script's sha256 and arguments.
+  - The dump manifest (amendment 7) lists the rows files.
+- **C2-4B (information, no gate):** the same rule at P = 2 with mlx-community/Qwen3.5-4B-MLX-4bit, revision
+  32f3e8ecf65426fc3306969496342d504bfa13f3, sha256 5fb9acd0246866381cf8c5c354c6db1019f6498eec4ccb4f5edcc71ffeacb2db
+  (checked locally).
+- **No speed claim:** the 2B pass is untimed.
+- **C2b is DROPPED:** Sandbox98's L1CF is a KILL (07:09; HE+ +0.82 < +1.0).
+
+### 4. The tree-K line: T8 at K* = 32 (31 best-first pops + the bonus)
+- **T32/32** = tree-32 kept per check / chain-32 kept per check, each under its own walk over the same windows (the same
+  32 rows).
+  - PASS: lower bound >= c32 AND point >= 1.03 x c32. BETWEEN and FAIL as in amendment 6.
+  - **Gated on HE+ AND MBPP**; overall as in amendment 6.
+  - Dev: HE+ 1.181 [LB 1.126]; MBPP 1.304 [1.283].
+- **T32/16** = tree-32 / chain-16 (amendment 6's statistic at K*).
+  - PASS: lower bound >= rho AND point >= 1.03 x rho, where rho = R32/R16 x c32.
+  - **Gated on HE+ only.** MBPP is information (dev 1.371 [1.351]).
+  - Dev HE+: 1.531 [1.470].
+- **c32 and R32/R16** come from Leap's measured E2 (Tue 00:30). Amendment 8a pins them Tue evening, before the capture.
+  No bar is set before then.
+  - The priors are for orientation only: c32 1.03-1.05 (first cut); R32/R16 1.480 (Breakthrough a082f8c: C32one 90.46
+    / A16 61.11 ms). The orchestrator corrected its earlier 1.445 at 08:2x.
+  - At 1.480 x 1.04, the T32/16 bar is 1.539 (point 1.585), against dev 1.531. Tree-32 would lose to chain-16 on HE+,
+    and K* would be 16 there.
+- **K*:** amendment 8a names it per set: 32 or 16 for HE+-like code, by the measured bar; 16 for MBPP-like. The
+  sentence names K*.
+- **T8's node count:** the line reads T8's first 31 pops, so amendment 7's 32-node T8 suffices. Tree-64 and tree-128 from
+  a 127-node T8 would be information. T16 (top-16) stays information.
+- TREE's own checks gate the read-out (amendment 5). If one fails, the line is VOID.
+
+### 5. Conditional: C3, t30c
+- It runs only if MTP Head's Tue-night run pays on dev by Wed ~15:00: HE+ 23-30 marginal >= t30b + 1.0, and no band
+  below t30b - 0.3. Then it is a separate, named arm in C1, C2 and tree-K. t30b's lines stand regardless.
+- **It is a second candidate on the same sets.** Under section 2 (Looks), its lines use the one-sided 97.5 % bound,
+  t(K-1, 0.975). Its pins, and its power at that bound, are filed before the proof-run amendment.
+
+### 6. The family, and how it is reported
+- **There are 8 gated claims:** the chain line (amendment 4); TREE-16 (amendments 6 / 6a); LAB; C1 tree-16; C1 tree-32;
+  C2; T32/32; T32/16.
+  - All are read-outs of the one candidate's single pass (amendment 5), plus the 2B's rows, named before any data.
+  - So each uses the one-sided 95 % bound of the approved input. There is no family-wise correction.
+- **The RESULT quotes all eight verdicts,** failures included. A sentence that quotes one line links the others' verdicts.
+- **Every HE+ verdict is also computed on the strict 80** (amendment 2's sensitivity line), reported beside it. If they
+  disagree, both are quoted.
+
+### 7. Power
+tools/certify98_lines.py power: 2,000 draws of windows with replacement from the dev windows, at the fresh counts (HE+
+140, with its strict 80 in brackets; MBPP 300). The bounds are the registered ones, counted targets only
+(results/certify98/power_lines_2026-11-16.txt).
+- **LAB:** 0.71 [0.54]. All points >= 97.8: 0.41.
+- **C1:** tree-16 1.00 [1.00]; tree-32 0.92 [0.76]. MBPP (reported): 0.48 / 1.00.
+- **C2, P = 2:**
+  - 0.97 [0.92] at the dev truth.
+  - If both deep bands' truth is 98.0: 0.81; at 97.9: 0.60; at 97.8: 0.34.
+  - CO-PRIMARY alone: 1.00. P = 1: 0.24.
+  - This is the re-power under targets only promised in 151d997. The registered bound gives 0.97, against NewIdeas'
+    bootstrap 1.00.
+- **T32/32:** 1.00 on both sets at c32 1.03, 1.04 and 1.05.
+- **T32/16 (HE+):**
+  - 0.00 at the prior 1.480 x 1.04;
+  - 0.45 at 1.445 x 1.03;
+  - 0.84 at 1.43 x 1.03;
+  - 1.00 at 1.40 x 1.03.
+  - So it passes only if E2 measures R32/R16 at or below ~1.43.
+- These are draws from 24 HE+ windows, with the dev point taken as the truth. The shifted rows are the sensitivity.
+
+### 8. The scorer (pinned again in the proof-run amendment)
+- tools/certify98_lines.py (new; sha256 579a60ac9ed4e329...): `lab`, `c1`, `c2`, `treek ... --c32 X --r3216 Y`,
+  `reproduce` and `power`.
+- tools/certify98.py (targets only; sha256 c0528ad765fd5e59...).
+- tools/certify98_tree.py (coverage counts targets only; the nesting check runs under both counts; sha256
+  4a0ba21625497be1...).
+- Tests:
+  - certify98 selftest and reproduce: PASS;
+  - TREE-REPRODUCE: PASS (max |diff| 0.0005);
+  - LINES-REPRODUCE: PASS (NewIdeas' LAB and C1, MoonShots' C2, and 151d997's tree-K).
+
+### 9. What the certificate can and cannot say (NewIdeas' section 6, if the lines pass)
+- **Can:** "Exact. The first guess after a check is covered ~98.5 % (the tree at K*); deep guesses 15-30 are right ~98 %
+  (2B audit, P = 2). The head's knowledge, given the true state, is ~97.8 % flat (LAB, TRUE STATE). Tree-32 keeps x1.18
+  more tokens per check than the chain at the same 32 rows."
+- **Cannot:**
+  - 97.8 % at walk-strict bands 1-14: every deployable lever is at 90.6-97.1, and even the true state is at 93.2-96.4
+    for bands 0-6.
+  - 450 exact: that needs a flat 98.0-98.4 % with the check at its byte floor (TARGETS_450_900.md).

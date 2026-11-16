@@ -157,6 +157,63 @@ NKS = ("fi", "an", "node", "parent", "depth", "token", "path_p", "y", "on_true",
 AKS = ("a_fi", "a_an", "a_walk_start", "root_top_ids", "root_top_p")
 
 
+def tag(a):
+    """file-name suffix (Mon 16 Nov, the 127-node dry runs): today's 32-node top-8 dump keeps its names; any other shape
+    gets _n<nodes>k<k>, so a bigger tree never overwrites the 32-node files that CERTIFY98 / MTP Head cite"""
+    return "" if (a.nodes, a.k) == (32, 8) else f"_n{a.nodes}k{a.k}"
+
+
+def sha_manifest(paths):
+    """data/deepdraft/ceiling/dumps_sha256.json: sha256 + bytes per dump file (EvalSuite's CERTIFY98 manifest form)"""
+    import hashlib
+    mp = os.path.join(OUT, "dumps_sha256.json")
+    M_ = json.load(open(mp)) if os.path.exists(mp) else {}
+    for p in paths:
+        h = hashlib.sha256()
+        with open(p, "rb") as f:
+            for blk in iter(lambda: f.read(1 << 24), b""):
+                h.update(blk)
+        M_[os.path.basename(p)] = {"sha256": h.hexdigest(), "bytes": os.path.getsize(p),
+                                   "written": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(os.path.getmtime(p)))}
+    json.dump(M_, open(mp, "w"), indent=1, sort_keys=True)
+
+
+def nest_check(N_, A_, base_path, n0=32):
+    """the first n0 pops per anchor of a bigger k = 8 tree == the n0-node k = 8 dump, BITWISE on every node field, for every
+    window the bigger file holds (a part holds only its windows). N_ is ordered (window, node t, row b) in both files."""
+    if not os.path.exists(base_path):
+        return {"base": os.path.basename(base_path), "result": "base file missing"}
+    Z = dict(np.load(base_path))
+    if int(Z["nodes"]) != n0 or int(Z["k"]) != 8:
+        return {"base": os.path.basename(base_path), "result": f"base is nodes {int(Z['nodes'])} k {int(Z['k'])}"}
+    nb = int(np.asarray(N_["node"]).max()) + 1
+
+    def blocks(N, A, n):
+        out, p0 = {}, 0
+        for fi_ in np.unique(A["a_fi"]):
+            Bw = int((A["a_fi"] == fi_).sum())
+            out[int(fi_)] = (p0, Bw); p0 += Bw * n
+        return out
+    bb, b0 = blocks(N_, A_, nb), blocks(Z, Z, n0)
+    bad, nw = [], 0
+    for fi_, (p, Bw) in bb.items():
+        if fi_ not in b0 or b0[fi_][1] != Bw:
+            bad.append((fi_, "window missing / other anchor count")); continue
+        q = b0[fi_][0]
+        for k_ in NKS:
+            x, y_ = np.asarray(N_[k_])[p:p + Bw * n0], np.asarray(Z[k_])[q:q + Bw * n0]
+            if x.shape != y_.shape or not np.array_equal(x, y_):
+                bad.append((fi_, k_)); break
+        for k_ in AKS:
+            ia = slice(int((A_["a_fi"] < fi_).sum()), int((A_["a_fi"] <= fi_).sum()))
+            ib = slice(int((Z["a_fi"] < fi_).sum()), int((Z["a_fi"] <= fi_).sum()))
+            if not np.array_equal(np.asarray(A_[k_])[ia], np.asarray(Z[k_])[ib]):
+                bad.append((fi_, k_)); break
+        nw += 1
+    return {"base": os.path.basename(base_path), "windows": nw, "first_pops": n0,
+            "result": "BITWISE" if not bad and nw else "DIFFERS", "first_diffs": [list(map(str, b_)) for b_ in bad[:5]]}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--set", choices=["heplus24", "mbppbank"])
@@ -168,21 +225,23 @@ def main():
     a = ap.parse_args()
     if a.selftest:
         return selftest()
-    if a.check_only:                                     # the checks + preview from a saved tree npz (no model)
-        TK = np.load(os.path.join(OUT, f"topk_{a.run}_{a.set}.npz"))
-        z = dict(np.load(os.path.join(OUT, f"tree_{a.run}_{a.set}.npz")))
-        a.nodes, a.k = int(z["nodes"]), int(z["k"])
+    if a.check_only:                                     # the checks + preview from a saved tree npz (no model); --nodes / --k
+        TK = np.load(os.path.join(OUT, f"topk_{a.run}_{a.set}.npz"))   # name the file (tag), as in the run
+        z = dict(np.load(os.path.join(OUT, f"tree_{a.run}_{a.set}{tag(a)}.npz")))
+        assert (a.nodes, a.k) == (int(z["nodes"]), int(z["k"])), ("--nodes / --k vs the file", a.nodes, a.k, int(z["nodes"]), int(z["k"]))
         return report(a, {k: z[k] for k in ("fi", "an", "node", "parent", "depth", "token", "path_p", "y", "on_true", "top_ids",
                                               "top_p", "p_ynext", "ynext_rank")},
                       {k: z[k] for k in ("a_fi", "a_an", "a_walk_start", "root_top_ids", "root_top_p")}, TK, None, None)
     if a.merge:                                          # parts are contiguous window ranges: concatenation keeps the order
         TK = np.load(os.path.join(OUT, f"topk_{a.run}_{a.set}.npz"))
-        Z = [dict(np.load(os.path.join(OUT, f"tree_{a.run}_{a.set}.part{i}of{a.merge}.npz"))) for i in range(a.merge)]
-        a.nodes, a.k = int(Z[0]["nodes"]), int(Z[0]["k"])
+        Z = [dict(np.load(os.path.join(OUT, f"tree_{a.run}_{a.set}{tag(a)}.part{i}of{a.merge}.npz"))) for i in range(a.merge)]
+        assert all((a.nodes, a.k) == (int(z["nodes"]), int(z["k"])) for z in Z), "--nodes / --k vs the parts"
         N_ = {k: np.concatenate([z[k] for z in Z]) for k in NKS}
         A_ = {k: np.concatenate([z[k] for z in Z]) for k in AKS}
         assert (np.diff(A_["a_fi"]) >= 0).all(), "parts out of order"
-        np.savez_compressed(os.path.join(OUT, f"tree_{a.run}_{a.set}.npz"), files=TK["files"], nodes=a.nodes, k=a.k, **N_, **A_)
+        op_ = os.path.join(OUT, f"tree_{a.run}_{a.set}{tag(a)}.npz")
+        np.savez_compressed(op_, files=TK["files"], nodes=a.nodes, k=a.k, **N_, **A_)
+        sha_manifest([op_])
         return report(a, N_, A_, TK, round(float(sum(z["wall_s"] for z in Z)), 1), round(float(max(z["peak_gb"] for z in Z)), 2))
     import mlx.core as mx
     import dd_ceiling as CE
@@ -279,11 +338,15 @@ def main():
     A_ = {k: np.concatenate(v) for k, v in A_.items()}
     if a.part:
         i_, n_ = a.part.split("/")
-        np.savez_compressed(os.path.join(OUT, f"tree_{a.run}_{a.set}.part{i_}of{n_}.npz"), nodes=a.nodes, k=a.k,
+        np.savez_compressed(os.path.join(OUT, f"tree_{a.run}_{a.set}{tag(a)}.part{i_}of{n_}.npz"), nodes=a.nodes, k=a.k,
                             wall_s=time.time() - t0, peak_gb=mx.get_peak_memory() / 1e9, **N_, **A_)
-        print(f"[tree] part {a.part}: windows {lo}..{hi - 1}, {len(A_['a_an'])} anchors, {time.time() - t0:.0f} s", flush=True)
+        nc_ = nest_check(N_, A_, os.path.join(OUT, f"tree_{a.run}_{a.set}.npz")) if a.k == 8 and a.nodes > 32 else None
+        print(f"[tree] part {a.part}: windows {lo}..{hi - 1}, {len(A_['a_an'])} anchors, {time.time() - t0:.0f} s, "
+              f"MLX peak {mx.get_peak_memory() / 1e9:.2f} GB" + (f"; nest vs the 32-node dump: {nc_}" if nc_ else ""), flush=True)
         return
-    np.savez_compressed(os.path.join(OUT, f"tree_{a.run}_{a.set}.npz"), files=TK["files"], nodes=a.nodes, k=a.k, **N_, **A_)
+    op_ = os.path.join(OUT, f"tree_{a.run}_{a.set}{tag(a)}.npz")
+    np.savez_compressed(op_, files=TK["files"], nodes=a.nodes, k=a.k, **N_, **A_)
+    sha_manifest([op_])
     report(a, N_, A_, TK, round(time.time() - t0, 1), round(mx.get_peak_memory() / 1e9, 2))
 
 
@@ -296,12 +359,16 @@ def report(a, N_, A_, TK, wall, peak):
         i = np.searchsorted(kt_s, k_); ok = (i < len(kt_s)) & (kt_s[np.minimum(i, len(kt_s) - 1)] == k_)
         return o_[np.minimum(i, len(kt_s) - 1)], ok
 
-    def cmp(ti, tp, idx):
+    K8 = TK["top_ids"].shape[1]                                        # TOPK's frozen width (8); a k = 16 tree compares
+
+    def cmp(ti, tp, idx):                                              # its first 8 children (sorted by p, as TOPK's)
         same1 = ti[:, 0] == TK["top_ids"][idx, 0]
-        set8 = np.array([set(x) == set(y_) for x, y_ in zip(ti, TK["top_ids"][idx])])
+        set8 = np.array([set(x[:K8]) == set(y_) for x, y_ in zip(ti, TK["top_ids"][idx])])
         dp = np.abs(tp[:, 0] - TK["top_p"][idx, 0])
+        dp8 = np.abs(tp[:, :K8] - TK["top_p"][idx, :K8])
         return {"n": int(len(idx)), "top1_same": round(float(same1.mean()), 5), "top8_set_same": round(float(set8.mean()), 5),
-                "p1_absdiff_max": round(float(dp.max()), 6), "p1_absdiff_median": float(np.median(dp))}
+                "p1_absdiff_max": round(float(dp.max()), 6), "p1_absdiff_median": float(np.median(dp)),
+                "p8_absdiff_max": round(float(dp8.max()), 6), "compared_width": int(min(K8, ti.shape[1]))}
     ir, okr = look(key(A_["a_fi"], A_["a_an"] + 1, np.zeros(len(A_["a_an"]))))
     nt = N_["on_true"] & (N_["depth"] + 1 <= 30)
     it, okt = look(key(N_["fi"][nt], N_["an"][nt] + N_["depth"][nt] + 2, N_["depth"][nt] + 1))
@@ -339,9 +406,11 @@ def report(a, N_, A_, TK, wall, peak):
     wsel = A_["a_walk_start"].astype(bool)
     Rj["preview_kept_per_check"] = {
         sc: {f"chain_{K}": round(float(np.minimum(chain[m_], K).mean() + 1), 4) for K in (15, 31)}
-        | {f"tree_{N}": round(float(acc[m_, N].mean() + 1), 4) for N in (15, 16, 31, 32) if N <= a.nodes}
+        | {f"tree_{N}": round(float(acc[m_, N].mean() + 1), 4) for N in (15, 16, 31, 32, 63, 64, 127, 128) if N <= a.nodes}
         for sc, m_ in (("walk_starts", wsel), ("all_anchors", np.ones(A, bool)))}
-    json.dump(Rj, open(os.path.join(OUT, f"tree_{a.run}_{a.set}.json"), "w"), indent=1)
+    if a.k == 8 and a.nodes > 32:                                       # the nest check (MTP Head 22:2x): the first 32 pops
+        Rj["nest_vs_32node_dump"] = nest_check(N_, A_, os.path.join(OUT, f"tree_{a.run}_{a.set}.npz"))   # == the 32-node dump
+    json.dump(Rj, open(os.path.join(OUT, f"tree_{a.run}_{a.set}{tag(a)}.json"), "w"), indent=1)
     print("[tree]", json.dumps(Rj), flush=True)
 
 

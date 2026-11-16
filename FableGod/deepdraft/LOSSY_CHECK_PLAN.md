@@ -5,6 +5,35 @@ Breakthrough, Sun 15 Nov 2026 00:4x-01:0x. CPU only, from data on disk.
 - Script and data: Breakthrough scripts/m1/lossy_check_price.py, data/m1/lossy_check_price.out.
 - Labels: [K] = measured, [P] = priced / predicted.
 
+## CORRECTED Mon 16 Nov 08:3x: the code plan's bytes were pooled over all domains
+
+Found by Fit12 (08:29). Recounted by Breakthrough with this plan's own block and tier code (pre-registered a706c09,
+result 5fc4c34; scripts/m1/lossy_check_domain_recount.py, data/m1/lossy_check_domain_recount.out). The pooled values
+reproduce every count below, and the code counts match Fit12's to within 0.1 %.
+- **The cause:** every byte count below is a mean over all 36 map windows (12 code + 12 IFEval + 12 multi). But the
+  code-scoped levers (1a / 1b / 1c and the combined code plan) run on code only.
+- **On the 12 code windows:**
+  - the exact union is **114.2** distinct experts per layer, not 99.9. That is 15.15 GB at all-4-bit, or 13.25 GB and a
+    47.3 ms floor with REF2-T's real plane reads (Fit12);
+  - 1c's 4-bit-equivalent count is **39.2**, not 36.4 (1a 30.9, not 29.2; 1b 35.7, not 33.5).
+- **The code plan (1c + 4-bit mixers + 16K shortlist) is 6.15 GB per 32-row check: 22.0 ms at the floor and 26.1 ms
+  at 84 %**, not 5.86 GB / 20.9 / 24.9 ms.
+  - 25 ms needs 87.9 % of 280 GB/s.
+  - HE+ tok/s at 84 % would be 416 / 703 (today's drafter / a 98 % drafter), not 432 / 730.
+- **1b on code is 7.10 GB, 25.3 ms at the floor:** over 25 ms even at the floor. 1a stays under it (6.61 GB, 23.6 ms).
+- **Lambda 1.8e-2 would bring the code plan to 5.80 GB, 24.6 ms at 84 %.** Its predicted code flips are ~1.33 / ~0.71
+  [P, post hoc, not screened], right at the all-row line. That is the experts' 1.21 / 0.59 plus +0.12 / +0.12, the dense
+  cuts' measured addition on top of 1c.
+- **The measured map flips are unchanged** (1.09 / 0.62 on 24 code windows). The tier rule runs per block, so the code
+  windows got their own tiers.
+- **1d's bytes are an all-domain average:** on code alone it reads 9.82 GB (35.1 ms at the floor).
+- **84 % is a kernel target, not today's engine.**
+  - On the full engine the exact 32-row check takes 102.1 ms (90.5 with v32one), and it is GPU-bound (Breakthrough's
+    CHECK55 engine profile, a082f8c).
+  - Fit12 prices this plan at 49.8-53.3 ms per 32-row check on today's engine with one-pass forms (~/Fit12/
+    PLAN_12GB_90_fit12.md "LOSSY32 RESULT").
+- The numbers below are kept as published, and each place they appear is marked [CORRECTED].
+
 ## Bottom line
 
 0. **Pre-registered verdict (all three domains pooled): KILL.** No lever reaches <= 25 ms with predicted flips at or
@@ -15,10 +44,11 @@ Breakthrough, Sun 15 Nov 2026 00:4x-01:0x. CPU only, from data on disk.
    - the non-tie view.
 1. **On HumanEval-like code, < 25 ms is reachable at the bandwidth floor within the map's quality levels**, with one
    combined lever: acceptance-weighted bit-plane tiers (AcceptMoE-style weighting + HOBBIT-style low bits + drops).
-   - Today's drafter: 6.43 GB, 23.0 ms at the floor.
-   - 98 % drafter: 6.88 GB, 24.6 ms at the floor.
+   - Today's drafter: 6.43 GB, 23.0 ms at the floor. [CORRECTED: on code blocks 6.61 GB, 23.6 ms]
+   - 98 % drafter: 6.88 GB, 24.6 ms at the floor. [CORRECTED: on code blocks 7.10 GB, 25.3 ms, over 25]
    - Predicted code flips: 1.21-1.30 % against the 1.34 % level; non-tie flips 0.59-0.66 % against 0.87 % [P].
-2. **At a realistic kernel efficiency (84 % of 280 GB/s) the same lever gives 27-29 ms.** 25 ms needs kernels at
+2. **At a realistic kernel efficiency (84 % of 280 GB/s) the same lever gives 27-29 ms** [CORRECTED: 28-30 ms on code
+   blocks]. 25 ms needs kernels at
    ~92-98 % of bandwidth, or about 0.7-1.0 GB less dense reading. The dense part (3.44 GB = 12.3 ms at the floor) is
    half the budget, and the lossy expert levers can't touch it.
 3. **With chat in the gate, the limit is ~32 ms at the floor, ~38.5 ms at 84 %.** IFEval and multi flip 5-10x more than
@@ -45,6 +75,8 @@ Breakthrough, Sun 15 Nov 2026 00:4x-01:0x. CPU only, from data on disk.
 - So the experts must fit 3.56 GB at the floor or 2.44 GB at 84 %: 34.7 or 23.8 four-bit-equivalent experts per layer,
   against 99.9 exact.
 - The exact union reproduces Leap's 100.5 within 1 % (36 map windows tiled into 299 full 32-row blocks).
+- [CORRECTED: on the code windows the union is 114.2. That is 15.15 GB, 54.1 / 64.4 ms at all-4-bit, or 13.25 GB and
+  47.3 ms at the floor with REF2-T's plane reads (Fit12).]
 
 ## Quality model [K-calibrated, then P]
 
@@ -68,6 +100,11 @@ Breakthrough, Sun 15 Nov 2026 00:4x-01:0x. CPU only, from data on disk.
 | 3 | union caps alone (cap 40 code; cap 60 pooled) | 39.9 / 58.8 | 7.53 / 9.47 | 26.9 / 32.0; 33.8 / 40.3 | 354 / 597; 292 / 493 | 1.20 / 0.58; 0.67 / 0.24 | 9.6 / 6.6; 5.3 / 3.4 | drops only: the steepest | as 1 |
 | 4 | close-call acceptance (Thu's price) on top of any lever | (no bytes) | - | - | x1.01-1.03 at delta 0.05; x1.02-1.18 at rho 0.25 (code, 32-row) | adds ~-1 pt IFEval (delta 0.05) to -7 to -9 (rho 0.25) | - | shares the budget | same gate, one budget |
 
+[CORRECTED: the 4-bit-eq, GB, ms and tok/s columns are pooled over all domains. On code blocks:
+- 1a: 30.9 eq, 6.61 GB, 23.6 / 28.1 ms, 393 / 664 tok/s;
+- 1b: 35.7 eq, 7.10 GB, 25.3 / 30.2 ms, 371 / 627 tok/s;
+- 1c: 39.2 eq, 7.45 GB, 26.6 / 31.7 ms, 357 / 602 tok/s.]
+
 - **(a) AcceptMoE, as priced here:** row d of a check is used only if reached, with probability s^d. An expert's
   importance is the sum of s^d w^2 over the rows, and quality is the reach-weighted E. I did not read arXiv 2608.02989
   itself; this is the generic acceptance-weighted rule [G].
@@ -90,8 +127,8 @@ Breakthrough, Sun 15 Nov 2026 00:4x-01:0x. CPU only, from data on disk.
 | 1d (pooled) | | | 3.94 [3.65, 4.13] |
 
 - 1a's range crosses the code line, so it is borderline.
-- 1b and 1c stay inside the code levels in every refit. **Screen 1c first** (the simplest build, 25.6 ms at the floor),
-  then 1b.
+- 1b and 1c stay inside the code levels in every refit. **Screen 1c first** (the simplest build, 25.6 ms at the floor
+  [CORRECTED: 26.6 on code blocks]), then 1b.
 - 1d sits on the multi all-row line (IFEval 4.85 [4.70, 4.98] is within; non-tie is within).
 
 ## How to build the rank-1 lever (per check, per layer; the router runs first)
@@ -187,12 +224,20 @@ conservative on all rows, because tie rows flip under any change and get counted
 | 1.6e-2 (36.4, = 1c) | mixers 4-bit + shortlist | 5.86 | 20.9 / **24.9** | 432 / 730 | 1.53 [1.43, 1.60] (tie-aware ~1.23 [P]) | 0.65 [0.61, 0.68] |
 | 1.8e-2 (33.6) | mixers 4-bit + shortlist | 5.57 | 19.9 / 23.7 | 450 / 759 | 1.65 [1.50, 1.73] | 0.74 [0.67, 0.78] |
 
+[CORRECTED: the experts' counts and GB above are pooled. On code blocks:
+- 1.2e-2: 48.2 eq, 7.42 / 7.08 GB (26.5 / 25.3 ms at the floor);
+- 1.6e-2 (1c): 39.2 eq, 6.49 GB (23.2 / 27.6 ms) with 8-bit mixers, and **6.15 GB (22.0 / 26.1 ms, 416 / 703 tok/s)**
+  with 4-bit mixers;
+- 1.8e-2: 35.7 eq, 5.80 GB (20.7 / 24.6 ms).
+The flip columns were per domain already and stand.]
+
 **Reading:**
 - **The dense part is not fixed.** Two cheap levers cut ~1 GB of it with little measured quality cost: the bf16 mixers
   to 8 or 4 bits, and a code shortlist for lm_head.
   - With them, the code plan is under 25 ms at the floor within both code lines in every refit: 23.6 ms (lambda 1.2e-2,
-    4-bit mixers).
-  - It reaches **24.9 ms at a realistic 84 %** with 1c's experts, with non-tie flips within the line. All rows are over
+    4-bit mixers) [CORRECTED: 25.3 on code blocks].
+  - It reaches **24.9 ms at a realistic 84 %** [CORRECTED: 26.1 on code blocks] with 1c's experts, with non-tie flips
+    within the line. All rows are over
     only under the double-counting accounting; tie-aware, ~1.23 [P].
 - **Quickest win:** mixers at 8-bit (measured at noise level) + the shortlist (0.03 % misses). Together -0.97 GB, i.e.
   3.5 ms at the floor / 4.1 ms at 84 %, for almost no quality cost. They add to any expert lever.
@@ -201,8 +246,8 @@ conservative on all rows, because tie rows flip under any change and get counted
   2. GDN + attention at 3-bit alone (the D3 confound);
   3. the combined arm, 1c + 4-bit mixers + shortlist, which settles the all-row tie question directly.
 - **Toward ~1k lossy on code:** at 24.9 ms the speed rule gives HumanEval+ ~430 tok/s with today's drafter and ~730 with
-  a 98 % drafter. 1k needs a ~16-17 ms check. The remaining 2.1 GB of dense is 7.6 ms at the floor, so that also needs
-  the kernels at the floor and the dense side's own quantizer work (GDN / attention below 4 bits, done well).
+  a 98 % drafter [CORRECTED: 26.1 ms on code blocks, ~416 / ~703]. 1k needs a ~16-17 ms check. The remaining 2.1 GB
+  of dense is 7.6 ms at the floor, so that also needs the kernels at the floor and the dense side's own quantizer work (GDN / attention below 4 bits, done well).
 - **How to build:**
   - Mixers: the QuantizedLinear swap of the hc8w recipe. GatedResidual's fused read falls back to the eager path, so
     this needs a kernel for speed.
@@ -216,7 +261,7 @@ Code windows (12), flips against the exact baseline, with 95 % window-bootstrap 
 
 | arm | code all-row % (level 1.34) | code non-tie % (level 0.87) | verdict (pre-registered) |
 |---|---|---|---|
-| **1c + 4-bit mixers + 16K shortlist** (the 24.9 ms-at-84 % plan) | **1.25** [0.45, 2.30] | **0.60** [0.19, 1.06] | **both lines met: the code plan** -> BigMoE's integration (LOSSY_CHECK_SPEC.md) + EvalSuite's code gate |
+| **1c + 4-bit mixers + 16K shortlist** (the 24.9 ms-at-84 % plan; CORRECTED: 26.1 on code blocks) | **1.25** [0.45, 2.30] | **0.60** [0.19, 1.06] | **both lines met: the code plan** -> BigMoE's integration (LOSSY_CHECK_SPEC.md) + EvalSuite's code gate |
 | 1c experts alone | 1.13 [0.36, 2.28] | 0.48 [0.11, 0.97] | the expert calibration holds (predicted 1.08 / 0.50) |
 | 4-bit mixers alone | 1.16 [0.41, 2.12] | 0.48 [0.17, 0.84] | over its standalone line, but only +0.09 on top of 1c |
 | GDN + attention at 3-bit alone | 4.43 [2.15, 7.37] | 3.62 [1.90, 5.78] | closed until there is a better quantizer |
@@ -224,7 +269,8 @@ Code windows (12), flips against the exact baseline, with 95 % window-bootstrap 
 - **Flips are sub-additive.** The dense lever adds +0.09 on top of the expert tiers, because both perturbations flip
   mostly the same fragile rows. The tie-aware estimate (~1.23) was right; the additive one (1.53) was too conservative.
 - So the code plan measures at **24.9 ms at 84 % (20.9 at the floor) within both code lines** at the point estimate:
-  5.86 GB per 32-row check, 4-bit-equivalent experts 36.4 per layer, dense 2.14 GB.
+  5.86 GB per 32-row check, 4-bit-equivalent experts 36.4 per layer, dense 2.14 GB. [CORRECTED: on code blocks 26.1
+  ms at 84 % (22.0 at the floor), 6.15 GB, 39.2 four-bit-equivalent experts per layer; the flips stand]
 - With 12 windows the ranges are wide (the upper ends cross the lines). EvalSuite's code gate (tier 0 -> 1) decides,
   against the lossy-45 base.
 
@@ -248,4 +294,5 @@ calibrated on held-out IFEval):
 - the alpha-0 control reproduces RTN on 100 % of rows, so the arm is valid.
 
 Closed for scaling-only quantizers. The next tries are a full-Hessian GPTQ or a trellis code; until then GDN and
-attention stay at 4 bits, and the code plan stays at 5.86 GB (20.9 ms floor / 24.9 ms at 84 %).
+attention stay at 4 bits, and the code plan stays at 5.86 GB (20.9 ms floor / 24.9 ms at 84 %) [CORRECTED: 6.15 GB,
+22.0 / 26.1 ms on code blocks].

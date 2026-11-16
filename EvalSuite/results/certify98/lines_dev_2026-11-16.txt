@@ -1,0 +1,74 @@
+CERTIFY98 amendment 8: tools/certify98_lines.py reproduce, Mon 2026-11-16 (dev: HE+ 24 heplus24, MBPP 100 mbppbank; BigMoE ceiling dumps; MoonShots rows2b_*; NewIdeas lab_truestate.json)
+== HE+ dev (heplus24)
+HE+ dev: LAB (true state; NOT deployable), MARGINAL accuracy per band over every cell
+  0-0: 97.95 [LB 96.74]  (+0.15 pt vs 97.8; 6375 cells, K 24)
+  1-2: 97.93 [LB 96.72]  (+0.13 pt vs 97.8; 12678 cells, K 24)
+  3-6: 97.91 [LB 96.69]  (+0.11 pt vs 97.8; 25068 cells, K 24)
+  7-10: 97.88 [LB 96.63]  (+0.08 pt vs 97.8; 24684 cells, K 24)
+  11-14: 97.84 [LB 96.58]  (+0.04 pt vs 97.8; 24300 cells, K 24)
+  15-22: 97.79 [LB 96.50]  (-0.01 pt vs 97.8; 47448 cells, K 24)
+  23-30: 97.72 [LB 96.39]  (-0.08 pt vs 97.8; 45912 cells, K 24)
+CERTIFY98 LAB HE+ dev: FAIL (bands 0-0, 1-2, 3-6, 7-10, 11-14, 15-22, 23-30) (every band's point >= 97.5 and lower bound >= 97.0; points 97.95 / 97.93 / 97.91 / 97.88 / 97.84 / 97.79 / 97.72)
+  LAB vs NewIdeas' lab_truestate.json: max |diff| 0.000 pt -> PASS
+HE+ dev: tree-16 walk-strict coverage (targets only): 0-0 98.58 [LB 97.73]  1-2 96.42 [LB 93.64]  3-6 93.70 [LB 91.37]  7-10 95.00 [LB 93.59]  11-14 96.24 [LB 95.13]
+CERTIFY98 C1 HE+ dev tree-16: PASS (band 0 98.58 [LB 97.73]; bars: point >= 97.8, LB >= 97.0; tree k 8)
+HE+ dev: tree-32 walk-strict coverage (targets only): 0-0 98.47 [LB 96.54]  1-2 96.58 [LB 94.33]  3-6 93.66 [LB 91.07]  7-10 94.28 [LB 92.40]  11-14 96.28 [LB 95.10]  15-22 96.23 [LB 95.54]  23-30 96.91 [LB 95.66]
+CERTIFY98 C1 HE+ dev tree-32: FAIL (band 0 98.47 [LB 96.54]; bars: point >= 97.8, LB >= 97.0; tree k 8)
+  C1 tree-16 band 0 98.58 vs 98.58 -> PASS
+  C1 tree-32 band 0 98.47 vs 98.47 -> PASS
+  -- C2 as registered (the auditor scored against the dump's y):
+  NOTE (dev answers, not the runtime path): 35 rows (1085 cells) where the auditor rows' 125B top-1 (tk0) != the dump's target y; the auditor is scored against y
+HE+ dev: t30b + 2B audit, P = 2: kept/32 15.071 vs t30b 13.769, difference +1.302 (+9.5 %; paired LB +0.334)
+  walk-strict (targets only): 0-0 92.43 [LB 88.95]  1-2 90.59 [LB 85.62]  3-6 93.53 [LB 90.81]  7-10 95.14 [LB 93.30]  11-14 97.03 [LB 95.86]  15-22 98.41 [LB 97.74]  23-30 98.11 [LB 97.42]
+CERTIFY98 C2 HE+ dev P=2: PASS (PRIMARY 15-22 98.41 [LB 97.74], 23-30 98.11 [LB 97.42]: point >= 97.8, LB >= 97.0; CO-PRIMARY kept/32 paired LB +0.334 > 0)
+HE+ dev: t30b + 2B audit, P = 1: kept/32 14.456 vs t30b 13.769, difference +0.687 (+5.0 %; paired LB +0.130)
+  walk-strict (targets only): 0-0 92.29 [LB 88.64]  1-2 90.27 [LB 85.77]  3-6 93.01 [LB 90.58]  7-10 95.37 [LB 93.65]  11-14 96.61 [LB 95.26]  15-22 97.65 [LB 96.78]  23-30 98.22 [LB 97.57]
+CERTIFY98 C2 HE+ dev P=1 (reported): FAIL (bands 15-22) (PRIMARY 15-22 97.65 [LB 96.78], 23-30 98.22 [LB 97.57]: point >= 97.8, LB >= 97.0; CO-PRIMARY kept/32 paired LB +0.130 > 0)
+  -- C2 in MoonShots' dev convention (against tk0), for the reproduction:
+  NOTE (dev answers, not the runtime path): 35 rows (1085 cells) where the auditor rows' 125B top-1 (tk0) != the dump's target y; the auditor is scored against tk0
+HE+ dev (tk0): t30b + 2B audit, P = 2: kept/32 15.000 vs t30b 13.769, difference +1.231 (+8.9 %; paired LB +0.329)
+  walk-strict (targets only): 0-0 92.71 [LB 89.44]  1-2 90.96 [LB 86.16]  3-6 93.25 [LB 90.49]  7-10 94.80 [LB 92.87]  11-14 97.14 [LB 95.99]  15-22 98.32 [LB 97.62]  23-30 98.28 [LB 97.62]
+CERTIFY98 C2 HE+ dev (tk0) P=2: PASS (PRIMARY 15-22 98.32 [LB 97.62], 23-30 98.28 [LB 97.62]: point >= 97.8, LB >= 97.0; CO-PRIMARY kept/32 paired LB +0.329 > 0)
+HE+ dev (tk0): t30b + 2B audit, P = 1: kept/32 14.456 vs t30b 13.769, difference +0.687 (+5.0 %; paired LB +0.168)
+  walk-strict (targets only): 0-0 92.74 [LB 89.24]  1-2 90.60 [LB 86.31]  3-6 92.83 [LB 90.34]  7-10 95.15 [LB 93.34]  11-14 96.59 [LB 95.24]  15-22 97.63 [LB 96.77]  23-30 98.21 [LB 97.53]
+CERTIFY98 C2 HE+ dev (tk0) P=1 (reported): FAIL (bands 15-22) (PRIMARY 15-22 97.63 [LB 96.77], 23-30 98.21 [LB 97.53]: point >= 97.8, LB >= 97.0; CO-PRIMARY kept/32 paired LB +0.168 > 0)
+  C2 head vs MoonShots' walkstrict_bands.json: kept/32 13.769 vs 13.769; max |diff| 0.0001 -> PASS
+  C2 2B P=1 vs MoonShots' walkstrict_bands.json: kept/32 14.456 vs 14.456; max |diff| 0.0002 -> PASS
+  C2 2B P=2 vs MoonShots' walkstrict_bands.json: kept/32 15.000 vs 15.0; max |diff| 0.0000 -> PASS
+  tree-K: T32/32 1.181 [LB 1.126], T32/16 1.531 [LB 1.470] vs 151d997 -> PASS
+== MBPP dev (mbppbank)
+MBPP dev: LAB (true state; NOT deployable), MARGINAL accuracy per band over every cell
+  0-0: 94.01 [LB 93.30]  (-3.79 pt vs 97.8; 15641 cells, K 100)
+  1-2: 93.95 [LB 93.23]  (-3.85 pt vs 97.8; 30982 cells, K 100)
+  3-6: 93.85 [LB 93.13]  (-3.95 pt vs 97.8; 60764 cells, K 100)
+  7-10: 93.75 [LB 93.02]  (-4.05 pt vs 97.8; 59164 cells, K 100)
+  11-14: 93.73 [LB 92.97]  (-4.07 pt vs 97.8; 57552 cells, K 100)
+  15-22: 93.72 [LB 92.93]  (-4.08 pt vs 97.8; 110233 cells, K 95)
+  23-30: 93.60 [LB 92.77]  (-4.20 pt vs 97.8; 104514 cells, K 82)
+CERTIFY98 LAB MBPP dev: FAIL (bands 0-0, 1-2, 3-6, 7-10, 11-14, 15-22, 23-30) (every band's point >= 97.5 and lower bound >= 97.0; points 94.01 / 93.95 / 93.85 / 93.75 / 93.73 / 93.72 / 93.60)
+  LAB vs NewIdeas' lab_truestate.json: max |diff| 0.000 pt -> PASS
+MBPP dev: tree-16 walk-strict coverage (targets only): 0-0 97.79 [LB 97.22]  1-2 92.11 [LB 91.29]  3-6 86.11 [LB 84.82]  7-10 81.04 [LB 79.40]  11-14 80.38 [LB 78.19]
+CERTIFY98 C1 MBPP dev tree-16: FAIL (band 0 97.79 [LB 97.22]; bars: point >= 97.8, LB >= 97.0; tree k 8)
+MBPP dev: tree-32 walk-strict coverage (targets only): 0-0 98.61 [LB 98.11]  1-2 94.29 [LB 93.51]  3-6 89.17 [LB 87.99]  7-10 84.65 [LB 83.31]  11-14 82.13 [LB 80.29]  15-22 84.88 [LB 83.07]  23-30 84.24 [LB 79.58]
+CERTIFY98 C1 MBPP dev tree-32: PASS (band 0 98.61 [LB 98.11]; bars: point >= 97.8, LB >= 97.0; tree k 8)
+  C1 tree-16 band 0 97.79 vs 97.79 -> PASS
+  C1 tree-32 band 0 98.61 vs 98.61 -> PASS
+  -- C2 as registered (the auditor scored against the dump's y):
+MBPP dev: t30b + 2B audit, P = 2: kept/32 7.671 vs t30b 6.924, difference +0.747 (+10.8 %; paired LB +0.562)
+  walk-strict (targets only): 0-0 88.10 [LB 86.50]  1-2 86.20 [LB 84.81]  3-6 87.20 [LB 86.00]  7-10 87.52 [LB 86.40]  11-14 88.15 [LB 86.67]  15-22 91.52 [LB 90.32]  23-30 89.86 [LB 88.00]
+CERTIFY98 C2 MBPP dev P=2: FAIL (bands 15-22, 23-30) (PRIMARY 15-22 91.52 [LB 90.32], 23-30 89.86 [LB 88.00]: point >= 97.8, LB >= 97.0; CO-PRIMARY kept/32 paired LB +0.562 > 0)
+MBPP dev: t30b + 2B audit, P = 1: kept/32 7.427 vs t30b 6.924, difference +0.503 (+7.3 %; paired LB +0.358)
+  walk-strict (targets only): 0-0 88.53 [LB 86.98]  1-2 86.71 [LB 85.30]  3-6 87.36 [LB 86.25]  7-10 86.12 [LB 84.93]  11-14 86.39 [LB 84.94]  15-22 88.91 [LB 87.33]  23-30 87.90 [LB 85.73]
+CERTIFY98 C2 MBPP dev P=1 (reported): FAIL (bands 15-22, 23-30) (PRIMARY 15-22 88.91 [LB 87.33], 23-30 87.90 [LB 85.73]: point >= 97.8, LB >= 97.0; CO-PRIMARY kept/32 paired LB +0.358 > 0)
+  -- C2 in MoonShots' dev convention (against tk0), for the reproduction:
+MBPP dev (tk0): t30b + 2B audit, P = 2: kept/32 7.671 vs t30b 6.924, difference +0.747 (+10.8 %; paired LB +0.562)
+  walk-strict (targets only): 0-0 88.10 [LB 86.50]  1-2 86.20 [LB 84.81]  3-6 87.20 [LB 86.00]  7-10 87.52 [LB 86.40]  11-14 88.15 [LB 86.67]  15-22 91.52 [LB 90.32]  23-30 89.86 [LB 88.00]
+CERTIFY98 C2 MBPP dev (tk0) P=2: FAIL (bands 15-22, 23-30) (PRIMARY 15-22 91.52 [LB 90.32], 23-30 89.86 [LB 88.00]: point >= 97.8, LB >= 97.0; CO-PRIMARY kept/32 paired LB +0.562 > 0)
+MBPP dev (tk0): t30b + 2B audit, P = 1: kept/32 7.427 vs t30b 6.924, difference +0.503 (+7.3 %; paired LB +0.358)
+  walk-strict (targets only): 0-0 88.53 [LB 86.98]  1-2 86.71 [LB 85.30]  3-6 87.36 [LB 86.25]  7-10 86.12 [LB 84.93]  11-14 86.39 [LB 84.94]  15-22 88.91 [LB 87.33]  23-30 87.90 [LB 85.73]
+CERTIFY98 C2 MBPP dev (tk0) P=1 (reported): FAIL (bands 15-22, 23-30) (PRIMARY 15-22 88.91 [LB 87.33], 23-30 87.90 [LB 85.73]: point >= 97.8, LB >= 97.0; CO-PRIMARY kept/32 paired LB +0.358 > 0)
+  C2 head vs MoonShots' walkstrict_bands.json: kept/32 6.924 vs 6.924; max |diff| 0.0001 -> PASS
+  C2 2B P=1 vs MoonShots' walkstrict_bands.json: kept/32 7.427 vs 7.427; max |diff| 0.0001 -> PASS
+  C2 2B P=2 vs MoonShots' walkstrict_bands.json: kept/32 7.671 vs 7.671; max |diff| 0.0001 -> PASS
+  tree-K: T32/32 1.304 [LB 1.283], T32/16 1.371 [LB 1.351] vs 151d997 -> PASS
+CERTIFY98 LINES-REPRODUCE: PASS

@@ -78,6 +78,10 @@ assert not (os.environ.get("R57_NAX") == "1" and os.environ.get("REF2_OOO_1C") =
 assert not (os.environ.get("R57_FAST") == "QOM" and os.environ.get("R57_NAX") == "1") or (   # Mon 16 Nov (EvalSuite's tier 0a:
     os.environ.get("REF2_OOO_1C") == "1" and os.environ.get("REF2_NAX_1CQ") == "1" and os.environ.get("R57_H1C") != "1"), \
     "R57_FAST=QOM on R57_NAX=1 needs REF2_OOO_1C=1 + REF2_NAX_1CQ=1, no R57_H1C (ref2 _ooo_sel raises at the first verify)"   # lossycalx45rpl1)
+assert os.environ.get("R57_TIERS", "") in ("", "1c") and (not os.environ.get("R57_TIERS") or (   # R57_TIERS=1c (Mon 16 Nov):
+    os.environ.get("R57_FAST") and os.environ.get("R57_NAX") == "1" and os.environ.get("REF2_OOO_1C") == "1"   # the gate's
+    and os.environ.get("REF2_NAX_1CQ") == "1" and os.environ.get("R57_TIERS_SETS"))), \
+    "R57_TIERS=1c needs R57_FAST (the gate's wrapper), R57_NAX=1 + REF2_OOO_1C=1 + REF2_NAX_1CQ=1 (ref2's one-call takes the 2-D nolsb) and R57_TIERS_SETS"
 TIER = os.environ.get("R57_TIER") == "1"                 # S45-T (NewIdeas 18:2x): REF2-T on the gate at C's RAM (M-08 sizing)
 if TIER:
     os.environ["BIGMOE_TIER"] = "4433333333"; os.environ["BIGMOE_TIER_GLU"] = "3c"
@@ -570,12 +574,28 @@ assert QSPLIT is None or FAST == "QOM", "R57_QOM_SPLIT is a QOM-KEEP option (R57
 QC1C = os.environ.get("R57_QCNT1C") == "1"               # draft cf reach ref2's one-call as t["qom"][2]; R57_QCNT1C sums ref2.QCNT_1C's
 assert not QC1C or hasattr(ref2, "QCNT_1C"), "R57_QCNT1C needs Leap's ref2 eb43fcc2 or later"   # [kept, dropped, groups, split drops]
 FG = dict(on=False, keep=None, sure=None, sure_np=None, t3=False,   # R57_FAST: this check's keep mask [rows, top-k] / U3's
-          cold=False, warm=None, cap=None, dump=None, chk=0, qom=False, qcf=None, rc=0)   # qom: QOM's optional uses (bit 21)   # U3C: the request's warm table [48, 512], prefill capture, dump
+          cold=False, warm=None, cap=None, dump=None, chk=0, qom=False, qcf=None, rc=0,   # qom: QOM's optional uses (bit 21)   # U3C: the request's warm table [48, 512], prefill capture, dump
+          t1c=False, rows=0, t1cn=None)                  # R57_TIERS=1c: engaged on this check, its rows, per-layer counts
 # R57_RCUT_SETS=ifeval:8[,multi:8] (Sun 8 Nov, CHAT150 strike M1; Leap 00:1x proposal (b), NewIdeas' CH5 in its soft form): on
 # those prompt sets' real checks, ranks >= R of EVERY row are dropped as U3 drops them (the row's rank-0 id at weight 0: no read,
 # no renormalisation), on top of U3 / QOM's mask. Lossy (EvalSuite's IFEval gate). Decode checks only: prefill stays top-10.
 RCUT_SETS = {s_: int(r_) for s_, _, r_ in (x_.partition(":") for x_ in os.environ.get("R57_RCUT_SETS", "").split(",") if x_)}
 assert not RCUT_SETS or (FAST and all(1 <= r_ < 10 for r_ in RCUT_SETS.values())), "R57_RCUT_SETS needs R57_FAST (the gate's wrapper)"
+# R57_TIERS=1c (Mon 16 Nov; Fit12 LOSSY_1C_TIERS_SPEC.md, Breakthrough LOSSY_CHECK_SPEC V2, EvalSuite PREREG_lossygate
+# amendment 4): in every verify check of a prompt in R57_TIERS_SETS, per MoE layer after the router, bigmoe.tiers1c.tiers_mx
+# (I_e = sum_d s^d w(d,e)^2 over the check's rows; 4-bit if I > 2.775 lam, MSB-3 if > 0.8457 lam, else drop) on the GPU,
+# no sync: a 4-bit expert keeps the base's precision (REF2-T: ranks 0-1 LSB + MSB, ranks 2-9 MSB-3); an MSB-3 expert's rank
+# 0-1 uses skip the LSB read (t["nolsb"] in Leap's 2-D form); a dropped expert's uses go through the km path (score 0, the
+# row's rank-0 id: no new read, no renorm). It REPLACES QOM / U3's keep in those checks (never stacked); prefill, the
+# drafters and the commit are untouched. runs.json "lossy_check" {checks, e4, e3, edrop, lmsl_rows 0, lmsl_fallback 0}:
+# the distinct union experts per check-layer by tier, summed over the prompt; ABSENT outside the sets.
+TIERS = os.environ.get("R57_TIERS", "")
+TIERS_SETS = {x_ for x_ in os.environ.get("R57_TIERS_SETS", "").split(",") if x_}
+TIERS_LAM = float(os.environ.get("R57_TIERS_LAM", "0.016"))
+TIERS_S = float(os.environ.get("R57_TIERS_S", "0.98"))
+if TIERS:
+    import bigmoe.tiers1c as T1C
+    assert TIERS_SETS and not (set(RCUT_SETS) & TIERS_SETS), "R57_TIERS=1c: R57_TIERS_SETS set, no R57_RCUT_SETS on them"
 # R57_QOM_MTP=1|2 (Sun 8 Nov, CHAT150 M1; chs1 found QOM never engaged on chat: the FAST row gate ran on DFlash2 drafts only,
 # while chat drafts with the MTP head, so q1's qom_skip = qom_opt = 0): the gate on the MTP head's drafts too (sets listed in
 # R57_QOM_SETS). 1 = Breakthrough's M1-A (every drafted row sure at thr 0, the bonus row exact); 2 = M1-B's bonus row gated.
@@ -605,9 +625,26 @@ if FAST:                                                 # EvalSuite's install_g
     _SWC = type(SW_[0])
     assert all(type(sw) is _SWC for sw in SW_), {type(sw) for sw in SW_}
     _sw_call = _SWC.__call__
+
+    def _t1c(self_, indices):
+        """R57_TIERS=1c on one MoE layer of a check: the drop mask (-> the km path), the MSB-3 marks (t["nolsb"], Leap's
+        2-D form [M, 2]: rank 0-1 uses that skip the LSB plane, MSB-3 or dropped) and this layer's union counts [e4, e3, edrop] (lazy)"""
+        K_ = indices.shape[-1]; ids2 = indices.reshape(-1, K_)
+        t_ = self_._bm["tier"]
+        assert t_.get("scores") is not None, "R57_TIERS=1c needs the fused combine's scores (BIGMOE_TIER_COMBINE)"
+        tier = T1C.tiers_mx(ids2, t_["scores"].reshape(-1, K_), s=TIERS_S, lam=TIERS_LAM)   # [M, K] 0 4-bit / 1 MSB-3 / 2 drop
+        texp = mx.full((T1C.N_EXPERTS,), 3, mx.int32).at[ids2.reshape(-1)].minimum(tier.reshape(-1).astype(mx.int32))
+        FG["t1cn"].append(mx.stack([(texp == 0).sum(), (texp == 1).sum(), (texp == 2).sum()]))   # an expert's slots share
+        t_["nolsb"] = (tier[:, :2] != 0, None)           # its tier: per expert = the min over its slots (3 = not used);
+                                                         # nolsb = MSB-3 OR drop (Leap 09:0x: a dropped rank 0-1 use, km'd
+                                                         # to its row's rank-0 id, then reads no LSB either; same math)
+        return (tier != 2).reshape(indices.shape)
+
     def _fast_call(self, x, indices, *a, **kw):
         km = FG["keep"]
         sr = FG["sure"]
+        if FG["t1c"] and indices.ndim >= 2 and indices.shape[-2] == FG["rows"]:   # R57_TIERS=1c replaces U3 / QOM's keep
+            km, sr = _t1c(self, indices), None           # (sr None: the U3 block below does not run)
         if FG["cap"] is not None and self._bm["L"] < 48:  # U3C: the prompt's footprint, every prefill call of a trunk layer
             FG["cap"][self._bm["L"], np.unique(np.array(indices).reshape(-1))] = True
         if FG["on"] and sr is not None and indices.ndim >= 2 and indices.shape[-2] == sr.shape[0]:   # U3: Q1-UNION
@@ -634,7 +671,7 @@ if FAST:                                                 # EvalSuite's install_g
         if FG["rc"] and indices.ndim >= 2 and indices.shape[-1] > FG["rc"]:   # R57_RCUT_SETS: ranks >= R of every row
             kr_ = mx.broadcast_to(mx.arange(indices.shape[-1]) < FG["rc"], indices.shape)
             km = kr_ if km is None else (km.reshape(indices.shape) & kr_)
-        if (FG["on"] or FG["rc"]) and km is not None and indices.ndim >= 2 and indices.shape[-2] == km.shape[-2]:
+        if (FG["on"] or FG["rc"] or FG["t1c"]) and km is not None and indices.ndim >= 2 and indices.shape[-2] == km.shape[-2]:
             t = self._bm["tier"]
             assert t.get("scores") is not None, "the gate needs the fused combine's scores (BIGMOE_TIER_COMBINE)"
             t["scores"] = mx.where(km, t["scores"], mx.zeros_like(t["scores"]))
@@ -655,6 +692,7 @@ if FAST:                                                 # EvalSuite's install_g
         _ooo_call0 = _BT3._ooo_call
         def _ooo_call_t3(x, ids, bm, t, post, sc, shared):   # tier._ooo_call verbatim + the sure rows of t["nolsb"]
             nlz = t.pop("nolsb", None)
+            assert nlz is None or nlz[1] is not None, "R57_TIERS=1c's 2-D nolsb reached BigMoE's 3c copy (1c runs on ref2's one-call)"
             qm = t.pop("qom", None)                      # QOM: (optional uses [M, K], sure rows [M]) or None
             if nlz is None:
                 assert qm is None, "QOM needs U3's t3 path (nolsb)"
@@ -1173,6 +1211,9 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
     rst = dict(rows=0, kx=0, k=0, relaxed=0)              # R57_RELAX_DELTA per run: rows checked, kept exact / in all, relaxed
     rlx_ = RLX_D > 0 and (not RLX_SETS or fset in RLX_SETS)   # R57_RELAX_DELTA engaged on this prompt's set (R57_RELAX_DELTA_SETS)
     ccn_ = [0]                                           # close_call: committed non-top-1 drafts kept only by R1(delta)
+    t1c_on_ = bool(TIERS) and fset in TIERS_SETS          # R57_TIERS=1c on this prompt's set: every verify check
+    t1c_ = dict(checks=0, e4=0, e3=0, edrop=0, lmsl_rows=0, lmsl_fallback=0)   # runs.json "lossy_check" (spec key names)
+    t1ck_ = []                                           # per check [e4, e3, edrop, MoE layers] (the union check)
     rlog = RLD.Log(os.environ.get("R57_RELAX_LOG", "")) if RLX_D > 0 else None
     assert not (SPAN and fz and fz["loop"]), "R57_RELAX_SPAN replaces the FAST arm's comment loop: use an arm without it"
     sscan = RXC.CodeScan() if SPAN else None             # R57_RELAX_SPAN: the causal comment tagger, fed the answer's text
@@ -1449,7 +1490,8 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
         FG.update(on=fk_ is not None or sq_ is not None, keep=mx.array(fk_) if fk_ is not None else None,   # R57_FAST
                   sure=mx.array(sq_) if sq_ is not None else None, sure_np=sq_, t3=bool(fz and fz.get("t3")),   # (in the graph)
                   cold=bool(fz and fz.get("cold")) and sq_ is not None, qom=bool(fz and fz.get("qom")) and sq_ is not None,
-                  qcf=mx.array(qcf_) if qcf_ is not None else None, rc=RCUT_SETS.get(fset, 0))   # R57_RCUT_SETS
+                  qcf=mx.array(qcf_) if qcf_ is not None else None, rc=RCUT_SETS.get(fset, 0),   # R57_RCUT_SETS
+                  t1c=t1c_on_, rows=len(dr) + 1, t1cn=[] if t1c_on_ else None)   # R57_TIERS=1c
         if PREROUTE and not mtp:                         # R57_PREROUTE: this check's capture; EvalSuite's block records
             PR.update(on=True, cur=None, y={}, blk={}, cap={}, dump=[] if PRDUMP else None)   # each layer's true top-10
             EM.STATE.capture = {}
@@ -1462,8 +1504,9 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
             with ref2.verify_scope(model):
                 lg = model(mx.array([[tok] + dr]), cache=cache)
         finally:
+            t1n_ = FG["t1cn"]                            # R57_TIERS=1c: this check's per-layer counts (read with the argmax)
             FG.update(on=False, keep=None, sure=None, sure_np=None, t3=False, cold=False, qom=False, qcf=None,
-                      chk=FG["chk"] + 1, rc=0)
+                      chk=FG["chk"] + 1, rc=0, t1c=False, rows=0, t1cn=None)
             PR["on"] = False
             if QC1C:
                 q1l_, ref2.QCNT_1C = ref2.QCNT_1C, None
@@ -1479,12 +1522,17 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
             l0v = lg[0, :len(dr)].astype(mx.float32)
             ldv = mx.take_along_axis(l0v, mx.array(dr, dtype=mx.int32)[:, None], axis=-1)
             dlv_, rkv_ = ldv[:, 0] - l0v.max(axis=-1), (l0v > ldv).sum(axis=-1)
+        t1e_ = (mx.stack(t1n_).sum(axis=0), len(t1n_)) if t1n_ else None   # R57_TIERS=1c: rides in the same eval
         if mtp:                                          # the MTP head's history needs the verified rows' widened stream
             wv = TXT._last_widened
-            mx.eval(am, wv[:, :len(dr) + 1], *((dlv_, rkv_) if rx2 else ()))
+            mx.eval(am, wv[:, :len(dr) + 1], *((dlv_, rkv_) if rx2 else ()), *((t1e_[0],) if t1e_ else ()))
         else:
             tp = taps()
-            mx.eval(am, tp, *((dlv_, rkv_) if rx2 else ()))
+            mx.eval(am, tp, *((dlv_, rkv_) if rx2 else ()), *((t1e_[0],) if t1e_ else ()))
+        if t1e_ is not None:                             # [e4, e3, edrop] summed over the check's MoE layers
+            c3_ = [int(v_) for v_ in np.array(t1e_[0])]
+            t1c_["checks"] += 1; t1c_["e4"] += c3_[0]; t1c_["e3"] += c3_[1]; t1c_["edrop"] += c3_[2]
+            t1ck_.append(c3_ + [t1e_[1]])
         if LOGHASH:                                      # R57_LOGHASH: this check's verify logits, bit for bit
             import hashlib as _hlg
             lh_.append(_hlg.sha1(np.array(lg[0].astype(mx.float32)).tobytes()).hexdigest()[:16])
@@ -1715,6 +1763,7 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
                 p2=p2c_ if P2MAX else None,          # R57_P2: this prompt's decode-path chunks (0 = it took the prefill)
                 rlx=rst if RLX_D > 0 else None,      # R57_RELAX_DELTA: rows checked, kept exact / in all, relaxed accepts
                 close_call={"accepted": ccn_[0]} if rlx_ else None,   # CLOSE-CALL: only where R1(delta) is engaged
+                lossy_check=dict(t1c_) if t1c_on_ else None, t1c_ck=t1ck_ if t1c_on_ else None,   # R57_TIERS=1c
                 spn=sst if SPAN else None,           # R57_RELAX_SPAN: rows checked, kept exact / in all, relaxed, span rows
                 inert=dict(ist, arm=INERT["name"]) if INERT is not None else None,   # R57_INERT: rows checked, kept exact / in
                                                      # all, kept whole / by a rule, per region, rows open
@@ -2117,7 +2166,7 @@ for n_p, (s, key) in enumerate(PICK):
         RUNS.append(dict(key=key, arm=arm, type=typ, bad=r["bad"], cut=r["cut"], P=len(ids),
                          **{k_: r[k_] for k_ in ("drafter", "hist", "a6", "n", "tps", "tpsw", "kept", "checks", "cyc", "ck",
                                                  "drf", "miss", "io", "mb", "mpk", "mem", "copy", "fast", "pf", "lh", "inert")},
-                         d7b=draft is DRAFT4, replay=None if r.get("replay") is None else {k_: v_ for k_, v_ in r["replay"].items() if k_ != "pos"}, rlx=r.get("rlx"), **({"close_call": r["close_call"]} if r.get("close_call") is not None else {}), spn=r.get("spn"), nwk=r.get("nwk"), pfs=r.get("pfs"), pfst=r.get("pfst"), pflm=r.get("pflm"), pfd=r.get("pfd"), p2=r.get("p2")))   # Thu 18:5x / Fri 10:0x: relaxed / span / INERT
+                         d7b=draft is DRAFT4, replay=None if r.get("replay") is None else {k_: v_ for k_, v_ in r["replay"].items() if k_ != "pos"}, rlx=r.get("rlx"), **({"close_call": r["close_call"]} if r.get("close_call") is not None else {}), **{k_: r[k_] for k_ in ("lossy_check", "t1c_ck") if r.get(k_) is not None}, spn=r.get("spn"), nwk=r.get("nwk"), pfs=r.get("pfs"), pfst=r.get("pfst"), pflm=r.get("pflm"), pfd=r.get("pfd"), p2=r.get("p2")))   # Thu 18:5x / Fri 10:0x: relaxed / span / INERT
                                                          # stats were computed but never written (the pre-flight's MISSING)
         m = min(len(want), r["n"])
         agree = same(r["out"], want)

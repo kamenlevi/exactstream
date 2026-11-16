@@ -474,3 +474,133 @@
     in the table.
   - The usual rules apply: HOLD, PAUSE and a shut lid hold it, and it yields to Kamen at the Mac.
   - A REPLAY pass does not resume (its merge is per runner start). An arm whose pass yields is re-run whole.
+
+## Amendment 2c (Mon 2026-11-16 08:4x, before its rows): the tier-0a re-run goes LAST in night1117
+- **Why:** amendment 2b put the re-run in a free 45 GB slot later in the week, because night1117 was armed before rpl2
+  was verified.
+  - The orchestrator's condition for night1117 (06:4x, 06:5x) was NewIdeas' agreement. NewIdeas agreed (08:2x).
+  - Every later night this week is taken: Tue t30c, Wed the capture, Thu-Fri the proofs.
+- **How: a separate follower,** tools/night1117_t0a.sh (sha256 b106d07f1583e9cc...). The armed chain (pid 52881,
+  sha256 d434e7f7866d2bc2) is not touched.
+  - **Start:** night1117's end marker (results/CHAIN_1117_END), written after the follower's arming and saying "done:",
+    with the chain's process gone. It is read twice, 30 s apart.
+  - Any other end (a HOLD, a signal, no run), or the chain gone without a new marker, means no run. The re-run then
+    waits for another slot.
+  - No start while HOLD, PAUSE, a shut lid or Kamen at the Mac, and none after Tue 13:15. The three arms need ~45-90 min.
+  - **The cutoff** is 14:30, or 2 h after the start if that is earlier, so a memory wait cannot hold up Tuesday's day
+    slot.
+- **The runs are amendment 2b's, unchanged:** p2x45rpl2 (gate 43), m1bx45rpl2 (47), then lossycalx45rpl2 (47).
+  - Each is its REPLAY pass on the merged margins, then its mini-panel.
+  - The pins, env blobs, margins, rows and lines are as registered there.
+  - An arm that ends without a verdict stops the follower, since the lines need all three.
+- **A yield to Kamen:** once nothing holds, the arm is re-run whole, because a REPLAY pass does not resume (amendment
+  2b). Its partial run dirs are moved aside first (<dir>.yield<N>).
+- **Every end writes results/T0A_1117_END.** Stop: `kill -TERM <pid>` (never -9).
+- **Checked before arming:**
+  - **The dry run (08:38) on the real runner:** rc 0 on all three. Each had pins OK, 40 keys, the reference holding
+    40 / 40, bm_pin OK and the REPLAY screen guard passing.
+  - **A stub simulation** (results/lossygate/t0a_follower_sim_2026-11-16.txt), seven scenarios:
+    - a stale marker is ignored while the chain runs;
+    - a "done:" end starts the three arms at MEM 39 / 43 / 43 with the start + 2 h cutoff;
+    - a HOLD end or the chain gone without a marker: no run (rc 5);
+    - past the last start: rc 6;
+    - a yield: the runner stopped, peer unlock, the dirs moved aside, the arm re-run whole;
+    - a HOLD mid-run: rc 8 with the marker;
+    - an arm crash: the follower stops there.
+
+## Amendment 4 (Mon 2026-11-16 08:4x, before any 1c-tiers run): the plan for variant 1c-tiers (V2), CODE-ONLY; the pins follow in 4a
+- **Why:** the orchestrator approved Fit12's cheapest gateable lossy check at 08:3x. That is the LOSSY32 price's
+  candidate "C3": lossy-45 + V2, the 1c expert tiers. Its price [P] is 53-55 ms per 32-row check, against lossy-45's
+  90-92 (/Users/kamen/Fit12/data/lossy32/lossy32_price.txt).
+  - NewIdeas coordinates the owners and orders the slot.
+  - The spec: /Users/kamen/Fit12/LOSSY_1C_TIERS_SPEC.md (Fit12 08:5x).
+  - The name is "1c-tiers"; "C3" is CERTIFY98's t30c.
+- **The variant (V2 only):** lossy-45 + R57_TIERS=1c R57_TIERS_LAM=0.016 R57_TIERS_S=0.98
+  R57_TIERS_SETS=humaneval,humanevalx,mbpp.
+  - It acts in verify checks only, in the check's MoE layers after the router.
+  - Per check and layer: importance I_e = sum_d s^d w(d, e)^2. 4-bit if I_e > 2.775 lambda, MSB-3 if > 0.8457 lambda,
+    else dropped (weight 0, no renormalisation). The reference code is BigMoE bigmoe/tiers1c.py (c1c217b).
+  - On its sets it replaces QOM's keep tables in the check; they are never stacked.
+  - Prefill, both drafters, the commit replay and the dense side are unchanged. No V1, V3, V4 or close-call.
+- **The base:** lossy-45 on the same new snapshot, with R57_TIERS unset. It is a new cached base, not lx45cc1, so base
+  and variant differ only by the four flags (amendment 1d).
+- **Engagement:** CARD_ENGAGE=lossy_check:e3+edrop+lmsl_rows (amendment 1d), per run, not "any".
+  - It must be > 0 on every code run, and 0 or absent on every IFEval run. The base arm has no field.
+  - Information: Fit12's map windows put e3 + edrop at ~3,260 per full 16-row check (48 layers).
+- **The steps** (runner 64, CARD_SCOPE=code). Each arm runs in its own processes from a cold start, in the base's order
+  and process split (amendment 1c).
+  1. **B0:** the base's mini-panel (tier 0, the 40 code keys), against the exact refs (information). It is V0's
+     reference, with the same keys, order and split.
+  2. **V0:** the variant's mini-panel against B0. A KILL (net loss >= 4 of 40, or an empty row) ends the variant.
+  3. **B1:** the base forward (tier 1 code: 264 code keys + IFEval 100), against the exact refs (information).
+  4. **V1:** the variant forward, with CARD_REF = B1 and CARD_IFEVAL_IDENT=1. A FAIL or an interim STOP-FAIL ends it.
+  5. **B2:** the base reverse.
+  6. **V2:** the variant reverse against B2, with CARD_FWD_RUN / CARD_FWD_REF. Both orders pooled give the tier-1
+     verdict.
+  - **Why this order:** a KILL or FAIL stops before the next base run. A bad variant then costs ~15 min or ~2.5 h, not
+    ~5 h.
+- **The lines, as registered:**
+  - tier 0: the KILL line;
+  - tier 1 CODE-ONLY: per-set decision 4; the pooled code line (> -3 pt AND McNemar p >= 0.05); the interim
+    (STOP-FAIL at z <= -2.8 after 132 code keys); the RUNAWAY guard (amendment 3a);
+  - IFEval: tokens identical to the base on 100 / 100, with engagement 0.
+  - The speed read-outs (tools/lossy_speed.py) are information. The gate judges quality, never speed.
+- **Two checks on the new snapshot:**
+  - **The unset path (information; flagged if it fails):** B1 against lx45cc1's forward run (same order and split).
+    Tokens must be identical on the sets outside QOM (humanevalx 104, IFEval 100), as lx45cc1's two orders were. The
+    QOM sets are information.
+  - **QOM's validity check:** runner 64 VOIDs a run in R57_QOM_SETS whose prefill shows no QOM use (pf.qom_opt > 0).
+    1c replaces QOM in the check only, so it should hold. BigMoE's key test must show it on the variant's HumanEval key
+    before arming.
+- **Memory:** a 43 GB gate (CARD_MEM 39) for both arms, as for lx45cc1 (peak 42.2 GB). 1c reads fewer expert bytes.
+  Amendment 4a moves the gate if the key test peaks above 42.5 GB.
+- **Time:** B0 + V0 ~15 min; each tier-1 order ~70 min (lx45cc1's). That is ~5 h if every step passes.
+- **The slot (NewIdeas orders it):**
+  - Tue by day, after night1117 and its tier-0a (results/T0A_1117_END) and BigMoE's 127-node dry run;
+  - or Wed by day before the capture, never touching its preparation.
+  - The drafter line wins any collision. Kamen's away rule and the yields apply, and the cutoff is 14:30.
+  - A tier-1 run cut by a window's end resumes in the next window (CARD_RESUME=1). A tier-0 run starts fresh.
+- **What a PASS licenses:** the 16-row form in CODE-ONLY mode, switched by benchmark set. The package's `--kind code`
+  routing is not tested.
+  - The 32-row form's quality rests on the map's 32-row PASS until a 32-row lossy loop exists.
+  - Adoption stays Kamen's call after tier 2 (the card gate).
+- **Amendment 4a pins, before the first run:**
+  - the snapshot trees, the screen's and the .so's sha256, both env blobs (each env diff checked: the variant is the
+    base + exactly the four R57_TIERS flags), runner 64's sha256, and the dry runs;
+  - BigMoE's section-6 checklist: the CPU self-check, the unset path, the scope, one scored HumanEval key and one IFEval
+    key per env on the real loop (with the counter and pf.qom_opt), and the limits.
+
+## Amendment 4b (Mon 2026-11-16 08:5x, before any 1c-tiers run): QOM's validity rule under 1c; amendment 4 corrected
+- **The correction:** BigMoE pointed it out at 08:5x, and it was checked here in scripts/r57_screen_fast.py. Amendment 4
+  said runner 64's QOM check reads the prefill and "should hold" under 1c. Both claims are wrong.
+  - runs.json "pf" is the expert store's stats delta over the prompt (st.stats() after minus before), not the
+    prefill's.
+  - pf.qom_opt counts the loader's optional uses (bit 21). Only QOM's per-check mask in _fast_call creates them, in
+    verify checks.
+  - lossy-45 has no R57_QOM_MTP, so QOM engages only in the verify checks of R57_QOM_SETS (humaneval, mbpp).
+  - 1c replaces QOM's keep in every check of R57_TIERS_SETS. So the variant's humaneval and mbpp runs read
+    pf.qom_opt = 0, and runner 64's rule (> 0 on every run in R57_QOM_SETS) would VOID every one of them.
+- **The rule from now on (runner 65; each arm's env decides it):**
+  - **R57_TIERS unset** (the base, and every earlier config): unchanged, pf.qom_opt > 0 on every run in R57_QOM_SETS.
+  - **R57_TIERS set:** on the sets in both R57_QOM_SETS and R57_TIERS_SETS, pf.qom_opt must be 0 on every run. That
+    shows 1c replaced QOM rather than stacking on it, as the spec requires. A QOM set outside R57_TIERS_SETS keeps the
+    > 0 rule.
+  - The engagement rule is unchanged: lossy_check e3 + edrop + lmsl_rows > 0 on every code run, and 0 or absent on
+    IFEval.
+  - A breach VOIDs the run, as before. R57_TIERS without R57_TIERS_SETS stops the runner.
+- **Runner 65** (tools/day_runner65.sh, sha256 9848a30c6a15d682...) is runner 64 with only this change; its logs are
+  results/day65_*.
+  - It is a new file because runner 64 (5cab78942ae9501c, unchanged) serves tonight's armed chains: night1117 and its
+    tier-0a follower.
+  - The 1c-tiers arms run on runner 65, both base and variant. Amendment 4a pins its sha256.
+- **Checked** (results/lossygate/runner65_checks_2026-11-16.txt):
+  - The QOM check, extracted from each runner, on 7 synthetic runs.json cases: PASS.
+    - With no 1c sets, runner 65 == runner 64.
+    - The replaced variant passes on 65 and VOIDs on 64. A stacked variant VOIDs on both.
+    - A cut run is ignored. A chat-QOM env keeps its > 0 rule outside 1c's sets.
+  - Dry runs of runner 65 (cc1 pins, tier 1 code):
+    - lx45cc1's env: rc 0, 364 / 364, the rule logged as before;
+    - a scratch copy with the four 1c flags (only to exercise the parse): rc 0, logging "1c sets
+      humaneval,humanevalx,mbpp";
+    - R57_TIERS without R57_TIERS_SETS: rc 2.
+    - The base's key files were unchanged by these dry runs.

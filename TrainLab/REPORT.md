@@ -4799,3 +4799,37 @@ Shape over the walk's check starts (real <= 32, else proxy gamma 1):
   - pass 2, k = 16: time, peak, and the count and kept effect of 9th-16th children.
 - No extra fields: ties and the last verifiable depth can be derived.
 - When the heplus24 127-node file exists, S11 is re-run on it to replace the proxy beyond K 32.
+
+## WEEK98 T30C: t30b + one more pass on the 125B (pre-registered Mon 16 Nov 08:21, before S10's verdict; runs only on the rule below)
+Ask: the orchestrator 22:3x (if S10 PASS2 passes, t30c trains Monday BY DAY, ~15.6 GB; evaluate and pin before Wed
+~18:00; Tuesday night is the fallback) and NewIdeas' recipe rule (S10 amendment 1).
+Arm t30c: t30b's final weights plus ONE pass, on BigMoE's scripts/dd_ttt.py, unmodified (read-only use), with t30b's
+recipe: depth 30, 192 rows, wdecay 0.97, KL to the 125B's top-32 with accept-until-fail, Adam lr 1e-5 with a 20-step
+warm-up and cosine to 1e-6. Fresh Adam and a fresh cosine (as p2f). Pass seed 1117.
+- The start uses the trainer's own resume path: a seeded state dd_t30c.json at step 0 (step 0 restores no optimizer
+  state) beside a bitwise copy of dd_t30b.safetensors (sb98/t30c_run.sh seeds once; a resume never re-seeds).
+Data (sb98/t30c_manifest.py -> data/t30c/split_{A,B}.json; its slice count reproduces t30b's 4,206 exactly):
+- A, unseen only: the 795 n1112 files t30b never saw (BigMoE tapsq/split.json) minus the bank's val 40 = 755 files,
+  1,479 steps (~2 h at t30b's ~5 s/step).
+- B, mixed: t30b's 2,164 training files + A's 755 = 2,919 files, 5,685 steps (~7.9 h).
+- Held out in both: the bank's val 40 (ridge / proxy validation) + t30b's held-out 113 (CEILING read their margins).
+  The read-out sets (MBPP 100 = d1102mbpp, HE+ 24 = d16w) are not capture files.
+Which manifest (NewIdeas' rule; "most of the gain" made numeric here, before any result):
+- p2f FAIL on both sets: no t30c.
+- p2f PASS on both sets and p2b PASS on both sets: B.
+- p2f PASS on both sets and p2b not: A. "Most of the gain" = on both sets p2s's 23-30 gain >= 0.5 x p2f's AND p2s's
+  kept/32 gain >= 0.5 x p2f's. It is reported as A's expected size; A runs either way (2 h, fresh data only; B's extra
+  4,206 steps are a second epoch, which p2b failing says does not pay alone).
+- p2f HE PASS only: A (NewIdeas' plan is HE+-focused; 2 h by day), flagged.
+Copies (weights only, information): A at 740; B at 1,500 and 3,000.
+Gates (sb98/t30c_run.sh): start when Kamen is away (away_secs >= 900), NO-SWAP >= 22 GB, no quiet lock and no other
+> 5 GB MEM lock of others, no PAUSE, before 22:30; share lock 'MEM 16 GB'. Yield (SIGTERM -> the trainer saves
+weights + Adam, exit 3) on NO-SWAP < 5 GB at two checks in a row, a quiet lock of others, a PAUSE, or 22:30; continue
+from the saved step when the gates pass. After 22:30 the runner exits; re-run it Tuesday by day.
+Read-out (the runner, after training): dd_ttt.py eval --runs t30b,t30c (t30b re-scored in the same eval as the paired
+control): HE+ 24 and MBPP 100, bands and kept per 32, ~10 GB peak.
+Line, per set: 23-30 >= +1.0 pt AND kept/32 >= +2 % (NewIdeas' line), and no band more than 1.0 pt below t30b.
+- PASS on both sets: t30c replaces t30b as the WEEK98 candidate. Then, before Wed ~18:00: BigMoE's TOPK / TREE dumps
+  for t30c and my S9c real-tree walk on them; the candidate is named to EvalSuite for CERTIFY98.
+- HE+ PASS only: reported; the orchestrator picks.
+- Otherwise: t30b stays the candidate.

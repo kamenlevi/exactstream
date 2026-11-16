@@ -255,3 +255,73 @@ Context adds 122 / 192 / 201 unique tokens on code / IFEval / multi windows.
   code is the next try, otherwise GDN and attention stay at 4 bits.
 - Data: data/m1/bt_screens/bt_ga3w0.json.gz, bt_ga3awq.json.gz, awq_stats.npz.gz, dm_bt_v2.py.copy;
   data/m1/awq_screen_read.out.
+
+## Erratum check: per-domain bytes (Mon 16 Nov 08:3x; Fit12 08:29). Pre-registered, CPU, before computing
+
+**Claim (Fit12, ~/Fit12/PLAN_12GB_90_fit12.md "LOSSY32 RESULT", self-check (c)):** the plan's exact union (99.9 per
+layer) and 1c's 4-bit-equivalent count (36.4) are means over all 36 map windows (12 code + 12 IFEval + 12 multi), while
+the lever is code-scoped. Fit12's recount: code 114.2 / 39.2, IFEval 98.1 / 38.4, multi 87.7 / 31.8.
+
+**Cause, read from the code:** lossy_check_price.py's evaluate() returns keq = size.sum() / NBL, where NBL counts the
+block-layers of all three domains, and the exact line uses distinct.mean() over all blocks. The quality side was per
+domain (code rows' E); the bytes were pooled. The map screens' measured flips are not affected: the 1c rule is applied
+per block, so the code windows' masks were the code blocks' own tiers.
+
+**Check:** scripts/m1/lossy_check_domain_recount.py rebuilds the same 32-row blocks and the same tier rule. It prints, per
+domain and pooled:
+- the exact union per layer;
+- the tier counts and the 4-bit-eq per layer for 1a / 1b / 1c / 1d, and for 1c at lambda 1.2e-2 .. 2.2e-2;
+- GB and ms with the plan's dense parts (exact 3.44 GB; mixers at 4-bit + the shortlist 2.14 GB).
+- Self-check: the pooled values reproduce the plan (union 99.9; 1a 29.2, 1b 33.5, 1c 36.4, 1d 54.8) to 0.1. Otherwise
+  the recount is invalid and nothing is restated.
+
+**Result -> action:**
+- Code 1c within 1 % of Fit12's 39.2: the claim holds. LOSSY_CHECK_PLAN.md gets a CORRECTED note at the top and at
+  each place the code plan's GB / ms / tok/s appear (old numbers kept, marked), restated with the code blocks' counts.
+- Off by more than 1 %: restate with my count, and send both counts to Fit12.
+- If the restated code plan is above 25 ms at 84 % (expected ~26 ms): tell the orchestrator that "24.9 ms at 84 %" no
+  longer holds on code. Give the bandwidth efficiency 25 ms needs, and the lambda that reaches it at 84 % with its
+  predicted flips from data/m1/lossy_check_price.out.
+- Either way the plan gets the engine context: the 84 % line is a kernel target, not today's engine (the CHECK55
+  engine profile a082f8c: the exact 32-row check takes 102.1 ms, GPU-bound). Fit12's realistic model (49.8-53.3 ms
+  for the plan on today's engine) is cited as theirs.
+
+### Result (Mon 16 Nov 08:36-08:39; data/m1/lossy_check_domain_recount.out): the claim HOLDS; the code plan is 26.1 ms at 84 %, not 24.9
+
+- **Self-check PASS.** The pooled values reproduce the plan: union 99.90, 1a 29.17, 1b 33.53, 1c 36.40, 1d 54.77.
+- **Fit12's code counts confirmed:** union 114.24 (+0.04 %), 1c 39.18 (-0.06 %).
+
+| per 32-row block, by domain | code | IFEval | multi | all (as published) |
+|---|---|---|---|---|
+| exact union / layer | **114.2** | 98.1 | 87.7 | 99.9 |
+| 1a 4-bit-eq (s 0.935, lambda 1.2e-2) | 30.9 | 31.1 | 25.7 | 29.2 |
+| 1b 4-bit-eq (s 0.98, lambda 1.8e-2) | 35.7 | 35.6 | 29.4 | 33.5 |
+| 1c 4-bit-eq (3 tiers, s 0.98, lambda 1.6e-2) | **39.2** | 38.4 | 31.8 | 36.4 |
+| 1d 4-bit-eq (s 0.98, lambda 8e-3) | 62.3 | 55.5 | 46.8 | 54.8 |
+
+**The code plan restated** (1c + 4-bit mixers + 16K shortlist; dense 2.135 GB as in dense_cut_price.py):
+
+| | GB | ms floor | ms at 84 % | 25 ms needs | tok/s HE+ at 84 % (today / 98 %) |
+|---|---|---|---|---|---|
+| as published (pooled bytes) | 5.86-5.87 | 20.9 | 24.9 | 83.8 % of 280 GB/s | 432 / 730 |
+| **code blocks** | **6.15** | **22.0** | **26.1** | **87.9 %** | **416 / 703** |
+
+- Fit12's engine-semantics count is 6.12 GB / 21.9 ms: there, 1c's "4-bit" tier keeps REF2-T's base planes.
+- **Other levers on code blocks** (dense 3.44; GB, ms at the floor / 84 %):
+  - 1a: 6.61 GB, 23.6 / 28.1 ms;
+  - 1b: 7.10 GB, 25.3 / 30.2 ms (over 25 ms even at the floor);
+  - 1c: 7.45 GB, 26.6 / 31.7 ms;
+  - 1d (code only): 9.82 GB, 35.1 ms at the floor.
+- **25 ms at 84 % on code** needs lambda ~1.8e-2: 35.7 eq, 5.80 GB, 24.6 ms. Its predicted code flips are ~1.33 / ~0.71
+  [P, post hoc]: the experts alone 1.21 [1.06, 1.28] / 0.59 [0.52, 0.63] (data/m1/dense_cut_price.out), plus the dense
+  cuts' measured +0.12 / +0.12 on top of 1c (bt_comb + shortlist 1.25 / 0.60 vs bt_1c 1.13 / 0.48, 12 windows). That
+  is right at the all-row line 1.34. Not screened; a map arm would settle it (~4 min, share lock ~20 GB).
+- **The measured flips stand** (1.09 / 0.62 on 24 code windows): the tier rule is applied per block, so the code windows
+  were always scored with their own tiers. Only the bytes were pooled.
+- **Actions taken:**
+  - ~/FableGod/deepdraft/LOSSY_CHECK_PLAN.md: a CORRECTED section at the top and a marker at each old number (old
+    numbers kept). LOSSY_CHECK_SPEC.md: V2's "36.4" is marked.
+  - The orchestrator already carries the correction in WEEK98.md (Fit12's LOSSY32 entry, Mon 08:2x, number-checked by
+    NewIdeas). So my note to it is a one-line confirmation, not a new finding.
+- **Context:** 84 % is a kernel target. Today's full engine runs the exact 32-row check in 102.1 ms (90.5 with v32one),
+  GPU-bound (a082f8c). Fit12's realistic model of the plan on today's engine is 49.8-53.3 ms.

@@ -969,3 +969,194 @@ fixed-cost bet. This is a measurement only: no setting changes.
 ## WEEK98 S1 DF-TF RESULT (auto-recorded Sun 15 Nov 02:42 by s1tf_rec.sh; the script s1tf.py computes the verdict)
 - S1 DF-TF (block 32, DFlash2 l120_ft as the 12 GB engine runs it, offline on the BANK; STRICT line per NewIdeas 02:25): self-check j=1 == native 626 / 626 mbpp: 440 anchors | STRICT conditional {'0': np.float64(91.36), '1-2': np.float64(89.78), '3-6': np.float64(81.77), '7-10': np.float64(73.15), '11-14': np.float64(72.97), '15-22': np.float64(78.26), '23-30': None} (eligible {'0': 440, '1-2': 773, '3-6': 1015, '7-10': 365, '11-14': 111, '15-22': 46, '23-30': 0}) | TF kept/32 6.25 | native kept/32 6.623 (L1-20 ~10.5; t30b chain 13.8 HE+) | bands, information only: TF {'0': np.float64(91.36), '1-2': np.float64(86.93), '3-6': np.float64(72.22), '7-10': np.float64(58.52), '11-14': np.float64(54.94), '15-22': np.float64(51.34), '23-30': np.float64(45.71)}, native {'0': np.float64(91.36), '1-2': np.float64(83.64), '3-6': np.float64(61.14), '7-10': np.float64(33.47), '11-14': np.float64(16.31), '15-22': np.float64(8.84), '23-30': np.float64(6.99)} humaneval: 186 anchors | STRICT conditional {'0': np.float64(97.31), '1-2': np.float64(94.97), '3-6': np.float64(94.91), '7-10': np.float64(89.01), '11-14': np.float64(88.26), '15-22': np.float64(83.54), '23-30': np.float64(88.14)} (eligible {'0': 186, '1-2': 358, '3-6': 609, '7-10': 455, '11-14': 281, '15-22': 237, '23-30': 59}) | TF kept/32 11.763 | native kept/32 11.462 (L1-20 ~10.5; t30b chain 13.8 HE+) | bands, information only: TF {'0': np.float64(97.31), '1-2': np.float64(93.82), '3-6': np.float64(89.38), '7-10': np.float64(81.05), '11-14': np.float64(79.97), '15-22': np.float64(72.38), '23-30': np.float64(68.08)}, native {'0': np.float64(97.31), '1-2': np.float64(94.62), '3-6': np.float64(87.23), '7-10': np.float64(70.7), '11-14': np.float64(47.18), '15-22': np.float64(17.94), '23-30': np.float64(8.94)} LINE (strict): HE+ 23-30 88.14, MBPP 23-30 None -> NO DATA (PASS >= 95 and >= 85; BETWEEN HE+ 90-95; KILL < 90) 
 - DONE: rc 0 peak 10.505 GB 02:41:43; data /Users/kamen/Fit12/data/scr/s1tf/s1tf.txt, s1tf.json, s1tf_run.txt
+
+## WEEK98 PILLAR 2 LOSSY: the lossy 32-row check, DESK PRICE "LOSSY32" (pre-registered Mon 16 Nov 08:2x, before any number below is computed)
+The ask (NewIdeas Sun 15 22:3x, the orchestrator's assignment; Kamen's 900 tok/s lossy on code; due Tuesday): (1) price the
+lossy-45 check's bytes and time per 32-row check from the records; (2) name the cheapest lossy check EvalSuite could gate
+THIS WEEK at "same quality". Deliverable: one table of candidate lossy checks with GB per 32-row check, floor ms,
+realistic ms (Leap's per-row cores), the EvalSuite line each faces, and whether it existed / was gated before.
+Desk only: CPU <= 4 cores, python -I, no GPU. Script: /Users/kamen/Fit12/scripts/lossy32_price.py -> /Users/kamen/Fit12/data/lossy32/.
+
+**Who priced "5.86 GB = 20.9 ms at the floor, 24.9 ms at 84 %":** Breakthrough, ~/FableGod/deepdraft/LOSSY_CHECK_PLAN.md
+addendum (Sun 15 01:1x; map arms 01:19-02:19, d9b2db7 / f755d70). Plan: lossy-45 base + 1c acceptance-weighted 3 tiers
+(s 0.98, lambda 1.6e-2; 4-bit 15.8 / MSB-3 26.4 / drop 57.6 % of a 99.9 union = 36.4 4-bit-eq experts per layer) + HC
+mixers and PLE at 4-bit + a 16K code lm_head shortlist (dense 2.14 GB). Its 84 % puts ONE bandwidth efficiency on the
+whole check; the measured engine (Breakthrough's CHECK55 engine profile, a082f8c) runs the dense side at 2-10x its byte
+floor and has per-row cores that bytes don't touch. This prices that.
+
+**Candidates** (all on the lossy-45 base = pkg_120b configs/lossy-45.env: HC8, QOM on code, SVH screened head, FAST dense):
+C0 exact-45 at 32 rows (reference: REF2-T, measured C32 / C32one); C1 lossy-45 as shipped, run at 32 rows; C2 = C1 + V1
+(16K code lm_head shortlist); C3 = C1 + V2 (1c tiers, lambda 1.6e-2, s 0.98, code-scoped); C4 = C1 + V1 + V2; C5 = C4 + V3
+(HC + PLE 4-bit) = Breakthrough's 5.86 GB plan; C6 = C5 at lambda 1.8e-2 (frontier only); C7 1d pooled-safe (lambda
+8e-3); C8 = V4 (GDN / attention 3-bit: closed on the map, listed for completeness). Close-call (an accept rule) changes
+kept per check, not ms per check: it is noted, not priced.
+
+**Inputs (fixed now; labels [K] measured, [P] priced from measured parts, [est] assumption, shown as a range):**
+- Bytes: dense parts from Breakthrough's dense table (weight-file headers, LOSSY_CHECK_PLAN addendum); SVH's head subset
+  (98,304 + <= 4,096 rows of ~248K) [K Leap TABLE_350 SVH]. Experts per 32-row block from the map's code windows
+  (~/FableGod/decision_map/out/xcap ids + ~/FableGod/decision_map/out/bt/tiers_1c masks): union, the REF2-T bytes (an
+  expert reads its LSB plane only if some row ranks it 0-1; else MSB-3 = 0.778 x 2.135 MB), the 1c bytes in the ENGINE's
+  semantics (BigMoE HANDOVER: a 4-bit-tier use keeps the base's precision; MSB-3 skips the LSB; drop removes the use) and
+  in the map's (4-bit at any rank).
+- Floor = RAM bytes / 280 GB/s.
+- Realistic GPU, per class at 32 rows, one weight pass (the forms CHECK55 step 1 / v32one build; for the FAST dense side
+  they are NOT built above 16 rows: lossy-45 sets R57_DNR=1, whose > 16-row path unpacks every call, Leap cc3):
+  - FAST dense side from its in-place 16-row prices (Leap TABLE_350 "PLAN 220 RE-PRICE SLOT part 2", 19.79 ms) grown by
+    Leap's per-tile factors (treek_price.py GROW: weights +25 %, MoE dense +60 %, head +26 %, PLE +37 %, cores x2);
+    cross-check: the engine's C32one dense side x the FAST / exact ratio at 16 rows.
+  - Experts: the engine's measured C32 expert time (pass K scaled to pass T) per REF2-T byte, applied to each
+    candidate's expert bytes.
+  - Lever effects only on the classes they touch (V1: head; V2: experts; V3: HC + PLE). Cores are unchanged.
+- Realistic CPU: the engine's C32one build + encode + read / commit (12.16 + 14.10 + 1.68 ms) [K], + 0-2 ms [est] for the
+  lossy levers' extra dispatches. The check is max(GPU, CPU) (the engine overlaps them; GPU-bound today).
+- SSD misses at 45 GB (C 256, code), shown separately and added: lossy-45's measured 16-row HE checks (BigMoE
+  data/r57/rlh_256_checks.json: median 35 misses, service 8.8 ms) scaled by the 32 / 16 union ratio and by the share of
+  the union each candidate still reads [est].
+- tok/s: 1000 x kept / (check + 4 ms) at the lossy K* kept (tree-32 + close-call d1: 16.91 HE+ / 9.50 MBPP;
+  TARGETS_450_900), drafting hidden (as there).
+
+**Self-checks (must pass before the realistic column is used):** (a) the same model at 16 rows for lossy-45 reproduces
+its measured HE check (rlh_256 check median 61.2 ms) within +-10 %; (b) at 32 rows the exact-45 one-pass form reproduces
+C32one 90.46 ms within +-5 % (a calibration identity, reported); (c) my code-window union reproduces Breakthrough's 99.9
+(all windows) / Leap's 109.7 within 10 %, and my 1c map-semantics 4-bit-eq reproduces 36.4 within 3 %. If (a) fails, the
+table is floors only and the realistic column is flagged unvalidated.
+
+**Line for item 2, "cheapest gateable this week":** among candidates whose quality evidence is a map PASS on both code
+lines (all-row <= 1.34 %, non-tie <= 0.87 %) or a gate PASS, AND whose build exists or is named by its owner as <= ~1 day
+with its engagement counter, the lowest realistic ms wins; if its build is not confirmed by the owner, the next one is
+named too. The EvalSuite line it would face (LOSSY_GATE.md): tier 0 (mini-panel KILL line) -> tier 1 CODE-ONLY (pooled
+code > -3 pt with McNemar p >= 0.05; per-set guards; RUNAWAY guard; IFEval switch-off identity; engagement
+lossy_check e3 + edrop + lmsl_rows (+ hc4) > 0 on code, 0 on IFEval), forward then reverse, both orders pooled, against a
+cached base on the same snapshot. A gate this week runs at today's <= 16-row checks; whether its quality carries to
+32-row blocks is stated, not assumed.
+
+## WEEK98 PILLAR 2 LOSSY: LOSSY32 RESULT (Mon 16 Nov 08:2x; desk only; scripts/lossy32_price.py sha dfe53453b1e5; data /Users/kamen/Fit12/data/lossy32/lossy32_price.txt + .json)
+**Headline [P]: on today's measured engine the 1c lossy check family costs ~50-55 ms per 32-row check, ~2.3-2.4x its
+byte floor, not 21-25 ms.** Breakthrough's 5.86 GB plan (C5) is 49.8-53.3 ms realistic (6.12 GB and a 21.9 ms floor on
+code), against its "24.9 ms at 84 %". lossy-45 as shipped, run at 32 rows, is 90-92 ms: about the same as exact-45's
+measured 90.5 ms. Its FAST dense side saves ~14 ms, and its 45 GB misses (C 256) add ~13 ms back.
+At the lossy K* (tree-32 + close-call, kept 16.91 HE+ / 9.50 MBPP, drafting hidden, +4 ms), C5 gives ~295-314 tok/s
+HE+, not 583-679.
+
+**Self-checks (pre-registered):**
+- (a) PASS: at 16 rows the model gives lossy-45's HE check as 61.4 ms against the measured 61.2 (+0.2 %; line +-10 %).
+  The model is FAST dense 19.8 + engine experts 31.3 + miss service 8.8 + tail 1.5. The measured value is BigMoE's
+  release rows rlh_256: L + COH = lossy-45 as released, C 256, 12 HumanEval prompts, 229 checks, 11-09.
+- (b) PASS: calibration identity, exact-45 one pass 89.28 ms of GPU = C32one.
+- (c) split result:
+  - the union PASSES: 99.9 on all 36 windows = Breakthrough's 99.9; code 114.2 vs Leap's 109.7.
+  - **the 1c 4-bit-eq FAILS: 39.2 on code vs 36.4 (line 3 %).** Recounted per domain (post hoc): code 114.2 / 39.2,
+    IFEval 98.1 / 38.4, multi 87.7 / 31.8, all 99.9 / 36.4.
+  - So Breakthrough's 99.9 / 36.4 are ALL-domain means, while the lever is code-scoped. On code the plan's experts are
+    4.01 GB in the map's semantics (3.99 in the engine's), not 3.73.
+
+**Bytes per 32-row block, code windows [K: map routing + 1c masks]:**
+- Union 114.2 experts per layer; only 31.0 need the LSB plane under REF2-T (some row ranks them 0-1), so REF2-T reads
+  9.81 GB of experts, not 11.71 at all-4-bit.
+- 1c in the engine's semantics keeps 46.0 distinct experts: 14.1 with the LSB plane and 31.9 at MSB-3, 3.99 GB.
+- Dense: exact 3.44 GB.
+  - lossy-45 is 2.59 GB: HC8 plus its SVH screened head. SVH already reads only 102K of ~248K head rows, so V1 saves
+    0.12 GB, not 0.33.
+  - + V1 is 2.47; + V3 is 2.13 (= the plan's 2.14).
+- **Side result for the exact track: the exact 32-row floor on code is 47.3 ms with REF2-T's real plane reads** (13.25
+  GB), not 52-54 ms all-4-bit.
+
+**Time [K inputs, P model]:**
+- Engine experts run at 5.12 ms per REF2-T GB, 1.43x their real byte floor (1.20x on an all-4-bit basis).
+- lossy-45's FAST dense side: 19.8 ms at 16 rows [K]; 27.0-28.6 ms at 32 rows in one pass [P, Leap's per-tile growth;
+  cross-check 29.1].
+  - One-pass FAST forms above 16 rows do NOT exist: lossy-45 sets R57_DNR=1, whose > 16-row path unpacks on every call.
+    Today's route is two 16-row calls, ~39.6 ms.
+- The cores (attention + GDN) take ~5 ms of the 32-row dense side and no lossy lever touches them.
+- CPU build + encode + commit at C32one is 27.9 ms [K]: a floor for any check until a dispatch diet.
+- 45 GB misses: 35 per 16-row check at 0.25 ms each [K] -> ~52 per 32-row check (union x1.49) x the share of the union
+  still read.
+
+| candidate | GB / 32-row check (dense + experts) | floor ms | realistic ms (one-pass forms) | today's > 16-row route ms | of it: 45 GB misses ms | tok/s HE+ / MBPP at K* | quality evidence | gated / built |
+|---|---|---|---|---|---|---|---|---|
+| C0 exact-45, REF2-T [K] | 13.25 | 47.3 | **90.5** (measured C32one) | 102.1 (C32) | 0 (warm, C 160) | 179 / 101 | exact | measured engine form |
+| C1 lossy-45 as shipped, at 32 rows | 12.41 | 44.3 | **90.3-92.0** | 103.0 | 13.1 | 176-179 / 99-101 | tier 1 CODE-ONLY PASS both orders (def8934; at 16 rows) | gated at 16 rows; no 32-row path (DNR unpack, gate MAXK 160) |
+| C2 C1 + V1 (16K code head list) | 12.28 | 43.9 | 89.5-91.4 | 101.7-102.1 | 13.1 | 177-181 / 100-102 | CPU only: 0.03 % of code rows outside (VHEAD 32K: BETWEEN) | not built (R57_LMSL) |
+| C3 C1 + V2 (1c, lam 1.6e-2, s 0.98) | 6.58 | 23.5 | **53.0-55.3** | 65.6-66.3 | 5.3 | 285-297 / 160-167 | map PASS, 1c alone 1.13 / 0.48 (12 code windows) | rule + CPU self-check built (c1c217b); engine wiring NOT (waits on Leap's ref2 2-D nolsb + GPU dup pick); not gated |
+| C4 C1 + V1 + V2 | 6.46 | 23.1 | 52.1-54.7 | 64.4-65.4 | 5.3 | 288-301 / 162-169 | map: C3 + the list's 0.03 % | as C3 + V1 |
+| C5 C4 + V3 (HC + PLE 4-bit) = the "5.86 GB" plan | 6.12 | 21.9 | **49.8-53.3** | 60.9-63.5 | 5.3 | 295-314 / 166-177 | map PASS 1.09 / 0.62 (24 code windows) | as C4 + a set-scoped HC4 (no kernel; eager path) |
+| C6 C5 at lam 1.8e-2 | 5.55 | 19.8 | 46.1-49.7 | 57.3-59.9 | 4.5 | 315-337 / 177-190 | predicted OVER the code all-row line (1.65) | not a candidate |
+| C7 1d pooled-safe (lam 8e-3) + V1 + V3 | 7.71 | 27.5 | 60.0-63.6 | 71.2-73.8 | 7.4 | 250-264 / 141-148 | predicted within code lines, IFEval / multi near theirs | not built |
+| C8 C5 + V4 (GDN / attention 3-bit) | 5.79 | 20.7 | 47.6-51.6 | 57.7-61.2 | 5.3 | 304-328 / 171-184 | map KILL (RTN 4.43 / 3.62; AWQ 3.86 / 2.99) | closed |
+
+**Item 1, lossy-45's own check per 32 rows:** 12.41 GB (dense 2.59 + experts 9.81), floor 44.3 ms. Realistic
+90.3-92.0 ms with one-pass forms (incl. 13.1 ms of misses at C 256), 103 ms on today's > 16-row route. It cannot run
+32-row checks today: the DNR unpack above 16 rows, and its gate carries MAXK 160 at C 256.
+
+**Item 2, the cheapest lossy check EvalSuite could gate this week (the pre-registered rule):**
+- The lowest realistic ms among map- or gate-PASS candidates is C5 (49.8-53.3), then C4, then C3 (53.0-55.3). The
+  owners have confirmed none of their builds yet; I asked.
+- **C3 = lossy-45 + V2 (1c tiers, CODE-ONLY) is the core.** It carries ~92 % of C5's gain over C1 (-37 of -40 ms).
+  - It is also the prerequisite for C4 and C5: V1 adds -0.9 ms, V3 -2.3 ms.
+  - Gate C5 as ONE variant only if V1 and a set-scoped V3 land with the 1c wiring before the gate night; otherwise gate
+    C3.
+- The line it faces (LOSSY_GATE.md):
+  - tier 0 mini-panel KILL line;
+  - tier 1 CODE-ONLY: pooled code > -3 pt at McNemar p >= 0.05, per-set guards, the RUNAWAY guard, IFEval switch-off
+    identity, engagement lossy_check e3 + edrop (+ lmsl_rows, + hc4) > 0 on code and 0 on IFEval;
+  - forward then reverse, both orders pooled.
+- **The reference must be a NEW base run of lossy-45 on the 1c snapshot, not lx45cc1** (base and variant on one
+  snapshot, BigMoE). Cost: ~2.3 h base + ~2.3 h variant, both orders.
+- **A gate this week runs at today's <= 16-row checks.** The 1c rule's union and s^d weights differ at 32-row blocks,
+  so a PASS licenses the 16-row form; the 32-row form's quality is the map's 32-row PASS until a 32-row loop exists.
+
+**What 25 ms would take (C5 decomposed at its low end, 49.8 ms):**
+- FAST dense 23.8: floor 7.6, cores ~5.0;
+- experts 20.7: floor 14.2;
+- misses 5.3;
+- CPU 27.9 (hidden while the GPU is longer).
+- Even with the dense weight passes at 1.2x their floor, cores at 5 ms, experts at 1.1x and misses at 0, C5's bytes give
+  ~29.8 ms of GPU. The CPU must also drop under ~25 ms (today 27.9).
+- **So 900 lossy at kept 16.91 needs a ~14.8 ms check, which no priced lever reaches.** At a ~30 ms best-kernel check
+  it needs kept ~30 per 32-row check.
+- The lossy check's binding terms are the same as exact CHECK55's:
+  - one-pass forms above 16 rows (here also the FAST / DNR forms);
+  - the dense side's kernel efficiency and its cores;
+  - the CPU build.
+  - Lossy adds: fewer expert bytes (1c, done on paper) and zero misses (a resident-only rule, unpriced on the map).
+
+## LOSSY32 ADDENDUM: which of C5's "25 ms needs" already has a lever in TRIED (NewIdeas 08:2x; desk lookup of the records, no new measurement)
+Method:
+- Each lever is listed with its recorded gain and label: [K] measured on the engine or standalone, [P] priced.
+- A 16-row gain is carried to 32 rows with Leap's per-tile factors (weights x1.25, cores x2, MoE dense x1.6).
+- It counts for the lossy check only if it applies to lossy-45's FAST dense path or its FAST-NAX experts.
+- Exact-path kernels (REF2-T qmm16c) don't apply: FAST already runs its own faster dense kernels (19.8 vs 28.4 ms at 16
+  rows).
+
+| need (C5 at its low end, 49.8 ms) | TRIED levers, recorded gain | applies to the lossy 32-row check | gain at 32 rows | built? |
+|---|---|---|---|---|
+| N0 prerequisite: one weight pass above 16 rows (today's route costs +11-13 ms) | v32one: C32one - C32 = -11.64 ms [K engine, exact] | the principle, yes; lossy-45's > 16-row path is DENSE-N's unpack | -11..-13 [P] (= today's route 60.9-63.5 -> 49.8-53.3) | exact form built; FAST / DNR form NOT built (Leap's "fix candidate") |
+| N1 misses -> 0 (C5: 5.3 ms) | in the base already: QOM (code), LAYSZ45 (-15.7 % SSD MB at C 256 [K]) | - | 0 | in lossy-45 |
+| | a bigger pool: S45b-2 C 256 -> 288, misses -14 % [P replay] | yes, but ~+2.5 GB RAM (lossy-45 peaks 42.2-42.9 GB) | -0.7 | needs the RAM |
+| | prefetch / look-ahead: R-57 PREFETCH16 KILL (misses +10 %), R-57b KILL (cycle -3.7 %) [K engine]; ROUTEPRED, Rnd27 KILL | - | 0 | killed |
+| | never-wait: NW-ENGINE KILL (-2.8 %) [K engine] | - | 0 | killed |
+| | NOT in TRIED: a resident-only rule for 1c's MSB-3 tier (only 4-bit-tier experts may miss: 14.1 of 46 kept) | yes | -3.7 [P]; quality unpriced (no map arm) | no |
+| N2 dense passes at ~1.2x floor (C5 FAST dense 23.8 -> 14.1) | Leap's FAST 1b list at 16 rows (TABLE_350, 11-07) [P]: chunked GDN step -0.8..-1.0 (~1.5 days; its bitwise sibling GDN-STEP-R KILL: arithmetic-bound); HC8 restructure k3c 2.55 -> ~1.5 + the k2b fold, up to -1.8 (~1 day; its bitwise variants HC8-K3C KILL); router on a native 8-bit kernel -0.5 (0.5-1 day); DN_KS=2 -0.3 [K microbench]; GDNB -0.13 on FAST [K] | yes | -4.3..-5.7 [P] | DN_KS=2 and GDNB built; the rest ~3 days of kernel work |
+| | exact-only: REFERENCE-CONTRACT -6.41 ms per 32-row check [K standalone]; BOF -2.22 per 16-row check [K]; hc_b -0.73..-1.03 [K] | no (exact path's kernels) | 0 | - |
+| N3 experts at ~1.1x (C5: 20.7 -> 15.7) | FAST-NAX one-call 0.835x of 3c-N per MoE layer call [K] (in the base); NAX1CQ-TUNE: no tunable winner (~180 GB/s cold) [K]; 3c-N -6..-12 % only at 1-2 rows (G2) [K] | none measured at 32 rows | 0 | - |
+| N4 CPU build + encode < 25 ms (27.9 at C32one) | v32one already took CPU 38.7 -> 26.3 (+1.7) [K]; PAD_IN + HC8_FOLD -340 / -96 dispatches per chat check [K, built, default off] (~-2.8 ms CPU at ~6.5 us each) | yes, but not binding while the GPU is > ~30 ms | 0 this month | partly |
+
+**The line "how far below 50 ms this month" [P]:**
+- **Today's route (two 16-row calls): C5 is 60.9-63.5 ms.**
+- **With the FAST one-pass forms above 16 rows: 49.8-53.3.** That is a build, not in TRIED as a FAST item.
+- **Plus Leap's FAST dense 1b list: ~45-48.** ~3 days of kernel work; only DN_KS=2 and GDNB are built.
+- **Plus a resident-only MSB-3 rule: ~41-45.** It is unpriced on the map and needs a map arm, then the gate.
+- Nothing recorded moves the experts (20.7 ms) or the CPU bound (27.9 ms) at 32 rows.
+- At the lossy K* (kept 16.91, +4 ms) that is ~325-375 tok/s HE+. 900 needs a ~15 ms check, ~3x below the best line
+  this month.
+- The largest single item, the FAST one-pass forms (-11..-13 ms), is shared with the exact CHECK55 track's step 1.
+
+## 1c-tiers SPEC (Mon 16 Nov 08:5x; the orchestrator APPROVED NewIdeas' gate of my LOSSY32 pick 08:3x; EvalSuite's name "1c-tiers")
+- The build + gate spec: /Users/kamen/Fit12/LOSSY_1C_TIERS_SPEC.md (V2 alone on lossy-45, code sets, the exact rule,
+  counter keys, the CODE-ONLY routing, BigMoE's pre-arming checklist with the real-loop scored-key rule).
+- New desk numbers [K: map routing; rule = BigMoE tiers1c.py copied]: /Users/kamen/Fit12/scripts/lossy1c_16row.py ->
+  /Users/kamen/Fit12/data/lossy32/lossy1c_16row.txt. The copied rule equals Breakthrough's tiers_1c masks on 1,520,640 /
+  1,520,640 slots.
+  - At full 16-row checks on code: union 76.6 per check-layer = e4 8.7 + e3 20.5 + edrop 47.5 (61.9 % dropped), expert GB
+    per check REF2-T 6.54 -> 1c 2.51 (x0.38).
+  - At 32-row blocks: 114.2 = 15.3 + 30.7 + 68.2 (59.7 %), 9.81 -> 3.99 GB (x0.41).

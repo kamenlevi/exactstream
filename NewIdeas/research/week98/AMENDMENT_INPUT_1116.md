@@ -1,3 +1,32 @@
+> **FILED as CERTIFY98 amendment 8 (EvalSuite eb928cf, Mon 08:3x).** Corrections EvalSuite made to this input, all
+> stated in the amendment:
+> - C2 is scored against the dump's y; any fresh row with tk0 != y VOIDs C2. Dev P = 2 reads 98.41 [CR1 LB 97.74] /
+>   98.11 [97.42].
+> - Power: LAB 0.71; C1 tree-16 1.00, tree-32 0.92; C2 P = 2 0.97 (0.81 at a 98.0 truth); T32/32 1.00; T32/16 0.00 at
+>   R32 1.480. T32/16 passes only if E2's R32/R16 <= ~1.43.
+> - The LAB line is defined by the shortcut. On HE+ it does NOT reproduce REPLACE (20.77 vs 20.90): my "reproduces" was
+>   an overstatement; MBPP does (12.72 vs 12.76).
+> - A conditional t30c candidate gets the 97.5 % one-sided bound under the PREREG's Looks rule.
+> - The lossy gate is named "1c-tiers", not "C3".
+
+> **MONDAY 08:1x UPDATES (`date`), read first:**
+> - **C2b DROPPED.** Sandbox98's L1CF is a KILL: HE+ agreement +0.82 (CI +0.33..+1.37) < +1.0, flat over the last third.
+>   Under the walk-strict gate, C2's deep bands already pass with the plain 2B at P = 2.
+> - **C2-4B added as INFORMATION** (not gated, to keep the gate's multiplicity down): the same rule with
+>   mlx-community/Qwen3.5-4B-MLX-4bit, revision 32f3e8ecf65426fc3306969496342d504bfa13f3, model.safetensors sha256
+>   5fb9acd0246866381cf8c5c354c6db1019f6498eec4ccb4f5edcc71ffeacb2db, at P = 2.
+>   - Dev HE+ walk-strict 15-22 / 23-30: 98.3 / 98.3; kept/32 15.82 (+14.9 % vs t30b; 2B P = 2 is +8.9 %).
+>   - 2.37 GB read per pass.
+> - **Engine prior for R32 = 1.445 x A16** (Breakthrough's full-engine profile + Leap's v32one, the orchestrator 00:4x),
+>   until E2 lands (Tue 00:30).
+>   - At that prior, the T32/16 bar is 1.445 x 1.04 x 1.03 = 1.548, against dev T32/16 1.531 [LB 1.470]. So tree-32
+>     FAILS vs chain-16 on dev, and K* = tree-16 (HE+ tree-16 10.99 vs tree-32 10.82 kept per A16-ms).
+>   - Tree-32 pays only if E2's R32 <= ~1.43, or once the contract / BOF lands. Keep both tree lines; E2 pins the bar
+>     Tue evening.
+>   - T32/32 (same rows) is unaffected.
+> - **Tier-0a re-run:** NewIdeas agrees it goes LAST in night1117, under the night's existing guards. Later nights are
+>   all spoken for (Tue t30c-if-PASS, Wed capture, Thu-Fri proofs).
+
 # Input for EvalSuite's pre-capture CERTIFY98 amendment (NewIdeas, Goal A lead; prepared Sun 15 Nov 22:1x)
 
 The orchestrator approved these lines Sun 21:5x, and K* / T8 22:0x-22:1x. EvalSuite files them Monday morning as one

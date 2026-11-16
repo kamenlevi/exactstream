@@ -20,7 +20,7 @@ in LOSSY_CHECK_PLAN.md; the map screens are in its "Map screens" section.
 | variant | adds to lossy-45 | flags | bytes vs the base (32-row check) |
 |---|---|---|---|
 | V1 | lm_head shortlist on code sets | `R57_LMSL=<code16k.npy>` `R57_LMSL_SETS=humaneval,humanevalx,mbpp` | -0.33 GB |
-| V2 | 1c expert tiers on code sets, replacing QOM's keep in the check | `R57_TIERS=1c` `R57_TIERS_LAM=0.016` `R57_TIERS_S=0.98` `R57_TIERS_SETS=humaneval,humanevalx,mbpp` | experts at 36.4 four-bit-equivalent per layer (the plan's 1c) |
+| V2 | 1c expert tiers on code sets, replacing QOM's keep in the check | `R57_TIERS=1c` `R57_TIERS_LAM=0.016` `R57_TIERS_S=0.98` `R57_TIERS_SETS=humaneval,humanevalx,mbpp` | experts at 36.4 four-bit-equivalent per layer (the plan's 1c) [CORRECTED Mon 16 Nov: 39.2 on code windows; 36.4 was the all-domain mean] |
 | V3 | V2 + mixers / inject / PLE at 4-bit | V2's + `R57_HC4=1` `R57_HC4_SETS=humaneval,humanevalx,mbpp` (census mix 194, inject 96, PLE 2) | another -0.34 GB beyond HC8 |
 | V4 | V3 + GDN / attention at 3-bit | only if the map's bt_ga3 passes | another -0.33 GB |
 

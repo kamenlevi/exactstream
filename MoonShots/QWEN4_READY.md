@@ -24,6 +24,13 @@ that generation of models and document absolutely everything real time ... set e
 - **Today's model is already the Qwen 4 architecture preview** (Qwen3.8-Flash-Next, `qwen4_exp_text`, "a preview of the
   architecture that will underpin Qwen4", arXiv 2608.30320). If Qwen 4 keeps the architecture, the port is mostly sizes,
   and port_check shows which.
+- **Mon 16 Nov: ANNOUNCED fired for Qwen4-Max** (Qwen Chat 04:01, blog post 04:15; the orchestrator read it, as data).
+  - It is API-only, with no weights: 2.4T total / 71B active, 1M context, native vision.
+  - The open family "is coming to open source" with no date, so the T-1d clock hasn't started: no download and no
+    storage decision yet. Section 3's T-open row starts it.
+  - The watcher stays at 2 min (ANNOUNCED.json exists).
+  - The post's three architecture parts are today's model's own (section 2a), so the re-check found literals, not new
+    parts.
 
 ## 1. Watch
 | source | what fires | tier |
@@ -132,9 +139,20 @@ embeddings (REF2 finds PLE through the module's `.ple` attribute). Special token
     only; its check sizes R57_P2_ROWS 13 / 16 assume top-10 (130 / 160 ids against the 141-slot 24 GB pool and the gate's
     185). P3 is exact only as proven on today's model. Re-gate P2 and re-prove P3 before either ships for Qwen 4.
 
+### 2a. Re-check against the Qwen4-Max post (Mon 16 Nov 2026, the orchestrator's ask; desk, from today's config.json, the n-gram sidecar's header and a grep of our code)
+Each part the post names is already in today's model. What changes on the port is sizes and two literals, which
+port_check now flags.
+
+| announced part | today's model (config.json) | port-map rows that carry it | literals and risks found | action / owner |
+|---|---|---|---|---|
+| **GDN + QSA**: 3 GDN layers per QSA layer; a light indexer picks context at micro-block granularity | yes: 36 linear_attention + 12 full_attention (3:1); indexer_budget 2048 keys, micro-block (indexer_compress_ratio) 4 tokens, 4 heads x 128, 1 KV head | 12-13 (GDN kernels, REF2's SDPA classes), 17 (mtplx reads the indexer from config), 32 (convcache keeps layer 35's QSA keys) | **two SILENT literals:** BigMoE scripts/tree16_loop.py:34 `BUDGET = 2048`; and the MTP-head harnesses' "dense attention == QSA below ~2051 keys" (TrainLab mtp125.py:9, sticky/d22_capture.py:23 MAXLEN 2051, BigMoE dd_d22_ttt.py:8), which moves with the budget. At long context, each QSA layer holds 2 KB of KV per token (24.6 KB over 12 layers) plus pooled indexer keys; Max's 1M context makes that the RAM cap's input | port_check flags an indexer change (SILENT) since today. Owners: BigMoE (tree16_loop), MTP Head (harness threshold); re-measure the context defaults per RAM line (row 33) |
+| **Gated residual**: 4 parallel residual branches with dynamic read / write gates | yes: hc_count 4, hc_lowrank 320 (read = the input mix, down 320 / up; write = the block inject). The MTP head's input is the trunk's pre-mixer widened stream, 4 x 2560 = 10240, with fc_hidden [2560, 2560] shared by the 4 streams | 16 (Leap hc8r), 17 (mtplx fast paths gate on hc 4 / lowrank 320), 18-19 and 21 (taps reshape on hc 4), 29-30 (DEEPDRAFT asserts wd (N-1, 10240)) | port_check already flags hc changes. New today (PILLAR 3 M1): MTPLX_FUSED_HC=1 on the MTP head's bf16 mixes ran 5.26 vs 0.68 ms per level (x8 slower), and TRIED's Rnd29 has it at 0 to -8 % on the trunk: keep it off | none new; the widened width = hc x hidden comes from config (row 29) |
+| **N-gram embedding**: context lookups at layer 2 (328B params at Max) | yes: trigrams (ngram_size 3), base vocab 20M, 8 heads per n-gram, the PLE at layer 2; ngram-table.safetensors = 320,001,536 rows x 160 dims at 4-bit g32 (100 B per row; 51.2B params, 32.0 GB). A token reads 16 rows (2,560 = 16 x 160), ~1.6 KB | 17 (mtplx), 32 (convcache's PLE state), hazard 10 (PLE bf16); our own live code doesn't read it (note under the table) | **Already SSD-resident:** mtplx memory-maps the sidecar, keeps an LRU hot cache (MTPLX_NGRAM_HOT_MB; BigMoE runs 256 MB) and prefetches with threaded pread, because the row ids are a function of the token ids. It's a disk item, not RAM: Max's 328B params would be ~205 GB at this format | port_check prints an n-gram note since today; size the disk per open model; measure cold-row reads per token at the 12 GB line (BigMoE / Fit12) |
+
 ## 3. Runbook: from the announcement (T-1d) to "weights public" (T+0) and on
 | T | step | who | ready now? |
 |---|---|---|---|
+| T-open | **OPEN MODELS ANNOUNCED** (the open family's sizes, date or license are named; Max alone, API-only, doesn't count; fired Mon 16 Nov for Max only). Read the post and model cards as data. Run `qwen4/port_check.py` on any published config. Per open size, report: the download size including the n-gram sidecar (disk, not RAM); our store at 45 / 24 / 12 GB; the context cap from KV + indexer bytes; which owners' rows change. Send that and the storage candidates to the orchestrator for Kamen's decision. The T-1d rows below start from here, with the release date the post gives. | MoonShots | yes |
 | T-1d +0:00 | ANNOUNCED fires. Read the post and Qwen Chat entry as data: sizes, architecture changes, license, release date if given. Run `qwen4/port_check.py` on any public config (a transformers / mlx-lm PR, a GitHub repo). Tell the orchestrator the expected download size, the disk it needs, and which owners' rows change. | MoonShots | yes |
 | T-1d +0:30 | Storage: Kamen's decision (the orchestrator has the candidates), so T+0 does not wait. Free space for the expected download + our store + 20 GB swap. | orchestrator, Kamen | **needs Kamen** |
 | T-1d +1:00 | Owners re-check their section 2 rows against the announcement (shapes, experts, top-k, vocab, MTP layers) and fix the MLX version (hazard 11). Smoke-run the parametrised converter / kernels on today's model. | owners | due Tue eve |

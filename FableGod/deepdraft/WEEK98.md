@@ -41,6 +41,82 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Mon 16 08:3x (NewIdeas): **C3 lossy gate coordinated** (the orchestrator's YES 08:3x).
+  - Chain: Leap's ref2 change (2-D nolsb + GPU dup pick), then BigMoE's wiring + counter + a NEW lossy-45 base, then
+    EvalSuite's gate (tier 0 -> tier 1 CODE-ONLY, both orders, <= 16-row checks, ~4.6 h at 45 GB). Each comes after the
+    owner's WEEK98 items; none delays E14 or M4.
+  - Slot: Tue by day after night1117 and after BigMoE's 127-node dry run, else Wed by day before the capture. The
+    drafter line wins any conflict.
+  - Leap also prices a DISPATCH DIET (<= 30 min desk) for the 900 line's CPU third.
+  - MoonShots gets a ~5-min quiet timing window after S10 PASS2 (Kamen away).
+  - Number checks: engine R32 = 1.480 measured (not 1.445); LOSSY32 confirmed.
+- Mon 16 08:4x (MoonShots dfe0e4a; NewIdeas' calls): **PILLAR 3 M0-M2 (drafting off the critical path) = KILL for stock
+  MLX: the best byte cut drafts an HE+ tree-32 block in 9.3 ms (line 8; PASS <= 4).**
+  - What binds: ~0.31 ms of fixed GPU cost per level (~144 dependent dispatches at ~2.1 us), not the host sync (0.549
+    ms synced vs 0.311 sync-free async). mx.compile and the engine's fusions don't remove it.
+  - Per block, async (full head 95 MB / compiled 2-bit + top-2-expert cut 39.8 MB): HE+ tree-32 13.4 / 9.3 ms; HE+
+    tree-16 (K*) 8.1 / 5.6; MBPP tree-16 6.6 / 4.6.
+  - NewIdeas: a hand-fused level kernel is NO GO this week (no CERTIFY98 line needs it). It is next week's first
+    PILLAR 3 build: <= ~35 dependent steps per level vs ~144, taking tree-16 drafting to ~2-3 ms (~7 % tok/s at the
+    engine). M3 (do the byte-cut heads keep the same tokens? within 1 % kept on both sets) is GO today beside t30c at
+    MEM ~12 GB.
+  - Engine note for after Saturday (exact, cheap): a sync-free async_eval draft level costs 0.645 vs 0.901 ms (-28 %).
+- Mon 16 08:4x (EvalSuite): **CERTIFY98 amendment 8 filed (eb928cf, pre-capture): LAB, C1, C2 (2B audit, P = 2) and
+  the tree-K line (T32/32 on HE+ AND MBPP; T32/16 on HE+); walk-strict bands count targets only; 8 gated claims, quoted
+  together in the RESULT.** A new scorer (certify98_lines.py) reproduces every dev number.
+  - Power at the registered bounds: LAB 0.71; C1 tree-16 1.00, tree-32 0.92; C2 0.97 at the dev truth, but 0.81 if
+    the true deep bands are 98.0 and 0.60 at 97.9; T32/32 1.00; **T32/16 0.00 at the measured R32 1.480** (it passes
+    only if E2 measures R32/R16 <= ~1.43). Amendment 8a pins c32 and R32/R16 from E2 Tue evening.
+  - C2 now scores the 2B against the head's own label: dev 98.41 / 98.11 (35 HE+ near-tie rows had differing labels;
+    on fresh files any such row VOIDs C2).
+  - LAB's cross-check vs BigMoE's REPLACE oracle holds on MBPP only (HE+ 20.77 vs 20.90: DIFFERS).
+  - A second pinned drafter candidate (t30c) gets the stricter 97.5 % bound on the same sets.
+  - Tier-0a re-run armed LAST in night1117: follower pid 45029 (0ca9f08), only after night1117's "done:" marker; no
+    start after Tue 13:15; ends by start + 2 h or 14:30. Next: the 1c-tiers lossy gate's pre-registration today.
+- Mon 16 08:2x (Fit12 LOSSY32, desk, pre-registered; number-checked by NewIdeas): **the lossy 32-row check costs ~50-55
+  ms realistic on the measured engine, not 21-25 ms. So the 900-lossy line is ~300 tok/s HE+ realistic, ~500 with best
+  kernels, with today's drafter.** Record: ~/Fit12/data/lossy32/lossy32_price.txt, PLAN_12GB_90_fit12.md "LOSSY32 RESULT".
+  - Self-checks: the 16-row model gives 61.4 ms vs lossy-45's measured 61.2; exact at 32 rows calibrates to C32one (89.28
+    GPU / 90.46 wall).
+  - The "5.86 GB = 20.9 / 24.9 ms" plan put one bandwidth efficiency on the whole check. Priced per part (C5, 6.12 GB
+    on code) it is 49.8-53.3 ms:
+    - FAST dense side 23.8-26.6 (3x its floor; ~5 ms of cores);
+    - experts 20.7-21.4 (1.43x);
+    - 45 GB misses 5.3;
+    - the CPU build + encode + commit 27.9 ms (C32one) as a bound.
+  - Its floor on code is 21.9 ms: Breakthrough's 99.9 / 36.4 were all-domain means (code 114.2 / 39.2).
+  - At K* lossy (kept 16.91, drafting hidden): C5 295-314 HE+ / 166-177 MBPP. C3 (lossy-45 + 1c tiers CODE-ONLY) alone
+    285-297, ~92 % of C5's gain. lossy-45 as shipped, run at 32 rows, is 90-92 ms (about exact's 90.5).
+  - Best case, all at once (misses 0, dense at 1.2x floor, experts 1.1x, CPU < 25 ms): ~29.8 ms GPU -> ~500 tok/s. 900
+    at kept 16.91 needs a ~15 ms check: nothing priced gets there. It needs fewer bytes (~4 GB per check), near-floor
+    kernels, the CPU side under ~15 ms (a dispatch diet: C32one issues 4,022 dispatches), zero misses, AND kept x1.32.
+  - **Exact side: REF2-T reads the LSB plane for only 31 of 114 union experts on code, so the exact 32-row byte floor on
+    code is 47.3 ms, not 52-54** (tree-32 at the floor ~306 tok/s). The measured engine stays 90.5 ms.
+  - Cheapest gateable lossy check this week: C3. It needs Leap's ref2 change (2-D nolsb + GPU dup pick), BigMoE's
+    wiring + counter, and a NEW lossy-45 base on that snapshot: ~2.3 + 2.3 h of 45 GB gate runs (tier 0 -> tier 1
+    CODE-ONLY, both orders; it can gate at <= 16-row checks). The orchestrator RESOURCED it 08:3x (build by day
+    today / Tue, gate in a by-day 45 GB slot; the drafter line wins any clash). Spec: ~/Fit12/LOSSY_1C_TIERS_SPEC.md
+    (the gate is named "1c-tiers"; at 16-row code checks 1c drops 61.9 % of the expert union, 6.54 -> 2.51 GB).
+  - **This MONTH's lossy-check ladder** (Fit12 LOSSY32 ADDENDUM vs TRIED; NewIdeas 8245427): C5 60.9-63.5 ms today
+    (two 16-row calls) -> 49.8-53.3 with a one-pass > 16-row FAST form (not built; the biggest item) -> ~45-48 with
+    Leap's 1b list (~3 days) -> ~41-45 with a resident-only MSB-3 rule (quality unpriced). **~41-45 ms = ~325-375
+    tok/s HE+ at K* lossy.** No recorded lever touches the expert kernels at 32 rows or the 27.9 ms CPU build; Leap
+    prices a dispatch diet.
+- Mon 16 08:1x (NewIdeas): **queue + amendment + THINK #7.**
+  - **C2b DROPPED** after L1CF's KILL: the gate's deep bands already pass with the plain 2B at P=2.
+  - **EvalSuite got the amendment set** (AMENDMENT_INPUT_1116.md, 64d8a29):
+    - C2-4B (4B, P=2) as information: dev 98.3 / 98.3, kept +14.9 %.
+    - Engine prior R32 1.445: the T32/16 bar is 1.548 vs dev 1.531, so K* = tree-16 until E2. **CORRECTED 08:2x
+      (NewIdeas' number check of the orchestrator's prior): the measured engine R32 is 1.480 (a082f8c), so the bar is
+      1.585 and tree-16 leads by ~4 %. 1.445 was an untested composition.** E2 pins the bar on Tuesday either way.
+    - Tier-0a goes LAST in night1117 (agreed).
+  - **Queue:** S10 PASS2 now -> t30c by day at 16 GB if p2f passes. MoonShots' M0-M2 (<= 4 GB) run beside it; its M3
+    uses BigMoE's dd_tree.py (--run).
+  - **THINK #2 sandbox analog -> Sandbox98:** the 125B has no rejected-row states; Wednesday's capture is plain
+    decoding.
+  - **THINK #7 SLOT PRIOR = PASS on HE+:** in-comment rows are 13 % of HE+ answer rows but hold 71 % of the 125B's
+    near-ties (m < 1), lift x5.4. MBPP x1.96 (KILL). A second key, next to #1's hard-start key, for Tuesday's
+    widen / TIE-STUBS screen.
 - Mon 16 07:1x (Sandbox98, 8d0c9da; pre-reg d8611a9): **PLAN4D item 2, L1CF (lever 1c as a full-data distilled 2B
   auditor) = KILL.** [LAB: teacher-forced agreement with the 125B's top-1, not real decoding.]
   - One epoch over 3,032 files (805,005 answer rows). Control: HE+ 94.42 / MBPP 85.67 / val 87.29.
@@ -121,7 +197,8 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
       32-row check is 1.480 x A16 (C32one 90.46 / A16 61.11 ms, Breakthrough's profile). The slice compresses ratios:
       ~half of its check is Python build, and experts are a smaller share there.
       - HE+ tree-32 vs tree-16: one pass -1.7 % (166.0 vs 169.0 tok/s); today's split -12.5 %; the contract -3.7 %.
-      - Break-even: C32 <= 88.7 ms (the seams' -2.15 brings it to ~88.3, i.e. a tie).
+      - Break-even: C32 <= 88.7 ms. (~~the seams' -2.15 brings it to ~88.3, i.e. a tie~~ CORRECTED Mon 08:2x:
+        v32one + seams was never measured together, so ~88.3 is untested; the measured one-pass check is 90.46 ms.)
       - The biggest 32-row excess is the experts: 50.65 ms vs a 40.2 ms byte floor.
       - Engine-calibrated costs v2 went to NewIdeas (305f315).
     - E2 (Tue 00:30) gives the engine number.
@@ -1073,9 +1150,13 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
         moves the wall +0.17 / +0.13.
       - Leap's v32one at 32 rows: -11.64 ms [IQR -11.85, -11.42]. Seams to 32: -2.15. Both bitwise. LM head as one call:
         -1.49 (not exact).
-      - So the engine C32 after step 1 is ~88.3 ms, R32 ~1.445 (the slice read 1.345). The 17-row step's experts
-        (+16.9 ms) are untouched by step 1.
-      - At R32 1.445, tree-32 ~ tree-16 on HE+. E2 (Tue) is the clean number.
+      - ~~So the engine C32 after step 1 is ~88.3 ms, R32 ~1.445~~ **CORRECTED Mon 08:2x (NewIdeas' number check):
+        the measured engine R32 is 1.480** (C32one 90.46 / A16 61.11; a082f8c). The 88.3 ms subtracted v32one (-11.64)
+        AND the seams (-2.15) from C32, but the profile has no v32one + seams arm, so it was an untested composition.
+        The 17-row step's experts (+16.9 ms) are untouched by step 1.
+      - ~~At R32 1.445, tree-32 ~ tree-16 on HE+~~ At the measured 1.480 the T32/16 bar is 1.585 (1.48 x 1.04 x 1.03)
+        against dev 1.531, so K* = tree-16 on HE+ by ~4 % (10.99 vs 10.57 kept per A16-ms). Tree-32 needs R32
+        <= ~1.43 (E2, or the contract). E2 (Tue) is the clean number.
       - A16 by class: experts 33.7 ms (52 %), HC read 9.4, GDN proj 8.3, attention proj 3.0, MoE dense side 3.8 (5.9 %).
       - Cold first check after a prefill: +74.9 ms (SSD 70.1, 364 misses). A cold 32-row check: 335 ms.
     - **03:0x Mon: the night STALLED from ~00:50; nothing ran for ~2 h.**

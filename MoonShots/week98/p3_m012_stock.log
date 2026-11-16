@@ -1,0 +1,163 @@
+[guard] pid 40592, MAXGB 4, swap at start 6852.38 MB (kill at +1 GB)
+built C0 as stored (P2 base): 177.6 MB per level at F=1 (dense 99.7, head 47.2, experts 10 x 3.07); F=3: 239.1 own routing / 177.6 shared
+built C1 4-bit + head 8K (P2 best): 95.1 MB per level at F=1 (dense 52.6, head 11.8, experts 10 x 3.07); F=3: 156.6 own routing / 95.1 shared
+  parts (MB): layers.0.self_attn.q_proj 17.69, layers.0.self_attn.o_proj 8.85, hyper_connection_mixer 3.71, fc_embedding 3.69, fc_hidden 3.69, routed experts (per expert) 3.07, layers.0.mlp.shared_expert 2.76, layers.0.attn_hyper_connection.input_mix_weight_down 1.84, layers.0.attn_hyper_connection.input_mix_weight_up 1.84, layers.0.mlp_hyper_connection.input_mix_weight_down 1.84, layers.0.mlp_hyper_connection.input_mix_weight_up 1.84, layers.0.self_attn.indexer 1.74, layers.0.mlp.gate 1.39, layers.0.self_attn.k_proj 0.74
+built C2 C1 + experts top-4: 76.7 MB per level at F=1 (dense 52.6, head 11.8, experts 4 x 3.07); F=3: 101.3 own routing / 76.7 shared
+built C3 C2 + head 4K: 70.8 MB per level at F=1 (dense 52.6, head 5.9, experts 4 x 3.07); F=3: 95.4 own routing / 70.8 shared
+built C4 C3 + q/o 3-bit: 64.9 MB per level at F=1 (dense 46.7, head 5.9, experts 4 x 3.07); F=3: 89.5 own routing / 64.9 shared; re-quantized 2 Linears
+built C5 C4 + experts top-2: 58.7 MB per level at F=1 (dense 46.7, head 5.9, experts 2 x 3.07); F=3: 71.0 own routing / 58.7 shared; re-quantized 2 Linears
+built C6 C5 with q/o 2-bit: 52.8 MB per level at F=1 (dense 40.8, head 5.9, experts 2 x 3.07); F=3: 65.1 own routing / 52.8 shared; re-quantized 2 Linears
+built C7 C6 + bf16 Linears 2-bit: 44.7 MB per level at F=1 (dense 32.6, head 5.9, experts 2 x 3.07); F=3: 56.9 own routing / 44.7 shared; re-quantized 2 Linears
+built C8 C7 + head 2K + k/v/shared 2-bit: 39.8 MB per level at F=1 (dense 30.7, head 2.9, experts 2 x 3.07); F=3: 52.1 own routing / 39.8 shared; re-quantized 7 Linears
+built K1 C1 compiled (hc reads, MoE, tail, prepare): 95.1 MB per level at F=1 (dense 52.6, head 11.8, experts 10 x 3.07); F=3: 156.6 own routing / 95.1 shared
+built K3 C3 compiled: 70.8 MB per level at F=1 (dense 52.6, head 5.9, experts 4 x 3.07); F=3: 95.4 own routing / 70.8 shared
+built K8 C8 compiled: 39.8 MB per level at F=1 (dense 30.7, head 2.9, experts 2 x 3.07); F=3: 52.1 own routing / 39.8 shared; re-quantized 7 Linears
+all built at 1 s; active 2.89 GB; GPU busy 62 %
+[mtplx] verify SDPA head-chunked: q_len=3 heads_per_chunk=10 chunks=4
+self-checks: {"F1 sync == free == async": true, "F3 sync == free == async": true, "F3 shared sync == free == async": true, "F1 tree level == P2 chain (argmax)": true, "K1 F1 tokens == C1's (share)": 1.0, "K1 F3 tokens == C1's (share)": 1.0, "K3 F1 tokens == C3's (share)": 1.0, "K3 F3 tokens == C3's (share)": 1.0, "K8 F1 tokens == C8's (share)": 1.0, "K8 F3 tokens == C8's (share)": 1.0, "shared-route MoE == stock MoE at one row (max abs diff)": 0.0}
+level graph: 237 primitives, 144 not views (F=1; /Users/kamen/MoonShots/week98/p3_level_graph_stock.dot)
+round 5/30 done at 16 s (GPU busy at round start 86 %)
+round 10/30 done at 30 s (GPU busy at round start 89 %)
+round 15/30 done at 44 s (GPU busy at round start 86 %)
+round 20/30 done at 57 s (GPU busy at round start 91 %)
+round 25/30 done at 71 s (GPU busy at round start 88 %)
+round 30/30 done at 85 s (GPU busy at round start 89 %)
+
+M0 (i): P2's chain, one sync per step (P2's published: as stored 1.147, 4-bit + head 8K 0.864 ms)
+  C0 as stored (P2 base): 1.126 ms [1.103-1.216] at 177.6 MB -> x0.981 of P2 (within 15 %)
+  C1 4-bit + head 8K (P2 best): 0.857 ms [0.839-0.921] at 95.1 MB -> x0.992 of P2 (within 15 %)
+
+ms per level (median [p10-p90]); MB per level; build = CPU graph-building ms per level (free / async)
+variant | F | routing | MB | sync | free | async | build (free)
+C0 as stored (P2 base) | 1 | own | 177.6 | 1.246 [1.176-1.330] | 1.075 [1.065-1.085] | 0.921 [0.917-0.933] | 0.124
+C0 as stored (P2 base) | 2 | own | 208.3 | 1.376 [1.320-1.434] | 1.239 [1.228-1.248] | 1.080 [1.073-1.093] | 0.122
+C0 as stored (P2 base) | 2 | shared | 177.6 | - | 1.165 [1.158-1.171] | 1.006 [1.001-1.015] | 0.120
+C0 as stored (P2 base) | 3 | own | 239.1 | 1.560 [1.507-1.626] | 1.429 [1.417-1.439] | 1.253 [1.243-1.269] | 0.135
+C0 as stored (P2 base) | 3 | shared | 177.6 | - | 1.306 [1.298-1.315] | 1.139 [1.131-1.148] | 0.134
+C1 4-bit + head 8K (P2 best) | 1 | own | 95.1 | 0.901 [0.886-0.970] | 0.788 [0.783-0.796] | 0.645 [0.641-0.650] | 0.113
+C1 4-bit + head 8K (P2 best) | 2 | own | 125.8 | 1.098 [1.052-1.145] | 0.965 [0.957-0.980] | 0.814 [0.807-0.820] | 0.121
+C1 4-bit + head 8K (P2 best) | 2 | shared | 95.1 | - | 0.886 [0.882-0.895] | 0.734 [0.731-0.739] | 0.120
+C1 4-bit + head 8K (P2 best) | 3 | own | 156.6 | 1.302 [1.253-1.351] | 1.171 [1.159-1.186] | 1.005 [0.992-1.022] | 0.134
+C1 4-bit + head 8K (P2 best) | 3 | shared | 95.1 | - | 1.045 [1.039-1.065] | 0.879 [0.875-0.890] | 0.133
+C2 C1 + experts top-4 | 1 | own | 76.7 | 0.833 [0.815-0.907] | 0.715 [0.708-0.732] | 0.573 [0.567-0.577] | 0.113
+C2 C1 + experts top-4 | 2 | own | 89.0 | 0.972 [0.925-1.018] | 0.834 [0.829-0.852] | 0.682 [0.677-0.693] | 0.121
+C2 C1 + experts top-4 | 2 | shared | 76.7 | - | 0.799 [0.793-0.807] | 0.647 [0.643-0.659] | 0.119
+C2 C1 + experts top-4 | 3 | own | 101.3 | 1.127 [1.076-1.175] | 0.993 [0.982-1.002] | 0.825 [0.818-0.836] | 0.133
+C2 C1 + experts top-4 | 3 | shared | 76.7 | - | 0.930 [0.923-0.957] | 0.763 [0.758-0.779] | 0.131
+C3 C2 + head 4K | 1 | own | 70.8 | 0.807 [0.786-0.891] | 0.689 [0.682-0.698] | 0.542 [0.540-0.553] | 0.112
+C3 C2 + head 4K | 2 | own | 83.1 | 0.944 [0.893-0.983] | 0.805 [0.797-0.811] | 0.654 [0.650-0.659] | 0.120
+C3 C2 + head 4K | 2 | shared | 70.8 | - | 0.770 [0.766-0.785] | 0.617 [0.613-0.623] | 0.118
+C3 C2 + head 4K | 3 | own | 95.4 | 1.091 [1.038-1.156] | 0.961 [0.953-0.972] | 0.791 [0.784-0.807] | 0.134
+C3 C2 + head 4K | 3 | shared | 70.8 | - | 0.895 [0.888-0.916] | 0.731 [0.727-0.738] | 0.132
+C4 C3 + q/o 3-bit | 1 | own | 64.9 | 0.790 [0.768-0.869] | 0.668 [0.664-0.679] | 0.525 [0.521-0.531] | 0.113
+C4 C3 + q/o 3-bit | 2 | own | 77.2 | 0.928 [0.879-0.977] | 0.794 [0.787-0.808] | 0.638 [0.634-0.655] | 0.121
+C4 C3 + q/o 3-bit | 2 | shared | 64.9 | - | 0.760 [0.754-0.768] | 0.605 [0.602-0.611] | 0.119
+C4 C3 + q/o 3-bit | 3 | own | 89.5 | 1.081 [1.030-1.125] | 0.952 [0.944-0.971] | 0.782 [0.775-0.790] | 0.134
+C4 C3 + q/o 3-bit | 3 | shared | 64.9 | - | 0.890 [0.885-0.895] | 0.727 [0.721-0.731] | 0.132
+C5 C4 + experts top-2 | 1 | own | 58.7 | 0.767 [0.748-0.829] | 0.645 [0.639-0.654] | 0.501 [0.499-0.507] | 0.112
+C5 C4 + experts top-2 | 2 | own | 64.9 | 0.881 [0.837-0.921] | 0.748 [0.743-0.755] | 0.595 [0.592-0.601] | 0.121
+C5 C4 + experts top-2 | 2 | shared | 58.7 | - | 0.729 [0.725-0.739] | 0.576 [0.573-0.585] | 0.118
+C5 C4 + experts top-2 | 3 | own | 71.0 | 1.015 [0.962-1.049] | 0.885 [0.878-0.897] | 0.715 [0.711-0.725] | 0.133
+C5 C4 + experts top-2 | 3 | shared | 58.7 | - | 0.851 [0.846-0.857] | 0.690 [0.681-0.693] | 0.131
+C6 C5 with q/o 2-bit | 1 | own | 52.9 | 0.743 [0.725-0.812] | 0.622 [0.617-0.628] | 0.477 [0.474-0.483] | 0.112
+C6 C5 with q/o 2-bit | 2 | own | 59.0 | 0.855 [0.811-0.896] | 0.727 [0.722-0.731] | 0.571 [0.569-0.577] | 0.121
+C6 C5 with q/o 2-bit | 2 | shared | 52.9 | - | 0.706 [0.702-0.712] | 0.553 [0.550-0.558] | 0.118
+C6 C5 with q/o 2-bit | 3 | own | 65.1 | 1.003 [0.953-1.040] | 0.871 [0.866-0.880] | 0.701 [0.698-0.709] | 0.133
+C6 C5 with q/o 2-bit | 3 | shared | 52.9 | - | 0.836 [0.830-0.842] | 0.676 [0.667-0.680] | 0.131
+C7 C6 + bf16 Linears 2-bit | 1 | own | 44.6 | 0.749 [0.733-0.819] | 0.630 [0.625-0.636] | 0.485 [0.482-0.490] | 0.112
+C7 C6 + bf16 Linears 2-bit | 2 | own | 50.8 | 0.848 [0.800-0.876] | 0.713 [0.709-0.722] | 0.560 [0.557-0.564] | 0.119
+C7 C6 + bf16 Linears 2-bit | 2 | shared | 44.6 | - | 0.693 [0.689-0.699] | 0.540 [0.537-0.546] | 0.118
+C7 C6 + bf16 Linears 2-bit | 3 | own | 56.9 | 0.990 [0.943-1.026] | 0.862 [0.856-0.871] | 0.692 [0.689-0.697] | 0.133
+C7 C6 + bf16 Linears 2-bit | 3 | shared | 44.6 | - | 0.825 [0.818-0.833] | 0.664 [0.657-0.668] | 0.131
+C8 C7 + head 2K + k/v/shared 2-bit | 1 | own | 39.8 | 0.723 [0.705-0.795] | 0.607 [0.601-0.613] | 0.460 [0.457-0.464] | 0.113
+C8 C7 + head 2K + k/v/shared 2-bit | 2 | own | 46.0 | 0.819 [0.775-0.859] | 0.689 [0.685-0.695] | 0.534 [0.532-0.538] | 0.120
+C8 C7 + head 2K + k/v/shared 2-bit | 2 | shared | 39.8 | - | 0.668 [0.663-0.674] | 0.514 [0.512-0.517] | 0.117
+C8 C7 + head 2K + k/v/shared 2-bit | 3 | own | 52.1 | 0.966 [0.918-0.999] | 0.835 [0.828-0.844] | 0.665 [0.662-0.671] | 0.133
+C8 C7 + head 2K + k/v/shared 2-bit | 3 | shared | 39.8 | - | 0.800 [0.793-0.813] | 0.640 [0.629-0.645] | 0.134
+K1 C1 compiled (hc reads, MoE, tail, prepare) | 1 | own | 95.1 | 0.849 [0.831-0.917] | 0.740 [0.733-0.751] | 0.632 [0.630-0.644] | 0.080
+K1 C1 compiled (hc reads, MoE, tail, prepare) | 2 | own | 125.8 | 1.044 [1.000-1.102] | 0.918 [0.913-0.928] | 0.803 [0.794-0.818] | 0.086
+K1 C1 compiled (hc reads, MoE, tail, prepare) | 2 | shared | 95.1 | - | 0.848 [0.842-0.858] | 0.730 [0.726-0.735] | 0.088
+K1 C1 compiled (hc reads, MoE, tail, prepare) | 3 | own | 156.6 | 1.254 [1.205-1.322] | 1.131 [1.118-1.151] | 1.004 [0.992-1.022] | 0.100
+K1 C1 compiled (hc reads, MoE, tail, prepare) | 3 | shared | 95.1 | - | 1.016 [1.011-1.025] | 0.883 [0.879-0.898] | 0.101
+K3 C3 compiled | 1 | own | 70.8 | 0.755 [0.733-0.825] | 0.640 [0.634-0.647] | 0.529 [0.527-0.541] | 0.080
+K3 C3 compiled | 2 | own | 83.1 | 0.888 [0.843-0.932] | 0.759 [0.753-0.773] | 0.642 [0.637-0.652] | 0.087
+K3 C3 compiled | 2 | shared | 70.8 | - | 0.731 [0.725-0.740] | 0.612 [0.608-0.619] | 0.087
+K3 C3 compiled | 3 | own | 95.4 | 1.043 [0.997-1.076] | 0.921 [0.915-0.928] | 0.789 [0.783-0.798] | 0.100
+K3 C3 compiled | 3 | shared | 70.8 | - | 0.865 [0.862-0.874] | 0.734 [0.732-0.738] | 0.100
+K8 C8 compiled | 1 | own | 39.8 | 0.669 [0.652-0.732] | 0.556 [0.552-0.564] | 0.446 [0.444-0.453] | 0.080
+K8 C8 compiled | 2 | own | 46.0 | 0.775 [0.727-0.821] | 0.636 [0.629-0.645] | 0.520 [0.517-0.525] | 0.086
+K8 C8 compiled | 2 | shared | 39.8 | - | 0.624 [0.619-0.632] | 0.506 [0.505-0.512] | 0.087
+K8 C8 compiled | 3 | own | 52.1 | 0.918 [0.871-0.949] | 0.794 [0.788-0.803] | 0.663 [0.660-0.669] | 0.100
+K8 C8 compiled | 3 | shared | 39.8 | - | 0.772 [0.762-0.784] | 0.646 [0.632-0.676] | 0.106
+
+M2 fits at F=1, ms per level = f + MB / BW (BW in GB/s):
+  eager ladder C0-C8 | sync: {"f_ms": 0.5488, "bw_gbs": 260.0, "resid_ms": 0.0153, "n": 9}
+  eager ladder C0-C8 | free: {"f_ms": 0.4523, "bw_gbs": 287.5, "resid_ms": 0.0122, "n": 9}
+  eager ladder C0-C8 | async: {"f_ms": 0.3114, "bw_gbs": 292.7, "resid_ms": 0.0117, "n": 9}
+  compiled sub-blocks K1/K3/K8 | sync: {"f_ms": 0.5358, "bw_gbs": 309.4, "resid_ms": 0.0069, "n": 3}
+  compiled sub-blocks K1/K3/K8 | free: {"f_ms": 0.419, "bw_gbs": 302.8, "resid_ms": 0.0092, "n": 3}
+  compiled sub-blocks K1/K3/K8 | async: {"f_ms": 0.3074, "bw_gbs": 300.4, "resid_ms": 0.0099, "n": 3}
+
+per-block ms = levels x ms per level (best sync-free mode per arm); PASS needs <= 4.0 at HE+ tree-32
+C0 as stored (P2 base) | F=1 own | async 0.921 ms/level | HE+ tree-32 19.1 | MBPP tree-32 13.4 | HE+ tree-16 11.6 | MBPP tree-16 9.5
+C0 as stored (P2 base) | F=2 own | async 1.080 ms/level | HE+ tree-32 22.5 | MBPP tree-32 15.8 | HE+ tree-16 13.6 | MBPP tree-16 11.1
+C0 as stored (P2 base) | F=2 shared | async 1.006 ms/level | HE+ tree-32 20.9 | MBPP tree-32 14.7 | HE+ tree-16 12.7 | MBPP tree-16 10.4
+C0 as stored (P2 base) | F=3 own | async 1.253 ms/level | HE+ tree-32 26.1 | MBPP tree-32 18.3 | HE+ tree-16 15.8 | MBPP tree-16 12.9
+C0 as stored (P2 base) | F=3 shared | async 1.139 ms/level | HE+ tree-32 23.7 | MBPP tree-32 16.6 | HE+ tree-16 14.3 | MBPP tree-16 11.7
+C1 4-bit + head 8K (P2 best) | F=1 own | async 0.645 ms/level | HE+ tree-32 13.4 | MBPP tree-32 9.4 | HE+ tree-16 8.1 | MBPP tree-16 6.7
+C1 4-bit + head 8K (P2 best) | F=2 own | async 0.814 ms/level | HE+ tree-32 16.9 | MBPP tree-32 11.9 | HE+ tree-16 10.2 | MBPP tree-16 8.4
+C1 4-bit + head 8K (P2 best) | F=2 shared | async 0.734 ms/level | HE+ tree-32 15.3 | MBPP tree-32 10.7 | HE+ tree-16 9.2 | MBPP tree-16 7.6
+C1 4-bit + head 8K (P2 best) | F=3 own | async 1.005 ms/level | HE+ tree-32 20.9 | MBPP tree-32 14.7 | HE+ tree-16 12.7 | MBPP tree-16 10.3
+C1 4-bit + head 8K (P2 best) | F=3 shared | async 0.879 ms/level | HE+ tree-32 18.3 | MBPP tree-32 12.8 | HE+ tree-16 11.1 | MBPP tree-16 9.1
+C2 C1 + experts top-4 | F=1 own | async 0.573 ms/level | HE+ tree-32 11.9 | MBPP tree-32 8.4 | HE+ tree-16 7.2 | MBPP tree-16 5.9
+C2 C1 + experts top-4 | F=2 own | async 0.682 ms/level | HE+ tree-32 14.2 | MBPP tree-32 9.9 | HE+ tree-16 8.6 | MBPP tree-16 7.0
+C2 C1 + experts top-4 | F=2 shared | async 0.647 ms/level | HE+ tree-32 13.5 | MBPP tree-32 9.4 | HE+ tree-16 8.2 | MBPP tree-16 6.7
+C2 C1 + experts top-4 | F=3 own | async 0.825 ms/level | HE+ tree-32 17.2 | MBPP tree-32 12.1 | HE+ tree-16 10.4 | MBPP tree-16 8.5
+C2 C1 + experts top-4 | F=3 shared | async 0.763 ms/level | HE+ tree-32 15.9 | MBPP tree-32 11.2 | HE+ tree-16 9.6 | MBPP tree-16 7.9
+C3 C2 + head 4K | F=1 own | async 0.542 ms/level | HE+ tree-32 11.3 | MBPP tree-32 7.9 | HE+ tree-16 6.8 | MBPP tree-16 5.6
+C3 C2 + head 4K | F=2 own | async 0.654 ms/level | HE+ tree-32 13.6 | MBPP tree-32 9.5 | HE+ tree-16 8.2 | MBPP tree-16 6.7
+C3 C2 + head 4K | F=2 shared | async 0.617 ms/level | HE+ tree-32 12.8 | MBPP tree-32 9.0 | HE+ tree-16 7.8 | MBPP tree-16 6.3
+C3 C2 + head 4K | F=3 own | async 0.791 ms/level | HE+ tree-32 16.5 | MBPP tree-32 11.6 | HE+ tree-16 10.0 | MBPP tree-16 8.2
+C3 C2 + head 4K | F=3 shared | async 0.731 ms/level | HE+ tree-32 15.2 | MBPP tree-32 10.7 | HE+ tree-16 9.2 | MBPP tree-16 7.5
+C4 C3 + q/o 3-bit | F=1 own | async 0.525 ms/level | HE+ tree-32 10.9 | MBPP tree-32 7.7 | HE+ tree-16 6.6 | MBPP tree-16 5.4
+C4 C3 + q/o 3-bit | F=2 own | async 0.638 ms/level | HE+ tree-32 13.3 | MBPP tree-32 9.3 | HE+ tree-16 8.0 | MBPP tree-16 6.6
+C4 C3 + q/o 3-bit | F=2 shared | async 0.605 ms/level | HE+ tree-32 12.6 | MBPP tree-32 8.8 | HE+ tree-16 7.6 | MBPP tree-16 6.2
+C4 C3 + q/o 3-bit | F=3 own | async 0.782 ms/level | HE+ tree-32 16.3 | MBPP tree-32 11.4 | HE+ tree-16 9.8 | MBPP tree-16 8.1
+C4 C3 + q/o 3-bit | F=3 shared | async 0.727 ms/level | HE+ tree-32 15.1 | MBPP tree-32 10.6 | HE+ tree-16 9.2 | MBPP tree-16 7.5
+C5 C4 + experts top-2 | F=1 own | async 0.501 ms/level | HE+ tree-32 10.4 | MBPP tree-32 7.3 | HE+ tree-16 6.3 | MBPP tree-16 5.2
+C5 C4 + experts top-2 | F=2 own | async 0.595 ms/level | HE+ tree-32 12.4 | MBPP tree-32 8.7 | HE+ tree-16 7.5 | MBPP tree-16 6.1
+C5 C4 + experts top-2 | F=2 shared | async 0.576 ms/level | HE+ tree-32 12.0 | MBPP tree-32 8.4 | HE+ tree-16 7.3 | MBPP tree-16 5.9
+C5 C4 + experts top-2 | F=3 own | async 0.715 ms/level | HE+ tree-32 14.9 | MBPP tree-32 10.4 | HE+ tree-16 9.0 | MBPP tree-16 7.4
+C5 C4 + experts top-2 | F=3 shared | async 0.690 ms/level | HE+ tree-32 14.3 | MBPP tree-32 10.1 | HE+ tree-16 8.7 | MBPP tree-16 7.1
+C6 C5 with q/o 2-bit | F=1 own | async 0.477 ms/level | HE+ tree-32 9.9 | MBPP tree-32 7.0 | HE+ tree-16 6.0 | MBPP tree-16 4.9
+C6 C5 with q/o 2-bit | F=2 own | async 0.571 ms/level | HE+ tree-32 11.9 | MBPP tree-32 8.3 | HE+ tree-16 7.2 | MBPP tree-16 5.9
+C6 C5 with q/o 2-bit | F=2 shared | async 0.553 ms/level | HE+ tree-32 11.5 | MBPP tree-32 8.1 | HE+ tree-16 7.0 | MBPP tree-16 5.7
+C6 C5 with q/o 2-bit | F=3 own | async 0.701 ms/level | HE+ tree-32 14.6 | MBPP tree-32 10.2 | HE+ tree-16 8.8 | MBPP tree-16 7.2
+C6 C5 with q/o 2-bit | F=3 shared | async 0.676 ms/level | HE+ tree-32 14.1 | MBPP tree-32 9.9 | HE+ tree-16 8.5 | MBPP tree-16 7.0
+C7 C6 + bf16 Linears 2-bit | F=1 own | async 0.485 ms/level | HE+ tree-32 10.1 | MBPP tree-32 7.1 | HE+ tree-16 6.1 | MBPP tree-16 5.0
+C7 C6 + bf16 Linears 2-bit | F=2 own | async 0.560 ms/level | HE+ tree-32 11.7 | MBPP tree-32 8.2 | HE+ tree-16 7.1 | MBPP tree-16 5.8
+C7 C6 + bf16 Linears 2-bit | F=2 shared | async 0.540 ms/level | HE+ tree-32 11.2 | MBPP tree-32 7.9 | HE+ tree-16 6.8 | MBPP tree-16 5.6
+C7 C6 + bf16 Linears 2-bit | F=3 own | async 0.692 ms/level | HE+ tree-32 14.4 | MBPP tree-32 10.1 | HE+ tree-16 8.7 | MBPP tree-16 7.1
+C7 C6 + bf16 Linears 2-bit | F=3 shared | async 0.664 ms/level | HE+ tree-32 13.8 | MBPP tree-32 9.7 | HE+ tree-16 8.4 | MBPP tree-16 6.8
+C8 C7 + head 2K + k/v/shared 2-bit | F=1 own | async 0.460 ms/level | HE+ tree-32 9.6 | MBPP tree-32 6.7 | HE+ tree-16 5.8 | MBPP tree-16 4.7
+C8 C7 + head 2K + k/v/shared 2-bit | F=2 own | async 0.534 ms/level | HE+ tree-32 11.1 | MBPP tree-32 7.8 | HE+ tree-16 6.7 | MBPP tree-16 5.5
+C8 C7 + head 2K + k/v/shared 2-bit | F=2 shared | async 0.514 ms/level | HE+ tree-32 10.7 | MBPP tree-32 7.5 | HE+ tree-16 6.5 | MBPP tree-16 5.3
+C8 C7 + head 2K + k/v/shared 2-bit | F=3 own | async 0.665 ms/level | HE+ tree-32 13.8 | MBPP tree-32 9.7 | HE+ tree-16 8.4 | MBPP tree-16 6.8
+C8 C7 + head 2K + k/v/shared 2-bit | F=3 shared | async 0.640 ms/level | HE+ tree-32 13.3 | MBPP tree-32 9.3 | HE+ tree-16 8.1 | MBPP tree-16 6.6
+K1 C1 compiled (hc reads, MoE, tail, prepare) | F=1 own | async 0.632 ms/level | HE+ tree-32 13.2 | MBPP tree-32 9.2 | HE+ tree-16 8.0 | MBPP tree-16 6.5
+K1 C1 compiled (hc reads, MoE, tail, prepare) | F=2 own | async 0.803 ms/level | HE+ tree-32 16.7 | MBPP tree-32 11.7 | HE+ tree-16 10.1 | MBPP tree-16 8.3
+K1 C1 compiled (hc reads, MoE, tail, prepare) | F=2 shared | async 0.730 ms/level | HE+ tree-32 15.2 | MBPP tree-32 10.7 | HE+ tree-16 9.2 | MBPP tree-16 7.5
+K1 C1 compiled (hc reads, MoE, tail, prepare) | F=3 own | async 1.004 ms/level | HE+ tree-32 20.9 | MBPP tree-32 14.7 | HE+ tree-16 12.7 | MBPP tree-16 10.3
+K1 C1 compiled (hc reads, MoE, tail, prepare) | F=3 shared | async 0.883 ms/level | HE+ tree-32 18.4 | MBPP tree-32 12.9 | HE+ tree-16 11.1 | MBPP tree-16 9.1
+K3 C3 compiled | F=1 own | async 0.529 ms/level | HE+ tree-32 11.0 | MBPP tree-32 7.7 | HE+ tree-16 6.7 | MBPP tree-16 5.5
+K3 C3 compiled | F=2 own | async 0.642 ms/level | HE+ tree-32 13.3 | MBPP tree-32 9.4 | HE+ tree-16 8.1 | MBPP tree-16 6.6
+K3 C3 compiled | F=2 shared | async 0.612 ms/level | HE+ tree-32 12.7 | MBPP tree-32 8.9 | HE+ tree-16 7.7 | MBPP tree-16 6.3
+K3 C3 compiled | F=3 own | async 0.789 ms/level | HE+ tree-32 16.4 | MBPP tree-32 11.5 | HE+ tree-16 9.9 | MBPP tree-16 8.1
+K3 C3 compiled | F=3 shared | async 0.734 ms/level | HE+ tree-32 15.3 | MBPP tree-32 10.7 | HE+ tree-16 9.2 | MBPP tree-16 7.6
+K8 C8 compiled | F=1 own | async 0.446 ms/level | HE+ tree-32 9.3 | MBPP tree-32 6.5 | HE+ tree-16 5.6 | MBPP tree-16 4.6
+K8 C8 compiled | F=2 own | async 0.520 ms/level | HE+ tree-32 10.8 | MBPP tree-32 7.6 | HE+ tree-16 6.6 | MBPP tree-16 5.4
+K8 C8 compiled | F=2 shared | async 0.506 ms/level | HE+ tree-32 10.5 | MBPP tree-32 7.4 | HE+ tree-16 6.4 | MBPP tree-16 5.2
+K8 C8 compiled | F=3 own | async 0.663 ms/level | HE+ tree-32 13.8 | MBPP tree-32 9.7 | HE+ tree-16 8.3 | MBPP tree-16 6.8
+K8 C8 compiled | F=3 shared | async 0.646 ms/level | HE+ tree-32 13.4 | MBPP tree-32 9.4 | HE+ tree-16 8.1 | MBPP tree-16 6.7
+done in 85 s; peak 3.06 GB; GPU busy per round [78, 89, 85, 92, 86, 84, 87, 87, 84, 89, 87, 87, 86, 91, 86, 88, 88, 89, 91, 91, 87, 88, 85, 89, 88, 87, 85, 87, 88, 89]
+[guard] exit 0, peak footprint 3385 MB
