@@ -26,6 +26,7 @@ os.environ.setdefault("V32_MOE1", "1")
 import numpy as np
 import mlx.core as mx
 import mlx_lm.utils as mu
+import mlx.nn as nn
 sys.path.insert(0, os.path.expanduser("~/Leap/scripts"))
 sys.path.insert(0, os.path.expanduser("~/Leap/scripts/week98"))
 t00 = time.time()
@@ -97,7 +98,22 @@ say(f"HC4 SLICE TEST {time.strftime('%a %d %b %H:%M:%S')}: MLX {mx.__version__};
 GR = ref2.Q.GatedResidual
 _outer = GR.__call__
 CALLS = []                                               # (rows, rel mixed, rel written, rel inject)
-CMP_ON = [False]
+MODE = ["pass"]
+_BFI = {}
+BFC = []                                                 # rel vs the eager read with the bf16-dequantized inject                                          # pass | cmp (hc4i's read + the eager one compared) | ref (eager)
+
+
+def _eager(self, hyper_input, pending):
+    """MTPLX's stock eager read of the same (4-bit) modules: hc4i, ref2 and f32one off for this one call (with ref2 on,
+    a 4-bit mixer would go to leapk.hc_read, built for bf16 mixers; f32one would route its 32-row matmuls)"""
+    o = (hc4i.ON[0], ref2._ON[0], f32one.ON[0])
+    hc4i.ON[0] = False
+    ref2._ON[0] = False
+    f32one.ON[0] = False
+    try:
+        return _outer(self, hyper_input, pending)
+    finally:
+        hc4i.ON[0], ref2._ON[0], f32one.ON[0] = o
 
 
 def _rel(a, b):
@@ -106,17 +122,40 @@ def _rel(a, b):
     return float((mx.max(mx.abs(a - b)) / mx.maximum(mx.max(mx.abs(b)), 1e-30)).item())
 
 
+C8 = []                                                  # HC8 (8-bit, ref2's hc8_fast) vs its own eager read
+
+
 def gr_cmp(self, hyper_input, pending=None):
-    if not CMP_ON[0]:
+    if MODE[0] == "ref":
+        return _eager(self, hyper_input, pending)
+    if MODE[0] == "cmp8":                                # never engaged: ref2's HC8 form vs MTPLX's eager 8-bit read
+        out = _outer(self, hyper_input, pending)
+        ref = _eager(self, hyper_input, pending)
+        mx.eval(out, ref)
+        rr = [_rel(o, r) for o, r in zip(out, ref)] if isinstance(out, (tuple, list)) else [_rel(out, ref)]
+        C8.append(tuple((rr + [float("nan")] * 3)[:3]))
+        return out
+    if MODE[0] != "cmp":
         return _outer(self, hyper_input, pending)
     n0 = hc4i.COUNTS["hc4_16"] + hc4i.COUNTS["hc4_32"]
     out = _outer(self, hyper_input, pending)
     if hc4i.COUNTS["hc4_16"] + hc4i.COUNTS["hc4_32"] > n0:   # hc4i served it: the eager 4-bit read on the same inputs
-        hc4i.ON[0] = False
-        try:
-            ref = _outer(self, hyper_input, pending)
-        finally:
-            hc4i.ON[0] = True
+        ref = _eager(self, hyper_input, pending)
+        bi = self.block_inject_weight                    # the same eager read with the inject as hc4i holds it (bf16)
+        if isinstance(bi, nn.QuantizedLinear):
+            if id(self) not in _BFI:
+                wbf = mx.dequantize(bi["weight"], bi["scales"], bi.get("biases"), group_size=bi.group_size,
+                                    bits=bi.bits).astype(mx.bfloat16)
+                lin = nn.Linear(wbf.shape[1], wbf.shape[0], bias=False)
+                lin.weight = wbf
+                _BFI[id(self)] = lin
+            self.block_inject_weight = _BFI[id(self)]
+            try:
+                refb = _eager(self, hyper_input, pending)
+            finally:
+                self.block_inject_weight = bi
+            mx.eval(refb)
+            BFC.append(tuple(_rel(o, r) for o, r in zip(out, refb)))
         mx.eval(out, ref)
         rows = ref2._rows(hyper_input)[1]                 # as hc4i counts them
         CALLS.append((rows,) + tuple(_rel(o, r) for o, r in zip(out, ref)))
@@ -182,8 +221,14 @@ bad = []
 # (3) first: the never-engaged reference, and hc4i's pass-through of 8-bit HC8 reads
 for k in hc4i.COUNTS:
     hc4i.COUNTS[k] = 0
+MODE[0] = "cmp8"
 base16 = verify(16, False, True)
+MODE[0] = "pass"
 say(f"(3) never engaged, 16 rows: hc4i {dict(hc4i.COUNTS)} (hc4 reads must be 0)")
+if C8:
+    C_ = np.array(C8)
+    say(f"(0) HC8 (8-bit, ref2's hc8_fast, the FAST stack's own form) vs MTPLX's eager 8-bit read, {len(C8)} reads at 16 rows: "
+        f"max rel mixed {np.nanmax(C_[:, 0]):.3g}, written {np.nanmax(C_[:, 1]):.3g}, inject {np.nanmax(C_[:, 2]):.3g}")
 if hc4i.COUNTS["hc4_16"] or hc4i.COUNTS["hc4_32"]:
     bad.append("hc4i served an 8-bit read")
 # (1) + (2): engaged
@@ -191,22 +236,29 @@ for n, one, tag in ((16, False, "16 rows"), (32, False, "32 rows, v32"), (32, Tr
     CALLS.clear()
     for k in hc4i.COUNTS:
         hc4i.COUNTS[k] = 0
-    CMP_ON[0] = True
+    MODE[0] = "cmp"
     on = verify(n, True, True, one)
-    CMP_ON[0] = False
+    MODE[0] = "pass"
     cnt = dict(hc4i.COUNTS)
-    off = verify(n, True, False, one)
+    MODE[0] = "ref"                                      # every HC read eager (the 4-bit modules through MTPLX's chain)
+    off = verify(n, True, True, one)
+    MODE[0] = "pass"
     if CALLS:
         R = np.array(CALLS)
         say(f"(1) {tag}: {len(CALLS)} reads served by hc4i at rows {sorted(set(int(r) for r in R[:, 0]))}; max rel vs the eager "
             f"4-bit read: mixed {R[:, 1].max():.3g}, written {R[:, 2].max():.3g}, inject {R[:, 3].max():.3g} (tolerance mixed "
             f"{TOL:.1e}); hc4i {cnt}")
+        if BFC:
+            B_ = np.array(BFC)
+            say(f"    the same reads vs the eager read with the inject dequantized to bf16 (as hc4i holds it): mixed "
+                f"{B_[:, 0].max():.3g}, written {B_[:, 1].max():.3g}, inject {B_[:, 2].max():.3g}")
+            BFC.clear()
         if R[:, 1].max() > TOL:
             bad.append(f"{tag}: mixed rel {R[:, 1].max():.3g} > {TOL:.1e}")
     else:
         say(f"(1) {tag}: NO read served by hc4i (hc4i {cnt})")
         bad.append(f"{tag}: hc4i served nothing")
-    say(f"(2) {tag}, engaged, hc4i ON vs OFF (eager 4-bit read): {cmp(on, off)}")
+    say(f"(2) {tag}, engaged, hc4i vs every HC read eager (4-bit modules through MTPLX): {cmp(on, off)}")
     say(f"    vs the never-engaged 8-bit run (first 16 rows): {cmp(on[:16], base16)}")
 back16 = verify(16, False, True)
 say(f"(3) engage(False) after engaged items, 16 rows vs never engaged: {cmp(back16, base16)}")

@@ -1,0 +1,39 @@
+[quiet] granted 14:26:52; GPU busy 0 0 %
+[guard] pid 47361, MAXGB 4, swap at start 7690.62 MB (kill at +1 GB)
+built at 0 s; active 2.45 GB; GPU busy 67 %
+T0 400: 30 rounds; fused tokens == stock tokens in every block: True; GPU busy at round start [60, 73, 63, 78, 65, 77, 76, 89, 90, 90, 78, 91, 63, 78, 90, 77, 63, 77, 91, 77, 64, 77, 79, 77, 74, 77, 75, 78, 79, 90, 74, 77]
+T0 1500: 30 rounds; fused tokens == stock tokens in every block: True; GPU busy at round start [88, 82, 78, 79, 91, 80, 79, 78, 79, 78, 66, 67, 77, 78, 79, 79, 68, 91, 76, 79, 79, 80, 0, 79, 91, 80, 76, 78, 68, 91, 91, 92]
+
+ms per level, median [p10-p90] | CPU ms per level | f = ms - MB / 292.7
+  400 stock 32768          0.9595 [0.9348-0.9780] | CPU 0.8761 | MB 177.6 | f 0.3528
+  400 fused 32768          1.0522 [1.0426-1.0699] | CPU 0.8897 | MB 177.6 | f 0.4454
+  400 fused2 32768         0.8756 [0.8699-0.8984] | CPU 0.7394 | MB 177.6 | f 0.2688
+  400 stock 8192           0.7950 [0.7884-0.8102] | CPU 0.7253 | MB 142.2 | f 0.3091
+  400 fused 8192           0.8815 [0.8760-0.8890] | CPU 0.7538 | MB 142.2 | f 0.3957
+  400 fused2 8192          0.7346 [0.7057-0.7662] | CPU 0.6254 | MB 142.2 | f 0.2488
+  400 stock fit            two-point fit over the screens: BW 215.2 GB/s, f 0.1342 ms
+  400 fused fit            two-point fit over the screens: BW 207.4 GB/s, f 0.1958 ms
+  400 fused2 fit           two-point fit over the screens: BW 251.1 GB/s, f 0.1682 ms
+  1500 stock 32768         0.9963 [0.9691-1.0098] | CPU 0.9100 | MB 177.6 | f 0.3896
+  1500 fused 32768         1.1336 [1.1215-1.1429] | CPU 0.9592 | MB 177.6 | f 0.5269
+  1500 fused2 32768        0.9561 [0.9480-0.9702] | CPU 0.8087 | MB 177.6 | f 0.3493
+  1500 stock 8192          0.8286 [0.8241-0.8488] | CPU 0.7563 | MB 142.2 | f 0.3428
+  1500 fused 8192          0.9606 [0.9545-0.9726] | CPU 0.8210 | MB 142.2 | f 0.4748
+  1500 fused2 8192         0.8104 [0.7859-0.8394] | CPU 0.6918 | MB 142.2 | f 0.3246
+  1500 stock fit           two-point fit over the screens: BW 211.1 GB/s, f 0.1550 ms
+  1500 fused fit           two-point fit over the screens: BW 204.6 GB/s, f 0.2657 ms
+  1500 fused2 fit          two-point fit over the screens: BW 243.0 GB/s, f 0.2251 ms
+
+ms per block (F = 1 chain shape; levels x ms per level) [P]:
+  T0 400 stock : full head (177.6 MB) tree-16 12.09 / tree-32 19.96 ms (measured per level); C1 95.1 MB 8.54 / 14.10; ~26 MB 5.56 / 9.19 [P]
+  T0 400 fused : full head (177.6 MB) tree-16 13.26 / tree-32 21.89 ms (measured per level); C1 95.1 MB 9.71 / 16.02; ~26 MB 6.73 / 11.11 [P]
+  T0 400 fused2: full head (177.6 MB) tree-16 11.03 / tree-32 18.21 ms (measured per level); C1 95.1 MB 7.48 / 12.35; ~26 MB 4.51 / 7.44 [P]
+  T0 1500 stock : full head (177.6 MB) tree-16 12.55 / tree-32 20.72 ms (measured per level); C1 95.1 MB 9.00 / 14.86; ~26 MB 6.03 / 9.95 [P]
+  T0 1500 fused : full head (177.6 MB) tree-16 14.28 / tree-32 23.58 ms (measured per level); C1 95.1 MB 10.73 / 17.72; ~26 MB 7.76 / 12.81 [P]
+  T0 1500 fused2: full head (177.6 MB) tree-16 12.05 / tree-32 19.89 ms (measured per level); C1 95.1 MB 8.49 / 14.02; ~26 MB 5.52 / 9.11 [P]
+wrote /Users/kamen/MoonShots/week98/bet7/fl_time_quiet.json (11 s)
+[guard] exit 0, peak footprint 3856 MB
+[quiet] fl_time rc 0 at 14:27:08
+[quiet] fl_prof rc 0 at 14:27:13
+lock released
+[quiet] unlocked 14:27:13

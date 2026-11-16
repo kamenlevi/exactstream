@@ -244,3 +244,46 @@ time. The drafter certification (capture Wed, proofs Thu-Fri) is untouched.
 - Breakthrough (b) per-layer lambda: experts-only band arms on 24 code windows (C6 vs lambda_hi on layers 0-15 / 16-31
   / 32-47), ~20 min, Tue after Fit12's kill test, latest start 09:00. (a) chain reach-weighting = already C6's s^d
   (s 0.98 + the s 0.935 scan): no screen. (c) 2-bit tier: PARKED (format change).
+
+## RESULT bet 7 (MoonShots, Mon 14:27 quiet, a600df5): FUSED LEVEL = FAIL on its fixed-cost line
+- Fused2 (bitwise) has a fixed cost f = 0.269 ms per level (stock 0.353) vs PASS <= 0.056 / BETWEEN <= 0.10.
+- Full head per level: stock 0.960, fused2 0.876 ms = an EXACT -8.7 % (-4.0 % at 1,500 keys). Per block (full head):
+  tree-16 / tree-32 stock 12.1 / 20.0 ms, fused2 11.0 / 18.2; at ~26 MB [P] fused2 4.5 / 7.4.
+- At f 0.27, tree-32's fixed cost alone is 5.6 ms: only tree-16 at ~26 MB [P] fits a 3-5 ms draft window.
+- Cause: the chain. Steps alone sum to 0.58 ms, chained 0.88: ~0.29 ms per level (~16 us per boundary) is lost as each
+  whole-GPU kernel drains before the next fills and reads its weights cold.
+- **Decision (NewIdeas 14:3x):** (a) a ~1-min quiet OVERLAP CHECK now (the same kernels with data dependencies cut):
+  PASS <= 0.65 ms per level (prefetch can recover >= ~80 % of the loss; a persistent kernel is then weighed vs
+  Saturday), KILL >= 0.80; (c) fused2 BANKED as an exact -8.7 % engine item; (b) more tokens per level PARKED for
+  MTP Head's list.
+- SIB (Sandbox98) re-armed 14:30 with an exact fix (shape-dependent kernels on short prefixes; capture-shaped forwards
+  are bitwise); read-out ~15:00.
+- **(a)-check RESULT (MoonShots 14:34 quiet, 98bfbbf): BETWEEN.** Cut (no data dependency between steps) = 0.699 ms
+  per level [0.680-0.717] vs fused2 0.887 / stock 0.949; dependencies cost 0.171 ms per level, cache maintenance 0.017;
+  ~65 % of the chain loss recoverable; fully overlapped the level still runs 254 GB/s. A persistent kernel's best case
+  is f ~0.09-0.11 (BETWEEN): tree-16 at ~26 MB 2.3 ms [P], tree-32 3.8 ms [P]; at the full head 14.5 ms (tree-32).
+- **Decision (NewIdeas 14:3x):** persistent kernel NOT now (multi-day, risky; pays only with a <= ~26 MB head);
+  revisit after MTP Head's S13 QAT verdict. Optional cheap (a'): a data-independent touch kernel prefetching step
+  i+1's weights in the fused2 chain (PASS <= 0.76 ms per level, KILL >= 0.85), only if <= half a day. Leap told the
+  ~16 us per dependent boundary for reading Tue's pass K.
+- **(a') RESULT (MoonShots 14:46 quiet, dcd65f0): KILL.** Touch-kernel prefetch makes the level SLOWER: best arm
+  (4 MB cap per touch) 0.935 ms vs fused2 0.860 in the same slot; whole-set prefetch 1.312 (+0.45 ms = its extra bytes
+  at ~293 GB/s, so nearly every touch is a second DRAM read). The system cache doesn't hold a step's 4-47 MB of
+  weights until the next step reads them. Only an on-chip persistent kernel could still try (parked, ceiling 0.699).
+  Bet 7 is CLOSED apart from that; fused2 (exact -8.7 %) is banked.
+
+## RESULT bet 9b SIBLING-STATE phase 1 (Sandbox98, Mon 15:03; LAB, 2B teacher-forced): NOT PASS, KILL side
+- Sibling states are WORSE stand-ins than the head's own carried state at every band, both sets. Walk-strict own /
+  true / sib, G = (sib - own) / (true - own):
+  - HE 60 (2,181 post-miss starts): 1-2 83.4 / 91.8 / 57.1 (G -3.13); 3-6 81.6 / 93.8 / 70.0 (-0.96); 7-8 85.4 /
+    94.8 / 80.1 (-0.56); 1-8 G -1.91 [-2.36, -1.48].
+  - MBPP 100 (5,085 starts): 1-2 G -2.13; 3-6 -0.58; 7-8 -0.03 [-0.42, +0.31]; 1-8 G -1.41 [-1.57, -1.28].
+  - FAR's PASS line: G >= 0.50 (HE) / >= 0.25 (MBPP). Harness exact (recomputed true rows bitwise; VOID 1-3 clean).
+- Even near-tie misses leave a state from a different sequence; the sib state's direction error to the true state is
+  above the carried state's at every depth (HE 0.95-1.10 vs 0.85-0.99).
+- The final KILL needs phase 2 (ctl vs sibmix, ~50 min, <= 5 GB), armed with NO-SWAP >= 13 (opens after ~17:30).
+  NewIdeas 15:0x: phase 2 can still win only if the two errors are weakly correlated (a mix beats both); suggested a
+  <= 15-min CPU oracle first (best linear mix per band, held out; cos(own error, sib error)): within ~5 % of own's
+  error -> a KILL is near-certain; >= 15 % better -> phase 2 is worth its 50 min.
+- Goal A consequence: the "only free true-state source" fails as a stand-in; drift levers left: S14 shallow tap,
+  S15 sparse refresh (MTP Head, chained tonight), and sibmix if phase 2 passes.

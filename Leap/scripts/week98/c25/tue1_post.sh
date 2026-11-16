@@ -9,4 +9,5 @@ echo "== exp32 prof $(date +%T)"; $PY -I scripts/week98/exp32_bench.py prof
 echo "== exp32 $(date +%T)"; $PY -I scripts/week98/exp32_bench.py
 echo "== exp32 nolsb variants $(date +%T)"; $PY -I scripts/week98/exp32_bench.py nlv
 echo "== gdn_fast $(date +%T)"; $PY -I scripts/week98/gdn_fast.py bench
+echo "== hc np $(date +%T)"; $PY -I scripts/week98/hc_np_bench.py
 echo "== done $(date +%T)"

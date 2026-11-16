@@ -292,6 +292,18 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
     - the expert one-call at M 32;
     - int8 dense as an option;
     - engine measurements Tue / Wed / Thu nights.
+    - 14:1x Leap, two check leads:
+      - The lossy expert one-call reads ~27 % more expert bytes than it needs: one group per (expert, tier), so on
+        32-row blocks 60.4 groups for 46.5 distinct experts, and 13.9 experts per layer have their 2.06 MB MSB plane
+        read twice (134.9 vs 106.1 MB). If those second reads hit DRAM, a merged-group kernel (MSB read once, both
+        tiers computed, bitwise) saves ~21 % of expert time, ~-4 ms per check. Tue slot #1 measures it; the kernel
+        is Wed. **CORRECTED 14:2x (Leap, rough A/B beside V1): the second reads mostly hit the SLC (~1/4 of a DRAM
+        byte each), so the merged kernel saves only ~5-8 % of expert time (~-1..-1.5 ms); on hold. The real expert gap
+        is the lossy one-call's base streaming rate: ~140 GB/s vs ~290 for the exact path. Tue slot #1 measures it.**
+      - On real sizes, CHECK55's profile shows the EXACT expert kernels at ~290 GB/s (near the measured peak), so the
+        scattered access pattern isn't the wall.
+      - Built today, all bitwise: gdn_fast (the GDN core ~1.6x, ~-1.5 ms), a t1cf fix (5 fill dispatches per layer),
+        the c25 profile pass + pass K (per-class GPU ms).
     - **14:0x BIG CORRECTION (Leap 73ddc5a; data/week98/check25_bound_real.txt): every check budget priced experts
       23-30 % LOW.** All the budgets (cheapcheck.md 11-14, the CHECK25 bound, Fit12's lossy32_price, Breakthrough's
       LOSSY_CHECK_PRICE) used 2.135 MB per 4-bit expert and 1.661 MB per MSB-3 plane. The engine reads records3
@@ -401,6 +413,32 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
       - Slot (NewIdeas): Breakthrough's one-load 4-arm map screen (~25 min, ~14-16 GB, 24 code windows): C6 bytes, G1
         with int8 fake-quant, DENSE-3 alone, lambda 2.0e-2. It runs right after EvalSuite's 1c-tiers chain ends and
         finishes before 22:30 (fallback Tue ~07:00-08:30).
+  - **15:03 SIB MAIN READ-OUT (Sandbox98; LAB, true-state, teacher-forced on the 2B) = NOT PASS on the frozen head,
+    KILL side. The sibling states are WORSE stand-ins than the head's own carried state at every band, on both sets.**
+    - Walk-strict own / true / sib, and G = (sib - own) / (true - own) with its 95 % CI:
+      - HE 60 (2,181 post-miss starts): 1-2 83.4 / 91.8 / 57.1 (G -3.13); 3-6 81.6 / 93.8 / 70.0 (G -0.96); 7-8
+        85.4 / 94.8 / 80.1 (G -0.56); 1-8 82.8 / 93.4 / 62.6, G -1.91 [-2.36, -1.48].
+      - MBPP 100 (5,085 starts): 1-8 75.7 / 89.0 / 56.8, G -1.41 [-1.57, -1.28].
+    - PASS needed G >= 0.50 (HE) / 0.25 (MBPP). The harness is exact: recomputed true rows bitwise; VOID checks
+      clear.
+    - Why: the state after a wrong token belongs to a different sequence. Its direction error to the true state is
+      above the carried state's at every depth (HE 0.95-1.10 vs 0.85-0.99), worst right after the miss (depths 1-2,
+      -26 pt).
+    - The pre-registered final KILL also needs the fine-tune variant (ctl vs sibmix, ~50 min, <= 5 GB), armed at a
+      NO-SWAP >= 13 gate, so after EvalSuite's chain (~17:30).
+  - **14:22 1c-tiers V1 (variant forward vs the base lx45t1c1): tier 1 PASS, pooled code -2.27 pt (McNemar p 0.11;
+    arm only 2 / reference only 8; screening line > -3 pt); RUNAWAY 10 / 3 (p 0.092) PASS; IFEval identical**
+    (EvalSuite 278fb02). Pause 2 (a) now: Leap's profile + SIB; resume on SIB's rc 0 or 15:22; the chain ends ~17:30
+    (B2 -> V2).
+  - **14:3x MoonShots BET 7 (fused level kernel) = FAIL on timing** (bitwise vs stock; a600df5). The best fused form's
+    fixed cost is f = 0.269 ms per level (stock 0.353; PASS <= 0.056, BETWEEN <= 0.10); exact -8.7 % per level
+    (0.960 -> 0.876 ms). Tree-32 block at the full head 20.0 -> 18.2 ms (correcting M3's ~13.8 projection); at ~26 MB
+    [P] 7.4 ms (tree-16 4.5). Cause: ~0.29 ms per level lost between dependent kernels (~16 us each), not the dispatch
+    count. So at 20.8 levels a tree-32 block's fixed cost alone is 5.6 ms, above the 3-5 ms window at any byte budget.
+    Options with NewIdeas: a persistent kernel with weight prefetch, F > 1 rows per level, or stop at fused2.
+  - 14:3x SIB: the second smoke failed (14:24; the recompute path is 1.2 % off the capture, from shape-dependent
+    kernels). A capture-shaped forward is bitwise equal to the stored states (083fe8d). Re-armed (pid 94655); the main
+    read-out ends ~15:00.
   - **RE-CORRECTED 14:1x (NewIdeas, on V1's FULL 264 code keys): under 3a's exact rule, 1c-only runaways 10,
     base-only 3, both 11** (exact McNemar two-sided p 0.092). So V1's single-order guard should PASS at 0.05 (the
     official read comes ~14:15-14:20). If V2 repeats it, the pooled guard is ~20 vs 6, p ~0.01: a RUNAWAY FAIL is

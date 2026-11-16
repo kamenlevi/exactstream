@@ -416,3 +416,11 @@ non-tie increments, the GB saved, and the measured cost per 0.1 GB vs the unifor
 **Amendment (f'), Mon 16 Nov 14:0x, before data (NewIdeas 14:0x):** the comment-QOM reading uses NON-TIE flips, with
 all-row printed beside: hc8w + int8 in both arms dilute an all-row ratio. Same cut-offs (CONFIRMED <= 0.5x the control,
 NOT CARRIED >= 0.8x, else BETWEEN).
+- **V3's slice test PASS (Leap 14:28, his data/week98/check25/hc4_slice_run4.log; 4 layers, my install order).**
+  - Mechanics: engage swaps every mixer. hc4i serves every read at 16 rows (hc4r) and at 32 (read32, over v32 and
+    f32one). engage(False) restores bit for bit. Never engaged, the 8-bit reads pass through.
+  - Numerics vs MTPLX's eager read of the same 4-bit modules: mixed 0.64-1.01 % rel, inject 1.03 %, written bitwise.
+    That is the FAST HC form's own gap (today's HC8 is 0.93 % off its eager 8-bit read).
+  - Slice argmax vs all-eager HC: 16/16, 29/32 (v32), 32/32 (f32one).
+  - So G2 runs ~1 % off the map's bt_mix4 numerics in the HC mixed output: the same gap HC8 already carries in the gated
+    lossy-45.

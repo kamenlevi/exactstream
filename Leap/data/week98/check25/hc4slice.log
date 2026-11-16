@@ -3,3 +3,53 @@
 13:37:45 gate reads 43 / 5 GB
 13:37:45 end rc 0 (dry: the gates passed)
 13:38:18 hc4slice armed pid 65232: waits for a NEW '[resf3] pause 2 ... began' line (now 0), then NO-SWAP >= 13 GB on two reads; no start after 17:30
+14:22:41 pause 2 began: 11-16 14:22:31 [resf3] pause 2 (a) began: the chain ended
+14:23:11 gate reads 49 / 48 GB
+shared run reserved until 14:33 (about 300% CPU, 40% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done.
+Free for it now: about 17 cores (1731% CPU) and about 100% of the GPU. It fits: use about 3 workers or -j 3.
+14:23:11 run (NO-SWAP 48 GB, swap 7690 MB)
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=38.6 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+HC4 SLICE TEST Mon 16 Nov 14:23:13: MLX 0.32.2; slice GGGA; DENSE-N-RAM 15 weights; hc4.prepare -> ({'mix': 18, 'inject': 8, 'ple': 2}, 51.79392); HC8 18 mixers; SVH base 98304; hc4 1794828002 (/Users/kamen/Breakthrough/scripts/m1/g2/hc4.py); 6.9 GB active
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (1329282 > 262144). Running this sequence through the model will result in indexing errors
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+(3) never engaged, 16 rows: hc4i {'hc4_16': 0, 'hc4_32': 0, 'passthru': 18} (hc4 reads must be 0)
+Traceback (most recent call last):
+  File "/Users/kamen/Leap/scripts/week98/hc4_slice_test.py", line 195, in <module>
+    on = verify(n, True, True, one)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/Leap/scripts/week98/hc4_slice_test.py", line 161, in verify
+    lg = model(mx.array([ids[P:P + n]]), cache=cache)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 7032, in __call__
+    return self.language_model(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6772, in __call__
+    out = self.model(inputs, cache, input_embeddings)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6454, in __call__
+    return self._forward(inputs, cache, input_embeddings)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6489, in _forward
+    h = layer(h, input_ids=inputs, ssm_mask=ssm_mask, cache=c)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/Leap/scripts/ref2.py", line 1829, in _dec_call
+    return _ORIG["dec_call"](self_, x, *a, **k)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6267, in __call__
+    mixed, hyper, inject = self.attn_hyper_connection(hidden)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/Leap/scripts/week98/hc4_slice_test.py", line 120, in gr_cmp
+    mx.eval(out, ref)
+RuntimeError: [metal::Device] Unable to build metal library from source
+mlx/backend/metal/kernels/utils.h:1574:21: error: cannot initialize a variable of type 'const device bfloat *' with an rvalue of type 'const device uint32_t *' (aka 'const device unsigned int *')
+    const device T* Bp = w + size_t(c_col) * GK + k0;
+                    ^    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+mlx/backend/metal/kernels/utils.h:1612:204: note: in instantiation of function template specialization 'custom_kernel_leapk_s4_324_1280_4__bfloat16_t_bfloat16_t_uint32_t_float<bfloat>' requested here
+template [[host_name("custom_kernel_leapk_s4_324_1280_4__bfloat16_t_bfloat16_t_uint32_t_float")]] [[kernel]] decltype(custom_kernel_leapk_s4_324_1280_4__bfloat16_t_bfloat16_t_uint32_t_float<bfloat16_t>) custom_kernel_leapk_s4_324_1280_4__bfloat16_t_bfloat16_t_uint32_t_float<bfloat16_t>;
+                                                                                                                                                                                                           ^
+
+
+14:23:16 end rc 1 (hc4_slice_test done in 5 s; swap 7690 -> 7690 MB)

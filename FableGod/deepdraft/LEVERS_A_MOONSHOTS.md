@@ -1472,6 +1472,161 @@ fl_attn.py, fl_level.py]
 - **Efficiency reworks, each re-verified bitwise (710151d):** S15's top-K merge (2 barriers, not 24), the router's
   top-10 as packed keys, and Fused2 (the next level's input norms folded into S15, so S1 is pure GEMVs).
 
+**Deliverable (3), RESULT: FAIL. Bitwise, but the best fused level's fixed cost is f = 0.269 ms per level (stock
+0.353), against PASS <= 0.056 and BETWEEN <= 0.10 (quiet slot Mon 14:26, in EvalSuite's idle pause 2)**
+[K ~/MoonShots/week98/bet7/fl_time_quiet.log / .json, fl_prof_quiet.log / .json; GPU busy 0 % at the grant; 30
+rounds, 2 dropped, L = 21, async per level; the fused tokens equal the stock tokens in every timed block at both cache
+lengths]
+
+| arm (F = 1) | ms per level, 400 keys, full head (177.6 MB) [p10-p90] | f = ms - MB / 292.7 | 8K screen (142.2 MB) | own two-point fit | 1,500 keys, full head (f) |
+|---|---|---|---|---|---|
+| stock (144 primitives) | 0.960 [0.935-0.978] | 0.353 | 0.795 | 215 GB/s, f 0.134 | 0.996 (0.390) |
+| fused (17 kernels) | 1.052 [1.043-1.070] | 0.445 | 0.882 | 207 GB/s, f 0.196 | 1.134 (0.527) |
+| fused2 (S1 as pure GEMVs) | 0.876 [0.870-0.898] | 0.269 | 0.735 | 251 GB/s, f 0.168 | 0.956 (0.349) |
+
+- **Verdict on fused2, the best arm:** bitwise yes; f 0.269 > 0.10, so FAIL. Its own fit's intercept (0.168) fails
+  too.
+- It is still an exact engine gain: -8.7 % per level at 400 keys, -4.0 % at 1,500.
+- **ms per block at 400 keys** (levels x ms per level; full head measured per level; C1 and ~26 MB [P] = levels x
+  (f + MB / 292.7)):
+
+| arm | full head: tree-16 / tree-32 | C1 (95.1 MB) [P] | ~26 MB [P] |
+|---|---|---|---|
+| stock | 12.1 / 20.0 | 8.5 / 14.1 | 5.6 / 9.2 |
+| fused2 | 11.0 / 18.2 | 7.5 / 12.4 | 4.5 / 7.4 |
+
+  - At f = 0.27, a tree-32 block's fixed cost alone is 20.8 x 0.27 = 5.6 ms, above the 3-5 ms window at any byte
+    budget. Tree-16 at ~26 MB [P] (4.5 ms) is the only cell inside it.
+  - This replaces M3's "~13.8 ms" for the hand-fused level at tree-32 (a projection at f = 0.056): measured 18.2 ms.
+- **Where f goes (the profile: each step alone, 30 back-to-back calls on the same inputs; weights are cache-warm and
+  calls overlap, so its GB/s are upper bounds):**
+  - S1 with its norm prologue: 0.257 ms for 26.2 MB (102 GB/s). That is why plain fused lost to stock. Fused2's
+    pure-GEMV S1G takes 0.064 ms; the folded norms add ~0.001 ms to the tail.
+  - Latency-bound, no weight bytes: S5 attention 0.036 ms at 400 keys; the tail (S15P) 0.031 ms; S0 0.026 ms (a
+    block's first level only).
+  - Below the line even warm: the MoE, 0.124 ms for 34.9 MB (281 GB/s). At or above it warm: S6 295, the HC reads
+    321-340, S14 head 361, S1G 411, S4 433 GB/s.
+  - Attention at 1,500 keys: fused2 rises by 0.080 ms per level from 400 keys, the stock by 0.037. The fused 2-pass
+    attention is ~0.04 ms slower than the stock's there.
+  - **The chain:** the isolated steps sum to 0.584 ms (fused2) and 0.776 ms (fused), against 0.876 and 1.052 ms
+    chained. So ~0.28-0.29 ms per level is lost between steps: each of the 17-18 whole-GPU kernels starts only once the
+    previous one has drained, then reads its weights cold. That is ~16 us per boundary, ten times M7a's <= 1.3 us
+    per tiny dispatch [G: the split between drain and cold weights isn't measured].
+- **So the step count wasn't the lever.** 144 -> 17 kernels took f from 0.353 to 0.269 (-0.084 ms). What's left is
+  ~0.07 ms of latency-bound steps and ~0.2 ms of chain and below-line GEMVs [G].
+- **What could reach 0.10 [G]:**
+  - (a) A persistent kernel per level that loads each step's weights before its input is ready (the weights don't
+    depend on the data). Prior art on CUDA: megakernels (Hazy Research's Llama-1B, Mirage's MPK). Metal has no
+    grid-wide sync, so this needs co-resident threadgroups and spin barriers: a risky multi-day build.
+  - (b) Fewer dependent levels per block: F > 1 rows per level share each weight read.
+  - A cheap check before (a), ~1 min quiet: the same 17 kernels with their data dependencies cut (each step fed a
+    precomputed input, so the encoder overlaps them). If the level drops toward ~0.6 ms, the loss is the boundaries
+    and prefetch can recover it; if it stays near 0.88, it is the kernels' cold-weight rates.
+
+**NewIdeas' call (14:3x):**
+- (c) Bank fused2 as an exact engine item (-8.7 % per level at 400 keys, -4.0 % at 1,500) for the engine owners'
+  list, with a600df5.
+- (b) F > 1 is a head-architecture change with an accuracy cost: parked for MTP Head's list (after S13 / S14).
+- (a) The check runs now, in EvalSuite's idle pause 2.
+
+**(a)-CHECK, pre-registered (NewIdeas' line, 14:3x, before the run):**
+- The test arm is `cut` (fl_overlap.py): the same steps in the same order, each fed the reference pass's inputs. No
+  data dependency runs between steps; within a step (HC down -> up, the MoE's four) the kernels stay dependent.
+  T0 = 400, full head, F = 1, L = 21, async per level, 30 rounds (2 dropped), interleaved with three more arms:
+  - `stock` (anchor 0.960 ms);
+  - `fused2` (anchor 0.876 ms, with the cache maintenance);
+  - `chain` (fused2's kernels chained, without the maintenance; T fixed).
+- **PASS** (prefetch / overlap can recover the loss): `cut` <= 0.65 ms per level (>= ~80 % of the 0.29 ms
+  recovered). **KILL:** >= 0.80 ms. **BETWEEN** otherwise. Only a PASS justifies the multi-day persistent-kernel
+  build.
+- Reported beside it (my additions, not the line):
+  - the maintenance's cost (fused2 - chain), and `cut` plus that cost, since a persistent kernel would have to absorb
+    or hide it;
+  - chain - cut, the dependency cost.
+  - `cut` is optimistic for prefetch: overlap also hides the latency-bound steps (attention, tail), which prefetch
+    can't.
+- Checks: chain's level 0 equals fused2's level 0 bitwise; cut's outputs equal the reference pass's.
+
+**(a)-CHECK, RESULT: BETWEEN. With no dependencies between steps, a level takes 0.699 ms (PASS <= 0.65, KILL >=
+0.80); quiet slot Mon 14:34**
+[K ~/MoonShots/week98/bet7/fl_overlap_quiet.log / .json; GPU busy 0 % at the grant; both checks True]
+
+| arm (400 keys, full head, F = 1) | ms per level [p10-p90] | f = ms - 177.6 MB / 292.7 |
+|---|---|---|
+| stock (anchor 0.960) | 0.949 [0.929-0.966] | 0.342 |
+| fused2 (anchor 0.876) | 0.887 [0.874-0.908] | 0.280 |
+| chain (no cache maintenance) | 0.870 [0.858-0.886] | 0.263 |
+| cut (no dependency between steps) | 0.699 [0.680-0.717] | 0.093 |
+
+- **The split:** the cache maintenance costs 0.017 ms per level (fused2 - chain); the dependencies between steps cost
+  0.171 ms (chain - cut). Fused2 -> cut recovers 0.188 ms, ~65 % of the ~0.29 ms chain loss (the line asked for
+  >= ~80 %).
+- **What it bounds:** even fully overlapped, this level's steps reach 0.70 ms, an effective 254 GB/s over its
+  177.6 MB.
+  - So cross-step prefetch in a persistent kernel can at best take fused2 from f 0.28 to ~0.09-0.11, i.e. BET 7's
+    BETWEEN line (0.10), not PASS (0.056) [G].
+  - `cut` is optimistic: it also hides the latency-bound attention and tail behind the GEMVs. It is pessimistic in
+    one way only: the within-step chains (three HC down -> up pairs, the MoE's four kernels) stay dependent.
+- **What f ~0.09 would buy [P, levels x (f + MB / 292.7)]:**
+  - tree-32 at the full head 14.5 ms;
+  - at ~26 MB, 3.8 ms (tree-16 2.3), inside the 3-5 ms window. Only with a <= ~26 MB head, which doesn't exist yet.
+
+**NewIdeas' call (14:4x):** the persistent kernel is NOT NOW. Its best case is BETWEEN and it only pays with a
+<= ~26 MB head; revisit after MTP Head's S13 QAT verdict. Optional and cheap: (a') prefetch without a persistent
+kernel.
+
+**(a') PREFETCH BY TOUCH KERNELS, pre-registered (NewIdeas' line, 14:4x, before the timing run):**
+- **Build (fl_touch.py):** fused2 plus a touch kernel per step that reads the next step's weights (one 4-byte load
+  per 64 bytes) while the current step runs.
+  - Ordering without a barrier: the touch takes the overlapped step's input as an unused anchor input, and
+    mx.depends ties the touch into the next step's input, so the next step's barrier waits for both. MLX 0.32's
+    encoder inserts a barrier only before a kernel that reads a buffer written since the last barrier.
+  - 9 touch sets per level: attention HC (during S1G), S4 (during the HC read), o_proj (during attention), MLP HC
+    (during o_proj), router + shared expert (during the MLP HC read), the 10 routed experts' down weights (during S10,
+    from S9b's ids), mixer HC (during S11), head (during the mixer HC read), the next level's S1G (during S15P).
+  - Sets measured: S1G 26.2, HC 13.1-13.2, S4 20.9, o_proj 8.85, router + shared 4.16, head 47.2 MB; the experts'
+    down ~10 MB. The other routed weights can't be known in time.
+- **Arms** (interleaved, 30 rounds, 2 dropped, L = 21, T0 = 400, full head, F = 1):
+  - `stock`, `fused2` (anchors);
+  - `pre` (whole sets);
+  - `cap` (each touch capped at 4 MB, a prefix: about the first wave of threadgroups);
+  - `late`, the control: the same 9 sets, each touched while its own consumer runs (the same extra reads, no
+    prefetch benefit).
+- **The line, on the better of `pre` and `cap` (both reported):**
+  - PASS <= 0.76 ms per level (>= 2/3 of cut's 0.188 ms recovered);
+  - KILL >= 0.85;
+  - BETWEEN otherwise.
+- **Risk (NewIdeas):** double DRAM reads if the cache can't hold a step's weights until the step reads them. That
+  matters at the full head (~10-47 MB per touch); `cap` and `late` show it.
+- **Checks:** smoke PASS at 14:45 (`pre`, `cap` and `late` bit-equal to fused2 over 21 levels: hh, top-K ids,
+  log-probs, tokens) [K fl_touch_smoke.log]; in the timing, every arm's tokens equal stock's in every block.
+
+**(a') RESULT: KILL. Touch prefetch makes the level slower: best arm `cap` 0.935 ms per level, against fused2's
+0.860 in the same slot (quiet, Mon 14:46)**
+[K ~/MoonShots/week98/bet7/fl_touch_quiet.log / .json; GPU busy 0 % at the grant; tokens equal stock's in every block,
+every arm]
+
+| arm (400 keys, full head, F = 1) | ms per level [p10-p90] | vs fused2 |
+|---|---|---|
+| stock | 0.922 [0.914-0.929] | +0.062 |
+| fused2 | 0.860 [0.856-0.868] | |
+| pre (9 whole sets, ~157 MB touched per level) | 1.312 [1.308-1.321] | +0.452 |
+| cap (4 MB per touch, ~36 MB per level) | 0.935 [0.931-0.950] | +0.075 |
+| late (control: the same 9 sets, each during its own step) | 1.165 [1.159-1.176] | +0.305 |
+
+- **The touched lines don't survive until the next step reads them.**
+  - `pre` costs +0.45 ms against the ~0.53 ms its ~157 MB of extra reads take at 292.7 GB/s, so nearly all of it is
+    extra DRAM traffic.
+  - `pre` is even 0.15 ms worse than the control (`late`), whose touches share some lines with the step reading them
+    at the same moment.
+  - So on this chip the system cache doesn't hold a step's weights (4-47 MB) ahead of its consumer. The extra reads
+    compete for the DRAM bandwidth the chain already lacks.
+- **The first-wave prefetch (`cap`) doesn't pay either:** +0.075 ms for ~36 MB of touches.
+- **So the chain loss can't be recovered through the cache.** Only a kernel that holds the next step's first tiles
+  on-chip (the persistent kernel, NOT NOW) could still try. Its ceiling remains the (a)-check's 0.699 ms.
+- **Implementation note:** the barrier-free ordering (an unused anchor input + mx.depends) is reusable. Every arm was
+  bit-equal to fused2, and the touches did run: the arms' costs differ by placement.
+
 ## Ranked (final, 01:3x)
 1. **The 2B audits and repairs the head's deep tokens: CONFIRMED on HE+** (D). On MBPP, the frozen schedule was chosen
    on those rows (C). Training-free.

@@ -4,3 +4,27 @@
 13:57:27 gate reads 6 / 9 GB
 13:57:27 end rc 0 (dry: the gates passed)
 13:57:31 gdnslice armed pid 86384: waits for a NEW '[resf3] pause 2 ... began' line (now 0), then NO-SWAP >= 13 GB on two reads; no start after 17:30
+14:22:33 pause 2 began: 11-16 14:22:31 [resf3] pause 2 (a) began: the chain ended
+14:23:18 after hc4slice: hc4slice end 14:23:16: rc 1 (hc4_slice_test done in 5 s; swap 7690 -> 7690 MB)
+14:23:48 gate reads 48 / 47 GB
+shared run reserved until 14:33 (about 300% CPU, 40% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done.
+Free for it now: about 17 cores (1711% CPU) and about 100% of the GPU. It fits: use about 3 workers or -j 3.
+14:23:48 run (NO-SWAP 47 GB, swap 7690 MB)
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=37.1 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+GDNFAST SLICE TEST Mon 16 Nov 14:23:50: MLX 0.32.2; slice GGGA; DENSE-N-RAM 15 weights (128 MB); HC8 18 mixers; SVH base 98304; ref2 forms on: ['att_rope', 'att_single', 'commit_phase', 'experts', 'gdn_exact', 'gdn_inproj_x', 'hc8_fast', 'hc_b', 'hc_gate', 'hc_write', 'idx_prep', 'keep_caches', 'key_buckets', 'nax_1cq', 'nax_coh', 'ooo_1c', 'ple_late', 'sb_first', 'screened_head', 'sdpa_classes', 'slot_call', 'small_native', 'tiers']; 6.8 GB active
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (1329282 > 262144). Running this sequence through the model will result in indexing errors
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+M 32: O + FASTGDN vs O: logits bitwise True, cache states bitwise True (12 arrays); gdn_fast calls 3 (O: 0)
+M 24: O + FASTGDN vs O: logits bitwise True, cache states bitwise True (12 arrays); gdn_fast calls 3 (O: 0)
+M 17: O + FASTGDN vs O: logits bitwise True, cache states bitwise True (12 arrays); gdn_fast calls 3 (O: 0)
+keep 1: the probe after the commit, O + FASTGDN vs O: bitwise True
+keep 9: the probe after the commit, O + FASTGDN vs O: bitwise True
+keep 16: the probe after the commit, O + FASTGDN vs O: bitwise True
+keep 17: the probe after the commit, O + FASTGDN vs O: bitwise True
+keep 24: the probe after the commit, O + FASTGDN vs O: bitwise True
+keep 31: the probe after the commit, O + FASTGDN vs O: bitwise True
+VERDICT: PASS; done in 9 s; peak 8.3 GB
+14:23:59 end rc 0 (gdnfast_slice_test done in 11 s; swap 7690 -> 7690 MB)
