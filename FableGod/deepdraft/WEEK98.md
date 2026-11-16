@@ -41,6 +41,16 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Mon 16 07:1x (Sandbox98, 8d0c9da; pre-reg d8611a9): **PLAN4D item 2, L1CF (lever 1c as a full-data distilled 2B
+  auditor) = KILL.** [LAB: teacher-forced agreement with the 125B's top-1, not real decoding.]
+  - One epoch over 3,032 files (805,005 answer rows). Control: HE+ 94.42 / MBPP 85.67 / val 87.29.
+  - HE+ +0.45 / +0.80 / +0.82 at steps 1,000 / 2,000 / 3,032 (end 95.23, CI +0.33..+1.37): under the +1.0 line at every
+    read. MBPP +0.83, val +1.99 (rising at every read). HE+ went flat over the last third while the loss kept falling.
+  - The extra data cured 1c's overfit (1c at matched steps: HE+ -0.09 / MBPP -0.81 / val +0.42).
+  - For scale: the 4B auditor agrees 95.48 and this 2B 95.23. If the audit law holds, the audited HE+ 23-30 band is
+    ~95.2 against the 97.8 target.
+  - Ran 07:00:41-07:09:28 by day, peak 6.15 GB, swap unchanged. NewIdeas picks next: a bigger adapter, the 4B auditor,
+    or dropping C2b.
 - Mon 16 03:31 (Leap, 867b7b5): **at 45 GB a gated 32-row EXACT check is ~1.56-1.70x a 16-row check [est], MISSING
   the <= 1.35-1.4x line a 32-row tree needs.** The run was real decoding on the shipped exact-45 (C 256), 4 HE keys,
   tokens == REF2. Records: Leap data/week98/cc3/README.md "exact-45 (a45)".
