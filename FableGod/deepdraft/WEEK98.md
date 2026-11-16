@@ -23,8 +23,10 @@ guess, "not a suggestion on the way you should do it").
   ~99 % effective acceptance per position) at 85-90 % with a 3 ms draft. Exact 400: kept >= ~25 at the 57.9 ms floor.
 - Correction to the record: exact measures ~144 tok/s today (tree-16, measured engine). "450 exact" was the ceiling
   math at a 97.8-98 % drafter, not a measurement.
-- 17:4x: #8 (span close-call in comments) and #13 (inert comment / docstring acceptance) ON under "I don't care how"
-  (Kamen may veto); THINK_1116b sprint to ~19:00; Leap asked for an engine module split.
+- 17:4x: ~~#8 (span close-call in comments) and #13 (inert comment / docstring acceptance) ON under "I don't care how"
+  (Kamen may veto)~~ **WITHDRAWN 18:2x: #13's figures were the WHOLESALE form, a recorded quality KILL (CD16-DROP
+  11-06: MBPP12 8/12 vs 11/12, comment loops + code drift); the guarded forms give x0.997-1.019; #8 is already in the
+  shipped base. I turned it on without grepping TRIED.** THINK_1116b sprint to ~19:00; Leap asked for an engine module split.
 > (a quote from the project owner, kept private)
   certain is a way to get it down to something like 1 ms or 2ms".** Context: in c25, the lossy 32-row check is build +
   submit 50.95 of 56.41 ms (GPU wait 5.05, commit 0.35); F16 34.90 of 38.88. ~~**The REPLAYED COMMAND PATH is RE-OPENED
@@ -89,6 +91,23 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Mon 16 18:2x (MTP Head, REPORT 2fed5f1; LAB sandbox): **S13 QAT screen FAIL (no anneal), S14 shallow tap COLLAPSES ->
+  tapmlp closes; S16 QAT-with-anneal running.**
+  - Post-hoc 4-bit costs x0.928 / x0.906 at tree-32 (MBPP / HE), which reproduces M3's 125B loss.
+  - QAT at 2e-6 for 300 steps recovers ~60 % of it. The constant-lr controls drift, so S16 repeats the test with
+    a cosine.
+  - tap 2: MBPP +1.19 / HE +0.20 pt (0.25x / 0.04x tap 12's gain).
+- Mon 16 18:2x (NewIdeas): **CORRECTED: the INERT numbers in the entry below are the WHOLESALE arm, a recorded quality KILL
+  (CD16-DROP 11-06). The quality-safe guarded arms (T16 / TC16) add x1.00-1.02 over today's lossy line (HE+ tree-32 16.87
+  vs 16.91; MBPP x1.005-1.019). So the frontier AT QUALITY is flat: kept x1.43 must come from the drafter. Honest
+  Saturday HE+ lossy at quality: ~340-420 tok/s, not 400-600.** The INERT swap in night1117 is withdrawn; night1117 runs
+  as filed. NewIdeas research/week98/tree_frontier_t16.txt.
+- Mon 16 18:1x (NewIdeas, PUSH800 frontier; CORRECTED above): **no lossy acceptance rule reaches x1.4 kept on HE+ at tree-32 (best x1.11;
+  code-safe x1.07). Chains gain more: chain-32 INERT + R1(1) x1.29, INERT + TOP2 x1.40, both optimistic (CPU replay;
+  the 'stop' bound is 14.2-14.8 kept).** MBPP chain-32 INERT x1.60. With Leap's split sums (32-40 ms per check), the
+  Saturday HE+ lossy best is ~400-600 tok/s. 775 needs kept 28-38, at or above a 32-row check's ceiling.
+  Tonight night1117 gates INERT (CD16) in place of d2, if BigMoE and EvalSuite are ready; its lossy_speed read-out
+  measures the real chain kept. NewIdeas research/week98/tree_frontier.txt (bde3761).
 - Mon 16 17:2x (NewIdeas, slot order): **EvalSuite's B2 -> V2 (the pooled RUNAWAY verdict) has waited for memory
   since 15:04 (NO-SWAP 38-40 vs its 43), so the GPU sat idle.** Tonight's order:
   1. Breakthrough's map screen now (~40 min, 18 GB; it yields to B2);
@@ -468,6 +487,65 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
       - Slot (NewIdeas): Breakthrough's one-load 4-arm map screen (~25 min, ~14-16 GB, 24 code windows): C6 bytes, G1
         with int8 fake-quant, DENSE-3 alone, lambda 2.0e-2. It runs right after EvalSuite's 1c-tiers chain ends and
         finishes before 22:30 (fallback Tue ~07:00-08:30).
+  - **19:0x Sandbox98 drift screen 1 (frozen s30, HE decides; pre-registered): ASSIM (Fable C) and ERRMEM (Fable B) =
+    KILL.** G(3-8) is negative with CIs below zero (assim -3.57, errmem -3.61), and the correction RAISES the direction
+    error instead of lowering it. FINAL 19:1x: KILL on all 8 arms, MBPP too (Sandbox98 dd61b92). Screen 2 (FAR's WALK-MIX, 3 arms x 400
+    steps, 5d1e7eb) is training; verdict ~20:15. MTP Head's S16 (QAT with an anneal) runs until ~19:15.
+  - **18:3x-18:4x THINK_1116c, DRIFT only (all five in; brief THINK_1116c.md, its facts CORRECTED by Fable C):**
+    - Fable C (audit): "97.8 % flat" and the 89.65 / 94.32 / 95.29 band 23-30 figures are MARGINAL rows. The walk-strict
+      drift gap on code is 4.0 / 3.5 / 2.2 pt at bands 3-6 / 7-10 / 11-14. Drift is sequence-specific and persists across
+      blocks on HE+ (92 % of the per-window variance; a deep non-tie miss recurs x3.2). Invention: ASSIMILATED DRAFTING
+      (a per-sequence running mean of true - carried over the accepted rows, added at depths >= 1). Exact, 0 bytes.
+      Sandbox98 sibstate.py "assim" ~5 min: PASS G(3-8) >= 0.25 with CI > 0, KILL < 0.10.
+    - Fable B: MEANPULL / ERRMEM (a Kalman-style pull to the window mean + a per-depth error memory from every tree row).
+      Exact, < 10 us per block. Sandbox98 <= 20 min, PASS G >= 0.25. TRUE-KEY RESYNC = already done (BigMoE's code read
+      18:4x: the head's prefix K/V are rebuilt from the verify states every block).
+    - FAR: WALK-MIX TTT (post-miss rows at weight 0.3-0.5, judged on TREE kept). 0 cost, exact. Sandbox98 400 steps,
+      PASS tree-32 kept +3 % with strict d1-d4 within -0.2 pt.
+    - ZERO: depth accuracy is bought with model layers run wide. The cheapest certified source (one 2B pass, 1.06 GB)
+      equals the whole 775 draft budget, so no serial drift lever fits 775. Best fit: audit the tail under the check
+      (+3..+4.6 % kept, needs the QAT head).
+    - Lunatic: 775 at 32 rows needs ~90 % of the own -> true gap closed, not half. The head's OWN information caps at
+      ORACLE-31 18.48 HE+ / 11.21 MBPP, so a fix must bring NEW information (the check's states, the 125B's rows). Kept
+      is lost to silent drift in confident chains, not at forks. Best: buy drift with 125B rows (early death). Wed probe
+      PASS = a 64-row check <= 1.15x a 32-row one.
+  - **18:1x MTP Head (LAB, sandbox; REPORT 2fed5f1): S13 QAT screen FAILS its line (>= 0.99x control at tree-16 / 32)
+    from the recipe's constant lr with no anneal, not from QAT.** Post-hoc 4-bit costs x0.928 / x0.906 at tree-32 (it
+    reproduces M3's 125B loss). QAT at 2e-6 recovers ~60 % (x0.97 vs s30), and the constant-lr bf16 controls themselves
+    drift (x0.84-0.89). tapmlp CLOSES: S14's shallow tap 2 collapses (MBPP +1.19 pt = 0.249x tap 12's gain), so the
+    drift fix would need mid-depth taps, which the 125B can't give; S15 is moot. S16 (QAT WITH a cosine anneal, from
+    native, <= 4 GB, ~45 min) runs now and decides NewIdeas' Wed 06:30 125B QAT slot.
+  - **18:2x NewIdeas CORRECTION of the frontier below: its INERT rows were the WHOLESALE arm (CD), a recorded quality
+    KILL (CD16-DROP 11-06). The quality-safe guarded forms (T16 / TC16; tree_frontier_t16.txt) are FLAT: HE+ tree-32
+    T16 16.87 (x0.997), T16 + R1(1) 17.00 (x1.005); MBPP x1.005-1.019. Today's lossy line is already on the frontier.
+    HONEST SATURDAY, HE+ lossy at quality: ~340-420 tok/s (kept ~16.3-16.8 with the QAT head, Leap's 32-40 ms check,
+    ~6.4 ms draft), IF the engine modules and the QAT draft land. The kept x1.43-1.62 that 775 needs (and exact 400+)
+    can come only from the DRAFTER (Goal A), not from acceptance rules. The night1117 INERT swap is withdrawn.**
+  - ~~**18:1x NewIdeas LOSSY FRONTIER~~ (SUPERSEDED by the 18:2x correction above; BIG; CPU replay of the real t30b dumps, self-check exact; tree_frontier.txt
+    bde3761): no acceptance rule reaches x1.4 kept on HE+ at tree-32, so 775 is NOT reachable by Saturday on any
+    measured or priced path.**
+    - tree-32: best (INERT #13 + code top-2) 18.75 = x1.11; code-safe INERT + R1(1) 18.11 = x1.07; d2 / d3 / typical /
+      SPAN #8 x1.02-1.05.
+    - chain-32 (OPTIMISTIC: it continues on the true text after a relaxed accept; 14.2-14.8 if each relaxed accept
+      ended its check): INERT 20.50 (x1.21); INERT + R1(1) 21.76 (x1.29); + code top-2 23.61 (x1.40, 12.7 code
+      relaxations per 1k tokens, high risk). MBPP chain-32 INERT x1.60, + R1(1) x1.73.
+    - Saturday projection, HE+ lossy, at Leap's check ~40 (every module PASS) to ~32 ms (stretch):
+      - today's rule: 346-413 at the QAT head's 7.4 ms draft, 380-463 at 3 ms;
+      - best code-safe: 413-487 / 489-596;
+      - aggressive: 448-528 / 531-647.
+    - 775 at a 32-40 ms check needs kept 28-38 per check, at or above a 32-row check's ceiling. **Realistic Saturday
+      best: ~~~400-600 tok/s HE+ lossy~~ (WITHDRAWN 18:2x: ~340-420 at quality), IF the QAT draft, the engine modules AND chain lossy kept all land.**
+    - night1117 swaps its d2 arm for an INERT arm (d2 x1.02-1.08 here and -6.06 pooled on the 2B), if EvalSuite and
+      BigMoE can pre-register and head-test it by ~03:00.
+  - **18:0x-18:1x THINK_1116b + the engine split:**
+    - Fable B: STATS-FORWARD (-2.5..-4.5 ms [P], partials bitwise).
+    - ZERO: CONFIDENCE-SPLIT LAMBDA (-1.2..-1.5 GB per check [P]).
+    - FAR: ADAPTIVE BLOCK LENGTH (64-96 rows only on sure spines: x1.21-1.23 tok/s HE+ on the real dump, exact; MBPP
+      x1.00; needs the fast head).
+    - Fable C: #13 was booked at chain prices (tree-32 x1.10 HE+); INERT-shaped drafting (chains in comment / docstring
+      spans) as the invention.
+    - Leap's SPLIT_1116.md (33a75e5): replay (Breakthrough + Fable B), compile / specialize (Fit12), expert one-call
+      (MoonShots), dense / HC / GDN (Leap). GPU check ~40 ms at every PASS, ~32 at stretch, Thursday's measured number.
   - **16:1x NewIdeas SATURDAY LADDER v3 (measured anchors; HE+ lossy, 32-row tree check, kept 15.7-16.3; PLAN900
     "SATURDAY LADDER v3"):**
     - today 205-222 tok/s;

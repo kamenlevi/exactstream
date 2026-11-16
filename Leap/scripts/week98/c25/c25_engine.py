@@ -105,6 +105,9 @@ def setup(G):
     S.update(f32one=f32one, int8d=int8d, lam0=float(G["TIERS_LAM"]), G=G,
              vocab=int(G["model"].language_model.lm_head.weight.shape[0]))
     S["ae0"] = mx.async_eval                           # the original (pass K flushes with it; c25_passk.py)
+    if os.environ.get("C25_CPUSPLIT") or os.environ.get("C25_PROF"):   # 11-16 18:1x: the forward's wall split into Python
+        import c25_cpusplit                            # build / MLX encode / blocked (wraps mx.async_eval + mx.eval; after ae0)
+        c25_cpusplit.install()
     S["ok"] = True
     _say(G, f"C25: setup done (arms {ARMS}; f32one / hc4i / int8d installed off; V3 4-bit mixer copies {len(S['HC'])} modules; "
             f"V1 16K head {'ready' if S['sh16'] else 'NOT AVAILABLE (no SVH state)'}; lambda {S['lam0']}; TIERS {G.get('TIERS')!r}; "
@@ -167,10 +170,13 @@ def check(G, P, toks, n, arm, key, phase, rnd=-1):
             p0 = MP.psos() if pso else None
             c0 = MP.counts()
             m0, tc0 = MP.now(), time.thread_time()
+        CSP = sys.modules.get("c25_cpusplit")             # installed by setup() under C25_CPUSPLIT or C25_PROF
+        sa0 = CSP.snap() if CSP is not None else None
         w0 = time.perf_counter()
         with ref2.verify_scope(model):
             lg = model(mx.array([toks]), cache=P)
         w1 = time.perf_counter()
+        sa1 = CSP.snap() if CSP is not None else None
         if MP is not None:
             m1, tc1 = MP.now(), time.thread_time()
         lg = lg[0].astype(mx.float32)
@@ -192,6 +198,8 @@ def check(G, P, toks, n, arm, key, phase, rnd=-1):
                         bar=c1["bar"] - c0["bar"], enc=c1["enc"] - c0["enc"], unready=int((~rd).sum()),
                         first=float(cb["start"][rd].min() - m0) if rd.any() else float("nan"),
                         last=float(m3 - cb["end"][rd].max()) if rd.any() else float("nan"))
+            if CSP is not None:                         # ms: Python build / MLX encode / blocked in eval / other waits
+                prof["split"] = CSP.parts(CSP.delta(sa0, sa1), w1 - w0, tc1 - tc0)
             if pso:
                 S.setdefault("pso", {}).setdefault(key, {})[arm] = MP.pso_delta(p0, MP.psos())
         st = G["stats"]() - st0
@@ -315,6 +323,7 @@ def finish(G):
                     f"{cpu:6.2f} ({cpup}) | {nd:.0f} disp ({1e3 * cpu / max(nd, 1):.1f} us CPU each) | "
                     f"{m([p['ncb'] for p in P_]):.0f} cbs | first {1e3 * m([p['first'] for p in P_]):.2f} | "
                     f"last {1e3 * m([p['last'] for p in P_]):.2f}; unready cbs {sum(p['unready'] for p in P_)}")
+        _cpusplit_report(G, W, m)
         for a in ("F16", "F32s", "F32o", "F32df", "F32if", "F32c6i", "F32c6g"):
             ks = [d[a] for d in S.get("pso", {}).values() if a in d]
             if ks:
@@ -334,6 +343,24 @@ def finish(G):
         except Exception as e_:
             _say(G, f"  PASS K report FAILED {e_!r}")
     dump(G)
+
+
+def _cpusplit_report(G, W, m):
+    """C25_CPUSPLIT: per arm, the forward call's wall (build + submit) = Python build + MLX encode + blocked in eval +
+    other waits, next to the GPU's busy time in the same window (medians over checks, ms)"""
+    for a in ARMS:
+        rs = [v[a] for v in W.values() if a in v and (v[a].get("prof") or {}).get("split")]
+        if not rs:
+            continue
+        P_ = [r["prof"] for r in rs]
+        sp = lambda k: m([p["split"][k] for p in P_])
+        fw, fc = 1e3 * m([r["w"][0] for r in rs]), 1e3 * m([p["cpu"][0] for p in P_])
+        bf, bz = 1e3 * m([p["busy_p"][0] for p in P_]), 1e3 * m([p["busy"] for p in P_])
+        wall = 1e3 * m([sum(r["w"]) for r in rs])
+        _say(G, f"  CPU SPLIT {a:6s}: build + submit {fw:6.2f} = Python build {sp('py'):6.2f} + MLX encode {sp('enc'):6.2f} "
+                f"+ blocked in eval {sp('blk'):6.2f} + other waits {sp('other'):6.2f} (thread CPU {fc:.2f}; "
+                f"{sp('n_ae'):.0f} async_eval + {sp('n_ev'):.0f} eval calls) | GPU busy during it {bf:6.2f} ({bf / max(fw, 1e-9):.0%}); "
+                f"whole check {wall:.2f}, GPU busy {bz:.2f} ({bz / max(wall, 1e-9):.0%}); n {len(rs)}")
 
 
 def dump(G):

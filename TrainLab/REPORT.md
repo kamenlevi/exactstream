@@ -5006,3 +5006,46 @@ Line, each arm vs s30, against S14's every-depth tap-2 gain (ft2):
 - If S14's ft2 itself gains < +0.5 pt on a set, the ratio there is not judged; that set reads PARTIAL.
 Prediction [G]: fk4 PARTIAL-or-KEEPS 55 %, fk8 PARTIAL-or-KEEPS 40 %.
 Disk flat: fk8 / fk4 overwrite S2's 400-step scratch (mhc2a_cac, mhc2a_n1; their read-outs are committed).
+
+## WEEK98 S13 QATSCREEN RESULT (run Mon 16 Nov 14:22-15:0x after 7 memory-guard kills; read 18:14; LAB, sandbox 2B, MBPP-50 / HE-30): both QAT arms FAIL; the screen is informative
+- Post-hoc Q4 / s30 at tree-32: MBPP x0.928, HE x0.906. That is close to M3's 125B numbers (MBPP x0.899, HE+
+  x0.922), so the sandbox reproduces t30b's 4-bit loss.
+  - Top-1 agreement with bf16 s30 drifts with depth: depth 0 94.7 / 97.0 %, 23-30 65.8 / 75.8 %. M3's 125B signature
+    is the same.
+| arm (300 steps, constant lr) | vs its bf16 control: t16 / t32 (MBPP; HE) | vs s30: t16 / t32 (MBPP; HE) |
+|---|---|---|
+| q4a, QAT at lr 2e-6 | x0.966 / x0.973; x0.970 / x0.956 | x0.977 / x0.972; x0.977 / x0.969 |
+| q4b, QAT at lr 1e-5 | x0.979 / x0.980; x1.013 / x1.020 | x0.892 / x0.872; x0.870 / x0.852 |
+- VERDICT by the line (>= 0.99 x its control at tree-16 AND tree-32, both sets): FAIL, both arms.
+- q4a recovers about 60 % of the post-hoc loss at tree-32 vs s30 (MBPP 7.2 % -> 2.8 %, HE 9.4 % -> 3.1 %).
+- The lr 1e-5 recipe is broken by its schedule, not by QAT. Its bf16 control alone falls to x0.89 / x0.84 of s30 at
+  tree-32. Sandbox98's continued-Adam control at a constant 1e-5 (ctl_s30o_1000_lr1e-5_opt) is also down: MBPP 23-30
+  48.3 vs s30's 57.3. This is the S10 lesson again: a constant or mid-cosine lr without an anneal costs 7-9 pt.
+- So the screen recipe (constant lr, no anneal) can't show what QAT recovers. S16 below repeats the test with an
+  anneal.
+
+## WEEK98 S14 SHALLOWTAP RESULT (run 15:0x-15:32; LAB sandbox): COLLAPSES -> tapmlp closes; S15 moot
+- tap 2 vs s30:
+  - MBPP 23-30 +1.19 pt (CI +0.56..+1.78, p 0.002), 0.249 x tap 12's gain, right at the 0.25 line; kept +0.5 %.
+  - HE +0.20 pt (p 0.86), 0.04 x; kept +0.3 %.
+- By the line (< 0.25 x on both sets): COLLAPSES. Mid-depth taps carry the drift fix and the shallow tap does not.
+  On the 125B, tapmlp closes. S15 (sparse refresh) exited as moot, as registered.
+
+## WEEK98 S16 QATCOS: QAT with an anneal (pre-registered Mon 16 Nov 18:14, before any run)
+Why: S13's recipe had no anneal, and its controls themselves drifted. This repeats the test with the two schedules
+that keep a bf16 head at s30's level.
+Arms (train_multi, one process each, <= 4 GB, run_paused; lever qat4 as in S13):
+- c16: bf16, p2s's recipe exactly (s30 + 680 pool2 slices, seed 1116, fresh Adam, 20-step warm-up, cosine 1e-5 ->
+  1e-6). Determinism check: it must equal S10's p2s (MBPP 23-30 55.68 / kept 4.258; HE 67.44 / 6.048).
+- q16: c16's recipe + qat4 (QAT continuation with an anneal).
+- qn: s30's full recipe from native (1,889 steps, base files, seed 1114) + qat4 (QAT from the start). Its bf16 control
+  is s30 itself (bitwise f30).
+Read-out: sb98/tree8.py (chain-32 / tree-16 / tree-32 kept under the walk, S9b proxy at gamma 1; top-1 agreement with
+s30 per band) for s30, c16, q16@qat4, qn@qat4.
+Line:
+- q16 PASS if >= 0.99 x c16 at tree-16 AND tree-32 on both sets.
+- qn PASS if >= 0.99 x s30 at the same.
+- Either PASS -> the 125B QAT screen (NewIdeas' Wed 06:30-08:00 slot) with that recipe's analog: t30b + an annealed
+  QAT pass (q16), or a QAT t30b-style pass from b5 (qn, ~6 h, only if q16 fails).
+Prediction [G]: q16 PASS 45 %, qn PASS 55 %.
+Disk flat: c16 / q16 / qn overwrite mhx_q4a / mhx_q4b (S13, read) and mhd1_n1 (S4, read).

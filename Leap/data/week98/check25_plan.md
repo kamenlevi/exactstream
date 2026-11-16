@@ -81,6 +81,12 @@ Labels: [K] measured, [P] priced from measured parts, [est] estimate.
 
 ## 1. Bottom line
 
+> **CORRECTED Mon 13:4x (marked here 17:5x): this section's expert bytes and bounds are WITHDRAWN.** They priced an
+> expert at 2.135 MB (4-bit) / 1.661 MB (MSB-3); the records3 pieces the engine reads are 2.784 / 2.064 MB. Real bound
+> at 100 % of every peak (scripts/week98/check25_bound_real.py -> data/week98/check25_bound_real.txt): **C5 27.7 bf16 /
+> 26.8 int8; C6 + int8 25.2; C6 + V4 + int8 24.0** (experts C5 5.05 GB = 18.0 ms, C6 4.60 GB = 16.4 ms). The 23.9 /
+> 23.0 / 21.7 / 20.6 below are the old numbers; do not quote them. See check25/README.md, CORRECTION.
+
 - **At C5's bytes, 25 ms is out of reach for any kernel work on this Mac.** This is the physics, not the schedule
   (scripts/week98/check25_bound.py -> data/week98/check25_bound.txt).
   - **The check is layer-sequential.** In each layer the routed experts wait for the router, the router waits for the
@@ -95,6 +101,8 @@ Labels: [K] measured, [P] priced from measured parts, [est] estimate.
     53-60 % of the byte floor (exact-45 engine [K]); C5's projections reach 33-43 % [P], because the lossy levers cut
     bytes, not the compute or the fixed costs. Fit12's own "at best" is 29.8 ms.
 - **What can reach 25 ms:** fewer bytes AND int8 dense math, then ~80-85 % whole-check efficiency.
+
+  [WITHDRAWN 13:4x, old expert sizes: real C5 27.7 / 26.8, C6 + int8 25.2, C6 + V4 + int8 24.0; see the note above]
 
   | bytes (code, 32 rows) | dense math | bound at 100 % [P] | at 90 % | efficiency needed for 25 ms |
   |---|---|---:|---:|---:|

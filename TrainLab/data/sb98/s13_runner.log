@@ -1,0 +1,49 @@
+[Mon 14:24:30] train q4a: QAT 4-bit, s30 + 300 steps, lr 2e-6
+14:25:31 lock try 1 rc 0: shared run reserved until 14:45 (about 200% CPU, 25% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done. Free for it now: abo
+14:25:31 start s13_q4a (swap 7690 MB, NO-SWAP 46 GB)
+14:26:42 paused s13_q4a (quiet window)
+14:27:23 lock try 1 rc 0: shared run reserved until 14:47 (about 200% CPU, 25% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done. Free for it now: abo
+14:27:23 resumed s13_q4a
+14:30:15 done s13_q4a (exit 0)
+[Mon 14:30:15] [tr] DONE mhx_q4a: 300 steps in 275s; peak 3.7 GB
+[Mon 14:30:15] train q4b: QAT 4-bit, s30 + 300 steps, lr 1e-5
+14:31:16 lock try 1 rc 0: shared run reserved until 14:51 (about 200% CPU, 25% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done. Free for it now: abo
+14:31:16 start s13_q4b (swap 7690 MB, NO-SWAP 45 GB)
+14:34:29 paused s13_q4b (quiet window)
+14:34:59 lock try 1 rc 0: shared run reserved until 14:54 (about 200% CPU, 25% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done. Free for it now: abo
+14:34:59 resumed s13_q4b
+14:36:10 done s13_q4b (exit 0)
+[Mon 14:36:10] [tr] DONE mhx_q4b: 300 steps in 287s; peak 3.6 GB
+14:37:11 lock try 1 rc 0: shared run reserved until 15:22 (about 200% CPU, 25% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done. Free for it now: abo
+14:37:11 start s13_read (swap 7682 MB, NO-SWAP 41 GB)
+14:46:08 paused s13_read (quiet window)
+14:46:48 lock try 1 rc 0: shared run reserved until 15:31 (about 200% CPU, 25% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done. Free for it now: abo
+14:46:48 resumed s13_read
+15:08:36 done s13_read (exit 0)
+post-hoc Q4 / s30 at tree-32: mbpp x0.9275, he x0.9055
+VERDICT mhx_q4a vs ctl_s30_300_lr2e-6: FAIL | mbpp t16 x0.9659 t32 x0.9730 chain x0.9785; he t16 x0.9696 t32 x0.9558 chain x0.9587 | vs s30: mbpp t16 x0.9774 t32 x0.9715; he t16 x0.9772 t32 x0.9686
+VERDICT mhx_q4b vs ctl_s30_300_lr1e-5: FAIL | mbpp t16 x0.9790 t32 x0.9803 chain x0.9665; he t16 x1.0128 t32 x1.0198 chain x1.0274 | vs s30: mbpp t16 x0.8916 t32 x0.8719; he t16 x0.8698 t32 x0.8516
+SELF-CHECK s30 mbpp: right == core.chain_table: PASS
+s30 mbpp: chain-32 4.319; tree-16 5.200 [4.692..5.657]; tree-32 6.016 [5.177..6.789]
+SELF-CHECK s30 he: right == core.chain_table: PASS
+s30 he: chain-32 6.239; tree-16 6.843 [6.294..7.305]; tree-32 8.015 [7.082..8.959]
+SELF-CHECK s30@/Users/kamen/TrainLab/sb98/levers/qat4 mbpp: right == core.chain_table: PASS
+s30@qat4 mbpp: chain-32 3.993; tree-16 4.894 [4.393..5.371]; tree-32 5.580 [4.808..6.192]; top-1 agreement with s30 0-0 94.7 1-2 88.2 3-6 80.5 7-14 73.5 15-22 69.9 23-30 65.8
+SELF-CHECK s30@/Users/kamen/TrainLab/sb98/levers/qat4 he: right == core.chain_table: PASS
+s30@qat4 he: chain-32 5.548; tree-16 6.254 [5.791..6.796]; tree-32 7.258 [6.395..8.131]; top-1 agreement with s30 0-0 97.0 1-2 93.0 3-6 86.8 7-14 82.1 15-22 78.5 23-30 75.8
+SELF-CHECK ctl_s30_300_lr2e-6 mbpp: right == core.chain_table: PASS
+ctl_s30_300_lr2e-6 mbpp: chain-32 4.263; tree-16 5.263 [4.762..5.742]; tree-32 6.007 [5.231..6.813]; top-1 agreement with s30 0-0 97.1 1-2 92.1 3-6 86.7 7-14 83.1 15-22 80.4 23-30 77.9
+SELF-CHECK ctl_s30_300_lr2e-6 he: right == core.chain_table: PASS
+ctl_s30_300_lr2e-6 he: chain-32 6.200; tree-16 6.897 [6.349..7.373]; tree-32 8.122 [7.127..9.000]; top-1 agreement with s30 0-0 98.2 1-2 95.1 3-6 91.1 7-14 88.3 15-22 86.8 23-30 85.6
+SELF-CHECK mhx_q4a@/Users/kamen/TrainLab/sb98/levers/qat4 mbpp: right == core.chain_table: PASS
+mhx_q4a mbpp: chain-32 4.171; tree-16 5.083 [4.643..5.561]; tree-32 5.845 [5.012..6.523]; top-1 agreement with s30 0-0 95.1 1-2 88.9 3-6 82.6 7-14 77.9 15-22 74.1 23-30 71.1
+SELF-CHECK mhx_q4a@/Users/kamen/TrainLab/sb98/levers/qat4 he: right == core.chain_table: PASS
+mhx_q4a he: chain-32 5.944; tree-16 6.687 [6.200..7.218]; tree-32 7.763 [6.939..8.703]; top-1 agreement with s30 0-0 97.0 1-2 93.5 3-6 88.2 7-14 84.7 15-22 82.7 23-30 81.4
+SELF-CHECK ctl_s30_300_lr1e-5 mbpp: right == core.chain_table: PASS
+ctl_s30_300_lr1e-5 mbpp: chain-32 3.781; tree-16 4.736 [4.256..5.172]; tree-32 5.351 [4.613..6.013]; top-1 agreement with s30 0-0 93.3 1-2 82.9 3-6 72.7 7-14 66.3 15-22 62.3 23-30 58.9
+SELF-CHECK ctl_s30_300_lr1e-5 he: right == core.chain_table: PASS
+ctl_s30_300_lr1e-5 he: chain-32 4.905; tree-16 5.877 [5.371..6.364]; tree-32 6.693 [5.864..7.400]; top-1 agreement with s30 0-0 96.2 1-2 88.4 3-6 79.5 7-14 73.9 15-22 70.7 23-30 68.8
+SELF-CHECK mhx_q4b@/Users/kamen/TrainLab/sb98/levers/qat4 mbpp: right == core.chain_table: PASS
+mhx_q4b mbpp: chain-32 3.654; tree-16 4.637 [4.156..5.078]; tree-32 5.246 [4.511..5.884]; top-1 agreement with s30 0-0 92.2 1-2 81.1 3-6 71.0 7-14 65.1 15-22 61.5 23-30 58.7
+SELF-CHECK mhx_q4b@/Users/kamen/TrainLab/sb98/levers/qat4 he: right == core.chain_table: PASS
+mhx_q4b he: chain-32 5.039; tree-16 5.953 [5.415..6.442]; tree-32 6.826 [6.016..7.585]; top-1 agreement with s30 0-0 95.5 1-2 87.9 3-6 79.9 7-14 74.1 15-22 71.3 23-30 69.3

@@ -44,14 +44,23 @@ GATE_GB, SWAP_GB, WALL_S, PAUSE_S, MIN_ENV_S = 47, 2.0, 900, 900, 180
 REQ = {"g1x": ("int8",), "g1rx": ("int8", "res_opt", "opt_post"), "g1cx": ("int8", "com_rows", "com_opt"),
        "g1crx": ("int8", "com_rows", "com_opt", "res_opt", "opt_post"), "g1cdx": ("int8", "com_rows", "com_opt"),
        "g1cdrx": ("int8", "com_rows", "com_opt", "res_opt", "opt_post"), "g1lx": ("int8",),
-       "g1lrx": ("int8", "res_opt", "opt_post")}   # amendment 5d's variants (NewIdeas + EvalSuite, Mon 14:0x): int8 > 0 per
+       "g1lrx": ("int8", "res_opt", "opt_post"),
+       # NewIdeas 18:0x (EvalSuite's amendment): int8 dense DROPPED from G1 and every 5d branch: the same eight without
+       # R57_INT8D; "noint8" = no int8 / int8_rows in lossy_check on any key (int8 absent), in place of "int8 > 0"
+       "g1": ("noint8",), "g1r": ("noint8", "res_opt", "opt_post"), "g1c": ("noint8", "com_rows", "com_opt"),
+       "g1cr": ("noint8", "com_rows", "com_opt", "res_opt", "opt_post"), "g1cd": ("noint8", "com_rows", "com_opt"),
+       "g1cdr": ("noint8", "com_rows", "com_opt", "res_opt", "opt_post"), "g1l": ("noint8",),
+       "g1lr": ("noint8", "res_opt", "opt_post")}   # amendment 5d's variants (NewIdeas + EvalSuite, Mon 14:0x): int8 > 0 per
 # code key; Fit12 res1c's lossy_check counters (com_rows / com_opt: COMQOM's tagged rows and their optional uses; res_opt:
 # RES's optional MSB-3-tier uses; opt_post: optional uses the ref2 kernel saw) > 0 summed over the env's code keys
 F12C = ("f12_checks", "com_rows", "com_opt", "res_opt", "opt_post", "opt_drop")   # res1c.prompt_counts() (Fit12, 13:5x)
-XKEYS = {v_: ("mbpp/115", "mbpp/146") for v_ in ("g1cx", "g1crx", "g1cdx", "g1cdrx")}   # the COMQOM envs' extra keys: the
+XKEYS = {v_: ("mbpp/115", "mbpp/146") for v_ in ("g1cx", "g1crx", "g1cdx", "g1cdrx", "g1c", "g1cr", "g1cd", "g1cdr")}   # the COMQOM envs' extra keys: the
 # scored keys' lx45cc1 answers have docstrings but no '#' comment; mbpp/115's has two '#' comment lines (from its line 2),
 # mbpp/146's only a docstring (76 / 70 tokens). DOCV: the DOC envs (R57_COMQOM_DOC_SETS=mbpp) must tag rows on mbpp/146.
-DOCV = ("g1cdx", "g1cdrx")
+DOCV = ("g1cdx", "g1cdrx", "g1cd", "g1cdr")
+XTRA = {"inx": "inert"}   # --extra envs, run after the variants (any data/stack env: its screen from its header). inx45cc1
+# (NewIdeas 18:1x: night1117 arm 2's INERT env on cc1, new on the real loop): rc 0 + every key decoded + its INERT path
+# ran on each code key (runs.json inert rows > 0); the kept counts and token equality vs lx45cc1 are reported only
 CODE = ("humaneval", "humanevalx", "mbpp")
 
 
@@ -134,10 +143,13 @@ def main():
     ap.add_argument("--rescore", action="store_true")       # no run: re-score the last run's envs from its logs + records
     ap.add_argument("--variants", default="g1x")            # the variant envs' prefixes, after the base: g1x (G1), g1rx (G1 +
                                                              # RES), g1crx (G1 + COMQOM + RES); each must show its REQ counters
+    ap.add_argument("--extra", default="")                 # extra envs after the variants (XTRA prefixes), e.g. inx45cc1
     a = ap.parse_args()
     global ENVS
     assert all(v_ in REQ for v_ in a.variants.split(",")), (a.variants, sorted(REQ))
-    ENVS = (f"lx45{a.snap}",) + tuple(f"{v_}45{a.snap}" for v_ in a.variants.split(","))
+    xt_ = tuple(x_ for x_ in a.extra.split(",") if x_)
+    assert all(prefix(x_) in XTRA and os.path.exists(os.path.join(BM, "data/stack", f"{x_}_env.txt")) for x_ in xt_), xt_
+    ENVS = (f"lx45{a.snap}",) + tuple(f"{v_}45{a.snap}" for v_ in a.variants.split(",")) + xt_
     ep = lambda s_: time.mktime(time.strptime(s_, "%Y-%m-%d %H:%M")) if s_ else None
     start_by, hard = ep(a.start_by), ep(a.hard)
     py = os.path.join(BM, ".venv/bin/python")
@@ -182,6 +194,7 @@ def main():
         per, fails, tk_ = {}, [], {}
         vp_ = prefix(n)
         variant = vp_ in REQ
+        extra = vp_ in XTRA                                   # an --extra env: its own checks only
         f12v = variant and any(c_ in F12C for c_ in REQ[vp_])   # a res1c env (RES and / or COMQOM)
         for k in keys_of(n):
             r_ = R_.get(k)
@@ -192,21 +205,25 @@ def main():
             lc = r_.get("lossy_check"); qo = (r_.get("pf") or {}).get("qom_opt"); qs = (r_.get("pf") or {}).get("qom_skip")
             ck = r_.get("t1c_ck") or []
             per[k] = dict(arm=r_["arm"], n=r_["n"], tokens_eq_lx45cc1=toks == refrows.get(k), lossy_check=lc,
-                          qom_opt=qo, qom_skip=qs, t1c_union_per_check_layer=round(sum(sum(c_[:3]) for c_ in ck) / max(sum(c_[3] for c_ in ck), 1), 2) if ck else None,
+                          inert=r_.get("inert"), qom_opt=qo, qom_skip=qs, t1c_union_per_check_layer=round(sum(sum(c_[:3]) for c_ in ck) / max(sum(c_[3] for c_ in ck), 1), 2) if ck else None,
                           lifetime_peak_gb=round(max(r_["mem"][1], r_["mem"][-1]), 2) if isinstance(r_.get("mem"), list) and len(r_["mem"]) >= 7 else None)   # footprint peaks after prefill / at the key's end
             st_ = k.split("/")[0]
             if not toks:
                 fails.append(f"{k}: no tokens")
-            if st_ in ("humanevalx", "ifeval") and not variant and toks != refrows.get(k):
+            if st_ in ("humanevalx", "ifeval") and not variant and not extra and toks != refrows.get(k):
                 fails.append(f"{k}: base tokens != lx45cc1's")
-            if not variant and lc is not None:
+            if not variant and not extra and lc is not None:
                 fails.append(f"{k}: lossy_check on the base")
-            if not variant and st_ == "humaneval" and not (qo or 0) > 0:
+            if not variant and not extra and st_ == "humaneval" and not (qo or 0) > 0:
                 fails.append(f"{k}: base pf.qom_opt {qo} (want > 0)")
+            if extra and XTRA[vp_] == "inert" and st_ in CODE and not ((r_.get("inert") or {}).get("rows", 0) > 0):
+                fails.append(f"{k}: the INERT path did not run (inert {r_.get('inert')})")
             if variant and st_ in CODE and not (lc and lc.get("e3", 0) + lc.get("edrop", 0) + lc.get("lmsl_rows", 0) > 0):
                 fails.append(f"{k}: 1c not engaged ({lc})")
-            if variant and st_ in CODE and not (lc and lc.get("int8", 0) > 0):
+            if variant and "int8" in REQ[vp_] and st_ in CODE and not (lc and lc.get("int8", 0) > 0):
                 fails.append(f"{k}: int8 dense not engaged ({lc})")
+            if variant and "noint8" in REQ[vp_] and lc and (lc.get("int8", 0) or lc.get("int8_rows", 0)):
+                fails.append(f"{k}: int8 dense present on an int8-free env ({lc})")
             if variant and st_ == "ifeval" and lc is not None and any(lc.get(x_) for x_ in ("e3", "edrop", "lmsl_rows", "int8") + F12C):
                 fails.append(f"{k}: G1 engaged on IFEval ({lc})")
             if variant and not f12v and st_ == "humaneval" and (qo or 0) != 0:   # a res1c env posts QOM's bit-21 optional
@@ -216,7 +233,7 @@ def main():
                 if bt_ is None or toks != bt_:
                     fails.append(f"{k}: IFEval tokens != the base's" if bt_ is not None else f"{k}: no base tokens to compare")
         for c_ in (REQ[vp_] if variant else ()):             # the res1c counters, summed over the env's code keys
-            if c_ != "int8" and not sum(((v_.get("lossy_check") or {}).get(c_, 0) for k_, v_ in per.items()
+            if c_ not in ("int8", "noint8") and not sum(((v_.get("lossy_check") or {}).get(c_, 0) for k_, v_ in per.items()
                                          if k_.split("/")[0] in CODE)) > 0:
                 fails.append(f"{c_} not engaged on the code keys (sum 0)")
         if vp_ in DOCV and not ((per.get("mbpp/146") or {}).get("lossy_check") or {}).get("com_rows", 0) > 0:
@@ -264,13 +281,26 @@ def main():
             say(f"away_secs {aw_}")
             if aw_ < a.away_min:
 > (a quote from the project owner, kept private)
-        if not a.nolock:
-            r = subprocess.run(["peer", "lock", "share", "60m", "--cpu", "600", "--gpu", "100",
-                                f"MEM 45 GB BigMoE G1 key test, EvalSuite lossygate 5a / 5d ({a.snap}, {len(ENVS)} envs), correctness only (no timing)"],
-                               capture_output=True, text=True, timeout=600)
-            say(f"share lock rc {r.returncode}: {(r.stdout + r.stderr).strip()[:200]}")
-            if r.returncode != 0:
-                raise Stop("no share lock")
+        if not a.nolock:                                     # retried while another session's quiet lock refuses it (up to
+            t_l, last_l = time.time(), 0.0                   # 25 min: a 15-min quiet measurement + slack), as EvalSuite's
+            while True:                                      # share_lock(); any other refusal stops the test
+                r = subprocess.run(["peer", "lock", "share", "60m", "--cpu", "600", "--gpu", "100",
+                                    f"MEM 45 GB BigMoE G1 key test, EvalSuite lossygate 5a / 5d / 5e ({a.snap}, {len(ENVS)} envs), correctness only (no timing)"],
+                                   capture_output=True, text=True, timeout=600)
+                out_ = (r.stdout + r.stderr).strip()
+                if r.returncode == 0:
+                    say(f"share lock rc 0: {out_[:200]}")
+                    break
+                if "quiet" not in out_.lower() or time.time() - t_l > 1500:
+                    say(f"share lock rc {r.returncode}: {out_[:200]}")
+                    raise Stop("no share lock" + (" (a quiet lock for 25 min)" if "quiet" in out_.lower() else ""))
+                if time.time() - last_l >= 300:
+                    say(f"share lock refused (a quiet lock runs): waiting; {out_[-160:]}"); last_l = time.time()
+                if os.path.exists(os.path.join(Q, "HOLD")) or lid_closed():
+                    raise Stop("HOLD or the lid closed while waiting for the share lock")
+                if hard is not None and time.time() + MIN_ENV_S > hard:
+                    raise Stop(f"no share lock before the hard stop {a.hard}")
+                time.sleep(30)
             locked = True
         absent_ = os.environ.get("G1KT_ABSENT", "")         # a pgrep -f pattern (the wrapper's): EvalSuite's runner 65 / CHAT
         # process. Its memory loop does not re-check the shared-lock yield, so it could launch between two of these envs

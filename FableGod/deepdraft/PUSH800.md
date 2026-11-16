@@ -43,9 +43,19 @@ tok/s = kept / (check + draft + overhead), ms.
    [NewIdeas 17:5x: at bet 7's MEASURED fixed cost f 0.269 ms per level, the QAT head projects ~7.4 ms (ladder v3,
    PLAN900), not 3. A draft of <= 3 ms needs f <= ~0.1 ms per level, which no measured kernel reaches yet; see the
    draft-7.4 columns above.]
+   [MTP Head 18:2x, from MoonShots' measured ~95 MB per QAT level: tree-32 draft ~10 ms with the QAT head alone (kept
+   x0.97 today; >= 0.99 if S16 passes), and ~6.4 ms with FAR's 8K screen (kept x0.963). A CHAIN-32 draft costs 31 levels
+   (~9-11 ms at the screened head), against ~21 for tree-32. S13 FAILED on its recipe (constant lr); S16, the annealed
+   QAT, decides Wednesday's 125B recipe.]
 3. **BYTES:** C6 + int8 dense (G1, Tue); a V4-class cut only if DENSE-3 passes; lambda 2e-2; RES; early death (Wed).
+   [NewIdeas 18:2x, the CPU frontier (research/week98/tree_frontier.txt + tree_frontier_t16.txt, exact self-check):
+   AT QUALITY the acceptance frontier is FLAT. #13's replay figures below are the WHOLESALE form (CD16), a recorded
+   quality KILL (TRIED CD16-DROP, 11-06). The safe guarded form (T16) adds x1.00-1.02. #8 is already in the shipped
+   base (comment rule C). R1(2/3) / TYP / TOP2 reach x1.02-1.05 on trees, with unknown quality on the 125B (d2 is
+   gated tonight). So the kept multiplier has to come from the DRAFTER (Goal A), not from acceptance rules.]
 4. **KEPT x1.43-1.62 in lossy mode (x1.63-1.82 at a 7.4 ms draft; corrected 17:5x, was x1.25-1.42):** close-call d2; span-conditional close-call (#8); inert comment / docstring
    acceptance (#13: replay x1.17-1.30 HE+, x1.63-1.79 MBPP, high quality risk); early death's bigger trees.
+   ~~#8 / #13 are ON~~ **WITHDRAWN 18:2x (orchestrator): #13 wholesale = the recorded quality KILL CD16-DROP (11-06);
 > (a quote from the project owner, kept private)
    are still written in full and code rows stay strictly checked; EvalSuite's gates decide, and any public number names
    the acceptance rule.

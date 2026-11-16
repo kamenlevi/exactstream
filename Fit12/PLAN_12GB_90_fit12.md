@@ -1625,3 +1625,19 @@ under EvalSuite's amendment 3a.**
 - Tested on today's rows: discovery picks mbpp/122, mbpp/147 + HumanEval/77, humanevalx/113, humanevalx/116, mbpp/243.
   The read-out end to end on the gate's variant rows gives OFF VALID 6 / 6, KILL / KILL, as it must for identical rows.
 - Markers and gates are unchanged.
+
+## RES1C BIT TESTS: ALL PASS (ran Mon 16 Nov 14:21 in EvalSuite's SIB pause; recorded 18:1x)
+/Users/kamen/Fit12/data/res1c/res1c_check.txt (res1c_check.py b46f3aa6b380; layers 20 / 44, real converted pools, share
+lock, NO-SWAP 45 GB at start, 5 s):
+- **T0:** the transform installed (md5 guard 19d399d8 matched).
+- **T1 OFF:** the transformed _ooo_1c_call == the original, y bits + base and sidecar posts, on 1c / 1-D U3 / plain
+  calls: **PASS** (36 pairs, COH on / off). Leap's guard still raises for 2-D + qom: **PASS**.
+- **T2 ON** (tagged rows ~30 %, residency 70 %, RES off / on, COH on / off): y == the explicit drop reference bit for bit,
+  loader drops == the rule, bit 21 exactly on the optional uses: **PASS** (24 calls; 1,544 optional uses, 401 dropped).
+- **T3:** the counters == the rule's counts: **PASS**.
+- Sent to BigMoE (wire into g1b / g2a; the 6 hooks) and NewIdeas.
+
+**Incident:** my session's usage-stop teardown (18:11:20) TERMed the armed kill-test runner (pid 94099), and its exit
+hook wrote a TECHNICAL KILL_DONE.
+- Re-armed 18:12:51, DETACHED: os.setsid() + nohup, pid 31949, parent launchd. The stray marker is deleted.
+- Breakthrough was warned, in case its band-screen runner latched the marker.

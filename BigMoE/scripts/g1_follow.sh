@@ -37,8 +37,16 @@ PVT=0; if [ -n "$PREVMK" ]; then PVT=$(date -j -f "%Y-%m-%d %H:%M:%S" "${PREVMIN
 say() { echo "$(date '+%m-%d %H:%M:%S') $*" >> $L; }
 newer() { [ -e "$1" ] && [ "$(stat -f %m "$1")" -ge "$2" ]; }
 lid_closed() { ioreg -r -k AppleClamshellState -d 1 | grep -q '"AppleClamshellState" = Yes'; }
-big_lock() {      # another session's lock (held or queued) with MEM >= 16 GB in its reason
-  peer ls 2>/dev/null | grep -iE "quiet|shared|queued|lock" | grep -v "BigMoE" | grep -oE "MEM ~?[0-9]+" | grep -oE "[0-9]+" | awk '$1 >= 16 {f=1} END {exit !f}'
+others_locks() {  # other sessions' lock segments (memory peer-ls-lock-segments: their rows start "- ", mine is "You:";
+                  # never grep -v a name: statuses that mention BigMoE would hide their locks). FAKE_PEERLS: a sim file
+  { if [ -n "${FAKE_PEERLS:-}" ]; then cat "$FAKE_PEERLS"; else peer ls 2>/dev/null; fi; } | grep "^- " \
+    | grep -oE "· (shared run \(others may work\)|benchmarking|waiting for a quiet window)[^·]*"
+}
+big_lock() {      # another session's lock (held, shared or queued) with MEM >= 16 GB in its reason
+  others_locks | grep -oE "MEM ~?[0-9]+" | grep -oE "[0-9]+" | awk '$1 >= 16 {f=1} END {exit !f}'
+}
+quiet_held() {    # another session's quiet lock held (a benchmark): a share run beside it would spoil its timing
+  others_locks | grep -q "^· benchmarking"
 }
 t30c_up() { ps -axo args | grep -qE "^(/bin/)?bash [^ ]*sb98/t30c_run\.sh|^[^ ]*python[^ ]* (-B )?scripts/dd_ttt\.py (train|eval) .*t30c"; }
 after_up() { [ -n "$AFTER" ] && pgrep -f "$AFTER" > /dev/null; }
@@ -62,6 +70,7 @@ while :; do
   elif [ -n "$PREVMK" ] && ! newer "$PREVMK" $PVT; then w="the previous job's end marker ($PREVMK, mtime >= $PREVMIN)"
   elif [ ! -e $GO ]; then w="Leap's slice test (no $GO)"
   elif big_lock; then w="another session's MEM >= 16 GB lock"
+  elif quiet_held; then w="another session's quiet lock (a benchmark)"
   elif t30c_up; then w="t30c"
   elif after_up; then w="a process matching '$AFTER'"
   elif [ -e $Q/PAUSE ] || lid_closed; then w="PAUSE or the lid closed"

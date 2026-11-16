@@ -31,6 +31,12 @@ for f in code:
             segs = sum((c + 15) // 16 for c in cnt_g.values())                            # the kernel cuts every 16 pairs
             s_bytes = sum(((c + 15) // 16) * (MSB + (LSB if t == 4 else 0.0)) for (e, t), c in cnt_g.items())
             tot["segs"] = tot.get("segs", 0) + segs
+            ce = Counter(idk.reshape(-1).tolist())                                         # merged: one group per expert
+            e4set = {e for (e, t) in cnt_g if t == 4}
+            m16 = sum(((c + 15) // 16) * (MSB + (LSB if e in e4set else 0.0)) for e, c in ce.items())   # cut at 16 pairs
+            m32 = sum(((c + 31) // 32) * (MSB + (LSB if e in e4set else 0.0)) for e, c in ce.items())   # cut at 32 pairs
+            tot["m16"] = tot.get("m16", 0.0) + m16
+            tot["m32"] = tot.get("m32", 0.0) + m32
             tot["sbytes"] = tot.get("sbytes", 0.0) + s_bytes
             gk = set(zip(idk[kept].tolist(), tier[kept].tolist()))          # groups from kept uses only (drops dropped)
             gx = groups - gk                                                 # groups that exist only because of drops
@@ -59,4 +65,6 @@ print(f"  of which: groups that exist only for dropped uses (weight 0) {tot['gx'
       f"alone read {tot['gk'] / b:.1f} MB = x{tot['gk'] / tot['uniq']:.3f} of unique")
 print(f"  segments (groups cut every 16 pairs, each reads its weights): {tot['segs'] / b:.1f} per block-layer -> "
       f"{tot['sbytes'] / b:.1f} MB = x{tot['sbytes'] / tot['uniq']:.3f} of unique")
+print(f"  merged by expert (both tiers from one decode): cut at 16 pairs {tot['m16'] / b:.1f} MB = x{tot['m16'] / tot['uniq']:.3f}; "
+      f"cut at 32 pairs {tot['m32'] / b:.1f} MB = x{tot['m32'] / tot['uniq']:.3f} of unique")
 print(f"per layer ratio: min {r[0][0]:.3f} (L{r[0][1]}), median {r[len(r) // 2][0]:.3f}, max {r[-1][0]:.3f} (L{r[-1][1]})")

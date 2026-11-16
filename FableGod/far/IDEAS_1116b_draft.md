@@ -18,6 +18,9 @@ head's top-1 but the 32 pops are spent; 76 % of those at depth >= 31). 2,773 end
   (`is_palindrome` vs `make_palindrome`, `string[::-1]` vs `prefix[::-1]`): accepting them is wrong code. KILL as a
   lossy acceptance; the re-sync is only a draft-reuse lever (saves draft ms, not kept);
 - insertions / deletions 3 %.
+MBPP (the full k8 dump, 10,474 misses, `miss_types.py mbppbank`, finished 18:3x): splits 3 (KILL confirmed), re-syncing
+substitutions 4.6 % (a third of them word swaps), insertions / deletions 2.4 %; the truth is the head's #2 in 41 %, within
+its top-3 in 69 %; 3,453 anchors end at the cap or width, 1,628 at the sequence end.
 So on HE+ the kept wall inside a 32-row check is ROWS, not the head: half the blocks want depth past 31, the other half
 want width at nodes the head already marks unsure. A fixed 32-node best-first serves both halves with one budget.
 

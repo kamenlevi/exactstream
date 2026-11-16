@@ -62,3 +62,67 @@ T2 commit (O = f32one qmm32n; then C = dn32 + chunk, FAST): a 32-row verify, com
 S == R (v32 on the FAST stack, every row): NOT BITWISE
 done in 38 s; peak 8.5 GB
 
+F32ONE TEST Mon 16 Nov 13:14:02: MLX 0.32.2; slice GGGA; DENSE-N-RAM 15 weights (128 MB); HC8 18 mixers; SVH base 98304; ref2 forms on: ['att_rope', 'att_single', 'commit_phase', 'experts', 'gdn_exact', 'gdn_inproj_x', 'hc8_fast', 'hc_b', 'hc_gate', 'hc_write', 'idx_prep', 'keep_caches', 'key_buckets', 'nax_1cq', 'nax_coh', 'ooo_1c', 'ple_late', 'sb_first', 'screened_head', 'sdpa_classes', 'slot_call', 'small_native', 'tiers']; 6.8 GB active
+LAUNCH PROXY (graph primitives of one verify forward on the slice):
+  ops A16  (16 rows, GGGA): 391 non-view primitives; top [('CustomKernel', 58), ('Contiguous', 39), ('Gather', 32), ('RightShift', 26), ('BitwiseAnd', 26), ('Full', 21)]
+  ops S    (32 rows, GGGA): 640 non-view primitives; top [('CustomKernel', 142), ('Concatenate', 74), ('Contiguous', 39), ('Gather', 37), ('RightShift', 26), ('BitwiseAnd', 26)]
+  ops O    (32 rows, GGGA): 523 non-view primitives; top [('CustomKernel', 78), ('Contiguous', 39), ('Gather', 37), ('Multiply', 32), ('AsType', 29), ('RightShift', 26)]
+  ops D    (32 rows, GGGA): 523 non-view primitives; top [('CustomKernel', 78), ('Contiguous', 39), ('Gather', 37), ('Multiply', 32), ('AsType', 29), ('RightShift', 26)]
+  ops C    (32 rows, GGGA): 523 non-view primitives; top [('CustomKernel', 78), ('Contiguous', 39), ('Gather', 37), ('Multiply', 32), ('AsType', 29), ('RightShift', 26)]
+G1's form: the real loop's 16-row check, int8d off vs on (no v32 / f32one action at <= 16 rows)
+  int8d counts {'int8': 29, 'int8_rows': 464, 'quant': 16}
+    I16 vs R16: rows bitwise 0 / 16, max |logit diff| 0.2266, argmax agrees 16 / 16
+    int8 keep 1: probe rows bitwise 4 / 4 (max |diff| 0)
+    int8 keep 9: probe rows bitwise 4 / 4 (max |diff| 0)
+    int8 keep 15: probe rows bitwise 4 / 4 (max |diff| 0)
+M 32:
+  S: f32one {}; int8d {}
+  O: f32one {'dense32': 12, 'small32': 17, 'hc32': 8, 'hc32x2': 1, 'sdpa32': 1, 'svh32': 1, 'passthru': 5, 'gdn32': 3, 'att32': 1, 'inproj32': 3, 'gdnx32': 3}; int8d {}
+  D: f32one {'dense32': 12, 'small32': 17, 'dn32': 29, 'hc32': 8, 'hc32x2': 1, 'sdpa32': 1, 'svh32': 1, 'passthru': 5, 'gdn32': 3, 'att32': 1, 'inproj32': 3, 'gdnx32': 3}; int8d {}
+  C: f32one {'dense32': 12, 'small32': 17, 'dn32': 29, 'hc32': 8, 'hc32x2': 1, 'sdpa32': 1, 'svh32': 1, 'passthru': 5, 'gdn32': 3, 'att32': 1, 'inproj32': 3, 'gdn_chunk': 3, 'gdnx32': 3}; int8d {}
+  I: f32one {'hc32': 8, 'hc32x2': 1, 'sdpa32': 1, 'svh32': 1, 'passthru': 5, 'gdn32': 3, 'att32': 1, 'inproj32': 3, 'gdnx32': 3}; int8d {'int8': 29, 'int8_rows': 928, 'quant': 16}
+    S vs R: rows bitwise 0 / 32, max |logit diff| 0, argmax agrees 22 / 32
+    O vs S: rows bitwise 0 / 32, max |logit diff| 0, argmax agrees 22 / 32
+    D vs S: rows bitwise 0 / 32, max |logit diff| 0.1875, argmax agrees 22 / 32
+    C vs D: rows bitwise 1 / 32, max |logit diff| 1.094, argmax agrees 28 / 32
+    C vs S: rows bitwise 0 / 32, max |logit diff| 1.094, argmax agrees 20 / 32
+    I vs D: rows bitwise 0 / 32, max |logit diff| 0.2188, argmax agrees 31 / 32
+    I vs S: rows bitwise 0 / 32, max |logit diff| 0.2266, argmax agrees 22 / 32
+M 24:
+  S: f32one {}; int8d {}
+  O: f32one {'dense32': 12, 'small32': 17, 'hc32': 8, 'hc32x2': 1, 'sdpa32': 1, 'svh32': 1, 'passthru': 5, 'gdn32': 3, 'att32': 1, 'inproj32': 3, 'gdnx32': 3}; int8d {}
+  D: f32one {'dense32': 12, 'small32': 17, 'dn32': 29, 'hc32': 8, 'hc32x2': 1, 'sdpa32': 1, 'svh32': 1, 'passthru': 5, 'gdn32': 3, 'att32': 1, 'inproj32': 3, 'gdnx32': 3}; int8d {}
+  C: f32one {'dense32': 12, 'small32': 17, 'dn32': 29, 'hc32': 8, 'hc32x2': 1, 'sdpa32': 1, 'svh32': 1, 'passthru': 5, 'gdn32': 3, 'att32': 1, 'inproj32': 3, 'gdn_chunk': 3, 'gdnx32': 3}; int8d {}
+  I: f32one {'hc32': 8, 'hc32x2': 1, 'sdpa32': 1, 'svh32': 1, 'passthru': 5, 'gdn32': 3, 'att32': 1, 'inproj32': 3, 'gdnx32': 3}; int8d {'int8': 29, 'int8_rows': 696, 'quant': 16}
+    S vs R: rows bitwise 0 / 24, max |logit diff| 0, argmax agrees 16 / 24
+    O vs S: rows bitwise 0 / 24, max |logit diff| 0, argmax agrees 16 / 24
+    D vs S: rows bitwise 0 / 24, max |logit diff| 0.1406, argmax agrees 16 / 24
+    C vs D: rows bitwise 1 / 24, max |logit diff| 1.094, argmax agrees 21 / 24
+    C vs S: rows bitwise 0 / 24, max |logit diff| 1.094, argmax agrees 14 / 24
+    I vs D: rows bitwise 0 / 24, max |logit diff| 0.2188, argmax agrees 24 / 24
+    I vs S: rows bitwise 0 / 24, max |logit diff| 0.2266, argmax agrees 16 / 24
+M 17:
+  S: f32one {}; int8d {}
+  O: f32one {'dense32': 12, 'small32': 17, 'hc32': 8, 'hc32x2': 1, 'sdpa32': 1, 'svh32': 1, 'passthru': 5, 'gdn32': 3, 'att32': 1, 'inproj32': 3, 'gdnx32': 3}; int8d {}
+  D: f32one {'dense32': 12, 'small32': 17, 'dn32': 29, 'hc32': 8, 'hc32x2': 1, 'sdpa32': 1, 'svh32': 1, 'passthru': 5, 'gdn32': 3, 'att32': 1, 'inproj32': 3, 'gdnx32': 3}; int8d {}
+  C: f32one {'dense32': 12, 'small32': 17, 'dn32': 29, 'hc32': 8, 'hc32x2': 1, 'sdpa32': 1, 'svh32': 1, 'passthru': 5, 'gdn32': 3, 'att32': 1, 'inproj32': 3, 'gdn_chunk': 3, 'gdnx32': 3}; int8d {}
+  I: f32one {'hc32': 8, 'hc32x2': 1, 'sdpa32': 1, 'svh32': 1, 'passthru': 5, 'gdn32': 3, 'att32': 1, 'inproj32': 3, 'gdnx32': 3}; int8d {'int8': 29, 'int8_rows': 493, 'quant': 16}
+    S vs R: rows bitwise 0 / 17, max |logit diff| 0, argmax agrees 11 / 17
+    O vs S: rows bitwise 0 / 17, max |logit diff| 0, argmax agrees 11 / 17
+    D vs S: rows bitwise 0 / 17, max |logit diff| 0.1406, argmax agrees 11 / 17
+    C vs D: rows bitwise 1 / 17, max |logit diff| 0.7969, argmax agrees 16 / 17
+    C vs S: rows bitwise 0 / 17, max |logit diff| 0.8125, argmax agrees 10 / 17
+    I vs D: rows bitwise 0 / 17, max |logit diff| 0.2188, argmax agrees 17 / 17
+    I vs S: rows bitwise 0 / 17, max |logit diff| 0.2266, argmax agrees 11 / 17
+T2 commit (O = f32one qmm32n; then C = dn32 + chunk, FAST): a 32-row verify, commit keep k, then a 4-row probe; vs k rows as <= 16-row checks
+  keep 1: probe rows bitwise 4 / 4 (max |diff| 0, argmax 4 / 4)
+  keep 9: probe rows bitwise 4 / 4 (max |diff| 0, argmax 4 / 4)
+  keep 16: probe rows bitwise 4 / 4 (max |diff| 0, argmax 4 / 4)
+  keep 17: probe rows bitwise 4 / 4 (max |diff| 0, argmax 4 / 4)
+  keep 24: probe rows bitwise 4 / 4 (max |diff| 0, argmax 4 / 4)
+  keep 31: probe rows bitwise 4 / 4 (max |diff| 0, argmax 4 / 4)
+  C keep 9: probe rows bitwise 0 / 4 (FAST: max |diff| 0.0898, argmax 4 / 4)
+  C keep 24: probe rows bitwise 0 / 4 (FAST: max |diff| 0.297, argmax 4 / 4)
+S == R (v32 on the FAST stack, every row): NOT BITWISE
+done in 21 s; peak 8.5 GB
+

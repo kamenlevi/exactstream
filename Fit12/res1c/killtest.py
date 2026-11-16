@@ -218,6 +218,10 @@ def bit_tests_passed():
             and "RES1C BIT TESTS: ALL PASS" in open(r).read())
 
 
+try:                                                 # detach from the launching session's process group: a session
+    os.setsid()                                      # teardown (usage stop) must not TERM this overnight runner
+except OSError:
+    pass
 ARMED = time.time()
 open(os.path.join(O, "ARMED"), "w").write(f"armed {time.strftime('%m-%d %H:%M:%S')} pid {os.getpid()}\n")
 if os.path.exists(os.path.join(O, "KILL_DONE")):

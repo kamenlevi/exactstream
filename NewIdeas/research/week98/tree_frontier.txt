@@ -1,0 +1,186 @@
+SELF-CHECK mbppbank: chain-32 6.92 vs 6.92 -> PASS
+SELF-CHECK MBPP 32 rows (reference = tree_cc32's code): chain 6.924 vs 6.92, chain + CC 8.524 vs 8.52, tree 9.031 vs 9.03, tree + CC 9.502 vs 9.5 -> PASS
+SELF-CHECK MBPP 32 rows: generalized arms (exact, R1(1)) vs the reference, anchor for anchor -> identical
+SELF-CHECK MBPP 16 rows (reference = tree_cc32's code): chain 6.588 vs 6.588, chain + CC 7.919 vs 7.919, tree 7.487 vs 7.487, tree + CC 7.968 vs 7.968 -> PASS
+SELF-CHECK MBPP 16 rows: generalized arms (exact, R1(1)) vs the reference, anchor for anchor -> identical
+SELF-CHECK heplus24: chain-32 13.77 vs 13.77 -> PASS
+SELF-CHECK HE+ 32 rows (reference = tree_cc32's code): chain 13.769 vs 13.77, chain + CC 16.776 vs 16.78, tree 16.263 vs 16.26, tree + CC 16.910 vs 16.91 -> PASS
+SELF-CHECK HE+ 32 rows: generalized arms (exact, R1(1)) vs the reference, anchor for anchor -> identical
+SELF-CHECK HE+ 16 rows (reference = tree_cc32's code): chain 10.625 vs 10.625, chain + CC 12.097 vs 12.097, tree 11.263 vs 11.263, tree + CC 11.762 vs 11.762 -> PASS
+SELF-CHECK HE+ 16 rows: generalized arms (exact, R1(1)) vs the reference, anchor for anchor -> identical
+
+LOSSY ACCEPTANCE FRONTIER (kept per check = accepted drafts + 1, on the walk from R0 = 1; CPU replay of the real t30b dumps)
+x lossy = / today's lossy (tree-32 + CC(1)); x exact = / exact tree-32; stop = kept if every relaxed accept ended its check (bounds the continue-along-true-text flattery); cap % = checks that keep every row (accepted = 31 or 15); relaxed / 1k = relaxed accepts per 1,000 committed tokens, all = code + comment + docstring + prose
+
+=== HE+ (heplus24): today's lossy tree-32 + CC(1) 16.910, exact tree-32 16.263; answer positions 6,351: code 30.1 %, comment 13.1 %, docstring 56.0 %, prose 0.8 %
+ shape    rule                  kept  x lossy  x exact    stop cap %   relaxed / 1k: all = code + comment + docstring + prose
+ chain-32 exact               13.769    0.814    0.847  13.769  22.0      0.0 =   0.0 +   0.0 +   0.0 +   0.0
+ chain-32 R1(1) = CC(1)       16.776    0.992    1.032  14.230  27.9     15.4 =   4.5 +  10.8 +   0.0 +   0.0
+ chain-32 R1(2)               18.214    1.077    1.120  14.555  30.9     22.3 =   6.4 +  15.8 +   0.0 +   0.0
+ chain-32 R1(3)               19.676    1.164    1.210  14.655  33.6     28.4 =   8.2 +  20.2 +   0.0 +   0.0
+ chain-32 TYP(0.05)           18.973    1.122    1.167  14.588  32.7     25.7 =   7.8 +  17.9 +   0.0 +   0.0
+ chain-32 TYP(0.1)            17.857    1.056    1.098  14.423  30.0     21.0 =   6.4 +  14.6 +   0.0 +   0.0
+ chain-32 TYP(0.2)            16.346    0.967    1.005  14.167  26.7     14.0 =   5.5 +   8.5 +   0.0 +   0.0
+ chain-32 TOP2                18.640    1.102    1.146  14.489  35.4     27.6 =  11.6 +  13.6 +   2.4 +   0.0
+ chain-32 SPAN                18.805    1.112    1.156  14.622  31.0     24.6 =   4.5 +  20.1 +   0.0 +   0.0
+ chain-32 INERT               20.498    1.212    1.260  14.655  41.5     36.9 =   0.0 +  31.7 +   5.2 +   0.0
+ chain-32 INERT + R1(1)       21.758    1.287    1.338  14.826  44.4     40.8 =   4.2 +  31.4 +   5.2 +   0.0
+ chain-32 INERT + R1(2)       22.447    1.327    1.380  14.757  46.1     42.8 =   6.4 +  31.2 +   5.2 +   0.0
+ chain-32 INERT + TYP(0.1)    22.527    1.332    1.385  14.757  46.6     42.8 =   6.6 +  31.1 +   5.2 +   0.0
+ chain-32 INERT + TOP2        23.611    1.396    1.452  14.757  52.2     49.9 =  12.7 +  32.0 +   5.2 +   0.0
+
+ tree-32  exact               16.263    0.962    1.000  16.263  25.0      0.0 =   0.0 +   0.0 +   0.0 +   0.0
+ tree-32  R1(1) = CC(1)       16.910    1.000    1.040  16.602  25.7      5.2 =   1.3 +   3.9 +   0.0 +   0.0
+ tree-32  R1(2)               17.323    1.024    1.065  16.688  26.4      8.3 =   2.4 +   6.0 +   0.0 +   0.0
+ tree-32  R1(3)               17.659    1.044    1.086  16.776  27.1     11.9 =   3.6 +   8.3 +   0.0 +   0.0
+ tree-32  TYP(0.05)           17.514    1.036    1.077  16.688  26.9     10.0 =   3.5 +   6.6 +   0.0 +   0.0
+ tree-32  TYP(0.1)            17.230    1.019    1.059  16.688  26.5      7.2 =   2.5 +   4.7 +   0.0 +   0.0
+ tree-32  TYP(0.2)            16.910    1.000    1.040  16.516  25.7      5.0 =   1.7 +   3.3 +   0.0 +   0.0
+ tree-32  TOP2                17.807    1.053    1.095  16.645  28.8     13.8 =   6.7 +   5.0 +   2.0 +   0.0
+ tree-32  SPAN                17.418    1.030    1.071  16.821  26.5     10.7 =   1.6 +   9.1 +   0.0 +   0.0
+ tree-32  INERT               17.958    1.062    1.104  16.821  30.4     17.1 =   0.0 +  12.9 +   4.2 +   0.0
+ tree-32  INERT + R1(1)       18.111    1.071    1.114  16.910  30.7     18.2 =   1.4 +  12.5 +   4.2 +   0.0
+ tree-32  INERT + R1(2)       18.266    1.080    1.123  16.865  30.9     19.0 =   2.2 +  12.5 +   4.2 +   0.0
+ tree-32  INERT + TYP(0.1)    18.319    1.083    1.126  16.865  31.3     19.5 =   2.5 +  12.7 +   4.2 +   0.0
+ tree-32  INERT + TOP2        18.750    1.109    1.153  16.955  32.4     24.0 =   6.4 +  13.3 +   4.2 +   0.0
+
+ chain-16 exact               10.625    0.628    0.653  10.625  46.5      0.0 =   0.0 +   0.0 +   0.0 +   0.0
+ chain-16 R1(1) = CC(1)       12.097    0.715    0.744  10.897  55.2     14.9 =   4.2 +  10.7 +   0.0 +   0.0
+ chain-16 R1(2)               12.674    0.750    0.779  11.106  59.6     21.5 =   5.8 +  15.7 +   0.0 +   0.0
+ chain-16 R1(3)               13.309    0.787    0.818  11.165  64.9     27.5 =   7.4 +  20.1 +   0.0 +   0.0
+ chain-16 TYP(0.05)           13.010    0.769    0.800  11.126  63.1     25.4 =   7.2 +  18.2 +   0.0 +   0.0
+ chain-16 TYP(0.1)            12.549    0.742    0.772  11.029  59.1     20.2 =   5.8 +  14.4 +   0.0 +   0.0
+ chain-16 TYP(0.2)            11.938    0.706    0.734  10.916  54.1     13.2 =   5.0 +   8.2 +   0.0 +   0.0
+ chain-16 TOP2                12.750    0.754    0.784  11.010  63.4     25.3 =  11.0 +  13.3 +   0.9 +   0.0
+ chain-16 SPAN                13.037    0.771    0.802  11.126  61.8     24.5 =   4.2 +  20.2 +   0.0 +   0.0
+ chain-16 INERT               13.535    0.800    0.832  11.049  68.8     32.5 =   0.0 +  28.5 +   3.9 +   0.0
+ chain-16 INERT + R1(1)       13.980    0.827    0.860  11.165  71.9     37.3 =   4.4 +  29.0 +   3.9 +   0.0
+ chain-16 INERT + R1(2)       14.167    0.838    0.871  11.184  74.4     38.4 =   6.1 +  28.4 +   3.9 +   0.0
+ chain-16 INERT + TYP(0.1)    14.198    0.840    0.873  11.184  74.8     38.4 =   6.3 +  28.2 +   3.9 +   0.0
+ chain-16 INERT + TOP2        14.423    0.853    0.887  11.204  79.2     44.7 =  11.6 +  29.2 +   3.9 +   0.0
+
+ tree-16  exact               11.263    0.666    0.693  11.263  46.8      0.0 =   0.0 +   0.0 +   0.0 +   0.0
+ tree-16  R1(1) = CC(1)       11.762    0.696    0.723  11.528  49.4      6.7 =   1.9 +   4.9 +   0.0 +   0.0
+ tree-16  R1(2)               11.983    0.709    0.737  11.654  50.6      9.6 =   3.3 +   6.3 +   0.0 +   0.0
+ tree-16  R1(3)               12.189    0.721    0.750  11.697  52.2     12.4 =   4.2 +   8.2 +   0.0 +   0.0
+ tree-16  TYP(0.05)           12.143    0.718    0.747  11.697  51.8     11.6 =   4.1 +   7.5 +   0.0 +   0.0
+ tree-16  TYP(0.1)            11.983    0.709    0.737  11.612  50.8      9.6 =   3.5 +   6.1 +   0.0 +   0.0
+ tree-16  TYP(0.2)            11.827    0.699    0.727  11.486  49.7      6.7 =   2.5 +   4.2 +   0.0 +   0.0
+ tree-16  TOP2                12.097    0.715    0.744  11.507  53.1     13.5 =   6.1 +   6.4 +   0.9 +   0.0
+ tree-16  SPAN                12.028    0.711    0.740  11.676  50.9     10.8 =   2.4 +   8.5 +   0.0 +   0.0
+ tree-16  INERT               12.166    0.719    0.748  11.591  52.9     15.5 =   0.0 +  12.1 +   3.5 +   0.0
+ tree-16  INERT + R1(1)       12.379    0.732    0.761  11.697  53.8     17.6 =   2.2 +  11.9 +   3.5 +   0.0
+ tree-16  INERT + R1(2)       12.451    0.736    0.766  11.697  54.1     18.2 =   3.0 +  11.8 +   3.5 +   0.0
+ tree-16  INERT + TYP(0.1)    12.451    0.736    0.766  11.697  54.1     18.2 =   3.0 +  11.8 +   3.5 +   0.0
+ tree-16  INERT + TOP2        12.624    0.747    0.776  11.697  56.4     23.5 =   6.1 +  14.0 +   3.5 +   0.0
+
+ sensitivity (HE+; kept tree-32 / chain-32 / tree-16 (chain-32 stop); x lossy at chain-32):
+   INERT-nl            17.958 /  20.303 /  12.120 (14.622); x1.201
+   INERT | R1(1)       18.111 /  22.059 /  12.403 (14.826); x1.304
+   INERT | R1(2)       18.266 /  23.098 /  12.525 (14.791); x1.366
+   INERT | TYP(0.1)    18.214 /  23.014 /  12.476 (14.757); x1.361
+   INERT | TOP2        18.917 /  24.240 /  12.649 (14.826); x1.433
+ tree-32 rescue rows where the tree's top-1 child equals the cell's pick: 2276 of 2276
+ tree-32: at the 2,276 rescue-eligible anchors (first unselected true depth is a miss with a selected top-1 child) the tree's selected spine below that child is 7.68 levels on average (median 6); a chain of the same rows would have 16.88
+ tree-16: at the 1,434 rescue-eligible anchors (first unselected true depth is a miss with a selected top-1 child) the tree's selected spine below that child is 3.92 levels on average (median 3); a chain of the same rows would have 7.10
+
+=== MBPP (mbppbank): today's lossy tree-32 + CC(1) 9.502, exact tree-32 9.031; answer positions 15,541: code 41.4 %, comment 19.7 %, docstring 37.7 %, prose 1.3 %
+ shape    rule                  kept  x lossy  x exact    stop cap %   relaxed / 1k: all = code + comment + docstring + prose
+ chain-32 exact                6.924    0.729    0.767   6.924   0.7      0.0 =   0.0 +   0.0 +   0.0 +   0.0
+ chain-32 R1(1) = CC(1)        8.524    0.897    0.944   7.347   1.3     36.6 =   7.8 +  13.0 +  15.8 +   0.0
+ chain-32 R1(2)               10.143    1.067    1.123   7.615   2.1     61.9 =  12.6 +  21.4 +  27.9 +   0.0
+ chain-32 R1(3)               11.560    1.217    1.280   7.801   3.3     79.7 =  17.3 +  28.2 +  34.2 +   0.0
+ chain-32 TYP(0.05)           11.124    1.171    1.232   7.747   2.7     75.0 =  16.5 +  25.6 +  32.9 +   0.0
+ chain-32 TYP(0.1)             9.956    1.048    1.102   7.582   2.1     59.5 =  13.4 +  19.8 +  26.4 +   0.0
+ chain-32 TYP(0.2)             8.738    0.920    0.968   7.374   1.5     39.3 =   9.1 +  12.5 +  17.7 +   0.0
+ chain-32 TOP2                11.326    1.192    1.254   7.682   4.6     81.6 =  23.6 +  21.7 +  36.3 +   0.0
+ chain-32 SPAN                10.720    1.128    1.187   7.709   2.5     70.8 =   7.6 +  29.0 +  34.2 +   0.0
+ chain-32 INERT               15.230    1.603    1.686   7.924  19.5    137.2 =   0.0 +  54.5 +  82.7 +   0.0
+ chain-32 INERT + R1(1)       16.482    1.734    1.825   8.029  22.6    145.1 =   7.5 +  55.2 +  82.3 +   0.0
+ chain-32 INERT + R1(2)       17.496    1.841    1.937   8.079  25.3    148.7 =  12.6 +  54.0 +  82.2 +   0.0
+ chain-32 INERT + TYP(0.1)    17.574    1.849    1.946   8.075  25.5    150.2 =  13.2 +  54.0 +  82.9 +   0.0
+ chain-32 INERT + TOP2        19.478    2.050    2.157   8.189  30.9    164.4 =  24.2 +  54.8 +  85.4 +   0.0
+
+ tree-32  exact                9.031    0.950    1.000   9.031   0.5      0.0 =   0.0 +   0.0 +   0.0 +   0.0
+ tree-32  R1(1) = CC(1)        9.502    1.000    1.052   9.201   0.5     13.9 =   4.2 +   4.0 +   5.8 +   0.0
+ tree-32  R1(2)                9.881    1.040    1.094   9.305   0.5     25.3 =   7.0 +   7.3 +  11.0 +   0.0
+ tree-32  R1(3)               10.111    1.064    1.120   9.405   0.6     33.2 =   9.5 +  10.0 +  13.7 +   0.0
+ tree-32  TYP(0.05)           10.071    1.060    1.115   9.371   0.5     32.0 =   9.2 +   9.9 +  12.9 +   0.0
+ tree-32  TYP(0.1)             9.825    1.034    1.088   9.282   0.5     24.7 =   7.7 +   6.4 +  10.6 +   0.0
+ tree-32  TYP(0.2)             9.491    0.999    1.051   9.184   0.5     14.8 =   5.1 +   3.9 +   5.9 +   0.0
+ tree-32  TOP2                10.156    1.069    1.125   9.299   0.6     36.4 =  13.4 +   7.9 +  15.1 +   0.0
+ tree-32  SPAN                 9.943    1.046    1.101   9.349   0.6     28.1 =   4.4 +  10.0 +  13.6 +   0.0
+ tree-32  INERT               10.869    1.144    1.204   9.543   0.8     53.6 =   0.0 +  19.6 +  34.1 +   0.0
+ tree-32  INERT + R1(1)       11.038    1.162    1.222   9.613   0.8     57.9 =   4.3 +  19.2 +  34.4 +   0.0
+ tree-32  INERT + R1(2)       11.180    1.177    1.238   9.655   0.9     60.5 =   6.9 +  19.2 +  34.4 +   0.0
+ tree-32  INERT + TYP(0.1)    11.172    1.176    1.237   9.649   0.9     61.5 =   7.5 +  19.3 +  34.7 +   0.0
+ tree-32  INERT + TOP2        11.425    1.202    1.265   9.667   1.2     68.4 =  13.7 +  19.6 +  35.1 +   0.0
+
+ chain-16 exact                6.588    0.693    0.730   6.588   9.2      0.0 =   0.0 +   0.0 +   0.0 +   0.0
+ chain-16 R1(1) = CC(1)        7.919    0.833    0.877   6.961  13.8     35.8 =   7.7 +  12.5 +  15.6 +   0.0
+ chain-16 R1(2)                9.120    0.960    1.010   7.198  19.7     60.2 =  12.0 +  21.0 +  27.2 +   0.0
+ chain-16 R1(3)                9.975    1.050    1.105   7.350  26.0     76.7 =  16.4 +  27.8 +  32.5 +   0.0
+ chain-16 TYP(0.05)            9.691    1.020    1.073   7.312  23.9     72.2 =  15.9 +  25.2 +  31.1 +   0.0
+ chain-16 TYP(0.1)             8.974    0.944    0.994   7.175  19.2     58.2 =  12.8 +  19.2 +  26.2 +   0.0
+ chain-16 TYP(0.2)             8.062    0.848    0.893   6.973  14.9     38.1 =   8.8 +  12.0 +  17.3 +   0.0
+ chain-16 TOP2                 9.685    1.019    1.072   7.258  26.9     76.8 =  22.0 +  21.4 +  33.4 +   0.0
+ chain-16 SPAN                 9.485    0.998    1.050   7.272  21.5     68.3 =   7.5 +  28.2 +  32.5 +   0.0
+ chain-16 INERT               11.450    1.205    1.268   7.455  45.0    113.4 =   0.0 +  47.5 +  65.9 +   0.0
+ chain-16 INERT + R1(1)       12.106    1.274    1.341   7.549  49.5    120.7 =   7.3 +  48.0 +  65.5 +   0.0
+ chain-16 INERT + R1(2)       12.523    1.318    1.387   7.585  53.2    124.4 =  11.8 +  47.8 +  64.8 +   0.0
+ chain-16 INERT + TYP(0.1)    12.533    1.319    1.388   7.589  53.7    125.3 =  12.3 +  47.8 +  65.2 +   0.0
+ chain-16 INERT + TOP2        13.188    1.388    1.460   7.686  61.6    135.0 =  20.9 +  47.9 +  66.2 +   0.0
+
+ tree-16  exact                7.487    0.788    0.829   7.487   6.5      0.0 =   0.0 +   0.0 +   0.0 +   0.0
+ tree-16  R1(1) = CC(1)        7.968    0.839    0.882   7.656   7.6     17.9 =   4.8 +   5.8 +   7.3 +   0.0
+ tree-16  R1(2)                8.320    0.876    0.921   7.762   8.5     32.1 =   7.5 +  10.3 +  14.3 +   0.0
+ tree-16  R1(3)                8.528    0.897    0.944   7.836   9.2     40.0 =   9.6 +  12.5 +  18.0 +   0.0
+ tree-16  TYP(0.05)            8.468    0.891    0.938   7.817   9.1     38.0 =   9.5 +  11.8 +  16.8 +   0.0
+ tree-16  TYP(0.1)             8.276    0.871    0.916   7.739   8.7     30.8 =   7.7 +   9.4 +  13.6 +   0.0
+ tree-16  TYP(0.2)             8.009    0.843    0.887   7.656   8.0     19.8 =   5.7 +   5.5 +   8.6 +   0.0
+ tree-16  TOP2                 8.580    0.903    0.950   7.856  11.5     41.4 =  13.7 +   9.8 +  17.9 +   0.0
+ tree-16  SPAN                 8.378    0.882    0.928   7.809   8.3     35.3 =   4.9 +  12.6 +  17.8 +   0.0
+ tree-16  INERT                8.989    0.946    0.995   7.956  11.0     58.1 =   0.0 +  22.2 +  35.9 +   0.0
+ tree-16  INERT + R1(1)        9.168    0.965    1.015   7.976  11.5     64.3 =   4.7 +  23.4 +  36.2 +   0.0
+ tree-16  INERT + R1(2)        9.282    0.977    1.028   7.980  12.3     67.8 =   7.5 +  23.9 +  36.4 +   0.0
+ tree-16  INERT + TYP(0.1)     9.282    0.977    1.028   7.980  12.4     68.3 =   7.7 +  23.9 +  36.7 +   0.0
+ tree-16  INERT + TOP2         9.508    1.001    1.053   8.067  14.8     73.1 =  12.7 +  23.7 +  36.6 +   0.0
+
+ sensitivity (MBPP; kept tree-32 / chain-32 / tree-16 (chain-32 stop); x lossy at chain-32):
+   INERT-nl            10.655 /  14.078 /   8.872 (7.876); x1.482
+   INERT | R1(1)       11.054 /  16.873 /   9.239 (8.067); x1.776
+   INERT | R1(2)       11.261 /  18.294 /   9.411 (8.134); x1.925
+   INERT | TYP(0.1)    11.236 /  18.272 /   9.400 (8.129); x1.923
+   INERT | TOP2        11.484 /  20.234 /   9.602 (8.236); x2.129
+ tree-32 rescue rows where the tree's top-1 child equals the cell's pick: 8020 of 8020
+ tree-32: at the 8,020 rescue-eligible anchors (first unselected true depth is a miss with a selected top-1 child) the tree's selected spine below that child is 5.61 levels on average (median 4); a chain of the same rows would have 22.29
+ tree-16: at the 7,416 rescue-eligible anchors (first unselected true depth is a miss with a selected top-1 child) the tree's selected spine below that child is 3.85 levels on average (median 3); a chain of the same rows would have 8.42
+
+FLAGGED (>= x1.40 over today's lossy on HE+): HE+ chain-32 INERT | TOP2 (sensitivity): kept 24.24 = x1.433 (stop 14.83 = x0.877)
+NOTES (method, fields, assumptions)
+- Walk and data as tree_cc32.py: certify98's decode walk from R0 = 1 over the 24 HE+ / 100 MBPP answers of the bank (the
+  true text = the 125B's greedy answer); a check at anchor p drafts the true-text cells (p, 0..); kept = accepted + 1.
+  Every rule walks the same true text, so committed tokens are fixed (HE+ 6,375 = 6,351 answer positions + one end row per
+  answer, as certify98's walk counts it; MBPP 15,641 = 15,541 + 100) and kept/check = committed / checks.
+- Shapes: chain-N = the head's top-1 chain to depth N - 1; tree-N = EAGLE-2's first N - 1 best-first pops of the 32 dumped
+  per anchor. Tree + rule = the exact tree's accepted depth A, then ONE relaxed rescue at A through the head's selected
+  top-1 child (the cell's pick: it matched on every rescue row), then that child's selected best-child spine while each
+  cell is exact or relaxed. Siblings at A are not tried (as CC); the spine is the tree's own selection (budget-correct).
+- APPROXIMATION (flatters aggressive rules): after a relaxed accept the walk continues along the TRUE text's cells, i.e.
+  the head's picks and the 125B's argmax given the true prefix, not the relaxed one. 'stop' = the floor where every
+  relaxed accept ends its check (the relaxed draft kept + the bonus). Chains depend on the continuation far more than
+  trees (chain stop ~ exact chain + 1); the real engine sits somewhere between the two columns, unmeasured here.
+- p125 fields: log p125(pick) = record lp[row, 0] + cells dlp (identical to lp[row, rank]; lp = the captured top-32
+  log-softmax, float16, logsumexp <= +0.0003); TOP2 = cells rank <= 1 (the pick's index in the 125B's top-32, -> 99 off
+  it). R1 = cells dlp. HE+: on 35 rows (0.5 %) the text token is not the captured top-1 (gap <= 0.75 nat, 8 exact ties);
+  R1 / TYP / TOP2 measure the pick against the captured top-1 there, INERT's argmax guards use the text token.
+- Classes: InertScan (relax_core.CodeScan + the docstring state) fed the answer's text from ids[gen], one decode([id]) per
+  token as r57 does; a cell's class = the state before its target token. 'prose' = outside any ``` fence (here: the
+  ```python line); prose rows follow the code rule in SPAN and the combos.
+- INERT = inert_span.classify(arm CD32, doctest guard ON = its default): comments whole unless the pick / the 125B's token
+  holds a newline or the comment is / could become a tool comment; docstrings whole unless the pick / the token holds the
+  docstring's quote character or the row is a doctest line. No newline guard on docstrings (INERT-nl adds one).
+- Combos 'INERT + X' (the table) = INERT on comment / docstring rows, X on code and prose rows; a guarded span row (line
+  end, doctest line, quote) stays exact. 'INERT | X' (sensitivity) = the union: X may also relax those guarded rows.
+- x lossy / x exact divide by this run's tree-32 + CC(1) and exact tree-32 of the same set (HE+ 16.910 / 16.263, MBPP
+  9.502 / 9.031), also for the 16-row shapes.

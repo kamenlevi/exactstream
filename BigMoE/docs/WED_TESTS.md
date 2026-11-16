@@ -2684,3 +2684,28 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
     peak ~44 GB), start by 22:50, hard stop 23:03.
   - If 40 doesn't open by then, the test runs after M4's end (M4 and this test share this session's peer lock, so they
     cannot overlap).
+- **Mon 18:0x-18:21, amendment 5e: int8 dense DROPPED from G1 and every 5d branch** (NewIdeas 18:0x; EvalSuite drafts
+  it). Leap's quiet engine A/B measured int8 dense +1.13 ms per check, and it adds ~1.7 GB resident.
+  - Eight new envs on the same g1b snapshot (the int8 code stays in, inert when unset): g1 / g1r / g1c / g1cr / g1cd /
+    g1cdr / g1l / g1lr 45g1b = the matching x-env's line minus R57_INT8D=1 R57_INT8D_SETS=humaneval,humanevalx,mbpp.
+  - Key-test criterion "int8 > 0" becomes "int8 absent": no int8 / int8_rows in lossy_check on any key. Everything
+    else as before (1c engaged per code key, the res1c counters, the mbpp/115 + mbpp/146 keys on the COMQOM envs).
+  - EvalSuite's head test PASS on all nine (base + eight).
+  - Stub sims: PASS when int8 is absent; int8 injected -> all eight FAIL "int8 dense present"; the int8 set still PASSes.
+  - Re-armed 18:21 with the int8-free variants, same gates (after the map screen, NO-SWAP >= 40, start by 22:50).
+  - Also built and dropped: an INERT env for night1117 (lx45cc1 - SPAN + R57_INERT=CD16; head test PASS). NewIdeas
+    cancelled it at 18:19 because CD16 is a recorded quality KILL (TRIED 11-06). The key test keeps a generic --extra
+    option (XTRA) from that work; it is unused.
+- **Mon 18:2x, two lock fixes before the night's slots** (Leap's c25 GPU-busy run now waits only for the map screen, with
+  a 180 s grace for this test's start):
+  - g1_follow.sh's big_lock() dropped every peer ls row that mentioned "BigMoE". That also hides other sessions whose
+    status names BigMoE, and their locks: the same bug as 11-12. It now reads the lock segments of the other sessions'
+    rows only ("- " rows; mine is "You:").
+  - The wrapper also waits while another session holds a quiet lock (a benchmark). Starting a share run beside it would
+    spoil its timing.
+  - g1_keytest.py retries its share lock for up to 25 min while a quiet lock refuses it, instead of ending STOPPED. A
+    STOPPED marker would release EvalSuite's B2.
+  - Tests: the lock functions on synthetic rows plus the live peer ls (6 cases as expected, including a status that
+    mentions BigMoE); a fake peer that refuses twice for a quiet lock then grants -> PASS, and refuses for another reason
+    -> STOPPED at once; the wrapper waits out a quiet lock in a sim, then PASS.
+  - Re-armed 18:29.

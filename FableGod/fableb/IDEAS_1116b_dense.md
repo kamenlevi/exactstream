@@ -31,6 +31,11 @@ IDEAS_1116_check25.md. Screen script: think1116b/hc_statsfwd_check.py (seconds, 
   Until the CPU is under the GPU, a dense ms is worth less than a dense launch. (Fable C audits section 1; this is the
   one number I would add to it: the 56.4 is a CPU number, so "42 % of the bound" compares a CPU time with a GPU bound.)
 
+- **CORRECTION (Leap 18:2x):** "build + submit" is the wall of the forward call, not CPU time; the slice preview puts
+  the CPU at ~30-35 ms per check [P] (Python build ~0.45 ms per layer, encode ~3 us per dispatch). Whether the check is
+  CPU-paced is tonight's GPU-busy measurement (Leap bets ~50 ms GPU, the orchestrator ~35-40). The launch-count
+  argument stands either way; the "CPU-bound by 45 ms" reading above does not.
+
 ## 1. STATS-FORWARD: the HC read in one launch (best idea) [P] -2.5..-4.5 ms, no quality risk
 
 - **Mechanism.** The HC read is three chained launches per layer: K1C (per-K-tile partial projections of the 4 streams

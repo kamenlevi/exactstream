@@ -1,0 +1,14 @@
+mtlprof: 13 hooks on AGXG17XFamilyComputeContext / AGXG17XFamilyCommandBuffer / AGXG17SDevice
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=21.5 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+PASS-K SLICE TEST Mon 16 Nov 18:05:44: MLX 0.32.2; slice GGGA; DENSE-N-RAM 15 weights (128 MB); HC8 18 mixers; SVH base 98304; ref2 forms on: ['att_rope', 'att_single', 'commit_phase', 'experts', 'gdn_exact', 'gdn_inproj_x', 'hc8_fast', 'hc_b', 'hc_gate', 'hc_write', 'idx_prep', 'keep_caches', 'key_buckets', 'nax_1cq', 'nax_coh', 'ooo_1c', 'ple_late', 'sb_first', 'screened_head', 'sdpa_classes', 'slot_call', 'small_native', 'tiers']; 6.8 GB active
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (1329282 > 262144). Running this sequence through the model will result in indexing errors
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+CPU SPLIT SLICE Mon 16 Nov 18:05:48: arms ['F16', 'F32s', 'F32o']; rows F16 16, F32* 32; c25_cpusplit installed
+  F16   check  11.32 ms = build + submit   3.09 + wait  8.15 + commit  0.18 | build + submit = Python build  2.41 + MLX encode  0.36 + blocked in eval  0.01 + other  0.31 (1 async_eval, 0 eval) | GPU busy: whole check   9.38 (83%), during build + submit   2.02, during wait  7.56 | 304 disp, 22 cbs, CPU per disp 9.1 us | n 6
+  F32s  check  17.68 ms = build + submit   2.17 + wait 15.30 + commit  0.18 | build + submit = Python build  2.17 + MLX encode  0.00 + blocked in eval  0.00 + other  0.01 (0 async_eval, 0 eval) | GPU busy: whole check  14.36 (81%), during build + submit   0.00, during wait 14.36 | 565 disp, 34 cbs, CPU per disp 3.8 us | n 6
+  F32o  check  14.32 ms = build + submit   1.84 + wait 12.55 + commit  0.21 | build + submit = Python build  1.78 + MLX encode  0.00 + blocked in eval  0.00 + other -0.00 (0 async_eval, 0 eval) | GPU busy: whole check  12.01 (84%), during build + submit   0.00, during wait 12.01 | 383 disp, 26 cbs, CPU per disp 4.6 us | n 6
+  per layer (4-layer slice; x12 for 48 layers, head counted once): see the engine run for the real check
+done in 7 s; peak 8.3 GB
