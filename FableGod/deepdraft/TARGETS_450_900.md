@@ -1,3 +1,13 @@
+> **CORRECTED Mon 16 Nov 10:3x (`date`): every tok/s grid below that says "drafting hidden" is an UPPER bound that can't
+> be reached.**
+> - Pillar 3 closed. Draft bytes add in full on a bandwidth-bound check; no byte cut keeps kept within 1 % (M3).
+> - Add the draft per block (full head, 0.66-0.92 ms per level): tree-16 8.3-11.5 ms, tree-32 13.8-19.1, K128 26.2-36.3.
+> - HE+ like for like at the byte floor:
+>   - tree-16 204-216 (not 257);
+>   - tree-32 209-224 (not 277);
+>   - K128 + early death 251-303 (not 410-455).
+> - At the measured engine, HE+ tree-16 is ~144 tok/s (~150 with a hand-fused level), not 167 (research/week98/earlydeath_unhidden.txt).
+
 > **CORRECTION Mon 16 Nov 08:2x (`date`): the check pillar re-priced on the MEASURED engine.**
 > - **Lossy:** Fit12's LOSSY32 (number-checked) prices the "5.86 GB = 20.9 / 24.9 ms" plan per component on the engine
 >   at **49.8-53.3 ms realistic** for a 32-row check (6.12 GB on code; its code floor is 21.9 ms, not 20.9).

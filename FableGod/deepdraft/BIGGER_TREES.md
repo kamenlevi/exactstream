@@ -1,3 +1,13 @@
+> **CORRECTED Mon 16 Nov 10:3x (`date`): every tok/s grid below that says "drafting hidden" is an UPPER bound that can't
+> be reached.**
+> - Pillar 3 closed. Draft bytes add in full on a bandwidth-bound check; no byte cut keeps kept within 1 % (M3).
+> - Add the draft per block (full head, 0.66-0.92 ms per level): tree-16 8.3-11.5 ms, tree-32 13.8-19.1, K128 26.2-36.3.
+> - HE+ like for like at the byte floor:
+>   - tree-16 204-216 (not 257);
+>   - tree-32 209-224 (not 277);
+>   - K128 + early death 251-303 (not 410-455).
+> - At the measured engine, HE+ tree-16 is ~144 tok/s (~150 with a hand-fused level), not 167 (research/week98/earlydeath_unhidden.txt).
+
 > (a quote from the project owner, kept private)
 
 > (a quote from the project owner, kept private)
@@ -166,3 +176,40 @@ is needed by Saturday.
     is the first route in the arithmetic to 450 exact. Fable B priced it on the proxy's 19.1.
   - The probe is UNTESTED (PASS >= 90 % of off-spine nodes droppable at <= 2 % false drops, layer 16). MBPP's 127-node
     dump is pending.
+
+## REAL 127-NODE TREES, MBPP (Mon 10:1x; treek_final_mbpp_n127k8.txt, treek_bands_n127_mbpp.txt)
+- **Kept per check, MBPP:**
+
+  | rows | 16 | 24 | 32 | 48 | 64 | 96 | 128 |
+  |---|---|---|---|---|---|---|---|
+  | kept | 7.49 | 8.45 | 9.03 | 9.73 | 10.19 | 10.88 | 11.29 |
+
+- **S11's proxy was RIGHT on MBPP:** K64 10.16 / K128 11.24, within 0.5 %. So HE+'s extra lift over the proxy (+14-19 %)
+  is HE+-specific: long, confident runs, mostly docstrings copied from the prompt.
+- **K* MBPP = tree-16 under every cost.**
+- **Walk-strict coverage at K127, MBPP:** 99.6 / 97.2 / 92.4 / 87.5 / 86.8 / 88.7 / 86.6. Knowledge-limited, as known.
+- **EARLY DEATH on MBPP:** K128 at ~48-54 ms by bytes + 4 ms is 11.29 / (52..58) = ~195-217 tok/s vs tree-16's 171 at
+  the floor: +14-27 %. HE+ is ~410-455 vs 277: +48-64 %.
+  - All at the byte floor, probe untested.
+  - The premise holds on both sets (smaller on MBPP), so the Tuesday-night dev pass is CONFIRMED.
+
+## CORRECTED Mon 10:3x (`date`): early death's projection with drafting NOT hidden (the orchestrator's number check)
+- **The ~410-455 was wrong.** It kept drafting HIDDEN, but on a bandwidth-bound check the draft's bytes add in full (my
+  own Pillar 3 point). A K128 tree is ~39.6 levels deep. At the full head's 177.6 MB per level, that is ~26-36 ms of
+  draft per block (0.66-0.92 ms per level, hand-fused to today's sync-free; a lower bound, since wider frontiers read
+  more experts).
+- **Like for like, HE+, byte floor, overhead 4 ms, drafting NOT hidden** (earlydeath_unhidden.txt):
+
+  | config | kept | draft ms | tok/s |
+  |---|---|---|---|
+  | tree-16 | 11.26 | 8.3-11.5 | 204-216 |
+  | tree-32 | 16.26 | 13.8-19.1 | 209-224 |
+  | K128 + EARLY DEATH (check 48-54 ms by bytes) | 23.70 | 26.2-36.3 | **251-303** |
+
+- **Corrected line:** early death still leads by ~+20-35 % (same draft-cost assumption on both sides), but it does NOT
+  reach 450. Label: at the byte floor, probe untested, HE+ only.
+- 450 exact needs early death AND a smaller drafter (fewer bytes per level, same accuracy) AND the check near its floor.
+- With unhidden drafting, the best K under early death may sit below 128, since depth costs draft time. Compute it when
+  the probe's per-K price exists.
+- **Tuesday night's dev pass is unchanged:** early death remains the best exact route, and the pass costs ~35 min of an
+  otherwise dark night.

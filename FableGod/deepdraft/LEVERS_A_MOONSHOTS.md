@@ -1226,6 +1226,71 @@ Route (a') in stock MLX is a KILL by its line, on timing alone.**
     its bitwise gate at --cut none.
   - The hand-fused level is a separate build, priced above, and needs NewIdeas' / the orchestrator's go.
 
+**M3, RESULT (Mon 16 Nov 08:45-10:17; week98/p3_dd_tree.py, p3_m3.sh, p3_score.py; p3/m3_run.log, p3/m3_scores.{txt,json},
+p3/tree_t30b_<set>_<cut>.json, dumps p3/*.npz kept local. TRUE-STATE (lab): teacher-forced, the 125B's true state at
+every anchor; kept under certify98's walk (NewIdeas' treek_final.py, read-only) at rows 16 and 32. Share lock MEM 12 GB
+beside other GPU jobs: kept only, no timing.)
+Route (a') is a KILL on kept as well: no cut stays within 1 % of the full head on either set, at either depth. With
+M3, Pillar 3's lines are out of reach for the level-by-level drafter on this machine, hand-fused level included.**
+- **Gate PASS:** --cut none at --run t30b reproduces BigMoE's tree_t30b_{heplus24,mbppbank}.npz bitwise, every array
+  (21 / 21 on both sets). The walk gives S9c's numbers: HE+ 11.263 / 16.263, MBPP 7.487 / 9.031 at rows 16 / 32.
+- **Kept per cut** (cut / full head; 95 % CI over 2,000 window resamples, seed 1115; HE+ 24 windows, 6,375 anchors;
+  MBPP 100 windows, 15,641 anchors). MB per level = the config as the engine would store it, F = 1:
+
+| cut | MB per level | HE+ rows 16 | HE+ rows 32 | MBPP rows 16 | MBPP rows 32 |
+|---|---|---|---|---|---|
+| full head (the gate) | 488.0 | 11.263 | 16.263 | 7.487 | 9.031 |
+| H8: screen 8K + session tokens only | 142.2 | x0.976 [0.962, 0.990] | x0.963 [0.946, 0.978] | x0.990 [0.981, 0.998] | x0.985 [0.975, 0.993] |
+| Q4: trained Linears + hc mixes 4-bit only | 440.9 | x0.963 [0.940, 0.982] | x0.922 [0.893, 0.948] | x0.938 [0.922, 0.953] | x0.899 [0.882, 0.913] |
+| C1 = Q4 + H8 | 95.1 | x0.935 [0.909, 0.959] | x0.875 [0.849, 0.901] | x0.925 [0.909, 0.940] | x0.889 [0.870, 0.906] |
+| C3: + experts top-4, screen 4K | 70.8 | x0.863 [0.835, 0.888] | x0.767 [0.738, 0.793] | x0.836 [0.820, 0.849] | x0.791 [0.774, 0.806] |
+| C8: 2-bit, top-2, screen 2K | 39.8 | x0.255 [0.230, 0.282] | x0.186 [0.158, 0.220] | x0.372 [0.358, 0.385] | x0.327 [0.312, 0.341] |
+
+- **The line** (pre-registered: tree-32 kept within 1 % on both sets): **FAIL at every cut**, and at both halves of C1
+  alone. H8's MBPP CIs reach 0.99, but its HE+ CI at rows 32 stops at 0.978.
+- **Per-depth agreement with the full head** (pre-registered; true-path states both trees share; j = 0 is the root,
+  j = depth + 1 for a node). Top-1 same / top-3 set same:
+  - H8 is flat in depth: top-1 >= 99.3 %, top-3 set 71-77 % (HE+) / 81-84 % (MBPP).
+  - The weight cuts drift with depth through the head's carried state. Q4: top-1 98.6 -> 96.8 % (HE+) and 96.4 -> 88.7 %
+    (MBPP); top-3 set 55 -> 23 % and 63 -> 30 % (j 0 -> j >= 16). C1 tracks Q4 a little lower; C8's top-1 is 72-75 %
+    at the root and 27-28 % by j 4-7.
+  - The gate's own agreement is 1.000 / 1.000 at every depth.
+- **Why tree-32 loses 1.3-2x more than tree-16:** top-1 mostly holds, the lower ranks don't, and tree-32's extra nodes
+  ride on those ranks. Its gain over tree-16 shrinks from 5.00 to 4.67 (H8) / 4.16 (Q4) / 3.69 (C1) kept on HE+, and
+  from 1.54 to 1.48 / 1.10 / 1.10 on MBPP.
+- **Screened kernel** (Leap's ScreenedHead, gathered 4-bit rows, on each window's roots: one call of 125-400 rows per
+  HE+ window, 18-520 per MBPP window):
+  - Its logits equal the full head's subset bitwise on 24 / 24 HE+ windows (C1, C3, H8; 23 / 24 at C8).
+  - On MBPP, 79 / 100 windows at 8K (C1, H8), 62 / 100 at 4K (C3), 40 / 100 at 2K (C8).
+  - The kept above doesn't depend on it: the dumps mask the full head's logits, exact by construction.
+  - The pre-registered condition ("subset logits bitwise, as MTP-STEP-1") fails at these batched shapes. MTP-STEP-1's
+    1-row claim isn't tested here. Not characterized further; a shape-dependent matmul path is my guess.
+- **Pick change** (the head's top-1 outside the screened set, all node picks): H8 1.50 % HE+ (3,162 of 210,375) / 1.95 %
+  MBPP (10,078 of 516,153); C1 1.56 / 1.84 %; C3 2.35 / 3.35 %; C8 6.25 / 5.47 %.
+- **What it means for the hand-fused level** (proposed for next week; it cuts f, not bytes):
+  - The kept line leaves no tested byte cut. At P2's base (C0: bf16 dense, 32K screen, 177.6 MB; its own kept is not
+    measured here), the bytes alone take 0.607 ms per level at 293 GB/s. That is 12.6 ms per HE+ tree-32 block at f = 0
+    (MBPP tree-32 8.9; tree-16 7.6 / 6.3).
+  - Even at the critical-path floor (f ~ 0.035 ms: ~23 dependent steps x ~1.5 us), BETWEEN needs <= ~102 MB per level
+    and PASS <= ~46 MB. The only tested configs that small are C1 and below, which keep x0.875-0.889 down to x0.19-0.33
+    at tree-32.
+  - So no fixed-cost work brings (a') to either line within 1 % kept on this machine.
+  - The hand-fused level is still an exact engine gain if it reaches f = 0.056. At C0, async 0.921 ms per level
+    (measured) would become ~0.66, so HE+ tree-32 drafting goes 19.1 -> ~13.8 ms per block (-28 %; -47 % vs the synced
+    level's 1.246 ms). Whether that is worth a multi-day build is an engine question, not Pillar 3's.
+- **Useful now:**
+  - Keep the draft head's trained Linears and hc mixes at bf16, as stored. 4-bit g64 costs 3.7-6.2 % kept at tree-16
+    and 7.8-10.1 % at tree-32.
+  - A screened head for tree drafting is not free. 8K + session tokens costs 1.0-2.4 % at tree-16 and 1.5-3.7 % at
+    tree-32. MTPSCREEN's chain-pick PASS for the 32K set doesn't carry to tree-32 by itself: the 32K set's tree cost is
+    unmeasured.
+  - The sync-free level (M0-M2) stays the one exact gain: 1.246 -> 0.921 ms per level at C0 (-26 %).
+- **Expectation check:** I wrote "Getting to <= ~45 MB ... I expect to cost more than 1 % kept". It cost 67-81 % (C8).
+  But my BETWEEN prior assumed C1-class bytes (78-95 MB) would keep kept: the 4-bit cut of the trained parts alone
+  misses the line by 8-10x, and the 8K screen alone by 1.5-3.7x.
+- **Next:** none from me on Pillar 3. (a') is closed on both legs; (b) and (c) stay parked (NewIdeas 08:4x). The
+  hand-fused level is re-scoped above as an engine item, for NewIdeas / the orchestrator to weigh.
+
 ## Ranked (final, 01:3x)
 1. **The 2B audits and repairs the head's deep tokens: CONFIRMED on HE+** (D). On MBPP, the frozen schedule was chosen
    on those rows (C). Training-free.

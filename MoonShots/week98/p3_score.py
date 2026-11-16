@@ -39,6 +39,42 @@ def per_window(W, dump, rows):
     return out
 
 
+BUCKETS = [(0, 0), (1, 1), (2, 2), (3, 3), (4, 7), (8, 15), (16, 99)]
+
+
+def agreement(ref, d):
+    """the pre-registered per-depth agreement: the cut head's top-1 / top-3 set vs the full head's, at the states both
+    trees share on the true path. Prediction depth j = 0 is the root (the anchor's own state); j = depth + 1 for a
+    true-path node (its top-k predicts the next true token). Deeper j only where both trees drafted the true path."""
+    def top3(ids, p):
+        return np.sort(np.take_along_axis(ids, np.argsort(-p, axis=1, kind="stable")[:, :3], 1), axis=1)
+    rows = {}
+    kr = {(int(f), int(a)): i for i, (f, a) in enumerate(zip(ref["a_fi"], ref["a_an"]))}
+    kc = {(int(f), int(a)): i for i, (f, a) in enumerate(zip(d["a_fi"], d["a_an"]))}
+    com = [k for k in kr if k in kc]
+    ri, ci = np.array([kr[k] for k in com]), np.array([kc[k] for k in com])
+    R3, C3 = top3(ref["root_top_ids"], ref["root_top_p"])[ri], top3(d["root_top_ids"], d["root_top_p"])[ci]
+    t1 = ref["root_top_ids"][ri, np.argmax(ref["root_top_p"][ri], 1)] == d["root_top_ids"][ci, np.argmax(d["root_top_p"][ci], 1)]
+    J, T1, S3 = [np.zeros(len(ri), int)], [t1], [(R3 == C3).all(1)]
+
+    def nodes(z):
+        m = np.flatnonzero(z["on_true"])
+        return {(int(z["fi"][i]), int(z["an"][i]), int(z["depth"][i])): i for i in m}
+    nr, nc = nodes(ref), nodes(d)
+    com = [k for k in nr if k in nc]
+    if com:
+        ri, ci = np.array([nr[k] for k in com]), np.array([nc[k] for k in com])
+        R3, C3 = top3(ref["top_ids"][ri], ref["top_p"][ri]), top3(d["top_ids"][ci], d["top_p"][ci])
+        t1 = ref["top_ids"][ri, np.argmax(ref["top_p"][ri], 1)] == d["top_ids"][ci, np.argmax(d["top_p"][ci], 1)]
+        J.append(np.array([k[2] + 1 for k in com])); T1.append(t1); S3.append((R3 == C3).all(1))
+    J, T1, S3 = np.concatenate(J), np.concatenate(T1), np.concatenate(S3)
+    for lo, hi in BUCKETS:
+        m = (J >= lo) & (J <= hi)
+        if m.any():
+            rows[f"{lo}" if lo == hi else f"{lo}-{hi}"] = [int(m.sum()), round(float(T1[m].mean()), 4), round(float(S3[m].mean()), 4)]
+    return rows
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--cuts", default="none,C1,C3,C8,Q4,H8")
@@ -52,7 +88,7 @@ def main():
         lines.append(s)
     for s, (tag, rtag, pub32, pub16) in TA.SETS.items():
         W = TA.load_windows(tag, pub32)
-        ref = np.load(os.path.join(TA.CE, f"tree_t30b_{tag}.npz"), allow_pickle=True)
+        ref = dict(np.load(os.path.join(TA.CE, f"tree_t30b_{tag}.npz"), allow_pickle=True))   # in memory: NpzFile re-reads per access
         R = {r: per_window(W, ref, r) for r in (16, 32)}
         chk = TF.kept_by_rows(W, ref, [16, 32])
         for r in (16, 32):
@@ -66,7 +102,7 @@ def main():
             if not os.path.exists(f):
                 say(f"  {cut}: no dump")
                 continue
-            d = np.load(f, allow_pickle=True)
+            d = dict(np.load(f, allow_pickle=True))
             row = {}
             for r in (16, 32):
                 C = per_window(W, d, r)
@@ -81,12 +117,15 @@ def main():
             row["screen_kernel_bitwise_windows"] = J.get("screen_kernel_bitwise_windows")
             row["full_top1_outside_screened_set"] = J.get("full_top1_outside_screened_set")
             row["within_1pct_tree32"] = bool(row[32]["ratio"] >= 0.99)
+            row["agree_by_depth"] = agreement(ref, d)                   # bucket: [n, top-1 same, top-3 set same]
             res[s][cut] = row
             say(f"  {cut:4s}: rows 16 kept {row[16]['kept']:.3f} (x{row[16]['ratio']:.4f} [{row[16]['ci95'][0]:.4f}, "
                 f"{row[16]['ci95'][1]:.4f}]) | rows 32 kept {row[32]['kept']:.3f} (x{row[32]['ratio']:.4f} "
                 f"[{row[32]['ci95'][0]:.4f}, {row[32]['ci95'][1]:.4f}]) | within 1 % at 32: {row['within_1pct_tree32']}"
                 + (f" | screened kernel bitwise {row['screen_kernel_bitwise_windows']} windows, full top-1 outside the "
                    f"set {100 * row['full_top1_outside_screened_set']:.3f} %" if row["screen_kernel_bitwise_windows"] else ""))
+            say("        agreement with the full head by prediction depth j (n, top-1 same, top-3 set same): " + "; ".join(
+                f"j {b}: {v[0]}, {v[1]:.3f}, {v[2]:.3f}" for b, v in row["agree_by_depth"].items()))
     json.dump(res, open(os.path.join(P3, "m3_scores.json"), "w"), indent=1)
     open(os.path.join(P3, "m3_scores.txt"), "w").write("\n".join(lines) + "\n")
 

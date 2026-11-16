@@ -41,6 +41,13 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Mon 16 10:3x (NewIdeas): **CORRECTED: early death's ~410-455 tok/s was drafting-HIDDEN, which a bandwidth-bound check
+  can't do.**
+  - With the K128 tree's ~39.6 draft levels at the full head's 177.6 MB per level (26-36 ms per block), the like-for-like
+    line (HE+, byte floor, probe untested) is: K128 + early death 251-303 tok/s vs tree-32 209-224 vs tree-16 204-216.
+  - Early death still leads by ~+20-35 %, but it does not reach 450. 450 exact needs early death AND a smaller
+    same-accuracy drafter AND a near-floor check.
+  - The Tuesday-night dev pass stays (~35 min; best exact route). Number check by the orchestrator 10:4x.
 - Mon 16 09:23 (MTP Head, REPORT 'S10 PASS2 RESULT'): **S10 PASS2 = FAIL, so no t30c** (LAB, sandbox 2B: MBPP-50 /
   HE-30 vs s30).
   - p2f (fresh pass, 1.365x): MBPP 23-30 +2.61 pt (p 0.002), kept +3.7 % = PASS; HE 23-30 +0.98 pt, kept -1.2 % = FAIL.
@@ -68,11 +75,31 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
     docstring copies; check that MBPP shows it before leaning on it).
   - K* under Leap's per-row costs is unchanged (24-32 at the floor; the engine still picks K16).
   - **What changes: EARLY DEATH (THINK #5, Fable B).** A K128 check whose dead branches leave mid-pass is ~54 ms by
-    bytes (probe at layer 16) / ~48 (layer 8). With the real 23.7: ~410-455 tok/s exact AT THE BYTE FLOOR, vs ~277
-    for K32. The first route in the arithmetic to 450 exact. Realistic is lower (the engine runs ~1.9x its floor).
+    bytes (probe at layer 16) / ~48 (layer 8). ~~With the real 23.7: ~410-455 tok/s exact AT THE BYTE FLOOR, vs ~277
+    for K32. The first route in the arithmetic to 450 exact.~~ **CORRECTED 10:4x (orchestrator's number check, NewIdeas
+    agreed, b04f5b6; see the top entry):** the 410-455 kept drafting hidden (+4 ms). The full head reads 177.6 MB per
+    level and a K128 tree has 39.6 levels, so drafting is 26.2-36.3 ms per block (a lower bound). Like for like (HE+,
+    byte floor, drafting NOT hidden, probe untested): **K128 + early death 251-303 tok/s; tree-32 209-224; tree-16
+    204-216.** Early death leads by ~+20-35 % but does NOT reach 450; that needs it AND a smaller same-accuracy drafter
+    AND the check near its floor.
   - The probe is UNTESTED (PASS >= 90 % of off-spine nodes droppable at <= 2 % false drops at layer 16; KILL < 60 %).
     Its data: the 125B's layer 8 / 16 / 24 states on the dev bank (HE+ 24 + MBPP 100), a teacher-forced 45 GB pass of
     ~20-40 min (BigMoE prices it). Proposed for Tuesday night (confirm by Tue 18:00); the probe test is CPU, Wed by day.
+  - **10:1x MBPP's real 127-node dump (a5be808): the proxy was RIGHT on MBPP** (kept 9.03 / 10.19 / 11.29 at 32 / 64 /
+    128 rows; K128 11.29 vs proxy 11.24). So HE+'s extra lift is HE+-specific (long confident runs, mostly copied
+    docstrings). MBPP still gains +25 % kept from 32 to 128 rows: at early death's byte price K128 projects to
+    ~195-217 tok/s on MBPP vs tree-16's 171 at the floor (+14-27 %), and ~410-455 vs 277 on HE+ (+48-64 %)
+    [both drafting-hidden: SUPERSEDED by the 10:4x correction above]. Labels:
+    at the byte floor, probe untested, the HE+ magnitude is copy-heavy code. MBPP walk-strict at K127: 99.6 / 97.2 /
+    92.4 / 87.5 / 86.8 / 88.7 / 86.6 (knowledge-limited); K* on MBPP stays tree-16 under every cost.
+  - **11:03 BigMoE's 127-node dry run DONE** (rc 0; all 4 dumps: heplus24 24 windows + mbppbank 100 windows at k 8 and
+    k 16, 6,375 + 15,641 anchors; 1 h 58 min; MLX peak 13.1 GB; swap +0 on every part). The first 32 pops equal the
+    32-node dumps BITWISE on all 124 windows; k 16 adds <= 0.008 kept. Marker N127_DRY_1117_DONE. (Its "all anchors"
+    kept, HE+ 38.19 / MBPP 12.45 at 127, is a different basis from the walk numbers quoted here.)
+  - **CONFIRMED for Tuesday night (NewIdeas 10:1x):** BigMoE's teacher-forced dev pass, ~26 min + load (~35 min slot at
+    45 GB), layers 8 / 16 / 24 for 22,016 answer rows (1.35 GB fp16), no token change, self-check final-layer stream ==
+    stored wd bitwise; taps built Tue by day. **The Tue 23:30 app quit is armed** (apps_2330_1117.sh; Kamen's Tue-Fri
+    yes). The probe test (CPU, Wed by day) is pre-registered Tuesday with Fable B's lines.
 - Mon 16 09:2x (NewIdeas e65c19e; Leap cf70494): **day order + Saturday's candidate + the dispatch-diet price.**
   - Today's big slot: BigMoE's 127-node dry run + MoonShots' M3 -> BigMoE's 1c-tiers key test (~10 min, 43 GB) ->
     EvalSuite's 1c-tiers gate by day if armed by ~11:00 (yields ~15:00, resumes Tue after T0A_1117_END). MTP Head's
@@ -109,6 +136,20 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
     engine). M3 (do the byte-cut heads keep the same tokens? within 1 % kept on both sets) is GO today beside t30c at
     MEM ~12 GB.
   - Engine note for after Saturday (exact, cheap): a sync-free async_eval draft level costs 0.645 vs 0.901 ms (-28 %).
+  - **M3 RESULT 08:45-10:17 (MoonShots; TRUE-STATE, rows 16 and 32 under certify98's walk): every byte cut FAILS the 1 %
+    kept line, on both sets, at both sizes.** Gate PASS (--cut none reproduces BigMoE's tree_t30b dumps bitwise, 21 / 21
+    arrays). Tree-32 kept vs the full head: H8 (8K screen only) x0.963 HE+ / x0.985 MBPP; Q4 x0.922 / x0.899; C1 x0.875 /
+    x0.889; C3 x0.767 / x0.791; C8 x0.186 / x0.327. Weight cuts drift with depth (Q4 top-3 set 55 -> 23 % on HE+); the
+    screen doesn't (H8 top-1 >= 99.3 % at every depth). So drafting stays ~8 ms per tree-16 block until next week's
+    fused level kernel.
+  - **10:3x NewIdeas: PILLAR 3 CLOSED this week.** The full head reads 177.6 MB per level (~293 GB/s), so bytes alone
+    take ~7.6 ms per HE+ tree-16 block (12.6 levels) and ~12.6 ms per tree-32 block (20.8 levels). The <= 4 ms target
+    is unreachable with this head. Draft per block: tree-16 11.6 ms sync-free today -> 8.3 with a hand-fused level;
+    tree-32 19.1 -> 13.8. At the measured engine, HE+ tree-16 goes 144 -> 150 tok/s (+4 %; fully hidden would be 169).
+    Drafting can't be hidden on a bandwidth-bound check (~2.2 GB per block adds in full). So the hand-fused level is a
+    modest exact engine gain for next week; Pillar 3's real route is a SMALLER drafter with the same accuracy (a
+    distillation / training project). Guard: certify the head as stored (177.6 MB per level, trained parts bf16); no
+    4-bit draft cut (-8-10 % kept at tree-32), and an 8K screen costs 1.5-3.7 %.
 - Mon 16 08:4x (EvalSuite): **CERTIFY98 amendment 8 filed (eb928cf, pre-capture): LAB, C1, C2 (2B audit, P = 2) and
   the tree-K line (T32/32 on HE+ AND MBPP; T32/16 on HE+); walk-strict bands count targets only; 8 gated claims, quoted
   together in the RESULT.** A new scorer (certify98_lines.py) reproduces every dev number.
