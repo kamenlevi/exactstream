@@ -2626,3 +2626,61 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
   - All present -> PASS marker.
   - int8 missing on humanevalx -> FAIL marker naming it.
   - No go file -> NOT RUN at the deadline; no ESPID -> it refuses to arm; the end marker written after arming -> PASS.
+
+## Mon 16 Nov 16:5x-17:10: snapshot g1b for amendment 5d's nine G1 envs (g1a + Fit12's res1c: COMQOM + RES); head tests PASS on all nine, the guard refuses bad sets, the key test and its wrapper stub-tested; the real key test re-armed on g1b for tonight
+- **What changed vs g1a: only Fit12's res1c** (~/Fit12/res1c/res1c.py, sha256 61194417; Fit12's GPU bit tests ALL PASS
+  Mon 14:21, including T1: with both switches off the transformed ref2 call == the original, bit for bit):
+  - COMQOM: on a 1c-tiers check, rows the causal CodeScan tags as '#' comments (docstrings too on the sets in
+    R57_COMQOM_DOC_SETS) run QOM cf 0 instead of the tiers: rank 0-1 uses at base precision, rank 2-9 bit-21 optional
+    (served only when resident), no tier drop.
+  - RES: an untagged row's MSB-3-tier expert use is bit-21 optional.
+  - Switched per set by R57_COMQOM_SETS / R57_COMQOM_DOC_SETS / R57_RES_SETS; inert when unset.
+- **The screen** = g1a's frozen screen + Fit12's seven res1c lines from his kill-test copy (install after the 1c wiring,
+  set_prompt per item, check_begin / check_end per verify check, prompt_counts into runs.json lossy_check) with the import
+  path frozen, + one guard: the res1c sets need R57_TIERS=1c, the DOC sets must lie in the COMQOM sets and every set in
+  R57_TIERS_SETS. Against g1a's screen nothing else differs (path rewrites aside).
+  - res1c's md5 guards match g1b: ref2._ooo_1c_call 19d399d8 (frozen_g1b, as t1c1's), the screen's _t1c 12a26f5a.
+  - The screen calls _t1c by its global name at call time, so res1c's replacement takes effect.
+  - The tagger res1c uses (relax_core.CodeScan: copy, feed, in_comment, code, doc) is unchanged since 11-02.
+- **frozen_g1b** = frozen_g1a (808 files, frozen_g1a -> frozen_g1b in the paths) + Fit12_res1c/res1c.py. The g1b runner
+  data/r57/snap/c45_runner_g1b.sh = g1a's (generic).
+- **Nine envs** (data/stack/*45g1b_env.txt; NewIdeas + EvalSuite 14:0x: every branch with and without RES):
+  - lx45g1b = lx45g1a's line (the base); g1x45g1b = g1x45g1a's line (G1: 1c at lambda 1.8e-2 + int8);
+  - g1rx = G1 + RES; g1cx / g1crx = 1c at lambda 1.6e-2 + COMQOM (code sets), without / with RES;
+  - g1cdx / g1cdrx = the same + R57_COMQOM_DOC_SETS=mbpp; g1lx / g1lrx = 1c at lambda 0.8e-2, without / with RES.
+- **Head tests:** EvalSuite's head test PASS on all nine (to the model load). R57_RES_SETS without R57_TIERS, a DOC set
+  outside the COMQOM sets, and a RES set outside R57_TIERS_SETS all fail at the guard.
+- **The key test** (scripts/g1_keytest.py --snap g1b --variants g1x,g1rx,g1cx,g1crx,g1cdx,g1cdrx,g1lx,g1lrx):
+  - Every variant as G1: 1c + int8 engaged per code key, nothing engaged on IFEval, IFEval tokens == the base's.
+  - Plus Fit12's counters > 0 summed over the code keys: com_rows + com_opt (COMQOM), res_opt + opt_post (RES).
+  - The scored keys' lx45cc1 answers have docstrings but no '#' comment, so the COMQOM envs also decode mbpp/115 (two '#'
+    comment lines) and mbpp/146 (a docstring only). The DOC envs must tag rows on mbpp/146.
+  - A res1c env's pf.qom_opt is reported, not ruled: its optional uses go through QOM's bit 21.
+- **Stub sims** (a stub screen writing records from the env's own sets):
+  - All engaged -> PASS on all nine.
+  - DOC tagging broken -> g1cdx / g1cdrx FAIL on mbpp/146.
+  - RES counters 0 -> the four RES envs FAIL.
+  - Anything engaged on IFEval -> every variant FAILs.
+  - The wrapper end to end with SNAP=g1b -> PASS marker in its sim dir.
+- **Armed** (scripts/g1_follow.sh, now SNAP / VARIANTS): EvalSuite's T1C_RESF2_END + chain2 / follower2-3 gone +
+  G1A_GO + no big lock + NO-SWAP >= 40 (two reads). Start by 22:50 (nine envs need ~10-12 min), hard stop 23:03 (M4 at
+  23:05). Marker data/r57/G1A_KEYTEST_DONE.
+- At 16:50 EvalSuite's B2 had waited for memory since 15:04 (NO-SWAP 36-41 GB < its 43). Its chain has a 22:15 no-start
+  cutoff, so tonight's key test can start no earlier than that chain's end.
+- **Mon 17:2x-17:45, the order changed** (NewIdeas 17:2x; EvalSuite agreed): the g1b key test now runs BEFORE EvalSuite's
+  B2, right after Breakthrough's map screen.
+  - The yield NewIdeas relied on does not hold. Runner 65's gate() checks another session's shared MEM lock only at its
+    top (day_runner65.sh:186-205). B2 had sat in the memory loop below it since 15:04, and that loop polls NO-SWAP every
+    60 s and checks only soft_end / PAUSE / the lid. After each of the key test's nine processes exits, NO-SWAP returns
+    to ~48-50, so B2 would have launched its CHAT process (~40 GB) on top of the next env (~42-44 GB).
+  - EvalSuite stopped B2's waiting runner at 17:33:59; it had started nothing. It re-armed B2 -> V2 on this test's end
+    marker (tools/t1c_resume_follower4.sh).
+  - scripts/g1_follow.sh: ESGATE=0 drops the EvalSuite chain gate; PREVMK / PREVMIN wait for another job's end marker
+    (Breakthrough's G1G2_MAP_END); AFTER also covers the map screen's processes, runner 6x and r57_wrap.
+  - scripts/g1_keytest.py: G1KT_ABSENT (a pgrep -f pattern from the wrapper's KT_ABSENT). The test stops if EvalSuite's
+    runner 6x or an r57_wrap process exists before an env's gate reads or its start. Tested: STOPPED before env 1 with a
+    matching process alive, PASS without one.
+  - Re-armed 17:45: NO-SWAP >= 40 on two reads (no at-peak start: NO-SWAP has read ~38 since 17:04, and the int8 envs may
+    peak ~44 GB), start by 22:50, hard stop 23:03.
+  - If 40 doesn't open by then, the test runs after M4's end (M4 and this test share this session's peer lock, so they
+    cannot overlap).

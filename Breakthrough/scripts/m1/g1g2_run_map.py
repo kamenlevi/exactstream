@@ -61,8 +61,17 @@ _cj = os.path.join(os.environ["DM_OUT"], "bt_int8_census.jsonl")   # a fresh cen
 if os.path.exists(_cj) and not any(os.path.exists(os.path.join(os.environ["DM_OUT"], a + ".json"))
                                    for a in ("bt_g1h8", "bt_l20g2", "bt_g1")):
     os.remove(_cj)
+# Amendment (g) addendum, Mon 17:3x: the first GO run hit the 22 GB self-guard 55 s in (lifetime footprint 22.10 GB with
+# MLX peak ACTIVE 15.35 GB; earlier map runs: ~16.0 with the same 15.33 active). The gap is MLX's buffer cache growing
+# on the int8 path's transients, so cap it. A cache cap only changes buffer reuse, not any result; bt_restore (bit for
+# bit vs the baseline, run under the same cap) checks that. G1G2_CACHE_GB (default 2; 0 = MLX's default).
+import mlx.core as mx  # noqa: E402
+CACHE_GB = float(os.environ.get("G1G2_CACHE_GB", "2"))
+if CACHE_GB > 0:
+    mx.set_cache_limit(int(CACHE_GB * 1e9))
 src = os.path.join(DM, "run_map.py")
 sys.argv = [src] + ARMS + ["--max", "24", "--skip-done"]
 print(f"[g1g2] running {src} {' '.join(sys.argv[1:])} (DM_OUT {os.environ['DM_OUT']}, DM_SETS code, "
-      f"DM_C {os.environ.get('DM_C', '51')}, self-guard {LIM} GB)", flush=True)
+      f"DM_C {os.environ.get('DM_C', '51')}, self-guard {LIM} GB, MLX cache cap "
+      f"{CACHE_GB if CACHE_GB > 0 else 'MLX default'} GB)", flush=True)
 exec(compile(open(src).read(), src, "exec"), {"__name__": "__main__", "__file__": src})

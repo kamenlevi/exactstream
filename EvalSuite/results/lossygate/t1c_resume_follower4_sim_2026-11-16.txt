@@ -1,0 +1,112 @@
+# tools/t1c_resume_follower4.sh stub simulation, Mon 2026-11-16 17:37-17:39 (PREREG_lossygate amendment 4i)
+# follower4 sha256 afa51c7e22edffdc...; stubs: the chain (logs its env, writes T1C_MON5_END), the key test (a g1_follow.sh that sleeps, then writes the marker or not), NO-SWAP from a file
+# poll 1 s, read pair 2 s; S2 with CHAIN_FB_MIN=1; S3 / S4 with the last start ~1-2 min ahead
+
+## run 1: S1-S7 (the chain stub was named stub_mon5.sh)
+=================== S1
+follower4 rc 0
+11-16 17:37:26 [resf4] follower4 (pid 38958; session 1): B2 -> V2 after BigMoE's key test: a key-test process seen, then gone (two reads 2 s apart) and G1A_KEYTEST_DONE written after the sighting; then NO-SWAP >= 43 twice (runner 65) within 10 min, else runner
+11-16 17:37:28 [resf4] the key test is up: 39041 bash SIM/S1/scripts 
+11-16 17:37:35 [resf4] the key test ended: G1A KEYTEST END 11-16 17:37:32: PASS (stub)
+11-16 17:37:37 [resf4] NO-SWAP 48 / 48 GB >= 43: runner 65 (gate 43)
+11-16 17:37:37 [resf4] the chain (tag mon5, runner 65) runs as pid 39611
+11-16 17:37:38 [mon5] B2 base reverse: rc 0 (stub); V2: rc 0 (stub)
+11-16 17:37:38 [resf4] end (rc 0): done: the chain mon5 (runner 65) ended rc 0 (T1C MON5 END 11-16 17:37:38: done: stub ); wrote results/T1C_RESF2_END
+--- chain: 17:37:37 chain TAG=mon5 PHASE=wed DAY=2026-11-16 CUTOFF=[2026-11-16 22:30] NOYIELD=1 RUNNER=[] CARD_GATE=[] MYPID=1 
+--- T1C_MON5_END: T1C MON5 END 11-16 17:37:38: done: stub
+--- T1C_RESF2_END: T1C RESF2 END 11-16 17:37:38: done: the chain mon5 (runner 65) ended rc 0 (T1C MON5 END 11-16 17:37:38: done: stub )
+=================== S2
+follower4 rc 0
+11-16 17:37:26 [resf4] follower4 (pid 38961; session 1): B2 -> V2 after BigMoE's key test: a key-test process seen, then gone (two reads 2 s apart) and G1A_KEYTEST_DONE written after the sighting; then NO-SWAP >= 43 twice (runner 65) within 1 min, else runner 
+11-16 17:37:28 [resf4] the key test is up: 39045 bash SIM/S2/scripts 
+11-16 17:37:35 [resf4] the key test ended: G1A KEYTEST END 11-16 17:37:32: PASS (stub)
+11-16 17:38:35 [resf4] 43 not open 1 min after the key test (NO-SWAP 41 GB): amendment 4e's fallback, runner 66 at CARD_GATE=42
+11-16 17:38:35 [resf4] the chain (tag mon5, runner 66) runs as pid 41692
+11-16 17:38:36 [mon5] B2 base reverse: rc 0 (stub); V2: rc 0 (stub)
+11-16 17:38:36 [resf4] end (rc 0): done: the chain mon5 (runner 66) ended rc 0 (T1C MON5 END 11-16 17:38:36: done: stub ); wrote results/T1C_RESF2_END
+--- chain: 17:38:35 chain TAG=mon5 PHASE=wed DAY=2026-11-16 CUTOFF=[2026-11-16 22:30] NOYIELD=1 RUNNER=[tools/day_runner66.sh] CARD_GATE=[42] MYPID=1 
+--- T1C_MON5_END: T1C MON5 END 11-16 17:38:36: done: stub
+--- T1C_RESF2_END: T1C RESF2 END 11-16 17:38:36: done: the chain mon5 (runner 66) ended rc 0 (T1C MON5 END 11-16 17:38:36: done: stub )
+=================== S3
+follower4 rc 6
+11-16 17:37:26 [resf4] follower4 (pid 38957; session 1): B2 -> V2 after BigMoE's key test: a key-test process seen, then gone (two reads 2 s apart) and G1A_KEYTEST_DONE written after the sighting; then NO-SWAP >= 43 twice (runner 65) within 10 min, else runner
+11-16 17:37:28 [resf4] the key test is up: 39042 bash SIM/S3/scripts 
+11-16 17:37:46 [resf4] waiting: the key test runs or ended without its marker
+11-16 17:38:07 [resf4] waiting: the key test runs or ended without its marker
+11-16 17:38:28 [resf4] waiting: the key test runs or ended without its marker
+11-16 17:38:48 [resf4] waiting: the key test runs or ended without its marker
+11-16 17:39:00 [resf4] no start by 11-16 17:39 (the key test not ended): no run; 4d's Tuesday follower is the route
+11-16 17:39:00 [resf4] end (rc 6): no start by 11-16 17:39 (the key test not ended): no run; 4d's Tuesday follower is the route; wrote results/T1C_RESF2_END
+drive.sh: line 37: SIM/S3/chain.log: No such file or directory
+--- chain: 
+--- T1C_RESF2_END: T1C RESF2 END 11-16 17:39:00: no start by 11-16 17:39 (the key test not ended): no run; 4d's Tuesday follower is the route
+=================== S4
+follower4 rc 6
+11-16 17:37:27 [resf4] follower4 (pid 39054; session 1): B2 -> V2 after BigMoE's key test: a key-test process seen, then gone (two reads 2 s apart) and G1A_KEYTEST_DONE written after the sighting; then NO-SWAP >= 43 twice (runner 65) within 10 min, else runner
+11-16 17:37:31 [resf4] the key test is up: 39250 bash SIM/S4/scripts 
+11-16 17:37:47 [resf4] waiting: the key test runs or ended without its marker
+11-16 17:38:08 [resf4] waiting: the key test runs or ended without its marker
+11-16 17:38:29 [resf4] waiting: the key test runs or ended without its marker
+11-16 17:38:50 [resf4] waiting: the key test runs or ended without its marker
+11-16 17:39:00 [resf4] no start by 11-16 17:39 (the key test not ended): no run; 4d's Tuesday follower is the route
+11-16 17:39:00 [resf4] end (rc 6): no start by 11-16 17:39 (the key test not ended): no run; 4d's Tuesday follower is the route; wrote results/T1C_RESF2_END
+drive.sh: line 37: SIM/S4/chain.log: No such file or directory
+--- chain: 
+--- T1C_RESF2_END: T1C RESF2 END 11-16 17:39:00: no start by 11-16 17:39 (the key test not ended): no run; 4d's Tuesday follower is the route
+=================== S5
+follower4 rc 143
+11-16 17:37:26 [resf4] follower4 (pid 38966; session 1): B2 -> V2 after BigMoE's key test: a key-test process seen, then gone (two reads 2 s apart) and G1A_KEYTEST_DONE written after the sighting; then NO-SWAP >= 43 twice (runner 65) within 10 min, else runner
+11-16 17:37:29 [resf4] end (rc 143): stopped by a signal during: waiting for BigMoE's key test; wrote results/T1C_RESF2_END
+drive.sh: line 37: SIM/S5/chain.log: No such file or directory
+--- chain: 
+--- T1C_RESF2_END: T1C RESF2 END 11-16 17:37:29: stopped by a signal during: waiting for BigMoE's key test
+=================== S6
+follower4 rc 143
+11-16 17:37:26 [resf4] follower4 (pid 38971; session 1): B2 -> V2 after BigMoE's key test: a key-test process seen, then gone (two reads 2 s apart) and G1A_KEYTEST_DONE written after the sighting; then NO-SWAP >= 43 twice (runner 65) within 10 min, else runner
+11-16 17:37:27 [resf4] the key test is up: 39043 bash SIM/S6/scripts 
+11-16 17:37:33 [resf4] the key test ended: G1A KEYTEST END 11-16 17:37:30: PASS (stub)
+11-16 17:37:35 [resf4] NO-SWAP 48 / 48 GB >= 43: runner 65 (gate 43)
+11-16 17:37:35 [resf4] the chain (tag mon5, runner 65) runs as pid 39484
+11-16 17:37:37 [resf4] end (rc 143): stopped by a signal during: the chain (tag mon5) on runner 65: B2 -> V2; wrote results/T1C_RESF2_END
+11-16 17:38:35 [mon5] B2 base reverse: rc 0 (stub); V2: rc 0 (stub)
+--- chain: 17:37:35 chain TAG=mon5 PHASE=wed DAY=2026-11-16 CUTOFF=[2026-11-16 22:30] NOYIELD=1 RUNNER=[] CARD_GATE=[] MYPID=1 
+--- T1C_MON5_END: T1C MON5 END 11-16 17:38:35: done: stub
+--- T1C_RESF2_END: T1C RESF2 END 11-16 17:37:37: stopped by a signal during: the chain (tag mon5) on runner 65: B2 -> V2
+=================== S7
+follower4 rc 0
+11-16 17:37:26 [resf4] follower4 (pid 38969; session 1): B2 -> V2 after BigMoE's key test: a key-test process seen, then gone (two reads 2 s apart) and G1A_KEYTEST_DONE written after the sighting; then NO-SWAP >= 43 twice (runner 65) within 10 min, else runner
+11-16 17:37:27 [resf4] the key test is up: 39053 bash SIM/S7/scripts 
+11-16 17:37:41 [resf4] the key test ended: G1A KEYTEST END 11-16 17:37:38: PASS (stub)
+11-16 17:37:43 [resf4] NO-SWAP 48 / 48 GB >= 43: runner 65 (gate 43)
+11-16 17:37:43 [resf4] the chain (tag mon5, runner 65) runs as pid 39825
+11-16 17:37:44 [mon5] B2 base reverse: rc 0 (stub); V2: rc 0 (stub)
+11-16 17:37:44 [resf4] end (rc 0): done: the chain mon5 (runner 65) ended rc 0 (T1C MON5 END 11-16 17:37:44: done: stub ); wrote results/T1C_RESF2_END
+--- chain: 17:37:43 chain TAG=mon5 PHASE=wed DAY=2026-11-16 CUTOFF=[2026-11-16 22:30] NOYIELD=1 RUNNER=[] CARD_GATE=[] MYPID=1 
+--- T1C_MON5_END: T1C MON5 END 11-16 17:37:44: done: stub
+--- T1C_RESF2_END: T1C RESF2 END 11-16 17:37:44: done: the chain mon5 (runner 65) ended rc 0 (T1C MON5 END 11-16 17:37:44: done: stub )
+
+## run 2: S6 (and S1) again with the chain stub named t1c_chain_stub5.sh
+# run 1's S6 ran its stub chain to the end after the TERM: the follower stops its chain only if the pid's command line contains t1c_chain (the reused-pid check), and stub_mon5.sh does not. The live chain is tools/t1c_chain2.sh.
+=================== S6
+follower4 rc 143
+11-16 17:39:16 [resf4] follower4 (pid 42552; session 1): B2 -> V2 after BigMoE's key test: a key-test process seen, then gone (two reads 2 s apart) and G1A_KEYTEST_DONE written after the sighting; then NO-SWAP >= 43 twice (runner 65) within 10 min, else runner
+11-16 17:39:18 [resf4] the key test is up: 42605 bash SIM/S6/scripts 
+11-16 17:39:23 [resf4] the key test ended: G1A KEYTEST END 11-16 17:39:20: PASS (stub)
+11-16 17:39:25 [resf4] NO-SWAP 48 / 48 GB >= 43: runner 65 (gate 43)
+11-16 17:39:25 [resf4] the chain (tag mon5, runner 65) runs as pid 42840
+11-16 17:39:28 [resf4] end (rc 143): stopped by a signal during: the chain (tag mon5) on runner 65: B2 -> V2; wrote results/T1C_RESF2_END
+--- chain: 17:39:25 chain TAG=mon5 PHASE=wed DAY=2026-11-16 CUTOFF=[2026-11-16 22:30] NOYIELD=1 RUNNER=[] CARD_GATE=[] MYPID=1 
+--- T1C_MON5_END: T1C MON5 END 11-16 17:39:27: stopped by a signal during: B2
+--- T1C_RESF2_END: T1C RESF2 END 11-16 17:39:28: stopped by a signal during: the chain (tag mon5) on runner 65: B2 -> V2
+=================== S1
+follower4 rc 0
+11-16 17:39:16 [resf4] follower4 (pid 42551; session 1): B2 -> V2 after BigMoE's key test: a key-test process seen, then gone (two reads 2 s apart) and G1A_KEYTEST_DONE written after the sighting; then NO-SWAP >= 43 twice (runner 65) within 10 min, else runner
+11-16 17:39:18 [resf4] the key test is up: 42601 bash SIM/S1/scripts 
+11-16 17:39:25 [resf4] the key test ended: G1A KEYTEST END 11-16 17:39:22: PASS (stub)
+11-16 17:39:27 [resf4] NO-SWAP 48 / 48 GB >= 43: runner 65 (gate 43)
+11-16 17:39:27 [resf4] the chain (tag mon5, runner 65) runs as pid 42899
+11-16 17:39:28 [mon5] B2 base reverse: rc 0 (stub); V2: rc 0 (stub)
+11-16 17:39:28 [resf4] end (rc 0): done: the chain mon5 (runner 65) ended rc 0 (T1C MON5 END 11-16 17:39:28: done: stub ); wrote results/T1C_RESF2_END
+--- chain: 17:39:27 chain TAG=mon5 PHASE=wed DAY=2026-11-16 CUTOFF=[2026-11-16 22:30] NOYIELD=1 RUNNER=[] CARD_GATE=[] MYPID=1 
+--- T1C_MON5_END: T1C MON5 END 11-16 17:39:28: done: stub
+--- T1C_RESF2_END: T1C RESF2 END 11-16 17:39:28: done: the chain mon5 (runner 65) ended rc 0 (T1C MON5 END 11-16 17:39:28: done: stub )

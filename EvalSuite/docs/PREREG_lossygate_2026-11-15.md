@@ -1185,3 +1185,114 @@
   - **Information, from V1's complete code rows (14:1x, before V1's verdict):** variant-only runaways 10, base-only 3,
     both 11, out of 264. The exact two-sided McNemar p is 0.092 (evalsuite.report.mcnemar_p). The registered guard
     reads at V1's verdict, and pooled at V2.
+
+## Amendment 4i (Mon 2026-11-16 17:4x, during the 1c-tiers run, before any B2 / V2 data): B2 -> V2 after BigMoE's g1b key test (NewIdeas 17:3x); operational only
+- **Why:**
+  - B2 (chain2 tag mon4, runner 65) never started its first process.
+    - From 15:03:58 to 17:24:12 its runner read NO-SWAP 36-41 GB, below the 43 GB gate (CARD_MEM 39 + 4).
+    - The GPU sat idle meanwhile, and other sessions' jobs waited behind it.
+  - NewIdeas, as slot orderer (17:3x), set tonight's order: Breakthrough's G1/G2 map screen, then BigMoE's g1b key
+    test, then B2 -> V2. The key test's ~43 GB exit is the documented opener (4e: NO-SWAP 48-50 after such exits).
+  - BigMoE (17:31) and NewIdeas (17:4x) found the blocker.
+    - Runner 65 runs mem_busy (the per-process yield) only at the top of gate() (day_runner65.sh:186-205). Its memory
+      loop re-reads NO-SWAP every 60 s, with calm() only.
+    - The key test is nine processes, and after each exits NO-SWAP returns to ~48-50. The waiting B2 would have
+      launched beside the next env.
+  - There is no at-peak start (NewIdeas 17:4x). The guards stay (Kamen 11:5x), and g1b's envs peak at ~44 GB.
+- **17:33:40: chain2 mon4 (pid 24040) was stopped by TERM, by pid.**
+  - Its runner (24651) was in the memory loop, with no stack process, no rows and no lock. The runner and its child
+    stopped at 17:33:59.
+  - T1C_MON4_END reads "stopped by a signal during: B2".
+  - follower3 (82764) ended and wrote T1C_RESF2_END. EvalSuite moved that file to T1C_RESF2_END.mon4stop, so
+    T1C_RESF2_END keeps meaning the 1c-tiers end.
+    - BigMoE's re-armed key test no longer gates on it.
+    - Breakthrough's runner armed on it (pid 55686) is gone.
+- **The re-arm: tools/t1c_resume_follower4.sh** (sha256 afa51c7e22edffdc...):
+  1. It waits until a key-test process (scripts/g1_follow.sh or scripts/g1_keytest.py) has been seen and is gone on two
+     reads 30 s apart. BigMoE's end marker data/r57/G1A_KEYTEST_DONE must also have been written at or after the first
+     sighting. That marker is written on every end; a re-arm writes none (G1A.NOMARK).
+  2. Then the memory gate.
+     - NO-SWAP >= 43 GB on two reads 30 s apart, within 10 min of that end: tools/t1c_chain2.sh tag mon5 on runner 65
+       (gate 43).
+     - Otherwise amendment 4e's fallback, which NewIdeas (17:3x) said could carry over: the same chain on
+       tools/day_runner66.sh with CARD_GATE=42. The at-peak evidence is 4e's.
+  3. No start after 20:00 (NewIdeas: V2 must end by the 22:30 cutoff).
+     - Then 4d's Tuesday follower is the route. It stays armed (the tue phase pid 86926, its follower pid 95134).
+     - Its Tuesday 14:30 cutoff would then need lifting, as 4f lifted today's. That needs a later amendment, on
+       NewIdeas' or the orchestrator's word.
+  - **The chain:** phase wed, day 11-16, cutoff 22:30 (last start 22:15), no at-Mac rule, tag mon5 (log [mon5], end
+    results/T1C_MON5_END).
+    - The done steps (B0, V0, B1, V1) are skipped.
+    - B2 has no rows yet: none from mon3's 14:22 start or from mon4.
+  - results/T1C_RESF2_END is written on every end of follower4, and only then.
+  - Unchanged:
+    - every pin and every scoring rule;
+    - runner 65 and its 43 GB gate, unless the fallback fires;
+    - the +2 GB swap guard, the per-process yield, and HOLD / PAUSE / lid.
+- **Checked:**
+  - bash -n passes.
+  - A stub simulation, 7 scenarios (results/lossygate/t1c_resume_follower4_sim_2026-11-16.txt):
+    - S1: the key test ends with its marker, at NO-SWAP 48. mon5 runs on runner 65 (no CHAIN_RUNNER, no CARD_GATE).
+    - S2: NO-SWAP 41 throughout. After the fallback delay (1 min in the test), mon5 runs on runner 66 with CARD_GATE=42.
+    - S3: the key test ends without a marker (a re-arm). No start; rc 6 at the last start.
+    - S4: an older marker, and a key test that ends without a new one. No start (rc 6).
+    - S5: TERM while waiting. END "stopped by a signal", and no chain.
+    - S6: TERM while the chain runs. The chain is stopped (its END reads "stopped by a signal during: B2"), then the
+      follower writes its END.
+      - The first S6 run used a stub not named t1c_chain*. The follower's reused-pid check therefore didn't match, and
+        the stub ran on.
+      - It was re-run with a chain-named stub. The live chain is tools/t1c_chain2.sh.
+    - S7: a second key-test process starts inside the read pair. No start until it ends with its own marker.
+  - The DRY chain pass through runner 66 that 4e requires before any use ran at 17:40:12-42 (tag dry5).
+    - B2's and V2's runner calls: rc 0.
+    - Runner 66 logs "CHAT gate 42 GB NO-SWAP, CARD_GATE", and the pins are OK.
+
+## Amendment 5e (Mon 2026-11-16 17:5x, before any G1 run or data): int8 dense DROPPED from G1 and from 5d's branches (NewIdeas, received 17:5x); CONDITIONAL on BigMoE's int8-free envs
+- **Why** (NewIdeas; the figures checked here against Leap's files):
+  - **int8 dense is slower in the engine today.** Leap's quiet engine A/B run2b (Mon 13:24:57-13:25:57, 36 paired
+    rounds; ~/Leap/data/week98/check25/README.md, "ENGINE A/B run2b") gives F32if - F32df = +1.13 ms, the paired
+    median.
+    - The kernel bench said -0.3 ms. Leap marks it open.
+    - The README's 13:4x CORRECTION re-prices expert bytes, not these paired timings.
+  - **Even at the bound it saves only 0.9 ms** (~/Leap/data/week98/check25_bound_real.txt).
+    - C6 bounds at 25.2 ms with int8 dense MMA and 26.1 ms with bf16 (dense 7.6 vs 8.5 ms).
+    - The bytes per check are the same either way: 6.74 GB real for C6.
+  - So in G1, int8 is a quality risk with no measured speed gain. A G1 FAIL could come from int8 and cost C6's verdict.
+    Fable B flagged it (THINK_1116b).
+  - **It also eases G1's memory.** int8 adds +1.7 GB resident (5a). Without it, G1's gate is ~43 GB by the same rule:
+    MEM from its own key test, + 4.
+- **The change, if the condition below holds:**
+  - **G1 = C6** (1c, lambda 1.8e-2), with RES only by 5c / 5d's rule. No R57_INT8D.
+  - **5d's branches lose int8 too.** They become comment-QOM (1c 1.6e-2 + COMQOM, with or without MBPP docstrings)
+    and lambda 0.8e-2, each with and without RES.
+  - **The base is unchanged** (lx45g1b). int8 was already unset there.
+  - **Amendment 5's bisect** (EvalSuite's reading; NewIdeas may restate it before G1's data):
+    - With int8 gone, a G1 FAIL has nothing left to split, unless RES joined.
+    - If RES joined, C6 alone (the RES-free env) takes the bisect slot.
+  - **The checks:**
+    - The per-term engagement check (runner 67) lists the branch's mechanisms, without int8.
+    - The env blobs pinned in G1's arming addendum must hold no R57_INT8D or R57_INT8D_SETS.
+    - The key test's runs.json lossy_check must carry no int8 / int8_rows counters (absent means off).
+  - **G2 (5c):** int8 dense joins G2 ONLY IF Leap records a quiet engine A/B with int8 dense minus its control at
+    <= 0 ms (paired median) before G2's env is pinned on Wednesday morning. Otherwise int8 is dropped this week. G2's
+    other rules stand.
+  - **Unchanged:**
+    - amendment 5's lines and rules;
+    - IFEval token identity (5a: C6 and RES are code-scoped);
+    - RES's rule (5c, refined 13:4x);
+    - 5d's branch rule and its kill test, minus int8;
+    - the slots, and the memory rule (MEM + 4, from the key test);
+    - Breakthrough's map arms as run. bt_g1h8 = C6 + hc8w + int8, and its RES and comment-QOM pairs carry int8 in
+      both arms of each pair, so their paired reads isolate RES and comment-QOM as written.
+- **The condition:** BigMoE builds the int8-free variant envs on g1b, and its key test PASSES them, before G1's arming
+  addendum. Each env is a 5d env minus R57_INT8D / R57_INT8D_SETS. The key test runs ~00:25 Tue, after M4.
+  - If BigMoE can't, this amendment lapses: G1 stays as filed (5b / 5d, with int8), and a dated note records the lapse.
+  - NewIdeas sets G1's composition (as for 5b / 5d). BigMoE confirms the build.
+- **5e's two readings CONFIRMED (NewIdeas, received 17:5x-18:0x), before any G1 data:**
+  1. **The bisect.** If G1 = C6 + RES FAILS, it bisects to C6 alone (its RES-free env). If C6 alone FAILS, there is no
+     bisect.
+  2. **The map pairs.** Breakthrough's pairs, with int8 in both arms, are read as they are, with no re-run. int8's own
+     flips sit in both arms:
+     - A difference read (RES's increment) is unaffected to first order.
+     - A ratio read (comment-QOM <= 0.5x / 0.8x the control) is pulled toward 1. That is the conservative direction: it
+       makes CONFIRMED harder, never easier. 5d's non-tie read limits it too.

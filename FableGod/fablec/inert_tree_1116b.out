@@ -1,0 +1,46 @@
+SELF-CHECK heplus24: chain-32 13.77 vs 13.77 -> PASS
+  token offset hits (ids[row + o] == y at depth 0): {0: 25, 1: 6375, -1: 57}
+== he (heplus24): answer rows by class: in docstring 56.3 %, in comment 13.1 %, newline/indent 10.1 %, identifier 6.3 %, punctuation 5.6 %, keyword 3.4 %, other 2.5 %, number 1.6 %, prose 0.7 %, in string 0.3 %
+   tree-32 walk's first misses by class: in comment 48.5 %, code 32.0 %, in docstring 13.3 %, span edge 5.8 %, in string 0.4 % (n 241)
+   chain-32                               kept/32-row check  13.769  x1.000 vs chain-32   (checks ending at the 32-row cap or the window end: 27 %)
+   chain-32 + CC d1                       kept/32-row check  16.776  x1.218 vs chain-32   (checks ending at the 32-row cap or the window end: 34 %)
+   chain-32 + INERT c+d                   kept/32-row check  21.684  x1.575 vs chain-32   (checks ending at the 32-row cap or the window end: 55 %)
+   chain-32 + CC d1 + INERT c+d           kept/32-row check  23.182  x1.684 vs chain-32   (checks ending at the 32-row cap or the window end: 60 %)
+   tree-32                                kept/32-row check  17.091  x1.241 vs chain-32   (checks ending at the 32-row cap or the window end: 35 %)
+   tree-32 + CC d1                        kept/32-row check  18.372  x1.334 vs chain-32   (checks ending at the 32-row cap or the window end: 39 %)
+   tree-32 + #8 (d1 code, d3 c+d)         kept/32-row check  19.798  x1.438 vs chain-32   (checks ending at the 32-row cap or the window end: 42 %)
+   tree-32 + INERT c+d                    kept/32-row check  23.787  x1.728 vs chain-32   (checks ending at the 32-row cap or the window end: 61 %)
+   tree-32 + CC d1 + INERT c+d            kept/32-row check  24.425  x1.774 vs chain-32   (checks ending at the 32-row cap or the window end: 63 %)
+   tree-32 + CC d1 + INERT c+d+strings    kept/32-row check  24.519  x1.781 vs chain-32   (checks ending at the 32-row cap or the window end: 63 %)
+   tree-32 + CC d2 + INERT c+d            kept/32-row check  25.298  x1.837 vs chain-32   (checks ending at the 32-row cap or the window end: 67 %)
+   tree-32 + INERT comments only          kept/32-row check  22.606  x1.642 vs chain-32   (checks ending at the 32-row cap or the window end: 52 %)
+   tree-32 + INERT docstrings only        kept/32-row check  17.758  x1.290 vs chain-32   (checks ending at the 32-row cap or the window end: 42 %)
+   tree-32 + #8 (d1 code, d3 c+d)         x1.078 vs tree-32 + CC d1,  x1.158 vs tree-32
+   tree-32 + INERT c+d                    x1.295 vs tree-32 + CC d1,  x1.392 vs tree-32
+   tree-32 + CC d1 + INERT c+d            x1.330 vs tree-32 + CC d1,  x1.429 vs tree-32
+   tree-32 + CC d1 + INERT c+d+strings    x1.335 vs tree-32 + CC d1,  x1.435 vs tree-32
+   tree-32 + CC d2 + INERT c+d            x1.377 vs tree-32 + CC d1,  x1.480 vs tree-32
+   additivity: gain(tree + CC + INERT) 10.656 vs gain(tree + CC) + gain(INERT on the chain) 12.518 -> 0.85
+SELF-CHECK mbppbank: chain-32 6.92 vs 6.92 -> PASS
+  token offset hits (ids[row + o] == y at depth 0): {0: 98, 1: 15641, -1: 212}
+== mbpp (mbppbank): answer rows by class: in docstring 37.5 %, in comment 19.5 %, newline/indent 13.1 %, identifier 10.6 %, punctuation 8.2 %, other 4.0 %, keyword 3.6 %, number 1.9 %, prose 1.2 %, in string 0.5 %
+   tree-32 walk's first misses by class: in docstring 41.6 %, in comment 31.0 %, code 24.3 %, span edge 2.7 %, in string 0.5 % (n 1447)
+   chain-32                               kept/32-row check   6.924  x1.000 vs chain-32   (checks ending at the 32-row cap or the window end: 5 %)
+   chain-32 + CC d1                       kept/32-row check   8.524  x1.231 vs chain-32   (checks ending at the 32-row cap or the window end: 7 %)
+   chain-32 + INERT c+d                   kept/32-row check  16.175  x2.336 vs chain-32   (checks ending at the 32-row cap or the window end: 35 %)
+   chain-32 + CC d1 + INERT c+d           kept/32-row check  17.693  x2.555 vs chain-32   (checks ending at the 32-row cap or the window end: 40 %)
+   tree-32                                kept/32-row check   9.975  x1.441 vs chain-32   (checks ending at the 32-row cap or the window end: 8 %)
+   tree-32 + CC d1                        kept/32-row check  10.984  x1.586 vs chain-32   (checks ending at the 32-row cap or the window end: 9 %)
+   tree-32 + #8 (d1 code, d3 c+d)         kept/32-row check  12.563  x1.814 vs chain-32   (checks ending at the 32-row cap or the window end: 12 %)
+   tree-32 + INERT c+d                    kept/32-row check  19.454  x2.810 vs chain-32   (checks ending at the 32-row cap or the window end: 43 %)
+   tree-32 + CC d1 + INERT c+d            kept/32-row check  20.208  x2.919 vs chain-32   (checks ending at the 32-row cap or the window end: 46 %)
+   tree-32 + CC d1 + INERT c+d+strings    kept/32-row check  20.287  x2.930 vs chain-32   (checks ending at the 32-row cap or the window end: 46 %)
+   tree-32 + CC d2 + INERT c+d            kept/32-row check  21.108  x3.049 vs chain-32   (checks ending at the 32-row cap or the window end: 52 %)
+   tree-32 + INERT comments only          kept/32-row check  12.706  x1.835 vs chain-32   (checks ending at the 32-row cap or the window end: 14 %)
+   tree-32 + INERT docstrings only        kept/32-row check  13.696  x1.978 vs chain-32   (checks ending at the 32-row cap or the window end: 26 %)
+   tree-32 + #8 (d1 code, d3 c+d)         x1.144 vs tree-32 + CC d1,  x1.259 vs tree-32
+   tree-32 + INERT c+d                    x1.771 vs tree-32 + CC d1,  x1.950 vs tree-32
+   tree-32 + CC d1 + INERT c+d            x1.840 vs tree-32 + CC d1,  x2.026 vs tree-32
+   tree-32 + CC d1 + INERT c+d+strings    x1.847 vs tree-32 + CC d1,  x2.034 vs tree-32
+   tree-32 + CC d2 + INERT c+d            x1.922 vs tree-32 + CC d1,  x2.116 vs tree-32
+   additivity: gain(tree + CC + INERT) 13.284 vs gain(tree + CC) + gain(INERT on the chain) 13.311 -> 1.00

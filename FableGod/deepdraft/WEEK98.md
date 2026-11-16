@@ -7,6 +7,54 @@ unlocks 98% accuracy at 30 tokens deep. By then we must know what it is, and eit
 know the principles of how everything will work and it's certain, and we still have a week of building everything. I
 don't care about that. I just need to get that."
 
+## KAMEN, Mon 16 Nov 17:3x (verbatim, the target part): 775-800 LOSSY, AT QUALITY, BY SATURDAY
+"We can't stop at what is the estimate you gave me for Saturday, 270 to 340 tokens per second or something like that.
+It can't be that. It must be that 800 tokens per second we said. I don't care how you achieve it. I mean, it just has to
+pass, and that's for Lossy, 400 and something exact." ... "I'll be fine with 800 or even 775, but not less, in lossy
+mode, which passes the quality and everything like that." ... "if you want, don't run any big tests at all. Only go
+through ideas and then build on their projections without having built large tests and try to break the walls" (his
+guess, "not a suggestion on the way you should do it").
+- **Targets now: >= 775 tok/s LOSSY (measured, whole decode, at quality) and 400+ EXACT, by Sat 21 Nov.**
+- Plan and frame: PUSH800.md (17:4x). ~~At today's kept 16.91, even 100 % of every peak with free drafting gives
+  707 / 779 / 821 ... kept 21-24 per 32-row check (x1.25-1.42).~~ **CORRECTED 17:5x (NewIdeas; I had used Leap's
+  pre-13:45 table with the old expert sizes):** real bounds at 100 % of every peak are 27.7 (C5) / 25.2 (C6 + int8) /
+  24.0 (C6 + V4 + int8) ms (dense int8 is byte-bound at 7.6 ms), so today's kept gives at most 610 / 671 / 705 with
+  free drafting. NO byte plan reaches 775 at today's kept. 775 / 800 need kept 24.2-27.3 per 32-row check (x1.43-1.62,
+  ~99 % effective acceptance per position) at 85-90 % with a 3 ms draft. Exact 400: kept >= ~25 at the 57.9 ms floor.
+- Correction to the record: exact measures ~144 tok/s today (tree-16, measured engine). "450 exact" was the ceiling
+  math at a 97.8-98 % drafter, not a measurement.
+- 17:4x: #8 (span close-call in comments) and #13 (inert comment / docstring acceptance) ON under "I don't care how"
+  (Kamen may veto); THINK_1116b sprint to ~19:00; Leap asked for an engine module split.
+> (a quote from the project owner, kept private)
+  certain is a way to get it down to something like 1 ms or 2ms".** Context: in c25, the lossy 32-row check is build +
+  submit 50.95 of 56.41 ms (GPU wait 5.05, commit 0.35); F16 34.90 of 38.88. ~~**The REPLAYED COMMAND PATH is RE-OPENED
+  as the main engine bet**~~ **CORRECTED 18:0x (Leap 18:0x): "build + submit" is the forward call's WALL, and the CPU
+  is blocked inside async_eval while the GPU runs; it is NOT 51 ms of CPU work. Evidence: CHECK55's profile on the same
+  harness (exact C32one) had the GPU busy 89.3 of 90.5 ms (99 %) with only 26.3 ms of CPU, and +2 ms of CPU moved the
+  wall +0.13. In c25, byte-only cuts move the wall (C6 -1.20, V3 + V1 -1.90) while a launch cut does not (t1cf +0.49).
+  Prediction: F32c6i's GPU is busy ~50-54 of 56.4 ms, so a perfect replay wins ~2-5 ms today. Rule (pre-registered by
+  Leap): GPU busy >= 90 % of the wall = GPU-paced (kernel modules lead); GPU idle >= 30 % = CPU-paced (replay leads).
+  The CPU still binds at the target (~28 ms of CPU vs a ~29 ms check), so compile / specialize stays a module, and
+  the replay one-layer prototype runs in parallel. The orchestrator relayed the wrong reading to Kamen at 17:5x and
+  corrected it at 18:0x.**
+  **REFINED 18:0x (Leap's 4-layer slice, thread CPU; data/week98/check25/cpusplit_slice.txt):** the CPU side IS large.
+  At 32 rows the forward submits nothing until the logits' eval: Python builds the lazy graph at ~0.45 ms per layer and
+  MLX encodes ~3 us per dispatch, so ~20 + ~12-14 = **~30-35 ms of CPU per 32-row check**. Still open:
+  - if the engine's in-forward waits are GPU-paced (GPU busy ~50), a replay wins ~2-6 ms today;
+  - if they serialize CPU with GPU (GPU busy ~35-40), it wins ~15-20 ms.
+  Tonight's c25_cpusplit run decides (Python build / encode / blocked / GPU busy per check). Either way, compile /
+  replay is REQUIRED for any check under ~35 ms, so it stays module 1. (record the check's GPU commands once, replay per check). This is a new mechanism vs the old
+  KILL, which assumed the exact engine is GPU-bound. Leap = module #1 (MoonShots helps). First: split the 50.95 ms into
+  Python build / MLX encode / blocking, plus the GPU busy time (libmtlprof). After the CPU part goes, the check falls
+  to the GPU's own time (the bound is 25.2 ms at 100 % for C6 + int8). Kept still decides 775. The early app quit
+  frees nothing (only Sleight, 35 MB, was open).
+> (a quote from the project owner, kept private)
+  sub 10ms everything. Not 30 and I'm pretty positive it's extremely possible and actually reletavely easy".** So his
+  idle chats stay, and V2 moves to Tuesday (4d). Leap is asked to MEASURE the check's GPU busy time tonight, which
+  settles it. c25's 5.05 ms is the wait after the last submit, while the GPU works underneath the 50.95 ms build:
+  c25's own floor for F32c6i is 18.2 ms (5.09 GB at 280 GB/s). ~~the measured kernel speeds put GPU busy at
+  ~30-45 ms [P]~~ Leap's prediction is ~50-54 ms (see the 18:0x correction above).
+
 ## KAMEN, Sun 15 Nov ~01:0x (verbatim): DON'T STOP AT WHAT PAPERS SAY
 "Don't rely on the published papers only. Because one paper said that for example the extra layers suck, doesn't mean
 that in our use case we can't spin things up so that they become really valuable. What was it "one man's trash is
@@ -41,6 +89,13 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Mon 16 17:2x (NewIdeas, slot order): **EvalSuite's B2 -> V2 (the pooled RUNAWAY verdict) has waited for memory
+  since 15:04 (NO-SWAP 38-40 vs its 43), so the GPU sat idle.** Tonight's order:
+  1. Breakthrough's map screen now (~40 min, 18 GB; it yields to B2);
+  2. BigMoE's g1b key test (~12 min; its exit should open B2's 43, as at 03:27 / 06:55 / 11:24);
+  3. B2 -> V2 (must start by ~19:45 to end by 22:30).
+  If B2 hasn't started by 19:45, V2 moves to Tuesday by day (4d) and G1 slips ~2.5 h. The remaining lever then is
+  memory (idle sessions/apps), which is the orchestrator's call.
 - Mon 16 14:1x (NewIdeas): **RE-CORRECTED with the full V1 code rows (264 keys): 1c-only runaways 10 vs base-only 3
   (p 0.092); a pooled FAIL after V2 is plausible (~20 vs 6, p ~0.01), so G1's 5d branches are likely needed.**
 - Mon 16 14:1x (NewIdeas): **CORRECTED: 1c-tiers' early runaway signal is 2 of 45 vs 0 (p 0.5), not 4.** mbpp/13

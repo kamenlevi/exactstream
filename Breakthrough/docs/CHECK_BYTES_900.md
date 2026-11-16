@@ -424,3 +424,40 @@ NOT CARRIED >= 0.8x, else BETWEEN).
   - Slice argmax vs all-eager HC: 16/16, 29/32 (v32), 32/32 (f32one).
   - So G2 runs ~1 % off the map's bt_mix4 numerics in the HC mixed output: the same gap HC8 already carries in the gated
     lossy-45.
+
+**Amendment (g), Mon 16 Nov 17:2x, before any arm runs: section 2's slot moves to now, beside EvalSuite's waiting B2.**
+- **Why.** BigMoE 17:15: EvalSuite's B2 has waited for memory since 15:04 (NO-SWAP 36-41 GB < its 43; apps stay open
+  until 23:00). Its chain may run to the 22:15 no-start cutoff, so BigMoE's key test starts ~22:15-22:30 at the
+  earliest. The runner would SKIP its 22:00 latest start, and Tue ~07:00 is taken (comment-QOM -> Fit12's kill test ->
+  band screen -> Leap's slot #1 at 09:30).
+- **Who agreed.** NewIdeas 17:2x: yes, once EvalSuite has no objection. It checked EvalSuite's runner log at 17:23: B2
+  reads 38 GB and needs 43, and re-checks every 10 min, so a yield costs B2 at most ~10 min. EvalSuite 17:2x: no
+  objection. Its terms:
+  - keep "MEM 18 GB" in the share lock's reason (its runner yields to it at each process start);
+  - stop if swap grows by more than 2 GB (the runner's own guard);
+  - if the orchestrator grants B2 an at-peak start at NO-SWAP ~38, let the current arm finish and stop by ~18:20
+    (finished arms kept), or TERM sooner on EvalSuite's word.
+- **Start.** The frozen runner's manual GO (data/m1/g1g2_map/GO). Unchanged: its NO-SWAP >= 26 GB gate, share lock
+  (MEM 18 GB), swap guard, HOLD / lid stops and the 22:28 hard stop; the arms, their order, the lines and the read-out.
+- **Yield** (scripts/m1/g1g2_yield.sh, beside the run). B2's view without my run = NO-SWAP + the map process's current
+  phys_footprint. If that is >= 43 GB (B2's gate) on two reads 30 s apart, the watcher TERMs the map process. The runner
+  then unlocks, reads out the finished arms and writes G1G2_MAP_END.
+  - Stub simulation 4/4: yield, B2's runner gone, no map process, a normal end.
+  - The footprint read was checked on a 1 GB allocation (1.01 GB).
+- **After a yield** (NewIdeas 17:2x): the rest re-runs with --skip-done right after BigMoE's key test if it can end
+  before M4 (23:05), else Tue 03:00 after E14.
+- **Read-out.** The verdicts go to NewIdeas in one message: bt_g1h8, DENSE-3 (PASS <= 1.34 % code flips / BETWEEN /
+  FAIL) and RES's increment. NewIdeas orders Tuesday's G1 and Wednesday's G2 from them.
+- **Addendum, Mon 17:3x-17:4x: two starts stopped at my own 22 GB footprint guard; run 3 from 17:38.**
+  - Run 1 (17:30:41, the GO) and run 2 (17:34:37) each stopped ~55 s in, in bt_g1h8's second window: lifetime
+    phys_footprint 22.099 / 22.097 GB, MLX peak active 15.35 GB. Earlier map runs were ~16.0 GB at the same 15.33 GB.
+    No arm finished; the read-outs say NOT RUN. Their end markers were moved aside (.selfguard1731 / .selfguard1735).
+  - Run 2 capped MLX's buffer cache at 2 GB (scripts/m1/g1g2_run_map.py, G1G2_CACHE_GB, default 2). It did not change
+    the peak, so the extra memory is not the cache. The cap stays (bt_restore checks results bit for bit under it).
+  - Run 3: BG_PEAK_MAX=30 in the runner's environment; scripts/m1/fp_log.sh samples the map process every 15 s
+    (data/m1/g1g2_map/footprint.log). Steady ~19-20 GB, transient peaks to 23.7 GB on a 398-position window (the
+    longest of the 24). NO-SWAP was 38 GB at the start; the swap guard (+2 GB) is unchanged.
+  - EvalSuite 17:3x stopped its chain (B2 had not started), withdrew the 18:20 stop and set the order: this screen,
+    then BigMoE's key test, then its B2 -> V2. The yield watcher exited (B2's runner gone).
+    scripts/m1/g1g2_softstop.sh (stop after the next complete arm file, or at a deadline; stub simulation 4/4) was
+    built for the withdrawn stop and is not running.

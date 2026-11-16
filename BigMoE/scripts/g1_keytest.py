@@ -11,6 +11,11 @@ PASS per env: rc 0, the 3 keys decoded (tokens written), and
     path); no lossy_check; pf.qom_opt > 0 on humaneval (a QOM set);
   - G1: lossy_check on humaneval + humanevalx with e3 + edrop > 0 (1c engaged) AND int8 > 0 (int8 dense engaged), absent
     on IFEval; IFEval tokens == the base's (unengaged, identical); pf.qom_opt == 0 on humaneval (1c replaces QOM).
+  - amendment 5d (NewIdeas + EvalSuite, Mon 14:0x; snapshot g1b = g1a + Fit12's res1c): the variants of REQ, each with and
+    without RES: g1x / g1rx (lambda 1.8e-2), g1cx / g1crx (COMQOM, lambda 1.6e-2), g1cdx / g1cdrx (COMQOM + MBPP docstrings),
+    g1lx / g1lrx (lambda 0.8e-2). As G1 on every code key (1c + int8), plus their res1c counters > 0 summed over the code
+    keys; the COMQOM envs also decode mbpp/115 ('#' comments) and mbpp/146 (a docstring only: tagged rows required on the
+    DOC envs); a res1c env's pf.qom_opt is reported, not ruled (its optional uses go through QOM's bit 21).
 Per env the at-peak evidence: the start gate's two NO-SWAP reads, the lifetime peak, the AT-PEAK MARGIN (the lower read
 minus the peak), the swap delta and vm_stat's swapouts over the run (EvalSuite's gate = MEM + 4 GB; every peak <= gate - 0.5).
 The run's own stops as rpl2_keytest.py / t1c_keytest.py (share lock "MEM 45 GB", swap guard +2 GB, HOLD / PAUSE / lid).
@@ -36,8 +41,26 @@ REF = os.path.join(ES, "results/card_lx45cc1_t1code/decode.jsonl")     # lx45cc1
 UNSETS = ("EVALSUITE_BIGMOE_CODE", "EVALSUITE_RELAX_VARIANT", "EVALSUITE_STAGE_ENV", "R57_KEYS", "R57_TAG", "BIGMOE_TIER",
           "BIGMOE_TIER_GLU", "BIGMOE_TIER_CL", "BIGMOE_TIER_COMBINE", "BIGMOE_OOO", "BIGMOE_MAXK")   # runner 64's UNSETS
 GATE_GB, SWAP_GB, WALL_S, PAUSE_S, MIN_ENV_S = 47, 2.0, 900, 900, 180
-REQ = {"g1x": ("int8",), "g1rx": ("int8", "eres"), "g1crx": ("int8", "eres", "ecomqom"), "g1lx": ("int8",),
-       "g1cx": ("int8", "ecomqom")}   # lossy_check keys > 0 on code (g1cx: COMQOM without RES, if NewIdeas picks it)
+REQ = {"g1x": ("int8",), "g1rx": ("int8", "res_opt", "opt_post"), "g1cx": ("int8", "com_rows", "com_opt"),
+       "g1crx": ("int8", "com_rows", "com_opt", "res_opt", "opt_post"), "g1cdx": ("int8", "com_rows", "com_opt"),
+       "g1cdrx": ("int8", "com_rows", "com_opt", "res_opt", "opt_post"), "g1lx": ("int8",),
+       "g1lrx": ("int8", "res_opt", "opt_post")}   # amendment 5d's variants (NewIdeas + EvalSuite, Mon 14:0x): int8 > 0 per
+# code key; Fit12 res1c's lossy_check counters (com_rows / com_opt: COMQOM's tagged rows and their optional uses; res_opt:
+# RES's optional MSB-3-tier uses; opt_post: optional uses the ref2 kernel saw) > 0 summed over the env's code keys
+F12C = ("f12_checks", "com_rows", "com_opt", "res_opt", "opt_post", "opt_drop")   # res1c.prompt_counts() (Fit12, 13:5x)
+XKEYS = {v_: ("mbpp/115", "mbpp/146") for v_ in ("g1cx", "g1crx", "g1cdx", "g1cdrx")}   # the COMQOM envs' extra keys: the
+# scored keys' lx45cc1 answers have docstrings but no '#' comment; mbpp/115's has two '#' comment lines (from its line 2),
+# mbpp/146's only a docstring (76 / 70 tokens). DOCV: the DOC envs (R57_COMQOM_DOC_SETS=mbpp) must tag rows on mbpp/146.
+DOCV = ("g1cdx", "g1cdrx")
+CODE = ("humaneval", "humanevalx", "mbpp")
+
+
+def prefix(n):
+    return n[:n.index("45")] if "45" in n else n            # the env's prefix: lx (the base) or a REQ key
+
+
+def keys_of(n):
+    return KEYS + XKEYS.get(prefix(n), ())
 
 
 def env_pairs(path):
@@ -67,7 +90,7 @@ def run_env(name):
     screen, C = screen_of(fenv)
     env = {k: v for k, v in os.environ.items() if k not in UNSETS}
     env.update(dict(env_pairs(fenv)))
-    env.update(R57_PRESET="45", R57_REPS="1", R57_WARM="1", R57_TAG=f"g1kt_{name}", R57_KEYS=",".join(KEYS))
+    env.update(R57_PRESET="45", R57_REPS="1", R57_WARM="1", R57_TAG=f"g1kt_{name}", R57_KEYS=",".join(keys_of(name)))
     return fenv, screen, env, [C, "2048"]
 
 
@@ -136,8 +159,11 @@ def main():
         with open(LOG, "a") as f:
             f.write(f"{time.strftime('%m-%d %H:%M:%S')} {m}\n")
 
-    res = dict(started=time.strftime("%Y-%m-%d %H:%M:%S"), keys=KEYS, ref=REF, envs={}, status="running")
-    refrows = {d_["key"]: d_["completion_ids"] for d_ in (json.loads(l_) for l_ in open(REF)) if d_["key"] in KEYS}
+    res = dict(started=time.strftime("%Y-%m-%d %H:%M:%S"), keys=KEYS, xkeys={k_: v_ for k_, v_ in XKEYS.items()
+                                                                              if any(prefix(n_) == k_ for n_ in ENVS)},
+               ref=REF, envs={}, status="running")
+    allk_ = set(KEYS).union(*XKEYS.values())
+    refrows = {d_["key"]: d_["completion_ids"] for d_ in (json.loads(l_) for l_ in open(REF)) if d_["key"] in allk_}
     locked, child = False, [None]
 
     def score(n, rc, why, lp, swap_d, wall_s, reads=None, swo=None):
@@ -154,18 +180,19 @@ def main():
         except (OSError, ValueError):
             pass
         per, fails, tk_ = {}, [], {}
-        vp_ = n[:n.index("45")] if "45" in n else n          # the env's prefix: lx (the base) or a REQ key
+        vp_ = prefix(n)
         variant = vp_ in REQ
-        for k in KEYS:
+        f12v = variant and any(c_ in F12C for c_ in REQ[vp_])   # a res1c env (RES and / or COMQOM)
+        for k in keys_of(n):
             r_ = R_.get(k)
             if r_ is None:
                 fails.append(f"{k}: no record"); continue
             toks = (T_.get(k) or {}).get(r_["arm"], [[]])[0]
             tk_[k] = toks
-            lc = r_.get("lossy_check"); qo = (r_.get("pf") or {}).get("qom_opt")
+            lc = r_.get("lossy_check"); qo = (r_.get("pf") or {}).get("qom_opt"); qs = (r_.get("pf") or {}).get("qom_skip")
             ck = r_.get("t1c_ck") or []
             per[k] = dict(arm=r_["arm"], n=r_["n"], tokens_eq_lx45cc1=toks == refrows.get(k), lossy_check=lc,
-                          qom_opt=qo, t1c_union_per_check_layer=round(sum(sum(c_[:3]) for c_ in ck) / max(sum(c_[3] for c_ in ck), 1), 2) if ck else None,
+                          qom_opt=qo, qom_skip=qs, t1c_union_per_check_layer=round(sum(sum(c_[:3]) for c_ in ck) / max(sum(c_[3] for c_ in ck), 1), 2) if ck else None,
                           lifetime_peak_gb=round(max(r_["mem"][1], r_["mem"][-1]), 2) if isinstance(r_.get("mem"), list) and len(r_["mem"]) >= 7 else None)   # footprint peaks after prefill / at the key's end
             st_ = k.split("/")[0]
             if not toks:
@@ -176,22 +203,25 @@ def main():
                 fails.append(f"{k}: lossy_check on the base")
             if not variant and st_ == "humaneval" and not (qo or 0) > 0:
                 fails.append(f"{k}: base pf.qom_opt {qo} (want > 0)")
-            if variant and st_ in ("humaneval", "humanevalx") and not (lc and lc.get("e3", 0) + lc.get("edrop", 0) + lc.get("lmsl_rows", 0) > 0):
+            if variant and st_ in CODE and not (lc and lc.get("e3", 0) + lc.get("edrop", 0) + lc.get("lmsl_rows", 0) > 0):
                 fails.append(f"{k}: 1c not engaged ({lc})")
-            if variant and st_ in ("humaneval", "humanevalx") and not (lc and lc.get("int8", 0) > 0):
+            if variant and st_ in CODE and not (lc and lc.get("int8", 0) > 0):
                 fails.append(f"{k}: int8 dense not engaged ({lc})")
-            for c_ in (REQ[vp_] if variant else ()):         # g1rx: eres; g1crx: eres + ecomqom (each > 0 on code)
-                if c_ != "int8" and st_ in ("humaneval", "humanevalx") and not (lc and lc.get(c_, 0) > 0):
-                    fails.append(f"{k}: {c_} not engaged ({lc})")
-            if variant and st_ == "ifeval" and lc is not None and any(lc.get(x_) for x_ in ("e3", "edrop", "lmsl_rows", "int8", "eres", "ecomqom")):
+            if variant and st_ == "ifeval" and lc is not None and any(lc.get(x_) for x_ in ("e3", "edrop", "lmsl_rows", "int8") + F12C):
                 fails.append(f"{k}: G1 engaged on IFEval ({lc})")
-            if variant and st_ == "humaneval" and (qo or 0) != 0:
-                fails.append(f"{k}: variant pf.qom_opt {qo} (want 0: 1c replaces QOM)")
+            if variant and not f12v and st_ == "humaneval" and (qo or 0) != 0:   # a res1c env posts QOM's bit-21 optional
+                fails.append(f"{k}: variant pf.qom_opt {qo} (want 0: 1c replaces QOM)")   # uses itself: reported, not ruled
             if variant and st_ == "ifeval":                  # never skipped: no base tokens to compare is a failure
                 bt_ = res["envs"].get(ENVS[0], {}).get("tokens", {}).get(k)
                 if bt_ is None or toks != bt_:
                     fails.append(f"{k}: IFEval tokens != the base's" if bt_ is not None else f"{k}: no base tokens to compare")
-        ok = rc == 0 and why is None and not fails and len(per) == len(KEYS)
+        for c_ in (REQ[vp_] if variant else ()):             # the res1c counters, summed over the env's code keys
+            if c_ != "int8" and not sum(((v_.get("lossy_check") or {}).get(c_, 0) for k_, v_ in per.items()
+                                         if k_.split("/")[0] in CODE)) > 0:
+                fails.append(f"{c_} not engaged on the code keys (sum 0)")
+        if vp_ in DOCV and not ((per.get("mbpp/146") or {}).get("lossy_check") or {}).get("com_rows", 0) > 0:
+            fails.append("mbpp/146: no tagged rows on a DOC env (its answer's only comment is a docstring)")
+        ok = rc == 0 and why is None and not fails and len(per) == len(keys_of(n))
         res["envs"][n] = dict(rc=rc, stopped=why, wall_s=wall_s, verdict="PASS" if ok else "FAIL", keys=per, fails=fails,
                               tokens=tk_, error=err[0] if err else None, log=os.path.relpath(lp, BM), swap_gb=swap_d,
                               peak_gb=max(pk_) if pk_ else None, start_noswap_gb=list(reads) if reads else None,
@@ -225,7 +255,8 @@ def main():
     signal.signal(signal.SIGTERM, on_signal)
     signal.signal(signal.SIGINT, on_signal)
     try:
-        say(f"start: {', '.join(ENVS)}; keys {', '.join(KEYS)}; gate NO-SWAP >= {a.gate:g} GB; swap guard +{SWAP_GB} GB; "
+        say(f"start: {', '.join(ENVS)}; keys {', '.join(KEYS)} (+ {', '.join(sorted(set().union(*XKEYS.values())))} on "
+            f"{', '.join(sorted(XKEYS))}); gate NO-SWAP >= {a.gate:g} GB; swap guard +{SWAP_GB} GB; "
             f"start by {a.start_by}; hard stop {a.hard}; away >= {a.away_min} s")
         if a.away_min:
             aw_ = subprocess.run(["bash", os.path.join(Q, "away_secs.sh")], capture_output=True, text=True).stdout.split()
@@ -235,13 +266,21 @@ def main():
 > (a quote from the project owner, kept private)
         if not a.nolock:
             r = subprocess.run(["peer", "lock", "share", "60m", "--cpu", "600", "--gpu", "100",
-                                f"BigMoE G1 key test: MEM 45 GB, EvalSuite lossygate 5a ({a.snap}), correctness only (no timing)"],
+                                f"MEM 45 GB BigMoE G1 key test, EvalSuite lossygate 5a / 5d ({a.snap}, {len(ENVS)} envs), correctness only (no timing)"],
                                capture_output=True, text=True, timeout=600)
             say(f"share lock rc {r.returncode}: {(r.stdout + r.stderr).strip()[:200]}")
             if r.returncode != 0:
                 raise Stop("no share lock")
             locked = True
+        absent_ = os.environ.get("G1KT_ABSENT", "")         # a pgrep -f pattern (the wrapper's): EvalSuite's runner 65 / CHAT
+        # process. Its memory loop does not re-check the shared-lock yield, so it could launch between two of these envs
+        # (NewIdeas 17:2x order: this test before B2). Checked before each env's gate reads and again before its start.
+
+        def absent_check(n_):
+            if absent_ and subprocess.run(["pgrep", "-f", absent_], capture_output=True).returncode == 0:
+                raise Stop(f"a process matching '{absent_}' is running before {n_} (EvalSuite's runner / CHAT process)")
         for n in ENVS:
+            absent_check(n)
             if os.path.exists(os.path.join(Q, "HOLD")):
                 raise Stop("HOLD")
             if lid_closed():
@@ -271,6 +310,7 @@ def main():
                     say(f"  {n}: NO-SWAP {r1:.1f} / {r2:.1f} GB < {a.gate:g}")
                     if time.time() + 30 > lim_:
                         raise Stop(f"NO-SWAP below {a.gate:g} GB until {time.strftime('%H:%M:%S', time.localtime(lim_))} before {n}")
+            absent_check(n)
             fenv, screen, env, tail = run_env(n)
             argv = [py, a.stub or screen] + tail
             lp = os.path.join(a.out, f"g1kt_{n}.log")
