@@ -151,13 +151,14 @@ F16 = dict(hc=3.77 + 0.08, attp=2.64 - 0.51, attc=0.51, gdnw=4.62 + (4.28 - 2.11
 GROW = dict(hc=0.25, attp=0.25, attc=(0.5, 1.0), gdnw=0.25, gdnc=1.0, moe=0.60, ple=0.37, head=0.26, unpriced=(0.25, 1.0))
 
 
-def fast32(lo=True, hc_x=1.0, ple_x=1.0, head_x=1.0, gdn_x=1.0):
+def fast32(lo=True, hc_x=1.0, ple_x=1.0, head_x=1.0, gdn_x=1.0, extra=None):
+    """the FAST dense side at 32 rows, one pass; extra = {class: multiplier} for the month ladder's kernel levers"""
     t = 0.0
     for k, v in F16.items():
         g = GROW[k]
         g = (g[0] if lo else g[1]) if isinstance(g, tuple) else g
         x = dict(hc=hc_x, ple=ple_x, head=head_x, gdnw=gdn_x, attp=gdn_x).get(k, 1.0)
-        t += v * (1 + g) * x
+        t += v * (1 + g) * x * ((extra or {}).get(k, 1.0))
     return t
 
 
@@ -198,8 +199,13 @@ p(f"   SELF-CHECK (b): exact-45 one pass at 32 rows {m32x:.2f} vs C32one GPU bus
 
 # ---------------------------------------------------------------- F. the candidates
 KEPT_HE, KEPT_MB, OVH = 16.91, 9.50, 4.0
-TIER_RULE = (0.3, 1.0)                                                 # [est] GPU ms of the 1c rule per check (48 layers)
-CPU_EXTRA = (0.0, 2.0)                                                 # [est] CPU ms of the lossy levers' dispatches
+# v2 (Mon 09:3x, Leap cf70494 dispatch_diet_price.md section 5): the 1c path adds ~34 MLX ops per MoE layer (BigMoE's
+# tiers_mx + counter + km 28, Leap's 2-D dup pick 6; counted from the graph [K]) = ~1,630 per check, at ~1.1-2.1 us GPU
+# [est] and ~6.5 us CPU [K] per dispatch: GPU +1.8-3.4 ms, CPU +10.6 ms, unless fused into router_fused (v1 had 0.3-1.0
+# GPU and 0-2 CPU [est])
+TIER_RULE = (1.8, 3.4)                                                 # GPU ms of the 1c path's glue per check
+C1C_CPU = 1632 * 6.5e-3                                                # CPU ms of the 1c path's glue per check (10.6)
+CPU_EXTRA = (0.0, 1.0)                                                 # [est] CPU ms of V1 / V3's few extra dispatches
 HC4_X = (0.55, 0.75)                                                   # [est] HC time 4-bit / 8-bit at 32 rows
 V1_HEAD_X = (0.15, 0.35)                                               # [est] head time with the 16K list / with SVH
 V4_GDN_X = (0.80, 0.85)                                                # [est] GDN / attention projections at 3 vs 4 bits
@@ -217,7 +223,7 @@ def cand(name, dgb, egb, read_share, v1=False, v2=False, v3=False, v4=False):
                    gdn_x=V4_GDN_X[i] if v4 else 1.0)
         e = egb * MS_PER_GB + (TIER_RULE[i] if v2 else 0.0)
         gpu = d + e
-        cpu = CPU32ONE + (CPU_EXTRA[i] if (v1 or v2 or v3) else 0.0)
+        cpu = CPU32ONE + (C1C_CPU if v2 else 0.0) + (CPU_EXTRA[i] if (v1 or v3) else 0.0)
         _, ms_m = miss32(read_share)
         tot = max(gpu, cpu) + ms_m + 0.0
         d2 = d * 2 * sum(F16.values()) / fast32(lo)          # the same levers on two 16-row calls
@@ -284,7 +290,58 @@ p(f"   25 ms needs, all together: misses -> 0 (a resident-only rule or no SSD), 
   f"and the CPU build + encode under ~25 ms (today {CPU32ONE:.1f})")
 p(f"   -> {1.2 * dfl + F16['attc'] * 1.5 + F16['gdnc'] * 2 + 1.1 * efl:.1f} ms GPU at best for C5's bytes")
 
-json.dump(dict(mean=mean, gb_exp=GB_EXP, dense=dense, rows=rows,
+# ---------------------------------------------------------------- H. the month ladder (v2): recorded levers only
+# Leap's FAST 1b list (TABLE_350 PLAN 220 part 2, 16-row prices [P]) as per-class cuts, carried to 32 rows by the class
+# growth (a fractional cut of a class's time scales with it): chunked GDN step -0.8..-1.0 of the 2.11 ms GDN core; HC8
+# restructure -1.05..-1.8 of the 3.85 ms HC (taken as the same share of a candidate's own HC time, so C5's HC4 is not
+# double counted); router on a native 8-bit kernel -0.5 of the 1.22 ms MoE dense part; DN_KS=2 -0.3 of the 6.79 ms GDN
+# weights; GDNB -0.13 on the GDN core [K FAST in place]
+B1 = [dict(gdnc=1 - (0.8 + 0.13) / 2.11, hc=1 - 1.05 / 3.85, moe=1 - 0.5 / 1.22, gdnw=1 - 0.3 / 6.79),
+      dict(gdnc=1 - (1.0 + 0.13) / 2.11, hc=1 - 1.8 / 3.85, moe=1 - 0.5 / 1.22, gdnw=1 - 0.3 / 6.79)]
+RES_SHARE = mean["c1_lsb"] / mean["c1_kept"]          # resident-only MSB-3 rule: only 4-bit-tier (LSB) uses may miss [P]
+
+
+def ladder(name, v1, v3, read_share):
+    p()
+    p(f"H. MONTH LADDER for {name} (realistic = max(GPU, CPU) + misses; ms per 32-row check; lo-hi):")
+    p("| step | FAST dense | experts + 1c glue | GPU | CPU | misses | realistic | binds | tok/s HE+ at K* |")
+    p("|---|---|---|---|---|---|---|---|---|")
+    out = []
+    for step in range(6):
+        r = []
+        for i, lo in enumerate((True, False)):
+            kw = dict(hc_x=HC4_X[i] if v3 else 1.0, ple_x=0.75 if v3 else 1.0, head_x=V1_HEAD_X[i] if v1 else 1.0)
+            d = fast32(lo, extra=B1[i] if step >= 2 else None, **kw)
+            if step == 0:                                    # today's > 16-row route: two 16-row calls
+                d = d * 2 * sum(F16.values()) / fast32(lo)
+            glue = 0.0 if step >= 5 else TIER_RULE[i]
+            e = GB_EXP["c1_eng"] * MS_PER_GB + glue
+            cpu = CPU32ONE + (0.0 if step >= 5 else C1C_CPU) + (CPU_EXTRA[i] if (v1 or v3) else 0.0)
+            share = read_share * (RES_SHARE if step >= 3 else 1.0)
+            _, ms_m = miss32(share)
+            if step == 4:                                    # no misses at all (a bound: needs no SSD in the check)
+                ms_m = 0.0
+            gpu = d + e
+            r.append((d, e, gpu, cpu, ms_m, max(gpu, cpu) + ms_m, "CPU" if cpu > gpu else "GPU"))
+        lab = ["0 today's route (two 16-row calls)", "1 + FAST one-pass forms > 16 rows (not built)",
+               "2 + Leap's FAST 1b list (~3 days; P)", "3 + resident-only MSB-3 rule (not in TRIED; quality unpriced)",
+               "4 (bound) misses 0", "5 + 1c glue fused into router_fused (Leap's lever A part)"][step]
+
+        def rr(j):
+            a, b = sorted((r[0][j], r[1][j]))
+            return f"{a:.1f}" if abs(a - b) < 0.05 else f"{a:.1f}-{b:.1f}"
+        tl, th = sorted((r[0][5], r[1][5]))
+        binds = "/".join(sorted(set(x[6] for x in r)))
+        p(f"| {lab} | {rr(0)} | {rr(1)} | {rr(2)} | {rr(3)} | {rr(4)} | **{rr(5)}** | {binds} | "
+          f"{1e3 * KEPT_HE / (th + OVH):.0f}-{1e3 * KEPT_HE / (tl + OVH):.0f} |")
+        out.append(dict(step=lab, realistic=[round(tl, 1), round(th, 1)], binds=binds))
+    return out
+
+
+LADDER = {"C3 1c-tiers": ladder("C3 = 1c-tiers (the gated variant)", False, False, c1_share),
+          "C5 plan": ladder("C5 = the 5.86 GB plan (6.12 GB on code)", True, True, c1_share)}
+
+json.dump(dict(version="v2 (1c glue from Leap cf70494)", mean=mean, gb_exp=GB_EXP, dense=dense, rows=rows, ladder=LADDER,
                selfchecks=dict(a=[round(m16, 2), round(CK16, 2), bool(sc_a)], b=[round(m32x, 2), PT["C32one"], bool(sc_b)],
                                c=[bool(sc_c1), bool(sc_c2)])),
           open(os.path.join(OUT, "lossy32_price.json"), "w"), indent=1)

@@ -1,0 +1,38 @@
+[Mon 08:15:45] stage 1: train p2f (s30 + one pool2 pass, 2,570 steps, copy at 680)
+08:15:45 lock try 1 rc 0: shared run reserved until 09:45 (about 200% CPU, 25% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done. Free for it now: abo
+08:15:45 start pass2_p2f (swap 6852 MB, NO-SWAP 42 GB)
+/Users/kamen/TrainLab/sb98/run_paused.sh: line 30: kill: (61386) - No such process
+08:34:35 paused pass2_p2f (quiet window)
+08:34:35 done pass2_p2f (exit 0)
+[Mon 08:34:35] [tm] DONE mhx: 2570 steps x 1 arms in 1126s (0.44s/step); peak 3.4 GB
+[Mon 08:34:35] stage 1: train p2s (s30 + the same first 680 pool2 slices, own cosine)
+08:37:56 lock try 1 rc 0: shared run reserved until 09:07 (about 200% CPU, 25% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done. Free for it now: abo
+08:37:56 start pass2_p2s (swap 6852 MB, NO-SWAP 41 GB)
+08:43:02 done pass2_p2s (exit 0)
+[Mon 08:43:02] [tm] DONE mhx: 680 steps x 1 arms in 301s (0.44s/step); peak 3.4 GB
+[Mon 08:43:02] stage 1 read-outs
+08:43:02 lock try 1 rc 0: shared run reserved until 09:13 (about 200% CPU, 25% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done. Free for it now: abo
+08:43:02 start pass2_eval (swap 6852 MB, NO-SWAP 41 GB)
+08:47:07 done pass2_eval (exit 0)
+08:47:07 lock try 1 rc 0: shared run reserved until 09:17 (about 200% CPU, 25% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done. Free for it now: abo
+08:47:07 start pass2_walk (swap 6852 MB, NO-SWAP 30 GB)
+08:53:27 done pass2_walk (exit 0)
+mhx_p2f vs s30 mbpp: 23-30 55.47 -> 58.08 (+2.61 pt, CI +1.81..+3.38, p 0.00209); kept/32 4.319 -> 4.478 (+3.7 %) -> PASS | walk-strict 0-0 83.4->84.1 (n 2557) 1-2 76.0->76.4 (n 3784) 3-6 74.6->75.9 (n 3407) 7-14 74.6->77.5 (n 1499) 15-22 78.9->68.8 (n 170) 23-30 40.0->0.0 (n 0)
+mhx_p2f vs s30 he: 23-30 68.72 -> 69.70 (+0.98 pt, CI +0.07..+1.89, p 0.362); kept/32 6.239 -> 6.166 (-1.2 %) -> FAIL | walk-strict 0-0 87.7->84.9 (n 1282) 1-2 83.3->82.5 (n 1993) 3-6 81.7->82.7 (n 2270) 7-14 86.3->86.6 (n 1654) 15-22 85.2->86.5 (n 480) 23-30 89.3->91.3 (n 184)
+mhx_p2f_s680 vs s30 mbpp [info only]: 23-30 55.47 -> 48.60 (-6.87 pt, CI -7.94..-5.77, p 3.08e-11); kept/32 4.319 -> 3.916 (-9.3 %) -> FAIL | walk-strict 0-0 83.4->82.7 (n 2927) 1-2 76.0->72.7 (n 4188) 3-6 74.6->72.1 (n 3240) 7-14 74.6->69.5 (n 1033) 15-22 78.9->55.2 (n 29) 23-30 40.0->0.0 (n 0)
+mhx_p2f_s680 vs s30 he [info only]: 23-30 68.72 -> 59.66 (-9.06 pt, CI -10.40..-7.75, p 1.86e-09); kept/32 6.239 -> 5.208 (-16.5 %) -> FAIL | walk-strict 0-0 87.7->86.8 (n 1518) 1-2 83.3->80.7 (n 2390) 3-6 81.7->78.2 (n 2439) 7-14 86.3->81.2 (n 1314) 15-22 85.2->78.0 (n 191) 23-30 89.3->82.1 (n 28)
+mhx_p2s vs s30 mbpp [info only]: 23-30 55.47 -> 55.68 (+0.21 pt, CI -0.46..+0.84, p 0.665); kept/32 4.319 -> 4.258 (-1.4 %) -> FAIL | walk-strict 0-0 83.4->82.4 (n 2688) 1-2 76.0->74.6 (n 3860) 3-6 74.6->75.0 (n 3275) 7-14 74.6->77.2 (n 1411) 15-22 78.9->74.0 (n 173) 23-30 40.0->60.0 (n 10)
+mhx_p2s vs s30 he [info only]: 23-30 68.72 -> 67.44 (-1.28 pt, CI -2.11..-0.39, p 0.00143); kept/32 6.239 -> 6.048 (-3.1 %) -> FAIL | walk-strict 0-0 87.7->87.1 (n 1307) 1-2 83.3->82.8 (n 2083) 3-6 81.7->80.8 (n 2267) 7-14 86.3->86.1 (n 1586) 15-22 85.2->86.2 (n 457) 23-30 89.3->87.1 (n 171)
+VERDICT p2f: FAIL: t30c does not get Tuesday night
+[Mon 08:53:29] stage 2: train p2b (s30 + a second pass of base, 1,889 steps; reuses p2s's file)
+08:53:29 lock try 1 rc 0: shared run reserved until 09:38 (about 200% CPU, 25% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done. Free for it now: abo
+08:53:29 start pass2_p2b (swap 6852 MB, NO-SWAP 30 GB)
+09:32:56 done pass2_p2b (exit 0)
+09:32:56 lock try 1 rc 0: shared run reserved until 10:02 (about 200% CPU, 25% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done. Free for it now: abo
+09:32:56 start pass2b_eval (swap 6804 MB, NO-SWAP 17 GB)
+09:37:04 done pass2b_eval (exit 0)
+09:37:05 lock try 1 rc 0: shared run reserved until 10:07 (about 200% CPU, 25% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done. Free for it now: abo
+09:37:05 start pass2b_walk (swap 6804 MB, NO-SWAP 24 GB)
+09:41:12 done pass2b_walk (exit 0)
+mhx_p2b vs s30 mbpp [info only]: 23-30 55.47 -> 57.50 (+2.03 pt, CI +0.97..+3.00, p 0.00209); kept/32 4.319 -> 4.316 (-0.1 %) -> FAIL | walk-strict 0-0 83.4->82.6 (n 2650) 1-2 76.0->76.1 (n 3853) 3-6 74.6->74.7 (n 3386) 7-14 74.6->76.0 (n 1374) 15-22 78.9->73.2 (n 142) 23-30 40.0->90.9 (n 11)
+mhx_p2b vs s30 he [info only]: 23-30 68.72 -> 70.52 (+1.80 pt, CI +0.54..+2.77, p 8.43e-06); kept/32 6.239 -> 6.200 (-0.6 %) -> FAIL | walk-strict 0-0 87.7->86.2 (n 1274) 1-2 83.3->82.6 (n 2013) 3-6 81.7->81.7 (n 2235) 7-14 86.3->87.5 (n 1641) 15-22 85.2->86.2 (n 521) 23-30 89.3->89.1 (n 184)

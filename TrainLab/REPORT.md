@@ -4833,3 +4833,66 @@ Line, per set: 23-30 >= +1.0 pt AND kept/32 >= +2 % (NewIdeas' line), and no ban
   for t30c and my S9c real-tree walk on them; the candidate is named to EvalSuite for CERTIFY98.
 - HE+ PASS only: reported; the orchestrator picks.
 - Otherwise: t30b stays the candidate.
+- OUTCOME (Mon 09:23): NOT RUN. S10's p2f FAILED (MBPP PASS, HE FAIL; see 'S10 PASS2 RESULT'). The runner and
+  manifests stay for a later decision; nothing was seeded in ~/datasets.
+
+## WEEK98 S10 PASS2 RESULT, stage 1 (Mon 16 Nov 09:23; LAB, sandbox: 2B target, MBPP-50 / HE-30, depth 31): p2f FAIL (MBPP PASS, HE+ FAIL) -> no t30c
+Runs 08:15-08:53 (pass2_RESULT.txt, pass2_compare.txt, pass2.json, pass2_walk.json). Each arm vs s30, 23-30 band
+(CI, sign p) and exact kept/32 under the walk:
+| arm | MBPP 23-30 | MBPP kept/32 | HE 23-30 | HE kept/32 | line |
+|---|---|---|---|---|---|
+| p2f (fresh pass, 2,570 steps) | 55.47 -> 58.08, +2.61 pt (+1.81..+3.38, p 0.002) | 4.319 -> 4.478 (+3.7 %) | 68.72 -> 69.70, +0.98 pt (+0.07..+1.89, p 0.36) | 6.239 -> 6.166 (-1.2 %) | MBPP PASS, HE FAIL |
+| p2f_s680 (its copy at 680, mid-cosine, info) | -6.87 pt (p 3e-11) | -9.3 % | -9.06 pt (p 2e-9) | -16.5 % | FAIL |
+| p2s (680 steps, own cosine = A's analog, info) | +0.21 pt (-0.46..+0.84, p 0.67) | -1.4 % | -1.28 pt (-2.11..-0.39, p 0.001) | -3.1 % | FAIL |
+- VERDICT (S10's line): FAIL. Only MBPP passes, so t30c does not run (S10: "otherwise FAIL"; NewIdeas' rule:
+  "p2f FAIL: no t30c"). T30C's own text covered only "FAIL on both sets", so this MBPP-only case falls to S10's line.
+- Fresh data at 1.365x s30's volume lifts MBPP's deep band (+2.6 pt, significant). It does not lift HE: +1.0 pt at
+  23-30, kept -1.2 %, and walk-strict depth 0 at 87.7 -> 84.9.
+- The 125B has only 0.35x of fresh data. That volume's analog, p2s, gains nothing on MBPP and hurts HE (-1.3 pt,
+  p 0.001). So the A recipe (unseen files only) is predicted null-to-harmful.
+- The anneal decides a lot: the same weights at step 680 mid-cosine (lr ~8.5e-6) are 7-9 pt worse than s30. Never pin
+  a mid-cosine copy.
+- Walk-strict per band moves within about 1-3 pt at depths 0-14 for every arm. The deep bands have tiny n under the
+  walk (MBPP 15-22 n 170, 23-30 n 0-10), so they say nothing there.
+- Stage 2 (p2b: s30 + a second pass over its own base files, information) is running and will be appended.
+
+## WEEK98 S12 FULLSTATE: carryac and tapmlp at s30's full budget (NewIdeas' ITEM 5; pre-registered Mon 16 Nov 09:29, before any run)
+Ask: NewIdeas 09:2x, ITEM 5 GO. The two state levers judged at 400 / 300 steps get s30's full budget, because the
+budget (n1 -> s30, +7.1 pt) is the only lever with a positive record and short screens can under-read slow learners.
+Earlier reads: carryac +0.70 pt (p 0.31) at 400 steps; tapmlp +0.61 / +0.82 pt (significant, under +2) at 300.
+Arms: Sandbox98's train_multi, one arm per process (<= 4 GB), run_paused with a share lock. Each arm uses s30's recipe:
+native head, fresh Adam, base files, seed 1114, rollout depth 30, 1,889 steps, 20-step warm-up to 1e-5, cosine to 1e-6.
+- f30: no lever. The same-code control (s30 itself came from sb/train.py). Its weights are compared bitwise with s30's.
+- fca: carryac (TrainLab sb98/levers/carryac.py, unchanged since S2). A residual carry adapter d -> 1024 -> d on its
+  own Adam at 1e-4, with the carry-only consistency loss at LAM 0.5.
+- ftm: tapmlp (Sandbox98 levers/tapmlp.py, read-only, defaults). A zero-init MLP from the target's true layer-12
+  residual at the drafted row, added to the carried stand-in at depths >= 2, on its own Adam at a constant 1e-5.
+  The head follows s30's schedule.
+Read-outs, MBPP-50 / HE-30, depth 31, chain:
+- evalx for s30, f30, fca@carryac and ftm@tapmlp.
+- cc_readout (the walk) with run@lever. New, mirroring evalx: the lever's setup, then the run's own weights, then its
+  stand-in in the chain. Each lever run's first window is self-checked against core.chain_table with the same fn.
+Line, per lever arm vs f30 (NewIdeas' / my brief's):
+- PROMISING: on BOTH sets, 23-30 >= +2.0 pt AND kept/32 >= +2 %.
+- HURTS: 23-30 <= -2.0 pt with sign p < 0.05 on either set.
+- Otherwise: NO EFFECT.
+- vs s30 is printed beside. If f30 is not bitwise s30 and the two calls differ, f30 rules (same code).
+- Walk-strict per band beside (deep bands have tiny n under the walk).
+After: a PROMISING arm gets a 125B pass next week at the earliest (no 125B slot this week). tapmlp also needs its
+runtime price first (13 of the target's layers per drafted token).
+Prediction [G]: carryac NO EFFECT (80 %), tapmlp NO EFFECT (70 %).
+Slot: <= 4 GB beside today's 45 GB 1c-tiers gate (~11:00-15:00), which has priority. run_paused starts a stage only at
+NO-SWAP >= 12 GB (peak + 8) with no quiet lock of others, and kills below 6 GB. If memory is tight, the stages wait.
+Disk stays flat: fca / ftm / f30 overwrite the PASS2 scratch files (p2f_s680, p2b, p2f), whose read-outs are committed.
+
+## WEEK98 S10 PASS2 RESULT, stage 2 (Mon 16 Nov 09:41; information): p2b, a second epoch on s30's OWN files
+| arm | MBPP 23-30 | MBPP kept/32 | HE 23-30 | HE kept/32 |
+|---|---|---|---|---|
+| p2b (s30 + base again, 1,889 steps) | 55.47 -> 57.50, +2.03 pt (+0.97..+3.00, p 0.002) | 4.319 -> 4.316 (-0.1 %) | 68.72 -> 70.52, +1.80 pt (+0.54..+2.77, p 8e-6) | 6.239 -> 6.200 (-0.6 %) |
+- Both data sources raise the deep MARGINAL band:
+  - more epochs on the same data (p2b): +2.0 / +1.8 pt;
+  - fresh data (p2f): +2.6 / +1.0 pt.
+- Neither raises kept/32 under the walk, except p2f on MBPP (+3.7 %). Kept is set by the shallow depths, and those don't
+  move: walk-strict depth 0 for p2b is 83.4 -> 82.6 (MBPP) and 87.7 -> 86.2 (HE).
+- So more training of either kind buys the deep band but not the shallow ones, which bind kept.
+- Under NewIdeas' recipe rule, p2b's pass would have meant "mixed (B)", but p2f failed, so the rule ends at no t30c.

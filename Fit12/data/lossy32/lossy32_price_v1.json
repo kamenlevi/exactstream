@@ -1,0 +1,282 @@
+{
+ "mean": {
+  "union": 114.24010942760943,
+  "ref2t_lsb": 30.979587542087543,
+  "c1_kept": 45.995370370370374,
+  "c1_lsb": 14.076178451178452,
+  "c1_map_e4": 15.268097643097644,
+  "c1_map_e3": 30.727272727272727,
+  "top2u": 30.979587542087543
+ },
+ "gb_exp": {
+  "all4": 11.707326414141415,
+  "ref2t": 9.813102915353536,
+  "c1_eng": 3.9874260646464657,
+  "c1_map": 4.014542893737374
+ },
+ "dense": {
+  "exact": 3.435,
+  "l45": 2.593628865979382,
+  "l45_v1": 2.4697128865979385,
+  "l45_v1v3": 2.132712886597939,
+  "l45_v1v3v4": 1.7977128865979388
+ },
+ "rows": [
+  {
+   "name": "C0 exact-45 (REF2-T), 32 rows one pass, warm, C 160 [K]",
+   "gb": 13.248,
+   "dense_gb": 3.435,
+   "exp_gb": 9.813,
+   "floor_ms": 47.31,
+   "realistic_ms": [
+    90.5,
+    90.5
+   ],
+   "gpu": [
+    89.3,
+    89.3
+   ],
+   "cpu": [
+    27.9,
+    27.9
+   ],
+   "miss_ms": 0.0,
+   "today_route_ms": [
+    102.1,
+    102.1
+   ]
+  },
+  {
+   "name": "C0b exact-45 one pass on the map code windows' bytes [P]",
+   "gb": 13.248,
+   "dense_gb": 3.435,
+   "exp_gb": 9.813,
+   "floor_ms": 47.31,
+   "realistic_ms": [
+    93.2,
+    93.2
+   ],
+   "gpu": [
+    92.0,
+    92.0
+   ],
+   "cpu": [
+    27.9,
+    27.9
+   ],
+   "miss_ms": 0.0,
+   "today_route_ms": [
+    104.8,
+    104.8
+   ]
+  },
+  {
+   "name": "C1 lossy-45 as shipped, at 32 rows",
+   "gb": 12.407,
+   "dense_gb": 2.594,
+   "exp_gb": 9.813,
+   "floor_ms": 44.31,
+   "realistic_ms": [
+    90.3,
+    92.0
+   ],
+   "gpu": [
+    77.3,
+    78.9
+   ],
+   "cpu": [
+    27.9,
+    27.9
+   ],
+   "miss_ms": 13.1,
+   "today_route_ms": [
+    103.0,
+    103.0
+   ]
+  },
+  {
+   "name": "C2 C1 + V1 (16K code lm_head list)",
+   "gb": 12.283,
+   "dense_gb": 2.47,
+   "exp_gb": 9.813,
+   "floor_ms": 43.87,
+   "realistic_ms": [
+    89.5,
+    91.4
+   ],
+   "gpu": [
+    76.4,
+    78.3
+   ],
+   "cpu": [
+    27.9,
+    29.9
+   ],
+   "miss_ms": 13.1,
+   "today_route_ms": [
+    101.7,
+    102.1
+   ]
+  },
+  {
+   "name": "C3 C1 + V2 (1c tiers, lam 1.6e-2)",
+   "gb": 6.581,
+   "dense_gb": 2.594,
+   "exp_gb": 3.987,
+   "floor_ms": 23.5,
+   "realistic_ms": [
+    53.0,
+    55.3
+   ],
+   "gpu": [
+    47.7,
+    50.1
+   ],
+   "cpu": [
+    27.9,
+    29.9
+   ],
+   "miss_ms": 5.3,
+   "today_route_ms": [
+    65.6,
+    66.3
+   ]
+  },
+  {
+   "name": "C4 C1 + V1 + V2",
+   "gb": 6.457,
+   "dense_gb": 2.47,
+   "exp_gb": 3.987,
+   "floor_ms": 23.06,
+   "realistic_ms": [
+    52.1,
+    54.7
+   ],
+   "gpu": [
+    46.9,
+    49.4
+   ],
+   "cpu": [
+    27.9,
+    29.9
+   ],
+   "miss_ms": 5.3,
+   "today_route_ms": [
+    64.4,
+    65.4
+   ]
+  },
+  {
+   "name": "C5 C4 + V3 (HC + PLE 4-bit) = the 5.86 GB plan",
+   "gb": 6.12,
+   "dense_gb": 2.133,
+   "exp_gb": 3.987,
+   "floor_ms": 21.86,
+   "realistic_ms": [
+    49.8,
+    53.3
+   ],
+   "gpu": [
+    44.5,
+    48.1
+   ],
+   "cpu": [
+    27.9,
+    29.9
+   ],
+   "miss_ms": 5.3,
+   "today_route_ms": [
+    60.9,
+    63.5
+   ]
+  },
+  {
+   "name": "C6 C5 at lam 1.8e-2 (frontier)",
+   "gb": 5.553,
+   "dense_gb": 2.133,
+   "exp_gb": 3.42,
+   "floor_ms": 19.83,
+   "realistic_ms": [
+    46.1,
+    49.7
+   ],
+   "gpu": [
+    41.6,
+    45.2
+   ],
+   "cpu": [
+    27.9,
+    29.9
+   ],
+   "miss_ms": 4.5,
+   "today_route_ms": [
+    57.3,
+    59.9
+   ]
+  },
+  {
+   "name": "C7 1d pooled-safe (lam 8e-3) + V1 + V3",
+   "gb": 7.711,
+   "dense_gb": 2.133,
+   "exp_gb": 5.578,
+   "floor_ms": 27.54,
+   "realistic_ms": [
+    60.0,
+    63.6
+   ],
+   "gpu": [
+    52.7,
+    56.2
+   ],
+   "cpu": [
+    27.9,
+    29.9
+   ],
+   "miss_ms": 7.4,
+   "today_route_ms": [
+    71.2,
+    73.8
+   ]
+  },
+  {
+   "name": "C8 C5 + V4 (GDN / attention 3-bit)",
+   "gb": 5.785,
+   "dense_gb": 1.798,
+   "exp_gb": 3.987,
+   "floor_ms": 20.66,
+   "realistic_ms": [
+    47.6,
+    51.6
+   ],
+   "gpu": [
+    42.3,
+    46.4
+   ],
+   "cpu": [
+    27.9,
+    29.9
+   ],
+   "miss_ms": 5.3,
+   "today_route_ms": [
+    57.7,
+    61.2
+   ]
+  }
+ ],
+ "selfchecks": {
+  "a": [
+   61.37,
+   61.23,
+   true
+  ],
+  "b": [
+   89.28,
+   89.28,
+   true
+  ],
+  "c": [
+   true,
+   false
+  ]
+ }
+}

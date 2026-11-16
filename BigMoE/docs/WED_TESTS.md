@@ -2448,3 +2448,28 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
   - Then the new snapshot + env files lx45<snap> / t1cx45<snap>.
   - Then section 6's real-loop key test (both envs, one HumanEval key + one IFEval key; tokens vs lx45cc1, counters,
     pf.qom_opt, peaks) on Tuesday by day, after the dry run.
+
+## Mon 16 Nov 09:0x-09:13: snapshot t1c1 for EvalSuite's 1c-tiers CODE-ONLY gate (68274ff): Leap's ref2 2-D nolsb frozen in; section-6 desk checks PASS; the real-loop key test waits for a 45 GB slot
+- **Leap's ref2** (b43efc4, md5 33021885; Leap's GPU check scripts/ooo1c_2d_check.py: 2-D marks == NAX6-N bitwise,
+  1-D / no-nolsb live vs new 168 arrays bit for bit):
+  - t["nolsb"] = (mask [M, 2] bool, None) on the FAST-NAX one-call, with a GPU dup pick.
+  - Every new branch is gated on the mask being 2-D. The 1-D U3 / QOM form takes the old G2 / eprep / CPU-pick branches.
+  - So R57_TIERS unset is unchanged (diff read 09:1x).
+  - `!= 0` marks (MSB-3 or drop) post no LSB for dropped rank 0-1 uses (Leap: 0 vs 0.25 extra LSB ids per layer call).
+- **Snapshot t1c1** (deep freeze, 409 frozen files; the frozen ref2 == b43efc4's modulo 11 path lines):
+  - Screen sha256 8d56cb717843; tree 04180c59, frozen 14bb1462; bigmoe tree d92cdb4b; .so build_qom ff69fa24a745.
+- **Envs:**
+  - data/stack/lx45t1c1 = lx45cc1's line verbatim (blob c9ebc0cf).
+  - t1cx45t1c1 = the base + exactly R57_TIERS=1c R57_TIERS_LAM=0.016 R57_TIERS_S=0.98
+    R57_TIERS_SETS=humaneval,humanevalx,mbpp (blob d4b1217d).
+- **Section 6 desk checks on t1c1:**
+  - The CPU self-check passes (MLX bit for bit).
+  - The wiring test on the t1c1 screen passes: 0 mismatches; means 76.64 = 8.65 + 20.52 + 47.47.
+  - EvalSuite's head test passes on both envs.
+  - Limits: 1c adds no ids, so MAXK and C are unchanged.
+- **Owed before EvalSuite arms:** scripts/t1c_keytest.py --snap t1c1.
+  - Both envs on humaneval/HumanEval/45, humanevalx/HumanEval/23 and ifeval/2239, end to end.
+  - The base: tokens == lx45cc1's rows on humanevalx + IFEval, pf.qom_opt > 0 on humaneval.
+  - The variant: lossy_check e3 + edrop > 0 on the code keys, absent on IFEval; IFEval tokens == the base's;
+    pf.qom_opt == 0.
+  - Peaks per key.

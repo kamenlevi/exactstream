@@ -65,6 +65,13 @@ What changes (monkeypatches on MTPLX, read-only):
     nax_native, no hybrid; TABLE_350 'FAST-NAX'): U3's sure rows and QOM's drops on NAX6-N's one-call (scripts/ooo1cq.py:
     late groups keyed by sidecar state too, a dropped group's rows are zeros, each pair writes its own sidecar entry).
     COUNTS nax_1cq. GPU checks: scripts/ooo1cq_check.py.
+  - 1c-TIERS (Mon 2026-11-16, FAST, inert unless a caller passes a 2-D mask; Fit12 LOSSY_1C_TIERS_SPEC.md section 3,
+    BigMoE r57_screen_fast _t1c): t["nolsb"] = (mask [M, R4] bool, None) on the FAST-NAX one-call. True = that (row,
+    rank < R4) use reads MSB-3 only: sidecar slot -2 (final, tier 3), per use where U3's 1-D form marks whole rows.
+    The sidecar post gives a marked use the first unmarked slot's id (row-major; its LSB is read anyway; none unmarked
+    -> slot (0, 0), as the 1-D form), picked on the GPU with no sync. eprep_k's per-row glue and G2's GEMV form are
+    bypassed for 2-D masks. A 2-D mask anywhere but the FAST-NAX one-call, or with t["qom"], raises. The 1-D form
+    (U3 / QOM, its CPU or eprep_k dup pick) is unchanged. GPU checks: scripts/ooo1c_2d_check.py.
   - QOM-SPLIT-1C (Fri 2026-11-06, FAST, off by default; CFG["qom_split"] = REF2_QOM_SPLIT, else R57_QOM_SPLIT, as a
     float T; "" / "off" = off; TABLE_350 'QOM-SPLIT-1C'): Breakthrough's qom_keep_mx split on the one-call. A strict row
     (QOM-sure, draft cf >= T, t["qom"][2]) keeps no resident expert, so its optional uses are dropped BEFORE the post:
@@ -891,6 +898,14 @@ def _nax6_glu(x, msb, lsb, msb_slot, lsb_slot, plan="4433333333", scores=None, *
     TG = BT._tier_glu_mod()
     return TG.combine_phase(y.reshape(M * R, -1), y.reshape(M * R, -1), mx.ones((M, R), mx.int32), scores.reshape(M, R))
 
+_AR32 = {}
+def _ar_i32(n):
+    """1c-tiers: a cached int32 arange (computed with the first graph that uses it, then a constant input)"""
+    a = _AR32.get(n)
+    if a is None:
+        a = _AR32[n] = mx.arange(n, dtype=mx.int32)
+    return a
+
 def _ooo1c():
     """OOO-1C: scripts/ooo1c.py, loaded on first use"""
     import ooo1c
@@ -920,10 +935,15 @@ def _ooo_1c_call(x, ids, bm, t, post, sc, shared, nax):
     assert not lo4 or lo4[0][0] == 0, t["segs"]
     offs = _ooo1c_offs(bm, t, R4)
     nlz = t.get("nolsb")                             # U3's 3-bit sure rows (BigMoE r57_screen _ooo_call_t3)
-    g2 = bool(nax and CFG["g2_rows"] and M <= CFG["g2_rows"] and CFG["nax_1cq"] and CFG["nax_native"] and _native(t))
+    nl2d = nlz is not None and getattr(nlz[0], "ndim", 1) == 2   # 1c-tiers (Mon 11-16): per-use MSB-3 marks [M, R4]
+    g2 = bool(nax and CFG["g2_rows"] and M <= CFG["g2_rows"] and CFG["nax_1cq"] and CFG["nax_native"] and _native(t)
+              and not nl2d)                          # 1c-tiers: 2-D marks take the 1CQ one-call, not G2's GEMV form
     if g2:                                           # CHAT-150 G2 (FAST): 3c-N's GEMV one-call (g2k, U3-capable) at few rows
         nax = False
     qn = bool(nax and CFG["nax_1cq"] and CFG["nax_native"])   # FAST-NAX (Thu 11-05): U3 + QOM on NAX6-N's one-call (ooo1cq)
+    if nl2d and (not qn or offs is None or t.get("qom") is not None or _NATIVE_FLAGS.get(id(t["base"])) is not None):
+        raise RuntimeError("REF2 1c-tiers: a 2-D t['nolsb'] runs only on the FAST-NAX one-call (R57_NAX=1 + REF2_OOO_1C=1 "
+                           "+ REF2_NAX_1CQ=1 on the converted store, a gate with regions, no N7-15 flags), never with t['qom']")
     if offs is None or (nlz is not None and nax and not qn):   # (NAX + t3 without FAST-NAX: not here; the two phases
         return None                                  # ignore nolsb too: BigMoE told)
     if _NATIVE_FLAGS.get(id(t["base"])) is not None:  # N7-15's dirty-slot repack runs only on the two-phase path
@@ -941,7 +961,7 @@ def _ooo_1c_call(x, ids, bm, t, post, sc, shared, nax):
     BT.OOO_STATS["calls"] += 1
     COUNTS["ooo_1c"] += 1
     ids_se = None
-    if sdrop is None and CFG["eprep"] and (qm is not None or (R4 and nlz is not None)):   # PLAN 220 #3e: one dispatch,
+    if sdrop is None and CFG["eprep"] and (qm is not None or (R4 and nlz is not None)) and not nl2d:   # PLAN 220 #3e: one dispatch,
         import eprep_k                               # bitwise == the ops below (scripts/eprep_k.py check(); dtypes kept)
         nle = nlz[0] if (R4 and nlz is not None) else None
         ids_p, ids_se = eprep_k.glue(ids, qm[0] if qm is not None else None, nle, R4 if nle is not None else 0)
@@ -968,8 +988,14 @@ def _ooo_1c_call(x, ids, bm, t, post, sc, shared, nax):
         if nlz is not None:                          # _ooo_call_t3 verbatim: sure rows post an unsure row's rank-0 expert
             t.pop("nolsb")                           # (read anyway) and take sidecar slot -2 (final: LP1 -> tier 3)
             nl, nl_np = nlz
-            nl2 = nl.reshape(M, 1)
-            if ids_se is not None:                   # PLAN 220 #3e: computed with ids_p in eprep_k's one dispatch
+            nl2 = nl if nl2d else nl.reshape(M, 1)
+            if nl2d:                                 # 1c-tiers: a marked use (row, rank < R4) reads MSB-3 only. Its post
+                assert nl.shape == (M, R4) and nl.dtype == mx.bool_, (nl.shape, nl.dtype, M, R4)
+                idr = ids.reshape(M, K)[:, :R4]      # takes the first unmarked slot's id (row-major: its LSB is read
+                n_ = M * R4                          # anyway; none unmarked -> slot (0, 0), as the 1-D form), picked
+                j_ = mx.min(mx.where((~nl).reshape(-1), _ar_i32(n_), n_)) % n_   # on the GPU with no sync
+                ids_s = mx.where(nl, mx.take(idr.reshape(-1), j_), idr).reshape(*ids.shape[:-1], R4)
+            elif ids_se is not None:                 # PLAN 220 #3e: computed with ids_p in eprep_k's one dispatch
                 ids_s = ids_se
             else:
                 un = np.where(~np.asarray(nl_np))[0]
@@ -1207,6 +1233,10 @@ def _ooo_sel(x, ids, bm, t, post, sc, shared):
     the native twin of BigMoE's 3c, even with REF2 removed (BigMoE 17:4x: r57_screen toggles REF2 around drafts)"""
     qn = bool(_ON[0] and CFG["tier_nax_ooo"] and CFG["ooo_1c"] and CFG["nax_1cq"] and CFG["nax_native"]
               and not (CFG["nax_hybrid"] or CFG["nax_repack_p1"]))   # FAST-NAX (Thu 11-05): QOM on NAX6-N's one-call
+    nlz_ = t.get("nolsb")
+    if nlz_ is not None and getattr(nlz_[0], "ndim", 1) == 2 and not qn:   # 1c-tiers: only the FAST-NAX one-call reads it
+        raise RuntimeError("REF2 1c-tiers: a 2-D t['nolsb'] needs the FAST-NAX one-call (REF2 on, R57_NAX=1 + REF2_OOO_1C=1 + "
+                           "REF2_NAX_1CQ=1 on the converted store, no hybrid); every other route would ignore it")
     if t.get("qom") is not None and ((_ON[0] and CFG["tier_nax_ooo"] and not qn) or (_layout(t) in (1, 2) and not (_ON[0] and CFG["ooo_1c"]))):
         raise RuntimeError("REF2: QOM on the NAX path, or on native records without ooo_1c, is not built (those two phases "
                            "would ignore t['qom']); QOM runs on 3c (BigMoE's two phases or ref2's one-call) and 3c-N (one-call)")

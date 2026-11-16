@@ -1,6 +1,6 @@
 # 1c-tiers: the lossy check variant for EvalSuite's CODE-ONLY gate (WEEK98 pillar 2), build + gate spec
 
-Fit12, Mon 16 Nov 2026 08:5x. **APPROVED** by the orchestrator (08:3x); NewIdeas coordinates the owners and orders the
+Fit12, Mon 16 Nov 2026 08:3x. **APPROVED** by the orchestrator (08:3x); NewIdeas coordinates the owners and orders the
 slot.
 - Name: **1c-tiers**. ("C3" is CERTIFY98's t30c candidate.)
 - Sources:
@@ -45,11 +45,16 @@ slot.
   other levers stay.
 
 ## 3. Build (owners; NewIdeas orders and times it)
-- **Leap, ref2 one-call (~ref2.py:915-990):**
-  - t["nolsb"] becomes a 2-D [M, R4] mask, R4 = 2 (tier[:, :R4] == 1); the where()s broadcast as they are.
+- **Leap, ref2 one-call (~ref2.py:915-990):** LANDED Mon 09:0x, b43efc4 (ref2 md5 33021885), all checks PASS.
+  - t["nolsb"] = (m, None), with m an mx bool [M, R4] mask, R4 = 2. **m = tier[:, :R4] != 0** (MSB-3 or drop); the
+    where()s broadcast as they are.
+    - Corrected 09:2x to what runs (Leap's and BigMoE's form). The first draft read == 1.
+    - The math is the same either way, since a dropped use has weight 0. With == 1, though, a dropped rank 0-1 slot
+      km'd to its row's rank-0 id would still read that id's LSB when the rank-0 expert is MSB-3.
   - The CPU dup pick (`un = np.where(~nl_np)`) becomes a GPU pick: the id of the first tier-0 slot of rank < R4.
   - Under 1c, eprep_k's fused per-row glue is bypassed.
-  - When: by day today / Tue, after Leap's WEEK98 items, never delaying E14 (Tue 00:30) or M4 (23:05).
+  - **Cost note (Leap cf70494):** the 1c path adds ~34 small MLX ops per MoE layer (~1,630 per check): ~+10.6 ms CPU and
+    +1.8-3.4 ms GPU per check, unless fused into router_fused. Not needed for the gate, which judges quality.
 - **BigMoE, r57_screen_fast.py _fast_call (FG["t1c"]):**
   - tier = tiers1c.tiers_mx(ids, scores) on the GPU, with no host sync;
   - MSB-3 through Leap's 2-D nolsb;
@@ -118,8 +123,10 @@ runs.json per prompt:
 - **Check length: <= 16 rows** (lossy-45's loop). A PASS licenses the 16-row form in CODE-ONLY mode. The 32-row form's
   quality rests on the map's 32-row PASS until a 32-row lossy loop exists.
 - **Time:** ~4.6 h at 45 GB (base ~2.3 h + variant ~2.3 h, both orders).
-- **Slot (NewIdeas):** Tue by day, after night1117 and BigMoE's 127-node dry run; or Wed by day, before the capture.
-  The drafter line wins any collision.
+- **Slot (NewIdeas 09:2x): TODAY, Mon by day** (t30c is off).
+  - BigMoE's real-loop key test runs first (snapshot t1c1, 68274ff), then EvalSuite's gate.
+  - The gate yields at ~15:00 and resumes Tuesday.
+  - The drafter line wins any collision.
 
 ## 8. What it should do (information; the gate decides quality, never speed)
 - **Quality, the map** (1c alone, 32-row blocks, vs the map's all-4-bit base; Breakthrough d9b2db7): code flips 1.13 %
@@ -128,6 +135,6 @@ runs.json per prompt:
 - **Bytes:**
   - at 16-row checks, 2.51 vs 6.54 GB of experts per check (x0.38);
   - at 32 rows, 3.99 vs 9.81 GB.
-- **Time at 32 rows [P]:** 53.0-55.3 ms per check with one-pass forms, against lossy-45's 90.3-92.0
-  (/Users/kamen/Fit12/data/lossy32/lossy32_price.txt). The 16-row speed effect is for the variant's own A/B, not this
-  gate.
+- **Time at 32 rows [P], v2 with the 1c glue:** 54.5-57.7 ms per check with one-pass forms (v1 read 53.0-55.3),
+  against lossy-45's 90.3-92.0 (/Users/kamen/Fit12/data/lossy32/lossy32_price.txt). The 16-row speed effect is for the
+  variant's own A/B, not this gate.

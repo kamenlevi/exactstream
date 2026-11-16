@@ -1,0 +1,16 @@
+SELF-CHECK s30 table == core.chain_table on mbpp_100.npz: PASS
+s30 mbpp: exact kept/32 4.3190, walk-strict 0-14 75.58 %; close-call: d0.5 4.786 (29.9 changed/1K, strict 76.89 %); d1 5.243 (52.4 changed/1K, strict 79.10 %); d2 6.252 (93.1 changed/1K, strict 82.31 %)
+SELF-CHECK s30 table == core.chain_table on humaneval_HumanEval_1.npz: PASS
+s30 he: exact kept/32 6.2390, walk-strict 0-14 84.60 %; close-call: d0.5 6.648 (13.1 changed/1K, strict 85.31 %); d1 7.146 (26.8 changed/1K, strict 85.85 %); d2 7.903 (45.6 changed/1K, strict 86.82 %)
+mhx_p2b mbpp: exact kept/32 4.3158, walk-strict 0-14 76.18 %; close-call: d0.5 4.849 (31.2 changed/1K, strict 77.23 %); d1 5.336 (54.7 changed/1K, strict 79.57 %); d2 6.328 (94.3 changed/1K, strict 82.23 %)
+mhx_p2b he: exact kept/32 6.1998, walk-strict 0-14 85.12 %; close-call: d0.5 6.699 (14.7 changed/1K, strict 85.87 %); d1 7.185 (27.9 changed/1K, strict 86.44 %); d2 7.879 (44.6 changed/1K, strict 87.42 %)
+
+pairs vs the control s30 (kept/32 diff [window bootstrap 95 % CI], sign test p over windows):
+  mhx_p2b mbpp delta 0: 4.319 -> 4.316 (-0.003, -0.1 %) [-0.096, +0.084] p 0.652 (20+/24-); changed/1K 0.0 -> 0.0
+  mhx_p2b mbpp delta 0.5: 4.786 -> 4.849 (+0.063, +1.3 %) [-0.046, +0.167] p 0.441 (24+/18-); changed/1K 29.9 -> 31.2
+  mhx_p2b mbpp delta 1: 5.243 -> 5.336 (+0.093, +1.8 %) [-0.035, +0.215] p 0.36 (25+/18-); changed/1K 52.4 -> 54.7
+  mhx_p2b mbpp delta 2: 6.252 -> 6.328 (+0.076, +1.2 %) [-0.093, +0.231] p 0.291 (26+/18-); changed/1K 93.1 -> 94.3
+  mhx_p2b he delta 0: 6.239 -> 6.200 (-0.039, -0.6 %) [-0.231, +0.168] p 1 (13+/13-); changed/1K 0.0 -> 0.0
+  mhx_p2b he delta 0.5: 6.648 -> 6.699 (+0.051, +0.8 %) [-0.147, +0.259] p 0.327 (16+/10-); changed/1K 13.1 -> 14.7
+  mhx_p2b he delta 1: 7.146 -> 7.185 (+0.039, +0.5 %) [-0.163, +0.256] p 1 (14+/14-); changed/1K 26.8 -> 27.9
+  mhx_p2b he delta 2: 7.903 -> 7.879 (-0.024, -0.3 %) [-0.238, +0.199] p 1 (11+/12-); changed/1K 45.6 -> 44.6

@@ -14,6 +14,11 @@
 >   - ~45-48 with Leap's 1b list (-4.3..-5.7 [P], ~3 days);
 >   - ~41-45 with a resident-only MSB-3 rule (-3.7 [P], quality unpriced).
 >   - That is ~325-375 tok/s HE+ at K* lossy 16.91. 900 needs ~15 ms.
+>   - **v2 (Fit12, Mon 09:2x, + Leap's 1c glue: 34 ops x 48 layers x 6.5 us = +10.6 ms CPU):**
+>     - C5: today's route 62.4-65.9 -> one pass 51.3-55.7 -> + FAST 1b 47.5-50.6 -> + resident-only 43.9-46.9, i.e.
+>       **332-353 tok/s HE+**; 42.1-43.5 with the glue fused.
+>     - The 1c family's CPU floor is 38.5 ms until the glue is fused. That is the NEXT WALL: at C5's last step the GPU
+>       is 42.3 ms vs the CPU's 38.5.
 >   - Not in TRIED at 32 rows: expert-kernel and CPU-build levers (Leap's dispatch-diet price is pending).
 > - **So, with today's drafter:** exact ~165-180 (engine) / ~306 (floor) vs 450, and lossy ~300 (realistic) / ~500
 >   (best kernels) vs 900. Both targets need the drafter (x1.4-1.55 kept) AND a check at or below its floor.

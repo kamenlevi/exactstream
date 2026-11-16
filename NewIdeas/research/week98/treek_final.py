@@ -60,6 +60,7 @@ def main():
     ap.add_argument("--dump-dir", default=TA.CE)
     ap.add_argument("--dump-fmt", default="tree_t30b_{tag}.npz")
     ap.add_argument("--rows", default="16,24,32,48,64,96,128")
+    ap.add_argument("--sets", default="he,mbpp")
     ap.add_argument("--out", default=os.path.expanduser("~/NewIdeas/research/week98/treek_final"))
     a = ap.parse_args()
     C = json.load(open(a.costs)); A16, OV = C["A16_ms"], C["overhead_ms"]
@@ -70,6 +71,8 @@ def main():
         print(s, flush=True); lines.append(s)
     say(f"costs: {a.costs}; dumps: {a.dump_dir}/{a.dump_fmt}; drafting hidden, overhead {OV} ms")
     for s, (tag, rtag, pub32, pub16) in TA.SETS.items():
+        if s not in a.sets.split(","):
+            continue
         W = TA.load_windows(tag, pub32)
         dump = np.load(os.path.join(a.dump_dir, a.dump_fmt.format(tag=tag)), allow_pickle=True)
         kk = kept_by_rows(W, dump, rows_list)

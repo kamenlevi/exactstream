@@ -18,7 +18,8 @@ import mlx.core as mx
 from sb import core as C
 
 C.limit_memory(4.5)                      # Sandbox98's caps (06:06 incident), plus clear_cache per window
-OUT, RUNS = sys.argv[1], sys.argv[2:]
+OUT, SPECS = sys.argv[1], sys.argv[2:]
+RUNS = [sp.partition("@")[0] for sp in SPECS]       # S12: 'run@lever' reads a run under its inference-path lever (as evalx)
 DELTAS = [0.0, 0.5, 1.0, 2.0]
 NS = int(os.environ.get("SMOKE", "0"))
 SETS = (("mbpp", NS or 50), ("he", NS or 30))
@@ -31,7 +32,7 @@ def files(d, n):
     return sorted(f for f in glob.glob(os.path.join(C.ROOT, "data", d, "*.npz")) if not f.endswith(".taps.npz"))[:n]
 
 
-def table(D, f, Dp=31):
+def table(D, f, Dp=31, fn=None):
     """core.chain_table's rt [n_anchors, Dp] (1 right, 0 wrong, -1 no target) plus dlp per cell"""
     z = np.load(f)
     ids = np.asarray(z["ids"], np.int32); gen = int(z["gen"])
@@ -39,7 +40,7 @@ def table(D, f, Dp=31):
     W = C.load_W(z)
     a0 = max(0, gen - 2); S = len(ids); n = S - 1 - a0
     rt = np.full((n, Dp), -1, np.int8); dl = np.full((n, Dp), np.nan, np.float32)
-    C.REPL.update(R=None, K=1, fn=None)
+    C.REPL.update(R=None, K=1, fn=fn)                  # fn: a lever's stand-in (chain_table's fn)
     C.CUR["f"], C.CUR["train"], C.CUR["x"] = f, False, None
     hs = []
 
@@ -94,18 +95,26 @@ def sign_p(npos, nneg):
 
 
 R = {}
-for ri, run in enumerate(RUNS):
-    D = C.load_drafter(run)
+for ri, (run, spec) in enumerate(zip(RUNS, SPECS)):
+    lev = spec.partition("@")[2]
+    D = C.load_drafter(run, strict=not lev); fn = None
+    if lev:                                       # as evalx: the lever's modules, then the run's own weights, its stand-in
+        from sb.train import load_lever
+        L = load_lever(lev)
+        if hasattr(L, "setup"):
+            L.setup(D, None)
+            D.load_weights(os.path.join(C.CKPT, run + ".safetensors"), strict=False)
+        fn = getattr(L, "standin", None)
     for st, nw in SETS:
         per = {d: [] for d in DELTAS}                              # per window: (kept sum, checks, changed)
         strict = {d: np.zeros((2, 31)) for d in DELTAS}
         for wi, f in enumerate(files(st, nw)):
-            rt, dl, gen, a0 = table(D, f)
-            if ri == 0 and wi == 0:
-                ref = C.chain_table(D, f, 31)[0]
+            rt, dl, gen, a0 = table(D, f, fn=fn)
+            if wi == 0 and (ri == 0 or lev):            # S12: every lever run checks its first window too
+                ref = C.chain_table(D, f, 31, fn=fn)[0]
                 mx.clear_cache()
                 ok = ref.shape == rt.shape and bool((ref == rt).all())
-                print(f"SELF-CHECK table == core.chain_table on {os.path.basename(f)}: {'PASS' if ok else 'FAIL'}", flush=True)
+                print(f"SELF-CHECK {spec} table == core.chain_table on {os.path.basename(f)}: {'PASS' if ok else 'FAIL'}", flush=True)
                 if not ok:
                     sys.exit(2)
             r0 = max(0, gen - 1 - a0)

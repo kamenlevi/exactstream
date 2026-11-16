@@ -1,0 +1,33 @@
+# LOSSY32 price (Fit12 lossy32_price.py), code windows 12, 32-row blocks 99
+A. per layer per 32-row block (code): union 114.2 (all 36 windows 99.9); distinct top-2 experts 31.0
+   REF2-T reads: 31.0 at 4-bit + 83.3 at MSB-3
+   1c (lambda 1.6e-2, s 0.98) ENGINE semantics: kept 46.0 distinct, of them 14.1 at 4-bit + 31.9 at MSB-3
+   1c MAP semantics: 4-bit 15.3 + MSB-3 30.7 = 39.2 4-bit-eq (Breakthrough: 36.4 of a 99.9 union)
+   expert GB per 32-row check: all-4-bit 11.71; REF2-T 9.81; 1c engine 3.99; 1c map 4.01 (engine / map 0.993)
+   SELF-CHECK (c): union 99.9 vs 99.9 / code 114.2 vs 109.7 within 10 %: PASS; 1c map 4-bit-eq 39.2 vs 36.4 within 3 %: FAIL
+B. dense GB: exact 3.435; lossy-45 (HC8 + SVH) 2.594; + V1 2.470; + V3 2.133 (Breakthrough's plan 2.14 counts the full head as the base); + V4 1.798
+C. engine [K]: experts 31.31 / 47.54 ms (A16 / C32, pass-T scale); dense side A16 28.44, C32one 41.74; CPU at C32one 27.94 ms
+   experts: 5.12 ms per REF2-T GB = 1.43 x the byte floor (REF2-T bytes); 1.20 x on an all-4-bit basis
+D. FAST dense side: 16 rows 19.81 ms [K]; 32 rows one pass 27.0-28.6 [P]; cross-check (engine C32one x FAST/exact at 16) 29.1
+   two 16-row native calls instead (today's only > 16-row route without the DNR unpack) ~39.6
+   union per layer, code windows: 16 rows 76.6, 32 rows 114.2 (x1.49)
+E. lossy-45 HE 16-row checks [K]: n 229, check median 61.2 ms, misses 35, service 8.8 ms (0.250 ms per miss)
+   SELF-CHECK (a): model at 16 rows 61.4 ms vs measured 61.2: +0.2 % -> PASS (line +-10 %)
+   SELF-CHECK (b): exact-45 one pass at 32 rows 89.28 vs C32one GPU busy 89.28 (wall 90.46): PASS (calibration identity)
+
+| candidate | GB / 32-row check (dense + experts) | floor ms | FAST dense ms | experts ms | GPU ms | CPU ms | 45 GB misses ms | realistic ms | x floor | today's > 16-row route ms | tok/s HE+ / MBPP at K* (drafting hidden) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| C0 exact-45 (REF2-T), 32 rows one pass, warm, C 160 [K] | 13.25 (3.44 + 9.81) | 47.3 | 41.7 | 47.5 | 89.3 | 27.9 | 0.0 | **90.5** | 1.91-1.91 | 102.1 | 179-179 / 101-101 |
+| C0b exact-45 one pass on the map code windows' bytes [P] | 13.25 (3.44 + 9.81) | 47.3 | 41.7 | 50.3 | 92.0 | 27.9 | 0.0 | **93.2** | 1.97-1.97 | 104.8 | 174-174 / 98-98 |
+| C1 lossy-45 as shipped, at 32 rows | 12.41 (2.59 + 9.81) | 44.3 | 27.0-28.6 | 50.3 | 77.3-78.9 | 27.9 | 13.1 | **90.3-92.0** | 2.04-2.08 | 103.0 | 176-179 / 99-101 |
+| C2 C1 + V1 (16K code lm_head list) | 12.28 (2.47 + 9.81) | 43.9 | 26.1-28.0 | 50.3 | 76.4-78.3 | 27.9-29.9 | 13.1 | **89.5-91.4** | 2.04-2.08 | 101.7-102.1 | 177-181 / 100-102 |
+| C3 C1 + V2 (1c tiers, lam 1.6e-2) | 6.58 (2.59 + 3.99) | 23.5 | 27.0-28.6 | 20.7-21.4 | 47.7-50.1 | 27.9-29.9 | 5.3 | **53.0-55.3** | 2.25-2.35 | 65.6-66.3 | 285-297 / 160-167 |
+| C4 C1 + V1 + V2 | 6.46 (2.47 + 3.99) | 23.1 | 26.1-28.0 | 20.7-21.4 | 46.9-49.4 | 27.9-29.9 | 5.3 | **52.1-54.7** | 2.26-2.37 | 64.4-65.4 | 288-301 / 162-169 |
+| C5 C4 + V3 (HC + PLE 4-bit) = the 5.86 GB plan | 6.12 (2.13 + 3.99) | 21.9 | 23.8-26.6 | 20.7-21.4 | 44.5-48.1 | 27.9-29.9 | 5.3 | **49.8-53.3** | 2.28-2.44 | 60.9-63.5 | 295-314 / 166-177 |
+| C6 C5 at lam 1.8e-2 (frontier) | 5.55 (2.13 + 3.42) | 19.8 | 23.8-26.6 | 17.8-18.5 | 41.6-45.2 | 27.9-29.9 | 4.5 | **46.1-49.7** | 2.33-2.50 | 57.3-59.9 | 315-337 / 177-190 |
+| C7 1d pooled-safe (lam 8e-3) + V1 + V3 | 7.71 (2.13 + 5.58) | 27.5 | 23.8-26.6 | 28.9-29.6 | 52.7-56.2 | 27.9-29.9 | 7.4 | **60.0-63.6** | 2.18-2.31 | 71.2-73.8 | 250-264 / 141-148 |
+| C8 C5 + V4 (GDN / attention 3-bit) | 5.79 (1.80 + 3.99) | 20.7 | 21.6-25.0 | 20.7-21.4 | 42.3-46.4 | 27.9-29.9 | 5.3 | **47.6-51.6** | 2.30-2.50 | 57.7-61.2 | 304-328 / 171-184 |
+
+G. C5 (the 5.86 GB plan) at its low end, 49.8 ms: FAST dense 23.8 (its bytes' floor 7.6: excess 16.2, of it cores 5.0); experts 20.7 (floor 14.2); misses 5.3; CPU 27.9 (a bound: hidden while the GPU is longer)
+   25 ms needs, all together: misses -> 0 (a resident-only rule or no SSD), the dense side's weight passes at ~1.2x their floor (9.1) + cores ~5.0, experts at ~1.1x (15.7), and the CPU build + encode under ~25 ms (today 27.9)
+   -> 29.8 ms GPU at best for C5's bytes

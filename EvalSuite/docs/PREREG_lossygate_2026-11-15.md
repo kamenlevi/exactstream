@@ -604,3 +604,124 @@
       humaneval,humanevalx,mbpp";
     - R57_TIERS without R57_TIERS_SETS: rc 2.
     - The base's key files were unchanged by these dry runs.
+
+## Amendment 4a (Mon 2026-11-16 09:1x, before any 1c-tiers run): the pins, the dry runs and the slot rules for 1c-tiers
+- **The snapshot t1c1** (BigMoE 68274ff; BigMoE's HEAD e6fcaea0 holds it, clean), checked here:
+  - CARD_TREES=data/r57/snap/t1c1=04180c59e76e39b5deffd8e38c5ac277c179a005,data/r57/snap/frozen_t1c1=14bb1462b292d2cb366401cf4d30e8967e79a124,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f
+  - CARD_SCREEN_SHA=8d56cb717843 (data/r57/snap/t1c1/r57_screen_t1c1.py, sha256 8d56cb7178430bbb...); CARD_SO_SHA=ff69fa24a745
+    (rpl2's .so).
+- **The env files** (BigMoE data/stack, tracked and committed):
+  - base lx45t1c1, blob c9ebc0cfe9cb6697aefa2cc44c08b30b035fb58e;
+  - variant t1cx45t1c1, blob d4b1217db0234aff6848e820fe1199f68cb28211.
+  - Checked here: the base line equals lx45cc1's verbatim (R57_QOM_SETS=humaneval,mbpp; no R57_TIERS). The variant
+    line equals the base's plus exactly ",R57_TIERS=1c,R57_TIERS_LAM=0.016,R57_TIERS_S=0.98,R57_TIERS_SETS=humaneval,humanevalx,mbpp".
+  - Each comment names its own tag and the snapshot's screen, with C 256 and MEM 45.
+- **BigMoE's section-6 checks on t1c1 (08:5x-09:1x):**
+  1. The CPU self-check passes: tiers_np against Breakthrough's masks on the 12 code windows, and the MLX form bit for
+     bit.
+  2. The wiring test passes (scripts/test_t1c_wiring.py on the t1c1 screen):
+     - 0 mismatches over 3,095,040 slots, in the drop mask, the no-LSB marks and the counter;
+     - e4 + e3 + edrop = the union on every check-layer;
+     - means at 16 rows 76.64 = 8.65 + 20.52 + 47.47, against Fit12's reference 76.6 / 8.7 / 20.5 / 47.5.
+  3. EvalSuite's head test passes on both envs.
+  4. Limits: 1c never adds ids (a drop maps to the row's rank-0 id), so MAXK and C are unchanged.
+- **Leap's ref2 change** (b43efc4), read by BigMoE for the R57_TIERS-unset path:
+  - Every new branch is gated on a 2-D nolsb mask, which only the 1c wiring creates. The 1-D path keeps the old
+    branches.
+  - Leap's own check: the 1-D and no-nolsb paths give 168 arrays bit for bit, live against new.
+  - The frozen copy equals b43efc4's ref2 modulo 11 path-rewrite lines.
+  - So the base should be bitwise as before. The key test and the gate's own unset-path check (amendment 4: B1 against
+    lx45cc1 on humanevalx + IFEval) test it.
+- **Runner 65** (sha256 9848a30c6a15d682...), dry runs at 09:14 on these pins:
+  - B0 (base tier 0, exact refs): rc 0, 40 / 40, the base's QOM rule.
+  - V0 against B0 before B0 exists: rc 2, "holds 0 of 40", as it must.
+  - V0 with the exact refs as a stand-in: rc 0, with the 1c QOM rule and the engagement field.
+  - B1, B2 (base forward / reverse): rc 0, 364 / 364.
+  - V1, V2 (the variant forward / reverse, stand-in refs, IFEval identity, V2 with the pooled settings): rc 0.
+- **The steps' settings** (CARD_SCOPE=code, the pins above, CARD_MEM 39 so the gate is 43 GB):
+  - B0: CARD_TIER=0, CARD_TAG=lx45t1c1, CARD_REF = the exact refs.
+  - V0: CARD_TIER=0, CARD_TAG=t1cx45t1c1, CARD_REF=card_lx45t1c1_t0code, CARD_ENGAGE=lossy_check:e3+edrop+lmsl_rows.
+  - B1: CARD_TIER=1, the base, exact refs. V1: the variant, CARD_REF=card_lx45t1c1_t1code, CARD_IFEVAL_IDENT=1, the
+    engagement field.
+  - B2 / V2: the same with CARD_ORDER=rev, CARD_REF=card_lx45t1c1_t1code_rev, and V2's CARD_FWD_RUN=card_t1cx45t1c1_t1code
+    / CARD_FWD_REF=card_lx45t1c1_t1code.
+- **Arming needs BigMoE's real-loop key test** (scripts/t1c_keytest.py --snap t1c1; it waits for a 45 GB slot).
+  - It decodes humaneval/HumanEval/45, humanevalx/HumanEval/23 and ifeval/2239 end to end on both envs.
+  - Base: tokens equal lx45cc1's rows on humanevalx and IFEval; pf.qom_opt > 0 on humaneval; no lossy_check.
+  - Variant: e3 + edrop > 0 on humaneval and humanevalx, and lossy_check absent on IFEval; IFEval tokens equal the
+    base's; pf.qom_opt == 0 on humaneval.
+  - A per-key lifetime peak above 42.5 GB moves the gate before arming.
+- **Start gates (NewIdeas 08:4x), all required before any step:**
+  1. results/T0A_1117_END written after the follower's arming (Mon 08:40:20), on any end;
+  2. BigMoE's dry-run marker ~/BigMoE/data/deepdraft/ceiling/N127_DRY_1117_DONE, with mtime >= Mon 09:05 (the dry
+     run moved to today);
+  3. this amendment and the key test above;
+  4. the away rule, with no other session's run above 16 GB live (runner 65's per-process yield holds the rest).
+- **Windows:**
+  - **Tuesday by day:** B0 -> V0 -> B1 -> V1, as far as the window allows. The cutoff is 14:30.
+  - **Wednesday by day:** the drafter line goes FIRST: t30c's dev eval, its TOPK / TREE dumps if t30c PAYS, and anything
+    the Wednesday pins need. Only on NewIdeas' word does the rest resume (CARD_RESUME for a cut tier-1 run), then
+    B2 -> V2.
+    - The cutoff is 14:30. The capture starts no earlier than Wed 23:30 (BigMoE), so every step ends >= 2 h before
+      it.
+  - Anything left waits until after the proofs (Thu-Fri nights).
+  - A KILL or FAIL stops the chain, as registered.
+
+## Amendment 4c (Mon 2026-11-16 09:3x, before any 1c-tiers run): 1c-tiers starts TODAY; the key test becomes a start gate; the chain
+- **Today's start** (NewIdeas 09:2x; the orchestrator agrees): t30c is off (S10 PASS2 FAIL), so the drafter line needs no
+  GPU today. the owner away until ~15:00, with his apps closed.
+  - Today's start gates: BigMoE's dry-run marker (mtime >= 09:05); the key test's PASS (below); this PREREG's 4a; and
+    the away rule.
+  - T0A_1117_END does not apply today. It is back in force on Tuesday.
+- **The key test becomes a start gate rather than an arming condition** (BigMoE 09:1x, the orchestrator's arrangement).
+  - The marker is ~/BigMoE/data/r57/T1C1_KEYTEST_DONE, written on any end by BigMoE scripts/t1c_follow.sh (c7cf64a8):
+    "T1C1 KEYTEST END <time>: PASS|FAIL|STOPPED|NOT RUN (<per env verdict, peak, swap>)".
+  - No step starts before a PASS dated >= 09:20 today.
+  - A FAIL, or any env's "peak <x> GB" above 42.5, means no run (rc 5).
+  - STOPPED or NOT RUN: the chain waits for a re-test.
+  - Amendment 4a's criteria for the key test stand; BigMoE's PASS covers them.
+- **The chain:** tools/t1c_chain.sh (sha256 d7d9001d6549811d...), runner 65, the settings of 4a. Its phases:
+  - **mon (today) / tue:** B0 -> V0 -> B1 -> V1 as far as the day's 14:30 cutoff allows. It never starts B2 or V2. Tue
+    adds the T0A gate.
+  - **wed (armed on NewIdeas' word, after the drafter line):** the steps not done, then B2 -> V2.
+  - A done step is skipped. A cut tier-0 run starts fresh; a cut tier-1 run resumes.
+  - V0's KILL or V1's FAIL ends the variant. A run without a verdict, VOID or INCOMPLETE stops the chain.
+  - Every end writes results/T1C_<PHASE>_END.
+- **Checked:**
+  - DRY passes of the mon and tue phases through runner 65: all six runner calls rc 0.
+  - A stub simulation, 13 scenarios (results/lossygate/t1c_chain_sim_2026-11-16.txt):
+    - stale gate markers ignored;
+    - a full Tuesday that stops before B2;
+    - V0 KILL;
+    - yields (tier 0 fresh, tier 1 resumed);
+    - a cut B1 that Wednesday resumes and completes;
+    - V1 FAIL, after which Wednesday has nothing to run;
+    - HOLD (rc 8); the last start missed (rc 6); INCOMPLETE (a stop, not a cut);
+    - the key test FAIL (rc 5); STOPPED then PASS (it waits, then starts); a 43.1 GB peak (rc 5); a PASS without
+      peaks (it starts and notes it);
+    - the mon phase without the T0A gate.
+
+## Amendment 4d (Mon 2026-11-16 09:3x, before any 1c-tiers run): if V1 passes, B2 -> V2 run on Tuesday by day
+- **Why:** NewIdeas (09:3x): t30c is off, so Tuesday by day has no drafter-line GPU need. Finishing the gate on Tuesday
+  keeps Wednesday clear for the capture's preparation.
+- **The rule:** if V1 passes (today or Tuesday), B2 -> V2 run on Tuesday by day.
+  - The usual gates apply: after T0A_1117_END, under the away rule, with the 14:30 cutoff and one > 16 GB job at a time.
+  - Anything left after Tuesday's 14:30 goes to Wednesday by day after the drafter line, or after the proofs.
+- **How: a follower,** tools/t1c_tue_follower.sh (sha256 e6ef42aaaba31a10...). The armed chain's file serves today's phase
+  and must not change under it.
+  - It starts when results/T1C_TUE_END (the tue phase's end, after T0A_1117_END) says "V1 PASS", with the tue phase gone,
+    read twice 30 s apart. Any other tue end means no run.
+  - It then runs t1c_chain.sh's wed phase with Tuesday's date: the done steps are skipped, then B2 -> V2, under that
+    chain's own guards. Its log lines read "[wed]" with Tuesday's date, and its end is results/T1C_WED_END.
+  - No start after Tue 14:15. Every end writes results/T1C_TUEF_END.
+- **Tuesday's neighbours (NewIdeas):**
+  - Leap's command-buffer microbench, a quiet window of <= 10 min, takes a gap between steps, never inside a running
+    step. A yield is covered by CARD_RESUME.
+  - A possible early-death dev pass is Tuesday NIGHT. It does not touch these runs.
+- **Checked:**
+  - The DRY pass ran the wed phase with Tuesday's cutoff: six runner calls rc 0.
+  - A stub simulation, 5 scenarios (results/lossygate/t1c_tue_follower_sim_2026-11-16.txt):
+    - a "V1 PASS" end runs B2 -> V2, with the done steps skipped;
+    - a FAIL end, or the tue phase gone without a marker: no run (rc 5);
+    - a stale marker is ignored;
+    - past the last start: rc 6.

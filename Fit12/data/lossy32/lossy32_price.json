@@ -1,4 +1,5 @@
 {
+ "version": "v2 (1c glue from Leap cf70494)",
  "mean": {
   "union": 114.24010942760943,
   "ref2t_lsb": 30.979587542087543,
@@ -110,7 +111,7 @@
    ],
    "cpu": [
     27.9,
-    29.9
+    28.9
    ],
    "miss_ms": 13.1,
    "today_route_ms": [
@@ -125,21 +126,21 @@
    "exp_gb": 3.987,
    "floor_ms": 23.5,
    "realistic_ms": [
-    53.0,
-    55.3
+    54.5,
+    57.7
    ],
    "gpu": [
-    47.7,
-    50.1
+    49.2,
+    52.5
    ],
    "cpu": [
-    27.9,
-    29.9
+    38.5,
+    38.5
    ],
    "miss_ms": 5.3,
    "today_route_ms": [
-    65.6,
-    66.3
+    67.1,
+    68.7
    ]
   },
   {
@@ -149,21 +150,21 @@
    "exp_gb": 3.987,
    "floor_ms": 23.06,
    "realistic_ms": [
-    52.1,
-    54.7
+    53.6,
+    57.1
    ],
    "gpu": [
-    46.9,
-    49.4
+    48.4,
+    51.8
    ],
    "cpu": [
-    27.9,
-    29.9
+    38.5,
+    39.5
    ],
    "miss_ms": 5.3,
    "today_route_ms": [
-    64.4,
-    65.4
+    65.9,
+    67.8
    ]
   },
   {
@@ -173,21 +174,21 @@
    "exp_gb": 3.987,
    "floor_ms": 21.86,
    "realistic_ms": [
-    49.8,
-    53.3
+    51.3,
+    55.7
    ],
    "gpu": [
-    44.5,
-    48.1
+    46.0,
+    50.5
    ],
    "cpu": [
-    27.9,
-    29.9
+    38.5,
+    39.5
    ],
    "miss_ms": 5.3,
    "today_route_ms": [
-    60.9,
-    63.5
+    62.4,
+    65.9
    ]
   },
   {
@@ -197,21 +198,21 @@
    "exp_gb": 3.42,
    "floor_ms": 19.83,
    "realistic_ms": [
-    46.1,
-    49.7
+    47.6,
+    52.1
    ],
    "gpu": [
-    41.6,
-    45.2
+    43.1,
+    47.6
    ],
    "cpu": [
-    27.9,
-    29.9
+    38.5,
+    39.5
    ],
    "miss_ms": 4.5,
    "today_route_ms": [
-    57.3,
-    59.9
+    58.8,
+    62.3
    ]
   },
   {
@@ -221,21 +222,21 @@
    "exp_gb": 5.578,
    "floor_ms": 27.54,
    "realistic_ms": [
-    60.0,
-    63.6
+    61.5,
+    66.0
    ],
    "gpu": [
-    52.7,
-    56.2
+    54.2,
+    58.6
    ],
    "cpu": [
-    27.9,
-    29.9
+    38.5,
+    39.5
    ],
    "miss_ms": 7.4,
    "today_route_ms": [
-    71.2,
-    73.8
+    72.7,
+    76.2
    ]
   },
   {
@@ -245,24 +246,126 @@
    "exp_gb": 3.987,
    "floor_ms": 20.66,
    "realistic_ms": [
-    47.6,
-    51.6
+    49.1,
+    54.0
    ],
    "gpu": [
-    42.3,
-    46.4
+    43.8,
+    48.8
    ],
    "cpu": [
-    27.9,
-    29.9
+    38.5,
+    39.5
    ],
    "miss_ms": 5.3,
    "today_route_ms": [
-    57.7,
-    61.2
+    59.2,
+    63.6
    ]
   }
  ],
+ "ladder": {
+  "C3 1c-tiers": [
+   {
+    "step": "0 today's route (two 16-row calls)",
+    "realistic": [
+     67.1,
+     68.7
+    ],
+    "binds": "GPU"
+   },
+   {
+    "step": "1 + FAST one-pass forms > 16 rows (not built)",
+    "realistic": [
+     54.5,
+     57.7
+    ],
+    "binds": "GPU"
+   },
+   {
+    "step": "2 + Leap's FAST 1b list (~3 days; P)",
+    "realistic": [
+     50.1,
+     52.1
+    ],
+    "binds": "GPU"
+   },
+   {
+    "step": "3 + resident-only MSB-3 rule (not in TRIED; quality unpriced)",
+    "realistic": [
+     46.5,
+     48.4
+    ],
+    "binds": "GPU"
+   },
+   {
+    "step": "4 (bound) misses 0",
+    "realistic": [
+     44.9,
+     46.8
+    ],
+    "binds": "GPU"
+   },
+   {
+    "step": "5 + 1c glue fused into router_fused (Leap's lever A part)",
+    "realistic": [
+     44.7,
+     45.0
+    ],
+    "binds": "GPU"
+   }
+  ],
+  "C5 plan": [
+   {
+    "step": "0 today's route (two 16-row calls)",
+    "realistic": [
+     62.4,
+     65.9
+    ],
+    "binds": "GPU"
+   },
+   {
+    "step": "1 + FAST one-pass forms > 16 rows (not built)",
+    "realistic": [
+     51.3,
+     55.7
+    ],
+    "binds": "GPU"
+   },
+   {
+    "step": "2 + Leap's FAST 1b list (~3 days; P)",
+    "realistic": [
+     47.5,
+     50.6
+    ],
+    "binds": "GPU"
+   },
+   {
+    "step": "3 + resident-only MSB-3 rule (not in TRIED; quality unpriced)",
+    "realistic": [
+     43.9,
+     46.9
+    ],
+    "binds": "GPU"
+   },
+   {
+    "step": "4 (bound) misses 0",
+    "realistic": [
+     42.3,
+     45.3
+    ],
+    "binds": "GPU"
+   },
+   {
+    "step": "5 + 1c glue fused into router_fused (Leap's lever A part)",
+    "realistic": [
+     42.1,
+     43.5
+    ],
+    "binds": "GPU"
+   }
+  ]
+ },
  "selfchecks": {
   "a": [
    61.37,

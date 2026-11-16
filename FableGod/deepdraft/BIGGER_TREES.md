@@ -142,3 +142,27 @@ is needed by Saturday.
 - **MBPP:** tree-16 under every cost (+4-6 % over 24 rows).
 - **Tuesday:** run treek_final.py --costs <Leap's refined costs JSON> on BigMoE's real 127-node dumps (--dump-fmt). The
   same script prints K* per set and cost model, with a 3 % rule for K > 32.
+
+## REAL 127-NODE TREES (Mon 09:2x; BigMoE's dry-run dump tree_t30b_heplus24_n127k8.npz; treek_final_he_n127k8.txt, treek_bands_n127_he.txt)
+- **Kept per check under each tree's own walk, HE+** (nest check: the first 32 pops equal today's dump; K 16 / 32
+  reproduce):
+
+  | rows | 16 | 24 | 32 | 48 | 64 | 96 | 128 |
+  |---|---|---|---|---|---|---|---|
+  | kept | 11.26 | 14.39 | 16.26 | 18.86 | 20.77 | 22.77 | 23.70 |
+
+- **S11's proxy UNDERESTIMATED big trees:** K64 17.91 vs real 20.77 (-14 %); K128 19.14 vs 23.70 (-19 %).
+  - A 64-row tree keeps what the true-state chain-32 keeps (20.77).
+  - A 128-row tree keeps more than the flat-97.8 % line of a 32-row check (23.15).
+- **The extra kept is longer runs, not better coverage per band.** Walk-strict coverage at bands 3-14 stays 93-96 % even
+  at 127 nodes; K98's per-band conclusion holds. Bands 0 / 1-2 reach 98.9 / 98.3 at K 127. Mean tree depth is ~40, so
+  many accepted runs go past depth 30.
+- **K* under Leap's per-row costs is unchanged:** 24-32 rows (floor 279.5 / 276.5 tok/s). K48 / K64 are only -2.8 % /
+  -4.1 % at the floor but -12 % / -18 % at the contract; the engine still picks K16.
+- **What changes is EARLY DEATH's value (THINK #5, Fable B):** its byte price for a K128 check with dead branches
+  dropped mid-pass is ~54 ms (probe at layer 16) / ~48 ms (layer 8).
+  - With the REAL kept 23.7, the exact line projects to ~410-455 tok/s **(at the byte floor, probe untested, HE+ only)**
+    (23.7 / (48..54 + 4 ms)). That
+    is the first route in the arithmetic to 450 exact. Fable B priced it on the proxy's 19.1.
+  - The probe is UNTESTED (PASS >= 90 % of off-spine nodes droppable at <= 2 % false drops, layer 16). MBPP's 127-node
+    dump is pending.

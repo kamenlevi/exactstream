@@ -1,0 +1,31 @@
+
+1c-tiers ref2 check Mon 09:07:04 (ref2 /Users/kamen/Leap/scripts md5 c1fdce0f4d24d728f98bf3128e048d1f; 2-D parts OFF (live ref2); MLX 0.32.2; gated MODE spin, PAIRS 128, XLINES 4)
+pools built: layers 20 / 44, 512 experts each, native+p11+pad, C 512
+(1) 1-D U3 sure rows via ref2 == NAX6-N on the final slots + combine, posts == the 1-D rule, consumed: PASS (12 calls, COH on / off)
+ref2.self_test: PASS
+saved 168 arrays -> data/1ctiers/live.npz
+1c-tiers ref2 check: PASS
+
+1c-tiers ref2 check Mon 09:07:21 (ref2 /private/tmp/claude-501/-Users-kamen-OjoX/f2971937-6c95-4e86-a049-05beff6a8e32/scratchpad/1ct/cand md5 33021885e7db4c19cf6cb6e1eb695f1b; 2-D parts on; MLX 0.32.2; gated MODE spin, PAIRS 128, XLINES 4)
+pools built: layers 20 / 44, 512 experts each, native+p11+pad, C 512
+(1) 1-D U3 sure rows via ref2 == NAX6-N on the final slots + combine, posts == the 1-D rule, consumed: PASS (12 calls, COH on / off)
+(2) 2-D marks == (1)'s rows: y, posts, pre_l, rs bit for bit: PASS (12)
+(3) 2-D per-use marks (~40 %): == the reference with -2 at the marked uses; pre_l / rs_l -2 exactly there; posts == the first-unmarked rule: PASS (12)
+(4) all marked: posts all ids[0, 0], == the reference: PASS (12); (5) none marked == no nolsb, bit for bit: PASS (12)
+(6) 1c via tiers_mx (uint32 ids; 0 slots differ from tiers_np, info) + km drops, marks != 0 and == 1: each == its reference, posts == the rule: PASS (24 calls; random router logits, slot shares 4-bit / MSB-3 / drop 0.10 / 0.20 / 0.71). LSB ids posted per call that are not 4-bit experts: != 0 0.00 of 11.83 distinct; == 1 0.25 of 12.08
+(7) late release (20 ms) + LP1 sidecars, 2-D marks: == the reference, no timeout: PASS (6)
+(8) guards raise (nax_1cq off / REF2 off / with t['qom'] / no regions): [True, True, True, True]; eprep + G2 bypassed for 2-D (== the reference, COUNTS unchanged): True; ref2.self_test: PASS; eprep_k.check: 0 of 400 differ
+saved 168 arrays -> data/1ctiers/cand.npz
+1c-tiers ref2 check: PASS
+(9) live vs candidate, 168 arrays (live.npz vs cand.npz): PASS, bit for bit
+
+1c-tiers ref2 check Mon 09:08:12 (ref2 /Users/kamen/Leap/scripts md5 33021885e7db4c19cf6cb6e1eb695f1b; 2-D parts on; MLX 0.32.2; gated MODE spin, PAIRS 128, XLINES 4)
+pools built: layers 20 / 44, 512 experts each, native+p11+pad, C 512
+(1) 1-D U3 sure rows via ref2 == NAX6-N on the final slots + combine, posts == the 1-D rule, consumed: PASS (12 calls, COH on / off)
+(2) 2-D marks == (1)'s rows: y, posts, pre_l, rs bit for bit: PASS (12)
+(3) 2-D per-use marks (~40 %): == the reference with -2 at the marked uses; pre_l / rs_l -2 exactly there; posts == the first-unmarked rule: PASS (12)
+(4) all marked: posts all ids[0, 0], == the reference: PASS (12); (5) none marked == no nolsb, bit for bit: PASS (12)
+(6) 1c via tiers_mx (uint32 ids; 0 slots differ from tiers_np, info) + km drops, marks != 0 and == 1: each == its reference, posts == the rule: PASS (24 calls; random router logits, slot shares 4-bit / MSB-3 / drop 0.10 / 0.20 / 0.71). LSB ids posted per call that are not 4-bit experts: != 0 0.00 of 11.83 distinct; == 1 0.25 of 12.08
+(7) late release (20 ms) + LP1 sidecars, 2-D marks: == the reference, no timeout: PASS (6)
+(8) guards raise (nax_1cq off / REF2 off / with t['qom'] / no regions): [True, True, True, True]; eprep + G2 bypassed for 2-D (== the reference, COUNTS unchanged): True; ref2.self_test: PASS; eprep_k.check: 0 of 400 differ
+1c-tiers ref2 check: PASS

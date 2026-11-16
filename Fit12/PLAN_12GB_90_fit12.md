@@ -1151,7 +1151,7 @@ Method:
   this month.
 - The largest single item, the FAST one-pass forms (-11..-13 ms), is shared with the exact CHECK55 track's step 1.
 
-## 1c-tiers SPEC (Mon 16 Nov 08:5x; the orchestrator APPROVED NewIdeas' gate of my LOSSY32 pick 08:3x; EvalSuite's name "1c-tiers")
+## 1c-tiers SPEC (Mon 16 Nov 08:3x; the orchestrator APPROVED NewIdeas' gate of my LOSSY32 pick 08:3x; EvalSuite's name "1c-tiers")
 - The build + gate spec: /Users/kamen/Fit12/LOSSY_1C_TIERS_SPEC.md (V2 alone on lossy-45, code sets, the exact rule,
   counter keys, the CODE-ONLY routing, BigMoE's pre-arming checklist with the real-loop scored-key rule).
 - New desk numbers [K: map routing; rule = BigMoE tiers1c.py copied]: /Users/kamen/Fit12/scripts/lossy1c_16row.py ->
@@ -1160,3 +1160,74 @@ Method:
   - At full 16-row checks on code: union 76.6 per check-layer = e4 8.7 + e3 20.5 + edrop 47.5 (61.9 % dropped), expert GB
     per check REF2-T 6.54 -> 1c 2.51 (x0.38).
   - At 32-row blocks: 114.2 = 15.3 + 30.7 + 68.2 (59.7 %), 9.81 -> 3.99 GB (x0.41).
+
+## LOSSY32 v2 CORRECTION (Mon 16 Nov 09:2x): the 1c path's glue (Leap cf70494, dispatch_diet_price.md section 5)
+- **Input:** the 1c path adds ~34 small MLX ops per MoE layer, ~1,630 per check (+41 % over C32one's 4,022).
+  - Counted from the graph [K]: BigMoE's tiers_mx + counter + km 28, Leap's 2-D dup pick 6.
+  - Per dispatch: ~6.5 us CPU [K] and ~1.1-2.1 us GPU [est].
+  - Cost: GPU +1.8-3.4 ms, CPU +10.6 ms per check, unless fused into router_fused.
+  - v1 had assumed GPU 0.3-1.0 and CPU 0-2 [est]. Checked against Leap's file: 34 x 48 = 1,632; x 6.5 us = 10.6 ms.
+- **Script v2:** /Users/kamen/Fit12/scripts/lossy32_price.py (sha 74f11370dd78) -> /Users/kamen/Fit12/data/lossy32/
+  lossy32_price.txt / .json (v1 kept as lossy32_price_v1.*). The month ladder is now computed in the script: realistic =
+  max(GPU, CPU) + misses at every step.
+- **Corrected realistic ms per 32-row check (one-pass forms) [P]:**
+
+  | candidate | v1 | v2 |
+  |---|---|---|
+  | C3 = 1c-tiers | 53.0-55.3 | **54.5-57.7** |
+  | C4 | 52.1-54.7 | 53.6-57.1 |
+  | C5 (the plan) | 49.8-53.3 | **51.3-55.7** |
+  | C6 | 46.1-49.7 | 47.6-52.1 |
+  | C7 | 60.0-63.6 | 61.5-66.0 |
+  | C8 | 47.6-51.6 | 49.1-54.0 |
+
+  - C0-C2 are unchanged.
+  - **The 1c family's CPU floor is now 38.5-39.5 ms, not 27.9**, until the glue is fused.
+- **Month ladder, C5** (realistic ms; tok/s HE+ at K*):
+
+  | step | ms | tok/s |
+  |---|---|---|
+  | 0 today's route (two 16-row calls) | 62.4-65.9 | 242-255 |
+  | 1 + FAST one-pass forms (not built) | 51.3-55.7 | 283-306 |
+  | 2 + Leap's FAST 1b list [P] | 47.5-50.6 | 310-328 |
+  | 3 + resident-only MSB-3 rule (unpriced quality) | **43.9-46.9** | 332-353 |
+  | 3 + the 1c glue fused | 42.1-43.5 | 356-367 |
+  | (bound) step 2 with zero misses | 42.3-45.3 | |
+
+- **Month ladder, C3 = 1c-tiers:**
+
+  | step | ms | tok/s |
+  |---|---|---|
+  | 0 | 67.1-68.7 | |
+  | 1 | 54.5-57.7 | |
+  | 2 | 50.1-52.1 | |
+  | 3 | **46.5-48.4** | 323-335 |
+  | 3 + glue fused | 44.7-45.0 | |
+
+- **GPU-bound at every step.** But C5's step-3 GPU is 42.3 against an unfused CPU of 38.5, so any further GPU cut binds
+  on the CPU unless the glue is fused (CPU back to 27.9).
+- 900 still needs a ~15 ms check.
+- **Spec:** LOSSY_1C_TIERS_SPEC.md section 3 now reads m = tier[:, :2] != 0 (what Leap's b43efc4 and BigMoE run; the
+  draft read == 1). The slot line reads "today by day" (NewIdeas 09:2x).
+
+## 1c-tiers: BigMoE's snapshot t1c1 (68274ff) checked against the spec (Mon 16 Nov 09:2x; desk read of the frozen screen data/r57/snap/t1c1/r57_screen_t1c1.py): MATCHES
+- **Env:** t1cx45t1c1 = lx45t1c1 (= lx45cc1's line verbatim) + exactly R57_TIERS=1c R57_TIERS_LAM=0.016 R57_TIERS_S=0.98
+  R57_TIERS_SETS=humaneval,humanevalx,mbpp.
+- **Scope:** per prompt by set (t1c_on_ = R57_TIERS and the prompt's set in R57_TIERS_SETS).
+  - Engaged only inside the verify call: FG set before model(...) in verify_scope, reset after, rows = the check's rows.
+  - So prefill and the drafters are untouched.
+  - An assert keeps R57_RCUT off the 1c sets.
+- **Rule:** tiers_mx(ids, the fused combine's scores, s, lam) on the GPU, with no sync.
+  - Per-expert tier = the min over its slots (all slots share it).
+  - nolsb = (tier[:, :2] != 0, None), as corrected in the spec.
+  - Drop = the km path (scores 0, index -> the row's rank-0 id).
+  - QOM / U3 doesn't run on 1c checks (sr None): never stacked.
+- **Counter:** {checks, e4, e3, edrop, lmsl_rows 0, lmsl_fallback 0} = distinct union experts per check-layer by tier.
+  runs.json includes the field only when engaged (absent outside the sets).
+- **Independent agreement:** BigMoE's wiring test means on the map windows, 76.64 = 8.65 + 20.52 + 47.47, equal my
+  lossy1c_16row.py 16-row reference (76.6 = 8.7 + 20.5 + 47.5).
+- **The real-loop key test (the arming rule)** is BigMoE's scripts/t1c_keytest.py, still to run:
+  - both envs on HumanEval/45, humanevalx HumanEval/23 and ifeval/2239;
+  - base tokens == lx45cc1's rows on humanevalx + IFEval (the deterministic sets);
+  - counters;
+  - QOM's opt count > 0 in the base and 0 in the variant.

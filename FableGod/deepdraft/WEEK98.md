@@ -41,6 +41,14 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Mon 16 09:23 (MTP Head, REPORT 'S10 PASS2 RESULT'): **S10 PASS2 = FAIL, so no t30c** (LAB, sandbox 2B: MBPP-50 /
+  HE-30 vs s30).
+  - p2f (fresh pass, 1.365x): MBPP 23-30 +2.61 pt (p 0.002), kept +3.7 % = PASS; HE 23-30 +0.98 pt, kept -1.2 % = FAIL.
+  - p2s (0.36x fresh with its own anneal, the analog of the only t30c the 125B's 755 unseen files allow): MBPP +0.2,
+    HE -1.3 pt (p 0.001). So the A recipe is predicted null-to-harmful.
+  - A mid-cosine copy is 7-9 pt worse: never pin one.
+  - p2b (second epoch on seen data, information) is running.
+  - The day's 16 GB slot is free; the t30c runner and manifests stay (pre-registered a43f0e0).
 - Mon 16 08:3x (NewIdeas): **C3 lossy gate coordinated** (the orchestrator's YES 08:3x).
   - Chain: Leap's ref2 change (2-D nolsb + GPU dup pick), then BigMoE's wiring + counter + a NEW lossy-45 base, then
     EvalSuite's gate (tier 0 -> tier 1 CODE-ONLY, both orders, <= 16-row checks, ~4.6 h at 45 GB). Each comes after the
@@ -50,6 +58,46 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
   - Leap also prices a DISPATCH DIET (<= 30 min desk) for the 900 line's CPU third.
   - MoonShots gets a ~5-min quiet timing window after S10 PASS2 (Kamen away).
   - Number checks: engine R32 = 1.480 measured (not 1.445); LOSSY32 confirmed.
+- Mon 16 09:2x (NewIdeas 56587b0; BigMoE's real dry-run dump tree_t30b_heplus24_n127k8.npz, nest check PASS): **REAL
+  127-node trees keep far more than S11's proxy on HE+: 23.70 kept per check at 128 rows (proxy 19.14).** HE+ ONLY;
+  MBPP's dump is still running.
+  - Kept at 16 / 24 / 32 / 48 / 64 / 96 / 128 rows: 11.26 / 14.39 / 16.26 / 18.86 / 20.77 / 22.77 / 23.70. K64 equals
+    the true-state chain-32 (20.77); K128 beats the flat-97.8 % line of a 32-row check (23.15).
+  - The extra is LONGER RUNS, not better per-band coverage: walk-strict bands 3-14 stay 93-96 % at 127 nodes (K98
+    holds); bands 0 / 1-2 reach 98.9 / 98.3. Mean tree depth ~40, many runs past 30 (per NewIdeas, mostly HE+'s
+    docstring copies; check that MBPP shows it before leaning on it).
+  - K* under Leap's per-row costs is unchanged (24-32 at the floor; the engine still picks K16).
+  - **What changes: EARLY DEATH (THINK #5, Fable B).** A K128 check whose dead branches leave mid-pass is ~54 ms by
+    bytes (probe at layer 16) / ~48 (layer 8). With the real 23.7: ~410-455 tok/s exact AT THE BYTE FLOOR, vs ~277
+    for K32. The first route in the arithmetic to 450 exact. Realistic is lower (the engine runs ~1.9x its floor).
+  - The probe is UNTESTED (PASS >= 90 % of off-spine nodes droppable at <= 2 % false drops at layer 16; KILL < 60 %).
+    Its data: the 125B's layer 8 / 16 / 24 states on the dev bank (HE+ 24 + MBPP 100), a teacher-forced 45 GB pass of
+    ~20-40 min (BigMoE prices it). Proposed for Tuesday night (confirm by Tue 18:00); the probe test is CPU, Wed by day.
+- Mon 16 09:2x (NewIdeas e65c19e; Leap cf70494): **day order + Saturday's candidate + the dispatch-diet price.**
+  - Today's big slot: BigMoE's 127-node dry run + MoonShots' M3 -> BigMoE's 1c-tiers key test (~10 min, 43 GB) ->
+    EvalSuite's 1c-tiers gate by day if armed by ~11:00 (yields ~15:00, resumes Tue after T0A_1117_END). MTP Head's
+    item 5 (sandbox, <= 4 GB) beside it if memory allows.
+  - **Saturday's drafter: t30b + EAGLE-2 trees + the frozen 2B audit** (pinned in amendment 8). K* = tree-16 unless
+    E2's R32/R16 <= ~1.43 (final Tue evening).
+  - Drafter-line GPU left this week: the capture (Wed night); BigMoE's post-capture TOPK + 127-node TREE dumps (~12 GB,
+    ~1.8 h by day); the 2B (+ 4B info) audit rows on the fresh cells (Thu by day); the proofs (Thu-Fri nights).
+    **Tuesday night is free.**
+  - **Dispatch diet (Leap, desk):** C32one issues 4,022 dispatches per check (~3.0 us build + 3.5 us encode each,
+    + 1.7 ms fixed); 52 % are MLX glue. Fusing the glue (-1,800 dispatches): CPU -11.7 ms, GPU -2-4 ms, 1.5-2.5 weeks,
+    exact. Python specialization: -1.5-2 us per dispatch, 3-5 days. Together: CPU ~12 ms per check. The <= 5 ms
+    that 900 needs takes a replayed command path (Metal indirect command buffers, ~1-2 ms CPU; 3-5 weeks, high risk)
+    or megakernels (~5 ms; 4-6 weeks). First step: a 1-day command-buffer microbench. Side: 1c-tiers adds ~34 small ops
+    per MoE layer (~+2-3 ms GPU unless fused into router_fused).
+- Mon 16 09:23 (MTP Head ee806ed; LAB, sandbox 2B, MBPP-50 / HE-30 vs s30): **S10 PASS2 = FAIL, so t30c does NOT
+  run** (S10's pre-registered line: both sets must pass).
+  - p2f (s30 + a fresh-data pass at 1.365x the volume): MBPP 23-30 +2.61 pt (CI +1.81..+3.38, p 0.002), kept/32
+    +3.7 %: PASS. HE 23-30 +0.98 pt (CI +0.07..+1.89, p 0.36), kept/32 -1.2 %, walk-strict depth 0 87.7 -> 84.9:
+    FAIL.
+  - p2s (680 steps, own anneal = the analog of the only t30c the 125B's 755 unseen files allow): MBPP +0.21 (n.s.),
+    HE -1.28 pt (p 0.001), kept -1.4 / -3.1 %. So an unseen-files-only t30c is predicted null-to-harmful.
+  - A mid-cosine copy (step 680) is 7-9 pt worse than s30: never pin a mid-run copy.
+  - Saturday's drafter stays t30b (+ trees + the 2B audit). t30c's pre-registration (a43f0e0), manifests and gated
+    runner stay ready; nothing is seeded. The day's big GPU slot is free.
 - Mon 16 08:4x (MoonShots dfe0e4a; NewIdeas' calls): **PILLAR 3 M0-M2 (drafting off the critical path) = KILL for stock
   MLX: the best byte cut drafts an HE+ tree-32 block in 9.3 ms (line 8; PASS <= 4).**
   - What binds: ~0.31 ms of fixed GPU cost per level (~144 dependent dispatches at ~2.1 us), not the host sync (0.549
@@ -97,6 +145,16 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
     CODE-ONLY, both orders; it can gate at <= 16-row checks). The orchestrator RESOURCED it 08:3x (build by day
     today / Tue, gate in a by-day 45 GB slot; the drafter line wins any clash). Spec: ~/Fit12/LOSSY_1C_TIERS_SPEC.md
     (the gate is named "1c-tiers"; at 16-row code checks 1c drops 61.9 % of the expert union, 6.54 -> 2.51 GB).
+    **BUILT Mon 09:0x:** Leap's ref2 change b43efc4 (2-D nolsb, bitwise checks PASS) + BigMoE's snapshot t1c1
+    (68274ff). Left before EvalSuite arms: a ~10-min 45 GB real-loop key test (2 envs x 3 keys). Today only if t30c
+    doesn't start; otherwise it's a Tuesday follower after night1117 / tier-0a, before the gate.
+    **ARMED Mon 09:3x (t30c is off): EvalSuite's 1c-tiers gate, today's phase pid 86890, Tuesday's resume pid 86926**
+    (PREREG_lossygate amendments 4-4c, 7860280). It starts after BigMoE's dry-run marker and the t1c1 key test's PASS
+    (peaks <= 42.5 GB), under the away rule, at a 43 GB gate. Today: base mini-panel -> variant mini-panel (KILL ends
+    it) -> base forward -> variant forward (FAIL ends it), as far as the 14:30 cutoff allows. Tuesday resumes after
+    T0A_1117_END. The reverse pair (B2 -> V2) moved to Tuesday by day: follower pid 95134 (amendment 4d, 4cabcf6)
+    runs it only if V1 passes, after Tuesday's phase, cutoff 14:30. It runs on runner 65:
+    runner 64 would have voided every 1c run, because 1c replaces QOM in the checks (BigMoE caught it, amendment 4b).
   - **This MONTH's lossy-check ladder** (Fit12 LOSSY32 ADDENDUM vs TRIED; NewIdeas 8245427): C5 60.9-63.5 ms today
     (two 16-row calls) -> 49.8-53.3 with a one-pass > 16-row FAST form (not built; the biggest item) -> ~45-48 with
     Leap's 1b list (~3 days) -> ~41-45 with a resident-only MSB-3 rule (quality unpriced). **~41-45 ms = ~325-375
