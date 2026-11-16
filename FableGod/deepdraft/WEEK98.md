@@ -426,6 +426,11 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
       -26 pt).
     - The pre-registered final KILL also needs the fine-tune variant (ctl vs sibmix, ~50 min, <= 5 GB), armed at a
       NO-SWAP >= 13 gate, so after EvalSuite's chain (~17:30).
+    - **15:2x SIB FINAL = KILL** (oracle-called by NewIdeas 15:1x; Sandbox98 ac91254). The best fixed own / sib mix (w
+      0.2) closes only 5-7 % of the gap (G +0.05 / +0.07), and w 0.4 hurts. Phase 2 was disarmed before any step. The
+      learned-mix fine-tune was NOT run; reopen only with a new mechanism that beats the fixed-mix oracle by 3x+.
+      Parked micro-lever: the w 0.2 mix (+0.55 pt HE / +0.98 MBPP walk-strict 1-8, LAB, no CI), free on the 125B,
+      goes on the drafter's final-config list. Sandbox98 is free.
   - **14:22 1c-tiers V1 (variant forward vs the base lx45t1c1): tier 1 PASS, pooled code -2.27 pt (McNemar p 0.11;
     arm only 2 / reference only 8; screening line > -3 pt); RUNAWAY 10 / 3 (p 0.092) PASS; IFEval identical**
     (EvalSuite 278fb02). Pause 2 (a) now: Leap's profile + SIB; resume on SIB's rc 0 or 15:22; the chain ends ~17:30

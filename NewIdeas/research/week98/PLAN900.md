@@ -287,3 +287,30 @@ time. The drafter certification (capture Wed, proofs Thu-Fri) is untouched.
   error -> a KILL is near-certain; >= 15 % better -> phase 2 is worth its 50 min.
 - Goal A consequence: the "only free true-state source" fails as a stand-in; drift levers left: S14 shallow tap,
   S15 sparse refresh (MTP Head, chained tonight), and sibmix if phase 2 passes.
+- **Oracles (Sandbox98 15:1x, 6f79fa7; LAB):** direction-error oracle (held-out best linear mix) beats own by 4-8 %
+  (best w 0.35-0.40); cos(own error, sib error) 0.36-0.42 (correlated). Accuracy oracle (frozen head reads the mix
+  online): walk-strict 1-8 HE own 82.80 / w 0.2 83.35 (G +0.05) / w 0.4 80.35 (G -0.23); MBPP 75.67 / 76.65 (+0.07) /
+  74.27 (-0.10); w 0.2 by band <= +0.12.
+- **Decision (NewIdeas 15:1x): SIB = KILL (oracle-called).** The best fixed mix closes 5-7 % of the gap vs the 0.25 line;
+  phase 2 (one learned pass) disarmed, its upside untested; reopen only with a new mechanism (margin- / depth-gated
+  mix) and a reason to beat the fixed-mix oracle 3x+. Called on the accuracy oracle (the direction-error gain 5-8 % sat
+  just above the ~5 % call line).
+- **PARKED micro-lever:** the w 0.2 fixed sibling mix is FREE on the 125B (the check computes the rejected row's state):
+  walk-strict 1-8 +0.55 (HE) / +0.98 (MBPP) LAB 2B. For the drafter's final config, after a check on the 125B's states.
+
+## SATURDAY LADDER v3 (NewIdeas, Mon 15:2x; measured anchors, HE+ lossy, 32-row tree check)
+tok/s = kept / (check + draft + 4 ms overhead); kept 15.7-16.3 = tree-32 HE+ 16.26 (127-node dumps) x 1c-tiers
+-3.3 % (V1 info) + close-call d1 ~+3 % [P]. Checks are Fit12's v3.1 realistic (anchored on the measured engine);
+draft is MoonShots' fused2 measured (full head) or the QAT ~26 MB head [P].
+| step | check ms | draft ms | tok/s |
+|---|---|---|---|
+| A today: C3 1c + RES, full head fused2 tree-32 | 51.2-54.4 | 18.2 | 205-222 |
+| B C6 + RES | 45.8-50.2 | 18.2 | 217-240 |
+| C + QAT ~26 MB head [P, S13 tonight] | 45.8-50.2 | 7.4 | 255-285 |
+| D + Leap's lossy expert one-call fix, -5..-10 ms [P, Tue/Wed] | 35.8-45.2 | 7.4 | 277-345 |
+| E D + comment-QOM if G1 needs it (+3..+5) | 38.8-50.2 | 7.4 | 255-325 |
+- **So the realistic Saturday lossy line is ~255-345 tok/s HE+**, if the QAT head and the kernel fix land.
+- 900 needs a check <= 18.2 ms at kept 26.6 (<= 14.3 at kept 23.15) with the QAT draft + 4 ms. Every priced byte plan's
+  bound is >= 24 ms at 100 % of peak, so 900 is beyond the physical bound at 32 rows on today's byte plans.
+- Early death (Wed): pre-registered in research/week98/EARLYDEATH_PREREG.md (Fable B's lines + a chain version
+  re-priced for the 32-row lossy check, information only).
