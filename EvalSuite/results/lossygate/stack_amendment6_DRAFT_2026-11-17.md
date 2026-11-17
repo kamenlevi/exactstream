@@ -47,7 +47,27 @@ Prepared Tue 2026-11-17 09:4x from the orchestrator's decisions of 09:3x and 09:
     ("comments-only")>.
   - **The expert rewrite, tgl16eu** (Breakthrough's flag; IN the stack by the orchestrator's 11:1x decision, if Leap's
     c25 A/B by Wed evening holds: ~-2.5 to -3 ms at 16 rows, no extra expert GB, determinism): R57_XRW=tgl16eu <on |
-    unset> (Breakthrough's handoff name, docs/EXPERT_REWRITE_HANDOFF.md; final on BigMoE's confirmation).
+    unset>. BigMoE confirmed the name at 13:51 Tue. It is wired Wed, OFF unless the env sets it, with xknob ON for the
+    whole run and no toggling.
+    - **The code: knob_v2, Breakthrough commit 20eaaf3** (~/Breakthrough/data/xrw/knob_v2; Breakthrough 14:0x, and
+      BigMoE's 13:51 wiring matches). Checked here Tue 14:0x: the files equal 20eaaf3 (HEAD differs only in README.md,
+      70eda7a).
+
+      | file | md5 (knob_v2.md5) | sha256 |
+      |---|---|---|
+      | xknob.py | 2f7170d952e303c56d7abaff6f6b370e | 6474eab8d8f57921... |
+      | tgl16v.py | 272df4d93a7b22caed9b2da9a99815ae | ae1f9e4875a741e6... |
+      | xgrp.py | 6f7b3be9bafef860a7b75b138954e61d | 42ddeac34e962659... |
+      | tgl16.py | e5747cebc18fcad18a54ab481d987a20 | 31d61092fbc002c2... |
+      | w4a8.py | 75c9c3b29d42ca3c4de0ed70ec945ffe | 5cca62e4fbc5025d... |
+
+      - v2's outputs are BITWISE == v1's: y, rs_m and rs_l on 24 real calls, and the grouping on 240 random calls. Its
+        one change is the upgrade's grouping kernel (O(1) lookup, ~0.4 / ~0.9 ms faster per 16 / 32-row check).
+      - **The A/B covers it** only if Leap's c25 A/B ran knob_v2. c25_engine.py (Leap 2fbbf68) imports knob_v2 by
+        default (C25_XKNOB unset) and falls back to v1 only if v2 fails to import.
+        - EvalSuite checks, before filing, that each A/B run's output reads "C25: xknob release knob_v2 (...)", in
+          slot #2 tonight and slot #3 on Wed.
+        - Leap's 11:17 smoke ran v1 (ef23c19), before v2 existed. It was the smoke, not the deciding A/B.
     - runs.json carries the per-run delta of the frozen knob's (knob_v1) counter: "xrw": {"mode", "cand" (calls run
       by tgl16eu), "orig" (calls sent to today's kernel), "fallback_not_p11" (calls on a non-p11 store)}.
     - The expert one-call's exact part is bitwise == today.
@@ -59,9 +79,13 @@ Prepared Tue 2026-11-17 09:4x from the orchestrator's decisions of 09:3x and 09:
       ~/Breakthrough/docs/EXPERT_REWRITE.md, 2f126cc).
 - **Engagement (validity):** CARD_ENGAGE = close_call:accepted@run, tree:sib_accepted@run <+ G1's terms> <+
   xrw:cand@run, if tgl16eu is on>.
-  - With tgl16eu on, it is also VOID unless every run has xrw.mode == tgl16eu, and xrw.orig == 0 and
-    xrw.fallback_not_p11 == 0 summed over the run. EvalSuite checks this from runs.json before the verdict
-    (Breakthrough 11:1x: cand > 0 implies upgrades in practice, ~28 % of pairs per call).
+  - With tgl16eu on, it is also VOID unless all of these hold. EvalSuite checks them from runs.json and the
+    per-process modules manifests before the verdict:
+    - every process's modules manifest shows xknob loaded from .../knob_v2/xknob.py, with the sha256 above;
+    - every run has xrw.mode == tgl16eu, ON for the whole run;
+    - summed over the run, xrw.orig == 0 and xrw.fallback_not_p11 == 0.
+    - (Breakthrough: cand > 0 implies upgrades in practice, ~28 % of pairs per call; neither release has a pair
+      counter.)
   - runs.json's "tree" block is {"nodes", "k", "checks", "sib_accepted"}. sib_accepted counts accepted nodes that are
     not their parent's head-top-1 child, i.e. what a chain could not have kept.
   - Each term must be > 0 on every kept run. The QOM sets are <...>.

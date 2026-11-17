@@ -1,0 +1,49 @@
+device Apple M5 Pro, threads 65536, threadgroup 256, quick 0
+
+(i) GPU re-read bandwidth vs buffer size (median of 7; cold = 1 read after a 512 MB flush, hot = passes x whole-buffer re-reads (one dispatch each) right after it; DRAM = hot at 256 MB)
+    MB  passes    cold us  cold GB/s hot us/pass   hot GB/s  hot/DRAM
+     2     128        9.5      211.4         2.8      715.6      2.46
+     4      64       16.3      244.9         4.1      981.9      3.38
+     6      43       22.8      263.7        12.6      475.1      1.63
+     8      32       30.1      265.6        16.6      480.5      1.65
+    10      26       36.6      273.3        20.2      493.8      1.70
+    12      22       43.7      274.5        24.3      494.1      1.70
+    14      19       50.6      276.5        27.9      501.8      1.72
+    16      16       59.3      269.9        32.0      500.2      1.72
+    18      15       65.7      273.8        35.6      505.3      1.74
+    20      13       72.4      276.3        39.9      501.3      1.72
+    22      12       77.3      284.5        43.4      507.3      1.74
+    24      11       84.9      282.8        47.9      501.2      1.72
+    26      10       92.1      282.4        53.7      483.9      1.66
+    28      10       99.6      281.2        63.3      442.5      1.52
+    32      10      112.0      285.7        84.8      377.6      1.30
+    36      10      126.7      284.0       109.0      330.2      1.14
+    40      10      142.1      281.4       131.1      305.1      1.05
+    48      10      167.6      286.4       162.5      295.4      1.02
+    56      10      196.5      285.0       188.9      296.4      1.02
+    64      10      224.5      285.1       218.9      292.4      1.01
+    85      10      295.7      287.5       293.2      289.9      1.00
+    96      10      334.0      287.4       332.1      289.1      0.99
+   128      10      445.0      287.6       441.4      290.0      1.00
+   192      10      661.6      290.2       663.7      289.3      0.99
+   256      10      882.0      290.2       880.0      290.9      1.00
+largest size with hot >= 1.5 x DRAM: 28 MB (DRAM 290.9 GB/s)
+
+CPU touch of 21 MB from cold: 1 thread 225 us (93 GB/s), 4 threads 109 us (193 GB/s); between the stream and the timed read the GPU runs an ALU-only spin (36918 iters, ~1.2 ms) in every condition
+trials whose timed read started > 50 us after the spin ended (GPU idled): 0 of 330
+
+(ii) 21 MB read once by the GPU; 30 interleaved trials per condition, each after a 512 MB GPU flush + 256 MB CPU flush; stream = 100 MB GPU read
+condition                                            med us      p25      p75     GB/s  cold/x  touch us
+hot: GPU read, gap, read (no stream)                   47.9     45.5     49.2    438.6    1.60         0
+cold: stream, gap, read                                76.8     76.0     78.6    273.4    1.00         0
+A_gpu: stream, GPU touch, gap, read                    42.9     42.4     43.8    489.3    1.79         0
+A_cpu: stream, gap with CPU touch, read               147.2    125.5    164.0    142.7    0.52       159
+A_ev16: as A_cpu + CPU reads 16 MB other               77.6     74.4     88.6    270.5    0.99       270
+A_ev48: as A_cpu + CPU reads 48 MB other               76.6     75.5     79.0    274.1    1.00       419
+A_pf3: as A_cpu, PRFM PLDL3KEEP not loads             104.7     90.5    109.5    200.5    0.73       136
+A_cpuw: as A_cpu, CPU writes it (memcpy)               82.0     77.2     84.3    256.0    0.94       221
+B_cpu: CPU touch during the stream, gap, read         143.0    117.9    156.8    146.8    0.54       150
+C_gpu: GPU touch, stream, gap, read                    76.8     75.0     78.8    273.6    1.00         0
+C_cpu: CPU touch, stream, gap, read                   134.1    119.1    148.6    156.6    0.57       116
+
+A: GPU-touched x1.79 vs cold, CPU-touched x0.52 vs cold -> KILL (CPU touch does not help the GPU)

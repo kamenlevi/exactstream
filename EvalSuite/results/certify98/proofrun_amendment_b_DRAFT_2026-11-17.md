@@ -62,7 +62,7 @@ Placeholders are in <angle brackets>.
         - **A dev rehearsal** (Wed by day): heplus24 vs kept_walk from the dev TOPK dump.
           - Each check's drafts up to its first miss must equal dd_topk's TOPK top-1 at (fi, anchor row, depth).
           - It also shows the dropped-window rate. A 32-row verify is outside REF2-T's certified 1-16 rows.
-      - **The windows (proposed):** the first 24 fresh HumanEval+ windows in the manifest's order. If fewer than 20 of
+      - **The windows (agreed with BigMoE, Tue 13:51):** the first 24 fresh HumanEval+ windows in the manifest's order. If fewer than 20 of
         them have identical answer tokens, the next windows in order are added until 20 do. Every drop is reported.
     - The shipping forms (Q8 or bf16 + the 32K screen, chosen Wed ~07:30) are not certified here.
       - In lossy mode, the gates (tier 1 + the card gate) run on the chosen form, and the headline timings use it.
@@ -108,7 +108,7 @@ Placeholders are in <angle brackets>.
     before each file.
 - **Disk:** a wd file exists until the follower has read it.
   - **The queue cap** (the orchestrator 11:1x): the wd queue on disk is capped at ~1 GB. While it is full, the capture
-    waits rather than queueing more.
+    waits rather than queueing more. BigMoE built it into dd_cert.py and Wednesday's dev check (Tue 13:51).
     - Without the cap, a lagging follower could queue the set's wd (~4.4 GB, BigMoE).
     - With it, the whole sitting stays above Kamen's 100 GiB floor. (b) ends at ~100-102 GiB with the 3.8 GB rawtaps
       delete, which is still pending Kamen's answer.

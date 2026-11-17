@@ -191,6 +191,30 @@ much less tests than anything"
     ~3/4 of the next lines, so the split writes a different program.
   - The only rescue (FIM-style comments written after their code) is untested and would be Kamen's call. Kamen's form
     question is moot.
+> (a quote from the project owner, kept private)
+  - The GPU re-read knee is ~24-28 MB (x1.7 flat to 24 MB; DRAM speed by ~40-48 MB; 85 MB x1.00).
+  - A 21 MB buffer: cold 76.8 us, GPU-touched 42.9 us (x1.79), CPU-touched 147 us (x0.52, i.e. 2x SLOWER). Bytes the
+    CPU has read reach the GPU at half speed.
+  - A GPU-resident re-read helps only for working sets <= ~24 MB, far under the drafter's 85-178 MB per pop.
+- **14:xx A FRESH first-principles deep pass (an unanchored agent; ~/FableGod/deepdraft/GRANDMA_1117.md): NO >= 3x
+  mechanism. 775 on code is out of reach for this drafter on this Mac (~95 % confidence).**
+  - New measurement: the real 127-node t30b trees replayed for every size from 8 to 127 rows, counting kept AND
+    sequential draft levels (it reproduces 16.30 / 9.05 / 20.77).
+  - At 100 % of every measured peak with perfect overlap:
+    - a draft at 0.19 ms per level: 553 HE+ / 336 MBPP;
+    - + 64-row clamped trees: 664 / 351;
+    - + a FREE draft: 808 / 397.
+    For 775, MBPP needs 1.8-3.2x the head's kept under any engine.
+  - Why nothing breaks the frame: a weight pass serves only rows whose tokens exist before it starts. The walk is
+    two-sided: on HE+, 37 % of checks keep <= 8.
+  - 3x over Saturday exists only as a STACK:
+    - a check at 90 % of its byte floor (x1.44, 303);
+    - a draft at 0.37 ms per level (x1.38, 418);
+    - 64-row clamped trees (x1.27, 530);
+    - a 0.19 ms-per-level head (x1.15, 612).
+    Each is known and owned; none is ready by Saturday; the clamp needs a quality gate. MBPP on that stack is ~321.
+  - Best levers: the expert phase (Breakthrough's MoE block) and the draft fixed cost per level (a persistent fused
+    level; PASS <= 0.10 ms vs 0.55 today; at 0.37 ms per level the 16-row check goes 211 -> 261).
 - **BREAK98c round CLOSED:** no idea breaks the kept wall. What stays open:
   - ZERO's SLC prefetch (+3-18 %; MoonShots' microbench);
   - the compiled check (the 550 path, weeks);

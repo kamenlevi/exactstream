@@ -45,7 +45,7 @@ Prepared Tue 2026-11-17 10:0x, beside the (b) draft (results/certify98/proofrun_
     - **A dev rehearsal** (Wed by day): heplus24 vs kept_walk from the dev TOPK dump.
       - Each check's drafts up to its first miss must equal dd_topk's TOPK top-1 at (fi, anchor row, depth).
       - It also shows the dropped-window rate. A 32-row verify is outside REF2-T's certified 1-16 rows.
-  - **The windows (proposed):** the first 24 fresh HumanEval+ windows in the manifest's order. If fewer than 20 of
+  - **The windows (agreed with BigMoE, Tue 13:51):** the first 24 fresh HumanEval+ windows in the manifest's order. If fewer than 20 of
     them have identical answer tokens, the next windows in order are added until 20 do. Every drop is reported.
   - The shipping forms (Q8 or bf16 + the 32K screen) are not certified here. The lossy gates cover them in lossy mode.
 - **The scorers:** tools/certify98.py c0528ad765fd5e59885a1e1066292a3c4dbf6908064b83956b0280773b077eee,
