@@ -554,6 +554,9 @@
     before arming.
 - **Memory:** a 43 GB gate (CARD_MEM 39) for both arms, as for lx45cc1 (peak 42.2 GB). 1c reads fewer expert bytes.
   Amendment 4a moves the gate if the key test peaks above 42.5 GB.
+  - **CORRECTED (Tue 2026-11-17 04:4x, information):** lx45cc1's 42.2 GB was the warm-ups' peak. Its processes peaked
+    at 43.1 GB, and B1 / V1 at 43.0 GB. The key test reads 0.6-0.7 GB under a full run. No rule or verdict changes
+    (docs/RESULT_lossygate_2026-11-17.md).
 - **Time:** B0 + V0 ~15 min; each tier-1 order ~70 min (lx45cc1's). That is ~5 h if every step passes.
 - **The slot (NewIdeas orders it):**
   - Tue by day, after night1117 and its tier-0a (results/T0A_1117_END) and BigMoE's 127-node dry run;
@@ -737,7 +740,8 @@
 - **The fallback** runs only if 43 has not opened 10 min after BigMoE's key-test PASS marker (the marker's mtime).
   - The per-process gate drops to 42 GB for the mon and tue phases and for the Tuesday follower's B2 -> V2.
   - The at-peak evidence (the orchestrator's figures):
-    - lx45cc1 peaked at 42.2 GB;
+    - lx45cc1 peaked at 42.2 GB (CORRECTED Tue 04:4x: that was the warm-ups' peak; the processes peaked at 43.1 GB, so
+      a 42 GB start is ~1 GB short. a45's start, 2 GB short with swap +0, still covers it);
     - a45 started at 40.7 GB against its 42.71 peak, with swap +0;
     - the rpl2 key test started at 44.2 against 42.6, with swap +0.
   - Unchanged:

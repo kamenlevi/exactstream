@@ -99,6 +99,9 @@ Counts in brackets are arm only / reference only (exact McNemar p).
   - no engagement field, as a base arm should have none (20 / 20 kept runs per process);
   - 364 rows (264 code + 100 IFEval), 364 unique keys, the same key set in both orders.
 - **Memory:** the lifetime peak was 42.2 GB in both orders, under the 43 GB gate.
+  - **CORRECTED (Tue 2026-11-17 04:4x):** 42.2 GB was the warm-ups' peak. The processes' lifetime peaks were 42.4-43.1
+    GB (max 43.1 GB in both orders), at the 43 GB gate. No verdict changes, since the gate is a start condition and swap
+    did not grow. See docs/RESULT_lossygate_2026-11-17.md and results/lossygate/peaks_2026-11-17.txt.
 - **Information, forward vs reverse token identity:**
   - identical: humanevalx 104 / 104 and ifeval 100 / 100, the sets outside the config's QOM sets;
   - differing: humaneval 32 / 60 and mbpp 35 / 100, its QOM sets.

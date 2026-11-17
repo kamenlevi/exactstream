@@ -91,6 +91,25 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- **Tue 04:5x NewIdeas: ADAPTIVE K DOWN (verify 8 rows when the drafter is unsure) = a SMALL lever. It passes on CPU;
+  the engine's 8-row cost decides.** (~/NewIdeas/research/week98/adaptk_k8.txt, adaptk_k8lossy.txt; ADAPTK.md)
+  - PEEK rule: verify 8 rows iff the 8th pop's path_p < ~0.25 (cross-fit), else ADAPTIVE K as frozen. path_p is
+    calibrated at 8 rows too (E[kept8] 7.17 vs real 7.20 on HE+).
+  - Exact, E14 costs, L 0.66, over KERN2, at an 8-row check of 0.78 x the 16-row one: HE+ +1.6 % [+0.2, +3.0], MBPP
+    +3.0 % [+1.8, +4.1]. At 0.71: +3.9 / +7.8 %. At 0.86: ~0.
+  - 0.78-0.80 is today's engine [est]: 16-row tile padding leaves only the expert union and the cores to shrink.
+  - Lossy CC(1) is similar: v4pass at 0.78 +0.9 / +2.4 %; byte floor +2.0 / +4.1 %.
+  - Kill test: one 8-row timing in any E-run (~1 min). KILL if >= 0.82.
+- **Tue 04:4x NewIdeas (number check of EvalSuite's night1117, results/night1117_chain.log): close-call d1 PASSES tier 1
+  in BOTH orders; d2 FAILS. The close-call lever ends at d1.**
+  - d1 (ccx45cc1 vs lx45cc1, code tier 1): forward n 264 -1.14 pt (McNemar p 0.55; arm-only 4 / reference-only 7);
+    both orders pooled n 528 -1.14 pt (p 0.26; 7 / 13): PASS vs the -3 pt screening line. Speed +6.2 % forward /
+    +4.5 % reverse on all 264 keys (+5.7 / +2.9 % on keys uncapped in both).
+  - d2 (ccx45cc1d2): forward n 264 -4.17 pt, p 0.013 (3 / 14): FAIL (MBPP, pooled); reverse skipped. Speed +9.2 %
+    vs lx45cc1, i.e. +2.8 % over d1's forward (7.661 vs 7.450), as the replay frontier said (R1(2) 17.323 vs R1(1)
+    16.910 kept, +2.4 %). The 2B predicted the fail (-6.06 pooled).
+  - Read: CC(1) is the lossy acceptance rung. LADDER v4 and ADAPTK-LOSSY already use CC(1), so neither moves. PUSH800
+    item 4 loses "close-call d2" (it was x1.02-1.05 on trees). T0A (S3 p2x45rpl2, tier 0) started 04:36, cutoff 06:36.
 - **Tue 03:0x NewIdeas: ADAPTIVE K also pays on the LOSSY line (ADAPTK-LOSSY, CPU replay, 20 s).** With close-call
   CC(1) acceptance (tree_cc32's rule) on LADDER v4's modules-PASS costs: HE+ +9.0 % [+4.3, +13.5] over the better
   fixed K at the frozen tau 0.9 (exact acceptance: +8.1 %); v4 stretch +9.0 %; on the 25 ms byte floor +4.8 %, because

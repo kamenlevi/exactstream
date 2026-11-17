@@ -101,3 +101,41 @@ Registered line: HOLDS at >= +5 % HE+ (CC, v4pass, tau 0.9). Result: HOLDS.
 Consecutive checks change row count on 16-17 % of HE+ checks (1 % on MBPP): the choices cluster. With s ms
 paid per switch, HE+ exact stays +8.2 % at s 2 and +6.9 % at s 8; CC(1) on v4 costs +8.1 / +5.5 %. So a
 switch may cost several ms; keeping both kernels' buffers live is enough.
+
+## ADAPTIVE K DOWN: verify 8 rows when the drafter is unsure (Tue 04:5x; adaptk_k8.py, adaptk_k8lossy.py)
+- **Idea:** ADAPTIVE K never goes below 16 rows, and it gains ~0 on MBPP. When the 8th pop's path_p is low, pops 8-15
+  carry little expected kept, so verify 8 rows. That gives a smaller expert union and a shallower draft tree.
+- **PEEK rule** (tau8 cross-fit from the other set): verify 8 rows iff the 8th pop's path_p < tau8 (~0.25 at R8 0.78),
+  else ADAPTIVE K as frozen. Deciding needs only 7 pops + the peek, so the 8-row draft is shallower (6.7 vs 13.6 levels
+  on HE+). The SUM rule (expected kept of pops 8-15 < theta) does worse, because it must draft all 15 pops to decide.
+- **path_p is calibrated at 8 rows too:** E[kept8] 7.17 vs real 7.20 (HE+), 5.73 vs 5.82 (MBPP).
+- **Exact, E14 costs, L 0.66, over frozen KERN2 (cross-fit, 95 % window bootstrap):**
+
+  | R8 = 8-row / 16-row check | HE+ | MBPP | checks at 8 rows (HE+ / MBPP) |
+  |---|---|---|---|
+  | 0.71 | +3.9 % [+1.3, +6.5] | +7.8 % [+6.2, +9.3] | 22 % / 77 % |
+  | 0.78 | +1.6 % [+0.2, +3.0] | +3.0 % [+1.8, +4.1] | 12 % / 38 % |
+  | 0.86 | +0.2 % | +0.4 % | 3 % / 7 % |
+
+  - Break-even (>= +1 %): R8 <= 0.78 on HE+, <= 0.82 on MBPP.
+  - Hindsight {8, 16, 32} at R8 0.78: HE+ +14.7 %, MBPP +20.5 %. Like KERN2, the calibrated rule gets only a small part.
+- **Lossy, CC(1):**
+  - LADDER v4 modules-PASS costs: at R8 0.78, HE+ +0.9 % and MBPP +2.4 %; at 0.71, +3.3 % / +7.0 %.
+  - Byte floor (its bytes ratio, 0.744): +2.0 % / +4.1 %.
+- **R8 on today's engine [est] is ~0.78-0.80.** REF2-T pads every call to 16-row tiles, and an M=8 MMA tile runs padded
+  (MoonShots d50e76a). So only two parts shrink:
+  - the expert union, 73.2 -> ~44-49 per layer: CHECK55's experts 33.71 ms x ~0.64, about -12 ms;
+  - the attention cores, about -1.3 ms.
+  The contract / BOF levers lighten the fixed part, which pushes R8 toward ~0.76.
+- **Verdict (the line was set before the run: MBPP cross-fit >= +2 % at R8 0.78): ALIVE, but SMALL.** On today's engine
+  it is worth +1-2 % on HE+ and +2-3 % on MBPP.
+  - Kill test: time one 8-row check next to A16 in any E-run (~1 min under a quiet lock). KILL if R8 >= 0.82.
+  - For the build, it is worth adding only if the row count is a parameter anyway.
+
+## The fresh re-read needs only the planned T8-32 dumps (Tue 04:5x; adaptk_fresh_n32check.txt)
+- BigMoE's 32-node dumps (tree_t30b_{tag}.npz, k 8) are IDENTICAL to the first 32 pops of the 127-node dumps: depth,
+  path_p, on_true and parent match on 100 % of 204,000 (HE+) and 500,512 (MBPP) nodes.
+- The frozen adaptk_fresh.py run on them reproduces the dev result exactly: HE+ +8.6 % [+6.7, +10.8], MBPP +0.2 %.
+- So Thursday's re-read runs on the T8-32 dumps already on PLAN900's Thursday list (~0.8 h by day). No 127-node dump is
+  needed. Command: `adaptk_fresh.py --he TAG --mbpp TAG --dump-fmt "tree_t30b_{tag}.npz"` (the script itself unchanged).
+
