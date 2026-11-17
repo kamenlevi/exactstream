@@ -1,0 +1,18 @@
+[guard] pid 52039, MAXGB 14, swap at start 7453.31 MB (kill at +1 GB)
+mtlprof: 13 hooks on AGXG17XFamilyComputeContext / AGXG17XFamilyCommandBuffer / AGXG17SDevice
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=27.6 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+  step    GPU     23.8 us [23.5-24.2]  dispatches 1
+  gather  GPU      9.1 us [8.8-9.3]  dispatches 19
+  fuse    GPU     74.0 us [72.6-77.2]  dispatches 16
+  hcA     GPU     60.4 us [59.5-62.0]  dispatches 15
+  qkv     GPU    169.4 us [168.2-174.4]  dispatches 38
+  attn    GPU     76.8 us [76.2-77.7]  dispatches 94
+  oproj   GPU     75.4 us [74.2-77.3]  dispatches 5
+  finish  GPU    281.4 us [278.6-286.6]  dispatches 66
+  head    GPU    250.6 us [249.3-256.3]  dispatches 17
+  topk    GPU     61.5 us [61.1-62.8]  dispatches 20
+  sum of stages' GPU 1082.5 us | the same pop chained: GPU 1075.2 us, 290 dispatches | pipelined tree: 1255.6 us wall per pop, GPU busy 1099.8 us per pop, 287 dispatches per pop
+[guard] exit 0, peak footprint 6 MB

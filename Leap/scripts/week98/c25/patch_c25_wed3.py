@@ -70,6 +70,53 @@ ENG = [
     ('        for a in ("F16", "F32s", "F32o", "F32df", "F32if", "F32c6i", "F32c6g"):\n',
      '        for a in ("F16", "F32s", "F32o", "F32df", "F32if", "F32c6i", "F32c6g", "F16g", "F16gd", "F32c6p", "F32c6x"):\n'),
 ]
+# 11-17 10:3x: Breakthrough's expert one-call (frozen release ~/Breakthrough/data/xrw/knob_v1, imported read-only; xknob
+# wraps ooo1cq.tier_glu_nax6n_1cq, COH on and off): MODE tgl16e = EXACT (== ooo1cq bit for bit), tgl16eu = + the TIER-4
+# UPGRADE (FAST, batch-dependent like the 1c tiers themselves; its own EvalSuite gate). Applied after ENG (its anchors).
+ENG_XK = [
+    ("  F32c6x   F32c6i + the bitwise stack: FASTGDN + HC32P + seams at 32 rows (ref2 seam_hi 32) + int8fold (MODE bit)\n",
+     "  F32c6x   F32c6i + the bitwise stack: FASTGDN + HC32P + seams at 32 rows (ref2 seam_hi 32) + int8fold (MODE bit)\n"
+     "  F16gk / F32c6k   F16g / F32c6i + Breakthrough's expert one-call tgl16e (knob_v1 xknob; EXACT: == ooo1cq bit for bit)\n"
+     "  F16gu / F32c6u   F16g / F32c6i + tgl16eu (tgl16e + the TIER-4 UPGRADE: FAST, batch-dependent; its own gate)\n"),
+    ('       "F32c6p", "F32c6x"]\n', '       "F32c6p", "F32c6x", "F16gk", "F16gu", "F32c6k", "F32c6u"]\n'),
+    ('                     seam=True, fold=True)}\n',
+     '                     seam=True, fold=True),\n'
+     '       "F16gk": dict(lam=0.018, xk="tgl16e"), "F16gu": dict(lam=0.018, xk="tgl16eu"),\n'
+     '       "F32c6k": dict(one=True, form="dn32", t1cf=True, hc4=True, v1=True, int8=True, lam=0.018, xk="tgl16e"),\n'
+     '       "F32c6u": dict(one=True, form="dn32", t1cf=True, hc4=True, v1=True, int8=True, lam=0.018, xk="tgl16eu")}\n'),
+    ('("F32c6x", "F16", "ratio"), ("F16gd", "F16", "diff")]\n',
+     '("F32c6x", "F16", "ratio"), ("F16gd", "F16", "diff"),\n'
+     '         ("F16gk", "F16g", "diff"), ("F16gu", "F16g", "diff"), ("F32c6k", "F32c6i", "diff"), ("F32c6u", "F32c6i", "diff")]\n'),
+    ("    import m16\n    m16.install()\n",
+     "    import m16\n    m16.install()\n"
+     "    xk = None\n"
+     "    if any(CFG[a].get(\"xk\") for a in ARMS):              # Breakthrough's expert one-call (frozen knob_v1, read-only)\n"
+     "        sys.path.insert(0, os.path.expanduser(\"~/Breakthrough/data/xrw/knob_v1\"))\n"
+     "        import xknob as xk\n"
+     "        assert \"/knob_v1/\" in xk.__file__, xk.__file__\n"
+     "        xk.install()\n"
+     "        xk.ON[0] = False\n"),
+    ('    S.update(int8fold=int8fold, m16=m16, seam0=int(ref2.CFG["seam_hi"]))\n',
+     '    S.update(int8fold=int8fold, m16=m16, seam0=int(ref2.CFG["seam_hi"]), xk=xk)\n'),
+    ("    S[\"int8fold\"].ON[0] = bool(c.get(\"fold\"))\n    G[\"ref2\"].CFG[\"seam_hi\"] = 32 if c.get(\"seam\") else S[\"seam0\"]\n",
+     "    S[\"int8fold\"].ON[0] = bool(c.get(\"fold\"))\n    G[\"ref2\"].CFG[\"seam_hi\"] = 32 if c.get(\"seam\") else S[\"seam0\"]\n"
+     "    if S[\"xk\"] is not None:\n"
+     "        S[\"xk\"].ON[0] = bool(c.get(\"xk\"))\n"
+     "        if c.get(\"xk\"):\n"
+     "            S[\"xk\"].MODE[0] = c[\"xk\"]\n"),
+    ("    S[\"int8fold\"].ON[0] = False\n    G[\"ref2\"].CFG[\"seam_hi\"] = S[\"seam0\"]\n",
+     "    S[\"int8fold\"].ON[0] = False\n    G[\"ref2\"].CFG[\"seam_hi\"] = S[\"seam0\"]\n"
+     "    if S.get(\"xk\") is not None:\n"
+     "        S[\"xk\"].ON[0] = False\n"),
+    ('                 ("F16g", "F16"), ("F16gd", "F16g"), ("F32c6p", "F32c6i"), ("F32c6x", "F32c6i")):\n',
+     '                 ("F16g", "F16"), ("F16gd", "F16g"), ("F32c6p", "F32c6i"), ("F32c6x", "F32c6i"), ("F16gk", "F16g"),\n'
+     '                 ("F16gu", "F16g"), ("F32c6k", "F32c6i"), ("F32c6u", "F32c6i")):\n'),
+    ('                f"int8fold COUNTS {S[\'int8fold\'].COUNTS}")\n',
+     '                f"int8fold COUNTS {S[\'int8fold\'].COUNTS}; xknob COUNTS "\n'
+     '                f"{S[\'xk\'].COUNTS if S.get(\'xk\') is not None else None}")\n'),
+    ('"F16g", "F16gd", "F32c6p", "F32c6x"):\n',
+     '"F16g", "F16gd", "F32c6p", "F32c6x", "F16gk",\n                  "F16gu", "F32c6k", "F32c6u"):\n'),
+]
 PASSK = [('            n = 16 if a == "F16" else 32\n', '            n = 16 if a.startswith("F16") else 32\n')]
 
 
@@ -92,7 +139,7 @@ def main():
     out = D if mode == "apply" else SCR
     if mode == "apply":
         assert not os.popen("pgrep -f run_c25_tue1").read().strip(), "tue1's runner is still up: do not patch live c25 files"
-    done = [patch("c25_engine.py", ENG, out), patch("c25_passk.py", PASSK, out)]
+    done = [patch("c25_engine.py", ENG + ENG_XK, out), patch("c25_passk.py", PASSK, out)]
     for src, p, tmp in done:                    # all compiled: now move into place
         os.replace(tmp, p)
         print(f"{mode}: wrote {p} ({len(src)} bytes)")

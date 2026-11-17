@@ -24,7 +24,7 @@ import numpy as np                                          # noqa: E402
 import mlx.core as mx                                       # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUTD = os.path.join(HERE, "..", "..", "data", "xrw")
+OUTD = os.environ.get("XRW_OUTD") or os.path.join(HERE, "..", "..", "data", "xrw")
 NSEG, NT, KG, KS = 62, 20, 40, 4
 GPC = KG // KS
 K = 64 * KG

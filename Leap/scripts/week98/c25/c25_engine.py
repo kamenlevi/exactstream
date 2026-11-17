@@ -19,6 +19,12 @@ Arms (C25_ARMS selects), each a set of components (CFG below):
   F32c6i   F32c5 + int8d at lambda 1.8e-2: C6 + int8 (Friday's number 2)
   F32g     F32o + f32one.FASTGDN (gdn_fast.py: the GDN core bit for bit == mlx_lm's; must equal F32o in every row)
   F32c6g   F32c6i + FASTGDN (C25_ARMS selects these two; the default stays the 11-16 nine)
+  F16g     F16 at lambda 1.8e-2: G1's 16-row check (int8-free, 8-bit HC mixers; Saturday's TREE-16 path; 11-17)
+  F16gd    F16g + GDN16 (m16.py: gdn_fast at 2-16 rows; bitwise: must equal F16g in every row)
+  F32c6p   F32c6i + HC32P (m16.py: the 32-row HC read in one launch, per-call barrier slots; bitwise == F32c6i)
+  F32c6x   F32c6i + the bitwise stack: FASTGDN + HC32P + seams at 32 rows (ref2 seam_hi 32) + int8fold (MODE bit)
+  F16gk / F32c6k   F16g / F32c6i + Breakthrough's expert one-call tgl16e (knob_v1 xknob; EXACT: == ooo1cq bit for bit)
+  F16gu / F32c6u   F16g / F32c6i + tgl16eu (tgl16e + the TIER-4 UPGRADE: FAST, batch-dependent; its own gate)
   V1 / V3 here are TIMING emulations (4-bit mixers requantized from the 8-bit copies; the 16K head = FR-Spec's top 16,384
   ids, not the code list): their bytes and kernels are C5's, their tokens are not EvalSuite's V1 / V3.
   (the chunked gated delta rule, gdn32c.py, is correct but 3x slower as built (Mon 12:58): not an arm until redesigned)
@@ -34,21 +40,31 @@ import mlx.core as mx
 
 REC = []
 S = dict(ok=False, bits={}, notes=[])
-ALL = ["F16", "F32s", "F32o", "F32d", "F32df", "F32if", "F32if6", "F32c5", "F32c6i", "F32g", "F32c6g"]
+ALL = ["F16", "F32s", "F32o", "F32d", "F32df", "F32if", "F32if6", "F32c5", "F32c6i", "F32g", "F32c6g", "F16g", "F16gd",
+       "F32c6p", "F32c6x", "F16gk", "F16gu", "F32c6k", "F32c6u"]
 CFG = {"F16": {}, "F32s": {}, "F32o": dict(one=True, form="qmm32n"), "F32d": dict(one=True, form="dn32"),
        "F32df": dict(one=True, form="dn32", t1cf=True), "F32if": dict(one=True, form="dn32", t1cf=True, int8=True),
        "F32if6": dict(one=True, form="dn32", t1cf=True, int8=True, lam=0.018),
        "F32c5": dict(one=True, form="dn32", t1cf=True, hc4=True, v1=True),
        "F32c6i": dict(one=True, form="dn32", t1cf=True, hc4=True, v1=True, int8=True, lam=0.018),
        "F32g": dict(one=True, form="qmm32n", fastgdn=True),          # F32o + gdn_fast (bitwise: == F32o in every row)
-       "F32c6g": dict(one=True, form="dn32", t1cf=True, hc4=True, v1=True, int8=True, lam=0.018, fastgdn=True)}
+       "F32c6g": dict(one=True, form="dn32", t1cf=True, hc4=True, v1=True, int8=True, lam=0.018, fastgdn=True),
+       "F16g": dict(lam=0.018), "F16gd": dict(lam=0.018, gdn16=True),
+       "F32c6p": dict(one=True, form="dn32", t1cf=True, hc4=True, v1=True, int8=True, lam=0.018, hc32p=True),
+       "F32c6x": dict(one=True, form="dn32", t1cf=True, hc4=True, v1=True, int8=True, lam=0.018, fastgdn=True, hc32p=True,
+                     seam=True, fold=True),
+       "F16gk": dict(lam=0.018, xk="tgl16e"), "F16gu": dict(lam=0.018, xk="tgl16eu"),
+       "F32c6k": dict(one=True, form="dn32", t1cf=True, hc4=True, v1=True, int8=True, lam=0.018, xk="tgl16e"),
+       "F32c6u": dict(one=True, form="dn32", t1cf=True, hc4=True, v1=True, int8=True, lam=0.018, xk="tgl16eu")}
 ARMS = [a for a in os.environ.get("C25_ARMS", ",".join(ALL[:9])).split(",") if a]   # the 11-16 nine by default
 assert ARMS and all(a in ALL for a in ARMS) and "F32s" in ARMS, ARMS
 PAIRS = [("F32s", "F16", "ratio"), ("F32o", "F16", "ratio"), ("F32df", "F16", "ratio"), ("F32if6", "F16", "ratio"),
          ("F32o", "F32s", "diff"), ("F32d", "F32o", "diff"), ("F32df", "F32d", "diff"), ("F32if", "F32df", "diff"),
          ("F32if6", "F32if", "diff"), ("F32df", "F32s", "diff"), ("F32if6", "F32s", "diff"), ("F32c5", "F32df", "diff"),
          ("F32c6i", "F32c5", "diff"), ("F32c5", "F16", "ratio"), ("F32c6i", "F16", "ratio"), ("F32g", "F32o", "diff"),
-         ("F32c6g", "F32c6i", "diff"), ("F32c6g", "F16", "ratio")]
+         ("F32c6g", "F32c6i", "diff"), ("F32c6g", "F16", "ratio"), ("F16g", "F16", "diff"), ("F16gd", "F16g", "diff"),
+         ("F32c6p", "F32c6i", "diff"), ("F32c6x", "F32c6i", "diff"), ("F32c6x", "F16", "ratio"), ("F16gd", "F16", "diff"),
+         ("F16gk", "F16g", "diff"), ("F16gu", "F16g", "diff"), ("F32c6k", "F32c6i", "diff"), ("F32c6u", "F32c6i", "diff")]
 E4_MB, E3_MB = 2.784, 2.064                              # MB per expert READ: records3 pieces, 4-bit = MSB + LSB part, MSB-3 =
                                                          # the MSB part (corrected 11-16 13:4x from 2.135 / 1.661: check25_bound_real.py)
 
@@ -70,6 +86,18 @@ def setup(G):
     f32one.install("qmm32n")                           # order: v32 (the loop) -> f32one -> hc4i -> int8d (outermost)
     hc4i.install()
     int8d.install()
+    import int8fold                                    # 11-17 (slot #3): after int8d; then m16 (wraps whatever is installed)
+    int8fold.install()
+    int8fold.ON[0] = False
+    import m16
+    m16.install()
+    xk = None
+    if any(CFG[a].get("xk") for a in ARMS):              # Breakthrough's expert one-call (frozen knob_v1, read-only)
+        sys.path.insert(0, os.path.expanduser("~/Breakthrough/data/xrw/knob_v1"))
+        import xknob as xk
+        assert "/knob_v1/" in xk.__file__, xk.__file__
+        xk.install()
+        xk.ON[0] = False
     f32one.ON[0] = False
     int8d.ON[0] = False
     # V3 emulation: 4-bit copies of every trunk GatedResidual's 8-bit mixers (dequantize -> quantize at 4-bit, g64)
@@ -102,6 +130,7 @@ def setup(G):
         v1 = dict(ref2._SH)
         ref2._SH.clear(); ref2._SH.update(sh_)
     S.update(hc4i=hc4i, HC=HC, sh0=sh_, sh16=v1)
+    S.update(int8fold=int8fold, m16=m16, seam0=int(ref2.CFG["seam_hi"]), xk=xk)
     S.update(f32one=f32one, int8d=int8d, lam0=float(G["TIERS_LAM"]), G=G,
              vocab=int(G["model"].language_model.lm_head.weight.shape[0]))
     S["ae0"] = mx.async_eval                           # the original (pass K flushes with it; c25_passk.py)
@@ -124,6 +153,14 @@ def knobs(G, arm, n):
     f.FASTGDN[0] = bool(c.get("fastgdn"))
     G["C25_T1CF"][0] = bool(c.get("t1cf"))
     i.ON[0] = bool(c.get("int8"))
+    S["m16"].GDN16[0] = bool(c.get("gdn16"))
+    S["m16"].HC32P[0] = bool(c.get("hc32p"))
+    S["int8fold"].ON[0] = bool(c.get("fold"))
+    G["ref2"].CFG["seam_hi"] = 32 if c.get("seam") else S["seam0"]
+    if S["xk"] is not None:
+        S["xk"].ON[0] = bool(c.get("xk"))
+        if c.get("xk"):
+            S["xk"].MODE[0] = c["xk"]
     G["TIERS_LAM"] = c.get("lam", S["lam0"])
     G["FG"].update(t1c=True, rows=n, t1cn=[])
     _swap(G, bool(c.get("hc4")), bool(c.get("v1")))
@@ -149,6 +186,12 @@ def unknob(G):
     G["C25_T1CF"][0] = False
     _swap(G, False, False)
     S["int8d"].ON[0] = False
+    S["m16"].GDN16[0] = False
+    S["m16"].HC32P[0] = False
+    S["int8fold"].ON[0] = False
+    G["ref2"].CFG["seam_hi"] = S["seam0"]
+    if S.get("xk") is not None:
+        S["xk"].ON[0] = False
     G["TIERS_LAM"] = S["lam0"]
     G["FG"].update(t1c=False, rows=0, t1cn=None)
 
@@ -245,14 +288,16 @@ def window(G, key, P, S0, gids, gen, Greq, first):
     for r in range(WU + TMR):
         rot = r % len(ARMS)
         for a in ARMS[rot:] + ARMS[:rot]:
-            n = 16 if a == "F16" else 32
+            n = 16 if a.startswith("F16") else 32
             lg = check(G, P, gids[gen:gen + n], n, a, key, "same" if r >= WU else "warm", r - WU)
             back(G, P, S0, n)
             if r == WU:
                 LG[a] = lg
     b = {}
     for x, y in (("F32o", "F32s"), ("F32d", "F32s"), ("F32df", "F32d"), ("F32if", "F32df"), ("F32if6", "F32if"),
-                 ("F32c5", "F32df"), ("F32c6i", "F32c5"), ("F32s", "F16"), ("F32g", "F32o"), ("F32c6g", "F32c6i")):
+                 ("F32c5", "F32df"), ("F32c6i", "F32c5"), ("F32s", "F16"), ("F32g", "F32o"), ("F32c6g", "F32c6i"),
+                 ("F16g", "F16"), ("F16gd", "F16g"), ("F32c6p", "F32c6i"), ("F32c6x", "F32c6i"), ("F16gk", "F16g"),
+                 ("F16gu", "F16g"), ("F32c6k", "F32c6i"), ("F32c6u", "F32c6i")):
         if x in LG and y in LG:
             A, B = (LG[x][:16], LG[y]) if y == "F16" else (LG[x], LG[y])
             b[f"{x}_vs_{y}"] = cmp(A, B)                        # (rows bitwise, argmax rows, rows, max |diff|)
@@ -286,6 +331,10 @@ def finish(G):
     m = lambda xs: float(np.median(xs)) if xs else float("nan")
     q = lambda xs: (float(np.percentile(xs, 25)), float(np.percentile(xs, 75))) if xs else (float("nan"),) * 2
     _say(G, f"C25 report: {len(W)} (window, round) samples; arms {ARMS}")
+    if S.get("m16") is not None:                         # 11-17: engagement + the barrier check (must be 0)
+        _say(G, f"C25: m16 COUNTS {S['m16'].COUNTS}; one-launch HC spin-cap fails {S['m16'].fails()} (must be 0); "
+                f"int8fold COUNTS {S['int8fold'].COUNTS}; xknob COUNTS "
+                f"{S['xk'].COUNTS if S.get('xk') is not None else None}")
     for a in ARMS:
         rs = [v[a] for v in W.values() if a in v]
         tot = [sum(r["w"]) for r in rs]
@@ -324,7 +373,8 @@ def finish(G):
                     f"{m([p['ncb'] for p in P_]):.0f} cbs | first {1e3 * m([p['first'] for p in P_]):.2f} | "
                     f"last {1e3 * m([p['last'] for p in P_]):.2f}; unready cbs {sum(p['unready'] for p in P_)}")
         _cpusplit_report(G, W, m)
-        for a in ("F16", "F32s", "F32o", "F32df", "F32if", "F32c6i", "F32c6g"):
+        for a in ("F16", "F32s", "F32o", "F32df", "F32if", "F32c6i", "F32c6g", "F16g", "F16gd", "F32c6p", "F32c6x", "F16gk",
+                  "F16gu", "F32c6k", "F32c6u"):
             ks = [d[a] for d in S.get("pso", {}).values() if a in d]
             if ks:
                 tot = {}

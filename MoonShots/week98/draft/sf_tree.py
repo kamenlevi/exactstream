@@ -32,6 +32,7 @@ import numpy as np
 H = os.path.expanduser
 sys.path.insert(0, H("~/BigMoE/scripts"))                  # read-only imports (run with -I -B: no bytecode written there)
 sys.path.insert(0, H("~/MoonShots/week98"))
+sys.path.insert(0, H("~/MoonShots/week98/draft"))
 import mlx.core as mx                                      # noqa: E402
 
 PAD = -1
@@ -123,14 +124,17 @@ def sort_desc(ti_raw, tv_raw, K):
              threadgroup=(1, 1, 1), output_shapes=[(K,), (K,)], output_dtypes=[mx.int32, mx.float32])
 
 
-def topk_gpu(lg, K):
+def topk_gpu(lg, K, idmap=None):
     """lg [1, V] f32 -> top ids [K] int32, values [K] f32, probabilities [K] f32 (exp on the GPU), all lazy.
-    The same ops as dd_topk.topk_rows up to its numpy part (argpartition of -l, take, logsumexp)."""
+    The same ops as dd_topk.topk_rows up to its numpy part (argpartition of -l, take, logsumexp). idmap (a screened
+    head's row -> token id table) maps the K row indices to token ids."""
     lse = mx.logsumexp(lg, axis=-1)
     ti = mx.argpartition(-lg, kth=K - 1, axis=-1)[:, :K]
     tv = mx.take_along_axis(lg, ti, axis=-1)
     tis, tvs = sort_desc(ti, tv, K)
     tp = mx.exp(tvs[None] - lse[:, None])[0]
+    if idmap is not None:
+        tis = mx.take(idmap, tis).astype(mx.int32)
     return tis, tvs, tp
 
 
@@ -246,6 +250,20 @@ def main():
     ap.add_argument("--frac", type=float, default=0.03)
     ap.add_argument("--max-anchors", type=int, default=48)
     ap.add_argument("--no-ref", action="store_true", help="skip REF (dd_tree's numpy-exp loop)")
+    ap.add_argument("--real", action="store_true",
+                    help="the r57 format for real: t30b's 10 Linears + the head's HC mixes as QuantizedLinear 8-bit g64 "
+                         "(quantized from bf16, as Q8), logits by Leap's ScreenedHead (FR-Spec top --screen + the "
+                         "session extras); no REF")
+    ap.add_argument("--compile", action="store_true",
+                    help="SF runs the pop's ops under mx.compile (two compiled parts around the KV gathers); HS stays eager")
+    ap.add_argument("--gpu-load-mb", type=float, default=0.0, help="diagnostic: add a dependent read of this many MB per SF pop")
+    ap.add_argument("--tail", action="store_true", help="SF uses the fused tail kernel (sf_tail.py: top-K + frontier)")
+    ap.add_argument("--fta", action="store_true", help="SF uses the fused tree attention kernel (fta_kernel.py)")
+    ap.add_argument("--capture", default=None, help="save tree_attn's inputs of the first SF tree (every pop) to this npz")
+    ap.add_argument("--capture-finish", default=None,
+                    help="save T.finish's inputs / output and moe_train's input / output of the first SF tree to this npz")
+    ap.add_argument("--screen", type=int, default=32768)
+    ap.add_argument("--extra-cap", type=int, default=4096)
     ap.add_argument("--out", default=None)
     a = ap.parse_args()
     if a.selftest:
@@ -272,13 +290,114 @@ def main():
     NEGINF = mx.array(float("-inf"), mx.float32)
     emb, layer = lm.model.embed_tokens, head.layers[0]
     att = layer.self_attn
+    SHC = None
+    if a.real:
+        import mlx.nn as nn
+        assert a.cut == "none", "--real builds its own format (Q8 + the screen)"
+        a.no_ref = True
+
+        def qlin(lin):
+            w = lin.weight.astype(mx.bfloat16)
+            ql = nn.QuantizedLinear(w.shape[1], w.shape[0], bias=False, group_size=64, bits=8)
+            ql.weight, ql.scales, ql.biases = mx.quantize(w, group_size=64, bits=8)
+            return ql
+        for name in ("q_proj", "o_proj", "k_proj", "v_proj", "se_gate", "se_up", "se_down", "fc_hidden",
+                     "fc_embedding", "router"):
+            setattr(P, name, qlin(getattr(P, name)))
+            done.append(f"P.{name} Q8")
+        for gname, g in (("attn_hc", layer.attn_hyper_connection), ("mlp_hc", layer.mlp_hyper_connection),
+                         ("mixer", head.hyper_connection_mixer)):
+            for sub in ("input_mix_weight_down", "input_mix_weight_up"):
+                setattr(g, sub, qlin(getattr(g, sub)))
+                done.append(f"{gname}.{sub} Q8")
+        mx.eval(P.parameters(), head.parameters())
+        sys.path.insert(0, H("~/Leap/scripts"))
+        from screened_head import ScreenedHead as SHC     # read-only import
+        RANK = np.load(P3.RANK_F)
+        done.append(f"head: ScreenedHead FR-Spec top-{a.screen} + {a.extra_cap} extras")
     FS = {"heplus24": CE.HEP, "mbppbank": CE.MBB}[a.set]
     TK = np.load(os.path.join(DT.OUT, f"topk_{a.run}_{a.set}.npz"))
     d0 = TK["depth"] == 0
-    print(f"[sf] loaded in {time.time() - t0:.0f} s; cut {a.cut}: {done}", flush=True)
+    print(f"[sf] loaded in {time.time() - t0:.0f} s; cut {a.cut}{' REAL' if a.real else ''}: {done}", flush=True)
+    SH = {"sh": None, "idmap": None}                         # the window's screened head (--real)
 
-    def head_step(HP, tok2, pos1, KS, VS, K1, V1, aidx, am, ancarr):
+    def logits_of(h):
+        if SH["sh"] is not None:
+            return SH["sh"].logits(head.hyper_connection_mixer(h))
+        return T.logits(lm, head, h)[0]
+
+    def _c1(HP, tok2, pos1):
+        x = T.fuse(head, P, HP, emb(tok2))
+        mixed, hyper, inject = layer.attn_hyper_connection(x.astype(mx.bfloat16))
+        q, gate, k, v = T.qkv(att, P, mixed, pos1)
+        return hyper, inject, q, gate, k, v
+
+    def _c2(q, gate, hyper, inject, AK, AV, am, ancarr, K1, V1):
+        o = DT.tree_attn(mx, att.scale, q, K1, V1, AK, AV, am, ancarr)
+        blk = P.o_proj(o.transpose(0, 2, 1, 3).reshape(1, 1, -1) * mx.sigmoid(gate))
+        h = T.finish(head, P, hyper, inject, blk)
+        return h, logits_of(h)
+    CC = {}                                                  # compiled per window: the screened head is captured
+    CAPT = {"on": False, "calls": []}
+    CAPF = {"on": False, "calls": []}
+    if a.capture_finish:
+        _fin, _moe = T.finish, M.moe_train
+
+        def _cap_moe(moe, P_, x):
+            out = _moe(moe, P_, x)
+            if CAPF["on"]:
+                mx.eval(x, out)
+                CAPF["calls"][-1].update(moe_x=np.array(x.astype(mx.float32)), moe_x_dtype=str(x.dtype),
+                                         moe_out=np.array(out), moe_out_dtype=str(out.dtype))
+            return out
+
+        def _cap_fin(head_, P_, hyper, inject, blk):
+            if CAPF["on"]:
+                mx.eval(hyper, inject, blk)
+                CAPF["calls"].append(dict(hyper=np.array(hyper.astype(mx.float32)), hyper_dtype=str(hyper.dtype),
+                                          inject=np.array(inject.astype(mx.float32)), inject_dtype=str(inject.dtype),
+                                          blk=np.array(blk.astype(mx.float32)), blk_dtype=str(blk.dtype)))
+            h = _fin(head_, P_, hyper, inject, blk)
+            if CAPF["on"]:
+                mx.eval(h)
+                CAPF["calls"][-1].update(h=np.array(h.astype(mx.float32)), h_dtype=str(h.dtype))
+            return h
+        T.finish, M.moe_train = _cap_fin, _cap_moe
+    if a.capture:
+        _ta = DT.tree_attn
+
+        def _cap_attn(mx_, scale, q, K1, V1, AK, AV, amask, anc):
+            o = _ta(mx_, scale, q, K1, V1, AK, AV, amask, anc)
+            if CAPT["on"]:
+                mx.eval(q, AK, AV, amask, anc, o)
+                CAPT["calls"].append(dict(q=np.array(q), AK=np.array(AK), AV=np.array(AV), am=np.array(amask),
+                                          anc=np.array(anc), o=np.array(o), scale=float(scale)))
+                if "K1" not in CAPT:
+                    mx.eval(K1, V1)
+                    CAPT["K1"], CAPT["V1"] = np.array(K1), np.array(V1)
+            return o
+        DT.tree_attn = _cap_attn
+
+    if a.fta:
+        from fta_kernel import tree_attn_fused
+
+    def head_step(HP, tok2, pos1, KS, VS, K1, V1, aidx, am, ancarr, compiled=False, fused_attn=False):
         """dd_tree's per-pop ops for one row: the node's forward -> (h, lg, k, v)"""
+        if fused_attn:
+            x = T.fuse(head, P, HP, emb(tok2))
+            mixed, hyper, inject = layer.attn_hyper_connection(x.astype(mx.bfloat16))
+            q, gate, k, v = T.qkv(att, P, mixed, pos1)
+            KS.append(k); VS.append(v)
+            kst, vst = mx.concatenate(KS, axis=2), mx.concatenate(VS, axis=2)
+            o = tree_attn_fused(att.scale, q, K1, V1, kst[:, :, aidx], vst[:, :, aidx], am, ancarr)
+            blk = P.o_proj(o.transpose(0, 2, 1, 3).reshape(1, 1, -1) * mx.sigmoid(gate))
+            h = T.finish(head, P, hyper, inject, blk)
+            return h, logits_of(h)
+        if compiled:
+            hyper, inject, q, gate, k, v = CC["c1"](HP, tok2, pos1)
+            KS.append(k); VS.append(v)
+            kst, vst = mx.concatenate(KS, axis=2), mx.concatenate(VS, axis=2)
+            return CC["c2"](q, gate, hyper, inject, kst[:, :, aidx], vst[:, :, aidx], am, ancarr, K1, V1)
         x = T.fuse(head, P, HP, emb(tok2))
         mixed, hyper, inject = layer.attn_hyper_connection(x.astype(mx.bfloat16))
         q, gate, k, v = T.qkv(att, P, mixed, pos1)
@@ -287,13 +406,13 @@ def main():
         o = DT.tree_attn(mx, att.scale, q, K1, V1, kst[:, :, aidx], vst[:, :, aidx], am, ancarr)
         blk = P.o_proj(o.transpose(0, 2, 1, 3).reshape(1, 1, -1) * mx.sigmoid(gate))
         h = T.finish(head, P, hyper, inject, blk)
-        lg = T.logits(lm, head, h)[0]
+        lg = logits_of(h)
         return h, lg
 
     def tree_hs(R, lg0, K1, V1, anc, maskb, exp_on_gpu=True):
         """HS (exp_on_gpu) or REF (dd_tree's topk_rows, numpy exp): the CPU frontier, one sync per pop"""
         if exp_on_gpu:
-            tis, _, tp = topk_gpu(lg0, K)
+            tis, _, tp = topk_gpu(lg0, K, SH["idmap"])
             rti, rtp = np.array(tis)[None], np.array(tp)[None]
         else:
             rti, rtp, _, _, _ = topk_rows(mx, lg0, np.zeros(1, np.int32), K)
@@ -312,7 +431,7 @@ def main():
             if maskb is not None:
                 lg = mx.where(maskb, lg, NEGINF)
             if exp_on_gpu:
-                tis, _, tp = topk_gpu(lg, K)
+                tis, _, tp = topk_gpu(lg, K, SH["idmap"])
                 ti, tpn = np.array(tis)[None], np.array(tp)[None]
             else:
                 ti, tpn, _, _, _ = topk_rows(mx, lg, np.zeros(1, np.int32), K)
@@ -323,10 +442,50 @@ def main():
             rec["pp"].append(np.float64(pp[0])); rec["ti"].append(ti[0]); rec["tp"].append(tpn[0]); rec["h"].append(h)
         return rec
 
+    CPUT = {"build": [], "wait": [], "t0": 0.0, "c0": 0.0, "build_cpu": [], "ae_wall": [], "ae_cpu": []}
+    DUMMY = {"x": mx.ones((int(a.gpu_load_mb * 1e6 / 4),), mx.float32) if a.gpu_load_mb else None}
+    if DUMMY["x"] is not None:
+        mx.eval(DUMMY["x"])
+
+    if a.tail:
+        import sf_tail
+
+    def tree_sf_tail(R, lg0, K1, V1, anc, maskb):
+        """SF with the fused tail: one kernel per pop does node t's top-K and pops node t + 1"""
+        G = GPUFrontier(K, NODES)
+        pop, _, _ = sf_tail.tail(G, lg0, SH["idmap"], 0)
+        HS, KS, VS = [R], [], []
+        pops, tis_l, tp_l = [], [], []
+        ancarr = mx.array(np.array([anc], np.int32))
+        anc1 = mx.array(np.array([anc + 1], np.int32))
+        for t in range(NODES):
+            par, tok, d = pop[0], pop[1], pop[2]
+            pops.append(pop)
+            HP = mx.take(mx.stack(HS, axis=0), (par + 1).reshape(1), axis=0).reshape(1, 1, -1)
+            jj = mx.arange(t + 1, dtype=mx.int32)
+            arow = G.nanc[t * NODES:t * NODES + t + 1]
+            aidx = mx.where(jj < d, arow, t).reshape(1, t + 1).astype(mx.int32)
+            am = (jj <= d).reshape(1, t + 1)
+            h, lg = head_step(HP, tok.reshape(1, 1), anc1 + d.reshape(1), KS, VS, K1, V1, aidx, am, ancarr,
+                              compiled=a.compile, fused_attn=a.fta)
+            if maskb is not None:
+                lg = mx.where(maskb, lg, NEGINF)
+            pop, tis, tp = sf_tail.tail(G, lg, SH["idmap"], t + 1)
+            HS.append(h)
+            tis_l.append(tis); tp_l.append(tp)
+            mx.async_eval(h, tis, tp, pop, *G.arrays())
+        mx.eval(pops, tis_l, tp_l, HS)
+        P_ = np.stack([np.array(p) for p in pops])
+        return dict(par=list(P_[:, 0]), tok=list(P_[:, 1]), dep=list(P_[:, 2]), bad=int(P_[:, 3].max()),
+                    pp=list(np.array(G.npp)), ti=[np.array(x) for x in tis_l], tp=[np.array(x) for x in tp_l], h=HS[1:])
+
     def tree_sf(R, lg0, K1, V1, anc, maskb):
         """SF: the GPU frontier, no sync until the tree is done"""
+        if a.tail:
+            return tree_sf_tail(R, lg0, K1, V1, anc, maskb)
+        CPUT["t0"] = time.perf_counter(); CPUT["c0"] = time.process_time()
         G = GPUFrontier(K, NODES)
-        tis, _, tp = topk_gpu(lg0, K)
+        tis, _, tp = topk_gpu(lg0, K, SH["idmap"])
         HS, KS, VS = [R], [], []
         pops, tis_l, tp_l = [], [], []
         ancarr = mx.array(np.array([anc], np.int32))
@@ -339,14 +498,24 @@ def main():
             arow = G.nanc[t * NODES:t * NODES + t + 1]
             aidx = mx.where(jj < d, arow, t).reshape(1, t + 1).astype(mx.int32)
             am = (jj <= d).reshape(1, t + 1)
-            h, lg = head_step(HP, tok.reshape(1, 1), anc1 + d.reshape(1), KS, VS, K1, V1, aidx, am, ancarr)
+            h, lg = head_step(HP, tok.reshape(1, 1), anc1 + d.reshape(1), KS, VS, K1, V1, aidx, am, ancarr,
+                              compiled=a.compile, fused_attn=a.fta)
             if maskb is not None:
                 lg = mx.where(maskb, lg, NEGINF)
-            tis, _, tp = topk_gpu(lg, K)
+            tis, _, tp = topk_gpu(lg, K, SH["idmap"])
             HS.append(h)
             pops.append(pop); tis_l.append(tis); tp_l.append(tp)
-            mx.async_eval(h, tis, tp, pop, *G.arrays())
+            extra = []
+            if a.gpu_load_mb:
+                extra = [mx.sum(DUMMY["x"] * (1.0 + 0.0 * h.reshape(-1)[0].astype(mx.float32)))]   # GPU bytes, 2 primitives
+            ta, ca = time.perf_counter(), time.process_time()
+            mx.async_eval(h, tis, tp, pop, *G.arrays(), *extra)
+            CPUT["ae_wall"].append(time.perf_counter() - ta); CPUT["ae_cpu"].append(time.process_time() - ca)
+        CPUT["build"].append(time.perf_counter() - CPUT["t0"])
+        CPUT["build_cpu"].append(time.process_time() - CPUT["c0"])
+        tw = time.perf_counter()
         mx.eval(pops, tis_l, tp_l, HS)
+        CPUT["wait"].append(time.perf_counter() - tw)
         P_ = np.stack([np.array(p) for p in pops])
         return dict(par=list(P_[:, 0]), tok=list(P_[:, 1]), dep=list(P_[:, 2]), bad=int(P_[:, 3].max()),
                     pp=list(np.array(G.npp)), ti=[np.array(x) for x in tis_l], tp=[np.array(x) for x in tp_l], h=HS[1:])
@@ -376,14 +545,22 @@ def main():
         q, gate, K1, V1 = T.qkv(att, P, mixed, mx.arange(n1))
         o = mx.fast.scaled_dot_product_attention(q[:, :, a0:], K1, V1, scale=att.scale, mask="causal")
         n = n1 - a0
-        blk = P.o_proj(o.transpose(0, 2, 1, 3).reshape(1, n, -1) * mx.sigmoid(gate))
+        blk = P.o_proj(o.transpose(0, 2, 1, 3).reshape(1, n, -1) * mx.sigmoid(gate[:, a0:]))
         h1 = T.finish(head, P, hyper[:, a0:], inject[:, a0:], blk)
         mx.eval(K1, V1, h1)
         del mixed, hyper, inject, q, gate, o, blk
+        if a.real:                                          # the window's screened head + its session extras
+            sh = SHC(lm.lm_head, RANK[:a.screen], extra_cap=a.extra_cap)
+            nx = sh.add(ids[:int(ancs.min()) + 2])
+            SH["sh"] = sh
+            SH["idmap"] = mx.concatenate([sh.ids, sh.xids]) if sh.n_extra else sh.ids
+            mx.eval(SH["idmap"])
+            res.setdefault("extras", []).append(int(nx))
+        CC["c1"], CC["c2"] = mx.compile(_c1), mx.compile(_c2)
         for anc in pick:
             bi = int(np.flatnonzero(ancs == anc)[0])
             R = h1[:, int(anc - a0):int(anc - a0) + 1]
-            lg0 = T.logits(lm, head, R)[0]
+            lg0 = logits_of(R)
             maskb = mask[bi:bi + 1] if mask is not None else None
             if maskb is not None:
                 lg0 = mx.where(maskb, lg0, NEGINF)
@@ -396,7 +573,23 @@ def main():
                 mx.synchronize()
                 ts = time.perf_counter()
                 if arm == "SF":
+                    CAPF["on"] = bool(a.capture_finish) and res["trees"] == 0
+                    CAPT["on"] = bool(a.capture) and res["trees"] == 0
                     out[arm] = tree_sf(R, lg0, K1, V1, int(anc), maskb)
+                    if CAPF["on"]:
+                        CAPF["on"] = False
+                        cs = CAPF["calls"]
+                        np.savez(a.capture_finish, n=len(cs),
+                                 **{f"{k}_{i}": c[k] for i, c in enumerate(cs) for k in c})
+                        print(f"[sf] captured {len(cs)} finish calls -> {a.capture_finish}; dtypes "
+                              f"{ {k: v for k, v in cs[0].items() if k.endswith('_dtype')} }", flush=True)
+                    if CAPT["on"]:
+                        CAPT["on"] = False
+                        cs = CAPT["calls"]
+                        np.savez(a.capture, K1=CAPT["K1"], V1=CAPT["V1"], n=len(cs), scale=cs[0]["scale"],
+                                 **{f"{k}_{i}": c[k] for i, c in enumerate(cs) for k in ("q", "AK", "AV", "am", "anc", "o")})
+                        print(f"[sf] captured {len(cs)} tree_attn calls -> {a.capture}; dtypes q {cs[0]['q'].dtype} "
+                              f"K1 {CAPT['K1'].dtype} {CAPT['K1'].shape} AK {cs[0]['AK'].dtype} o {cs[0]['o'].dtype}", flush=True)
                 else:
                     out[arm] = tree_hs(R, lg0, K1, V1, int(anc), maskb, exp_on_gpu=(arm == "HS"))
                 mx.synchronize()
@@ -432,6 +625,12 @@ def main():
     for arm, v in list(res["ms_per_pop"].items()):
         res["ms_per_pop"][arm] = dict(median=float(np.median(v)), p10=float(np.percentile(v, 10)),
                                       p90=float(np.percentile(v, 90)), n=len(v)) if v else None
+    if CPUT["build"]:
+        res["sf_cpu_build_ms_per_pop"] = float(np.median(CPUT["build"])) * 1e3 / NODES
+        res["sf_final_wait_ms_per_tree"] = float(np.median(CPUT["wait"])) * 1e3
+        res["sf_build_cpu_ms_per_pop"] = float(np.median(CPUT["build_cpu"])) * 1e3 / NODES
+        res["sf_async_eval_wall_us"] = float(np.median(CPUT["ae_wall"])) * 1e6
+        res["sf_async_eval_cpu_us"] = float(np.median(CPUT["ae_cpu"])) * 1e6
     res["PASS"] = res["trees"] > 0 and res["sf_eq_hs"] == res["trees"] and res["sf_bad"] == 0
     res["peak_gb"] = round(mx.get_peak_memory() / 1e9, 2)
     print(json.dumps(res), flush=True)

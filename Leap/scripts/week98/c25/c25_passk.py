@@ -161,7 +161,7 @@ def run(E, G, P, S0, gids, gen, key, LG, arms=("F16", "F32s", "F32o", "F32c6i"),
     out = {}
     try:
         for a in arms:
-            n = 16 if a == "F16" else 32
+            n = 16 if a.startswith("F16") else 32
             rows = []
             for r in range(1 + rounds):
                 K["acc"] = {}

@@ -6,3 +6,18 @@ probe: the kernel's fold of expert 24's first piece == numpy's: True
 EXPREAD BENCH Mon 16 Nov 14:02:51: MLX 0.32.2; layer 20; pieces per expert MSB 2.0644 MB (9 arrays) + LSB 0.7200 MB (6 arrays); words per slot [153600, 9216, 9216, 153600, 9216, 9216, 153600, 9216, 9216, 51200, 8804, 51200, 8804, 51200, 8804]
 12 code windows -> 99 32-row blocks (timing 24); kept experts per block mean 45.8, 4-bit rank 0-1 experts 13.8; GB per call mean 0.1045 (floor 373.2 us at 280 GB/s)
 probe: the kernel's fold of expert 24's first piece == numpy's: True
+
+EXPREAD BENCH Tue 17 Nov 11:05:20: MLX 0.32.2; layer 20; pieces per expert MSB 2.0644 MB (9 arrays) + LSB 0.7200 MB (6 arrays); words per slot [153600, 9216, 9216, 153600, 9216, 9216, 153600, 9216, 9216, 51200, 8804, 51200, 8804, 51200, 8804]
+12 code windows -> 99 32-row blocks (timing 24); kept experts per block mean 45.8, 4-bit rank 0-1 experts 13.8; GB per call mean 0.1045 (floor 373.2 us at 280 GB/s)
+probe: the kernel's fold of expert 24's first piece == numpy's: True
+  CH  16 KB, TPG  256: real   342.4 us/call (305.2 GB/s, x0.92 the 280 floor) | contig   305.2 us (342.4 GB/s); threadgroups per call real 6708
+  CH  16 KB, TPG 1024: real   353.9 us/call (295.3 GB/s, x0.95 the 280 floor) | contig   351.3 us (297.4 GB/s); threadgroups per call real 6708
+  CH  64 KB, TPG  256: real   342.1 us/call (305.4 GB/s, x0.92 the 280 floor) | contig   302.1 us (345.9 GB/s); threadgroups per call real 1856
+      + x re-reads at 2.0 x the weight bytes (from 2.4 MB, cache-resident): weights + x   347.6 us | x alone    74.0 us | weights alone   342.1 us -> they compete (sum-like)
+      + x re-reads at 2.5 x the weight bytes (from 2.4 MB, cache-resident): weights + x   346.7 us | x alone    84.7 us | weights alone   342.1 us -> they compete (sum-like)
+  CH  64 KB, TPG 1024: real   354.3 us/call (294.9 GB/s, x0.95 the 280 floor) | contig   351.6 us (297.2 GB/s); threadgroups per call real 1856
+      + x re-reads at 2.0 x the weight bytes (from 2.4 MB, cache-resident): weights + x   359.7 us | x alone    89.8 us | weights alone   354.3 us -> they compete (sum-like)
+      + x re-reads at 2.5 x the weight bytes (from 2.4 MB, cache-resident): weights + x   359.7 us | x alone   102.4 us | weights alone   354.3 us -> they overlap
+  CH 256 KB, TPG  256: real   356.2 us/call (293.4 GB/s, x0.95 the 280 floor) | contig   358.9 us (291.2 GB/s); threadgroups per call real 770
+  CH 256 KB, TPG 1024: real   356.6 us/call (293.0 GB/s, x0.96 the 280 floor) | contig   370.3 us (282.2 GB/s); threadgroups per call real 770
+(the one-call on the same blocks: exp32_bench.txt, 571-614 us at 32 rows; done; peak 1.5 GB)

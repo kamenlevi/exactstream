@@ -1,0 +1,62 @@
+mtlprof: 13 hooks on AGXG17XFamilyComputeContext / AGXG17XFamilyCommandBuffer / AGXG17SDevice
+X0 OVERLAP SCREEN Tue 17 Nov 11:05:37 (pre-registered 0aee02c): MLX 0.32.2; grid 20 x 62 threadgroups x 256; code bytes 0.076 GB; 5 rounds x 10 launches; build + warm 0.0 s
+| kernel | GPU us per launch (median of round medians) | spread (max-min)/med | GB/s on the codes |
+|---|---|---|---|
+| S1 | 269.0 | 109.4 % | 283 |
+| S2 | 243.3 | 335.8 % | 313 |
+| S3 | 289.9 | 90.3 % | 263 |
+| S3f | 293.1 | 92.9 % | 260 |
+| S4 | 303.8 | 41.3 % | 251 |
+S3 289.9 vs max(S1, S2) 269.0 (FEASIBLE <= x1.15 = 309.3) and S1 + S2 512.3 (KILL >= x0.90 = 461.1); hidden share of the smaller term 91 % -> FEASIBLE
+info: S3f (loads folded BEFORE the MMAs, the smoke's form) 293.1 = 0.57 x (S1 + S2)
+info: S4 (today's dependent chain) 303.8 = 0.59 x (S1 + S2), 1.13 x max(S1, S2)
+mtlprof: 13 hooks on AGXG17XFamilyComputeContext / AGXG17XFamilyCommandBuffer / AGXG17SDevice
+X1 MMA RATES Tue 17 Nov 11:05:38: MLX 0.32.2; 198400 matmul2d(16, 32, 32) per launch = 3.25 G MAC; 5 rounds x 10
+| kernel | GPU us per launch | spread | T MAC/s (padded) |
+|---|---|---|---|
+| R1 | 485.1 | 1.2 % | 6.70 |
+| R2 | 426.7 | 0.1 % | 7.62 |
+| R3 | 333.6 | 0.1 % | 9.74 |
+| R4 | 426.4 | 1.2 % | 7.62 |
+| R5 | 446.7 | 0.1 % | 7.28 |
+mtlprof: 13 hooks on AGXG17XFamilyComputeContext / AGXG17XFamilyCommandBuffer / AGXG17SDevice
+
+XRW BENCH Tue 17 Nov 11:05:42: arms ['orig', 'tgl16', 'tgl16e', 'tgl16eu', 'w4a8', 'w4a8u'] (orig = coh1cq, the live call), interleaved with the order rotated per round; layer 20; 24 real blocks; 9 rounds; MLX 0.32.2; build + warm 0.4 s
+  32 rows orig  :   572.0 us/call (GPU busy   542.2); 184.6 GB/s (x1.52 the 280 floor); spread 2 %
+  32 rows tgl16 :   553.2 us/call (GPU busy   523.2); 190.9 GB/s (x1.47 the 280 floor); spread 1 %
+  32 rows tgl16e:   556.2 us/call (GPU busy   526.1); 189.9 GB/s (x1.47 the 280 floor); spread 2 %
+  32 rows tgl16eu:   482.3 us/call (GPU busy   451.0); 219.0 GB/s (x1.28 the 280 floor); spread 1 %
+  32 rows w4a8  :   533.4 us/call (GPU busy   502.9); 198.0 GB/s (x1.41 the 280 floor); spread 2 %
+  32 rows w4a8u :   468.4 us/call (GPU busy   437.3); 225.5 GB/s (x1.24 the 280 floor); spread 2 %
+  32 rows tgl16 / orig per round: median 0.966 [min 0.957, max 0.975]
+  32 rows tgl16e / orig per round: median 0.973 [min 0.965, max 0.984]
+  32 rows tgl16eu / orig per round: median 0.843 [min 0.834, max 0.846]
+  32 rows w4a8 / orig per round: median 0.932 [min 0.928, max 0.942]
+  32 rows w4a8u / orig per round: median 0.816 [min 0.812, max 0.829]
+  16 rows orig  :   467.9 us/call (GPU busy   438.2); 194.5 GB/s (x1.44 the 280 floor); spread 1 %
+  16 rows tgl16 :   447.8 us/call (GPU busy   419.2); 203.2 GB/s (x1.38 the 280 floor); spread 1 %
+  16 rows tgl16e:   452.0 us/call (GPU busy   421.8); 201.4 GB/s (x1.39 the 280 floor); spread 1 %
+  16 rows tgl16eu:   387.5 us/call (GPU busy   357.7); 234.8 GB/s (x1.19 the 280 floor); spread 3 %
+  16 rows w4a8  :   436.0 us/call (GPU busy   405.6); 208.7 GB/s (x1.34 the 280 floor); spread 1 %
+  16 rows w4a8u :   377.6 us/call (GPU busy   346.4); 241.0 GB/s (x1.16 the 280 floor); spread 2 %
+  16 rows tgl16 / orig per round: median 0.955 [min 0.950, max 0.967]
+  16 rows tgl16e / orig per round: median 0.965 [min 0.957, max 0.981]
+  16 rows tgl16eu / orig per round: median 0.830 [min 0.820, max 0.840]
+  16 rows w4a8 / orig per round: median 0.934 [min 0.923, max 0.938]
+  16 rows w4a8u / orig per round: median 0.810 [min 0.796, max 0.813]
+mtlprof: 13 hooks on AGXG17XFamilyComputeContext / AGXG17XFamilyCommandBuffer / AGXG17SDevice
+
+XRW BENCH Tue 17 Nov 11:05:45: arms ['orig', 'tgl16', 'tgl16abl1', 'tgl16abl2', 'tgl16abl4', 'tgl16abl8', 'tgl16abl16'] (orig = coh1cq, the live call), interleaved with the order rotated per round; layer 20; 24 real blocks; 7 rounds; MLX 0.32.2; build + warm 1.3 s
+  32 rows orig  :   574.8 us/call (GPU busy   543.1); 183.7 GB/s (x1.52 the 280 floor); spread 72 %
+  32 rows tgl16 :   553.8 us/call (GPU busy   523.6); 190.7 GB/s (x1.47 the 280 floor); spread 1 %
+  32 rows tgl16abl1:   493.1 us/call (GPU busy   460.3); 214.2 GB/s (x1.31 the 280 floor); spread 1 %
+  32 rows tgl16abl2:   488.8 us/call (GPU busy   456.9); 216.1 GB/s (x1.30 the 280 floor); spread 2 %
+  32 rows tgl16abl4:   425.3 us/call (GPU busy   395.5); 248.3 GB/s (x1.13 the 280 floor); spread 2 %
+  32 rows tgl16abl8:   542.7 us/call (GPU busy   511.2); 194.6 GB/s (x1.44 the 280 floor); spread 2 %
+  32 rows tgl16abl16:   534.4 us/call (GPU busy   503.0); 197.6 GB/s (x1.42 the 280 floor); spread 2 %
+  32 rows tgl16 / orig per round: median 0.965 [min 0.569, max 0.970]
+  32 rows tgl16abl1 / orig per round: median 0.855 [min 0.500, max 0.861]
+  32 rows tgl16abl2 / orig per round: median 0.850 [min 0.498, max 0.858]
+  32 rows tgl16abl4 / orig per round: median 0.743 [min 0.431, max 0.753]
+  32 rows tgl16abl8 / orig per round: median 0.944 [min 0.552, max 0.958]
+  32 rows tgl16abl16 / orig per round: median 0.930 [min 0.543, max 0.942]

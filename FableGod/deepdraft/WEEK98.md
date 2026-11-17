@@ -7,6 +7,20 @@ unlocks 98% accuracy at 30 tokens deep. By then we must know what it is, and eit
 know the principles of how everything will work and it's certain, and we still have a week of building everything. I
 don't care about that. I just need to get that."
 
+## KAMEN, Tue 17 Nov 11:0x (verbatim, after the morning's closures and the ~200-220 Saturday range)
+"Bro. I'm not accepting we can't do that. These are actual thinking problems. Which require more smart new ideas with
+much less tests than anything"
+- **Orchestrator 11:1x: BREAK98c** (~/FableGod/deepdraft/BREAK98c.md), a desk sprint to ~12:30. It attacks the
+  frame's ASSUMPTIONS (not its walls): five thinkers + MoonShots. Tests only if <= 10 min and decisive.
+- Same turn:
+  - MoonShots' draft kernel line PARKED at sync-free (fusing nets ~-1.5..-2.2 ms per block for 2-3 days); MoonShots
+    joins BREAK98c.
+  - **Breakthrough's expert rewrite tgl16eu: YES for Saturday's stack** (0.843x / 0.830x of the expert one-call at
+    32 / 16 rows, ~-3.0 ms on the 16-row check; the TIER-4 UPGRADE joins 3-bit pairs to their expert's 4-bit segment
+    at no extra bytes; Leap reviewed it as acceptable on FAST). It enters as a flag before Thursday's tier 1, if Leap's
+    c25 A/B confirms by Wed evening. Quality is judged inside the stack's gate; the first bisect turns it off.
+    w4a8u: NO for Saturday (3 % expert-output error).
+
 ## KAMEN, Tue 17 Nov 07:2x (verbatim, dictated): THE TWO BREAKTHROUGHS BY SATURDAY; LOSSY >= 550 OR NOTHING
 "I'm missing the point of all of this. I'm not trying to make another 50% or it's even less improvement on code and
 exact and lossy. I don't really care about whether we bump up speed from 100 and something tokens per second to 100 and
@@ -391,6 +405,58 @@ under 550 tokens per second."
       (~12:00).
     - **The orchestrator's read: Saturday's gated lossy number is more likely ~200-220 (Q8 + 32K, check ~35-37 ms),
       ~240-250 only with the expert kernel. Exact ~130.**
+  - **09:56 / 10:17 MoonShots: Q8 = PASS; the decided r57 config Q8 + 32K (Q8H32) costs ~2.4 % kept on HE+, ~0 on
+    MBPP** (q8early_scores.txt, h32early_scores.txt).
+    - Q8 alone: HE+ x0.995 / x0.998, MBPP x0.996 / x1.0035.
+    - The 32K screen alone: HE+ x0.991 / x0.987. The screened kernel is bitwise on 124 / 124 windows.
+    - Q8H32: HE+ tree-16 x0.9775, tree-32 x0.9751; MBPP x0.998 / x1.005.
+    - 32K beats 8K by ~1.5-2.4 pt on HE+.
+    - The stored format to price: t30b's 10 trained Linears + the head's bf16 HC mixes at mx.quantize(bf16, gs 64,
+      8 bits), the router at 8 bits, routed experts as stored, top-10.
+  - **10:2x MTP Head: S20 SMALLHEAD = KILL** (REPORT ec48479): a head MLP at 0.53x / 0.46x params keeps x0.69-0.80, so
+    path B (a smaller student) is CLOSED.
+    - The draft target rests on path A (MoonShots' C2, 76.7 MB per level; kept read-out running) + a f ~0.1 kernel:
+      tree-16 4.6 ms, tree-32 7.5 ms.
+    - **Orchestrator: GO on FAR's LEVEL PAIRING** (one level drafts 2 tokens where p1 >= 0.95; tree-32 7.5 -> ~5 ms):
+      a sandbox screen (~2 h + ~30 min GPU, <= 4 GB) for the post-Saturday draft wall, pre-registered.
+  - **11:0x MTP Head: LEVEL PAIRING = KILL at stage 0** (REPORT 'S21 PAIR', CPU, before any GPU).
+    - Mechanism gap: a 2-ahead output saves only leaf levels. Continuing a path needs the skipped depth's state + K / V,
+      i.e. a trained double-step transition (~1-2 days).
+    - A perfect pairing saves 23-34 % of levels on HE+ and 12-27 % on MBPP (t30b TOPK dumps), under the 20 % line on
+      both sets. Best case ~1-1.5 ms per tree-32 block.
+    - **Orchestrator: MTP Head's next job is the Q8 + 32K t30b artifact for BigMoE's r57** (MoonShots' measured format,
+      sha-pinned, verified vs Q8H32's kept), by Wednesday morning. Then, at the desk, a pre-registered path-A QAT
+      recipe for after Saturday.
+  - **10:2x MTP Head: the t30b Q8H32 engine artifact is BUILT, VERIFIED, PINNED and handed to BigMoE.**
+    - ~/datasets/deepdraft/q8h32/t30b_q8h32.safetensors: 94.4 MB, sha256 b5388cc4...e9c4. The orchestrator re-hashed
+      it: it matches.
+    - All 16 modules, dequantized, equal MoonShots' apply_cut(Q8) BITWISE. So the expected kept is M3's Q8H32 (HE+ t16
+      x0.9775).
+    - Hand-off note: TrainLab data/q8h32/HANDOFF.md (7d6c47c), with the in-process recipe too. t30b as stored stays the
+      CERTIFY98 candidate.
+  - **11:0x Leap tue1 DONE** (re-armed with a NO-SWAP gate of 36 after the 39 gate held it idle 10:20-11:03; quiet run
+    11:04-11:05:35, C 160, 36 checks per arm; data/week98/c25/tue1_run.txt):
+    - Walls [K]: F16 38.92 ms; F32c6i 56.12; F32c6g 55.04. GPU-paced at both sizes (96-97 % busy; CPU 23-25 ms).
+    - gdn_fast at 32 rows: -1.19 ms, bitwise.
+    - int8 dense in the engine: +1.06 ms SLOWER, so G1 goes int8-free.
+    - Per class, GPU ms (16-row / 32-row):
+      - experts 17.44 / 26.31 (45-47 %, the lever);
+      - gdn_proj 6.34 / 8.25;
+      - hc_read 4.71 / 5.52;
+      - gdn_core 2.10 / 4.25;
+      - att_proj 1.94 / 2.62;
+      - moe_shared 1.18 / 2.17;
+      - router 1.20 / 1.66;
+      - att_core 0.80 / 1.12;
+      - ple 0.57 / 0.80;
+      - hc_write 0.24 / 0.69.
+    - Re-priced [P]:
+      - 16 rows (Saturday): GDN16 -0.6 + Breakthrough's tgl16eu -2.1 (FAST; exact tgl16e -0.5) + G1 lambda bytes -0.3
+        -> ~36 ms.
+      - 32 rows: ~48 ms. 28-30 is out of reach without a replayed / compiled check.
+      - att_core (module 5) is closed by size.
+    - **Orchestrator: Saturday's gated lossy at a ~36 ms check + ~16.6 ms sync-free Q8H32 draft + ~3 ms is ~205 tok/s
+      (HE+, kept 11.45).**
     - BigMoE 08:3x sizes:
       - tonight 0.1-1.5 GB;
       - Wednesday's CERTIFY98 capture ~10 GB (9-12) + TOPK / tree dumps ~1-1.5 + ~1 GB temporary parts = 11-13.5 GB,
@@ -552,6 +618,14 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Tue 17 11:0x (MTP Head, REPORT 77090eb; CPU LAB): **LEVEL PAIRING KILL at stage 0.** A perfect pairing saves at
+  most 12-27 % (MBPP) / 23-34 % (HE+) of levels at depth 20 on t30b's dumps (pessimistic-optimistic). FAR's
+  mechanism also lacks the double-step state + K / V transition. HE+ best case is ~1-1.5 ms per tree-32 block on
+  path A, not worth a 2-day build. Draft line from my side: bytes = path A + MoonShots' kernel.
+- Tue 17 10:2x (MTP Head, REPORT ec48479; LAB sandbox): **S20 SMALLHEAD KILL: a 2x smaller head loses 20-30 % kept,
+  so draft path B (a small student) closes.** The draft target rests on path A (MoonShots' M3 C2, 76.7 MB, tree-16
+  ~4.6 ms at f 0.1) + the persistent kernel. t30b is PINNED for CERTIFY98 (TrainLab data/t30b_pin.md; EvalSuite
+  confirmed the hashes).
 - **Tue 09:4x NewIdeas: CORRECTION to the 10:00 report's Saturday range. The ~270 realistic / ~375 stretch was the UNGATED tree-32 projection.
   Saturday's GATED, MEASURED config runs TREE-16 (t30b + tree-16 + CC(1) + G1's pick, on the 16-row check): ~200-250 tok/s HE+.
   The EXACT headline (ii) is ~130.** [P from parts]

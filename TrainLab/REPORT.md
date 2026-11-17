@@ -5177,3 +5177,85 @@ Line: HOLDS if kept >= 0.99 x s30 at tree-16 AND tree-32 on both sets. If h3 hol
 run (Wed / Thu). If only h2 holds, the 125B's dense part can shrink ~2x at most.
 Prediction [G]: h2 HOLDS 40 %, h3 HOLDS 20 %.
 Disk: h2 / h3 overwrite mhd1_c2 / mhd1_c2h (S4, read).
+
+## WEEK98 S20 SMALLHEAD RESULT (read Tue 17 Nov 10:18; LAB sandbox): KILL, a 2x smaller head loses 20-30 % kept
+| arm, vs s30 | MBPP t16 | MBPP t32 | MBPP chain | HE t16 | HE t32 | HE chain |
+|---|---|---|---|---|---|---|
+| h2, MLP 1536 (0.53x params) | x0.802 | x0.771 | x0.757 | x0.749 | x0.720 | x0.688 |
+| h3, MLP 768 (0.46x params) | x0.782 | x0.745 | x0.731 | x0.719 | x0.692 | x0.656 |
+- The head's MLP capacity is needed. A pruned head trained at s30's full budget stays 20-31 % below s30's kept.
+- Draft-line PATH B (a 2.4-5x smaller student, ~34 MB per level) closes.
+- Caveats: one recipe (pruned init + 1,889 steps); a long distillation from s30 / t30b wasn't tried. A 20-30 % gap
+  is far beyond what budget closed anywhere this week (n1 -> s30 was +6-8 % kept).
+- What's left for the 125B's draft time:
+  - path A's cuts (MoonShots' M3 C2, 76.7 MB, running);
+  - fewer levels (tree-16; FAR's level pairing);
+  - a lower fixed cost per level (MoonShots' persistent kernel).
+
+## WEEK98 S21 PAIR: level pairing for the draft line (orchestrator 10:2x GO; pre-registered Tue 17 Nov 10:21, before any data)
+FAR's idea #2 (IDEAS_1116_draft.md): on a node whose top-1 has p1 >= 0.95, a second output gives the token two ahead,
+so the sure tail runs in fewer levels.
+MECHANISM GAP (mine, found while designing):
+- To continue a path after a paired step, the next level needs the head's state h_{j+2}, and the head's attention
+  needs the skipped depth's K / V.
+- A 2-ahead token output alone saves only LEAF levels, because the spine's states must still run one depth per level.
+- Real savings need a DOUBLE-STEP transition D2 that maps (h_j, t_{j+1}, t_{j+2}) to h_{j+2} in one level, with K / V
+  for both positions, trained by self-distillation against the head's own two steps.
+Staged:
+- Stage 0 (now, CPU, s30's stored S9 cells, data/sb98/tree_s30_*.npz): the UPPER BOUND on levels saved by a PERFECT
+  pairing. Along each walk check's true path, step greedily: a depth j with p1(j) >= tau pairs (skips level j+1),
+  counted only inside the accepted run (pessimistic after a miss). Levels to reach spine depth D: D minus the pairs.
+  Reported for D = 12 / 20 / 31 (tree-16-like / tree-32-like / chain-32) at tau 0.95 and 0.9.
+- Stage 1 (only if stage 0 passes): train the 2-ahead output + D2 on frozen s30 features. Agreement with the head's own
+  next two levels on sure rows (FAR's line: >= 97 % at p1 >= 0.95, depth >= 8), then kept vs levels.
+- Stage 2: path A's format on the 125B (MoonShots' C2 cut + the trained modules).
+Stage-0 line: GO to stage 1 if the perfect-pairing bound saves >= 20 % of levels at D = 20, tau 0.95, on BOTH sets.
+Otherwise KILL (too few sure runs to matter).
+Accepted kept cost (the orchestrator asked):
+- At the 550 cycle (check ~28 ms + draft 3-4 ms), 1 ms of draft = ~3.2 % of tok/s at equal kept. Break-even is
+  ~3.2 % kept per ms saved.
+- I accept <= 1.5 % kept per ms saved (half of break-even).
+- On path A's format (76.7 MB at f 0.1 = 0.36 ms per level), a saved level is ~0.36 ms, so <= ~0.55 % kept per level
+  saved.
+
+## WEEK98 S21 PAIR stage 0 RESULT (Tue 17 Nov 10:22; CPU, LAB, teacher-forced): KILL by the line. A perfect pairing's ceiling is too low, except HE+'s optimistic bound
+Levels saved by a PERFECT pairing at spine depth D = 20 (tree-32-like), tau 0.95:
+| source | MBPP pess. | MBPP opt. | HE+ pess. | HE+ opt. |
+|---|---|---|---|---|
+| sandbox s30 (registered) | 5.5 % | 16.0 % | 9.3 % | 19.8 % |
+| 125B t30b TOPK dumps (added after: s30 is less sure) | 11.7 % | 26.6 % | 23.2 % | 33.7 % |
+- Pessimistic = pairs only inside the accepted run. Optimistic = at every depth on the teacher-forced p1; the
+  drafter's levels after a miss could pair if it is confident on its own path. tau 0.9 adds 1-4 pt.
+- VERDICT by the line (pessimistic, tau 0.95, D 20, >= 20 % on both sets): KILL. MBPP fails on both models.
+- The best case is HE+ on the 125B: 23-34 % of levels with PERFECT agreement and a working double-step transition D2
+  (not built; FAR's idea lacked it). On path A's format (0.36 ms per level, HE+ tree-32 20.8 levels) that is
+  ~1.7-2.5 ms at best, likely ~1-1.5 ms after real agreement. The build is ~1-2 days (D2 + K / V + engine).
+- Recommendation: no pairing this week. It could serve a later HE+ / code-only line if the draft wall is still open.
+- Scripts: sb98/pair_bound.py (sandbox), sb98/pair_bound125.py (125B); data/sb98/s21_bound*.json.
+
+## WEEK98 S22 QATC2: a path-A head trained in MoonShots' C2 format on the 125B (orchestrator 11:0x job 2; pre-registered Tue 17 Nov 10:27; RUNS AFTER SATURDAY, in a GPU window)
+Why: path A (C2 = 4-bit Linears and HC mixes, router 8-bit, top-4 routed experts, the 8K screen; ~74-77 MB per level)
+is the only head that fits <= 4-5 ms per tree-16 block at f ~0.1 (4.6 ms vs 8.9 for today's bytes). Post hoc it costs
+too much kept (M3, TRUE-STATE): HE+ x0.874 t16 / x0.776 t32; MBPP x0.854 / x0.813.
+Sandbox priors on what training can recover:
+- 4-bit QAT from native recovered 58-84 % of the 4-bit loss (S16); a 680-step annealed continuation ~60-80 %.
+- Training does NOT recover the screen (S18), so the screen stays post hoc.
+- top-4 routing is untested: the head may adapt to fewer experts.
+Arms (TrainLab trainer sb98/dd_qat.py, to be written after Saturday; it imports dd_ttt.py's data / slices /
+ttt_loss read-only and wraps the Linears like levers/qat4.py):
+- qa: t30b + one annealed pass on manifest A (data/t30c/split_A.json, 755 unseen n1112 files, 1,479 slices of 192
+  rows), pass seed 1117, fresh Adam, 20-step warm-up, cosine 1e-5 -> 1e-6, depth 30, wdecay 0.97.
+  - The forward carries C2's weight cuts with straight-through fake quant: P's 10 Linears at 4 bits (router 8), the
+    head's 6 HC mixes at 4, top_k = 4.
+  - The 8K screen is NOT in the loss.
+  - ~2 h at ~16 GB.
+- qc: the same pass with no cuts (the continuation control; S10's p2s shows a short continuation can cost on its own).
+Read-out: M3's harness (MoonShots' p3_dd_tree.py, real best-first trees, TRUE-STATE, HE+ 24 + MBPP bank, tree-16 /
+32). qa at cut C2, its weights already trained under C2's cuts. qc at cut none and at C2 post hoc.
+- The harness needs a weights-path option (MoonShots), or a TrainLab copy gated bitwise at --cut none as M3 was.
+Line:
+- PASS if qa's kept >= 0.95 x the full t30b at tree-16 on BOTH sets.
+  - That is ~5 % kept for the ~4.3 ms saved per tree-16 block: ~1.2 % per ms, inside my 1.5 %-per-ms rule (S21).
+- Report tree-32 and qa vs qc.
+- If qa fails but recovers > half of C2's loss: a from-b5 QAT pass (t30b's recipe with C2's cuts on, ~6 h night).
+Prediction [G]: qa PASS 30 % (HE+ is capped near x0.976 by H8 alone at t16 before any training loss).

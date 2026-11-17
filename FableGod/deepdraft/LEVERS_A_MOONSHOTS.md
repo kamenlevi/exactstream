@@ -1768,6 +1768,35 @@ tiles for <= 8-pair segments (the padding), a cheaper decode, a faster grouping 
   - The Q4 anchor reproduced exactly.
   - Under the 09:4x decision, t30b in r57 runs at Q8 + 32K. Q8H32 is that config's own price (next in the run).
   - Sent at once to BigMoE, the orchestrator and NewIdeas.
+- **RESULT Q8H32 + H32 (Tue 17 Nov 10:06 / 10:17, scored at once) [K p3/h32early_scores.{txt,json}]: the decided
+  config Q8H32 FAILS the line on HE+ (~-2.4 %) and passes on MBPP. H32 alone fails by a hair at HE+ tree-32.**
+
+  | cut | HE+ tree-16 | HE+ tree-32 | MBPP tree-16 | MBPP tree-32 | top-1 outside the set (HE+ / MBPP) |
+  |---|---|---|---|---|---|
+  | Q8H32 | x0.9775 [0.9595, 0.9939] | x0.9751 [0.9568, 0.9906] | x0.9981 [0.9910, 1.0050] | x1.0046 [0.9978, 1.0116] | 0.81 / 1.01 % |
+  | H32 | x0.9912 [0.9825, 1.0000] | x0.9874 [0.9692, 1.0027] | x1.0024 [0.9986, 1.0063] | x1.0035 [0.9982, 1.0088] | 0.89 / 1.11 % |
+  | H8 (Mon) | x0.9759 | x0.9631 | x0.9896 | x0.9847 | 1.50 / 1.95 % |
+
+  - The screened kernel is bitwise on 24 / 24 + 100 / 100 windows at 32K.
+  - Q8H32 sits ~1 pt under Q8 x H32 on HE+ (x0.986 / x0.985 predicted). That is within the window CI, or a small
+    interaction.
+  - 32K beats 8K on HE+ by 1.5-2.4 pt, so 32K is the right size. MTP Head's sandbox S19 (32K x0.995-0.999) was ~1 pt
+    optimistic for the 125B on HE+.
+  - Sent to the orchestrator, BigMoE and NewIdeas 10:1x.
+- **RESULT B16H32 + H16 (Tue 17 Nov 10:23 / 10:30) [K p3/q8_scores.{txt,json}, the full run's scores; every earlier cut
+  re-scored identically]:**
+
+  | cut | HE+ tree-16 | HE+ tree-32 | MBPP tree-16 | MBPP tree-32 |
+  |---|---|---|---|---|
+  | B16H32 (bf16 + 32K, the fallback) | x0.9912 [0.9811, 1.0000] | x0.9874 [0.9694, 1.0025] | x1.0019 | x1.0017 |
+  | H16 | x0.9895 [0.9807, 0.9982] | x0.9776 [0.9568, 0.9950] | x1.0038 | x1.0064 |
+
+  - bf16 rounding is free: B16H32's HE+ kept equals fp32 H32's to the token (11.165 / 16.058).
+  - Q8 costs ~1.4 pt on HE+ in the stack (Q8H32 x0.978 vs B16H32 x0.991). It saves ~70 MB per pop (dense 73 vs 138
+    MB), i.e. ~0.24 ms per pop or ~3.6 ms per tree-16 block (15 pops), ~7-9 % of a ~40-50 ms cycle [P]. So Q8 + 32K
+    still wins on tok/s by ~6-7 %: the decision stands.
+  - 16K is worse than 32K at HE+ tree-32 (x0.978 vs x0.987) for 23.6 MB less per pop: no change.
+  - All cuts done, so the Wed 05:24 / 06:24 crons were deleted.
 
 ## C2. MTP Head's path A for a tree-16 head: 4-bit dense + 8K screen + experts top-4 (NewIdeas 09:2x; pre-registered Tue 17 Nov 09:4x, before any C2 run)
 - **Why (NewIdeas, after the 177.6 MB correction):** <= 4-5 ms per block needs <= ~75 MB per level at tree-16. Path A
@@ -1839,6 +1868,38 @@ tiles for <= 8-pair segments (the padding), a cheaper decode, a faster grouping 
     needs a timing verdict.
 - **Known cost of SF as written:** tree_attn's Python loop runs t + 1 columns per pop instead of depth + 1, a few extra
   small kernels at late pops. A fused tree-attention kernel would remove that, if BigMoE wants it.
+- **RESULT (Tue 17 Nov 10:32, share lock) [K draft/sf_bit_{he16,mb16,he16q8h32,he32}.json, draft/sf_bittest.log]: PASS.**
+  176 / 176 trees: SF == HS bitwise on every node, no domain flag.
+
+  | run | trees | SF == HS | REF trees differing | top_p cells off by 1 ulp (REF vs HS) | ms per pop REF / HS / SF (median) |
+  |---|---|---|---|---|---|
+  | HE+ tree-16, fp32 + full head | 48 | 48 | 0 | 2,450 / 6,144 | 3.393 / 3.565 / 3.052 |
+  | MBPP tree-16 | 48 | 48 | 0 | 2,288 / 6,144 | 3.347 / 3.533 / 3.042 |
+  | HE+ tree-16, Q8H32 | 48 | 48 | 0 | 2,419 / 6,144 | 3.351 / 3.521 / 3.020 |
+  | HE+ tree-32 | 32 | 32 | 0 | 3,142 / 8,192 | 3.470 / 3.639 / 3.095 |
+
+  - Sync-free is -0.34 ms per pop vs dd_tree's own loop (-10 %): ~-5 ms per tree-16 block (15 pops). INDICATIVE,
+    under a share lock.
+  - The harness's Q8H32 is fake-quantized with a masked full head, so its bytes are fp32 + full head. At real Q8 + 32K
+    bytes (~158 MB per pop) the ~0.7 ms fixed cost per pop is the larger part: the next kernel target.
+  - Sent to BigMoE (the hand-off), the orchestrator and NewIdeas 10:3x. Under the 09:4x rule it is BigMoE's default.
+  - The first launch failed on a window-pass slicing bug (gate[:, a0:], fixed 9c7bf25; log draft/sf_bittest_fail1.log);
+    no tree had run.
+- **REAL r57 FORMAT (Tue 17 Nov 10:4x, share lock) [K draft/sf_bit_real_{he16,mb16,he32}.json, draft/sf_real.log]: sync-free
+  is bitwise and -31 % per pop.** sf_tree.py --real puts t30b's 10 Linears and the head's HC mixes in QuantizedLinear 8-bit
+  g64 (quantized from bf16, as Q8), with logits from Leap's ScreenedHead (FR-Spec 32K + session extras, 4,096-row extra
+  matrix), at B = 1.
+
+  | run | trees | SF == HS | ms per pop HS / SF (median) |
+  |---|---|---|---|
+  | HE+ tree-16 | 48 | 48 | 1.611 / 1.116 |
+  | MBPP tree-16 | 48 | 48 | 1.584 / 1.105 |
+  | HE+ tree-32 | 24 | 24 | 1.688 / 1.168 |
+
+  - A tree-16 block (15 pops) costs ~16.6 ms sync-free vs ~24 ms host-synced [P].
+  - Bytes per pop ~163 MB, i.e. 0.56 ms at 292.7 GB/s, so ~0.55 ms per pop is fixed cost: the fused tree level's target.
+  - Note: the first "MBPP" launch repeated HE+ (a zsh word-split slip in my loop). Its output is kept as
+    sf_bit_real_he16_repeat.json (identical trees and times); MBPP was re-run.
 
 ## Ranked (final, 01:3x)
 1. **The 2B audits and repairs the head's deep tokens: CONFIRMED on HE+** (D). On MBPP, the frozen schedule was chosen

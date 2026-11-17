@@ -17,7 +17,7 @@ lk() {   # logs the lock's reply and exit code (06:06: the old silent call may h
 }
 clear() {   # WAITBIG=N (Mon 16 Nov 14:2x): also wait while another session holds a lock with MEM >= N GB. 13:26-14:15,
             # 6 runs started in the gaps between EvalSuite's back-to-back 39 GB processes and the guard killed each one.
-  [ "$(quiet_others)" -eq 0 ] && [ "$(noswap)" -ge 12 ] && [ ! -f "$HOME/.local/share/quiet/PAUSE" ] \
+  [ "$(quiet_others)" -eq 0 ] && [ "$(noswap)" -ge ${NOSWAP_MIN:-12} ] && [ ! -f "$HOME/.local/share/quiet/PAUSE" ] \
     && { [ -z "$WAITBIG" ] || [ "$(GUARD_BIG_GB=$WAITBIG big_others)" -eq 0 ]; }
 }
 until clear; do sleep 20; done

@@ -160,3 +160,207 @@ data/xrw/x0_overlap.txt / x1_rates.txt and are not quoted.
   The error is systematic: most pairs sit at ~3.5 %, with no outlier tail. Per-64-group int8 absmax on x and h is too
   coarse for this model. Finer scales (per 32 / 16) or bf16 h in kernel B would cut it, at a cost in speed. This is
   decided only after the quiet bench shows whether int8 buys speed at all.
+- **Variants for the quiet bench (scripts/xrw/tgl16v.py; checks Tue 10:08, 2 real blocks per layer, 1,280 pairs):**
+  - **tgl16g:** kernel A with ONE simdgroup per K chunk doing gate AND up on one staged activation tile. That is half
+    the x staging, 4 simdgroups / 128 threads per threadgroup, and 18.7 KB of slices. Kernel B is tgl16's. Result:
+    **bitwise == ooo1cq on 1,280 of 1,280 pairs**, and a)-c) PASS. It is a second exact candidate.
+  - **a8b16:** int8 kernel A (w4a8's) + bf16 kernel B (tgl16's). Mean rel L2 vs fp32 is 2.0 % (L20) / 2.5 % (L44),
+    against w4a8's 3.3 / 3.5 %, and 59-75 % of pairs are > 2 %. So kernel A's int8 x carries most of the error; h adds
+    the rest. FAST only.
+  - The knob takes MODE = tgl16g | a8b16 too (bench variants).
+- **The quiet runner was re-armed at 10:0x** with five arms: orig, tgl16, tgl16g, w4a8, a8b16. A 1-round shared smoke
+  confirmed that all five build and run (its timings are not quoted).
+- **Steering bench (Tue 10:09, shared GPU; xrw_bench --minmode 15; NOT a quotable number).** Each call ran alone in its
+  command buffer, 15 interleaved repeats per block and arm. Per arm: the median over 24 blocks of the min GPU interval.
+  orig was 844 / 750 us at 32 / 16 rows (quiet: ~580 at 32 rows), so contention remains.
+
+  | arm | / orig, 32 rows | / orig, 16 rows |
+  |---|---|---|
+  | tgl16 | 0.957 | 0.942 |
+  | tgl16g | 1.113 | 1.096 |
+  | w4a8 | 0.947 | 0.915 |
+  | a8b16 | 0.956 | 0.914 |
+
+  Reading (to be checked in quiet): int8 barely beats bf16 in the REAL kernel, though X1's synthetic MMA path was
+  ~25 % faster in int8. MoonShots' quiet ablation says the same thing: without code loads the kernel still takes 331 of
+  352 us. The kernel is compute-bound across decode + staging + epilogue + MMA, not MMA-bound and not waiting on an
+  overlap. Fusing gate + up per simdgroup (fewer, heavier simdgroups) is slower.
+- **Timing ablations of tgl16 added to the quiet run** (tgl16v.py; ABL_C bits: 1 no code loads (fake words still
+  decoded), 2 no decode, 4 no MMA, 8 no epilogue, 16 no activation loads). They show where tgl16's time goes and pick the
+  next lever.
+- **The quiet runner uses frozen copies** (data/xrw/frozen_q1, md5s in data/xrw/frozen_q1.md5; outputs via XRW_OUTD to
+  data/xrw). Re-armed 10:1x: X0 + X1, then the five-arm bench (32 + 16 rows, 9 rounds), then the ablation bench (32 rows,
+  7 rounds).
+- **x2b_dest_formula.py PASS (Tue 10:1x):** with threadgroup tensor operands, the cooperative dest (bf16 x uint4b ->
+  float and int8 x int4b -> int32) puts element i of lane l exactly at Leap's analytic position (col = 16 (i >> 3) +
+  fn0 + (i & 3), row = fm0 + 8 ((i >> 2) & 1)), on all 32 lanes.
+- **tgl16e = tgl16 with the epilogue on that formula.** Per group and lane, the scales / biases of its 8 columns load
+  as 4 float4 and its 2 row sums as 2 floats, instead of ~48 scalar threadgroup loads through index arrays. Result:
+  **bitwise == ooo1cq on 1,280 of 1,280 pairs**, and a)-c) PASS.
+- **The quiet runner was re-armed at 10:1x on frozen copies data/xrw/frozen_q2** (md5s in frozen_q2.md5). The main bench
+  has six arms: orig, tgl16, tgl16e, tgl16g, w4a8, a8b16. Then the ablation bench.
+- **X3 shapes (info; scripts/xrw/x3_shapes.py; Tue 10:17).** Shared GPU, but each figure is the MIN over 50 interleaved
+  launches. Static threadgroup operands, no epilogue, kernel A's grid; each form does the same useful work.
+
+  | form | shape (M, N, K) x ops | types | min us | / W16 |
+  |---|---|---|---|---|
+  | W16 (today) | (16 tokens, 32 features, 32) x 2 | bf16 x uint4b | 220.3 | 1.000 |
+  | F16 | (32 features, 16 tokens, 32) x 2 | int8 weights x bf16 x^T | 209.8 | 0.952 |
+  | F8 | (32, 8 tokens, 32) x 2 | int8 x bf16 | 209.8 | 0.952 |
+  | F16b | (32, 16, 64) x 1 | int8 x bf16 | 217.7 | 0.988 |
+  | H16 | (32, 16, 32) x 2 | half x bf16 | 211.0 | 0.958 |
+
+  - **N = 8 costs exactly what N = 16 costs.** Tokens pad to 16 on N just as on M (MoonShots' M = 8 screen), so no
+    operand placement removes the 16-row padding. Exact weights-left forms (int8 codes x bf16) gain only ~5 %; one
+    K = 64 op gains nothing.
+  - **The accelerator floor of kernel A's padded work is ~210-220 us**, just under the code stream (~234 us; MoonShots'
+    pure read). A + B today are ~388 + 198 us; the floor is about max(MMA ~220 + ~110, stream ~234 + ~115) ~ 350 us. So
+    the orchestrator's ~-5.5 ms per check is the FULL-overlap prize: the accelerator, the decode ALU and the stream
+    would all have to run concurrently.
+  - Per simdgroup-group on one core, the rough budget is MMA ~44 ns, ALU ~40 ns (~200 instructions over 4 schedulers)
+    and stream ~60 ns, against ~146 ns if fully serial. The candidates attack the ALU part (tgl16e: ~40 fewer loads per
+    group) and the MMA part (int8). The quiet ablations measure each.
+- **tgl16eh (Tue 10:21):** tgl16e with the activation tile staged one K half at a time. Its threadgroup holds ~18.6 KB
+  (tgl16: ~27 KB, ooo1cq: ~20 KB). **Bitwise == ooo1cq on 1,280 of 1,280 pairs.** Steering (shared, min-of-15) cannot
+  separate the exact variants at 32 rows: tgl16 0.966, tgl16e 0.961, tgl16eh 0.954 x orig. At 16 rows: 0.939 / 0.941 /
+  0.953. So neither the epilogue's loads nor threadgroup occupancy looks binding; quiet will say.
+- **Context for the FAST error (x4_tier_budget.py, Tue 10:23; fp32 dequant, real rows, 300 samples per layer).** The
+  lossy check already accepts the gap between an expert's tier-3 output (MSB-3 + b3, ranks 2-9) and its tier-4 output:
+  mean rel L2 **0.244 (L20) / 0.265 (L44)**, p90 0.274 / 0.297. w4a8's ~3.4 % from int8 activations is about 7x smaller.
+  Added in quadrature it moves a tier-3 pair's error from ~0.25 to ~0.252. That is the scale EvalSuite's same-scores gate
+  judges, should int8 earn its place on speed.
+- **tgl16ep (Tue 10:24):** tgl16e + a distance-1 register prefetch (group g + 1's codes, LSB, activations, scales are
+  loaded before group g's decode). **Bitwise == ooo1cq on 1,280 of 1,280 pairs**, but slower in steering:
+
+  | arm | 32 rows (orig 883 us) | 16 rows |
+  |---|---|---|
+  | tgl16ep | 0.997 | 1.019 |
+  | tgl16e | 0.969 | 0.952 |
+  | w4a8 | 0.907 | 0.942 |
+
+  The registers cost more than the extra loads in flight, as MoonShots found for the old kernel (C1). DROPPED.
+- **Where the exact track stands before quiet:** every bitwise restructure steers at ~0.95-0.97 x orig. The resources
+  look balanced: MMA ~210-220 us (X3), stream ~234 us, ALU ~150-200 us for kernel A. Today's ~352 us already hides about
+  half of the serial sum, so big exact gains would need near-perfect three-way overlap.
+
+## The TIER-4 UPGRADE (Tue 10:3x): fewer segments, not better overlap (FAST; batch-dependent)
+- **Why:** the resources per segment are roughly balanced (MMA, decode ALU, stream), so a large exact gain needs
+  near-perfect overlap. Cutting SEGMENTS cuts MMA, decode and threadgroups together.
+- **The rule (scripts/xrw/xgrp.py, a new grouping kernel; kernels A / B unchanged):**
+  - A tier-3 pair (rank >= 2, or a 4-bit rank whose sidecar is -2) joins its expert's tier-4 key when the expert has an
+    eligible 4-bit pair in the call (sidecar resident or late, not a QOM drop).
+  - That expert's LSB plane is read for that pair anyway, so there are no extra bytes, and the upgraded pairs run on the
+    4-bit weights, which are more accurate.
+  - Real pairs sort first within a key. A 16-pair group headed by an upgraded pair (only when > 16 pairs share a key)
+    keeps tier 3.
+  - The candidates' head keeps rs_l's meaning: a pair whose own sidecar entry is -2 posts -2.
+- **Count (x5_seg_merge.py, CPU, 4,752 real 32-row blocks, every captured layer):** segments per call 62.7 -> 50.5
+  (-19.4 %). Distinct experts 46.5. 137 of 275 tier-3 pairs upgrade. Today's 60.9 at layer 20 matches MoonShots' GPU
+  profile, which checks the count.
+- **xgrp self-test: 80 of 80 PASS.** On 40 random calls (late slots, QOM drops, -2 sidecars, an expert on > 16 rows) the
+  GPU grouping == its numpy replica both with and without the upgrade, and up = 0 == ooo1cq.gpu_grp_1cq.
+- **Checks (2 real blocks per layer; layers 20 / 44):**
+
+  | item | tgl16eu (tgl16e + upgrade) | w4a8u (w4a8 + upgrade) |
+  |---|---|---|
+  | a) ON off == original | PASS | PASS |
+  | b) 5 repeats bitwise; rs_m / rs_l == ooo1cq's | PASS; PASS / PASS | PASS; PASS / PASS |
+  | c) 32 == two 16-row halves | **NO, by design** | **NO, by design** |
+  | pairs whose tier changed | 183 / 176 of 640 (~28 %) | same |
+  | unchanged pairs bitwise == ooo1cq | 457 of 457 / 464 of 464 | 0 (int8) |
+  | d) rel L2 vs fp32 at each pair's tier, mean / max | 0.0044 / 0.0059; 0.0046 / 0.0078 (= ooo1cq's level) | 0.027 / 0.069; 0.029 / 0.074 |
+  | e) Leap's m32 scenarios | posts cover all used experts in 24 of 24; late release no hang; 32 == 16+16: 0 of 24 | not run |
+
+- **c) is the price:** a pair's tier now depends on the OTHER rows of the call (does its expert have a 4-bit pair
+  there?). The same context can get different expert outputs in different check batches. On real routing the upgraded
+  pairs move toward the more accurate tier (the tier-3 / tier-4 gap is ~0.25 rel L2, x4_tier_budget).
+- **Steering (Tue 10:30; the GPU was quieter: orig 658 us at 32 rows, tight per-block spreads; NOT a quotable number):**
+
+  | arm | / orig, 32 rows | / orig, 16 rows |
+  |---|---|---|
+  | tgl16e | 0.970 | 0.967 |
+  | tgl16eu | **0.902** | **0.881** |
+  | w4a8u | **0.867** | **0.867** |
+
+- Decision asked of Leap (reviewer) 10:3x: is batch dependence acceptable on the FAST track (EvalSuite's same-scores
+  gate judges quality)? The exact candidates (tgl16 / tgl16e) stay separate.
+- **Leap's decision (10:33): the upgrade is ACCEPTABLE on the FAST track.** Today's 1c tiers are already
+  batch-dependent: an expert's tier comes from I_e summed over ALL rows of the call (t1cf.py), and c25's F32s vs F16 give
+  0 / 16 rows bitwise. The upgrade adds no new class of dependence and only moves pairs to MORE precise weights.
+  Conditions:
+  - (1) deterministic for the same call content: b) PASS;
+  - (2) no extra bytes: c25's expert GB per check must not rise (Leap reads it in the arm);
+  - (3) it changes the gated config's numerics, so adoption needs its OWN EvalSuite pass. NewIdeas / the orchestrator
+    decide whether it joins Saturday's stack before Thursday's tier 1.
+
+  tgl16e stays the exact candidate. Leap's arms after tue1: F32c6xk / F16gk per MODE (tgl16e, tgl16eu).
+- **The FROZEN knob for those arms: data/xrw/knob_v1** (README + md5s in data/xrw/knob_v1.md5). Release check
+  (scripts/xrw/knob_check.py, which imports every module from knob_v1 and asserts it by __file__) PASS on 2 real blocks
+  each of layers 20 / 44:
+  - tgl16e == ooo1cq bitwise in y, rs_m and rs_l;
+  - tgl16eu's unchanged pairs == ooo1cq bitwise (71-105 of 320 pairs per block upgraded);
+  - 3 repeats are identical.
+- **The upgrade at 16 rows (Saturday's check size; x5_seg_merge.py X5_ROWS=16; 9,840 real 16-row blocks, all layers):**
+  segments per call 48.0 -> 38.9 (-19.0 %); distinct experts 37.9; 61.4 of 137.6 tier-3 pairs upgrade. The same
+  fraction as at 32 rows.
+
+## QUIET RESULTS (Tue 11:05:37-11:05:45; my ticket right after Leap's tue1 released at 11:05:35; NO-SWAP 46 GB)
+Frozen copies data/xrw/frozen_q3 (md5s in frozen_q3.md5). Outputs: data/xrw/{x0_overlap,x1_rates,xrw_bench}_quiet.*,
+xrw_bench_quiet_abl.*; the runner's stdout is in data/xrw/xq_run.txt.
+
+### The kernel bench (exp32's way: 24 real blocks of layer 20 per round in one graph; 9 rounds; arm order rotated)
+
+| arm | 32 rows us / call (GPU busy) | / orig per round, median [min, max] | 16 rows us / call (GPU busy) | / orig |
+|---|---|---|---|---|
+| orig (coh1cq, live) | 572.0 (542.2) | 1 | 467.9 (438.2) | 1 |
+| tgl16 (exact) | 553.2 (523.2) | 0.966 [0.957, 0.975] | 447.8 (419.2) | 0.955 [0.950, 0.967] |
+| tgl16e (exact) | 556.2 (526.1) | 0.973 [0.965, 0.984] | 452.0 (421.8) | 0.965 [0.957, 0.981] |
+| **tgl16eu (exact kernels + upgrade; FAST)** | **482.3 (451.0)** | **0.843 [0.834, 0.846]** | **387.5 (357.7)** | **0.830 [0.820, 0.840]** |
+| w4a8 (int8; FAST) | 533.4 (502.9) | 0.932 [0.928, 0.942] | 436.0 (405.6) | 0.934 [0.923, 0.938] |
+| **w4a8u (int8 + upgrade; FAST)** | **468.4 (437.3)** | **0.816 [0.812, 0.829]** | **377.6 (346.4)** | **0.810 [0.796, 0.813]** |
+
+Spreads were 1-3 %. orig matches Leap's own exp32 quiet numbers (586.9 / 496.5 us in tue1's post bench, 11:05; 584-605
+on Mon). Against Leap's 5 % wiring bar, tgl16 / tgl16e (exact) fall short at 32 rows (3.4 % / 2.7 %). The upgrade
+arms clear it by 3x.
+
+### Where tgl16's time goes (timing ablations, 32 rows, 7 rounds, same window)
+
+| removed | us / call | saved vs tgl16 (553.8) |
+|---|---|---|
+| the MMA (abl4) | 425.3 | **128.5** |
+| the decode (abl2) | 488.8 | 65.0 |
+| the code loads (abl1; fake words still decoded) | 493.1 | 60.7 |
+| the activation loads (abl16) | 534.4 | 19.4 |
+| the epilogue (abl8) | 542.7 | 11.1 |
+
+The accelerator's padded MMA is the largest exposed cost; the decode comes next. Both scale with SEGMENTS, which is
+why the upgrade (-19 % segments) cuts ~13 % of the call. Even without the MMA the call sits ~60 us over its byte floor
+(105.6 MB at 290 GB/s ~ 364 us).
+
+### X0 (pre-registered): FEASIBLE by the medians, with a stated caveat
+- Medians of the 5 round medians: S1 269.0, S2 243.3, S3 289.9 us. S3 <= 1.15 x max(S1, S2) = 309.3 -> **FEASIBLE**
+  (91 % of the smaller term hidden). S3f 293.1. S4 (dependent chain) 303.8 = 1.13 x max.
+- Caveat: the noise line (S1 spread <= 15 %) is exceeded (109 %) by round 1 alone. Every kernel's first round ran ~2x
+  slow (clocks ramping after an idle GPU: S1 562 / 269 / 268 / 269 / 268). Rounds 2-5 agree within 1 %, so the median
+  is robust.
+- Reading: the accelerator CAN run under the stream when the work is independent. The real kernel's exposed MMA (128 us)
+  comes from its per-segment dependency chain and padded work, not from hardware serialization.
+
+### X1 (info) in quiet: the within-screen ratios are the finding
+R1 485.1, R2 426.7, R3 333.6, R4 426.4, R5 446.7 us; spreads <= 1.2 %.
+- int8 x int4b (R3) runs at 0.78 x bf16 x uint4b (R4).
+- A threadgroup-staged left operand (R4) costs the same as a cooperative one (R2).
+- The epilogue costs 14 % (R1 vs R2).
+- The absolute values are ~2x X3's shared-GPU minimum for the same shapes (W16 220 us). This likely reflects isolated
+  launches at low clocks and R-kernels' 26 KB threadgroups, so they are not quoted as rates.
+
+### Priced on Leap's quiet engine numbers (tue1, 11:06) [P: kernel ratios x engine class time; c25's A/B decides]
+The EXPERT class is 17.44 ms of the 16-row check (F16) and 26.31 ms of the 32-row C6 + int8 check; 45-47 % of GPU.
+
+| arm | 16-row check | 32-row check |
+|---|---|---|
+| tgl16eu | ~-3.0 ms (17.44 x 0.170) | ~-4.1 ms (26.31 x 0.157) |
+| w4a8u | ~-3.3 ms | ~-4.8 ms |
+| tgl16 (exact) | ~-0.8 ms | ~-0.9 ms |
+
+Saturday's 16-row check (Leap: 38.9 ms) would go to ~35.9 with tgl16eu.

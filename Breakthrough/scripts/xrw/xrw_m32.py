@@ -18,7 +18,7 @@ HOOK_AT = "import ooo1c as OC\n"
 
 def main():
     cand = sys.argv[1]
-    assert cand in ("w4a8", "tgl16"), cand
+    assert cand in ("w4a8", "tgl16", "tgl16e", "tgl16eu", "w4a8u"), cand
     src = open(SRC).read()
     assert src.count(OUT_LINE) == 1 and src.count(HOOK_AT) == 1, "Leap's m32 check changed: re-read it before running"
     out = os.path.join(HERE, "..", "..", "data", "xrw", f"m32_{cand}.txt")

@@ -1,7 +1,7 @@
 #!/bin/bash
 # xq_after_tue1.sh (Breakthrough, Tue 17 Nov 2026 09:5x; EXPERT REWRITE): the quiet run of screens X0 + X1
 # (docs/EXPERT_REWRITE.md, pre-registered 0aee02c + ec211aa) + the first candidates' interleaved kernel bench
-# (xrw_bench.py: orig = coh1cq vs w4a8 and tgl16, layer 20, 24 real blocks; re-armed 10:0x) on a quiet ticket queued the moment Leap's tue1 ends
+# (xrw_bench.py: orig = coh1cq vs tgl16, tgl16e, tgl16eu, w4a8, w4a8u; layer 20, 24 real blocks) + tgl16's timing ablations (32 rows); frozen copies in data/xrw/frozen_q3; re-armed 10:3x) on a quiet ticket queued the moment Leap's tue1 ends
 # (NewIdeas 09:5x + Leap 09:48: its end marker ~/Leap/data/week98/c25/C25_tue1_DONE, written on any end, by ~12:00).
 # Gates: the marker newer than arming; no BREAK98_HOLD, HOLD, PAUSE, lid closed or HEALTH ACT; Kamen away (away_secs
 # >= 900 on two reads 30 s apart); NO-SWAP >= 12 GB (peak ~4 GB + 8). Then `peer lock quiet --queue`, both screens
@@ -47,7 +47,7 @@ while :; do
 done
 if [ $DRY = 1 ]; then say "DRY: fake quiet lock"; LOCKED=1; else
   say "queueing the quiet ticket"
-  peer lock quiet --queue 20m "MEM 4 GB: Breakthrough expert rewrite screens X0 + X1 + the candidates' kernel bench (~5 min; ec211aa)" >> "$L" 2>&1 \
+  peer lock quiet --queue 20m "MEM 4 GB: Breakthrough expert rewrite screens X0 + X1 + candidate and ablation kernel benches (~6 min)" >> "$L" 2>&1 \
     || quit "SKIP: the quiet lock was refused or timed out"
   LOCKED=1
 fi
@@ -60,9 +60,12 @@ run() {   # one screen, capped at 5 min
   while kill -0 $p 2>/dev/null; do sleep 1; t=$((t + 1)); [ $t -ge 300 ] && { kill -TERM $p; sleep 5; kill -9 $p 2>/dev/null; say "capped: $*"; }; done
   wait $p; echo $?
 }
-r0=$(run scripts/xrw/x0_overlap.py --rounds 5 --reps 10 --tag quiet)
-r1=$(run scripts/xrw/x1_rates.py --rounds 5 --reps 10 --tag quiet)
-r2=$(run scripts/xrw/xrw_bench.py --rounds 9 --nb 24 --cands w4a8,tgl16 --tag quiet)
+F=data/xrw/frozen_q3                                   # frozen copies (md5s in data/xrw/frozen_q3.md5), outputs to data/xrw
+export XRW_OUTD="$HOME/Breakthrough/data/xrw"
+r0=$(run $F/x0_overlap.py --rounds 5 --reps 10 --tag quiet)
+r1=$(run $F/x1_rates.py --rounds 5 --reps 10 --tag quiet)
+r2=$(run $F/xrw_bench.py --rounds 9 --nb 24 --cands tgl16,tgl16e,tgl16eu,w4a8,w4a8u --tag quiet)
+r3=$(run $F/xrw_bench.py --rounds 7 --nb 24 --sizes 32 --cands tgl16,tgl16abl1,tgl16abl2,tgl16abl4,tgl16abl8,tgl16abl16 --tag quiet_abl)
 unlock
 v=$(grep -h -o -- "-> [A-Z]*$" "$D/x0_overlap_quiet.txt" 2>/dev/null | tail -1)
-fin "done: X0 rc $r0 ${v:-no verdict line}; X1 rc $r1; bench rc $r2"
+fin "done: X0 rc $r0 ${v:-no verdict line}; X1 rc $r1; bench rc $r2; ablations rc $r3"

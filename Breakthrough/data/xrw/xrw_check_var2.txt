@@ -1,0 +1,14 @@
+
+XRW CHECK Tue 17 Nov 10:15:06: candidate tgl16e vs coh1cq (live COH one-call); MLX 0.32.2; layers [20, 44]; 2 real 32-row blocks per layer (decision-map code windows)
+  L20: 2 blocks, 640 pairs. a) ON off == original bitwise: True; b) 5 repeats bitwise + same resolved slots: True; c) 32 == two 16-row halves bitwise: True
+    d) rel L2 vs fp32 ref: candidate max 0.0059 mean 0.0044 | ooo1cq max 0.0059 mean 0.0044 | candidate vs ooo1cq max 0.0000 mean 0.0000; elementwise max|diff|/max|ref|: candidate 0.0070 / ooo1cq 0.0070
+    pairs bitwise == ooo1cq: 640 of 640
+    share of pairs with rel L2 vs fp32 above 2 / 5 / 10 %: candidate 0.0 / 0.0 / 0.00 % | ooo1cq 0.0 / 0.0 / 0.00 %; candidate p50 / p90 / p99 0.0044 / 0.0049 / 0.0054
+    worst pair (candidate): rel 0.0059 (ooo1cq 0.0059) at tf_code_HumanEval_10.npz row 55 rank 6 expert 36 tier 3
+  L44: 2 blocks, 640 pairs. a) ON off == original bitwise: True; b) 5 repeats bitwise + same resolved slots: True; c) 32 == two 16-row halves bitwise: True
+    d) rel L2 vs fp32 ref: candidate max 0.0078 mean 0.0046 | ooo1cq max 0.0078 mean 0.0046 | candidate vs ooo1cq max 0.0000 mean 0.0000; elementwise max|diff|/max|ref|: candidate 0.0076 / ooo1cq 0.0076
+    pairs bitwise == ooo1cq: 640 of 640
+    share of pairs with rel L2 vs fp32 above 2 / 5 / 10 %: candidate 0.0 / 0.0 / 0.00 % | ooo1cq 0.0 / 0.0 / 0.00 %; candidate p50 / p90 / p99 0.0045 / 0.0052 / 0.0064
+    worst pair (candidate): rel 0.0078 (ooo1cq 0.0078) at tf_code_HumanEval_10.npz row 4 rank 0 expert 287 tier 3
+  g) first candidate call incl. compile: 0.82 s; extra buffers per call: x int8 82 KB + h int8 205 KB + scales / sums 36 KB
+XRW CHECK items a-c: PASS; d) reported above

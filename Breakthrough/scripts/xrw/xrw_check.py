@@ -39,7 +39,7 @@ sys.path.insert(0, HERE)
 import w4a8 as W                                            # noqa: E402
 import xknob as XK                                          # noqa: E402
 
-OUTD = os.path.join(HERE, "..", "..", "data", "xrw")
+OUTD = os.environ.get("XRW_OUTD") or os.path.join(HERE, "..", "..", "data", "xrw")
 PLAN, KR, R4, NL, D = "4433333333", 10, 2, 96, 2560
 T.PLAN = PLAN
 BARE = os.path.expanduser("~/BigMoE/models/bare")
@@ -173,7 +173,8 @@ def main():
         assert (sm_of >= 0).all() and (sl_of >= 0).all()
         dq = Deq(base, side)
         BL = blocks_for(Lm, a.blocks)
-        st = dict(rel_c=[], rel_o=[], rel_co=[], elm_c=[], elm_o=[], worst=None, a=True, b=True, c=True, beq=0, bn=0)
+        st = dict(rel_c=[], rel_o=[], rel_co=[], elm_c=[], elm_o=[], worst=None, a=True, b=True, c=True, beq=0, bn=0,
+                  chg=0, keq=0, kn=0, bm=True, bl=True)
         for bi, (f, b0, xf, idk, nolsb) in enumerate(BL):
             x = mx.array(xf).astype(mx.bfloat16)
             mx.eval(x)
@@ -190,7 +191,8 @@ def main():
                 res["first_call_s"] = time.time() - t0
             st["b"] &= all(bits_eq(yc, call(CQ.tier_glu_nax6n_1cq_coh, x, base, side, sm_of, sl_of, idk, nolsb, region,
                                              status, offs)[0]) for _ in range(5))
-            st["b"] &= bits_eq(rmc, rmo) and bits_eq(rlc, rlo)       # the same resolved slots as the original
+            st["bm"] &= bits_eq(rmc, rmo)                           # the same resolved slots as the original
+            st["bl"] &= bits_eq(rlc, rlo)
             ya = call(CQ.tier_glu_nax6n_1cq_coh, x[:16], base, side, sm_of, sl_of, idk[:16], nolsb[:16], region, status,
                       offs)[0]
             yb = call(CQ.tier_glu_nax6n_1cq_coh, x[16:], base, side, sm_of, sl_of, idk[16:], nolsb[16:], region, status,
@@ -200,7 +202,18 @@ def main():
             eq = np.array(mx.all(yc.view(mx.uint16) == yo.view(mx.uint16), axis=-1)).reshape(-1)
             st["beq"] += int(eq.sum())
             st["bn"] += int(eq.size)
-            # d) the fp32 reference per pair
+            # d) the fp32 reference per pair, at the tier each pair's group runs at (xgrp's replica: the original
+            # grouping for ooo1cq, the upgrade grouping for a "...u" candidate; all slots resident here)
+            import xgrp
+            pm_np = sm_of[idk].astype(np.int64)
+            pl_np = np.where(nolsb, -2, sl_of[idk[:, :R4]]).astype(np.int64)
+            t_orig = xgrp.cpu_grp(pm_np, pl_np, idk, PLAN, up=False)[2]
+            t_cand = xgrp.cpu_grp(pm_np, pl_np, idk, PLAN, up=a.cand.endswith("u"))[2]
+            chg = (t_cand != t_orig).reshape(32, KR)
+            st["chg"] += int(chg.sum())
+            eqm = np.array(mx.all(yc.view(mx.uint16) == yo.view(mx.uint16), axis=-1)).reshape(32, KR)
+            st["keq"] += int((eqm & ~chg).sum())
+            st["kn"] += int((~chg).sum())
             Yc = np.array(yc.astype(mx.float32)).reshape(32, KR, D)
             Yo = np.array(yo.astype(mx.float32)).reshape(32, KR, D)
             xb = np.array(x.astype(mx.float32))
@@ -208,7 +221,7 @@ def main():
             for m in range(32):
                 for rk in range(KR):
                     e = int(idk[m, rk])
-                    tier = 4 if (rk < R4 and not nolsb[m, rk]) else 3
+                    tier = int(t_cand[m * KR + rk])
                     key = (e, tier)
                     if key not in cache:
                         cache[key] = tuple(dq.proj(p, int(sm_of[e]), int(sl_of[e]), tier) for p in PROJ)
@@ -218,7 +231,13 @@ def main():
                     yr = Wd @ hh
                     nr = np.linalg.norm(yr) + 1e-30
                     rc = float(np.linalg.norm(Yc[m, rk] - yr) / nr)
-                    ro = float(np.linalg.norm(Yo[m, rk] - yr) / nr)
+                    if chg[m, rk]:                             # ooo1cq ran this pair at its original tier
+                        Wg3, Wu3, Wd3 = (dq.proj(p, int(sm_of[e]), int(sl_of[e]), int(t_orig[m * KR + rk])) for p in PROJ)
+                        g3 = Wg3 @ xb[m]
+                        y3 = Wd3 @ ((g3 / (1.0 + np.exp(-g3))) * (Wu3 @ xb[m]))
+                        ro = float(np.linalg.norm(Yo[m, rk] - y3) / (np.linalg.norm(y3) + 1e-30))
+                    else:
+                        ro = float(np.linalg.norm(Yo[m, rk] - yr) / nr)
                     st["rel_c"].append(rc)
                     st["rel_o"].append(ro)
                     st["rel_co"].append(float(np.linalg.norm(Yc[m, rk] - Yo[m, rk]) / (np.linalg.norm(Yo[m, rk]) + 1e-30)))
@@ -228,17 +247,19 @@ def main():
                     if st["worst"] is None or rc > st["worst"][0]:
                         st["worst"] = (rc, ro, f, b0 + m, rk, e, tier)
             del cache
-        allok &= st["a"] and st["b"] and st["c"]
+        allok &= st["a"] and st["b"] and st["c"] and st["bm"] and st["bl"]
         q = {k: (float(np.max(v)), float(np.mean(v))) for k, v in st.items() if k.startswith(("rel", "elm"))}
         res["layers"][Lm] = dict(q, worst=st["worst"], a=st["a"], b=st["b"], c=st["c"], pairs=len(st["rel_c"]),
                                  bitwise_eq=st["beq"], bitwise_n=st["bn"])
         w = st["worst"]
         say(f"  L{Lm}: {len(BL)} blocks, {len(st['rel_c'])} pairs. a) ON off == original bitwise: {st['a']}; b) 5 repeats "
-            f"bitwise + same resolved slots: {st['b']}; c) 32 == two 16-row halves bitwise: {st['c']}")
+            f"bitwise: {st['b']}, the same resolved slots rs_m / rs_l: {st['bm']} / {st['bl']}; c) 32 == two 16-row halves "
+            f"bitwise: {st['c']}")
         say(f"    d) rel L2 vs fp32 ref: candidate max {q['rel_c'][0]:.4f} mean {q['rel_c'][1]:.4f} | ooo1cq max "
             f"{q['rel_o'][0]:.4f} mean {q['rel_o'][1]:.4f} | candidate vs ooo1cq max {q['rel_co'][0]:.4f} mean "
             f"{q['rel_co'][1]:.4f}; elementwise max|diff|/max|ref|: candidate {q['elm_c'][0]:.4f} / ooo1cq {q['elm_o'][0]:.4f}")
-        say(f"    pairs bitwise == ooo1cq: {st['beq']} of {st['bn']}")
+        say(f"    pairs bitwise == ooo1cq: {st['beq']} of {st['bn']}; pairs whose tier the candidate changed: {st['chg']}; "
+            f"unchanged pairs bitwise == ooo1cq: {st['keq']} of {st['kn']} (ooo1cq's error is vs ITS tier's reference)")
         rc_ = np.array(st["rel_c"]); ro_ = np.array(st["rel_o"])
         say(f"    share of pairs with rel L2 vs fp32 above 2 / 5 / 10 %: candidate {100 * np.mean(rc_ > 0.02):.1f} / "
             f"{100 * np.mean(rc_ > 0.05):.1f} / {100 * np.mean(rc_ > 0.10):.2f} % | ooo1cq {100 * np.mean(ro_ > 0.02):.1f} / "

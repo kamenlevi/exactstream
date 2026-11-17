@@ -1,0 +1,66 @@
+== expread 11:05:20
+
+EXPREAD BENCH Tue 17 Nov 11:05:20: MLX 0.32.2; layer 20; pieces per expert MSB 2.0644 MB (9 arrays) + LSB 0.7200 MB (6 arrays); words per slot [153600, 9216, 9216, 153600, 9216, 9216, 153600, 9216, 9216, 51200, 8804, 51200, 8804, 51200, 8804]
+12 code windows -> 99 32-row blocks (timing 24); kept experts per block mean 45.8, 4-bit rank 0-1 experts 13.8; GB per call mean 0.1045 (floor 373.2 us at 280 GB/s)
+probe: the kernel's fold of expert 24's first piece == numpy's: True
+  CH  16 KB, TPG  256: real   342.4 us/call (305.2 GB/s, x0.92 the 280 floor) | contig   305.2 us (342.4 GB/s); threadgroups per call real 6708
+  CH  16 KB, TPG 1024: real   353.9 us/call (295.3 GB/s, x0.95 the 280 floor) | contig   351.3 us (297.4 GB/s); threadgroups per call real 6708
+  CH  64 KB, TPG  256: real   342.1 us/call (305.4 GB/s, x0.92 the 280 floor) | contig   302.1 us (345.9 GB/s); threadgroups per call real 1856
+      + x re-reads at 2.0 x the weight bytes (from 2.4 MB, cache-resident): weights + x   347.6 us | x alone    74.0 us | weights alone   342.1 us -> they compete (sum-like)
+      + x re-reads at 2.5 x the weight bytes (from 2.4 MB, cache-resident): weights + x   346.7 us | x alone    84.7 us | weights alone   342.1 us -> they compete (sum-like)
+  CH  64 KB, TPG 1024: real   354.3 us/call (294.9 GB/s, x0.95 the 280 floor) | contig   351.6 us (297.2 GB/s); threadgroups per call real 1856
+      + x re-reads at 2.0 x the weight bytes (from 2.4 MB, cache-resident): weights + x   359.7 us | x alone    89.8 us | weights alone   354.3 us -> they compete (sum-like)
+      + x re-reads at 2.5 x the weight bytes (from 2.4 MB, cache-resident): weights + x   359.7 us | x alone   102.4 us | weights alone   354.3 us -> they overlap
+  CH 256 KB, TPG  256: real   356.2 us/call (293.4 GB/s, x0.95 the 280 floor) | contig   358.9 us (291.2 GB/s); threadgroups per call real 770
+  CH 256 KB, TPG 1024: real   356.6 us/call (293.0 GB/s, x0.96 the 280 floor) | contig   370.3 us (282.2 GB/s); threadgroups per call real 770
+(the one-call on the same blocks: exp32_bench.txt, 571-614 us at 32 rows; done; peak 1.5 GB)
+== exp32 prof 11:05:22
+mtlprof: 13 hooks on AGXG17XFamilyComputeContext / AGXG17XFamilyCommandBuffer / AGXG17SDevice
+
+EXP32 BENCH Tue 17 Nov 11:05:24: MLX 0.32.2; layer 20's pools (all 512 resident); 12 code windows -> 99 32-row blocks (timing 24); kept experts per 32-row block mean 44.4; GB per call mean 0.1045 (32 rows) / 0.0907 (16)
+  one 32-row call: 8 dispatches, 4 command buffers, wall 2967 us, GPU busy 2410 us; kernels s_copyint32int32 1; custom_kernel_coh1cq_nax6np_a__bfloat16_t_10_3_0_2_0_1_9216_ 1; custom_kernel_rowsum64__bfloat16_t_2560_bfloat16_t_float 1; sv_Selectint32 1; custom_kernel_ooo1cq_grp__320_10_3_0_2_int32_t_int32_t_int32 1; custom_kernel_rowsum64__bfloat16_t_640_bfloat16_t_float 1; custom_kernel_coh1cq_nax6np_b__bfloat16_t_10_3_0_2_0_1_9216_ 1; custom_kernel_tierglu_combine_phase__bfloat16_t_2560_10_8_bf 1
+  one 32-row call: 8 dispatches, 4 command buffers, wall 3745 us, GPU busy 3076 us; kernels s_copyint32int32 1; custom_kernel_coh1cq_nax6np_a__bfloat16_t_10_3_0_2_0_1_9216_ 1; custom_kernel_rowsum64__bfloat16_t_2560_bfloat16_t_float 1; sv_Selectint32 1; custom_kernel_ooo1cq_grp__320_10_3_0_2_int32_t_int32_t_int32 1; custom_kernel_rowsum64__bfloat16_t_640_bfloat16_t_float 1; custom_kernel_coh1cq_nax6np_b__bfloat16_t_10_3_0_2_0_1_9216_ 1; custom_kernel_tierglu_combine_phase__bfloat16_t_2560_10_8_bf 1
+  one 32-row call: 8 dispatches, 4 command buffers, wall 1765 us, GPU busy 1411 us; kernels s_copyint32int32 1; custom_kernel_coh1cq_nax6np_a__bfloat16_t_10_3_0_2_0_1_9216_ 1; custom_kernel_rowsum64__bfloat16_t_2560_bfloat16_t_float 1; sv_Selectint32 1; custom_kernel_ooo1cq_grp__320_10_3_0_2_int32_t_int32_t_int32 1; custom_kernel_rowsum64__bfloat16_t_640_bfloat16_t_float 1; custom_kernel_coh1cq_nax6np_b__bfloat16_t_10_3_0_2_0_1_9216_ 1; custom_kernel_tierglu_combine_phase__bfloat16_t_2560_10_8_bf 1
+== exp32 11:05:24
+
+EXP32 BENCH Tue 17 Nov 11:05:26: MLX 0.32.2; layer 20's pools (all 512 resident); 12 code windows -> 99 32-row blocks (timing 24); kept experts per 32-row block mean 44.4; GB per call mean 0.1045 (32 rows) / 0.0907 (16)
+  coh 1 ks 4 nsg_b 2: 32 rows   598.3 us/call (174.7 GB/s, x1.60 the 280 GB/s floor); 16 rows   496.5 us/call (182.8 GB/s)
+  coh 1 ks 2 nsg_b 2: 32 rows   586.7 us/call (178.1 GB/s, x1.57 the 280 GB/s floor)
+  coh 1 ks 1 nsg_b 2: 32 rows   583.8 us/call (179.0 GB/s, x1.56 the 280 GB/s floor)
+  coh 1 ks 4 nsg_b 1: 32 rows   597.9 us/call (174.8 GB/s, x1.60 the 280 GB/s floor)
+  coh 1 ks 4 nsg_b 4: 32 rows   604.1 us/call (173.0 GB/s, x1.62 the 280 GB/s floor)
+  coh 0 ks 4 nsg_b 2: 32 rows   586.3 us/call (178.2 GB/s, x1.57 the 280 GB/s floor); 16 rows   482.9 us/call (187.9 GB/s)
+  coh 0 ks 2 nsg_b 2: 32 rows   573.7 us/call (182.1 GB/s, x1.54 the 280 GB/s floor)
+  coh 0 ks 1 nsg_b 2: 32 rows   568.7 us/call (183.7 GB/s, x1.52 the 280 GB/s floor)
+  coh 0 ks 4 nsg_b 1: 32 rows   585.2 us/call (178.6 GB/s, x1.57 the 280 GB/s floor)
+  coh 0 ks 4 nsg_b 4: 32 rows   592.2 us/call (176.5 GB/s, x1.59 the 280 GB/s floor)
+done; peak 1.5 GB
+== exp32 nolsb variants 11:05:27
+
+EXP32 BENCH Tue 17 Nov 11:05:30: MLX 0.32.2; layer 20's pools (all 512 resident); 12 code windows -> 99 32-row blocks (timing 24); kept experts per 32-row block mean 44.4; GB per call mean 0.1045 (32 rows) / 0.0907 (16)
+  nolsb real   :   586.9 us/call, 0.1045 GB -> 178.0 GB/s (x1.57 the 280 floor)
+  nolsb msb3   :   480.0 us/call, 0.0945 GB -> 197.0 GB/s (x1.42 the 280 floor)
+  nolsb lsb_all:   708.2 us/call, 0.1148 GB -> 162.2 GB/s (x1.73 the 280 floor)
+  nolsb real   :   588.4 us/call, 0.1045 GB -> 177.6 GB/s (x1.58 the 280 floor)
+== gdn_fast 11:05:30
+gdn_fast bench T 32, chain (40 calls per round, median of 3 rounds): mlx_lm 112.7 us per call
+  C 1 U 1: 94.3 us (1.20x); 36 layers: +0.66 ms per check
+  C 2 U 4: 76.6 us (1.47x); 36 layers: +1.30 ms per check
+  C 4 U 4: 120.8 us (0.93x); 36 layers: -0.29 ms per check
+  C 8 U 4: 105.6 us (1.07x); 36 layers: +0.26 ms per check
+  C 4 U 8: 215.0 us (0.52x); 36 layers: -3.68 ms per check
+  C 8 U 8: 211.5 us (0.53x); 36 layers: -3.56 ms per check
+gdn_fast bench T 32, ind (40 calls per round, median of 3 rounds): mlx_lm 106.3 us per call
+  C 1 U 1: 91.1 us (1.17x); 36 layers: +0.55 ms per check
+  C 2 U 4: 68.1 us (1.56x); 36 layers: +1.38 ms per check
+  C 4 U 4: 105.6 us (1.01x); 36 layers: +0.03 ms per check
+  C 8 U 4: 87.0 us (1.22x); 36 layers: +0.70 ms per check
+  C 4 U 8: 184.4 us (0.58x); 36 layers: -2.81 ms per check
+  C 8 U 8: 175.0 us (0.61x); 36 layers: -2.47 ms per check
+== hc np 11:05:31
+HC NP BENCH Tue 17 Nov 11:05:31: read32 on 96 cold 8-bit mixers (HC 4, D 2560, LR 320); bytes per check ~0.63 GB (8-bit codes) -> floor 2.25 ms
+  NP  20 (20 K1C threadgroups): ind   6.19 ms, chain   8.20 ms per check; mixed vs NP 20: bitwise
+  NP  40 (40 K1C threadgroups): ind   6.65 ms, chain   8.21 ms per check; mixed vs NP 20: max rel 3.55e-03
+  NP  80 (80 K1C threadgroups): ind   8.05 ms, chain   9.93 ms per check; mixed vs NP 20: max rel 3.55e-03
+  NP 160 (160 K1C threadgroups): ind  10.75 ms, chain  11.59 ms per check; mixed vs NP 20: max rel 1.75e-03
+== done 11:05:32

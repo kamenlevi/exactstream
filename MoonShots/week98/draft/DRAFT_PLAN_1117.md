@@ -1,4 +1,18 @@
 # DRAFT LINE plan (MoonShots, co-owner; NewIdeas 07:5x under BREAK98) - Tue 17 Nov 2026 08:1x
+
+## STATUS Tue 11:1x (supersedes the dated plan below)
+- The orchestrator (09:4x) set r57's draft = t30b at **Q8 + 32K**, on my Q8 PASS. BigMoE's r57 tree-16 loop (from
+  Wed) takes my sf_tree.py --real ops as its spec, with **sync-free** as the default (bitwise, 176 + 120 trees).
+- fused2 is OUT for that loop: it was built for the stored head on a chain.
+- Real-format pop: **1.11 ms sync-free** vs 1.60 host-synced, i.e. **~16.6 ms per tree-16 block** [K
+  draft/sf_bit_real_*.json]. It is GPU-bound: ~0.56 ms of bytes + latency-bound chains [K draft/sf_gprof_he_t8.json].
+- Stage fusion pays little at B = 1:
+  - fused attention (bitwise per call, <= 512 keys): -0.02-0.04 ms per pop;
+  - fused tail: ~0 and not bitwise;
+  - mx.compile: -3.5 %, not bitwise.
+- Remaining potential ~-0.1-0.15 ms per pop for ~2-3 days [G]. **Recommended: park the kernel line at sync-free**
+  (asked the orchestrator / NewIdeas 11:1x). Details: draft/FUSED_TREE_PLAN.md.
+
 Labels: [K] measured (raw data path), [P] derived, [G] estimate. BW = 292.7 GB/s (BET 7's stock fit).
 
 ## 0. Correction first: the planned head reads 177.6 MB per level, not ~42-73

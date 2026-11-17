@@ -1,0 +1,70 @@
+[sf] start Tue 17 Nov 10:30:46, away 38629 s
+[sf] he16 start 10:30:46, available 36 GB: --set heplus24 --windows 0,1 --nodes 16 --cut none --max-anchors 48
+[guard] pid 35812, MAXGB 14, swap at start 7461.31 MB (kill at +1 GB)
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=27.8 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[sf] loaded in 1 s; cut none: []
+Traceback (most recent call last):
+  File "/Users/kamen/MoonShots/week98/draft/sf_tree.py", line 443, in <module>
+    main()
+  File "/Users/kamen/MoonShots/week98/draft/sf_tree.py", line 379, in main
+    blk = P.o_proj(o.transpose(0, 2, 1, 3).reshape(1, n, -1) * mx.sigmoid(gate))
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~
+ValueError: [broadcast_shapes] Shapes (1,275,6144) and (1,457,6144) cannot be broadcast.
+[guard] exit 1, peak footprint 6 MB
+[sf] he16 rc 1 at 10:30:51
+[sf] FAILED rc 1: he16 --set heplus24 --windows 0,1 --nodes 16 --cut none --max-anchors 48
+[sf] mb16 start 10:30:51, available 37 GB: --set mbppbank --windows 0,1,2,3 --nodes 16 --cut none --max-anchors 48
+[guard] pid 35879, MAXGB 14, swap at start 7461.31 MB (kill at +1 GB)
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=29.4 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[sf] loaded in 1 s; cut none: []
+Traceback (most recent call last):
+  File "/Users/kamen/MoonShots/week98/draft/sf_tree.py", line 443, in <module>
+    main()
+  File "/Users/kamen/MoonShots/week98/draft/sf_tree.py", line 379, in main
+    blk = P.o_proj(o.transpose(0, 2, 1, 3).reshape(1, n, -1) * mx.sigmoid(gate))
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~
+ValueError: [broadcast_shapes] Shapes (1,88,6144) and (1,185,6144) cannot be broadcast.
+[guard] exit 1, peak footprint 6 MB
+[sf] mb16 rc 1 at 10:30:56
+[sf] FAILED rc 1: mb16 --set mbppbank --windows 0,1,2,3 --nodes 16 --cut none --max-anchors 48
+[sf] he16q8h32 start 10:30:56, available 37 GB: --set heplus24 --windows 0,1 --nodes 16 --cut Q8H32 --max-anchors 48
+[guard] pid 35915, MAXGB 14, swap at start 7461.31 MB (kill at +1 GB)
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=29.4 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[sf] loaded in 1 s; cut Q8H32: ['P.q_proj 8-bit', 'P.o_proj 8-bit', 'P.k_proj 8-bit', 'P.v_proj 8-bit', 'P.se_gate 8-bit', 'P.se_up 8-bit', 'P.se_down 8-bit', 'P.fc_hidden 8-bit', 'P.fc_embedding 8-bit', 'P.router 8-bit', 'head.attn_hc.input_mix_weight_down 8-bit', 'head.attn_hc.input_mix_weight_up 8-bit', 'head.mlp_hc.input_mix_weight_down 8-bit', 'head.mlp_hc.input_mix_weight_up 8-bit', 'head.mixer.input_mix_weight_down 8-bit', 'head.mixer.input_mix_weight_up 8-bit', 'experts top-10']
+Traceback (most recent call last):
+  File "/Users/kamen/MoonShots/week98/draft/sf_tree.py", line 443, in <module>
+    main()
+  File "/Users/kamen/MoonShots/week98/draft/sf_tree.py", line 379, in main
+    blk = P.o_proj(o.transpose(0, 2, 1, 3).reshape(1, n, -1) * mx.sigmoid(gate))
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~
+ValueError: [broadcast_shapes] Shapes (1,275,6144) and (1,457,6144) cannot be broadcast.
+[guard] exit 1, peak footprint 6 MB
+[sf] he16q8h32 rc 1 at 10:31:02
+[sf] FAILED rc 1: he16q8h32 --set heplus24 --windows 0,1 --nodes 16 --cut Q8H32 --max-anchors 48
+[sf] he32 start 10:31:02, available 37 GB: --set heplus24 --windows 0,1 --nodes 32 --cut none --max-anchors 32
+[guard] pid 36001, MAXGB 14, swap at start 7461.31 MB (kill at +1 GB)
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=29.5 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[sf] loaded in 1 s; cut none: []
+Traceback (most recent call last):
+  File "/Users/kamen/MoonShots/week98/draft/sf_tree.py", line 443, in <module>
+    main()
+  File "/Users/kamen/MoonShots/week98/draft/sf_tree.py", line 379, in main
+    blk = P.o_proj(o.transpose(0, 2, 1, 3).reshape(1, n, -1) * mx.sigmoid(gate))
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~
+ValueError: [broadcast_shapes] Shapes (1,275,6144) and (1,457,6144) cannot be broadcast.
+[guard] exit 1, peak footprint 6 MB
+[sf] he32 rc 1 at 10:31:07
+[sf] FAILED rc 1: he32 --set heplus24 --windows 0,1 --nodes 32 --cut none --max-anchors 32
+[sf] done, lock released 10:31:07

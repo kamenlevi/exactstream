@@ -1,0 +1,178 @@
+{
+ "source": {
+  "dd_t30b.safetensors": "790c42db393ad158f0f61e64962c868967995268babb816b27cbf8f4e215d502",
+  "mtp125.py": "8ca9b5dcde9120715e3161d17d0e747177d82a922f6ea9d66f4e4f9a64534677",
+  "p3_dd_tree.py (MoonShots, the reference cut)": "e5a419a53454c303b94ad6d6be896b732b0d837d7cc2863b54fbbf7e77e2f2c3"
+ },
+ "recipe": {
+  "modules": [
+   "P.q_proj",
+   "P.o_proj",
+   "P.k_proj",
+   "P.v_proj",
+   "P.se_gate",
+   "P.se_up",
+   "P.se_down",
+   "P.fc_hidden",
+   "P.fc_embedding",
+   "P.router",
+   "head.attn_hc.input_mix_weight_down",
+   "head.attn_hc.input_mix_weight_up",
+   "head.mlp_hc.input_mix_weight_down",
+   "head.mlp_hc.input_mix_weight_up",
+   "head.mixer.input_mix_weight_down",
+   "head.mixer.input_mix_weight_up"
+  ],
+  "quantize": "mx.quantize(w.astype(bfloat16), group_size=64, bits=8)",
+  "dequantize_to": "the module's stored dtype",
+  "router_bits": 8,
+  "routed_experts": "as stored (125B)",
+  "top_k": 10,
+  "se_gatew": "as stored in t30b",
+  "screen": {
+   "rank_file": "/Users/kamen/Leap/data/frspec_rank.npy",
+   "rank_sha256": "f7b9dc9bf6e9748e8539bd8e2622a5e40875093b3143e6c670afb401c2c0a353",
+   "N": 32768,
+   "session_extras": "prompt + committed answer up to the anchor, first appearance",
+   "extra_cap": 4096
+  }
+ },
+ "expected_kept_TRUE_STATE (MoonShots q8h32early_scores.txt, Q8H32 vs the full head)": {
+  "HE+ tree-16": 0.9775,
+  "HE+ tree-32": 0.9751,
+  "MBPP tree-16": 0.9981,
+  "MBPP tree-32": 1.0046
+ },
+ "verify": {
+  "P.q_proj": {
+   "bitwise_equal_to_apply_cut": true,
+   "dtype": "mlx.core.float32",
+   "shape": [
+    12288,
+    2560
+   ]
+  },
+  "P.o_proj": {
+   "bitwise_equal_to_apply_cut": true,
+   "dtype": "mlx.core.float32",
+   "shape": [
+    2560,
+    6144
+   ]
+  },
+  "P.k_proj": {
+   "bitwise_equal_to_apply_cut": true,
+   "dtype": "mlx.core.float32",
+   "shape": [
+    512,
+    2560
+   ]
+  },
+  "P.v_proj": {
+   "bitwise_equal_to_apply_cut": true,
+   "dtype": "mlx.core.float32",
+   "shape": [
+    512,
+    2560
+   ]
+  },
+  "P.se_gate": {
+   "bitwise_equal_to_apply_cut": true,
+   "dtype": "mlx.core.float32",
+   "shape": [
+    640,
+    2560
+   ]
+  },
+  "P.se_up": {
+   "bitwise_equal_to_apply_cut": true,
+   "dtype": "mlx.core.float32",
+   "shape": [
+    640,
+    2560
+   ]
+  },
+  "P.se_down": {
+   "bitwise_equal_to_apply_cut": true,
+   "dtype": "mlx.core.float32",
+   "shape": [
+    2560,
+    640
+   ]
+  },
+  "P.fc_hidden": {
+   "bitwise_equal_to_apply_cut": true,
+   "dtype": "mlx.core.float32",
+   "shape": [
+    2560,
+    2560
+   ]
+  },
+  "P.fc_embedding": {
+   "bitwise_equal_to_apply_cut": true,
+   "dtype": "mlx.core.float32",
+   "shape": [
+    2560,
+    2560
+   ]
+  },
+  "P.router": {
+   "bitwise_equal_to_apply_cut": true,
+   "dtype": "mlx.core.float32",
+   "shape": [
+    512,
+    2560
+   ]
+  },
+  "head.attn_hc.input_mix_weight_down": {
+   "bitwise_equal_to_apply_cut": true,
+   "dtype": "mlx.core.bfloat16",
+   "shape": [
+    320,
+    10240
+   ]
+  },
+  "head.attn_hc.input_mix_weight_up": {
+   "bitwise_equal_to_apply_cut": true,
+   "dtype": "mlx.core.bfloat16",
+   "shape": [
+    10240,
+    320
+   ]
+  },
+  "head.mlp_hc.input_mix_weight_down": {
+   "bitwise_equal_to_apply_cut": true,
+   "dtype": "mlx.core.bfloat16",
+   "shape": [
+    320,
+    10240
+   ]
+  },
+  "head.mlp_hc.input_mix_weight_up": {
+   "bitwise_equal_to_apply_cut": true,
+   "dtype": "mlx.core.bfloat16",
+   "shape": [
+    10240,
+    320
+   ]
+  },
+  "head.mixer.input_mix_weight_down": {
+   "bitwise_equal_to_apply_cut": true,
+   "dtype": "mlx.core.bfloat16",
+   "shape": [
+    320,
+    10240
+   ]
+  },
+  "head.mixer.input_mix_weight_up": {
+   "bitwise_equal_to_apply_cut": true,
+   "dtype": "mlx.core.bfloat16",
+   "shape": [
+    10240,
+    320
+   ]
+  }
+ },
+ "verify_pass": true,
+ "artifact_sha256": "b5388cc460006cccf0c77b5a502b67e6145af5d245a825706adbeeb1b459e9c4"
+}
