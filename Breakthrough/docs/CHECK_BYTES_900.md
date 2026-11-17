@@ -655,3 +655,23 @@ and both of my Tuesday-morning runs follow the away rule.**
   - scripts/m1/lband_tue_1117.sh (the launcher: morning run, then the Wednesday fallback only if an arm is missing).
 - Stub simulations 5/5 in data/m1/lband_map/sim_1117.out: waits for away, yields mid-run, skips at the latest start,
   both markers, and the Wednesday fallback after a yield.
+
+**Addendum, Tue 17 Nov 01:2x, before the comment-QOM arms run: an engagement add-on (information only).**
+- Why: BigMoE's G1 key test on g1b (00:48) failed only on its COMQOM engagement probe, because g1's own answer to the
+  probe key had no '#' line to tag. So the comment-QOM map read-out should show how much the lever engages on the map,
+  and where its flips land.
+- scripts/m1/comqom_engage.py, run by hand after the run. comqom_read.py, which the armed runner calls, is unchanged,
+  and so are its reading rule and verdict.
+- Engagement before the run (data/m1/comqom_map/engage_prerun.out):
+  - the masks of bt_cq (cq_comqom) differ from the control's (tiers_1c) on 505 of 5,989 positions of the 12 code
+    windows (8.4 %);
+  - all 505 are scored answer rows (15.0 % of the 3,366 scored rows), none in the prompts;
+  - 4 windows have no touched position (HumanEval 121, 129, 135, 136); HumanEval 132 has 225.
+- So the map run engages, unlike the key test's probe.
+- After the run it adds:
+  - flips by where the rows sit: touched scored rows / untouched scored rows of touched windows / windows with no
+    touched position;
+  - a NULL CHECK: on the 4 untouched windows the masks are identical, so bt_cq must equal bt_cq_ctrl row for row. Any
+    difference means run noise or a setup difference, and the reading should be held until it is explained.
+- Tested on fakes (scratch): flips planted in touched rows and in an untouched window landed in the right columns, and
+  the NULL CHECK flagged the planted difference.

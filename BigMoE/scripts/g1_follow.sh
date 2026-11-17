@@ -27,6 +27,10 @@
 # (0 = off; 900 = the orchestrator's 15 min). Checked in the loop and again after the two NO-SWAP reads; the key test itself
 # keeps --away-min 0 (its one-shot check would end STOPPED and write the marker that releases the jobs chained behind it).
 # FAKE_AWAYF (simulation only): a file holding the away seconds.
+# Tue 11-17 01:0x (the COMQOM probe re-run): MKNAME / NOMARKNAME / FOLLOW_LOG rename the end marker, the NOMARK file and
+# the log (defaults G1A_KEYTEST_DONE / G1A.NOMARK / g1_follow.log); G1KT_SFX (exported) suffixes the key test's
+# records and result; G1KT_XKEYS (exported) replaces the COMQOM envs' extra keys; MKLABEL replaces the marker's first
+# words (default "G1A KEYTEST"; the probe: "G1P PROBE").
 # Mon 21:0x (the orchestrator: if M4 does not run tonight, the key test runs on away + NO-SWAP alone, start by 01:30):
 # PREVALT = another end file of the previous job, also mtime >= PREVMIN: M4's data/r57/m4_1116_AWAY_SKIP (M4 NOT RUN
 # because Kamen stayed on the Mac to its latest start; it ends with NOMARK, so it writes no M4 marker).
@@ -34,7 +38,7 @@ set -u
 cd ~/BigMoE || exit 1
 DEADLINE=${DEADLINE:?YYYY-mm-dd HH:MM}; POLL=${POLL:-60}; STUB=${STUB:-}; GATE=${GATE:-40}; AFTER=${AFTER:-}; HARDMIN=${HARDMIN:-8}
 SNAP=${SNAP:-g1a}; VARIANTS=${VARIANTS:-g1x}
-W=${SIMD:-data/r57}; L=$W/g1_follow.log; MK=$W/G1A_KEYTEST_DONE; NOMARK=$W/G1A.NOMARK; GO=$W/G1A_GO; Q=$HOME/.local/share/quiet
+W=${SIMD:-data/r57}; L=$W/${FOLLOW_LOG:-g1_follow.log}; MK=$W/${MKNAME:-G1A_KEYTEST_DONE}; NOMARK=$W/${NOMARKNAME:-G1A.NOMARK}; GO=$W/G1A_GO; Q=$HOME/.local/share/quiet
 ES=${FAKE_ES:-$HOME/EvalSuite/results}; ESPID=${ESPID:-}; ESPAT=${ESPAT:-}; ESMK=${ESMK:-T1C_RESF2_END}; KT_EXTRA=${KT_EXTRA:-}
 ESGATE=${ESGATE:-1}; PREVMK=${PREVMK:-}; PREVMIN=${PREVMIN:-}; KT_ABSENT=${KT_ABSENT:-}; AWAYMIN=${AWAYMIN:-0}; PREVALT=${PREVALT:-}
 case "$AWAYMIN" in ""|*[!0-9]*) echo "AWAYMIN must be a whole number of seconds" >&2; exit 2;; esac
@@ -71,9 +75,9 @@ STATUS="NOT RUN (armed $(date '+%m-%d %H:%M'))"; CP=""; LASTW=""; LASTG=0
 cleanup() { if [ -n "$CP" ] && kill -0 $CP 2>/dev/null; then kill -TERM $CP 2>/dev/null
               for i in $(seq 1 90); do kill -0 $CP 2>/dev/null || break; sleep 1; done; fi
             if [ -e $NOMARK ]; then say "END without the marker (NOMARK): $STATUS"
-            else echo "G1A KEYTEST END $(date '+%m-%d %H:%M:%S'): $STATUS" > $MK; say "END: $STATUS (marker $MK)"; fi; }
+            else echo "${MKLABEL:-G1A KEYTEST} END $(date '+%m-%d %H:%M:%S'): $STATUS" > $MK; say "END: $STATUS (marker $MK)"; fi; }
 trap cleanup EXIT; trap 'STATUS="STOPPED (a signal while ${PHASE:-waiting})"; exit 1' INT TERM
-say "armed: snap $SNAP, variants $VARIANTS; deadline $(date -r $DL '+%m-%d %H:%M'); gate $GATE; after '${AFTER:-none}'; EvalSuite end marker $ES/$ESMK (mtime >= $ESMIN, ${ESPAT:+no process matching '$ESPAT'}${ESPID:+pid $ESPID gone}); go file $GO; marker $MK; EvalSuite gate $ESGATE; previous job ${PREVMK:-none}${PREVALT:+ or $PREVALT}${PREVMK:+ (mtime >= $PREVMIN)}; key-test absent pattern '${KT_ABSENT:-none}'; away gate ${AWAYMIN} s"
+say "armed: snap $SNAP, variants $VARIANTS${G1KT_XKEYS:+; extra keys $G1KT_XKEYS}${G1KT_SFX:+; record suffix $G1KT_SFX}; deadline $(date -r $DL '+%m-%d %H:%M'); gate $GATE; after '${AFTER:-none}'; EvalSuite end marker $ES/$ESMK (mtime >= $ESMIN, ${ESPAT:+no process matching '$ESPAT'}${ESPID:+pid $ESPID gone}); go file $GO; marker $MK; EvalSuite gate $ESGATE; previous job ${PREVMK:-none}${PREVALT:+ or $PREVALT}${PREVMK:+ (mtime >= $PREVMIN)}; key-test absent pattern '${KT_ABSENT:-none}'; away gate ${AWAYMIN} s"
 PHASE=waiting
 while :; do
   now=$(date +%s)
@@ -105,6 +109,6 @@ if [ -n "$STUB" ]; then ( exec .venv/bin/python $STUB ) >> $L 2>&1 & else
   ( export G1KT_ABSENT="$KT_ABSENT"; exec .venv/bin/python scripts/g1_keytest.py --snap $SNAP --variants $VARIANTS --gate $GATE --away-min 0 --start-by "$SBY" --hard "$HARDT" $KT_EXTRA ) >> $L 2>&1 &
 fi
 CP=$!; wait $CP; rc=$?; CP=""
-R=${SIMD:-data/r57}/g1_keytest_${SNAP}.json
+R=${SIMD:-data/r57}/g1_keytest_${SNAP}${G1KT_SFX:-}.json
 v=$(python3 -c "import json,sys; d=json.load(open(sys.argv[1])); e=d.get('envs',{}); print(d.get('status','?'), '|', '; '.join(f\"{k}: {v.get('verdict')} peak {v.get('peak_gb')} GB margin {v.get('at_peak_margin_gb')} GB swap {v.get('swap_gb')} swapouts {v.get('swapouts')}\" + (f\" fails {v.get('fails')}\" if v.get('fails') else '') for k, v in e.items()))" $R 2>/dev/null | cut -c1-1600)
 case "$v" in PASS*) STATUS="PASS (rc $rc; $v)";; STOPPED*) STATUS="STOPPED (rc $rc; $v)";; "") STATUS="FAIL (rc $rc; no result file)";; *) STATUS="FAIL (rc $rc; $v)";; esac

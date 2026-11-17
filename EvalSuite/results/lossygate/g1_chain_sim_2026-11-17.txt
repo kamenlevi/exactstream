@@ -1,0 +1,1120 @@
+# G1 chain stub sim (PREREG_lossygate G1's arming addendum), EvalSuite 11-17 01:46
+# tools/g1_chain.sh sha256 c1852dfa566ea6e51103bef69ab8898bdc8648dfa2fd13b4a3dbb53305c6f802; each scenario runs a BYTE COPY of it
+# Run 1: 20 scenarios in parallel (01:40-01:44). Two driver slips, kept as run: g12's stub cut keyed on the TG, which B0
+#   and B1 share, so it cut B0 (the night window, a fresh tier-0 restart: as designed), not B1 as labelled; g14's day
+#   cutoff left a last start ahead, so the chain started and finished (as designed for that cutoff), not 'no start'.
+# Run 2: g12 relabelled, g14 with a day cutoff whose last start is past, and g21 (a tier-1 cut by the runner's cutoff,
+#   resumed in the night window).
+
+########## RUN 1
+== g1: all gates, away throughout, pick g1r: B0 V0 B1 V1 B2 V2 with g1r's tag / blob / CARD_ENGAGE, the unset-path checks and speed read-outs; done
+chain rc 0
+-- runner calls:
+01:40:40 runner pid 12125 tg=lx45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:40:44   lx45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:40:54 runner pid 13978 tg=g1r45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=e42de6d974f25572644109a299cd690522450b3c fenv=g1r45g1b_env.txt ref=card_lx45g1b_t0code ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run later=0
+01:40:58   g1r45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:09 runner pid 15424 tg=lx45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:13   lx45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+01:41:24 runner pid 18153 tg=g1r45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=e42de6d974f25572644109a299cd690522450b3c fenv=g1r45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run later=0
+01:41:28   g1r45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g1r45g1b
+01:41:39 runner pid 19211 tg=lx45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:43   lx45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+01:41:54 runner pid 20465 tg=g1r45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=e42de6d974f25572644109a299cd690522450b3c fenv=g1r45g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_g1r45g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run later=0
+01:41:58   g1r45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g1r45g1b_rev
+-- python calls: python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));python tools/t1c_unset_path.py card_lx45g1b_t1code card_lx45t1c1_t1code;python tools/lossy_speed.py g1r45g1b lx45g1b;python tools/t1c_unset_path.py card_lx45g1b_t1code_rev card_lx45t1c1_t1code_rev;python tools/lossy_speed.py g1r45g1b_rev lx45g1b_rev;
+-- peer calls: peer unlock;
+-- log:
+11-17 01:40:33 [g1t] g1_chain (pid 9772; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 02:21, night cutoff 2026-11-17 02:41; the AWAY rule on
+11-17 01:40:33 [g1t] day window: waits for the gates; no start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 02:06 (cutoff 2026-11-17 02:21)
+11-17 01:40:38 [g1t] start (day): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1r; read again 2 s la
+11-17 01:40:39 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:40:39 [g1t] the pick: g1r (G1 PICK 11-17 13:40:00: g1r (stub pick)); blob e42de6d974f25572644109a299cd690522450b3c; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run
+11-17 01:40:39 [g1t] B0 base tier 0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CAR
+11-17 01:40:54 [g1t] B0 base tier 0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:40:54 [g1t] V0 g1r tier 0 vs B0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5
+11-17 01:41:09 [g1t] V0 g1r tier 0 vs B0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:09 [g1t] B1 base forward: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:41:24 [g1t] B1 base forward: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+11-17 01:41:24 [g1t] unset-path check card_lx45g1b_t1code vs card_lx45t1c1_t1code (information; rc 0): 50
+11-17 01:41:24 [g1t] V1 g1r forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa
+11-17 01:41:39 [g1t] V1 g1r forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g1r45g1b
+11-17 01:41:39 [g1t] speed g1r45g1b vs lx45g1b (rc 0): 50
+11-17 01:41:39 [g1t] B2 base reverse: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:41:54 [g1t] B2 base reverse: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+11-17 01:41:54 [g1t] unset-path check card_lx45g1b_t1code_rev vs card_lx45t1c1_t1code_rev (information; rc 0): 50
+11-17 01:41:54 [g1t] V2 g1r reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11
+11-17 01:42:09 [g1t] V2 g1r reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g1r45g1b_rev
+11-17 01:42:09 [g1t] speed g1r45g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 01:42:09 [g1t] done: G1 = g1r (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1r45g1b_rev_DONE)
+11-17 01:42:10 [g1t] end (rc 0):  day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1r (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1r45g1b_rev_DONE); wrote results/G1_G1T_END
+-- G1_G1T_END: G1 G1T END 11-17 01:42:10:  day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1r (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1r45g1b_rev_DONE)
+-- after the end: runner processes (12125 13978 15424 18153 19211 20465 ): all gone
+
+== g2: the gates arrive one by one, the pick first older than V2's verdict: no start until the rewritten pick; then done (g1, 1c only)
+chain rc 0
+-- driver:
+01:40:38 g2 T1C_TUEF3_END
+01:40:43 g2 G1_PICK written BEFORE V2's verdict
+01:40:45 g2 V2's verdict
+01:40:50 g2 the probe marker (the pick is now older than V2's verdict)
+01:40:56 g2 a runner call before the pick is rewritten: no
+-- runner calls:
+01:40:58 runner pid 14555 tg=lx45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:02   lx45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:13 runner pid 15675 tg=g145g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=b736d293176e83b12ecc4c8d18ad665d7c38ed4f fenv=g145g1b_env.txt ref=card_lx45g1b_t0code ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows later=0
+01:41:17   g145g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:28 runner pid 18404 tg=lx45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:32   lx45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+01:41:43 runner pid 19534 tg=g145g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=b736d293176e83b12ecc4c8d18ad665d7c38ed4f fenv=g145g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows later=0
+01:41:48   g145g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g145g1b
+01:41:59 runner pid 20744 tg=lx45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:42:03   lx45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+01:42:14 runner pid 21958 tg=g145g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=b736d293176e83b12ecc4c8d18ad665d7c38ed4f fenv=g145g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_g145g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows later=0
+01:42:18   g145g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g145g1b_rev
+-- python calls: python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));python tools/t1c_unset_path.py card_lx45g1b_t1code card_lx45t1c1_t1code;python tools/lossy_speed.py g145g1b lx45g1b;python tools/t1c_unset_path.py card_lx45g1b_t1code_rev card_lx45t1c1_t1code_rev;python tools/lossy_speed.py g145g1b_rev lx45g1b_rev;
+-- peer calls: peer unlock;
+-- log:
+11-17 01:40:33 [g1t] g1_chain (pid 9753; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 02:21, night cutoff 2026-11-17 02:41; the AWAY rule on
+11-17 01:40:33 [g1t] day window: waits for the gates; no start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 02:06 (cutoff 2026-11-17 02:21)
+11-17 01:40:58 [g1t] start (day): T1C_TUEF3_END (T1C TUEF3 END (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): FAIL; pooled (stub)); probe (G1P PROBE END (stub): NOT RUN ); pick g1; read again 2 s later
+11-17 01:40:58 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:40:58 [g1t] the pick: g1 (G1 PICK 11-17 13:50:00: g1 (stub, rewritten)); blob b736d293176e83b12ecc4c8d18ad665d7c38ed4f; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows
+11-17 01:40:58 [g1t] B0 base tier 0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CAR
+11-17 01:41:13 [g1t] B0 base tier 0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:13 [g1t] V0 g1 tier 0 vs B0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f
+11-17 01:41:28 [g1t] V0 g1 tier 0 vs B0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:28 [g1t] B1 base forward: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:41:43 [g1t] B1 base forward: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+11-17 01:41:43 [g1t] unset-path check card_lx45g1b_t1code vs card_lx45t1c1_t1code (information; rc 0): 50
+11-17 01:41:43 [g1t] V1 g1 forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5
+11-17 01:41:59 [g1t] V1 g1 forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g145g1b
+11-17 01:41:59 [g1t] speed g145g1b vs lx45g1b (rc 0): 50
+11-17 01:41:59 [g1t] B2 base reverse: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:42:14 [g1t] B2 base reverse: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+11-17 01:42:14 [g1t] unset-path check card_lx45g1b_t1code_rev vs card_lx45t1c1_t1code_rev (information; rc 0): 50
+11-17 01:42:14 [g1t] V2 g1 reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b
+11-17 01:42:29 [g1t] V2 g1 reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g145g1b_rev
+11-17 01:42:29 [g1t] speed g145g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 01:42:29 [g1t] done: G1 = g1 (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g145g1b_rev_DONE)
+11-17 01:42:29 [g1t] end (rc 0):  day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1 (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g145g1b_rev_DONE); wrote results/G1_G1T_END
+-- G1_G1T_END: G1 G1T END 11-17 01:42:29:  day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1 (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g145g1b_rev_DONE)
+-- after the end: runner processes (14555 15675 18404 19534 20744 21958 ): all gone
+
+== g3: the pick names no pinned env (g1x): no run, rc 5, no runner call
+chain rc 5
+-- runner calls:
+(none)
+-- python calls: none
+-- peer calls: peer unlock;
+-- log:
+11-17 01:40:33 [g1t] g1_chain (pid 9730; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 02:21, night cutoff 2026-11-17 02:41; the AWAY rule on
+11-17 01:40:33 [g1t] day window: waits for the gates; no start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 02:06 (cutoff 2026-11-17 02:21)
+11-17 01:40:36 [g1t] no run: G1_PICK names no pinned env: G1 PICK 11-17 13:40:00: g1x (stub pick)
+11-17 01:40:36 [g1t] end (rc 5): no run: G1_PICK names no pinned env: G1 PICK 11-17 13:40:00: g1x (stub pick); wrote results/G1_G1T_END
+-- G1_G1T_END: G1 G1T END 11-17 01:40:36: no run: G1_PICK names no pinned env: G1 PICK 11-17 13:40:00: g1x (stub pick)
+-- after the end: runner processes (): all gone
+
+== g4: follower3 still runs: no start; once it is gone: start, done
+chain rc 0
+-- driver:
+01:40:33 g4 a fake follower3 runs (pid 9733, 25 s)
+01:40:47 g4 runner calls while follower3 runs: none
+-- runner calls:
+01:41:01 runner pid 14809 tg=lx45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:05   lx45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:16 runner pid 15820 tg=g1l45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=1c3e2358e53d42d28421d622475de05392beb619 fenv=g1l45g1b_env.txt ref=card_lx45g1b_t0code ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows later=0
+01:41:20   g1l45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:31 runner pid 18597 tg=lx45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:35   lx45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+01:41:46 runner pid 19886 tg=g1l45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=1c3e2358e53d42d28421d622475de05392beb619 fenv=g1l45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows later=0
+01:41:50   g1l45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g1l45g1b
+01:42:01 runner pid 20959 tg=lx45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:42:05   lx45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+01:42:16 runner pid 22104 tg=g1l45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=1c3e2358e53d42d28421d622475de05392beb619 fenv=g1l45g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_g1l45g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows later=0
+01:42:20   g1l45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g1l45g1b_rev
+-- python calls: python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));python tools/t1c_unset_path.py card_lx45g1b_t1code card_lx45t1c1_t1code;python tools/lossy_speed.py g1l45g1b lx45g1b;python tools/t1c_unset_path.py card_lx45g1b_t1code_rev card_lx45t1c1_t1code_rev;python tools/lossy_speed.py g1l45g1b_rev lx45g1b_rev;
+-- peer calls: peer unlock;
+-- log:
+11-17 01:40:33 [g1t] g1_chain (pid 9800; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 02:21, night cutoff 2026-11-17 02:41; the AWAY rule on
+11-17 01:40:33 [g1t] day window: waits for the gates; no start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 02:06 (cutoff 2026-11-17 02:21)
+11-17 01:41:00 [g1t] start (day): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1l; read again 2 s la
+11-17 01:41:00 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:41:00 [g1t] the pick: g1l (G1 PICK 11-17 13:40:00: g1l (stub pick)); blob 1c3e2358e53d42d28421d622475de05392beb619; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows
+11-17 01:41:01 [g1t] B0 base tier 0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CAR
+11-17 01:41:16 [g1t] B0 base tier 0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:16 [g1t] V0 g1l tier 0 vs B0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5
+11-17 01:41:31 [g1t] V0 g1l tier 0 vs B0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:31 [g1t] B1 base forward: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:41:46 [g1t] B1 base forward: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+11-17 01:41:46 [g1t] unset-path check card_lx45g1b_t1code vs card_lx45t1c1_t1code (information; rc 0): 50
+11-17 01:41:46 [g1t] V1 g1l forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa
+11-17 01:42:01 [g1t] V1 g1l forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g1l45g1b
+11-17 01:42:01 [g1t] speed g1l45g1b vs lx45g1b (rc 0): 50
+11-17 01:42:01 [g1t] B2 base reverse: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:42:16 [g1t] B2 base reverse: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+11-17 01:42:16 [g1t] unset-path check card_lx45g1b_t1code_rev vs card_lx45t1c1_t1code_rev (information; rc 0): 50
+11-17 01:42:16 [g1t] V2 g1l reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11
+11-17 01:42:31 [g1t] V2 g1l reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g1l45g1b_rev
+11-17 01:42:31 [g1t] speed g1l45g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 01:42:31 [g1t] done: G1 = g1l (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1l45g1b_rev_DONE)
+11-17 01:42:32 [g1t] end (rc 0):  day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1l (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1l45g1b_rev_DONE); wrote results/G1_G1T_END
+-- G1_G1T_END: G1 G1T END 11-17 01:42:32:  day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1l (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1l45g1b_rev_DONE)
+-- after the end: runner processes (14809 15820 18597 19886 20959 22104 ): all gone
+
+== g5: an EvalSuite runner is alive: no start; once it is gone: start, done
+chain rc 0
+-- driver:
+01:40:33 g5 a fake EvalSuite runner runs (pid 9731, 25 s)
+01:40:47 g5 runner calls meanwhile: none
+-- runner calls:
+01:41:01 runner pid 14773 tg=lx45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:05   lx45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:15 runner pid 15768 tg=g145g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=b736d293176e83b12ecc4c8d18ad665d7c38ed4f fenv=g145g1b_env.txt ref=card_lx45g1b_t0code ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows later=0
+01:41:19   g145g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:30 runner pid 18546 tg=lx45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:35   lx45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+01:41:46 runner pid 19824 tg=g145g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=b736d293176e83b12ecc4c8d18ad665d7c38ed4f fenv=g145g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows later=0
+01:41:50   g145g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g145g1b
+01:42:01 runner pid 20902 tg=lx45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:42:05   lx45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+01:42:16 runner pid 22097 tg=g145g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=b736d293176e83b12ecc4c8d18ad665d7c38ed4f fenv=g145g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_g145g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows later=0
+01:42:20   g145g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g145g1b_rev
+-- python calls: python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));python tools/t1c_unset_path.py card_lx45g1b_t1code card_lx45t1c1_t1code;python tools/lossy_speed.py g145g1b lx45g1b;python tools/t1c_unset_path.py card_lx45g1b_t1code_rev card_lx45t1c1_t1code_rev;python tools/lossy_speed.py g145g1b_rev lx45g1b_rev;
+-- peer calls: peer unlock;
+-- log:
+11-17 01:40:33 [g1t] g1_chain (pid 9796; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 02:21, night cutoff 2026-11-17 02:41; the AWAY rule on
+11-17 01:40:33 [g1t] day window: waits for the gates; no start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 02:06 (cutoff 2026-11-17 02:21)
+11-17 01:41:00 [g1t] start (day): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1; read again 2 s lat
+11-17 01:41:00 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:41:00 [g1t] the pick: g1 (G1 PICK 11-17 13:40:00: g1 (stub pick)); blob b736d293176e83b12ecc4c8d18ad665d7c38ed4f; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows
+11-17 01:41:00 [g1t] B0 base tier 0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CAR
+11-17 01:41:15 [g1t] B0 base tier 0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:15 [g1t] V0 g1 tier 0 vs B0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f
+11-17 01:41:30 [g1t] V0 g1 tier 0 vs B0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:30 [g1t] B1 base forward: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:41:45 [g1t] B1 base forward: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+11-17 01:41:46 [g1t] unset-path check card_lx45g1b_t1code vs card_lx45t1c1_t1code (information; rc 0): 50
+11-17 01:41:46 [g1t] V1 g1 forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5
+11-17 01:42:01 [g1t] V1 g1 forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g145g1b
+11-17 01:42:01 [g1t] speed g145g1b vs lx45g1b (rc 0): 50
+11-17 01:42:01 [g1t] B2 base reverse: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:42:16 [g1t] B2 base reverse: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+11-17 01:42:16 [g1t] unset-path check card_lx45g1b_t1code_rev vs card_lx45t1c1_t1code_rev (information; rc 0): 50
+11-17 01:42:16 [g1t] V2 g1 reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b
+11-17 01:42:31 [g1t] V2 g1 reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g145g1b_rev
+11-17 01:42:31 [g1t] speed g145g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 01:42:31 [g1t] done: G1 = g1 (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g145g1b_rev_DONE)
+11-17 01:42:32 [g1t] end (rc 0):  day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1 (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g145g1b_rev_DONE); wrote results/G1_G1T_END
+-- G1_G1T_END: G1 G1T END 11-17 01:42:32:  day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1 (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g145g1b_rev_DONE)
+-- after the end: runner processes (14773 15768 18546 19824 20902 22097 ): all gone
+
+== g6: Kamen at the Mac at the start: held, no start; he leaves: start, done (g1cd)
+chain rc 0
+-- driver:
+01:40:43 g6 Kamen leaves; a runner call before: no
+-- runner calls:
+01:40:46 runner pid 12987 tg=lx45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:40:50   lx45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:01 runner pid 14834 tg=g1cd45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=efb0de2be0b1ede610880bc460c3e87efcec440f fenv=g1cd45g1b_env.txt ref=card_lx45g1b_t0code ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run later=0
+01:41:05   g1cd45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:16 runner pid 15853 tg=lx45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:20   lx45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+01:41:31 runner pid 18634 tg=g1cd45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=efb0de2be0b1ede610880bc460c3e87efcec440f fenv=g1cd45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run later=0
+01:41:35   g1cd45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g1cd45g1b
+01:41:46 runner pid 19942 tg=lx45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:50   lx45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+01:42:01 runner pid 21003 tg=g1cd45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=efb0de2be0b1ede610880bc460c3e87efcec440f fenv=g1cd45g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_g1cd45g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run later=0
+01:42:05   g1cd45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g1cd45g1b_rev
+-- python calls: python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));python tools/t1c_unset_path.py card_lx45g1b_t1code card_lx45t1c1_t1code;python tools/lossy_speed.py g1cd45g1b lx45g1b;python tools/t1c_unset_path.py card_lx45g1b_t1code_rev card_lx45t1c1_t1code_rev;python tools/lossy_speed.py g1cd45g1b_rev lx45g1b_rev;
+-- peer calls: peer unlock;
+-- log:
+11-17 01:40:33 [g1t] g1_chain (pid 9756; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 02:21, night cutoff 2026-11-17 02:41; the AWAY rule on
+11-17 01:40:33 [g1t] day window: waits for the gates; no start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 02:06 (cutoff 2026-11-17 02:21)
+11-17 01:40:33 [g1t] held: Kamen at the Mac (away_secs < 900) (no start while held)
+11-17 01:40:43 [g1t] no longer held
+11-17 01:40:45 [g1t] start (day): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1cd; read again 2 s l
+11-17 01:40:46 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:40:46 [g1t] the pick: g1cd (G1 PICK 11-17 13:40:00: g1cd (stub pick)); blob efb0de2be0b1ede610880bc460c3e87efcec440f; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run
+11-17 01:40:46 [g1t] B0 base tier 0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CAR
+11-17 01:41:01 [g1t] B0 base tier 0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:01 [g1t] V0 g1cd tier 0 vs B0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa
+11-17 01:41:16 [g1t] V0 g1cd tier 0 vs B0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:16 [g1t] B1 base forward: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:41:31 [g1t] B1 base forward: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+11-17 01:41:31 [g1t] unset-path check card_lx45g1b_t1code vs card_lx45t1c1_t1code (information; rc 0): 50
+11-17 01:41:31 [g1t] V1 g1cd forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147a
+11-17 01:41:46 [g1t] V1 g1cd forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g1cd45g1b
+11-17 01:41:46 [g1t] speed g1cd45g1b vs lx45g1b (rc 0): 50
+11-17 01:41:46 [g1t] B2 base reverse: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:42:01 [g1t] B2 base reverse: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+11-17 01:42:01 [g1t] unset-path check card_lx45g1b_t1code_rev vs card_lx45t1c1_t1code_rev (information; rc 0): 50
+11-17 01:42:01 [g1t] V2 g1cd reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f1
+11-17 01:42:16 [g1t] V2 g1cd reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g1cd45g1b_rev
+11-17 01:42:16 [g1t] speed g1cd45g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 01:42:16 [g1t] done: G1 = g1cd (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1cd45g1b_rev_DONE)
+11-17 01:42:16 [g1t] end (rc 0):  day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1cd (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1cd45g1b_rev_DONE); wrote results/G1_G1T_END
+-- G1_G1T_END: G1 G1T END 11-17 01:42:16:  day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1cd (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1cd45g1b_rev_DONE)
+-- after the end: runner processes (12987 14834 15853 18634 19942 21003 ): all gone
+
+== g7: mid-B1: two reads apart -> yield (runner TERM, peer unlock); he leaves -> B1 resumes (CARD_RESUME=1); then V1 B2 V2; done (g1cr)
+chain rc 0
+-- driver:
+01:41:40 g7 B1's runner started; Kamen arrives
+01:41:57 g7 the yield is logged
+01:42:02 g7 Kamen leaves
+-- runner calls:
+01:40:40 runner pid 12081 tg=lx45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:10   lx45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:24 runner pid 18107 tg=g1cr45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=78f7932b9c72e6ece3f4af6eedd6651dbbd1e3bb fenv=g1cr45g1b_env.txt ref=card_lx45g1b_t0code ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check:res_opt@run,lossy_check:opt_
+01:41:28   g1cr45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:39 runner pid 19170 tg=lx45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:56   lx45g1b pid 19170 got TERM
+01:42:06 runner pid 21495 tg=lx45g1b tier=1 resume=1 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:42:36   lx45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+01:42:51 runner pid 24060 tg=g1cr45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=78f7932b9c72e6ece3f4af6eedd6651dbbd1e3bb fenv=g1cr45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check:res_opt@run,lossy_check:opt_
+01:42:55   g1cr45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g1cr45g1b
+01:43:07 runner pid 24967 tg=lx45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:43:11   lx45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+01:43:22 runner pid 25533 tg=g1cr45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=78f7932b9c72e6ece3f4af6eedd6651dbbd1e3bb fenv=g1cr45g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_g1cr45g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check
+01:43:26   g1cr45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g1cr45g1b_rev
+-- python calls: python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));python tools/t1c_unset_path.py card_lx45g1b_t1code card_lx45t1c1_t1code;python tools/lossy_speed.py g1cr45g1b lx45g1b;python tools/t1c_unset_path.py card_lx45g1b_t1code_rev card_lx45t1c1_t1code_rev;python tools/lossy_speed.py g1cr45g1b_rev lx45g1b_rev;
+-- peer calls: peer unlock;peer unlock;
+-- log:
+11-17 01:40:33 [g1t] g1_chain (pid 9739; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 02:21, night cutoff 2026-11-17 02:41; the AWAY rule on
+11-17 01:40:33 [g1t] day window: waits for the gates; no start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 02:06 (cutoff 2026-11-17 02:21)
+11-17 01:40:38 [g1t] start (day): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1cr; read again 2 s l
+11-17 01:40:39 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:40:39 [g1t] the pick: g1cr (G1 PICK 11-17 13:40:00: g1cr (stub pick)); blob 78f7932b9c72e6ece3f4af6eedd6651dbbd1e3bb; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check:res_opt@r
+11-17 01:40:39 [g1t] B0 base tier 0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CAR
+11-17 01:41:24 [g1t] B0 base tier 0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:24 [g1t] V0 g1cr tier 0 vs B0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa
+11-17 01:41:39 [g1t] V0 g1cr tier 0 vs B0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:39 [g1t] B1 base forward: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:41:56 [g1t] Kamen is at the Mac (away_secs 10 s): B1 base forward yields
+11-17 01:41:56 [g1t] stopping runner 19170 and its children
+11-17 01:42:06 [g1t] nothing holds (away_secs 1000 s): continuing
+11-17 01:42:06 [g1t] B1 base forward, resumed: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b341
+11-17 01:42:51 [g1t] B1 base forward, resumed: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+11-17 01:42:51 [g1t] unset-path check card_lx45g1b_t1code vs card_lx45t1c1_t1code (information; rc 0): 50
+11-17 01:42:51 [g1t] V1 g1cr forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147a
+11-17 01:43:06 [g1t] V1 g1cr forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g1cr45g1b
+11-17 01:43:06 [g1t] speed g1cr45g1b vs lx45g1b (rc 0): 50
+11-17 01:43:07 [g1t] B2 base reverse: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:43:22 [g1t] B2 base reverse: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+11-17 01:43:22 [g1t] unset-path check card_lx45g1b_t1code_rev vs card_lx45t1c1_t1code_rev (information; rc 0): 50
+11-17 01:43:22 [g1t] V2 g1cr reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f1
+11-17 01:43:37 [g1t] V2 g1cr reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g1cr45g1b_rev
+11-17 01:43:37 [g1t] speed g1cr45g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 01:43:37 [g1t] done: G1 = g1cr (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1cr45g1b_rev_DONE)
+11-17 01:43:37 [g1t] end (rc 0):  day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1cr (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1cr45g1b_rev_DONE); wrote results/G1_G1T_END
+-- G1_G1T_END: G1 G1T END 11-17 01:43:37:  day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1cr (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1cr45g1b_rev_DONE)
+-- after the end: runner processes (12081 18107 19170 21495 24060 24967 25533 ): all gone
+
+== g8: V0 KILL: G1 ends at tier 0; no B1
+chain rc 0
+-- runner calls:
+01:40:38 runner pid 11689 tg=lx45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:40:42   lx45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:40:53 runner pid 13750 tg=g1r45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=e42de6d974f25572644109a299cd690522450b3c fenv=g1r45g1b_env.txt ref=card_lx45g1b_t0code ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run later=0
+01:40:57   g1r45g1b done: LOSSY tier0 (CODE-ONLY mode): KILL (stub)
+-- python calls: python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));
+-- peer calls: peer unlock;
+-- log:
+11-17 01:40:33 [g1t] g1_chain (pid 9747; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 02:21, night cutoff 2026-11-17 02:41; the AWAY rule on
+11-17 01:40:33 [g1t] day window: waits for the gates; no start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 02:06 (cutoff 2026-11-17 02:21)
+11-17 01:40:37 [g1t] start (day): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1r; read again 2 s la
+11-17 01:40:37 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:40:37 [g1t] the pick: g1r (G1 PICK 11-17 13:40:00: g1r (stub pick)); blob e42de6d974f25572644109a299cd690522450b3c; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run
+11-17 01:40:37 [g1t] B0 base tier 0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CAR
+11-17 01:40:52 [g1t] B0 base tier 0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:40:53 [g1t] V0 g1r tier 0 vs B0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5
+11-17 01:41:08 [g1t] V0 g1r tier 0 vs B0: rc 0; LOSSY tier0 (CODE-ONLY mode): KILL (stub)
+11-17 01:41:08 [g1t] ended: V0 KILL, G1 (g1r) ends at tier 0
+11-17 01:41:08 [g1t] end (rc 0):  day: B0 rc 0; V0 rc 0; ended: V0 KILL, G1 (g1r) ends at tier 0; wrote results/G1_G1T_END
+-- G1_G1T_END: G1 G1T END 11-17 01:41:08:  day: B0 rc 0; V0 rc 0; ended: V0 KILL, G1 (g1r) ends at tier 0
+-- after the end: runner processes (11689 13750 ): all gone
+
+== g9: V1 FAIL: the speed read-out, then G1 ends; no B2
+chain rc 0
+-- runner calls:
+01:40:38 runner pid 11633 tg=lx45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:40:42   lx45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:40:52 runner pid 13696 tg=g1r45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=e42de6d974f25572644109a299cd690522450b3c fenv=g1r45g1b_env.txt ref=card_lx45g1b_t0code ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run later=0
+01:40:56   g1r45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:07 runner pid 15254 tg=lx45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:11   lx45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+01:41:23 runner pid 17870 tg=g1r45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=e42de6d974f25572644109a299cd690522450b3c fenv=g1r45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run later=0
+01:41:27   g1r45g1b done: LOSSY tier1 (CODE-ONLY mode): FAIL; stub g1r45g1b
+-- python calls: python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));python tools/t1c_unset_path.py card_lx45g1b_t1code card_lx45t1c1_t1code;python tools/lossy_speed.py g1r45g1b lx45g1b;
+-- peer calls: peer unlock;
+-- log:
+11-17 01:40:33 [g1t] g1_chain (pid 9803; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 02:21, night cutoff 2026-11-17 02:41; the AWAY rule on
+11-17 01:40:33 [g1t] day window: waits for the gates; no start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 02:06 (cutoff 2026-11-17 02:21)
+11-17 01:40:37 [g1t] start (day): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1r; read again 2 s la
+11-17 01:40:37 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:40:37 [g1t] the pick: g1r (G1 PICK 11-17 13:40:00: g1r (stub pick)); blob e42de6d974f25572644109a299cd690522450b3c; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run
+11-17 01:40:37 [g1t] B0 base tier 0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CAR
+11-17 01:40:52 [g1t] B0 base tier 0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:40:52 [g1t] V0 g1r tier 0 vs B0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5
+11-17 01:41:07 [g1t] V0 g1r tier 0 vs B0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:07 [g1t] B1 base forward: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:41:22 [g1t] B1 base forward: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+11-17 01:41:23 [g1t] unset-path check card_lx45g1b_t1code vs card_lx45t1c1_t1code (information; rc 0): 50
+11-17 01:41:23 [g1t] V1 g1r forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa
+11-17 01:41:38 [g1t] V1 g1r forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): FAIL; stub g1r45g1b
+11-17 01:41:38 [g1t] speed g1r45g1b vs lx45g1b (rc 0): 50
+11-17 01:41:38 [g1t] ended: V1 did not pass, G1 (g1r) ends
+11-17 01:41:38 [g1t] end (rc 0):  day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; ended: V1 did not pass, G1 (g1r) ends; wrote results/G1_G1T_END
+-- G1_G1T_END: G1 G1T END 11-17 01:41:38:  day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; ended: V1 did not pass, G1 (g1r) ends
+-- after the end: runner processes (11633 13696 15254 17870 ): all gone
+
+== g10: B1 VOID: the chain stops (rc 9), no V1
+chain rc 9
+-- runner calls:
+01:40:39 runner pid 11937 tg=lx45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:40:43   lx45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:40:53 runner pid 13824 tg=g1r45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=e42de6d974f25572644109a299cd690522450b3c fenv=g1r45g1b_env.txt ref=card_lx45g1b_t0code ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run later=0
+01:40:57   g1r45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:08 runner pid 15355 tg=lx45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:12   lx45g1b done: CARD lx45g1b: VOID (stub)
+-- python calls: python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));
+-- peer calls: peer unlock;
+-- log:
+11-17 01:40:33 [g1t] g1_chain (pid 9754; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 02:21, night cutoff 2026-11-17 02:41; the AWAY rule on
+11-17 01:40:33 [g1t] day window: waits for the gates; no start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 02:06 (cutoff 2026-11-17 02:21)
+11-17 01:40:37 [g1t] start (day): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1r; read again 2 s la
+11-17 01:40:38 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:40:38 [g1t] the pick: g1r (G1 PICK 11-17 13:40:00: g1r (stub pick)); blob e42de6d974f25572644109a299cd690522450b3c; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run
+11-17 01:40:38 [g1t] B0 base tier 0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CAR
+11-17 01:40:53 [g1t] B0 base tier 0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:40:53 [g1t] V0 g1r tier 0 vs B0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5
+11-17 01:41:08 [g1t] V0 g1r tier 0 vs B0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:08 [g1t] B1 base forward: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:41:23 [g1t] B1 base forward: rc 0; CARD lx45g1b: VOID (stub)
+11-17 01:41:23 [g1t] stopped: day: B0 rc 0; V0 rc 0; B1 rc 9 (rc 9: 9 = no verdict, VOID or INCOMPLETE)
+11-17 01:41:23 [g1t] end (rc 9): stopped: day: B0 rc 0; V0 rc 0; B1 rc 9 (rc 9: 9 = no verdict, VOID or INCOMPLETE); wrote results/G1_G1T_END
+-- G1_G1T_END: G1 G1T END 11-17 01:41:23: stopped: day: B0 rc 0; V0 rc 0; B1 rc 9 (rc 9: 9 = no verdict, VOID or INCOMPLETE)
+-- after the end: runner processes (11937 13824 15355 ): all gone
+
+== g11: Kamen stays past the day's last start mid-B1: B1 rc 75 -> the night window waits for the night marker; then B1 resumes with the night cutoff; done
+chain rc 0
+-- driver:
+01:40:33 g11 day cutoff 2026-11-17 01:58 (last start 15 min before)
+01:41:40 g11 B1 started; Kamen arrives and stays
+01:43:05 g11 Kamen leaves; the night marker in 6 s
+-- runner calls:
+01:40:41 runner pid 12253 tg=lx45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 01:58 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:11   lx45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:24 runner pid 18215 tg=g1r45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 01:58 mem=39 fblob=e42de6d974f25572644109a299cd690522450b3c fenv=g1r45g1b_env.txt ref=card_lx45g1b_t0code ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run later=0
+01:41:28   g1r45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:39 runner pid 19284 tg=lx45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 01:58 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:57   lx45g1b pid 19284 got TERM
+01:43:14 runner pid 25279 tg=g1r45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:41 mem=39 fblob=e42de6d974f25572644109a299cd690522450b3c fenv=g1r45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run later=0
+01:43:18   g1r45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g1r45g1b
+01:43:29 runner pid 25644 tg=lx45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:41 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:43:33   lx45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+01:43:44 runner pid 26082 tg=g1r45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:41 mem=39 fblob=e42de6d974f25572644109a299cd690522450b3c fenv=g1r45g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_g1r45g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run later=0
+01:43:48   g1r45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g1r45g1b_rev
+-- python calls: python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));python tools/lossy_speed.py g1r45g1b lx45g1b;python tools/t1c_unset_path.py card_lx45g1b_t1code_rev card_lx45t1c1_t1code_rev;python tools/lossy_speed.py g1r45g1b_rev lx45g1b_rev;
+-- peer calls: peer unlock;peer unlock;
+-- log:
+11-17 01:40:33 [g1t] g1_chain (pid 9899; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 01:58, night cutoff 2026-11-17 02:41; the AWAY rule on
+11-17 01:40:33 [g1t] day window: waits for the gates; no start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 01:43 (cutoff 2026-11-17 01:58)
+11-17 01:40:38 [g1t] start (day): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1r; read again 2 s la
+11-17 01:40:39 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:40:39 [g1t] the pick: g1r (G1 PICK 11-17 13:40:00: g1r (stub pick)); blob e42de6d974f25572644109a299cd690522450b3c; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run
+11-17 01:40:39 [g1t] B0 base tier 0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CAR
+11-17 01:41:24 [g1t] B0 base tier 0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:24 [g1t] V0 g1r tier 0 vs B0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5
+11-17 01:41:39 [g1t] V0 g1r tier 0 vs B0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:39 [g1t] B1 base forward: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:41:56 [g1t] Kamen is at the Mac (away_secs 10 s): B1 base forward yields
+11-17 01:41:56 [g1t] stopping runner 19284 and its children
+11-17 01:42:07 [g1t] yielding: Kamen at the Mac (away_secs < 900)
+11-17 01:42:38 [g1t] yielding: Kamen at the Mac (away_secs < 900)
+11-17 01:43:01 [g1t] still held at 01:43 (Kamen at the Mac (away_secs < 900)): no start left before 2026-11-17 01:58
+11-17 01:43:01 [g1t] the day window cut G1 ( day: B0 rc 0; V0 rc 0; B1 rc 75): it resumes in the night window
+11-17 01:43:01 [g1t] night window: waits for the gates and <sim>/BigMoE/data/r57/NIGHT1117_BIGMOE_END after 11-17 01:40; no start while HOLD, PAUS
+11-17 01:43:01 [g1t] held: Kamen at the Mac (away_secs < 900) (no start while held)
+11-17 01:43:05 [g1t] no longer held
+11-17 01:43:14 [g1t] start (night): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1r; read again 2 s 
+11-17 01:43:14 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:43:14 [g1t] B0 base tier 0: already done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:43:14 [g1t] V0 g1r tier 0 vs B0: already done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:43:14 [g1t] B1 base forward: already done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+11-17 01:43:14 [g1t] V1 g1r forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa
+11-17 01:43:29 [g1t] V1 g1r forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g1r45g1b
+11-17 01:43:29 [g1t] speed g1r45g1b vs lx45g1b (rc 0): 50
+11-17 01:43:29 [g1t] B2 base reverse: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:43:44 [g1t] B2 base reverse: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+11-17 01:43:44 [g1t] unset-path check card_lx45g1b_t1code_rev vs card_lx45t1c1_t1code_rev (information; rc 0): 50
+11-17 01:43:44 [g1t] V2 g1r reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11
+11-17 01:43:59 [g1t] V2 g1r reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g1r45g1b_rev
+11-17 01:43:59 [g1t] speed g1r45g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 01:43:59 [g1t] done: G1 = g1r (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1r45g1b_rev_DONE)
+11-17 01:43:59 [g1t] end (rc 0):  day: B0 rc 0; V0 rc 0; B1 rc 75; night: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1r (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1r45g1b_rev_DONE); wrote res
+-- G1_G1T_END: G1 G1T END 11-17 01:43:59:  day: B0 rc 0; V0 rc 0; B1 rc 75; night: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1r (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1r45g1b_rev_DONE)
+-- after the end: runner processes (12253 18215 19284 25279 25644 26082 ): all gone
+
+== g12: B1's runner exits 6 (its cutoff): rc 75 -> the night window, after the night marker: B1 resumed (CARD_RESUME=1); done
+chain rc 0
+-- driver:
+01:40:57 g12 the night marker
+-- runner calls:
+01:40:40 runner pid 12050 tg=lx45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:40:44   lx45g1b: exit 6 (the runner's cutoff)
+01:41:00 runner pid 14776 tg=lx45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:41 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:04   lx45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:15 runner pid 15773 tg=g145g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:41 mem=39 fblob=b736d293176e83b12ecc4c8d18ad665d7c38ed4f fenv=g145g1b_env.txt ref=card_lx45g1b_t0code ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows later=0
+01:41:19   g145g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:30 runner pid 18550 tg=lx45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:41 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:35   lx45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+01:41:46 runner pid 19828 tg=g145g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:41 mem=39 fblob=b736d293176e83b12ecc4c8d18ad665d7c38ed4f fenv=g145g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows later=0
+01:41:50   g145g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g145g1b
+01:42:01 runner pid 20912 tg=lx45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:41 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:42:05   lx45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+01:42:16 runner pid 22098 tg=g145g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:41 mem=39 fblob=b736d293176e83b12ecc4c8d18ad665d7c38ed4f fenv=g145g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_g145g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows later=0
+01:42:20   g145g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g145g1b_rev
+-- python calls: python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));python tools/t1c_unset_path.py card_lx45g1b_t1code card_lx45t1c1_t1code;python tools/lossy_speed.py g145g1b lx45g1b;python tools/t1c_unset_path.py card_lx45g1b_t1code_rev card_lx45t1c1_t1code_rev;python tools/lossy_speed.py g145g1b_rev lx45g1b_rev;
+-- peer calls: peer unlock;
+-- log:
+11-17 01:40:33 [g1t] g1_chain (pid 9748; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 02:21, night cutoff 2026-11-17 02:41; the AWAY rule on
+11-17 01:40:33 [g1t] day window: waits for the gates; no start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 02:06 (cutoff 2026-11-17 02:21)
+11-17 01:40:37 [g1t] start (day): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1; read again 2 s lat
+11-17 01:40:38 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:40:38 [g1t] the pick: g1 (G1 PICK 11-17 13:40:00: g1 (stub pick)); blob b736d293176e83b12ecc4c8d18ad665d7c38ed4f; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows
+11-17 01:40:38 [g1t] B0 base tier 0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CAR
+11-17 01:40:53 [g1t] B0 base tier 0: rc 6; no DONE from this run
+11-17 01:40:53 [g1t] B0 base tier 0: the runner stopped at the window's cutoff (rc 6): it resumes in the next window
+11-17 01:40:53 [g1t] the day window cut G1 ( day: B0 rc 75): it resumes in the night window
+11-17 01:40:53 [g1t] night window: waits for the gates and <sim>/BigMoE/data/r57/NIGHT1117_BIGMOE_END after 11-17 01:40; no start while HOLD, PAUS
+11-17 01:41:00 [g1t] start (night): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1; read again 2 s l
+11-17 01:41:00 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:41:00 [g1t] B0 base tier 0: a cut tier-0 run moved aside: results/card_lx45g1b_t0code.cut1
+11-17 01:41:00 [g1t] B0 base tier 0, fresh: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147a
+11-17 01:41:15 [g1t] B0 base tier 0, fresh: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:15 [g1t] V0 g1 tier 0 vs B0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f
+11-17 01:41:30 [g1t] V0 g1 tier 0 vs B0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:30 [g1t] B1 base forward: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:41:45 [g1t] B1 base forward: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+11-17 01:41:46 [g1t] unset-path check card_lx45g1b_t1code vs card_lx45t1c1_t1code (information; rc 0): 50
+11-17 01:41:46 [g1t] V1 g1 forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5
+11-17 01:42:01 [g1t] V1 g1 forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g145g1b
+11-17 01:42:01 [g1t] speed g145g1b vs lx45g1b (rc 0): 50
+11-17 01:42:01 [g1t] B2 base reverse: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:42:16 [g1t] B2 base reverse: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+11-17 01:42:16 [g1t] unset-path check card_lx45g1b_t1code_rev vs card_lx45t1c1_t1code_rev (information; rc 0): 50
+11-17 01:42:16 [g1t] V2 g1 reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b
+11-17 01:42:31 [g1t] V2 g1 reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g145g1b_rev
+11-17 01:42:31 [g1t] speed g145g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 01:42:31 [g1t] done: G1 = g1 (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g145g1b_rev_DONE)
+11-17 01:42:31 [g1t] end (rc 0):  day: B0 rc 75; night: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1 (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g145g1b_rev_DONE); wrote results/G1_G1T_END
+-- G1_G1T_END: G1 G1T END 11-17 01:42:31:  day: B0 rc 75; night: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1 (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g145g1b_rev_DONE)
+-- after the end: runner processes (12050 14776 15773 18550 19828 20912 22098 ): all gone
+
+== g13: no pick by the day's last start: no start by day; the night window starts on the night marker; done
+chain rc 0
+-- driver:
+01:40:33 g13 day cutoff 2026-11-17 01:57
+01:42:00 g13 the gates and the pick, after the day's last start
+01:42:06 g13 the night marker
+-- runner calls:
+01:42:10 runner pid 21751 tg=lx45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:41 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:42:15   lx45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:42:25 runner pid 22703 tg=g1l45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:41 mem=39 fblob=1c3e2358e53d42d28421d622475de05392beb619 fenv=g1l45g1b_env.txt ref=card_lx45g1b_t0code ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows later=0
+01:42:29   g1l45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:42:40 runner pid 23498 tg=lx45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:41 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:42:44   lx45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+01:42:55 runner pid 24202 tg=g1l45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:41 mem=39 fblob=1c3e2358e53d42d28421d622475de05392beb619 fenv=g1l45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows later=0
+01:42:59   g1l45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g1l45g1b
+01:43:10 runner pid 25111 tg=lx45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:41 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:43:14   lx45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+01:43:25 runner pid 25593 tg=g1l45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:41 mem=39 fblob=1c3e2358e53d42d28421d622475de05392beb619 fenv=g1l45g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_g1l45g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows later=0
+01:43:29   g1l45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g1l45g1b_rev
+-- python calls: python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));python tools/t1c_unset_path.py card_lx45g1b_t1code card_lx45t1c1_t1code;python tools/lossy_speed.py g1l45g1b lx45g1b;python tools/t1c_unset_path.py card_lx45g1b_t1code_rev card_lx45t1c1_t1code_rev;python tools/lossy_speed.py g1l45g1b_rev lx45g1b_rev;
+-- peer calls: peer unlock;
+-- log:
+11-17 01:40:33 [g1t] g1_chain (pid 9932; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 01:57, night cutoff 2026-11-17 02:41; the AWAY rule on
+11-17 01:40:33 [g1t] day window: waits for the gates; no start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 01:42 (cutoff 2026-11-17 01:57)
+11-17 01:41:06 [g1t] waiting: no results/T1C_TUEF3_END written after the arming
+11-17 01:41:38 [g1t] waiting: no results/T1C_TUEF3_END written after the arming
+11-17 01:42:00 [g1t] no start in the day window by 11-17 01:42 (no results/T1C_TUEF3_END written after the arming)
+11-17 01:42:00 [g1t] night window: waits for the gates and <sim>/BigMoE/data/r57/NIGHT1117_BIGMOE_END after 11-17 01:40; no start while HOLD, PAUS
+11-17 01:42:09 [g1t] start (night): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1l; read again 2 s 
+11-17 01:42:10 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:42:10 [g1t] the pick: g1l (G1 PICK 11-17 13:40:00: g1l (stub pick)); blob 1c3e2358e53d42d28421d622475de05392beb619; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows
+11-17 01:42:10 [g1t] B0 base tier 0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CAR
+11-17 01:42:25 [g1t] B0 base tier 0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:42:25 [g1t] V0 g1l tier 0 vs B0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5
+11-17 01:42:40 [g1t] V0 g1l tier 0 vs B0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:42:40 [g1t] B1 base forward: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:42:55 [g1t] B1 base forward: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+11-17 01:42:55 [g1t] unset-path check card_lx45g1b_t1code vs card_lx45t1c1_t1code (information; rc 0): 50
+11-17 01:42:55 [g1t] V1 g1l forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa
+11-17 01:43:10 [g1t] V1 g1l forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g1l45g1b
+11-17 01:43:10 [g1t] speed g1l45g1b vs lx45g1b (rc 0): 50
+11-17 01:43:10 [g1t] B2 base reverse: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:43:25 [g1t] B2 base reverse: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+11-17 01:43:25 [g1t] unset-path check card_lx45g1b_t1code_rev vs card_lx45t1c1_t1code_rev (information; rc 0): 50
+11-17 01:43:25 [g1t] V2 g1l reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11
+11-17 01:43:40 [g1t] V2 g1l reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g1l45g1b_rev
+11-17 01:43:40 [g1t] speed g1l45g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 01:43:40 [g1t] done: G1 = g1l (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1l45g1b_rev_DONE)
+11-17 01:43:41 [g1t] end (rc 0):  day: no start; night: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1l (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1l45g1b_rev_DONE); wrote results/G1_G1T_END
+-- G1_G1T_END: G1 G1T END 11-17 01:43:41:  day: no start; night: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1l (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1l45g1b_rev_DONE)
+-- after the end: runner processes (21751 22703 23498 24202 25111 25593 ): all gone
+
+== g14: the day window's last start is already past, and no night marker: no start in either window; left for Wednesday (rc 75)
+chain rc 0
+-- runner calls:
+01:40:41 runner pid 12379 tg=lx45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 01:57 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:40:45   lx45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:40:55 runner pid 14149 tg=g145g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 01:57 mem=39 fblob=b736d293176e83b12ecc4c8d18ad665d7c38ed4f fenv=g145g1b_env.txt ref=card_lx45g1b_t0code ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows later=0
+01:40:59   g145g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:10 runner pid 15540 tg=lx45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 01:57 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:14   lx45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+01:41:25 runner pid 18283 tg=g145g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 01:57 mem=39 fblob=b736d293176e83b12ecc4c8d18ad665d7c38ed4f fenv=g145g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows later=0
+01:41:29   g145g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g145g1b
+01:41:40 runner pid 19416 tg=lx45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 01:57 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:44   lx45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+01:41:55 runner pid 20576 tg=g145g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 01:57 mem=39 fblob=b736d293176e83b12ecc4c8d18ad665d7c38ed4f fenv=g145g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_g145g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows later=0
+01:41:59   g145g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g145g1b_rev
+-- python calls: python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));python tools/t1c_unset_path.py card_lx45g1b_t1code card_lx45t1c1_t1code;python tools/lossy_speed.py g145g1b lx45g1b;python tools/t1c_unset_path.py card_lx45g1b_t1code_rev card_lx45t1c1_t1code_rev;python tools/lossy_speed.py g145g1b_rev lx45g1b_rev;
+-- peer calls: peer unlock;
+-- log:
+11-17 01:40:33 [g1t] g1_chain (pid 9945; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 01:57, night cutoff 2026-11-17 01:58; the AWAY rule on
+11-17 01:40:33 [g1t] day window: waits for the gates; no start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 01:42 (cutoff 2026-11-17 01:57)
+11-17 01:40:38 [g1t] start (day): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1; read again 2 s lat
+11-17 01:40:40 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:40:40 [g1t] the pick: g1 (G1 PICK 11-17 13:40:00: g1 (stub pick)); blob b736d293176e83b12ecc4c8d18ad665d7c38ed4f; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows
+11-17 01:40:40 [g1t] B0 base tier 0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CAR
+11-17 01:40:55 [g1t] B0 base tier 0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:40:55 [g1t] V0 g1 tier 0 vs B0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f
+11-17 01:41:10 [g1t] V0 g1 tier 0 vs B0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:10 [g1t] B1 base forward: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:41:25 [g1t] B1 base forward: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+11-17 01:41:25 [g1t] unset-path check card_lx45g1b_t1code vs card_lx45t1c1_t1code (information; rc 0): 50
+11-17 01:41:25 [g1t] V1 g1 forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5
+11-17 01:41:40 [g1t] V1 g1 forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g145g1b
+11-17 01:41:40 [g1t] speed g145g1b vs lx45g1b (rc 0): 50
+11-17 01:41:40 [g1t] B2 base reverse: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:41:55 [g1t] B2 base reverse: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+11-17 01:41:55 [g1t] unset-path check card_lx45g1b_t1code_rev vs card_lx45t1c1_t1code_rev (information; rc 0): 50
+11-17 01:41:55 [g1t] V2 g1 reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b
+11-17 01:42:10 [g1t] V2 g1 reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g145g1b_rev
+11-17 01:42:10 [g1t] speed g145g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 01:42:10 [g1t] done: G1 = g1 (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g145g1b_rev_DONE)
+11-17 01:42:11 [g1t] end (rc 0):  day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1 (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g145g1b_rev_DONE); wrote results/G1_G1T_END
+-- G1_G1T_END: G1 G1T END 11-17 01:42:11:  day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1 (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g145g1b_rev_DONE)
+-- after the end: runner processes (12379 14149 15540 18283 19416 20576 ): all gone
+
+== g15: TERM mid-V1: the runner is stopped, peer unlock; the marker says stopped by a signal
+chain rc 143
+-- driver:
+01:41:58 g15 TERM to the chain
+-- runner calls:
+01:40:41 runner pid 12306 tg=lx45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:40:45   lx45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:40:54 runner pid 14041 tg=g1r45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=e42de6d974f25572644109a299cd690522450b3c fenv=g1r45g1b_env.txt ref=card_lx45g1b_t0code ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run later=0
+01:41:34   g1r45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:40 runner pid 19318 tg=lx45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:44   lx45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+01:41:55 runner pid 20524 tg=g1r45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=e42de6d974f25572644109a299cd690522450b3c fenv=g1r45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run later=0
+01:42:10   g1r45g1b pid 20524 got TERM
+-- python calls: python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));python tools/t1c_unset_path.py card_lx45g1b_t1code card_lx45t1c1_t1code;
+-- peer calls: peer unlock;
+-- log:
+11-17 01:40:33 [g1t] g1_chain (pid 9818; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 02:21, night cutoff 2026-11-17 02:41; the AWAY rule on
+11-17 01:40:33 [g1t] day window: waits for the gates; no start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 02:06 (cutoff 2026-11-17 02:21)
+11-17 01:40:38 [g1t] start (day): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1r; read again 2 s la
+11-17 01:40:39 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:40:39 [g1t] the pick: g1r (G1 PICK 11-17 13:40:00: g1r (stub pick)); blob e42de6d974f25572644109a299cd690522450b3c; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run
+11-17 01:40:39 [g1t] B0 base tier 0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CAR
+11-17 01:40:54 [g1t] B0 base tier 0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:40:54 [g1t] V0 g1r tier 0 vs B0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5
+11-17 01:41:39 [g1t] V0 g1r tier 0 vs B0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:40 [g1t] B1 base forward: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:41:55 [g1t] B1 base forward: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+11-17 01:41:55 [g1t] unset-path check card_lx45g1b_t1code vs card_lx45t1c1_t1code (information; rc 0): 50
+11-17 01:41:55 [g1t] V1 g1r forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa
+11-17 01:42:10 [g1t] stopping runner 20524 and its children
+11-17 01:42:20 [g1t] end (rc 143): stopped by a signal during: V1; wrote results/G1_G1T_END
+-- G1_G1T_END: G1 G1T END 11-17 01:42:20: stopped by a signal during: V1
+-- after the end: runner processes (12306 14041 19318 20524 ): all gone
+
+== g16: HOLD mid-B1: stopped by HOLD (rc 8), the runner stopped
+chain rc 8
+-- driver:
+01:41:42 g16 HOLD
+-- runner calls:
+01:40:40 runner pid 12017 tg=lx45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:20   lx45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:23 runner pid 18039 tg=g1r45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=e42de6d974f25572644109a299cd690522450b3c fenv=g1r45g1b_env.txt ref=card_lx45g1b_t0code ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run later=0
+01:41:27   g1r45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:38 runner pid 19114 tg=lx45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:53   lx45g1b pid 19114 got TERM
+-- python calls: python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));
+-- peer calls: peer unlock;
+-- log:
+11-17 01:40:33 [g1t] g1_chain (pid 9829; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 02:21, night cutoff 2026-11-17 02:41; the AWAY rule on
+11-17 01:40:33 [g1t] day window: waits for the gates; no start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 02:06 (cutoff 2026-11-17 02:21)
+11-17 01:40:37 [g1t] start (day): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1r; read again 2 s la
+11-17 01:40:38 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:40:38 [g1t] the pick: g1r (G1 PICK 11-17 13:40:00: g1r (stub pick)); blob e42de6d974f25572644109a299cd690522450b3c; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run
+11-17 01:40:38 [g1t] B0 base tier 0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CAR
+11-17 01:41:23 [g1t] B0 base tier 0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:23 [g1t] V0 g1r tier 0 vs B0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5
+11-17 01:41:38 [g1t] V0 g1r tier 0 vs B0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:38 [g1t] B1 base forward: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:41:53 [g1t] HOLD: stopping B1 base forward
+11-17 01:41:53 [g1t] stopping runner 19114 and its children
+11-17 01:42:04 [g1t] end (rc 8): stopped by HOLD during: B1; wrote results/G1_G1T_END
+-- G1_G1T_END: G1 G1T END 11-17 01:42:04: stopped by HOLD during: B1
+-- after the end: runner processes (12017 18039 19114 ): all gone
+
+== g17: the pick changes between the windows: the night window refuses (rc 5)
+chain rc 5
+-- driver:
+01:41:40 g17 Kamen arrives mid-B1 and stays
+01:43:02 g17 the pick rewritten to g1, then the night marker
+-- runner calls:
+01:40:40 runner pid 12223 tg=lx45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 01:58 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:10   lx45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:24 runner pid 18185 tg=g1r45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 01:58 mem=39 fblob=e42de6d974f25572644109a299cd690522450b3c fenv=g1r45g1b_env.txt ref=card_lx45g1b_t0code ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run later=0
+01:41:28   g1r45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:39 runner pid 19250 tg=lx45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 01:58 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:56   lx45g1b pid 19250 got TERM
+-- python calls: python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));
+-- peer calls: peer unlock;peer unlock;
+-- log:
+11-17 01:40:33 [g1t] g1_chain (pid 9857; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 01:58, night cutoff 2026-11-17 02:41; the AWAY rule on
+11-17 01:40:33 [g1t] day window: waits for the gates; no start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 01:43 (cutoff 2026-11-17 01:58)
+11-17 01:40:38 [g1t] start (day): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1r; read again 2 s la
+11-17 01:40:39 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:40:39 [g1t] the pick: g1r (G1 PICK 11-17 13:40:00: g1r (stub pick)); blob e42de6d974f25572644109a299cd690522450b3c; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run
+11-17 01:40:39 [g1t] B0 base tier 0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CAR
+11-17 01:41:24 [g1t] B0 base tier 0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:24 [g1t] V0 g1r tier 0 vs B0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5
+11-17 01:41:39 [g1t] V0 g1r tier 0 vs B0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:39 [g1t] B1 base forward: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:41:56 [g1t] Kamen is at the Mac (away_secs 10 s): B1 base forward yields
+11-17 01:41:56 [g1t] stopping runner 19250 and its children
+11-17 01:42:07 [g1t] yielding: Kamen at the Mac (away_secs < 900)
+11-17 01:42:38 [g1t] yielding: Kamen at the Mac (away_secs < 900)
+11-17 01:43:02 [g1t] still held at 01:43 (Kamen at the Mac (away_secs < 900)): no start left before 2026-11-17 01:58
+11-17 01:43:02 [g1t] the day window cut G1 ( day: B0 rc 0; V0 rc 0; B1 rc 75): it resumes in the night window
+11-17 01:43:02 [g1t] night window: waits for the gates and <sim>/BigMoE/data/r57/NIGHT1117_BIGMOE_END after 11-17 01:40; no start while HOLD, PAUS
+11-17 01:43:02 [g1t] held: Kamen at the Mac (away_secs < 900) (no start while held)
+11-17 01:43:03 [g1t] no longer held
+11-17 01:43:03 [g1t] no run: G1_PICK changed from g1r to g1 after the start
+11-17 01:43:03 [g1t] end (rc 5): no run: G1_PICK changed from g1r to g1 after the start; wrote results/G1_G1T_END
+-- G1_G1T_END: G1 G1T END 11-17 01:43:03: no run: G1_PICK changed from g1r to g1 after the start
+-- after the end: runner processes (12223 18185 19250 ): all gone
+
+== g18: a yield mid-V0 (tier 0): the cut run is moved aside (.cut1) and V0 starts fresh (no CARD_RESUME); done
+chain rc 0
+-- driver:
+01:40:53 g18 V0 started; Kamen arrives
+01:41:13 g18 Kamen leaves
+-- runner calls:
+01:40:38 runner pid 11560 tg=lx45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:40:42   lx45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:40:52 runner pid 13646 tg=g1c45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=bfd66cedd73b692b4a9cabb62b49f5ac5a345f2c fenv=g1c45g1b_env.txt ref=card_lx45g1b_t0code ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run later=0
+01:41:09   g1c45g1b pid 13646 got TERM
+01:41:20 runner pid 16685 tg=g1c45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=bfd66cedd73b692b4a9cabb62b49f5ac5a345f2c fenv=g1c45g1b_env.txt ref=card_lx45g1b_t0code ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run later=0
+01:41:50   g1c45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:50 runner pid 20273 tg=lx45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:54   lx45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+01:42:05 runner pid 21418 tg=g1c45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=bfd66cedd73b692b4a9cabb62b49f5ac5a345f2c fenv=g1c45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run later=0
+01:42:35   g1c45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g1c45g1b
+01:42:35 runner pid 23345 tg=lx45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:42:39   lx45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+01:42:50 runner pid 24001 tg=g1c45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=bfd66cedd73b692b4a9cabb62b49f5ac5a345f2c fenv=g1c45g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_g1c45g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run later=0
+01:42:54   g1c45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g1c45g1b_rev
+-- python calls: python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));python tools/t1c_unset_path.py card_lx45g1b_t1code card_lx45t1c1_t1code;python tools/lossy_speed.py g1c45g1b lx45g1b;python tools/t1c_unset_path.py card_lx45g1b_t1code_rev card_lx45t1c1_t1code_rev;python tools/lossy_speed.py g1c45g1b_rev lx45g1b_rev;
+-- peer calls: peer unlock;peer unlock;
+-- log:
+11-17 01:40:33 [g1t] g1_chain (pid 9785; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 02:21, night cutoff 2026-11-17 02:41; the AWAY rule on
+11-17 01:40:33 [g1t] day window: waits for the gates; no start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 02:06 (cutoff 2026-11-17 02:21)
+11-17 01:40:37 [g1t] start (day): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1c; read again 2 s la
+11-17 01:40:37 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:40:37 [g1t] the pick: g1c (G1 PICK 11-17 13:40:00: g1c (stub pick)); blob bfd66cedd73b692b4a9cabb62b49f5ac5a345f2c; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run
+11-17 01:40:37 [g1t] B0 base tier 0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CAR
+11-17 01:40:52 [g1t] B0 base tier 0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:40:52 [g1t] V0 g1c tier 0 vs B0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5
+11-17 01:41:09 [g1t] Kamen is at the Mac (away_secs 10 s): V0 g1c tier 0 vs B0 yields
+11-17 01:41:09 [g1t] stopping runner 13646 and its children
+11-17 01:41:20 [g1t] nothing holds (away_secs 1000 s): continuing
+11-17 01:41:20 [g1t] V0 g1c tier 0 vs B0: a cut tier-0 run moved aside: results/card_g1c45g1b_t0code.cut1
+11-17 01:41:20 [g1t] V0 g1c tier 0 vs B0, fresh: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b3
+11-17 01:41:50 [g1t] V0 g1c tier 0 vs B0, fresh: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:50 [g1t] B1 base forward: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:42:05 [g1t] B1 base forward: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+11-17 01:42:05 [g1t] unset-path check card_lx45g1b_t1code vs card_lx45t1c1_t1code (information; rc 0): 50
+11-17 01:42:05 [g1t] V1 g1c forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa
+11-17 01:42:35 [g1t] V1 g1c forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g1c45g1b
+11-17 01:42:35 [g1t] speed g1c45g1b vs lx45g1b (rc 0): 50
+11-17 01:42:35 [g1t] B2 base reverse: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:42:50 [g1t] B2 base reverse: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+11-17 01:42:50 [g1t] unset-path check card_lx45g1b_t1code_rev vs card_lx45t1c1_t1code_rev (information; rc 0): 50
+11-17 01:42:50 [g1t] V2 g1c reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11
+11-17 01:43:05 [g1t] V2 g1c reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g1c45g1b_rev
+11-17 01:43:05 [g1t] speed g1c45g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 01:43:05 [g1t] done: G1 = g1c (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1c45g1b_rev_DONE)
+11-17 01:43:05 [g1t] end (rc 0):  day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1c (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1c45g1b_rev_DONE); wrote results/G1_G1T_END
+-- G1_G1T_END: G1 G1T END 11-17 01:43:05:  day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1c (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1c45g1b_rev_DONE)
+-- after the end: runner processes (11560 13646 16685 20273 21418 23345 24001 ): all gone
+
+== g19: DRY (g1cdr): six runner calls with dry=1 and CARD_REF_LATER on V0-V2; no wait, no marker
+chain rc 0
+-- runner calls:
+01:40:35 runner pid 10300 tg=lx45g1b tier=0 resume=0 dry=1 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:40:48 runner pid 13170 tg=g1cdr45g1b tier=0 resume=0 dry=1 cutoff=2026-11-17 02:21 mem=39 fblob=f4eac1d6bd3705417c7d144c056ede62d3a588ae fenv=g1cdr45g1b_env.txt ref=card_lx45g1b_t0code ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check:res_opt@run,lossy_check:op
+01:41:03 runner pid 14930 tg=lx45g1b tier=1 resume=0 dry=1 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:18 runner pid 15934 tg=g1cdr45g1b tier=1 resume=0 dry=1 cutoff=2026-11-17 02:21 mem=39 fblob=f4eac1d6bd3705417c7d144c056ede62d3a588ae fenv=g1cdr45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check:res_opt@run,lossy_check:op
+01:41:33 runner pid 18699 tg=lx45g1b_rev tier=1 resume=0 dry=1 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:48 runner pid 20010 tg=g1cdr45g1b_rev tier=1 resume=0 dry=1 cutoff=2026-11-17 02:21 mem=39 fblob=f4eac1d6bd3705417c7d144c056ede62d3a588ae fenv=g1cdr45g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_g1cdr45g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_ch
+-- python calls: none
+-- peer calls: none
+-- log:
+11-17 01:40:33 [g1t] g1_chain (pid 9814, DRY; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 02:21, night cutoff 2026-11-17 02:41; the AWAY rule on
+11-17 01:40:33 [g1t] B0 base tier 0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CAR
+11-17 01:40:48 [g1t] B0 base tier 0: rc 0; no DONE from this run
+11-17 01:40:48 [g1t] V0 g1cdr tier 0 vs B0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147a
+11-17 01:41:03 [g1t] V0 g1cdr tier 0 vs B0: rc 0; no DONE from this run
+11-17 01:41:03 [g1t] B1 base forward: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:41:18 [g1t] B1 base forward: rc 0; no DONE from this run
+11-17 01:41:18 [g1t] V1 g1cdr forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147
+11-17 01:41:33 [g1t] V1 g1cdr forward vs B1: rc 0; no DONE from this run
+11-17 01:41:33 [g1t] B2 base reverse: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:41:48 [g1t] B2 base reverse: rc 0; no DONE from this run
+11-17 01:41:48 [g1t] V2 g1cdr reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f
+11-17 01:42:03 [g1t] V2 g1cdr reverse vs B2, pooled: rc 0; no DONE from this run
+11-17 01:42:03 [g1t] DRY end (rc 0): no marker
+-- G1_G1T_END: MISSING
+-- after the end: runner processes (10300 13170 14930 15934 18699 20010 ): all gone
+
+== g20: away_secs.sh prints nothing: counts as away; done (g1lr)
+chain rc 0
+-- runner calls:
+01:40:39 runner pid 11778 tg=lx45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:40:43   lx45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:40:53 runner pid 13790 tg=g1lr45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=caab79159e3359af84dcb0e5f26582a93e838253 fenv=g1lr45g1b_env.txt ref=card_lx45g1b_t0code ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run later=0
+01:40:57   g1lr45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:41:08 runner pid 15303 tg=lx45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:12   lx45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+01:41:23 runner pid 17990 tg=g1lr45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=caab79159e3359af84dcb0e5f26582a93e838253 fenv=g1lr45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run later=0
+01:41:27   g1lr45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g1lr45g1b
+01:41:38 runner pid 19062 tg=lx45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:41:42   lx45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+01:41:53 runner pid 20388 tg=g1lr45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:21 mem=39 fblob=caab79159e3359af84dcb0e5f26582a93e838253 fenv=g1lr45g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_g1lr45g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run later=0
+01:41:57   g1lr45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g1lr45g1b_rev
+-- python calls: python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));python tools/t1c_unset_path.py card_lx45g1b_t1code card_lx45t1c1_t1code;python tools/lossy_speed.py g1lr45g1b lx45g1b;python tools/t1c_unset_path.py card_lx45g1b_t1code_rev card_lx45t1c1_t1code_rev;python tools/lossy_speed.py g1lr45g1b_rev lx45g1b_rev;
+-- peer calls: peer unlock;
+-- log:
+11-17 01:40:33 [g1t] g1_chain (pid 9812; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 02:21, night cutoff 2026-11-17 02:41; the AWAY rule on
+11-17 01:40:33 [g1t] day window: waits for the gates; no start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 02:06 (cutoff 2026-11-17 02:21)
+11-17 01:40:37 [g1t] start (day): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1lr; read again 2 s l
+11-17 01:40:38 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:40:38 [g1t] the pick: g1lr (G1 PICK 11-17 13:40:00: g1lr (stub pick)); blob caab79159e3359af84dcb0e5f26582a93e838253; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run
+11-17 01:40:38 [g1t] B0 base tier 0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CAR
+11-17 01:40:53 [g1t] B0 base tier 0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:40:53 [g1t] V0 g1lr tier 0 vs B0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa
+11-17 01:41:08 [g1t] V0 g1lr tier 0 vs B0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:41:08 [g1t] B1 base forward: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:41:23 [g1t] B1 base forward: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+11-17 01:41:23 [g1t] unset-path check card_lx45g1b_t1code vs card_lx45t1c1_t1code (information; rc 0): 50
+11-17 01:41:23 [g1t] V1 g1lr forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147a
+11-17 01:41:38 [g1t] V1 g1lr forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g1lr45g1b
+11-17 01:41:38 [g1t] speed g1lr45g1b vs lx45g1b (rc 0): 50
+11-17 01:41:38 [g1t] B2 base reverse: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:41:53 [g1t] B2 base reverse: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+11-17 01:41:53 [g1t] unset-path check card_lx45g1b_t1code_rev vs card_lx45t1c1_t1code_rev (information; rc 0): 50
+11-17 01:41:53 [g1t] V2 g1lr reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f1
+11-17 01:42:08 [g1t] V2 g1lr reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g1lr45g1b_rev
+11-17 01:42:08 [g1t] speed g1lr45g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 01:42:08 [g1t] done: G1 = g1lr (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1lr45g1b_rev_DONE)
+11-17 01:42:09 [g1t] end (rc 0):  day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1lr (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1lr45g1b_rev_DONE); wrote results/G1_G1T_END
+-- G1_G1T_END: G1 G1T END 11-17 01:42:09:  day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1lr (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1lr45g1b_rev_DONE)
+-- after the end: runner processes (11778 13790 15303 17990 19062 20388 ): all gone
+
+sim done 01:43:59; chain sha256 c1852dfa566ea6e5
+
+########## RUN 2
+== g12: the base's FIRST runner call exits 6 (its cutoff; the stub keys on the TG, which B0 and B1 share, so it is B0): rc 75 -> the night window, after the night marker: B0 moved aside, fresh with the night cutoff; done
+chain rc 0
+-- driver:
+01:45:04 g12 the night marker
+-- runner calls:
+01:44:46 runner pid 27764 tg=lx45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:25 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:44:50   lx45g1b: exit 6 (the runner's cutoff)
+01:45:07 runner pid 29110 tg=lx45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:45 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:45:11   lx45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:45:22 runner pid 29860 tg=g145g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:45 mem=39 fblob=b736d293176e83b12ecc4c8d18ad665d7c38ed4f fenv=g145g1b_env.txt ref=card_lx45g1b_t0code ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows later=0
+01:45:26   g145g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:45:37 runner pid 30599 tg=lx45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:45 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:45:41   lx45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+01:45:52 runner pid 31351 tg=g145g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:45 mem=39 fblob=b736d293176e83b12ecc4c8d18ad665d7c38ed4f fenv=g145g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows later=0
+01:45:56   g145g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g145g1b
+01:46:07 runner pid 32279 tg=lx45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:45 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:46:11   lx45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+01:46:22 runner pid 32993 tg=g145g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:45 mem=39 fblob=b736d293176e83b12ecc4c8d18ad665d7c38ed4f fenv=g145g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_g145g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows later=0
+01:46:26   g145g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g145g1b_rev
+-- python calls: python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));python tools/t1c_unset_path.py card_lx45g1b_t1code card_lx45t1c1_t1code;python tools/lossy_speed.py g145g1b lx45g1b;python tools/t1c_unset_path.py card_lx45g1b_t1code_rev card_lx45t1c1_t1code_rev;python tools/lossy_speed.py g145g1b_rev lx45g1b_rev;
+-- peer calls: peer unlock;
+-- log:
+11-17 01:44:41 [g1t] g1_chain (pid 27301; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 02:25, night cutoff 2026-11-17 02:45; the AWAY rule on
+11-17 01:44:41 [g1t] day window: waits for the gates; no start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 02:10 (cutoff 2026-11-17 02:25)
+11-17 01:44:46 [g1t] start (day): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1; read again 2 s lat
+11-17 01:44:46 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:44:46 [g1t] the pick: g1 (G1 PICK 11-17 13:40:00: g1 (stub pick)); blob b736d293176e83b12ecc4c8d18ad665d7c38ed4f; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows
+11-17 01:44:46 [g1t] B0 base tier 0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CAR
+11-17 01:45:01 [g1t] B0 base tier 0: rc 6; no DONE from this run
+11-17 01:45:01 [g1t] B0 base tier 0: the runner stopped at the window's cutoff (rc 6): it resumes in the next window
+11-17 01:45:01 [g1t] the day window cut G1 ( day: B0 rc 75): it resumes in the night window
+11-17 01:45:01 [g1t] night window: waits for the gates and <sim>/BigMoE/data/r57/NIGHT1117_BIGMOE_END after 11-17 01:44; no start while HOLD, PAUS
+11-17 01:45:07 [g1t] start (night): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1; read again 2 s l
+11-17 01:45:07 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:45:07 [g1t] B0 base tier 0: a cut tier-0 run moved aside: results/card_lx45g1b_t0code.cut1
+11-17 01:45:07 [g1t] B0 base tier 0, fresh: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147a
+11-17 01:45:22 [g1t] B0 base tier 0, fresh: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:45:22 [g1t] V0 g1 tier 0 vs B0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f
+11-17 01:45:37 [g1t] V0 g1 tier 0 vs B0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:45:37 [g1t] B1 base forward: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:45:52 [g1t] B1 base forward: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+11-17 01:45:52 [g1t] unset-path check card_lx45g1b_t1code vs card_lx45t1c1_t1code (information; rc 0): 50
+11-17 01:45:52 [g1t] V1 g1 forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5
+11-17 01:46:07 [g1t] V1 g1 forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g145g1b
+11-17 01:46:07 [g1t] speed g145g1b vs lx45g1b (rc 0): 50
+11-17 01:46:07 [g1t] B2 base reverse: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:46:22 [g1t] B2 base reverse: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+11-17 01:46:22 [g1t] unset-path check card_lx45g1b_t1code_rev vs card_lx45t1c1_t1code_rev (information; rc 0): 50
+11-17 01:46:22 [g1t] V2 g1 reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b
+11-17 01:46:37 [g1t] V2 g1 reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g145g1b_rev
+11-17 01:46:37 [g1t] speed g145g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 01:46:37 [g1t] done: G1 = g1 (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g145g1b_rev_DONE)
+11-17 01:46:38 [g1t] end (rc 0):  day: B0 rc 75; night: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1 (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g145g1b_rev_DONE); wrote results/G1_G1T_END
+-- G1_G1T_END: G1 G1T END 11-17 01:46:38:  day: B0 rc 75; night: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1 (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g145g1b_rev_DONE)
+-- after the end: runner processes (27764 29110 29860 30599 31351 32279 32993 ): all gone
+
+== g14: the day window's last start is already past, and no night marker: no start in either window; left for Wednesday (rc 75)
+chain rc 75
+-- driver:
+01:44:40 g14 day cutoff 2026-11-17 01:54 (its last start already past), night cutoff 2026-11-17 02:01, no night marker
+-- runner calls:
+(none)
+-- python calls: none
+-- peer calls: peer unlock;
+-- log:
+11-17 01:44:41 [g1t] g1_chain (pid 27327; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 01:54, night cutoff 2026-11-17 02:01; the AWAY rule on
+11-17 01:44:41 [g1t] day window: waits for the gates; no start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 01:39 (cutoff 2026-11-17 01:54)
+11-17 01:44:41 [g1t] no start in the day window by 11-17 01:39 (no results/T1C_TUEF3_END written after the arming)
+11-17 01:44:41 [g1t] night window: waits for the gates and <sim>/BigMoE/data/r57/NIGHT1117_BIGMOE_END after 11-17 01:44; no start while HOLD, PAUS
+11-17 01:45:15 [g1t] waiting: T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1
+11-17 01:45:51 [g1t] waiting: T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1
+11-17 01:46:01 [g1t] no start in the night window by 11-17 01:46 (T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub
+11-17 01:46:01 [g1t] left for Wednesday: day: no start; night: no start
+11-17 01:46:01 [g1t] end (rc 75): left for Wednesday: day: no start; night: no start; wrote results/G1_G1T_END
+-- G1_G1T_END: G1 G1T END 11-17 01:46:01: left for Wednesday: day: no start; night: no start
+-- after the end: runner processes (): all gone
+
+== g21: B2's runner (tier 1) exits 6 (its cutoff): rc 75 -> the night window, after the night marker: B2 RESUMED (CARD_RESUME=1) with the night cutoff; then V2; done (g1cdr)
+chain rc 0
+-- driver:
+01:46:05 g21 the night marker
+-- runner calls:
+01:44:46 runner pid 27739 tg=lx45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:25 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:44:50   lx45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:45:01 runner pid 28560 tg=g1cdr45g1b tier=0 resume=0 dry=0 cutoff=2026-11-17 02:25 mem=39 fblob=f4eac1d6bd3705417c7d144c056ede62d3a588ae fenv=g1cdr45g1b_env.txt ref=card_lx45g1b_t0code ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check:res_opt@run,lossy_check:op
+01:45:05   g1cdr45g1b done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+01:45:16 runner pid 29475 tg=lx45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:25 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:45:20   lx45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+01:45:31 runner pid 30229 tg=g1cdr45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 02:25 mem=39 fblob=f4eac1d6bd3705417c7d144c056ede62d3a588ae fenv=g1cdr45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check:res_opt@run,lossy_check:op
+01:45:35   g1cdr45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g1cdr45g1b
+01:45:46 runner pid 30920 tg=lx45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:25 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:45:50   lx45g1b_rev: exit 6 (the runner's cutoff)
+01:46:07 runner pid 32261 tg=lx45g1b_rev tier=1 resume=1 dry=0 cutoff=2026-11-17 02:45 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= later=0
+01:46:11   lx45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+01:46:22 runner pid 32956 tg=g1cdr45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 02:45 mem=39 fblob=f4eac1d6bd3705417c7d144c056ede62d3a588ae fenv=g1cdr45g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_g1cdr45g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_ch
+01:46:26   g1cdr45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g1cdr45g1b_rev
+-- python calls: python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));python tools/t1c_unset_path.py card_lx45g1b_t1code card_lx45t1c1_t1code;python tools/lossy_speed.py g1cdr45g1b lx45g1b;python -c import sys; sys.path.insert(0, '.'); from evalsuite.cli import free_gb; print(int(free_gb()));python tools/t1c_unset_path.py card_lx45g1b_t1code_rev card_lx45t1c1_t1code_rev;python tools/lossy_speed.py g1cdr45g1b_rev lx45g1b_rev;
+-- peer calls: peer unlock;
+-- log:
+11-17 01:44:41 [g1t] g1_chain (pid 27292; session 63835): G1 on g1b through day_runner68.sh, tag g1t; day cutoff 2026-11-17 02:25, night cutoff 2026-11-17 02:45; the AWAY rule on
+11-17 01:44:41 [g1t] day window: waits for the gates; no start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 02:10 (cutoff 2026-11-17 02:25)
+11-17 01:44:45 [g1t] start (day): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1cdr; read again 2 s 
+11-17 01:44:46 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:44:46 [g1t] the pick: g1cdr (G1 PICK 11-17 13:40:00: g1cdr (stub pick)); blob f4eac1d6bd3705417c7d144c056ede62d3a588ae; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check:res_opt
+11-17 01:44:46 [g1t] B0 base tier 0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CAR
+11-17 01:45:01 [g1t] B0 base tier 0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:45:01 [g1t] V0 g1cdr tier 0 vs B0: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147a
+11-17 01:45:16 [g1t] V0 g1cdr tier 0 vs B0: rc 0; LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:45:16 [g1t] B1 base forward: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:45:31 [g1t] B1 base forward: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+11-17 01:45:31 [g1t] unset-path check card_lx45g1b_t1code vs card_lx45t1c1_t1code (information; rc 0): 50
+11-17 01:45:31 [g1t] V1 g1cdr forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147
+11-17 01:45:46 [g1t] V1 g1cdr forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g1cdr45g1b
+11-17 01:45:46 [g1t] speed g1cdr45g1b vs lx45g1b (rc 0): 50
+11-17 01:45:46 [g1t] B2 base reverse: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CA
+11-17 01:46:01 [g1t] B2 base reverse: rc 6; no DONE from this run
+11-17 01:46:01 [g1t] B2 base reverse: the runner stopped at the window's cutoff (rc 6): it resumes in the next window
+11-17 01:46:01 [g1t] the day window cut G1 ( day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 75): it resumes in the night window
+11-17 01:46:01 [g1t] night window: waits for the gates and <sim>/BigMoE/data/r57/NIGHT1117_BIGMOE_END after 11-17 01:44; no start while HOLD, PAUS
+11-17 01:46:07 [g1t] start (night): T1C_TUEF3_END (T1C TUEF3 END 11-17 13:20:00: done (stub) ); V2 (LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both); probe (G1P PROBE END 11-17 13:30:00: PASS (stub) ); pick g1cdr; read again 2 
+11-17 01:46:07 [g1t] free NO-SWAP 50 GB; swap 8192.00M
+11-17 01:46:07 [g1t] B0 base tier 0: already done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:46:07 [g1t] V0 g1cdr tier 0 vs B0: already done: LOSSY tier0 (CODE-ONLY mode): GO (stub)
+11-17 01:46:07 [g1t] B1 base forward: already done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+11-17 01:46:07 [g1t] V1 g1cdr forward vs B1: already done: LOSSY tier1 (CODE-ONLY mode): PASS; stub g1cdr45g1b
+11-17 01:46:07 [g1t] B2 base reverse, resumed: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b341
+11-17 01:46:22 [g1t] B2 base reverse, resumed: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+11-17 01:46:22 [g1t] unset-path check card_lx45g1b_t1code_rev vs card_lx45t1c1_t1code_rev (information; rc 0): 50
+11-17 01:46:22 [g1t] V2 g1cdr reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f
+11-17 01:46:37 [g1t] V2 g1cdr reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub g1cdr45g1b_rev
+11-17 01:46:37 [g1t] speed g1cdr45g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 01:46:37 [g1t] done: G1 = g1cdr (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1cdr45g1b_rev_DONE)
+11-17 01:46:38 [g1t] end (rc 0):  day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 75; night: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1cdr (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1cdr45g1
+-- G1_G1T_END: G1 G1T END 11-17 01:46:38:  day: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 75; night: B0 rc 0; V0 rc 0; B1 rc 0; V1 rc 0; B2 rc 0; V2 rc 0; done: G1 = g1cdr (verdicts in the CARD_*_DONE files; the both-orders verdict in CARD_g1cdr45g1b_rev_DONE)
+-- after the end: runner processes (27739 28560 29475 30229 30920 32261 32956 ): all gone
+
+sim done 01:46:38; chain sha256 c1852dfa566ea6e5
+
+########## the driver (drive.sh, as of run 2)
+#!/bin/bash
+# drive.sh: the stub sim of tools/g1_chain.sh. A BYTE COPY of the real chain runs per scenario in a sandbox HOME: its
+# EvalSuite holds the chain copy, a stand-in runner (runner_stub.sh) as tools/day_runner68.sh, a stand-in .venv/bin/python
+# (logs its calls, prints 50), and the markers the driver writes; $HOME/.local/share/quiet/away_secs.sh reads $HOME/away;
+# $HOME/.local/bin/peer logs its calls. Kamen's arrivals and departures are writes to $HOME/away. The chain's sleeps are
+# real but shortened by its test knobs (CHAIN_TICK 1 s, CHAIN_REREAD 2 s); its 15 s run monitor is unchanged.
+D=$(cd "$(dirname "$0")" && pwd); SRC=$HOME/EvalSuite/tools/g1_chain.sh
+t() { date -r $(( $(date +%s) + $1 )) '+%Y-%m-%d %H:%M'; }                      # $1 s from now, minute-floored
+tc() { date -r $(( ( $(date +%s) + $1 + 59 ) / 60 * 60 )) '+%Y-%m-%d %H:%M'; }   # at least $1 s from now, minute-ceiled
+e() { date -j -f '%Y-%m-%d %H:%M:%S' "$1:00" +%s; }
+setup() {
+  local H=$D/$1
+  rm -rf "$H"; mkdir -p "$H/EvalSuite/tools" "$H/EvalSuite/results/lossygate" "$H/EvalSuite/.venv/bin" "$H/.local/bin" \
+    "$H/.local/share/quiet" "$H/BigMoE/data/r57"
+  cp "$SRC" "$H/EvalSuite/tools/g1_chain.sh"; cp "$D/runner_stub.sh" "$H/EvalSuite/tools/day_runner68.sh"
+  printf '#!/bin/bash\necho "$(date +%%H:%%M:%%S) python $*" >> "$HOME/python_calls.txt"\necho 50\n' > "$H/EvalSuite/.venv/bin/python"
+  printf '#!/bin/bash\necho "$(date +%%H:%%M:%%S) peer $*" >> "$HOME/peer_calls.txt"\n' > "$H/.local/bin/peer"
+  printf '#!/bin/bash\ncat "$HOME/away" 2>/dev/null\n' > "$H/.local/share/quiet/away_secs.sh"
+  chmod +x "$H/EvalSuite/tools/"*.sh "$H/EvalSuite/.venv/bin/python" "$H/.local/bin/peer" "$H/.local/share/quiet/away_secs.sh"
+  echo 1000 > "$H/away"
+}
+gates_on() {    # scenario: the start gates after the chain's arming: T1C_TUEF3_END, V2's verdict, the probe marker, the pick
+  local H=$D/$1 R=$D/$1/EvalSuite/results
+  echo "T1C TUEF3 END 11-17 13:20:00: done (stub)" > "$R/T1C_TUEF3_END"
+  echo "LOSSY tier1 (CODE-ONLY mode): PASS; pooled code (stub) (both orders)" > "$R/CARD_t1cx45t1c1_rev_DONE"
+  echo "G1P PROBE END 11-17 13:30:00: PASS (stub)" > "$H/BigMoE/data/r57/G1P_PROBE_DONE"
+  sleep 1; echo "G1 PICK 11-17 13:40:00: ${2:-g1r} (stub pick)" > "$R/G1_PICK"
+}
+night_on() { echo "NIGHT1117 BIGMOE END (stub)" > "$D/$1/BigMoE/data/r57/NIGHT1117_BIGMOE_END"; }
+run() {         # scenario, then overrides
+  local H=$D/$1 s=$1; shift
+  env HOME="$H" SIMD="$H" CHAIN_MYPID=63835 CHAIN_TICK=1 CHAIN_REREAD=2 CHAIN_RUNNER="$H/EvalSuite/tools/day_runner68.sh" \
+    CHAIN_RUNPAT="$H/EvalSuite/tools/day_runner6[0-9]\.sh" CHAIN_F3PAT="sim_follower3_${s}_[x]" \
+    CHAIN_CUTOFF="$(tc 2400)" CHAIN_NIGHT_CUT="$(tc 3600)" "$@" bash "$H/EvalSuite/tools/g1_chain.sh" > "$H/chain.out" 2>&1 &
+  CPID=$!; sleep 1
+}
+LOGF() { echo "$D/$1/EvalSuite/results/g1_chain.log"; }
+waitlog() { local i; for i in $(seq 1 "${3:-300}"); do grep -q -- "$2" "$(LOGF "$1")" 2>/dev/null && return 0; sleep 1; done; echo "TIMEOUT waiting for '$2'" >> "$D/$1/note"; return 1; }
+waitrun() { local i; for i in $(seq 1 "${3:-300}"); do grep -q -- "$2" "$D/$1/runner_calls.txt" 2>/dev/null && return 0; sleep 1; done; echo "TIMEOUT waiting for runner '$2'" >> "$D/$1/note"; return 1; }
+note() { echo "$(date +%H:%M:%S) $*" >> "$D/$1/note"; }
+report() {      # scenario, the chain's rc, what is expected
+  local H=$D/$1 R=$D/$1/EvalSuite/results rp
+  rp=$(grep -o 'runner pid [0-9]*' "$H/runner_calls.txt" 2>/dev/null | awk '{print $3}' | tr '\n' ' ')
+  { echo "== $1: $3"; echo "chain rc $2"
+    [ -e "$H/note" ] && { echo "-- driver:"; cat "$H/note"; }
+    echo "-- runner calls:"; if [ -s "$H/runner_calls.txt" ]; then cut -c1-330 "$H/runner_calls.txt"; else echo "(none)"; fi
+    echo "-- python calls: $(if [ -s "$H/python_calls.txt" ]; then cut -c10-140 "$H/python_calls.txt" | tr '\n' ';'; else echo none; fi)"
+    echo "-- peer calls: $(if [ -s "$H/peer_calls.txt" ]; then cut -c10- "$H/peer_calls.txt" | tr '\n' ';'; else echo none; fi)"
+    echo "-- log:"; cut -c1-240 "$R/g1_chain.log"
+    echo "-- G1_G1T_END: $(cat "$R/G1_G1T_END" 2>/dev/null || echo MISSING)"
+    local a=""; for p in $rp; do kill -0 "$p" 2>/dev/null && a="$a ALIVE($p)"; done
+    echo "-- after the end: runner processes ($rp): ${a:-all gone}"; } > "$H/report.txt"
+}
+# ---- the scenarios
+g1() { setup g1; run g1; gates_on g1 g1r; wait $CPID; report g1 $? "all gates, away throughout, pick g1r: B0 V0 B1 V1 B2 V2 with g1r's tag / blob / CARD_ENGAGE, the unset-path checks and speed read-outs; done"; }
+g2() { setup g2; local R=$D/g2/EvalSuite/results H=$D/g2; run g2; sleep 4
+  note g2 "T1C_TUEF3_END"; echo "T1C TUEF3 END (stub)" > "$R/T1C_TUEF3_END"; sleep 5
+  note g2 "G1_PICK written BEFORE V2's verdict"; echo "G1 PICK 11-17 13:40:00: g1 (stub)" > "$R/G1_PICK"; sleep 2
+  note g2 "V2's verdict"; echo "LOSSY tier1 (CODE-ONLY mode): FAIL; pooled (stub)" > "$R/CARD_t1cx45t1c1_rev_DONE"; sleep 5
+  note g2 "the probe marker (the pick is now older than V2's verdict)"; echo "G1P PROBE END (stub): NOT RUN" > "$H/BigMoE/data/r57/G1P_PROBE_DONE"; sleep 6
+  note g2 "a runner call before the pick is rewritten: $(test -s $H/runner_calls.txt && echo YES || echo no)"; echo "G1 PICK 11-17 13:50:00: g1 (stub, rewritten)" > "$R/G1_PICK"
+  wait $CPID; report g2 $? "the gates arrive one by one, the pick first older than V2's verdict: no start until the rewritten pick; then done (g1, 1c only)"; }
+g3() { setup g3; run g3; gates_on g3 g1x; wait $CPID; report g3 $? "the pick names no pinned env (g1x): no run, rc 5, no runner call"; }
+g4() { setup g4; bash -c 'sleep 25; true' sim_follower3_g4_x & local FP=$!; note g4 "a fake follower3 runs (pid $FP, 25 s)"; run g4; gates_on g4 g1l
+  sleep 12; note g4 "runner calls while follower3 runs: $(test -s $D/g4/runner_calls.txt && echo YES || echo none)"; wait $FP
+  wait $CPID; report g4 $? "follower3 still runs: no start; once it is gone: start, done"; }
+g5() { setup g5; bash -c 'sleep 25; true' "$D/g5/EvalSuite/tools/day_runner64.sh" & local FP=$!; note g5 "a fake EvalSuite runner runs (pid $FP, 25 s)"; run g5; gates_on g5 g1
+  sleep 12; note g5 "runner calls meanwhile: $(test -s $D/g5/runner_calls.txt && echo YES || echo none)"; wait $FP
+  wait $CPID; report g5 $? "an EvalSuite runner is alive: no start; once it is gone: start, done"; }
+> (a quote from the project owner, kept private)
+  note g6 "Kamen leaves; a runner call before: $(test -s $D/g6/runner_calls.txt && echo YES || echo no)"; echo 1000 > $D/g6/away
+> (a quote from the project owner, kept private)
+> (a quote from the project owner, kept private)
+> (a quote from the project owner, kept private)
+  wait $CPID; report g7 $? "mid-B1: two reads apart -> yield (runner TERM, peer unlock); he leaves -> B1 resumes (CARD_RESUME=1); then V1 B2 V2; done (g1cr)"; }
+g8() { setup g8; run g8 STUB_KILL0=g1r45g1b; gates_on g8 g1r; wait $CPID; report g8 $? "V0 KILL: G1 ends at tier 0; no B1"; }
+g9() { setup g9; run g9 STUB_FAIL1=g1r45g1b; gates_on g9 g1r; wait $CPID; report g9 $? "V1 FAIL: the speed read-out, then G1 ends; no B2"; }
+g10() { setup g10; run g10 STUB_VOID1=lx45g1b; gates_on g10 g1r; wait $CPID; report g10 $? "B1 VOID: the chain stops (rc 9), no V1"; }
+g11() { setup g11; local DC; DC=$(tc 1020); note g11 "day cutoff $DC (last start 15 min before)"; run g11 CHAIN_CUTOFF="$DC" STUB_S_lx45g1b=30; gates_on g11 g1r
+> (a quote from the project owner, kept private)
+> (a quote from the project owner, kept private)
+  wait $CPID; report g11 $? "Kamen stays past the day's last start mid-B1: B1 rc 75 -> the night window waits for the night marker; then B1 resumes with the night cutoff; done"; }
+g12() { setup g12; run g12 STUB_RC6=lx45g1b; gates_on g12 g1; waitlog g12 "the day window cut G1" 200; sleep 3; note g12 "the night marker"; night_on g12
+  wait $CPID; report g12 $? "the base's FIRST runner call exits 6 (its cutoff; the stub keys on the TG, which B0 and B1 share, so it is B0): rc 75 -> the night window, after the night marker: B0 moved aside, fresh with the night cutoff; done"; }
+g13() { setup g13; local DC; DC=$(tc 960); note g13 "day cutoff $DC"; run g13 CHAIN_CUTOFF="$DC"
+  waitlog g13 "no start in the day window" 300; note g13 "the gates and the pick, after the day's last start"; gates_on g13 g1l; sleep 5; note g13 "the night marker"; night_on g13
+  wait $CPID; report g13 $? "no pick by the day's last start: no start by day; the night window starts on the night marker; done"; }
+g14() { setup g14; local DC NC; DC=$(t 600); NC=$(tc 960); note g14 "day cutoff $DC (its last start already past), night cutoff $NC, no night marker"; run g14 CHAIN_CUTOFF="$DC" CHAIN_NIGHT_CUT="$NC"; gates_on g14 g1
+  wait $CPID; report g14 $? "the day window's last start is already past, and no night marker: no start in either window; left for Wednesday (rc 75)"; }
+g15() { setup g15; run g15 STUB_S_g1r45g1b=40; gates_on g15 g1r; waitrun g15 "tg=g1r45g1b tier=1 resume=0"; sleep 3; note g15 "TERM to the chain"; kill -TERM $CPID
+  wait $CPID; local rc=$?; sleep 1; report g15 $rc "TERM mid-V1: the runner is stopped, peer unlock; the marker says stopped by a signal"; }
+g16() { setup g16; run g16 STUB_S_lx45g1b=40; gates_on g16 g1r; waitrun g16 "tg=lx45g1b tier=1 resume=0"; sleep 3; note g16 "HOLD"; touch $D/g16/.local/share/quiet/HOLD
+  wait $CPID; report g16 $? "HOLD mid-B1: stopped by HOLD (rc 8), the runner stopped"; }
+g17() { setup g17; local DC; DC=$(tc 1020); run g17 CHAIN_CUTOFF="$DC" STUB_S_lx45g1b=30; gates_on g17 g1r
+> (a quote from the project owner, kept private)
+  waitlog g17 "the day window cut G1" 400; echo 1000 > $D/g17/away; note g17 "the pick rewritten to g1, then the night marker"
+  echo "G1 PICK 11-17 22:00:00: g1 (changed)" > $D/g17/EvalSuite/results/G1_PICK; sleep 3; night_on g17
+  wait $CPID; report g17 $? "the pick changes between the windows: the night window refuses (rc 5)"; }
+> (a quote from the project owner, kept private)
+> (a quote from the project owner, kept private)
+  wait $CPID; report g18 $? "a yield mid-V0 (tier 0): the cut run is moved aside (.cut1) and V0 starts fresh (no CARD_RESUME); done"; }
+g19() { setup g19; run g19 CHAIN_DRY=1 CHAIN_DRYENV=g1cdr; wait $CPID; report g19 $? "DRY (g1cdr): six runner calls with dry=1 and CARD_REF_LATER on V0-V2; no wait, no marker"; }
+g20() { setup g20; : > $D/g20/away; run g20; gates_on g20 g1lr; wait $CPID; report g20 $? "away_secs.sh prints nothing: counts as away; done (g1lr)"; }
+g21() { setup g21; run g21 STUB_RC6=lx45g1b_rev; gates_on g21 g1cdr; waitlog g21 "the day window cut G1" 300; sleep 3; note g21 "the night marker"; night_on g21
+  wait $CPID; report g21 $? "B2's runner (tier 1) exits 6 (its cutoff): rc 75 -> the night window, after the night marker: B2 RESUMED (CARD_RESUME=1) with the night cutoff; then V2; done (g1cdr)"; }
+ALL="g1 g2 g3 g4 g5 g6 g7 g8 g9 g10 g11 g12 g13 g14 g15 g16 g17 g18 g19 g20 g21"
+for s in ${1:-$ALL}; do $s & done; wait
+for s in ${1:-$ALL}; do cat "$D/$s/report.txt"; echo; done > "$D/all_reports.txt"
+echo "sim done $(date +%H:%M:%S); chain sha256 $(shasum -a 256 "$SRC" | cut -c1-16)" >> "$D/all_reports.txt"
+
+########## the stand-in runner (runner_stub.sh)
+#!/bin/bash
+# a stand-in for runner 68 under the REAL tools/g1_chain.sh (byte copy) in the G1 chain sim: records its settings and pid;
+# refuses an existing tier-1 run dir without CARD_RESUME=1 (as runner 68 does); makes the run dir; "runs" STUB_S s (a
+# resume: STUB_RESUME s); writes the DONE file. Per-TG outcomes: STUB_KILL0 (tier 0 KILL), STUB_FAIL1 / STUB_VOID1 (a tier-1
+# FAIL / VOID), STUB_RC6 (exit 6 on its FIRST call: the runner's own cutoff; no DONE). TERM: exit 143, no DONE.
+H=${SIMD:?}; ORD=${CARD_ORDER:-fwd}; TG=$CARD_TAG; T=${CARD_TIER:-1}; RD=results/card_${CARD_TAG}_t${T}code
+[ "$ORD" = rev ] && { TG=${TG}_rev; RD=${RD}_rev; }
+echo "$(date +%H:%M:%S) runner pid $$ tg=$TG tier=$T resume=${CARD_RESUME:-0} dry=${CARD_DRY:-0} cutoff=$CARD_CUTOFF mem=$CARD_MEM fblob=$CARD_FBLOB fenv=$(basename "$CARD_FENV") ref=$CARD_REF ident=${CARD_IFEVAL_IDENT:-0} fwd_run=${CARD_FWD_RUN:-} engage=${CARD_ENGAGE:-} later=${CARD_REF_LATER:-0}" >> "$H/runner_calls.txt"
+[ "${CARD_DRY:-0}" = 1 ] && exit 0
+if [ "$T" = 1 ] && [ "${CARD_RESUME:-0}" != 1 ] && [ -e "$RD" ]; then echo "$(date +%H:%M:%S)   $RD exists without CARD_RESUME=1: stops (rc 2)" >> "$H/runner_calls.txt"; exit 2; fi
+mkdir -p "$RD"
+trap 'echo "$(date +%H:%M:%S)   $TG pid $$ got TERM" >> "$H/runner_calls.txt"; kill $! 2>/dev/null; exit 143' TERM
+if [ "${CARD_RESUME:-0}" = 1 ]; then S=${STUB_RESUME:-4}; else S=${STUB_S:-4}; fi
+eval "S=\${STUB_S_$(echo "$TG" | tr -c 'A-Za-z0-9\n' '_'):-$S}"
+sleep "$S" & wait $!
+if [ "${STUB_RC6:-}" = "$TG" ] && [ ! -e "$H/rc6_done_$TG" ]; then touch "$H/rc6_done_$TG"; echo "$(date +%H:%M:%S)   $TG: exit 6 (the runner's cutoff)" >> "$H/runner_calls.txt"; exit 6; fi
+if [ "$T" = 0 ]; then
+  if [ "${STUB_KILL0:-}" = "$TG" ]; then v="KILL (stub)"; else v="GO (stub)"; fi
+  echo "LOSSY tier0 (CODE-ONLY mode): $v" > "results/CARD_${TG}_DONE"
+else
+  if [ "${STUB_VOID1:-}" = "$TG" ]; then echo "CARD $TG: VOID (stub)" > "results/CARD_${TG}_DONE"
+  elif [ "${STUB_FAIL1:-}" = "$TG" ]; then echo "LOSSY tier1 (CODE-ONLY mode): FAIL; stub $TG" > "results/CARD_${TG}_DONE"
+  else echo "LOSSY tier1 (CODE-ONLY mode): PASS; stub $TG" > "results/CARD_${TG}_DONE"; fi
+fi
+echo "$(date +%H:%M:%S)   $TG done: $(head -c 60 "results/CARD_${TG}_DONE")" >> "$H/runner_calls.txt"
+exit 0

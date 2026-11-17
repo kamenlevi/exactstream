@@ -1,0 +1,429 @@
+# runner 68 checks (PREREG_lossygate 5d, dated Tue 01:2x; NewIdeas 01:15): the 4b rule under res1c and whole-run engagement terms, EvalSuite 11-17 01:21
+# tools/day_runner68.sh sha256 80e2e33cd02e5f14b337bd832b4b0b68bb3d87292a02b8967d72188f60b29483; runner 67 97815262f50ec346 (unchanged)
+## 1. diff runner 67 -> 68
+1a2,12
+> # EvalSuite runner 68 = runner 67 with two changes for res1c's envs (PREREG_lossygate 5d, dated Tue 01:2x; NewIdeas 01:15):
+> #   1. QOM's validity rule under 1c (amendment 4b) with res1c: on the sets in both R57_QOM_SETS and R57_TIERS_SETS,
+> #      pf.qom_opt must EQUAL lossy_check.opt_post (res1c's RES / COMQOM optional uses; QOM's own keep stays replaced by
+> #      1c). With res1c unset, opt_post is absent, so the rule is runner 65's "== 0" exactly. res_opt + com_opt is printed
+> #      beside opt_post per process (reported, never ruled).
+> #   2. Whole-run engagement terms: a CARD_ENGAGE term ending "@run" must be > 0 summed over the run's kept code answers
+> #      (its processes listed in results/<run>/engage_runs.txt, resumes included; the latest record of a key counts) and
+> #      0 on chat. Checked after each process (the EARLY check: once the run holds >= 32 kept code answers, a sum still
+> #      at 0 is VOID) and before every verdict (the FULL check). Each process still checks the chat side of every term;
+> #      an unmarked term keeps runner 67's rule (> 0 on every kept code run). A new file, because runner 67 is
+> #      registered. Its logs are results/day68_*.
+36c47
+< LOG=results/day67_${TG}_runner.log
+---
+> LOG=results/day68_${TG}_runner.log
+43a55
+> RUNTERMS=$(echo "$ENGAGE" | tr ',' '\n' | grep '@run$' | paste -sd, -)   # runner 68: the whole-run terms
+58c70
+< [ "$DRY" = 1 ] && LOG=results/day67_dry_${TG}.log
+---
+> [ "$DRY" = 1 ] && LOG=results/day68_dry_${TG}.log
+282c294,296
+<     return (r.get("pf") or {}).get("qom_opt", 0)
+---
+>     return (r.get("pf") or {}).get("qom_opt", 0) or 0
+> def lc(r, k):                                       # res1c's lossy_check counters (absent with res1c unset: 0)
+>     return (r.get("lossy_check") or {}).get(k, 0) or 0
+285,287c299,306
+< stk = [r["key"] for r in rep if qo(r) > 0]          # QOM's optional uses where 1c should have replaced it: stacked
+< note = ((f"; 1c in place of QOM on {sorted(S & T)}: QOM uses on {len(stk)} of {len(rep)} runs (must be 0)"
+<          + (f" ({' '.join(stk[:5])})" if stk else "")) if S & T else "")
+---
+> stk = [r["key"] for r in rep if qo(r) != lc(r, "opt_post")]   # runner 68: QOM's optional uses where 1c replaced it must all be
+> att = [r["key"] for r in rep if lc(r, "res_opt") + lc(r, "com_opt") != lc(r, "opt_post")]   # res1c's (opt_post); att: reported
+> note = ((f"; 1c in place of QOM on {sorted(S & T)}: pf.qom_opt == opt_post (res1c's; 0 without res1c) on "
+>          f"{len(rep) - len(stk)} of {len(rep)} runs (must be all)" + (f", NOT on {' '.join(stk[:5])}" if stk else "")
+>          + f"; reported: opt_post {sum(lc(r, 'opt_post') for r in rep)}, res_opt + com_opt "
+>          f"{sum(lc(r, 'res_opt') + lc(r, 'com_opt') for r in rep)} ({sum(lc(r, 'res_opt') for r in rep)} + "
+>          f"{sum(lc(r, 'com_opt') for r in rep)}), equal on {len(rep) - len(att)} of {len(rep)} runs"
+>          + (f" (differs on {' '.join(att[:5])})" if att else "")) if S & T else "")
+300,301c319,321
+<     f_, _, s_ = t_.partition(":")                       # field, or field:key+key (a dict field's counts that prove the lossy path)
+<     terms.append((t_, f_, [k for k in s_.split("+") if k]))
+---
+>     w_ = t_.endswith("@run")                            # runner 68: a whole-run term (checked over the run, not per process)
+>     f_, _, s_ = (t_[:-4] if w_ else t_).partition(":")  # field, or field:key+key (a dict field's counts that prove the lossy path)
+>     terms.append((t_, f_, [k for k in s_.split("+") if k], w_))
+311c331
+< for t_, field, sub in terms:
+---
+> for t_, field, sub, w_ in terms:
+313c333,337
+<     if os.environ.get("ENGMODE") == "any":              # accept rules (LOSSY_GATE section 11): engaged where a draft qualifies,
+---
+>     if w_:                                              # runner 68: the code side is the run's (the EARLY / FULL checks)
+>         print(f"  term {t_}: this process {sum(val(r, field, sub) for r in kept if not chat(r['key']))} over "
+>               f"{sum(1 for r in kept if not chat(r['key']))} code runs (at 0 on {len(o_)}); whole-run sum checked by the runner")
+>         o_ = []
+>     elif os.environ.get("ENGMODE") == "any":            # accept rules (LOSSY_GATE section 11): engaged where a draft qualifies,
+327a352,384
+> }
+> runterms() {    # run, early|full: runner 68's whole-run terms (CARD_ENGAGE's "@run" ones) over the run's kept code answers
+>   [ -n "$RUNTERMS" ] || return 0   # so far: each key's latest record in the runs.json files of results/<run>/engage_runs.txt,
+>   ENGAGE="$RUNTERMS" SCOPE="$SCOPE" WHEN="$2" python3 - "$1" <<'RT' >> "$LOG" 2>&1 \
+>     || void "LOSSY: a whole-run term is not engaged ($2 check: $(grep '^whole-run' "$LOG" | tail -1 | cut -c1-160))"
+> import json, os, sys                                     # keys in the run's decode.jsonl only; 0 on chat is each process's check
+> run, when = sys.argv[1], os.environ["WHEN"]
+> chat = lambda k: os.environ.get("SCOPE") == "code" and k.split("/")[0] == "ifeval"
+> rows = {json.loads(l)["key"] for l in open(f"results/{run}/decode.jsonl")} if os.path.exists(f"results/{run}/decode.jsonl") else set()
+> led = f"results/{run}/engage_runs.txt"
+> files = [p for p in open(led).read().split() if p] if os.path.exists(led) else []
+> rec = {}
+> for p in files:                                         # later processes win: a key cut in one process and kept in a later one
+>     for r in json.load(open(p)):
+>         if not r.get("cut"):
+>             rec[r["key"]] = r
+> codes = [k for k in rec if k in rows and not chat(k)]
+> def val(r, field, sub):
+>     v = r.get(field) or 0
+>     if isinstance(v, dict):
+>         return sum(v.get(k) or 0 for k in sub) if sub else sum(x for x in v.values() if isinstance(x, (int, float)))
+>     return v
+> sums = {}
+> for t_ in [x for x in os.environ["ENGAGE"].split(",") if x]:
+>     f_, _, s_ = t_[:-4].partition(":")
+>     sums[t_] = sum(val(rec[k], f_, [x for x in s_.split("+") if x]) for k in codes)
+> zero = [t_ for t_, s in sums.items() if not s > 0]
+> decide = when == "full" or len(codes) >= 32             # EARLY: from 32 kept code answers on; FULL: before every verdict
+> print(f"whole-run terms ({when}, {len(files)} processes, {len(codes)} kept code answers): "
+>       + "; ".join(f"{t_} {s}" for t_, s in sums.items())
+>       + (f"; at 0: {zero}" if zero else "") + ("" if decide else " (not decided before 32 kept code answers)"))
+> sys.exit(1 if decide and zero else 0)
+> RT
+342a400,402
+>     if [ -n "$RUNTERMS" ] && [ "$run" = "$RUNF" ] && [ -s "$AF/${tag}_runs.json" ] && [ -d "results/$run" ]; then   # runner 68: the ledger
+>       echo "$AF/${tag}_runs.json" >> "results/$run/engage_runs.txt"; runterms "$run" early
+>     fi
+461c521
+< [ "$STAGE" = arm ] || { say "runner 67 has the arm stage only: runner stops"; exit 2; }
+---
+> [ "$STAGE" = arm ] || { say "runner 68 has the arm stage only: runner stops"; exit 2; }
+470c530
+< say "runner 67 (the lossy gate, $TAG, tier $TIER, scope $SCOPE) start (pid $$)$([ "${CARD_RESUME:-0}" = 1 ] && echo ', a resume'): waits for $FENV (written after Wed 14:33); cutoff $(date -r "$CUTOFF" '+%m-%d %H:%M')"
+---
+> say "runner 68 (the lossy gate, $TAG, tier $TIER, scope $SCOPE) start (pid $$)$([ "${CARD_RESUME:-0}" = 1 ] && echo ', a resume'): waits for $FENV (written after Wed 14:33); cutoff $(date -r "$CUTOFF" '+%m-%d %H:%M')"
+523c583,584
+< say "QOM's validity rule: pf.qom_opt > 0 on every run in ${QS:-no set}$([ -n "$TS" ] && echo "; R57_TIERS=$TI on $TS: pf.qom_opt == 0 on the sets in both (1c replaced QOM)")"
+---
+> say "QOM's validity rule: pf.qom_opt > 0 on every run in ${QS:-no set}$([ -n "$TS" ] && echo "; R57_TIERS=$TI on $TS: pf.qom_opt == lossy_check.opt_post (res1c's uses; 0 without res1c) on the sets in both (1c replaced QOM's keep; runner 68)")"
+> say "engagement: ${ENGAGE:-none (a base arm)}$([ -n "$RUNTERMS" ] && echo "; whole-run terms $RUNTERMS: > 0 over the run's kept code answers (EARLY from 32, FULL before each verdict), 0 on chat")"
+552c613
+< [ "$DRY" = 1 ] && { say "DRY: tier $TIER, scope $SCOPE, order $ORDER (first $(echo "$KEYS" | cut -d, -f1-2), last $(echo "$KEYS" | tr ',' '\n' | tail -1))${IDENT:+ (IFEval identity)}, $(echo "$KEYS" | tr ',' '\n' | grep -c .) keys; engagement field ${ENGAGE:-none}; QOM sets ${QS:-unset}; 1c sets ${TS:-none}; reference $REFS holds $(refcount) of $RNK; pin $PIN0; bm_pin $(bm_pin && echo OK || echo FAILS); stops before the first GPU step"; exit 0; }
+---
+> [ "$DRY" = 1 ] && { say "DRY: tier $TIER, scope $SCOPE, order $ORDER (first $(echo "$KEYS" | cut -d, -f1-2), last $(echo "$KEYS" | tr ',' '\n' | tail -1))${IDENT:+ (IFEval identity)}, $(echo "$KEYS" | tr ',' '\n' | grep -c .) keys; engagement field ${ENGAGE:-none} (whole-run terms ${RUNTERMS:-none}); QOM sets ${QS:-unset}; 1c sets ${TS:-none}; reference $REFS holds $(refcount) of $RNK; pin $PIN0; bm_pin $(bm_pin && echo OK || echo FAILS); stops before the first GPU step"; exit 0; }
+632a694
+>   runterms "$RUNF" full
+644c706,707
+<     echo "LOSSY $TAG tier1: FAIL (the interim look stopped it: $(grep '^interim' "results/card_${TG}_interim${SCOPE/all/}.txt")) (vs $REFS)" > "$DONE"
+---
+>     runterms "$RUNF" full
+>     echo "LOSSY $TAG tier1: FAIL (the interim look stopped it:$(grep '^interim' "results/card_${TG}_interim${SCOPE/all/}.txt")) (vs $REFS)" > "$DONE"
+647a711
+>     runterms "$RUNF" full
+660c724
+< say "runner 67 end"
+---
+> say "runner 68 end"
+## 2. stub tests on the code extracted verbatim from runner 68 (extract.sh + test_r68.py, below), fixtures: BigMoE's g1b key-test runs.json + synthetic runs
+== T1: the 4b rule (ENG) on the key test's runs.json
+ok   T1 lx (runner 68): rc 0 (want 0)
+ok   T1 g1 (runner 68): rc 0 (want 0)
+       on ['humaneval', 'mbpp']: pf.qom_opt == opt_post (res1c's; 0 without res1c) on 1 of 1 runs (must be all); reported: opt_post 0, res_opt + com_opt 0 (0 + 0), equal on 1 of 1 runs
+ok   T1 g1r (runner 68): rc 0 (want 0)
+       on ['humaneval', 'mbpp']: pf.qom_opt == opt_post (res1c's; 0 without res1c) on 1 of 1 runs (must be all); reported: opt_post 15504, res_opt + com_opt 15504 (15504 + 0), equal on 1 of 1 runs
+ok   T1 g1c (runner 68): rc 0 (want 0)
+       on ['humaneval', 'mbpp']: pf.qom_opt == opt_post (res1c's; 0 without res1c) on 3 of 3 runs (must be all); reported: opt_post 0, res_opt + com_opt 0 (0 + 0), equal on 3 of 3 runs
+ok   T1 g1cr (runner 68): rc 0 (want 0)
+       on ['humaneval', 'mbpp']: pf.qom_opt == opt_post (res1c's; 0 without res1c) on 3 of 3 runs (must be all); reported: opt_post 41857, res_opt + com_opt 41857 (41857 + 0), equal on 3 of 3 runs
+ok   T1 g1cd (runner 68): rc 0 (want 0)
+       on ['humaneval', 'mbpp']: pf.qom_opt == opt_post (res1c's; 0 without res1c) on 3 of 3 runs (must be all); reported: opt_post 41088, res_opt + com_opt 41088 (0 + 41088), equal on 3 of 3 runs
+ok   T1 g1cdr (runner 68): rc 0 (want 0)
+       on ['humaneval', 'mbpp']: pf.qom_opt == opt_post (res1c's; 0 without res1c) on 3 of 3 runs (must be all); reported: opt_post 81002, res_opt + com_opt 81002 (39530 + 41472), equal on 3 of 3 runs
+ok   T1 g1l (runner 68): rc 0 (want 0)
+       on ['humaneval', 'mbpp']: pf.qom_opt == opt_post (res1c's; 0 without res1c) on 1 of 1 runs (must be all); reported: opt_post 0, res_opt + com_opt 0 (0 + 0), equal on 1 of 1 runs
+ok   T1 g1lr (runner 68): rc 0 (want 0)
+       on ['humaneval', 'mbpp']: pf.qom_opt == opt_post (res1c's; 0 without res1c) on 1 of 1 runs (must be all); reported: opt_post 11425, res_opt + com_opt 11425 (11425 + 0), equal on 1 of 1 runs
+ok   T1 g1 (runner 67, contrast): rc 0 (want 0)
+ok   T1 g1r (runner 67, contrast): rc 1 (want 1)
+ok   T1 g1c (runner 67, contrast): rc 0 (want 0)
+ok   T1 g1cr (runner 67, contrast): rc 1 (want 1)
+ok   T1 g1cd (runner 67, contrast): rc 1 (want 1)
+ok   T1 g1cdr (runner 67, contrast): rc 1 (want 1)
+ok   T1 g1l (runner 67, contrast): rc 0 (want 0)
+ok   T1 g1lr (runner 67, contrast): rc 1 (want 1)
+ok   T1 synthetic: pf.qom_opt 100, opt_post 0 (QOM stacked on 1c): rc 1 (want 1)
+ok   T1 synthetic: pf.qom_opt 100, opt_post 60 (more uses than res1c's): rc 1 (want 1)
+ok   T1 synthetic: pf.qom_opt 60, opt_post 100 (fewer): rc 1 (want 1)
+ok   T1 synthetic: pf.qom_opt 100 == opt_post 100, res + com 90 (reported only): rc 0 (want 0)
+      opt_post 100, res_opt + com_opt 90 (50 + 40), equal on 0 of 1 runs (differs on humaneval/HumanEval/45)
+ok   T1 synthetic: pf.qom_opt 0, no lossy_check (res1c unset): rc 0 (want 0)
+ok   T1 synthetic: pf.qom_opt 5, no lossy_check (QOM stacked, res1c unset): rc 1 (want 1)
+ok   T1 synthetic: the base, a QOM-set run with qom_opt 0 (runner 65's rule, unchanged): rc 1 (want 1)
+== T2: the per-process engagement check (ENG2) with @run terms
+ok   T2 g1: lossy_check:e3+edrop+lmsl_rows: rc 0 (want 0)
+ok   T2 g1r: lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run: rc 0 (want 0)
+ok   T2 g1c: lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run: rc 0 (want 0)
+ok   T2 g1cr: lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check:res_opt@run,lossy_check:opt_post@run: rc 0 (want 0)
+ok   T2 g1cd: lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run: rc 0 (want 0)
+ok   T2 g1cdr: lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check:res_opt@run,lossy_check:opt_post@run: rc 0 (want 0)
+ok   T2 g1l: lossy_check:e3+edrop+lmsl_rows: rc 0 (want 0)
+ok   T2 g1lr: lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run: rc 0 (want 0)
+ok   T2 g1c with com_rows UNMARKED (runner 67's per-run rule): not engaged: rc 1 (want 1)
+ok   T2 g1r with res_opt 7 on the IFEval run (an @run term on chat): rc 1 (want 1)
+ok   T2 g1r with 1c at 0 on one code run (1c stays per run): rc 1 (want 1)
+== T3: the whole-run check (RT)
+ok   T3 RES live on 40 code answers over 2 processes: early: rc 0 (want 0)
+ok   T3 RES live on 40 code answers over 2 processes: full: rc 0 (want 0)
+      whole-run terms (full, 2 processes, 40 kept code answers): lossy_check:res_opt@run 360; lossy_check:opt_post@run 360
+ok   T3 COMQOM dead on 40 code answers: early: rc 1 (want 1)
+ok   T3 COMQOM dead on 40 code answers: full: rc 1 (want 1)
+      whole-run terms (full, 2 processes, 40 kept code answers): lossy_check:com_rows@run 0; lossy_check:com_opt@run 0; at 0: ['lossy_check:com_rows@run', 'lossy_check:com_opt@run']
+ok   T3 COMQOM dead on 20 code answers only: early: rc 0 (want 0)
+ok   T3 COMQOM dead on 20 code answers only: full: rc 1 (want 1)
+      whole-run terms (full, 1 processes, 20 kept code answers): lossy_check:com_rows@run 0; lossy_check:com_opt@run 0; at 0: ['lossy_check:com_rows@run', 'lossy_check:com_opt@run']
+ok   T3 COMQOM live on 1 key of 40: early: rc 0 (want 0)
+ok   T3 COMQOM live on 1 key of 40: full: rc 0 (want 0)
+      whole-run terms (full, 2 processes, 40 kept code answers): lossy_check:com_rows@run 2; lossy_check:com_opt@run 300
+ok   T3 COMQOM only on a CUT record (not counted): early: rc 1 (want 1)
+ok   T3 COMQOM only on a CUT record (not counted): full: rc 1 (want 1)
+      whole-run terms (full, 2 processes, 40 kept code answers): lossy_check:com_rows@run 0; lossy_check:com_opt@run 0; at 0: ['lossy_check:com_rows@run', 'lossy_check:com_opt@run']
+ok   T3 COMQOM only on a key outside decode.jsonl (not counted): early: rc 1 (want 1)
+ok   T3 COMQOM only on a key outside decode.jsonl (not counted): full: rc 1 (want 1)
+      whole-run terms (full, 1 processes, 40 kept code answers): lossy_check:com_rows@run 0; lossy_check:com_opt@run 0; at 0: ['lossy_check:com_rows@run', 'lossy_check:com_opt@run']
+ok   T3 40 IFEval + 20 code, all at 0 (chat does not count toward 32): early: rc 0 (want 0)
+ok   T3 40 IFEval + 20 code, all at 0 (chat does not count toward 32): full: rc 1 (want 1)
+      whole-run terms (full, 1 processes, 20 kept code answers): lossy_check:com_rows@run 0; lossy_check:com_opt@run 0; at 0: ['lossy_check:com_rows@run', 'lossy_check:com_opt@run']
+ok   T3 a resume: 3 processes over two runner starts, RES live: early: rc 0 (want 0)
+ok   T3 a resume: 3 processes over two runner starts, RES live: full: rc 0 (want 0)
+      whole-run terms (full, 3 processes, 40 kept code answers): lossy_check:res_opt@run 120; lossy_check:opt_post@run 120
+ok   T3 RES live, COMQOM dead (each term on its own): early: rc 1 (want 1)
+ok   T3 RES live, COMQOM dead (each term on its own): full: rc 1 (want 1)
+      whole-run terms (full, 1 processes, 40 kept code answers): lossy_check:res_opt@run 360; lossy_check:opt_post@run 360; lossy_check:com_rows@run 0; lossy_check:com_opt@run 0; at 0: ['lossy_check:com_rows@run', 'lossy_check
+ok   T3 no ledger rows yet: early: rc 0 (want 0)
+ok   T3 no ledger rows yet: full: rc 1 (want 1)
+      whole-run terms (full, 0 processes, 0 kept code answers): lossy_check:com_rows@run 0; lossy_check:com_opt@run 0; at 0: ['lossy_check:com_rows@run', 'lossy_check:com_opt@run']
+== T4: runterms' bash wiring (void -> exit 5, the DONE line)
+ok   T4 runterms early on a dead COMQOM run exits 5 (VOID): rc 5 (want 5)
+      DONE: CARD g1cx45g1b: VOID (LOSSY: a whole-run term is not engaged (early check: whole-run terms (early, 1 processes, 40 kept code answers): lossy_check:com_rows@run 0; lossy_check:com_opt@run 0; at 0: ['lossy_check:com_rows@run', 'lossy_che))
+ok   T4 runterms early + full on a live COMQOM run return 0: rc 0 (want 0)
+      both passed | log: whole-run terms (full, 1 processes, 40 kept code answers): lossy_check:com_rows@run 40; lossy_check:com_opt@run 360
+ok   T4 runterms with no @run terms is a no-op: rc 0 (want 0)
+
+58 checks: ALL PASS
+## 3. DRY runs: the nine g1b envs x tier 0 / tier 1 fwd / tier 1 rev, G1's pins (trees g1b fb0ee182, frozen_g1b 2584e36a, bigmoe d92cdb4b; screen 6039fa8dbea5; .so ff69fa24a745), CARD_MEM 39
+lx t0 (ref ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2): rc 0 :: DRY: tier 0, scope code, order fwd (first humaneval/HumanEval/1,mbpp/100, last mbpp/157), 40 keys; engagement field none (whole-run terms none); QOM sets humaneval,mbpp; 1c sets none; reference ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 holds 40 of 40; pin 200d776668be; bm_pin OK; stops before the first GPU step
+lx t1 (ref ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2): rc 0 :: DRY: tier 1, scope code, order fwd (first humaneval/HumanEval/1,mbpp/100, last ifeval/3757), 364 keys; engagement field none (whole-run terms none); QOM sets humaneval,mbpp; 1c sets none; reference ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 holds 364 of 364; pin 200d776668be; bm_pin OK; stops before the first GPU step
+lx t1rev (ref ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2): rc 0 :: DRY: tier 1, scope code, order rev (first humanevalx/HumanEval/99,mbpp/321, last ifeval/1000), 364 keys; engagement field none (whole-run terms none); QOM sets humaneval,mbpp; 1c sets none; reference ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 holds 364 of 364; pin 200d776668be; bm_pin OK; stops before the first GPU step
+g1 t0 (ref card_lx45g1b_t0code): rc 0 :: DRY: tier 0, scope code, order fwd (first humaneval/HumanEval/1,mbpp/100, last mbpp/157), 40 keys; engagement field lossy_check:e3+edrop+lmsl_rows (whole-run terms none); QOM sets humaneval,mbpp; 1c sets humaneval,humanevalx,mbpp; reference card_lx45g1b_t0code holds 0 of 40; pin 200d776668be; bm_pin OK; stops before the first GPU step
+g1 t1 (ref card_lx45g1b_t1code): rc 0 :: DRY: tier 1, scope code, order fwd (first humaneval/HumanEval/1,mbpp/100, last ifeval/3757) (IFEval identity), 364 keys; engagement field lossy_check:e3+edrop+lmsl_rows (whole-run terms none); QOM sets humaneval,mbpp; 1c sets humaneval,humanevalx,mbpp; reference card_lx45g1b_t1code holds 0 of 364; pin 200d776668be; bm_pin OK; stops before the first GPU step
+g1 t1rev (ref card_lx45g1b_t1code_rev): rc 0 :: DRY: tier 1, scope code, order rev (first humanevalx/HumanEval/99,mbpp/321, last ifeval/1000) (IFEval identity), 364 keys; engagement field lossy_check:e3+edrop+lmsl_rows (whole-run terms none); QOM sets humaneval,mbpp; 1c sets humaneval,humanevalx,mbpp; reference card_lx45g1b_t1code_rev holds 0 of 364; pin 200d776668be; bm_pin OK; stops before the first GPU step
+g1r t0 (ref card_lx45g1b_t0code): rc 0 :: DRY: tier 0, scope code, order fwd (first humaneval/HumanEval/1,mbpp/100, last mbpp/157), 40 keys; engagement field lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run (whole-run terms lossy_check:res_opt@run,lossy_check:opt_post@run); QOM sets humaneval,mbpp; 1c sets humaneval,humanevalx,mbpp; reference card_lx45g1b_t0code holds 0 of 40; pin 200d776668be; bm_p
+g1r t1 (ref card_lx45g1b_t1code): rc 0 :: DRY: tier 1, scope code, order fwd (first humaneval/HumanEval/1,mbpp/100, last ifeval/3757) (IFEval identity), 364 keys; engagement field lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run (whole-run terms lossy_check:res_opt@run,lossy_check:opt_post@run); QOM sets humaneval,mbpp; 1c sets humaneval,humanevalx,mbpp; reference card_lx45g1b_t1code holds 0 of 364;
+g1r t1rev (ref card_lx45g1b_t1code_rev): rc 0 :: DRY: tier 1, scope code, order rev (first humanevalx/HumanEval/99,mbpp/321, last ifeval/1000) (IFEval identity), 364 keys; engagement field lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run (whole-run terms lossy_check:res_opt@run,lossy_check:opt_post@run); QOM sets humaneval,mbpp; 1c sets humaneval,humanevalx,mbpp; reference card_lx45g1b_t1code_rev holds 0 o
+g1c t0 (ref card_lx45g1b_t0code): rc 0 :: DRY: tier 0, scope code, order fwd (first humaneval/HumanEval/1,mbpp/100, last mbpp/157), 40 keys; engagement field lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run (whole-run terms lossy_check:com_rows@run,lossy_check:com_opt@run); QOM sets humaneval,mbpp; 1c sets humaneval,humanevalx,mbpp; reference card_lx45g1b_t0code holds 0 of 40; pin 200d776668be; bm_p
+g1c t1 (ref card_lx45g1b_t1code): rc 0 :: DRY: tier 1, scope code, order fwd (first humaneval/HumanEval/1,mbpp/100, last ifeval/3757) (IFEval identity), 364 keys; engagement field lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run (whole-run terms lossy_check:com_rows@run,lossy_check:com_opt@run); QOM sets humaneval,mbpp; 1c sets humaneval,humanevalx,mbpp; reference card_lx45g1b_t1code holds 0 of 364;
+g1c t1rev (ref card_lx45g1b_t1code_rev): rc 0 :: DRY: tier 1, scope code, order rev (first humanevalx/HumanEval/99,mbpp/321, last ifeval/1000) (IFEval identity), 364 keys; engagement field lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run (whole-run terms lossy_check:com_rows@run,lossy_check:com_opt@run); QOM sets humaneval,mbpp; 1c sets humaneval,humanevalx,mbpp; reference card_lx45g1b_t1code_rev holds 0 o
+g1cr t0 (ref card_lx45g1b_t0code): rc 0 :: DRY: tier 0, scope code, order fwd (first humaneval/HumanEval/1,mbpp/100, last mbpp/157), 40 keys; engagement field lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check:res_opt@run,lossy_check:opt_post@run (whole-run terms lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check:res_opt@run,lossy_check:opt_post@run); QOM sets humaneval,mbpp; 1c s
+g1cr t1 (ref card_lx45g1b_t1code): rc 0 :: DRY: tier 1, scope code, order fwd (first humaneval/HumanEval/1,mbpp/100, last ifeval/3757) (IFEval identity), 364 keys; engagement field lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check:res_opt@run,lossy_check:opt_post@run (whole-run terms lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check:res_opt@run,lossy_check:opt_post@run); QOM set
+g1cr t1rev (ref card_lx45g1b_t1code_rev): rc 0 :: DRY: tier 1, scope code, order rev (first humanevalx/HumanEval/99,mbpp/321, last ifeval/1000) (IFEval identity), 364 keys; engagement field lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check:res_opt@run,lossy_check:opt_post@run (whole-run terms lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check:res_opt@run,lossy_check:opt_post@run); QOM s
+g1cd t0 (ref card_lx45g1b_t0code): rc 0 :: DRY: tier 0, scope code, order fwd (first humaneval/HumanEval/1,mbpp/100, last mbpp/157), 40 keys; engagement field lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run (whole-run terms lossy_check:com_rows@run,lossy_check:com_opt@run); QOM sets humaneval,mbpp; 1c sets humaneval,humanevalx,mbpp; reference card_lx45g1b_t0code holds 0 of 40; pin 200d776668be; bm_p
+g1cd t1 (ref card_lx45g1b_t1code): rc 0 :: DRY: tier 1, scope code, order fwd (first humaneval/HumanEval/1,mbpp/100, last ifeval/3757) (IFEval identity), 364 keys; engagement field lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run (whole-run terms lossy_check:com_rows@run,lossy_check:com_opt@run); QOM sets humaneval,mbpp; 1c sets humaneval,humanevalx,mbpp; reference card_lx45g1b_t1code holds 0 of 364;
+g1cd t1rev (ref card_lx45g1b_t1code_rev): rc 0 :: DRY: tier 1, scope code, order rev (first humanevalx/HumanEval/99,mbpp/321, last ifeval/1000) (IFEval identity), 364 keys; engagement field lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run (whole-run terms lossy_check:com_rows@run,lossy_check:com_opt@run); QOM sets humaneval,mbpp; 1c sets humaneval,humanevalx,mbpp; reference card_lx45g1b_t1code_rev holds 0 o
+g1cdr t0 (ref card_lx45g1b_t0code): rc 0 :: DRY: tier 0, scope code, order fwd (first humaneval/HumanEval/1,mbpp/100, last mbpp/157), 40 keys; engagement field lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check:res_opt@run,lossy_check:opt_post@run (whole-run terms lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check:res_opt@run,lossy_check:opt_post@run); QOM sets humaneval,mbpp; 1c s
+g1cdr t1 (ref card_lx45g1b_t1code): rc 0 :: DRY: tier 1, scope code, order fwd (first humaneval/HumanEval/1,mbpp/100, last ifeval/3757) (IFEval identity), 364 keys; engagement field lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check:res_opt@run,lossy_check:opt_post@run (whole-run terms lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check:res_opt@run,lossy_check:opt_post@run); QOM set
+g1cdr t1rev (ref card_lx45g1b_t1code_rev): rc 0 :: DRY: tier 1, scope code, order rev (first humanevalx/HumanEval/99,mbpp/321, last ifeval/1000) (IFEval identity), 364 keys; engagement field lossy_check:e3+edrop+lmsl_rows,lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check:res_opt@run,lossy_check:opt_post@run (whole-run terms lossy_check:com_rows@run,lossy_check:com_opt@run,lossy_check:res_opt@run,lossy_check:opt_post@run); QOM s
+g1l t0 (ref card_lx45g1b_t0code): rc 0 :: DRY: tier 0, scope code, order fwd (first humaneval/HumanEval/1,mbpp/100, last mbpp/157), 40 keys; engagement field lossy_check:e3+edrop+lmsl_rows (whole-run terms none); QOM sets humaneval,mbpp; 1c sets humaneval,humanevalx,mbpp; reference card_lx45g1b_t0code holds 0 of 40; pin 200d776668be; bm_pin OK; stops before the first GPU step
+g1l t1 (ref card_lx45g1b_t1code): rc 0 :: DRY: tier 1, scope code, order fwd (first humaneval/HumanEval/1,mbpp/100, last ifeval/3757) (IFEval identity), 364 keys; engagement field lossy_check:e3+edrop+lmsl_rows (whole-run terms none); QOM sets humaneval,mbpp; 1c sets humaneval,humanevalx,mbpp; reference card_lx45g1b_t1code holds 0 of 364; pin 200d776668be; bm_pin OK; stops before the first GPU step
+g1l t1rev (ref card_lx45g1b_t1code_rev): rc 0 :: DRY: tier 1, scope code, order rev (first humanevalx/HumanEval/99,mbpp/321, last ifeval/1000) (IFEval identity), 364 keys; engagement field lossy_check:e3+edrop+lmsl_rows (whole-run terms none); QOM sets humaneval,mbpp; 1c sets humaneval,humanevalx,mbpp; reference card_lx45g1b_t1code_rev holds 0 of 364; pin 200d776668be; bm_pin OK; stops before the first GPU step
+g1lr t0 (ref card_lx45g1b_t0code): rc 0 :: DRY: tier 0, scope code, order fwd (first humaneval/HumanEval/1,mbpp/100, last mbpp/157), 40 keys; engagement field lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run (whole-run terms lossy_check:res_opt@run,lossy_check:opt_post@run); QOM sets humaneval,mbpp; 1c sets humaneval,humanevalx,mbpp; reference card_lx45g1b_t0code holds 0 of 40; pin 200d776668be; bm_p
+g1lr t1 (ref card_lx45g1b_t1code): rc 0 :: DRY: tier 1, scope code, order fwd (first humaneval/HumanEval/1,mbpp/100, last ifeval/3757) (IFEval identity), 364 keys; engagement field lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run (whole-run terms lossy_check:res_opt@run,lossy_check:opt_post@run); QOM sets humaneval,mbpp; 1c sets humaneval,humanevalx,mbpp; reference card_lx45g1b_t1code holds 0 of 364;
+g1lr t1rev (ref card_lx45g1b_t1code_rev): rc 0 :: DRY: tier 1, scope code, order rev (first humanevalx/HumanEval/99,mbpp/321, last ifeval/1000) (IFEval identity), 364 keys; engagement field lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run (whole-run terms lossy_check:res_opt@run,lossy_check:opt_post@run); QOM sets humaneval,mbpp; 1c sets humaneval,humanevalx,mbpp; reference card_lx45g1b_t1code_rev holds 0 o
+## 4. the test scripts
+### extract.sh
+#!/bin/bash
+# Extract runner 68's (and runner 67's) Python heredocs and the runterms function verbatim, for the stub tests.
+# A heredoc whose command line continues ("... 2>&1 \" then "    || void ...") starts after that continuation line.
+R=$HOME/EvalSuite/tools; O=$(dirname "$0")
+ext() { awk -v s="$2" 'index($0, "<<'"'"'" s "'"'"'") {p=1; c=($0 ~ /\\$/); next} p && c {c=($0 ~ /\\$/); next} p && $0 == s {p=0} p' "$1"; }
+ext $R/day_runner68.sh ENG  > $O/r68_eng.py
+ext $R/day_runner68.sh ENG2 > $O/r68_eng2.py
+ext $R/day_runner68.sh RT   > $O/r68_rt.py
+ext $R/day_runner67.sh ENG  > $O/r67_eng.py
+awk '/^runterms\(\) \{/{p=1} p{print} p && /^}$/{exit}' $R/day_runner68.sh > $O/r68_runterms.sh
+wc -l $O/r68_eng.py $O/r68_eng2.py $O/r68_rt.py $O/r67_eng.py $O/r68_runterms.sh
+### test_r68.py
+# Stub tests for runner 68's two changes, run on the code extracted verbatim from tools/day_runner68.sh (extract.sh):
+#   T1 the 4b rule (ENG) on BigMoE's nine g1b key-test runs.json + synthetic runs; runner 67's ENG for contrast;
+#   T2 the per-process engagement check (ENG2) with @run terms;
+#   T3 the whole-run check (RT): EARLY from 32 kept code answers, FULL before the verdict, the ledger's rules;
+#   T4 the bash wiring of runterms (void -> exit 5 and the DONE line).
+import copy, json, os, subprocess, sys, tempfile
+
+D = os.path.dirname(os.path.abspath(__file__))
+KT = os.path.expanduser("~/BigMoE/data/r57")
+ENVS = ["lx", "g1", "g1r", "g1c", "g1cr", "g1cd", "g1cdr", "g1l", "g1lr"]
+QS, TS = "humaneval,mbpp", "humaneval,humanevalx,mbpp"
+ONE_C = "lossy_check:e3+edrop+lmsl_rows"
+RES = "lossy_check:res_opt@run,lossy_check:opt_post@run"
+COM = "lossy_check:com_rows@run,lossy_check:com_opt@run"
+ENGAGE = {"g1": ONE_C, "g1l": ONE_C, "g1r": f"{ONE_C},{RES}", "g1lr": f"{ONE_C},{RES}", "g1c": f"{ONE_C},{COM}",
+          "g1cd": f"{ONE_C},{COM}", "g1cr": f"{ONE_C},{COM},{RES}", "g1cdr": f"{ONE_C},{COM},{RES}"}
+fails = []
+
+
+def run(script, args, env, cwd=None):
+    e = dict(os.environ, **env)
+    p = subprocess.run([sys.executable, "-I", os.path.join(D, script), *args], env=e, cwd=cwd, capture_output=True, text=True)
+    return p.returncode, (p.stdout + p.stderr).strip()
+
+
+NCHECK = [0]
+def check(name, got, want, out=""):
+    NCHECK[0] += 1
+    ok = got == want
+    print(f"{'ok  ' if ok else 'FAIL'} {name}: rc {got} (want {want}){'' if ok else '  ' + out[:300]}")
+    if not ok:
+        fails.append(name)
+
+
+def kt(e):
+    return json.load(open(f"{KT}/g1kt_{e}45g1b_runs.json"))
+
+
+def tmpjson(obj):
+    f = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, dir=D)
+    json.dump(obj, f); f.close()
+    return f.name
+
+
+print("== T1: the 4b rule (ENG) on the key test's runs.json")
+for e in ENVS:
+    rc, out = run("r68_eng.py", [f"{KT}/g1kt_{e}45g1b_runs.json"], {"QSETS": QS, "TSETS": "" if e == "lx" else TS})
+    check(f"T1 {e} (runner 68)", rc, 0, out)
+    if e != "lx":
+        print("      " + out.split("; 1c in place of QOM", 1)[-1][:230])
+for e in ENVS[1:]:
+    rc, out = run("r67_eng.py", [f"{KT}/g1kt_{e}45g1b_runs.json"], {"QSETS": QS, "TSETS": TS})
+    check(f"T1 {e} (runner 67, contrast)", rc, 1 if e in ("g1r", "g1cr", "g1cd", "g1cdr", "g1lr") else 0, out)
+base = kt("g1r")[0]                                     # a humaneval code run with res1c's counters
+syn = [("pf.qom_opt 100, opt_post 0 (QOM stacked on 1c)", 100, 0, 0, 0, 1),
+       ("pf.qom_opt 100, opt_post 60 (more uses than res1c's)", 100, 60, 60, 0, 1),
+       ("pf.qom_opt 60, opt_post 100 (fewer)", 60, 100, 100, 0, 1),
+       ("pf.qom_opt 100 == opt_post 100, res + com 90 (reported only)", 100, 100, 50, 40, 0),
+       ("pf.qom_opt 0, no lossy_check (res1c unset)", 0, None, None, None, 0),
+       ("pf.qom_opt 5, no lossy_check (QOM stacked, res1c unset)", 5, None, None, None, 1)]
+for name, q, post, res, com, want in syn:
+    r = copy.deepcopy(base); r["pf"]["qom_opt"] = q
+    if post is None:
+        r.pop("lossy_check", None)
+    else:
+        r["lossy_check"].update(opt_post=post, res_opt=res, com_opt=com)
+    rc, out = run("r68_eng.py", [tmpjson([r])], {"QSETS": QS, "TSETS": TS})
+    check(f"T1 synthetic: {name}", rc, want, out)
+    if "reported" in name:
+        print("      " + out.split("reported: ", 1)[-1][:200])
+r = copy.deepcopy(kt("lx")[0]); r["pf"]["qom_opt"] = 0         # the base (no 1c): QOM must engage on every QOM-set run
+rc, out = run("r68_eng.py", [tmpjson([r])], {"QSETS": QS, "TSETS": ""})
+check("T1 synthetic: the base, a QOM-set run with qom_opt 0 (runner 65's rule, unchanged)", rc, 1, out)
+
+print("== T2: the per-process engagement check (ENG2) with @run terms")
+panel = os.path.join(D, "panel_fixture.txt")
+open(panel, "w").write("\n".join(sorted({r["key"] for e in ENVS for r in kt(e)})) + "\n")
+for e in ENVS[1:]:
+    rc, out = run("r68_eng2.py", [f"{KT}/g1kt_{e}45g1b_runs.json"], {"ENGAGE": ENGAGE[e], "ENGMODE": "each", "PANEL": panel, "SCOPE": "code"})
+    check(f"T2 {e}: {ENGAGE[e]}", rc, 0, out)
+rc, out = run("r68_eng2.py", [f"{KT}/g1kt_g1c45g1b_runs.json"], {"ENGAGE": f"{ONE_C},lossy_check:com_rows", "ENGMODE": "each", "PANEL": panel, "SCOPE": "code"})
+check("T2 g1c with com_rows UNMARKED (runner 67's per-run rule): not engaged", rc, 1, out)
+rs = kt("g1r"); ch = [r for r in rs if r["key"].startswith("ifeval/")][0]
+ch2 = copy.deepcopy(ch); ch2.setdefault("lossy_check", {}) ; ch2["lossy_check"] = dict(ch2.get("lossy_check") or {}, res_opt=7)
+rc, out = run("r68_eng2.py", [tmpjson([r for r in rs if r is not ch] + [ch2])], {"ENGAGE": ENGAGE["g1r"], "ENGMODE": "each", "PANEL": panel, "SCOPE": "code"})
+check("T2 g1r with res_opt 7 on the IFEval run (an @run term on chat)", rc, 1, out)
+r0 = copy.deepcopy(rs[0]); r0["lossy_check"].update(e3=0, edrop=0, lmsl_rows=0)
+rc, out = run("r68_eng2.py", [tmpjson([r0] + rs[1:])], {"ENGAGE": ENGAGE["g1r"], "ENGMODE": "each", "PANEL": panel, "SCOPE": "code"})
+check("T2 g1r with 1c at 0 on one code run (1c stays per run)", rc, 1, out)
+
+print("== T3: the whole-run check (RT)")
+def fixture(name, files, rows, terms):
+    """files: list of lists of runs; rows: keys in decode.jsonl. Returns the cwd of a sandbox with results/<run>/."""
+    cwd = tempfile.mkdtemp(prefix=f"rt_{name}_", dir=D); run_ = "card_g1x_t1code"
+    os.makedirs(f"{cwd}/results/{run_}")
+    with open(f"{cwd}/results/{run_}/decode.jsonl", "w") as f:
+        for k in rows:
+            f.write(json.dumps({"key": k}) + "\n")
+    with open(f"{cwd}/results/{run_}/engage_runs.txt", "w") as f:
+        for i, runs in enumerate(files):
+            p = f"{cwd}/p{i}_runs.json"; json.dump(runs, open(p, "w")); f.write(p + "\n")
+    return cwd, run_
+def rec(k, cut=False, **lc):
+    return {"key": k, "cut": cut, "lossy_check": dict(dict(e3=5, edrop=5, lmsl_rows=0, res_opt=0, opt_post=0, com_rows=0, com_opt=0), **lc)}
+code = [f"mbpp/{i}" for i in range(40)]; chat = [f"ifeval/{i}" for i in range(20)]
+cases = [  # name, files, rows, terms, early rc, full rc
+    ("RES live on 40 code answers over 2 processes", [[rec(k, res_opt=9, opt_post=9) for k in code[:20]], [rec(k, res_opt=9, opt_post=9) for k in code[20:]]], code, RES, 0, 0),
+    ("COMQOM dead on 40 code answers", [[rec(k) for k in code[:20]], [rec(k) for k in code[20:]]], code, COM, 1, 1),
+    ("COMQOM dead on 20 code answers only", [[rec(k) for k in code[:20]]], code[:20], COM, 0, 1),
+    ("COMQOM live on 1 key of 40", [[rec(k) for k in code[:20]], [rec(k, com_rows=(k == code[33]) * 2, com_opt=(k == code[33]) * 300) for k in code[20:]]], code, COM, 0, 0),
+    ("COMQOM only on a CUT record (not counted)", [[rec(code[0], cut=True, com_rows=4, com_opt=50)] + [rec(k) for k in code[1:20]], [rec(code[0])] + [rec(k) for k in code[20:]]], code, COM, 1, 1),
+    ("COMQOM only on a key outside decode.jsonl (not counted)", [[rec("mbpp/999", com_rows=4, com_opt=50)] + [rec(k) for k in code]], code, COM, 1, 1),
+    ("40 IFEval + 20 code, all at 0 (chat does not count toward 32)", [[rec(k) for k in chat + code[:20]]], chat + code[:20], COM, 0, 1),
+    ("a resume: 3 processes over two runner starts, RES live", [[rec(k, res_opt=3, opt_post=3) for k in code[:15]], [rec(k, res_opt=3, opt_post=3) for k in code[15:30]], [rec(k, res_opt=3, opt_post=3) for k in code[30:]]], code, RES, 0, 0),
+    ("RES live, COMQOM dead (each term on its own)", [[rec(k, res_opt=9, opt_post=9) for k in code]], code, f"{RES},{COM}", 1, 1),
+    ("no ledger rows yet", [], [], COM, 0, 1),
+]
+for name, files, rows, terms, we, wf in cases:
+    cwd, run_ = fixture(name.split()[0], files, rows, terms)
+    for when, want in (("early", we), ("full", wf)):
+        rc, out = run("r68_rt.py", [run_], {"ENGAGE": terms, "SCOPE": "code", "WHEN": when}, cwd=cwd)
+        check(f"T3 {name}: {when}", rc, want, out)
+    print("      " + out[:220])
+
+print("== T4: runterms' bash wiring (void -> exit 5, the DONE line)")
+def bash_case(cwd, calls):
+    sh = f"""set -u; cd '{cwd}'; LOG=log.txt; DONE=done.txt; TAG=g1cx45g1b; SCOPE=code; RUNTERMS='{COM}'
+say() {{ echo "$(date +%H:%M:%S) $*" >> "$LOG"; }}
+void() {{ say "$1: VOID: runner stops"; echo "CARD $TAG: VOID ($1)" > "$DONE"; exit 5; }}
+source '{D}/r68_runterms.sh'
+{calls}
+"""
+    return subprocess.run(["bash", "-c", sh], capture_output=True, text=True)
+cwd, run_ = fixture("bash", [[rec(k) for k in code]], code, COM)
+p = bash_case(cwd, f'runterms {run_} early; echo "after early: unreachable"')
+check("T4 runterms early on a dead COMQOM run exits 5 (VOID)", p.returncode, 5, p.stdout + p.stderr)
+print("      DONE: " + open(f"{cwd}/done.txt").read().strip()[:260])
+cwd, run_ = fixture("bash2", [[rec(k, com_rows=1, com_opt=9) for k in code]], code, COM)
+p = bash_case(cwd, f'runterms {run_} early && runterms {run_} full && echo "both passed"')
+check("T4 runterms early + full on a live COMQOM run return 0", p.returncode, 0, p.stdout + p.stderr)
+print("      " + p.stdout.strip() + " | log: " + open(f"{cwd}/log.txt").read().strip().splitlines()[-1][:200])
+cwd, run_ = fixture("bash3", [[rec(k) for k in code]], code, COM)
+p = bash_case(cwd.replace("'", ""), f'RUNTERMS=""; runterms {run_} full && echo "no @run terms: no check"')
+check("T4 runterms with no @run terms is a no-op", p.returncode, 0, p.stdout + p.stderr)
+
+print(f"\n{NCHECK[0]} checks: " + ("ALL PASS" if not fails else "FAILURES: " + str(fails)))
+sys.exit(1 if fails else 0)
+### dry68.sh
+#!/bin/bash
+# DRY runs of runner 68 (CARD_DRY=1: no lock, no GPU; it stops before the first GPU step) on g1b's nine envs, tier 0 and
+# tier 1 in both orders, with G1's pins and each branch's CARD_ENGAGE. Output: one line per run + the DRY log's last lines.
+cd "$HOME/EvalSuite" || exit 1
+BMS=$HOME/BigMoE/data/stack; EX=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2
+TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f
+ONE_C=lossy_check:e3+edrop+lmsl_rows; RES=lossy_check:res_opt@run,lossy_check:opt_post@run; COM=lossy_check:com_rows@run,lossy_check:com_opt@run
+blob() { case $1 in lx) echo 2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8;; g1) echo b736d293176e83b12ecc4c8d18ad665d7c38ed4f;; g1r) echo e42de6d974f25572644109a299cd690522450b3c;;
+  g1c) echo bfd66cedd73b692b4a9cabb62b49f5ac5a345f2c;; g1cr) echo 78f7932b9c72e6ece3f4af6eedd6651dbbd1e3bb;; g1cd) echo efb0de2be0b1ede610880bc460c3e87efcec440f;;
+  g1cdr) echo f4eac1d6bd3705417c7d144c056ede62d3a588ae;; g1l) echo 1c3e2358e53d42d28421d622475de05392beb619;; g1lr) echo caab79159e3359af84dcb0e5f26582a93e838253;; esac; }
+eng() { case $1 in lx) echo "";; g1|g1l) echo "$ONE_C";; g1r|g1lr) echo "$ONE_C,$RES";; g1c|g1cd) echo "$ONE_C,$COM";; g1cr|g1cdr) echo "$ONE_C,$COM,$RES";; esac; }
+for e in lx g1 g1r g1c g1cr g1cd g1cdr g1l g1lr; do
+  for mode in t0 t1 t1rev; do
+    tier=1; ord=fwd; [ $mode = t0 ] && tier=0; [ $mode = t1rev ] && ord=rev
+    if [ $e = lx ]; then ref=$EX; later=0; ident=0; else ref=card_lx45g1b_${tier/1/t1}code; [ $tier = 0 ] && ref=card_lx45g1b_t0code; [ $ord = rev ] && ref=${ref}_rev; later=1; ident=$tier; fi
+    tg=${e}45g1b; [ $ord = rev ] && tg=${tg}_rev
+    env CARD_DRY=1 CARD_TAG=${e}45g1b CARD_FENV=$BMS/${e}45g1b_env.txt CARD_FBLOB=$(blob $e) CARD_TIER=$tier CARD_ORDER=$ord CARD_SCOPE=code \
+      "CARD_TREES=$TREES" CARD_SCREEN_SHA=6039fa8dbea5 CARD_SO_SHA=ff69fa24a745 "CARD_CUTOFF=2026-11-17 23:30" CARD_MEM=39 \
+      CARD_REF=$ref CARD_REF_LATER=$later CARD_IFEVAL_IDENT=$ident CARD_ENGAGE="$(eng $e)" tools/day_runner68.sh > /dev/null 2>&1; rc=$?
+    echo "$e $mode (ref $ref): rc $rc :: $(grep -E 'DRY: tier|runner stops' results/day68_dry_${tg}.log | tail -1 | cut -c10-400)"
+  done
+done

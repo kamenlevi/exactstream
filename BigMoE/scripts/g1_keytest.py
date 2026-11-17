@@ -33,6 +33,8 @@ import sys
 import time
 
 BM = os.path.expanduser("~/BigMoE")
+SFX = os.environ.get("G1KT_SFX", "")                     # Tue 11-17 01:0x: a record suffix (the COMQOM probe re-run: "p"),
+assert re.fullmatch(r"[a-z0-9_]*", SFX), SFX             # so a re-run never overwrites the first run's g1kt_* records / result
 ES = os.path.expanduser("~/EvalSuite")
 Q = os.path.expanduser("~/.local/share/quiet")
 ENVS = ()                                                # set from --snap: (lx45<snap>, g1x45<snap>)
@@ -54,7 +56,9 @@ REQ = {"g1x": ("int8",), "g1rx": ("int8", "res_opt", "opt_post"), "g1cx": ("int8
 # code key; Fit12 res1c's lossy_check counters (com_rows / com_opt: COMQOM's tagged rows and their optional uses; res_opt:
 # RES's optional MSB-3-tier uses; opt_post: optional uses the ref2 kernel saw) > 0 summed over the env's code keys
 F12C = ("f12_checks", "com_rows", "com_opt", "res_opt", "opt_post", "opt_drop")   # res1c.prompt_counts() (Fit12, 13:5x)
-XKEYS = {v_: ("mbpp/115", "mbpp/146") for v_ in ("g1cx", "g1crx", "g1cdx", "g1cdrx", "g1c", "g1cr", "g1cd", "g1cdr")}   # the COMQOM envs' extra keys: the
+XKO = tuple(k_ for k_ in os.environ.get("G1KT_XKEYS", "").split(",") if k_)   # Tue 11-17 (NewIdeas 00:5x): the COMQOM
+# probe re-run's own extra keys (mbpp/303,mbpp/237: '#' comment lines early in g1-like decodes); unset = the keys below
+XKEYS = {v_: (XKO or ("mbpp/115", "mbpp/146")) for v_ in ("g1cx", "g1crx", "g1cdx", "g1cdrx", "g1c", "g1cr", "g1cd", "g1cdr")}   # the COMQOM envs' extra keys: the
 # scored keys' lx45cc1 answers have docstrings but no '#' comment; mbpp/115's has two '#' comment lines (from its line 2),
 # mbpp/146's only a docstring (76 / 70 tokens). DOCV: the DOC envs (R57_COMQOM_DOC_SETS=mbpp) must tag rows on mbpp/146.
 DOCV = ("g1cdx", "g1cdrx", "g1cd", "g1cdr")
@@ -99,7 +103,7 @@ def run_env(name):
     screen, C = screen_of(fenv)
     env = {k: v for k, v in os.environ.items() if k not in UNSETS}
     env.update(dict(env_pairs(fenv)))
-    env.update(R57_PRESET="45", R57_REPS="1", R57_WARM="1", R57_TAG=f"g1kt_{name}", R57_KEYS=",".join(keys_of(name)))
+    env.update(R57_PRESET="45", R57_REPS="1", R57_WARM="1", R57_TAG=f"g1kt_{name}{SFX}", R57_KEYS=",".join(keys_of(name)))
     return fenv, screen, env, [C, "2048"]
 
 
@@ -157,15 +161,15 @@ def main():
         ok = True
         for n in ENVS:
             fenv, _, env, _ = run_env(n)
-            r = subprocess.run(["python3", os.path.join(ES, "tools/r57_headtest.py"), fenv, f"g1kt_{n}"], cwd=ES,
+            r = subprocess.run(["python3", os.path.join(ES, "tools/r57_headtest.py"), fenv, f"g1kt_{n}{SFX}"], cwd=ES,
                                capture_output=True, text=True)
             last = (r.stdout.strip().splitlines() or ["(no output)"])[-1]
             print(last)
             ok &= r.returncode == 0 and "PASS" in last
         return 0 if ok else 1
     os.makedirs(a.out, exist_ok=True)
-    LOG = os.path.join(a.out, f"g1_keytest_{a.snap}.log")
-    RES = os.path.join(a.out, f"g1_keytest_{a.snap}.json")
+    LOG = os.path.join(a.out, f"g1_keytest_{a.snap}{SFX}.log")
+    RES = os.path.join(a.out, f"g1_keytest_{a.snap}{SFX}.json")
 
     def say(m):
         with open(LOG, "a") as f:
@@ -185,7 +189,7 @@ def main():
         err = [l for l in txt.splitlines() if re.match(r"\w*(Error|Exception)\b", l)][-1:]
         pk_ = [float(x) for l_ in txt.splitlines() if "lifetime peak" in l_    # every lifetime-peak figure (warm-ups,
                for x in re.findall(r"([0-9]+\.[0-9]+) GB", l_.split("lifetime peak", 1)[1])]   # per key, the final line)
-        tag_ = f"g1kt_{n}"; R_, T_ = {}, {}
+        tag_ = f"g1kt_{n}{SFX}"; R_, T_ = {}, {}
         try:
             R_ = {x_["key"]: x_ for x_ in json.load(open(os.path.join(a.out, f"{tag_}_runs.json")))}
             T_ = json.load(open(os.path.join(a.out, f"{tag_}_tokens.json")))
@@ -236,7 +240,7 @@ def main():
             if c_ not in ("int8", "noint8") and not sum(((v_.get("lossy_check") or {}).get(c_, 0) for k_, v_ in per.items()
                                          if k_.split("/")[0] in CODE)) > 0:
                 fails.append(f"{c_} not engaged on the code keys (sum 0)")
-        if vp_ in DOCV and not ((per.get("mbpp/146") or {}).get("lossy_check") or {}).get("com_rows", 0) > 0:
+        if vp_ in DOCV and "mbpp/146" in keys_of(n) and not ((per.get("mbpp/146") or {}).get("lossy_check") or {}).get("com_rows", 0) > 0:
             fails.append("mbpp/146: no tagged rows on a DOC env (its answer's only comment is a docstring)")
         ok = rc == 0 and why is None and not fails and len(per) == len(keys_of(n))
         res["envs"][n] = dict(rc=rc, stopped=why, wall_s=wall_s, verdict="PASS" if ok else "FAIL", keys=per, fails=fails,
@@ -256,7 +260,7 @@ def main():
             ln = [l for l in L_ if re.search(rf" {n} rc -?\d+", l)][-1]
             st = [l for l in L_ if f" {n} start: " in l][-1]
             hm = lambda l_: time.mktime(time.strptime(time.strftime("%Y-") + l_[:14], "%Y-%m-%d %H:%M:%S"))
-            score(n, int(re.search(r" rc (-?\d+)", ln).group(1)), None, os.path.join(a.out, f"g1kt_{n}.log"),
+            score(n, int(re.search(r" rc (-?\d+)", ln).group(1)), None, os.path.join(a.out, f"g1kt_{n}{SFX}.log"),
                   float(re.search(r"swap ([+-][0-9.]+) GB", ln).group(1)), round(hm(ln) - hm(st)))
         res["status"] = verdict_all()
         res["rescored"] = (f"{time.strftime('%Y-%m-%d %H:%M:%S')}: envs refilled by --rescore from the run logs and the "
@@ -343,7 +347,7 @@ def main():
             absent_check(n)
             fenv, screen, env, tail = run_env(n)
             argv = [py, a.stub or screen] + tail
-            lp = os.path.join(a.out, f"g1kt_{n}.log")
+            lp = os.path.join(a.out, f"g1kt_{n}{SFX}.log")
             sw0, t0, so0 = swap_gb(), time.time(), swapouts()
             say(f"{n} start: {os.path.relpath(screen, BM)} C {tail[0]} (NO-SWAP {noswap_gb():.0f} GB, swap {sw0:.1f} GB)")
             with open(lp, "w") as lf:

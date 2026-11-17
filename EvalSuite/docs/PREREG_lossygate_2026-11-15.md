@@ -1006,6 +1006,89 @@
   No process starts while Kamen is at the Mac (away_secs.sh < 900, read before and after the memory reads). Mid-run,
   two reads 30 s apart make the step yield (TERM; CARD_RESUME continues). The arming addendum shows it in the chain's
   code and its stub sim.
+- **G1's ARMING ADDENDUM, dated Tue 01:5x (before any G1 run or data): 5b's pending items, with 5d / 5e's dated
+  lines. The chain is armed; it starts only after V2's verdict and NewIdeas' pick.**
+  - **Snapshot g1b** (BigMoE d3a8093b; these paths unchanged at HEAD 474a8cf3, and clean):
+    - trees: data/r57/snap/g1b fb0ee18288dae0ac5528006557dfaf8487d63c3b; data/r57/snap/frozen_g1b
+      2584e36a814ae956ac5c2d9c9090c4d787298502; bigmoe d92cdb4b9e81d386e4170323d50f11b34147aa5f (t1c1's and g1a's);
+    - screen data/r57/snap/g1b/r57_screen_g1b.py: sha256 6039fa8dbea54d0d... (CARD_SCREEN_SHA 6039fa8dbea5);
+    - ext build_qom .so: ff69fa24a745 (unchanged).
+    - **Checked here** (5b's conditions for g1b):
+      - frozen_g1b = frozen_g1a + Fit12_res1c/res1c.py (sha256 61194417149aa9c8...). Every other file is
+        byte-identical after the paths are normalized.
+      - The screen is g1a's, plus res1c's guard on its sets and seven touch points. All of them sit behind R57_TIERS,
+        so with everything unset the base path is unchanged by inspection. B1's unset-path check tests it
+        (information).
+  - **The nine env blobs** (git hash-object of ~/BigMoE/data/stack/<n>45g1b_env.txt; checked at 19:4x and again at
+    01:1x; equal to HEAD): lx45g1b 2e5b7167, g1 b736d293, g1r e42de6d9, g1c bfd66ced, g1cr 78f7932b, g1cd efb0de2b,
+    g1cdr f4eac1d6, g1l 1c3e2358, g1lr caab7915.
+    - lx45g1b's env line is lx45g1a's.
+    - No R57_INT8D or R57_INT8D_SETS in any env line (5e). Each is its x-env's line minus exactly the int8 pairs.
+    - Over the base, each adds only its mechanism's pairs: R57_TIERS=1c, R57_TIERS_S=0.98,
+      R57_TIERS_SETS=humaneval,humanevalx,mbpp and R57_TIERS_LAM (0.018 for g1 / g1r, 0.016 for the comment-QOM four,
+      0.008 for g1l / g1lr). Then R57_RES_SETS (the r envs), R57_COMQOM_SETS (g1c*) and R57_COMQOM_DOC_SETS=mbpp
+      (g1cd*), each on humaneval,humanevalx,mbpp.
+  - **MEM:** the key test's lifetime peaks are 42.3-42.4 GB on all nine envs, with swap +0 and 0 swapouts. So the gate
+    is 43 GB NO-SWAP = CARD_MEM 39 + 4: every peak is <= the gate - 0.5 (amendments 5 / 5a), as for 1c-tiers.
+    - The env comments' "MEM 45" is overridden by CARD_MEM 39.
+    - No fallback gate (5a).
+  - **5e, read per env** (5d's dated readings, CONFIRMED): it holds for the seven envs that PASS. C (g1c / g1cr) waits
+    for BigMoE's probe re-run (G1P_PROBE_DONE; records data/r57/g1_keytest_g1bp.json).
+  - **The runner:** runner 68 (4cb52ac, 5d's dated line Tue 01:2x), with CARD_ENGAGE per branch as listed there.
+  - **The chain: tools/g1_chain.sh** (sha256 c1852dfa566ea6e5...), built from t1c_chain2.sh (822c2fc2db41f880).
+    - **Steps:** B0 base tier 0 -> V0 G1 tier 0 vs B0 (KILL ends the gate) -> B1 base forward (+ the unset-path check
+      vs lx45t1c1 forward, information) -> V1 G1 forward vs B1 (IFEval identity; not PASS ends the gate) -> B2 base
+      reverse (+ the unset-path check vs lx45t1c1 reverse, information) -> V2 G1 reverse vs B2, both orders pooled.
+      - The base is lx45g1b; G1 is the picked env.
+      - The pins: CARD_TREES g1b, CARD_SCREEN_SHA 6039fa8dbea5, CARD_SO_SHA ff69fa24a745, CARD_MEM 39, CARD_SCOPE
+        code; the references as chain2's.
+    - **Start gates,** read twice 30 s apart:
+      - results/T1C_TUEF3_END written after the arming, with follower3 gone;
+      - no EvalSuite runner alive;
+      - V2's both-orders PASS / FAIL line in results/CARD_t1cx45t1c1_rev_DONE;
+      - BigMoE's ~/BigMoE/data/r57/G1P_PROBE_DONE (any end, after 01:15; BigMoE asked for this race guard);
+      - results/G1_PICK, newer than V2's verdict, naming one of the eight pinned envs. Any other name is no run
+        (rc 5). The pick is read once; a change between the windows stops the chain (rc 5).
+    - **Two windows** (NewIdeas 01:23 and 01:2x):
+      - DAY to Tue 23:30 (last start 23:15).
+      - NIGHT, which starts or resumes only after ONE marker, BigMoE's data/r57/NIGHT1117_BIGMOE_END (written on any
+        end of M4 + its capture), to Wed 05:15 (last start 05:00), for MoonShots' 05:24 cron. If Leap books a Tue-night
+        slot #2 after BigMoE, the chain is re-armed with Leap's end marker as the one night marker.
+      - A step cut by the day window resumes in the night window. What is left after 05:15 goes to Wednesday by a
+        re-arm, in NewIdeas' order: MoonShots' cuts and the band-screen fallback, then B2 / V2 leftovers, the 5d pick if
+        not made, G1's leftovers, then G2, then Leap's slot #3.
+    - **The AWAY rule** (4j / 5b's dated lines): no start while HOLD, PAUSE, a shut lid or Kamen at the Mac (away_secs <
+      900; no reading counts as away). Mid-run, two reads 30 s apart make the step yield (runner and children TERM,
+      peer unlock); it resumes once nothing holds. A cut tier-1 run resumes (CARD_RESUME=1); a cut tier-0 run starts
+      fresh.
+      - Runner 68 yields at each process start to another session's run above 5 GB, waits while a quiet lock runs,
+        then reads NO-SWAP 43 and locks. NewIdeas: that order is enough, since nothing else is armed on the night
+        marker.
+    - **End:** every end writes results/G1_G1T_END. Stop: `kill -TERM <pid>`; it stops its runner and unlocks.
+  - **The pick:** after NewIdeas' 5d pick at V2's verdict, EvalSuite writes results/G1_PICK with tools/g1_pick.sh
+    (sha256 bf8ab777f688c2cd...) and files the pick as a dated line here before G1's base starts. For comments-only, 5d's
+    00:5x line applies, after the probe's marker.
+    - The writer refuses an env without a key-test PASS (g1_keytest_g1b.json, or the probe re-run's
+      g1_keytest_g1bp.json for g1c / g1cr), without V2's verdict, or a second pick.
+  - **Checked:**
+    - **The stub sim** against byte copies of the chain, in a sandbox per scenario (results/lossygate/g1_chain_sim_2026-11-17.txt): 21 scenarios, all as designed.
+      - Two driver slips in run 1 were kept as run, then fixed in run 2: g12's stub cut keyed on the TG that B0
+        and B1 share, so it cut B0 (still as designed); g14's day cutoff left a last start ahead.
+      - Covered: all gates; the gates one by one (a pick older than V2's verdict waits); an unpinned pick (rc 5);
+        follower3 or an EvalSuite runner alive; Kamen at the Mac at the start; a yield mid-B1 resumed with
+        CARD_RESUME=1; a yield mid-V0 restarted fresh (.cut1); V0 KILL; V1 FAIL; a B1 VOID (rc 9); the day window
+        cut by a stay past its last start, or by the runner's cutoff (rc 6, on B0 and on B2), resumed in the night
+        window after its marker; no pick by day then a night start; no start in either window (left for
+        Wednesday, rc 75); TERM (rc 143) and HOLD (rc 8) mid-run; a pick changed between the windows (rc 5); DRY;
+        an empty away read.
+      - Every end: the marker as expected, no runner left alive, and peer unlock on every stop.
+    - **Dry passes** of the chain itself (CHAIN_DRY=1, one per env; the real runner 68 in dry mode): all eight rc 0,
+      48 runner calls rc 0, every dry log ending in its DRY line (results/g1_chain.log, tags dry2_*). A first
+      round (tags dry_*) overlapped an edit of the chain file and is not counted.
+    - The pick writer in a sandbox: it writes a pick, refuses a second one, refuses g1c / g1cr without the probe's
+      PASS (and g1cr with the probe's FAIL), refuses an unpinned name; the chain parses its line.
+  - **Armed** Tue 01:52:55: tools/g1_chain.sh, pid 39942 (`CHAIN_MYPID=63835 tools/g1_chain.sh`), waiting for its day-window
+    gates. Stop: `kill -TERM 39942`.
 
 ## Amendment 5c (Mon 2026-11-16 13:0x, before any G2 config, snapshot or data): G2's composition (NewIdeas 13:0x); it replaces 5a's G2 condition
 - **Why:** Breakthrough found that G1 as built reads 6.22 GB per check, not 5.77. g1a is C6 + int8 on lossy-45's
@@ -1223,6 +1306,52 @@
       on the HE keys the C and D envs are identical (DOC_SETS = mbpp only); a re-run that again doesn't engage leaves
       D's PASS standing, and C still has none.
   - **Unchanged:** 5d's pick rule, the map read, the kill test and every line.
+- **5d, dated Tue 01:2x (NewIdeas, received 01:1x), before any G1 data: G1 runs on RUNNER 68. As filed, runner 67 would
+  VOID every RES or COMQOM env at its first process.**
+  - **Why:** runner 67 inherits runner 65's 4b rule: on 1c's QOM sets, pf.qom_opt must be 0. But res1c reports its
+    optional uses through that same field.
+    - On all 24 code runs of BigMoE's g1b key test, pf.qom_opt == lossy_check.opt_post == res_opt + com_opt; chat is
+      0.
+    - BigMoE (01:1x): this holds by design. In a 1c env, res1c posts the only bit-21 optional uses: COMQOM on tagged
+      rows, and RES on the untagged rows' MSB-3 uses. The two row classes are disjoint.
+    - Runner 67's own 4b code on those runs.json: lx, g1, g1c and g1l rc 0; g1r, g1cr, g1cd, g1cdr and g1lr rc 1
+      (VOID). g1c passed only because COMQOM never engaged on those keys.
+    - Also, runner 67's terms must hold on EVERY kept code run. COMQOM fires only on comment rows: 46-47 % of 1c-tiers'
+      code answers carry a '#' line, and HumanEval/45 had com_rows 0 under C and D. So listing it, as 5d asks
+      ("every mechanism listed"), would VOID too. A per-process sum fails on small chunks: the 4-key tail, or after a
+      resume.
+  - **Runner 68** (tools/day_runner68.sh, sha256 80e2e33cd02e5f14...) is runner 67 plus two changes:
+    1. **4b under res1c:** on the sets in both R57_QOM_SETS and R57_TIERS_SETS, pf.qom_opt must EQUAL
+       lossy_check.opt_post. With res1c unset, opt_post is absent, so the rule is runner 65's "== 0" exactly.
+       - res_opt + com_opt is printed beside opt_post for each process. It is reported, never ruled.
+       - NewIdeas: if it ever differs from opt_post, the RESULT notes it and Fit12 explains the counters.
+    2. **Whole-run terms:** a CARD_ENGAGE term ending "@run" must be > 0 summed over the run's kept code answers, and
+       0 on chat.
+       - The run's processes are listed in results/<run>/engage_runs.txt, resumes included. A key's latest kept record
+         counts, and only keys in the run's decode.jsonl.
+       - EARLY check, after each process (NewIdeas): once the run holds >= 32 kept code answers, a term still at 0
+         VOIDs the run. With a working COMQOM, P(no '#' answer in 32) = 0.54^32, about 3e-9.
+       - FULL check before every verdict.
+       - An unmarked term keeps runner 67's rule (> 0 on every kept code run). Every term's chat side is still
+         checked after each process.
+  - **CARD_ENGAGE per branch** (NewIdeas; BigMoE's key-test REQ counters):
+    - 1c, on every run: lossy_check:e3+edrop+lmsl_rows, as 1c-tiers;
+    - RES adds lossy_check:res_opt@run and lossy_check:opt_post@run;
+    - COMQOM adds lossy_check:com_rows@run and lossy_check:com_opt@run.
+    - So g1 / g1l take 1c only; g1r / g1lr add RES; g1c / g1cd add COMQOM; g1cr / g1cdr add both. The base takes
+      none.
+    - NewIdeas: on a full run, the C branch's com_rows@run also exercises the '#' path, beside BigMoE's probe re-run.
+  - **Checked** (results/lossygate/runner68_checks_2026-11-17.txt):
+    - **Stub tests (58 / 58)** on the code extracted verbatim from runner 68:
+      - the 4b rule passes all nine envs' key-test runs;
+      - synthetic stacked, short and excess uses VOID;
+      - 1c stays per run, and an @run term on chat VOIDs;
+      - the whole-run cases: 32 answers, cut records, keys outside the rows, chat not counted, resumes;
+      - the bash wiring: void gives exit 5 with the DONE line.
+    - **27 DRY runs** (the nine envs x tier 0, and tier 1 in both orders) on G1's pins: rc 0, bm_pin OK, every pin OK
+      (g1b trees fb0ee182 / 2584e36a / d92cdb4b, screen 6039fa8dbea5, .so ff69fa24a745), CHAT gate 43 GB (MEM 39).
+  - **Unchanged:** every line. g1 and g1l get the same checks as under runner 67. Runner 67 stays as filed; G1 does not
+    use it.
 
 ## Amendment 4i (Mon 2026-11-16 17:4x, during the 1c-tiers run, before any B2 / V2 data): B2 -> V2 after BigMoE's g1b key test (NewIdeas 17:3x); operational only
 - **Why:**

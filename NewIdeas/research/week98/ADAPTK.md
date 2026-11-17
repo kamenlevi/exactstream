@@ -8,6 +8,27 @@ up to an available check size (16 or 32 rows today).
 - With one-pass check forms up to 128 rows: HE+ +10.3-15.6 %.
 - The hindsight ceiling (oracle DP): HE+ +17-34 %, MBPP +9.5-12.4 %.
 
+## Window spread (adaptk_windows.py, Tue 01:09 by date): the HE+ gain is BROAD
+
+At frozen tau 0.9 (MBPP's tau, applied to HE+), with KERN2:
+| L (ms per level) | HE+ pooled gain | 95 % window bootstrap | windows up |
+|---|---|---|---|
+| 0.66 | +8.6 % | [+6.6, +10.7] | 24 / 24 |
+| 0.40 | +9.2 % | [+7.2, +11.6] | 24 / 24 |
+| 0.92 | +8.0 % | [+6.2, +10.1] | 24 / 24 |
+
+- Per window at L 0.66: min +2.4 %, median +9.8 %, max +22.4 %.
+- ONEPASS at L 0.66, tau 0.9: +11.0 % [+7.8, +14.7], 24 / 24 up.
+- MBPP: +0.2 % [0.0, +0.3]; 92 of 100 windows are flat.
+- The KILL line (+3 %, HE+, KERN2, L 0.66) sits under the CI's lower bound.
+
+**Decision (the orchestrator, received Tue ~01:08 by date; its message said 01:4x): GATED BUILD this week.**
+1. The fresh-cell re-read at the frozen tau, against the KILL line.
+2. M4 (Tue night) certifies the 16-row tree verify exact on the full model.
+3. BigMoE builds a 32-row tree verify as an opt-in switch, bit-tested vs one-token decoding. Leap reviews the C32one
+   hook.
+4. It joins Saturday only if it is bitwise and a C T T C engine A/B passes by Fri 12:00. Otherwise after Saturday.
+
 ## Why it works
 
 - path_p is calibrated. The expected kept, 1 + the sum of path_p over the tree's pops, matches the realised mean:
@@ -46,6 +67,13 @@ Setup: t30b 127-node dumps (n127k8), certify98 walk, overhead 4 ms; draft cost =
 - **Prior art.** The live 45 GB loop truncates rows by running confidence (S45c t 0.3, ADOPTED; raising it was a
   KILL, S45d). This rule is the other direction: grow past 16 when confident. Outside the project, OPT-Tree /
   Sequoia-style size choice. The new part here is the measured calibration and gain on this drafter and engine.
+
+## The fresh-cell re-read is FROZEN in adaptk_fresh.py (Tue 01:11 by date, before any fresh data)
+
+- Settings: tau 0.9, KERN2, L 0.66, E14 costs. KILL if the HE+-like gain is < +3 %.
+- Thursday: `adaptk_fresh.py --he <fresh HE+ tag> --mbpp <fresh MBPP tag>` on BigMoE's post-capture 127-node dumps.
+- Dev dry check (adaptk_fresh_devcheck.txt): HE+ +8.6 % [+6.7, +10.8], MBPP +0.2 %, verdict PASS. This reproduces
+  adaptk_windows.
 
 ## Cheapest next kill
 

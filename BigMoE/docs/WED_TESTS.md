@@ -2752,3 +2752,12 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
     (g1cr and g1cdr), 11,425 / 10,568 (g1lr).
   - L (lambda 2.0e-2) moves the tier mix on HumanEval/45: e4 / e3 / edrop = 4,020 / 6,494 / 6,074 (g1l) against
     1,631 / 4,198 / 11,140 (g1).
+- **Tue 01:15, the COMQOM probe re-run is armed** (NewIdeas 00:5x): lx45g1b + g1c + g1cr on mbpp/303 + mbpp/237, whose
+  answers have '#' comment lines early in g1-like decodes. The scored keys are unchanged.
+  - scripts/g1_keytest.py: G1KT_XKEYS replaces the COMQOM envs' extra keys; G1KT_SFX suffixes the records and the result
+    (data/r57/g1kt_*45g1bp_*, data/r57/g1_keytest_g1bp.json), so the first run's files stay untouched. The DOC check runs
+    only when mbpp/146 is decoded. scripts/g1_follow.sh: MKNAME / NOMARKNAME / FOLLOW_LOG / MKLABEL. Defaults unchanged.
+  - Simulations, all as designed: four key-test stub runs (tags on the probe keys: PASS; no tags: FAIL; defaults: the
+    old keys and the DOC check; the DOC envs on the probe keys: PASS) and three wrapper runs (PASS, FAIL, defaults).
+  - It starts after EvalSuite's follower3 ends (results/T1C_TUEF3_END), with away >= 900 s and NO-SWAP >= 38 (+2 GB
+    swap guard); latest start 16:30, hard stop 16:45. data/r57/G1P_PROBE_DONE is written on every end.

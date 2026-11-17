@@ -1,0 +1,247 @@
+Only in b/scripts: __pycache__
+diff -ru a/scripts/ref2.py b/scripts/ref2.py
+--- a/scripts/ref2.py	2026-11-17 01:01:53
++++ b/scripts/ref2.py	2026-11-17 01:17:57
+@@ -211,7 +211,8 @@
+        "commit_phase": True, "sdpa_classes": True, "sdpa_bounds": (128,), "key_buckets": True, "kb_from": 512,
+        "kb_step": 512, "tiers": True, "gdn_exact": True, "tier_nax4": False, "tier_nax_ooo": False, "att_single": False,
+        "gdn_inproj": False, "att_rope": False, "idx_prep": False, "hc_write": False, "hc_gate": False,
+-       "gdn_inproj_x": False, "gdn_body": False, "hc_b": False,
++       "gdn_inproj_x": False, "gdn_body": False,
++       "hc_b": os.environ.get("REF2_HC_B") == "1",   # D1-B; E14 A16h (Tue 00:5x): PASS -0.81 ms per 16-row check, bitwise (default off)
+        "nax_hybrid": False, "nax_native": False, "nax_repack_p1": False, "native_3c": False,
+        "fatt_verify": os.environ.get("REF2_FATT_VERIFY") == "1", "fatt_r8": os.environ.get("REF2_FATT_R8") == "1",
+        "dense_native": os.environ.get("REF2_DENSE_NATIVE") == "1",
+@@ -225,6 +226,7 @@
+        "commit_sub": int(os.environ.get("REF2_COMMIT_SUB", "0") or 0),   # PLAN 220 seam (e): send the commit's GDN replays every N (0 off)
+        "seam_hi": int(os.environ.get("REF2_SEAM_HI", "16") or 16),   # seams (b) / (d) fire on 5..seam_hi-row passes; 32 covers v32's 17-32-row checks (Breakthrough pass S 2757be6: bitwise, -2.0 ms per 32-row check); default 16 = unchanged
+        "tier_chunk": os.environ.get("REF2_TIER_CHUNK") == "1",   # F24: a tier call whose expert union exceeds the slots runs in row groups (default off)
++       "bof": os.environ.get("REF2_BOF") == "1",   # E14 (Tue 00:5x): BOF <= 16 rows (A16b -2.36 ms) + BOF2-O 17-32 rows (C32oneB -2.16 ms), bitwise; _bof_on (default off)
+        "tier_chunk_cap": int(os.environ.get("REF2_TIER_CHUNK_CAP", "0") or 0),   # test only: group at this union cap (0: the pools' own)
+        "hc8_fold": os.environ.get("REF2_HC8_FOLD") == "1",   # CHAT-150 G1 / B1: HC8 reads with <= 4 rows fold K2 into K3 (hc8f; bitwise; default off)
+        "hc8_k1m": os.environ.get("REF2_HC8_K1M") == "1",   # CHAT-150 G1: HC8 reads with <= 4 rows: K1 reads the M-row h / pending (no pad launches), then k2b + k3c, or K3F with hc8_fold (hc8f; bitwise; default off)
+@@ -1891,6 +1893,29 @@
+         return gdn_step_r.kernel_tg(q, k, v, g, beta, state, R=2)
+     return _ORIG["gdk"](q, k, v, g, beta, state, mask)
+ 
++_BOF_OWN = [False]                                     # _bof_on turned bofi.ON on (CFG["bof"] is then the switch)
++
++def _bof_on():
++    """E14 (Tue 00:5x; A16b -2.36 ms, C32oneB -2.16 ms; both bitwise, REF2-T's own bits): week98/bofi.py as the
++    OUTERMOST mx.quantized_matmul wrapper, with E14's exact config: BOF on its <= 16-row TABLE (o_proj / out_proj, QSA,
++    shared down, lm_head) and BOF2 on o_proj / out_proj at 17-32 rows (TABLE32). E14's order was v32one -> refc -> bofi.
++    A wrapper installed AFTER this sits outside bofi; its forms then win (the same bits; BOF just does not fire).
++    bofi.install is idempotent. bofi fires only while ref2 is on (RF._ON[0]); r57 removes ref2 before every draft.
++    Under CFG["bof"] (REF2_BOF=1) the switch is CFG["bof"]: apply() runs before every check and sets bofi.ON from it, so
++    turning bofi.ON off by hand is undone at the next apply(). Set CFG["bof"] = False instead (apply() then turns off what
++    _bof_on turned on). Harnesses that drive bofi.ON themselves (E14) leave CFG["bof"] off and keep control.
++    week98 is APPENDED to sys.path (no shadowing of later imports); an already-imported bofi is reused."""
++    bofi = sys.modules.get("bofi")
++    if bofi is None:
++        p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "week98")
++        if p not in sys.path:
++            sys.path.append(p)
++        import bofi
++    bofi.install(sys.modules[__name__])
++    bofi.TABLE32[(2560, 6144)] = (4, 1)
++    bofi.ON[0] = True
++    _BOF_OWN[0] = True
++
+ def apply():
+     """install the patches (idempotent) and switch them on"""
+     if not _ORIG:
+@@ -1956,6 +1981,11 @@
+             BT.LAYOUT_ROUTER = True                        # BigMoE's guards: REF2 routes layouts 1 / 2 (per layer)
+         except Exception:
+             pass
++    if CFG.get("bof"):                                  # E14: REF2_BOF (or CFG["bof"] before apply())
++        _bof_on()
++    elif _BOF_OWN[0]:                                   # CFG["bof"] turned off at run time: undo _bof_on's ON
++        sys.modules["bofi"].ON[0] = False
++        _BOF_OWN[0] = False
+     _ON[0] = True
+ 
+ def counts():
+Only in b/scripts/week98: __pycache__
+diff -ru a/scripts/week98/bof.py b/scripts/week98/bof.py
+--- a/scripts/week98/bof.py	2026-11-17 01:17:57
++++ b/scripts/week98/bof.py	2026-11-17 01:17:57
+@@ -14,7 +14,9 @@
+ from functools import lru_cache
+ import mlx.core as mx
+ 
+-sys.path.insert(0, os.path.expanduser("~/Leap/scripts"))
++_PS = os.path.expanduser("~/Leap/scripts")
++if _PS not in sys.path:                              # appended: no shadowing of later imports (BigMoE 01:1x)
++    sys.path.append(_PS)
+ import qmm16 as Q16
+ 
+ _TERMS = {0: "#define TERM(s, c, b, x) ((s) * (c) + (b) * (x))\n",
+diff -ru a/scripts/week98/bofi.py b/scripts/week98/bofi.py
+--- a/scripts/week98/bofi.py	2026-11-17 01:01:53
++++ b/scripts/week98/bofi.py	2026-11-17 01:17:57
+@@ -5,24 +5,69 @@
+ qmm16c2a / qmm16c2 (ks 1: also the same bits).
+ TABLE (bof_bench, cold): o_proj / out_proj 2,560 x 6,144 bs 4 (85.9 -> 48.6 us); QSA qkv_fused 13,312 x 2,560 bs 8
+ (107.0 -> 101.4); shared down 2,560 x 640 bs 4 (10.8 -> 7.4); lm_head 248,320 x 2,560 bs 4 (1,612.7 -> 1,454.0). The GDN
+-in-proj (115.6 -> 114.5) stays on qmm16c."""
++in-proj (115.6 -> 114.5) stays on qmm16c.
++Tue 17 Nov 01:0x (for ref2's REF2_BOF switch; BigMoE's review of patch v1):
++  - Fires only while ref2 is on (RF._ON[0]), as ref2's own _qmm does (r57 removes ref2 before every draft).
++  - BOF2 (17-32 rows, TABLE32) fires only where v32 is live (v32._live(rows): the verify forward / commit replay, never
++    the prefill). There the call would otherwise become qmm16c ks-1 tiles (v32's split, v32one's qmm16c2 / 2a). In the
++    prefill, ref2 sends 17-32 rows to MLX's own kernel, so BOF2 there would change the KV cache.
++  - refc ON -> fall through (the contract's calls are refc's; E14 never had both on).
++  - Drift guard: the first call of each specialization (form, N, K, bs, rg) also runs the reference route on the same
++    real input and compares bit for bit (uint16 views). On a mismatch it prints a DRIFT line, returns the reference's bits and keeps
++    that specialization off. Cost: one sync per specialization per process.
++self_test(): synthetic, the small TABLE shapes + TABLE32 (lm_head left to the first-call guard: ~0.36 GB of weights)."""
+ import math
+ import os
+ import sys
+ import mlx.core as mx
+ 
+-sys.path.insert(0, os.path.expanduser("~/Leap/scripts/week98"))
++_P98 = os.path.expanduser("~/Leap/scripts/week98")
++if _P98 not in sys.path:                             # appended: no shadowing of later imports (BigMoE 01:1x)
++    sys.path.append(_P98)
+ from bof import qmm16bof, qmm16bof2
+ 
+ ON = [False]
+ TABLE = {(2560, 6144): (4, 1), (13312, 2560): (8, 1), (2560, 640): (4, 1), (248320, 2560): (4, 1)}
+ TABLE32 = {}        # C10 (Sun 18:2x): {(2560, 6144): (4, 1)} turns on BOF2 for o_proj / out_proj at 17-32 rows (bof2_bench)
+-CNT = dict(bof=0, bof2=0)
++CNT = dict(bof=0, bof2=0, drift=0)
+ _S = {}
+ 
+ 
++VER = {}            # (form, N, K, bs, rg) -> True (checked equal) / False (drift: off for this process)
++
++
++def _ref16(x2, w, s, b):
++    """ref2's own <= 16-row route for these shapes (4-bit g64, not DENSE-N): qmm16c ks 1 on the 16-row pad"""
++    from qmm16 import qmm16c
++    M = x2.shape[0]
++    xp = x2 if M == 16 else mx.concatenate([x2, mx.zeros((16 - M, x2.shape[1]), x2.dtype)], 0)
++    return qmm16c(xp, w, s, b)[:M]
++
++
++def _ref32(x2, w, s, b):
++    """17-32 rows as v32's split / v32one's qmm16c2 give them: two qmm16c ks-1 tiles"""
++    return mx.concatenate([_ref16(x2[:16], w, s, b), _ref16(x2[16:], w, s, b)], 0)
++
++
++def _bits_eq(a, b):
++    """bit for bit (as ref2.self_test's eq): -0.0 vs +0.0 differ, equal NaN payloads match"""
++    return a.shape == b.shape and a.dtype == b.dtype and bool(mx.all(
++        mx.view(a.reshape(-1), mx.uint16) == mx.view(b.reshape(-1), mx.uint16)).item())
++
++
++def _first(key, y, yref):
++    ok = _bits_eq(y, yref)
++    VER[key] = ok
++    if not ok:
++        CNT["drift"] += 1
++        print(f"[bofi] DRIFT: {key} != the reference route bit for bit; this form stays OFF in this process", flush=True)
++    return y if ok else yref
++
++
+ def _qmmb(x, w, *a, **kw):
+     if ON[0]:
++        RF = _S["ref2"]
++        RC = sys.modules.get("refc")
+         scales = a[0] if len(a) > 0 else kw.get("scales")
+         biases = a[1] if len(a) > 1 else kw.get("biases")
+         transpose = a[2] if len(a) > 2 else kw.get("transpose", True)
+@@ -31,21 +76,32 @@
+         mode = a[5] if len(a) > 5 else kw.get("mode", "affine")
+         K, N = int(x.shape[-1]), int(w.shape[0])
+         rows = math.prod(x.shape[:-1])
+-        RF = _S["ref2"]
+-        if (transpose and mode == "affine" and biases is not None and group_size == 64 and bits == 4
+-                and x.dtype == mx.bfloat16 and 1 <= rows <= 16 and (N, K) in TABLE and w.ndim == 2
+-                and w.dtype == mx.uint32 and scales.dtype == mx.bfloat16 and RF.CFG["dense_min_n"] <= N
+-                and not RF.CFG["dense_native"] and (not RF._DNR or RF._DNR.get(id(w)) is None)):
+-            bs, rg = TABLE[(N, K)]
+-            CNT["bof"] += 1
+-            return qmm16bof(x.reshape(rows, K), w, scales, biases, bs=bs, rg=rg, term=0).reshape(*x.shape[:-1], N)
+-        if (transpose and mode == "affine" and biases is not None and group_size == 64 and bits == 4
+-                and x.dtype == mx.bfloat16 and 16 < rows <= 32 and (N, K) in TABLE32 and w.ndim == 2
+-                and w.dtype == mx.uint32 and scales.dtype == mx.bfloat16 and RF.CFG["dense_min_n"] <= N
+-                and not RF.CFG["dense_native"] and (not RF._DNR or RF._DNR.get(id(w)) is None)):
+-            bs, rg = TABLE32[(N, K)]
+-            CNT["bof2"] += 1
+-            return qmm16bof2(x.reshape(rows, K), w, scales, biases, bs=bs, rg=rg, term=0).reshape(*x.shape[:-1], N)
++        if (RF._ON[0] and not (RC is not None and RC.ON[0]) and transpose and mode == "affine" and biases is not None
++                and group_size == 64 and bits == 4 and x.dtype == mx.bfloat16 and w.ndim == 2 and w.dtype == mx.uint32
++                and scales.dtype == mx.bfloat16 and RF.CFG["dense_min_n"] <= N and not RF.CFG["dense_native"]
++                and (not RF._DNR or RF._DNR.get(id(w)) is None)):
++            if 1 <= rows <= 16 and (N, K) in TABLE:
++                bs, rg = TABLE[(N, K)]
++                key = ("bof", N, K, bs, rg)
++                if VER.get(key) is not False:
++                    x2 = x.reshape(rows, K)
++                    y = qmm16bof(x2, w, scales, biases, bs=bs, rg=rg, term=0)
++                    if key not in VER:
++                        y = _first(key, y, _ref16(x2, w, scales, biases))
++                    CNT["bof"] += 1
++                    return y.reshape(*x.shape[:-1], N)
++            elif 16 < rows <= 32 and (N, K) in TABLE32:
++                V = sys.modules.get("v32")
++                if V is not None and V._live(rows):
++                    bs, rg = TABLE32[(N, K)]
++                    key = ("bof2", N, K, bs, rg)
++                    if VER.get(key) is not False:
++                        x2 = x.reshape(rows, K)
++                        y = qmm16bof2(x2, w, scales, biases, bs=bs, rg=rg, term=0)
++                        if key not in VER:
++                            y = _first(key, y, _ref32(x2, w, scales, biases))
++                        CNT["bof2"] += 1
++                        return y.reshape(*x.shape[:-1], N)
+     return _S["qmm"](x, w, *a, **kw)
+ 
+ 
+@@ -55,3 +111,43 @@
+         return
+     _S.update(ref2=ref2, qmm=mx.quantized_matmul)
+     mx.quantized_matmul = _qmmb
++
++
++def self_test(seed=0):
++    """synthetic, no model: per small TABLE shape, qmm16bof == qmm16c ks 1 on the pad at 1 / 7 / 16 rows, and each row
++    alone == the same row inside a 16-row call (SD == AR at the kernel); per TABLE32 shape, qmm16bof2 == two qmm16c
++    tiles at 17 / 24 / 32 rows. lm_head is left to the first-call guard (its weights alone are ~0.36 GB).
++    Returns (bad, lines)."""
++    import numpy as np
++    p = os.path.expanduser("~/Leap/scripts")       # qmm16 (the reference route) when run standalone
++    if p not in sys.path:
++        sys.path.append(p)
++    rng = np.random.default_rng(seed)
++    lines, bad = [], 0
++    shapes = [(nk, TABLE[nk], "bof") for nk in TABLE if nk[0] <= 20000]
++    shapes += [(nk, v, "bof2") for nk, v in {(2560, 6144): (4, 1), **TABLE32}.items()]
++    for (N, K), (bs, rg), form in shapes:
++        wf = mx.array((rng.standard_normal((N, K)) * 0.02).astype(np.float32)).astype(mx.bfloat16)
++        wq, s, b = mx.quantize(wf, group_size=64, bits=4)
++        for M in ((1, 7, 16) if form == "bof" else (17, 24, 32)):
++            x2 = mx.array(rng.standard_normal((M, K)).astype(np.float32)).astype(mx.bfloat16)
++            if form == "bof":
++                y, r = qmm16bof(x2, wq, s, b, bs=bs, rg=rg, term=0), _ref16(x2, wq, s, b)
++                eq = _bits_eq(y, r)
++                full = qmm16bof(mx.concatenate([x2, mx.zeros((16 - M, K), x2.dtype)], 0) if M < 16 else x2, wq, s, b,
++                                bs=bs, rg=rg, term=0)
++                alone = all(_bits_eq(qmm16bof(x2[i:i + 1], wq, s, b, bs=bs, rg=rg, term=0)[0], full[i])
++                            for i in range(M))
++            else:
++                y, r = qmm16bof2(x2, wq, s, b, bs=bs, rg=rg, term=0), _ref32(x2, wq, s, b)
++                eq, alone = _bits_eq(y, r), True
++            bad += not (eq and alone)
++            lines.append(f"  {form} N {N} K {K} bs {bs} rg {rg} rows {M:2d}: == reference {eq}; rows alone == in the "
++                         f"call {alone} -> {'PASS' if eq and alone else 'FAIL'}")
++    return bad, lines
++
++
++if __name__ == "__main__" and len(sys.argv) > 1 and sys.argv[1] == "self_test":
++    b_, ls_ = self_test()
++    print("\n".join(ls_) + f"\nbofi self_test: {'PASS' if not b_ else 'FAIL'}")
++    sys.exit(1 if b_ else 0)

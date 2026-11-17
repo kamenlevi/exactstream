@@ -42,12 +42,39 @@ static _Atomic int recording = 0;
 static __thread int depth = 0;
 static long n_enc = 0, n_disp = 0;
 static long *BIX = 0, nBIX = -1;   // record indices of the setBytes ops, in order (built on demand; -1 = stale)
-// A patch rule (milestone 2): word `off` of the k-th setBytes payload gets ((seq * a + b) mod m) * s + c per check
-// (no mod when m <= 0); type 0 = int32, 1 = float32, 2 = int64.
-typedef struct { long k, off, a, b, m, s, c; int type; } prule;
+// A patch rule (milestone 2), applied per check: value = (((vars[var] * a + b) div d) mod m) * s + c (floor division;
+// no div when d <= 0, no mod when m <= 0). Targets: type 0 / 1 / 2 = word `off` of the k-th setBytes payload as int32 /
+// float32 / int64; type 3 = the byte offset of buffer binding op k (k = record index of an OP_BUF op), in the plain
+// replay's copy and in every ICB command that uses that binding (re-bound per check); type 4 / 5 = an int32 / int64 word
+// at byte `off` of the CONTENTS of the buffer bound by BUF op k (a per-call input array the record retains, e.g. offs).
+typedef struct { long k, off, a, b, d, m, s, c; int type, var; } prule;
 static prule *RU = 0;
 static long nRU = 0, capRU = 0;
 
+// Bind-time snapshots (milestone 2): the contents of each small shared buffer at its FIRST binding in a record, i.e.
+// before the GPU runs, so CPU-written per-call inputs are seen even if the graph later consumes them in place.
+#define SNAPMAX 4096
+static long *SNOP = 0, nSN = 0, capSN = 0;     // record index of the BUF op that first bound the buffer
+static void **SNBUF = 0;                         // the buffer pointer (identity) per snapshot
+static char **SNDAT = 0;
+static long *SNLEN = 0;
+static rop *push(int op);
+static void snap_bind(id b, long opidx) {
+  if (!b) return;
+  id<MTLBuffer> mb = (id<MTLBuffer>)b;
+  if (mb.storageMode == MTLStorageModePrivate || mb.length > SNAPMAX) return;
+  void *key = (__bridge void *)b;
+  for (long i = nSN - 1; i >= 0 && i >= nSN - 4096; i--) if (SNBUF[i] == key) return;   // first binding only (recent)
+  if (nSN == capSN) {
+    capSN = capSN ? capSN * 2 : 256;
+    SNOP = realloc(SNOP, sizeof(long) * (size_t)capSN); SNBUF = realloc(SNBUF, sizeof(void *) * (size_t)capSN);
+    SNDAT = realloc(SNDAT, sizeof(char *) * (size_t)capSN); SNLEN = realloc(SNLEN, sizeof(long) * (size_t)capSN);
+  }
+  SNOP[nSN] = opidx; SNBUF[nSN] = key; SNLEN[nSN] = (long)mb.length;
+  SNDAT[nSN] = malloc(mb.length ? mb.length : 1);
+  memcpy(SNDAT[nSN], mb.contents, mb.length);
+  nSN++;
+}
 static rop *push(int op) {
   if (nR == capR) {
     capR = capR ? capR * 2 : 4096;
@@ -159,13 +186,14 @@ static void h_fupd(id s, SEL c, id f) {
   depth++; o_fupd(s, c, f); depth--;
 }
 static void h_buf(id s, SEL c, id b, NSUInteger off, NSUInteger idx) {
-  if (rec()) { rop *r = push(OP_BUF); r->o0 = keep(b); r->n0 = (long)off; r->i0 = (long)idx; }
+  if (rec()) { rop *r = push(OP_BUF); r->o0 = keep(b); r->n0 = (long)off; r->i0 = (long)idx; snap_bind(b, nR - 1); }
   depth++; o_buf(s, c, b, off, idx); depth--;
 }
 static void h_bufs(id s, SEL c, const id *bs, const NSUInteger *offs, NSRange rg) {
   if (rec())
     for (NSUInteger i = 0; i < rg.length; i++) {
       rop *r = push(OP_BUF); r->o0 = keep(bs[i]); r->n0 = (long)offs[i]; r->i0 = (long)(rg.location + i);
+      snap_bind(bs[i], nR - 1);
     }
   depth++; o_bufs(s, c, bs, offs, rg); depth--;
 }
@@ -306,6 +334,8 @@ static void free_ops(void) {
   }
   nR = 0; n_enc = 0; n_disp = 0;
   nBIX = -1; nRU = 0;
+  for (long i = 0; i < nSN; i++) free(SNDAT[i]);
+  nSN = 0;
 }
 void rec_start(void) { free_ops(); atomic_store(&recording, 1); }
 void rec_stop(void) { atomic_store(&recording, 0); }
@@ -406,6 +436,7 @@ static id<MTLBuffer> CONSTB = nil;
 static NSMutableArray *RES = nil;            // every buffer the ICB's commands reference (for useResources)
 static NSMutableDictionary *ICBPSO = nil;    // NSValue(recorded pso) -> ICB-capable pso
 static long ICBN = 0;
+static long *SEGE = NULL, nSEGE = 0;         // ICB command index where each recorded command buffer ended (segments)
 static __unsafe_unretained id<MTLResource> *RESARR = NULL;   // RES keeps them alive
 static NSUInteger RESN = 0;
 static char icb_err[512];
@@ -455,11 +486,15 @@ long rec_build_icb(void) {
     NSMutableSet *seen = [NSMutableSet new];
     [RES addObject:CONSTB];
     id bbuf[31]; NSUInteger boff[31], tgl[31]; int bset[31], tset[31];
+    long bsrc[31];                                 // record index of the BUF op behind each binding (-1: constants / none)
     memset(bset, 0, sizeof bset); memset(tset, 0, sizeof tset);
-    for (int k = 0; k < 31; k++) bbuf[k] = nil;
+    for (int k = 0; k < 31; k++) { bbuf[k] = nil; bsrc[k] = -1; }
+    for (long i = 0; i < nR; i++)                  // reset the BUF ops' ICB use lists (a rebuild starts over)
+      if (R[i].op == OP_BUF) { free(R[i].bytes); R[i].bytes = 0; R[i].nb = 0; }
     id<MTLComputePipelineState> pso = nil;
     long ci = 0, coff = 0;
     int bar = 0, any = 0;
+    free(SEGE); SEGE = malloc(sizeof(long) * (size_t)(nR + 1)); nSEGE = 0;
     char *cbase = (char *)CONSTB.contents;
     for (long i = 0; i < nR; i++) {
       rop *r = &R[i];
@@ -467,7 +502,7 @@ long rec_build_icb(void) {
         case OP_ENC:
           if (any) bar = 1;                        // mode 2: a full barrier at every original encoder boundary
           memset(bset, 0, sizeof bset); memset(tset, 0, sizeof tset);
-          for (int k = 0; k < 31; k++) bbuf[k] = nil;
+          for (int k = 0; k < 31; k++) { bbuf[k] = nil; bsrc[k] = -1; }
           pso = nil;
           break;
         case OP_PSO:
@@ -475,7 +510,7 @@ long rec_build_icb(void) {
           if (!pso) { if (!icb_err[0]) snprintf(icb_err, sizeof icb_err, "no function recorded for a pipeline (created before the hook?)"); return -5; }
           break;
         case OP_BUF:
-          if (r->i0 < 31) { bbuf[r->i0] = (__bridge id)r->o0; boff[r->i0] = (NSUInteger)r->n0; bset[r->i0] = 1; }
+          if (r->i0 < 31) { bbuf[r->i0] = (__bridge id)r->o0; boff[r->i0] = (NSUInteger)r->n0; bset[r->i0] = 1; bsrc[r->i0] = i; }
           if (r->o0 && ![seen containsObject:[NSValue valueWithPointer:r->o0]]) {
             [seen addObject:[NSValue valueWithPointer:r->o0]]; [RES addObject:(__bridge id)r->o0];
           }
@@ -483,7 +518,7 @@ long rec_build_icb(void) {
         case OP_BUFOFF: if (r->i0 < 31) boff[r->i0] = (NSUInteger)r->n0; break;
         case OP_BYTES:
           memcpy(cbase + coff, r->bytes, (size_t)r->nb);
-          if (r->i0 < 31) { bbuf[r->i0] = CONSTB; boff[r->i0] = (NSUInteger)coff; bset[r->i0] = 1; }
+          if (r->i0 < 31) { bbuf[r->i0] = CONSTB; boff[r->i0] = (NSUInteger)coff; bset[r->i0] = 1; bsrc[r->i0] = -1; }
           r->n1 = coff + 1;                        // its slot in the constants buffer (+1; 0 = none), for patching
           coff += (r->nb + 255) & ~255L;
           break;
@@ -493,6 +528,13 @@ long rec_build_icb(void) {
           id<MTLIndirectComputeCommand> c = [ICB indirectComputeCommandAtIndex:(NSUInteger)ci];
           [c setComputePipelineState:pso];
           for (int k = 0; k < 31; k++) if (bset[k]) [c setKernelBuffer:bbuf[k] offset:boff[k] atIndex:(NSUInteger)k];
+          for (int k = 0; k < 31; k++)
+            if (bset[k] && bsrc[k] >= 0) {         // note this command in the BUF op's use list (for offset rules)
+              rop *u = &R[bsrc[k]];
+              u->bytes = realloc(u->bytes, sizeof(int32_t) * 2 * (size_t)(u->nb + 1));
+              ((int32_t *)u->bytes)[2 * u->nb] = (int32_t)ci; ((int32_t *)u->bytes)[2 * u->nb + 1] = k;
+              u->nb++;
+            }
           for (int k = 0; k < 31; k++) if (tset[k]) [c setThreadgroupMemoryLength:tgl[k] atIndex:(NSUInteger)k];
           if (bar) { [c setBarrier]; bar = 0; }
           if (r->op == OP_DTG) [c concurrentDispatchThreadgroups:r->a threadsPerThreadgroup:r->b];
@@ -500,10 +542,14 @@ long rec_build_icb(void) {
           ci++; any = 1;
           break;
         }
-        default: break;                            // END / COMMIT / fences / USE: mode 2 drops them
+        case OP_COMMIT:                            // a segment boundary for the segmented replay (empty ones skipped)
+          if (ci > (nSEGE ? SEGE[nSEGE - 1] : 0)) SEGE[nSEGE++] = ci;
+          break;
+        default: break;                            // END / fences / USE: mode 2 drops them
       }
     }
     ICBN = ci;
+    if (ci > (nSEGE ? SEGE[nSEGE - 1] : 0)) SEGE[nSEGE++] = ci;   // the tail after the last recorded commit
     free(RESARR);
     RESN = [RES count];
     RESARR = (__unsafe_unretained id<MTLResource> *)malloc(sizeof(id) * (RESN ? RESN : 1));
@@ -644,24 +690,58 @@ int rec_bytes_patch(long k, long off, const void *src, long n) {
   if (CONSTB && r->n1 > 0) memcpy((char *)CONSTB.contents + (r->n1 - 1) + off, src, (size_t)n);
   return 0;
 }
-// Register a rule (see prule). Returns the rule count, or -1 when the word is out of range.
-long rec_rule_add(long k, long off, int type, long a, long b, long m, long s, long c) {
+// Register a rule (see prule). Returns the rule count, or -1 when the target is out of range.
+long rec_rule_add2(int type, long k, long off, int var, long a, long b, long d, long m, long s, long c) {
   bix_build();
-  long w = type == 2 ? 8 : 4;
-  if (k < 0 || k >= nBIX || off < 0 || off + w > R[BIX[k]].nb) return -1;
+  if (type >= 0 && type <= 2) {
+    long w = type == 2 ? 8 : 4;
+    if (k < 0 || k >= nBIX || off < 0 || off + w > R[BIX[k]].nb) return -1;
+  } else if (type == 3) {
+    if (k < 0 || k >= nR || R[k].op != OP_BUF) return -1;
+  } else if (type == 4 || type == 5) {
+    if (k < 0 || k >= nR || R[k].op != OP_BUF || !R[k].o0) return -1;
+    id<MTLBuffer> b = (__bridge id<MTLBuffer>)R[k].o0;
+    if (off < 0 || off + (type == 5 ? 8 : 4) > (long)b.length || b.storageMode == MTLStorageModePrivate) return -1;
+  } else return -1;
+  if (var < 0 || var > 15) return -1;
   if (nRU == capRU) { capRU = capRU ? capRU * 2 : 64; RU = realloc(RU, sizeof(prule) * (size_t)capRU); }
-  RU[nRU++] = (prule){k, off, a, b, m, s, c, type};
+  RU[nRU++] = (prule){k, off, a, b, d, m, s, c, type, var};
   return nRU;
 }
+long rec_rule_add(long k, long off, int type, long a, long b, long m, long s, long c) {
+  return rec_rule_add2(type, k, off, 0, a, b, 0, m, s, c);
+}
 void rec_rules_clear(void) { nRU = 0; }
-// Apply every rule for this seq. Returns the rule count.
-long rec_rules_apply(long seq) {
+static inline long fdiv(long x, long d) { long q = x / d; return (x % d != 0 && ((x < 0) != (d < 0))) ? q - 1 : q; }
+// Apply every rule with these per-check values (vars[0..nv-1]). Returns the rule count, or -1 on a bad var.
+long rec_rules_apply_v(const long *vars, long nv) {
   char *cb = CONSTB ? (char *)CONSTB.contents : 0;
   for (long j = 0; j < nRU; j++) {
     prule *u = &RU[j];
-    long v = seq * u->a + u->b;
+    if (u->var >= nv) return -1;
+    long v = vars[u->var] * u->a + u->b;
+    if (u->d > 0) v = fdiv(v, u->d);
     if (u->m > 0) { v %= u->m; if (v < 0) v += u->m; }
     v = v * u->s + u->c;
+    if (u->type == 4 || u->type == 5) {
+      char *p = (char *)((__bridge id<MTLBuffer>)R[u->k].o0).contents + u->off;
+      if (u->type == 4) { int32_t x = (int32_t)v; memcpy(p, &x, 4); } else { int64_t x = (int64_t)v; memcpy(p, &x, 8); }
+      continue;
+    }
+    if (u->type == 3) {
+      rop *r = &R[u->k];
+      r->n0 = v;
+      if (ICB) {
+        @autoreleasepool {
+          for (long q = 0; q < r->nb; q++) {
+            int32_t ci = ((int32_t *)r->bytes)[2 * q], kk = ((int32_t *)r->bytes)[2 * q + 1];
+            [[ICB indirectComputeCommandAtIndex:(NSUInteger)ci] setKernelBuffer:(__bridge id<MTLBuffer>)r->o0
+                                                                         offset:(NSUInteger)v atIndex:(NSUInteger)kk];
+          }
+        }
+      }
+      continue;
+    }
     rop *r = &R[BIX[u->k]];
     char *p = (char *)r->bytes + u->off;
     char *q = (cb && r->n1 > 0) ? cb + (r->n1 - 1) + u->off : 0;
@@ -671,3 +751,128 @@ long rec_rules_apply(long seq) {
   }
   return nRU;
 }
+long rec_rules_apply(long seq) { return rec_rules_apply_v(&seq, 1); }
+// One row of 13 longs per op: [op, i0, n0, n1, grid w h d, threadgroup w h d, o0, o1, nb] (o0 / o1 = object pointers;
+// for BUF ops nb is the ICB use count once the ICB is built, for BYTES n1 is its constants slot + 1). Returns the op
+// count, or -1 when nmax is too small.
+long rec_ops_dump(long *dst, long nmax) {
+  if (nmax < nR) return -1;
+  for (long i = 0; i < nR; i++) {
+    rop *r = &R[i];
+    long *o = dst + 13 * i;
+    o[0] = r->op; o[1] = r->i0; o[2] = r->n0; o[3] = r->n1;
+    o[4] = (long)r->a.width; o[5] = (long)r->a.height; o[6] = (long)r->a.depth;
+    o[7] = (long)r->b.width; o[8] = (long)r->b.height; o[9] = (long)r->b.depth;
+    o[10] = (long)r->o0; o[11] = (long)r->o1; o[12] = r->nb;
+  }
+  return nR;
+}
+
+// ---- segmented ICB replay (milestone 2): one command buffer per recorded command buffer, so GPU writes reach the CPU at
+// the same points as in the recorded run (e.g. the engine's routing row after each post, for its loader thread). All
+// segments are committed back to back; the CPU waits on the last. use_rs: 1 = rely on the queue's residency set.
+// out (doubles): [0] CPU ns to encode + commit all, [1] ns from the last commit to completion, [2] GPU ns (first segment's
+// start -> last segment's end), [3] status of the last, [4] segments, [5] commands. Returns 0 on success.
+long rec_icb_nseg(void) { return nSEGE; }
+int rec_replay_icb_seg(int use_rs, double *out) {
+  @autoreleasepool {
+    if (!ICB || !ICBN || !nSEGE) return -9;
+    double t0 = ns_now();
+    id<MTLCommandBuffer> first = nil, last = nil;
+    long a = 0;
+    depth++;
+    for (long g = 0; g < nSEGE; g++) {
+      id<MTLCommandBuffer> cb = [RQ commandBufferWithUnretainedReferences];
+      id<MTLComputeCommandEncoder> ce = [cb computeCommandEncoderWithDispatchType:MTLDispatchTypeConcurrent];
+      if (!use_rs) [ce useResources:RESARR count:RESN usage:(MTLResourceUsageRead | MTLResourceUsageWrite)];
+      [ce executeCommandsInBuffer:ICB withRange:NSMakeRange((NSUInteger)a, (NSUInteger)(SEGE[g] - a))];
+      [ce endEncoding];
+      [cb commit];
+      if (!first) first = cb;
+      last = cb;
+      a = SEGE[g];
+    }
+    double t1 = ns_now();
+    [last waitUntilCompleted];
+    depth--;
+    double t2 = ns_now();
+    out[0] = t1 - t0; out[1] = t2 - t1; out[2] = (last.GPUEndTime - first.GPUStartTime) * 1e9;
+    out[3] = (double)last.status; out[4] = (double)nSEGE; out[5] = (double)ICBN;
+    return last.status == MTLCommandBufferStatusCompleted ? 0 : -1;
+  }
+}
+
+// ---- a toy loader thread (test only, milestone 2): it polls a routing row the GPU writes ([seq, value]) and, on a new
+// seq, writes the release [seq, value * mul + add] (the slot first, then the tag with release order), like the engine's
+// loader answering post_ids. Plain C on its own pthread, so the GIL never blocks it.
+#include <pthread.h>
+static pthread_t TL;
+static _Atomic int tl_stop = 0, tl_on = 0;
+static volatile int *TL_ROW = 0, *TL_REL = 0;
+static long TL_MUL = 3, TL_ADD = 1;
+static _Atomic long tl_n = 0;
+static void *tl_main(void *arg) {
+  (void)arg;
+  int last = 0;
+  while (!atomic_load_explicit(&tl_stop, memory_order_relaxed)) {
+    int s = __atomic_load_n(&TL_ROW[0], __ATOMIC_ACQUIRE);
+    if (s != last && s > 0) {
+      int v = __atomic_load_n(&TL_ROW[1], __ATOMIC_ACQUIRE);
+      __atomic_store_n(&TL_REL[1], (int)(v * TL_MUL + TL_ADD), __ATOMIC_RELAXED);
+      __atomic_store_n(&TL_REL[0], s, __ATOMIC_RELEASE);
+      last = s;
+      atomic_fetch_add_explicit(&tl_n, 1, memory_order_relaxed);
+    }
+  }
+  return 0;
+}
+int rec_toyloader_start(void *row, void *rel, long mul, long add) {
+  if (atomic_load(&tl_on)) return -1;
+  TL_ROW = (volatile int *)row; TL_REL = (volatile int *)rel; TL_MUL = mul; TL_ADD = add;
+  atomic_store(&tl_stop, 0); atomic_store(&tl_n, 0);
+  if (pthread_create(&TL, NULL, tl_main, NULL) != 0) return -2;
+  atomic_store(&tl_on, 1);
+  return 0;
+}
+long rec_toyloader_stop(void) {
+  if (!atomic_load(&tl_on)) return -1;
+  atomic_store(&tl_stop, 1);
+  pthread_join(TL, NULL);
+  atomic_store(&tl_on, 0);
+  return atomic_load(&tl_n);
+}
+long rec_toyloader_count(void) { return atomic_load(&tl_n); }
+
+// ---- buffer contents of the record's bindings (to find per-call input arrays by a two-record diff)
+long rec_buf_len(long op) {
+  if (op < 0 || op >= nR || R[op].op != OP_BUF || !R[op].o0) return -1;
+  id<MTLBuffer> b = (__bridge id<MTLBuffer>)R[op].o0;
+  return b.storageMode == MTLStorageModePrivate ? -2 : (long)b.length;
+}
+long rec_buf_read(long op, long off, void *dst, long n) {
+  long L = rec_buf_len(op);
+  if (L < 0 || off < 0 || n < 0 || off + n > L) return -1;
+  memcpy(dst, (char *)((__bridge id<MTLBuffer>)R[op].o0).contents + off, (size_t)n);
+  return n;
+}
+long rec_buf_write(long op, long off, const void *src, long n) {
+  long L = rec_buf_len(op);
+  if (L < 0 || off < 0 || n < 0 || off + n > L) return -1;
+  memcpy((char *)((__bridge id<MTLBuffer>)R[op].o0).contents + off, src, (size_t)n);
+  return n;
+}
+
+// The bind-time snapshot of the buffer bound by BUF op `op` (the snapshot is keyed by that buffer's FIRST binding in the
+// record; any op binding the same buffer finds it). Returns its length (copying up to cap bytes into dst), or -1.
+long rec_buf_snap(long op, void *dst, long cap) {
+  if (op < 0 || op >= nR || R[op].op != OP_BUF) return -1;
+  void *key = R[op].o0;
+  for (long i = 0; i < nSN; i++)
+    if (SNBUF[i] == key) {
+      long n = SNLEN[i] < cap ? SNLEN[i] : cap;
+      memcpy(dst, SNDAT[i], (size_t)n);
+      return SNLEN[i];
+    }
+  return -1;
+}
+long rec_snap_count(void) { return nSN; }

@@ -137,12 +137,15 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
   - path_p is calibrated (expected kept 12.83 vs realised 12.82). HE+'s docstring stretches want big trees.
   - It needs a 32-row TREE verify path: TREE16 is 16 rows, and C32one exists only as a chain check.
   - **Orchestrator's call (01:4x): gated build.**
-    1. Wed: the fresh-cell re-read at the frozen tau (KILL if HE+ < +3 % at L 0.66, KERN2).
-    2. M4 (Tue night) must certify the 16-row tree verify exact on the full model.
-    3. If both pass, BigMoE (owner of the tree path, with Leap reviewing the C32one hook) builds a 32-row tree verify
-       Wed-Thu as an opt-in switch, bit-tested against one-token decoding.
-    4. It joins Saturday's measured run only if it is bitwise and its C T T C engine A/B passes by Fri 12:00.
+    1. The build starts on M4's PASS alone (Tue night: the 16-row tree verify exact on the full model). BigMoE (owner
+       of the tree path, with Leap reviewing the C32one hook) builds a 32-row tree verify Wed-Thu as an opt-in switch,
+       bit-tested against one-token decoding.
+    2. Saturday's gate: the fresh-cell re-read at the frozen tau (Thu ~midday, after Wednesday night's capture + the
+       127-node dumps; KILL if HE+ < +3 % at L 0.66, KERN2), the bit test, and the C T T C engine A/B, all by Fri 12:00.
        Otherwise it waits until after Saturday.
+    (Amended 01:5x on NewIdeas' timing fix: fresh cells exist only on Thu. Interim at the frozen tau 0.9 (out of set
+    for HE+): HE+ +8.6 % [95 % window bootstrap +6.6, +10.7], 24 of 24 windows up (min +2.4 %); MBPP +0.2 %;
+    adaptk_windows.py b439d44.)
     Leap's GPU-side work (chain folds, modules) keeps priority, since it is worth more ms per check.
 - Tue 17 00:5x (Leap, E14; data/week98/e14/e14_run.txt, verified by the orchestrator): **exact engine levers 5 of 6
   PASS, 1 BETWEEN; every bit as pre-registered.**

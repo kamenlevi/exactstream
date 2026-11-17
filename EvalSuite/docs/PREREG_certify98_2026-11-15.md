@@ -649,3 +649,44 @@ tools/certify98_lines.py power: 2,000 draws of windows with replacement from the
     - The proof-run amendment pins mtp125.py's sha256 with the other modules.
 - **Unchanged:** every line of amendments 6 / 6a / 8, and amendment 8's scorer pins. certify98_tree.py is still
   4a0ba21625497be1....
+
+## Amendment 8a (Tue 2026-11-17 01:1x, before any capture): c32 and R32/R16 pinned, K* named per set (NewIdeas, received 01:0x)
+- **Why:** amendment 8 (section 4) left the tree-K bars and K* to 8a, from Leap's measured E2. E2 ran Tue 00:54-00:55
+  (Leap's E14). NewIdeas, the Goal A lead, gave the values. 8a is filed now, before the capture as amendment 8 requires,
+  because no other input is scheduled this week (NewIdeas).
+- **R32/R16 = 1.433:** E2's statistic, the median of the 48 paired ratios C32one / A16 (~/Leap/data/week98/e14/e14.json;
+  Leap's own pairs entry reads 1.4334, recomputed here). The ratio of means, 1.437, agrees. Amendment 8's dated line
+  (Tue 01:0x) records why the 1.480 prior was wrong.
+- **c32 = 1.04, by rule (NewIdeas):** Leap's first-cut midpoint (1.03-1.05), the value in every K* table since Sun 15.
+  - No measured c32 exists, and none is scheduled this week. E14's arms are chain checks (C32 == B2x16), so they give R
+    but no tree overhead.
+  - M4 (Tue night) times tree-16 vs chain-16 only. Its tree overhead is information and does not move the pin.
+- **The bars** (section 4's rules at these values):
+  - **T32/32:** PASS if LB >= 1.04 AND point >= 1.0712 (1.03 x 1.04). Gated on HE+ AND MBPP.
+  - **T32/16:** rho = 1.433 x 1.04 = 1.4903. PASS if LB >= 1.4903 AND point >= 1.5350. Gated on HE+ only; MBPP is
+    information.
+  - BETWEEN and FAIL as in amendment 6.
+  - The scorer call: `tools/certify98_lines.py treek <HE+ topk> <HE+ tree> <MBPP topk> <MBPP tree> --c32 1.04 --r3216
+    1.433`.
+- **Dev at these bars** (information; only the fresh sets gate; results/certify98/treek_dev_8a_2026-11-17.txt):
+  - T32/32 PASS: HE+ 1.181 [LB 1.126], MBPP 1.304 [1.283].
+  - T32/16 HE+ FAIL: 1.531 [LB 1.470], against 1.4903 / 1.5350. MBPP 1.371 [1.351], information.
+  - Power (amendment 8's dated line, the registered draws): T32/16 HE+ 0.39 at 1.433 x 1.04; T32/32 1.00 on both sets.
+- **K* per set** (section 4's rule; NewIdeas' KSTAR_E14.md, 1f0dd99):
+  - **HE+-like code: K* = 16.** By the measured bar, tree-32 does not clear chain-16 on dev (1.531 < 1.535). On E14's
+    costs, NewIdeas' tok/s model is a tie within +-1 %: tree-32 +0.9 % plain, tree-16 +0.8 % with BOF and +0.4 % with
+    the reference contract.
+  - **MBPP-like code: K* = 16.** Tree-16 wins by 19-20 % on E14's costs.
+  - **K* names the tree that section 9's sentence quotes** ("the tree at K*") and that section 2's "band-0 coverage at
+    K*" reads: tree-16 on both sets.
+  - The tree-K lines still read tree-32 as filed. T32/32 and T32/16 stay gated (two of section 6's eight), with every
+    verdict quoted. NewIdeas: T32/16 does not decide K*.
+- **Unchanged:** every other line; the scorer pins (certify98_lines.py 579a60ac..., certify98.py c0528ad765fd5e59...,
+  certify98_tree.py 4a0ba21625497be1...); amendment 7a's dumps.
+- **CONFIRMED (NewIdeas, received Tue 01:1x):** the K* naming as filed. Information, so nobody reads a 16 / 32 mix as a
+  K* switch later (no filed line changes):
+  - ADAPTIVE K (~/NewIdeas/research/week98/ADAPTK.md) is a gated engine build. It picks 16 or 32 rows per check at run
+    time from the drafter's path_p, and never changes the certified tree. The orchestrator joins it to Saturday only if
+    it is bitwise and a C T T C A/B passes by Fri 12:00.
+  - If adopted, it is ENGINE CONFIGURATION. The RESULT states its per-check mix (e.g. "16 / 32 rows, tau 0.9") beside
+    the tok/s, never as K*. C1 at tree-16 stays the claim: a 32-row check covers at least what the 16-row one does.

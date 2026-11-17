@@ -343,3 +343,18 @@ tok/s = kept / (check + draft + overhead), HE+ lossy, 32-row tree check, AT QUAL
   the draft level's fixed cost f. 775 needs kept ~25-31 at these check times, and only a better DRAFTER moves kept
   (Goal A; tonight's drift screens: ASSIM KILL, WALK-MIX BETWEEN). The remaining bet is the 125B's mid-layer states
   (Tue-night capture, Wed screens).
+
+## LADDER v4 + a CONDITIONAL rung: ADAPTIVE K (NewIdeas, Tue 17 Nov 01:1x by date; ADAPTK.md)
+- What it is: per check, 16 or 32 rows, picked by the drafter's own path_p (pop while >= tau 0.9). It is exact.
+- Measured on dev (CPU replay, E14 costs, draft cost counted):
+  - HE+ +8.0-10.3 % with today's two kernels (95 % window bootstrap +6.6..+10.7 at L 0.66; 24 / 24 windows up);
+  - MBPP ~0, never a loss.
+- Hindsight ceiling: HE+ +17-19 % (KERN2), MBPP +9.5 %.
+- v4's 32-row lossy rows assume tree-32 on HE+. Adaptive K applies the same way: it picks 16 where 32 doesn't pay. On
+  the lossy byte-floor model it was +12.3 % HE+ (ONEPASS, L 0.40).
+- The rung: v4's HE+ line ~310-430 becomes **~335-465 IF adaptive K passes** its gates:
+  - the fresh-cell re-read Thu ~midday (frozen in adaptk_fresh.py; KILL < +3 % HE+);
+  - M4's tree verify (Tue night);
+  - BigMoE's 32-row tree verify, bit-tested;
+  - the C T T C engine A/B by Fri 12:00.
+  Otherwise v4 stands. MBPP is unchanged. The gap to 775 still needs the drafter (kept ~x1.4-1.6).
