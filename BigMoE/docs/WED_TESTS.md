@@ -2761,3 +2761,20 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
     old keys and the DOC check; the DOC envs on the probe keys: PASS) and three wrapper runs (PASS, FAIL, defaults).
   - It starts after EvalSuite's follower3 ends (results/T1C_TUEF3_END), with away >= 900 s and NO-SWAP >= 38 (+2 GB
     swap guard); latest start 16:30, hard stop 16:45. data/r57/G1P_PROBE_DONE is written on every end.
+- **Tue 05:18-05:22, the COMQOM probe re-run: PASS, 3 of 3 envs** (data/r57/g1_keytest_g1bp.json + .log, the per-env
+  records data/r57/g1kt_*45g1bp_*, the marker data/r57/G1P_PROBE_DONE, the waiter's log data/r57/g1p_follow.log).
+  - Start: each waiter was holding for the other. EvalSuite's follower3 held while any scripts/g1_follow.sh ran, and
+    this waiter waited for follower3's end marker. EvalSuite stopped follower3 at 05:18, which wrote the marker, and
+    re-armed it to hold only while scripts/g1_keytest.py runs. NO-SWAP 47.4 GB at the start, away_secs 19,886.
+  - Memory: lifetime peak 42.4 / 42.7 / 42.7 GB (lx45g1b / g1c / g1cr), swap +0.00 GB, 0 swapouts, at-peak margins
+    4.86 / 5.84 / 6.36 GB.
+  - Exactness: the three scored keys match lx45cc1 token for token on all three envs (9 of 9).
+  - COMQOM engages on '#' comment rows. g1c tags 115 rows on mbpp/303 (com_opt 44,160) and 57 on mbpp/237 (21,888);
+    g1cr tags 54 (20,736) and 28 (10,752). Every tagged row gives 384 optional uses, as the first run's mbpp/146 rows did.
+    opt_post = com_opt + res_opt = pf.qom_opt on every key. The scored keys' answers have no '#' lines (docstrings
+    only), so com_rows = 0 there.
+  - g1cr's answers open with a docstring where g1c's open with '#' lines (3 and 2 '#' lines against 7 and 4), so g1cr
+    tags fewer rows. Its mbpp/237 answer runs 916 tokens (117 under g1c, 220 in lx45cc1). 85 % of it is a
+    1,986-character docstring that works through the test cases ("Let me re-examine ...") before the same function.
+    It is not a loop (43 lines, 40 distinct), but it is a length cost to watch in the quality runs.
+  - With the first run (7 of 9), all nine G1 envs now pass the key test.

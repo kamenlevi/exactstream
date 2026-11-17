@@ -1,9 +1,10 @@
-# RESULT: the close-call night (Tue 2026-11-17 00:56-04:34) — close-call at delta 1 (ccx45cc1) PASSES tier 1 in both orders (pooled code -1.14 pt, p 0.26); delta 2 (ccx45cc1d2) FAILS its forward (MBPP -6.00 pt; pooled code -4.17 pt, p 0.013), so its reverse did not run
+# RESULT: the close-call night and the tier-0a re-run (Tue 2026-11-17 00:56-05:06) — close-call at delta 1 (ccx45cc1) PASSES tier 1 in both orders (pooled code -1.14 pt, p 0.26); delta 2 (ccx45cc1d2) FAILS its forward (MBPP -6.00 pt; pooled code -4.17 pt, p 0.013), so its reverse did not run; the tier-0a calibration is COMPLETE (A_line 0.9775, F_line 0.00 per 1,000; the adoption check PASSES)
 
 Pre-registered in docs/PREREG_lossygate_2026-11-15.md: amendment 3 (close-call at delta 1 against the cached lossy-45
 base lx45cc1), 3a (the RUNAWAY guard and the speed read-out) and 3b (the delta-2 arm). Runner 64 (tools/day_runner64.sh,
 sha256 5cab78942ae9501c, as registered) ran every step. The chain was tools/night1117_chain.sh at 8698a4d (sha256
-d434e7f7866d2bc2), armed Mon 06:52:13 as pid 52881. Its log is results/night1117_chain.log.
+d434e7f7866d2bc2), armed Mon 06:52:13 as pid 52881. Its log is results/night1117_chain.log. The tier-0a re-run is
+amendments 2, 2b and 2c, with its lines in 2d.
 
 ## How it ran [K]
 - **The start:** 00:56:12, on Leap's E1-E4 marker (E14 ended 00:55:23, rc 0), written after E14's own start line and
@@ -97,6 +98,44 @@ ccx45cc1's line with R57_RELAX_DELTA 1 -> 2 (env blob a5cb28ef), against card_lx
 - **Engagement:** 1,993 close-call accepts over 264 code runs (1.8x delta 1's forward); 79 code runs read 0.
 - **Speed (information; the arm failed):** code +9.2 % on all answers, +5.8 % clean (n 243).
 
+## The tier-0a calibration re-run (rpl2, step 3; 04:36-05:06): COMPLETE; A_line 0.9775, F_line 0.00 per 1,000; the adoption check PASSES [K]
+The follower was tools/night1117_t0a.sh (0ca9f08, sha256 b106d07f1583e9cc), armed Mon 08:40:20 as pid 45029. Its log
+is results/night1117_t0a.log.
+- **The start:** 04:36:05, on night1117's "done:" marker, read twice 30 s apart. NO-SWAP was 48 GB; the cutoff was
+  06:36 (start + 2 h).
+- **The arms:** amendment 2b's three, on the rpl2 pins. Each ran a REPLAY pass over exact-45's own rows
+  (card_x45rpl1_t0code) on the merged exact margins (results/card/replay_margins_x45rpl1.json), then its mini-panel
+  against the exact references.
+
+| Arm | Time | Known | A (drafted rows) | Flips by exact margin < 0.5 / 0.5-1 / 1-2 / >= 2 | F_hi per 1,000 | Mini-panel (n 40) |
+|---|---|---|---|---|---|---|
+| p2x45rpl2 | 04:36-04:42 | PASS (the 45 GB P2 gate) | 0.9825 (10,135 / 10,315) | 147 / 30 / 3 / 0 | 0.00 | 2 / 5, net loss 3: GO |
+| m1bx45rpl2 | 04:42-04:53 | PASS (the card gates) | 0.9854 (10,164 / 10,315) | 124 / 26 / 1 / 0 | 0.00 | 0 / 4, net loss 4: KILL |
+| lossycalx45rpl2 | 04:53-05:06 | deliberately lossy | 0.9491 (9,790 / 10,315) | 206 / 131 / 134 / 54 | 5.24 | 0 / 9, net loss 9: KILL |
+
+- **The lines** (amendment 2d, computed as amendment 2 registered them, from the passing calibrators p2 and m1b):
+  - A_line = 0.9825 - 0.5 pt = **0.9775**;
+  - F_line = 2 x 0.00 = **0.00 per 1,000**.
+- **The adoption check: PASS.** lossycal KILLs at its mini-panel and falls outside both lines: A 0.9491, 2.84 pt under
+  the line, and F_hi 5.24.
+- **So the lines are adopted for tier 0a:** KILL if A < 0.9775 or F_hi > 0.00 per 1,000.
+  - Until tools/lossy_d4.py reads them, they are applied by hand from card_<tag>_replay.txt.
+  - A REPLAY run needs a snapshot with rpl2's `_gate_block` fix: t1c1, g1a and g1b have it, cc1 does not.
+- **What separates the arms:**
+  - The two known-good configs flip only near-ties: 0 flips at >= 2 nats in 10,315 drafted rows each, and 3 and 1 at
+    1-2 nats.
+  - The deliberately lossy arm flips confident tokens: 54 flips at >= 2 nats and 134 at 1-2.
+- **Information:** m1b passed the card gates, yet its code mini-panel against exact sits at the KILL line (net loss 4:
+  0 / 4, exact p 0.125). p2 reads 3. Against exact rows, the mini-panel line sits at the known-good configs' level. The
+  line stays as registered.
+- **Validity, each arm:**
+  - the pins matched at the start: trees rpl2 7038e9a8, frozen_rpl1 db72c3c1 and bigmoe d92cdb4b; screen
+    d74d8b119e34; .so ff69fa24a745; the env blobs as registered;
+  - 4 processes each (2 REPLAY + 2 mini-panel), with the outside modules equal;
+  - 40 of 40 keys, and the prefill picks all equal.
+- **Memory:** p2's processes peaked at 44.2 GB, above its 43 GB gate (NO-SWAP was 48 at its start). m1b and lossycal
+  peaked at 42.9 GB, under their 47 GB gate. Swap was flat (7499 MB at 05:07).
+
 ## Memory, and a correction to Monday's RESULT [K]
 - **This night:** process lifetime peaks were 42.4-43.0 GB in the delta-1 runs and 42.4-43.1 GB in the delta-2 run,
   at the 43 GB NO-SWAP gate. The warm-ups peaked at 42.2 GB. Swap did not grow.
@@ -122,3 +161,10 @@ ccx45cc1's line with R57_RELAX_DELTA 1 -> 2 (env blob a5cb28ef), against card_lx
   speed_ccx45cc1d2_2026-11-17.txt.
 - Per process: results/card/es_cdccx45cc1_170056_*, es_cdccx45cc1_rev_170208_* and es_cdccx45cc1d2_170322_* (logs,
   manifests, checks, runs, tokens, screens).
+- The tier-0a re-run:
+  - results/night1117_t0a.log and results/T0A_1117_END;
+  - results/day64_{p2,m1b,lossycal}x45rpl2_runner.log and CARD_{p2,m1b,lossycal}x45rpl2_DONE;
+  - card_<tag>_replay.txt and card_<tag>_tier0code.txt;
+  - the rows card_<tag>_t0code and card_<tag>_t0code_rpl;
+  - results/card/replay_rows_<tag>.jsonl, lossy_keys_<tag>_t0code.txt, lossy_ref_keys_<tag>_t0code.txt and
+    es_cd<tag>_*.

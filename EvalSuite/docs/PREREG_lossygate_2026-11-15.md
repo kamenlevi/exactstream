@@ -508,6 +508,40 @@
     - a HOLD mid-run: rc 8 with the marker;
     - an arm crash: the follower stops there.
 
+## Amendment 2d (Tue 2026-11-17 05:0x, after step 3's rows): the tier-0a lines, as amendment 2 / 2b compute them; the adoption check PASSES
+- **The runs** (night1117's t0a follower, 04:36-05:06; docs/RESULT_lossygate_2026-11-17.md): all three ended rc 0
+  with a verdict, 40 of 40 keys each, on amendment 2b's pins.
+
+| arm | known | A (drafted rows) | flips by exact margin < 0.5 / 0.5-1 / 1-2 / >= 2 | F_hi per 1,000 | mini-panel (n 40, vs exact) |
+|---|---|---|---|---|---|
+| p2x45rpl2 | PASS (the 45 GB P2 gate) | 0.9825 (10,135 / 10,315) | 147 / 30 / 3 / 0 | 0.00 | 2 / 5, net loss 3: GO |
+| m1bx45rpl2 | PASS (the card gates) | 0.9854 (10,164 / 10,315) | 124 / 26 / 1 / 0 | 0.00 | 0 / 4, net loss 4: KILL |
+| lossycalx45rpl2 | deliberately lossy | 0.9491 (9,790 / 10,315) | 206 / 131 / 134 / 54 | 5.24 | 0 / 9, net loss 9: KILL |
+
+- **The lines,** computed as amendment 2 registered them. The passing calibrators are the configs that passed a gate
+  (LOSSY_GATE section 2), p2 and m1b.
+  - **A_line = 0.9825 - 0.005 = 0.9775.** p2 has the lower A.
+  - **F_line = 2 x 0.00 = 0.00 per 1,000.** So a single flip at an exact margin >= 2 nats KILLs, the consequence
+    amendment 2b stated before the data.
+  - The lines are the same if only this run's mini-panel GO counted as passing, since p2 alone gives both.
+- **The adoption check: PASS.** lossycal's mini-panel KILLs (net loss 9), and lossycal falls outside both lines: A
+  0.9491 < 0.9775 (2.84 pt under), and F_hi 5.24 > 0.
+- **So the lines are adopted for tier 0a,** as amendment 2 registered. A variant is KILLed at tier 0a if A < 0.9775
+  or F_hi > 0.00 per 1,000. Tier 0 never adopts, and a GO goes on to tier 1.
+  - Scope: REPLAY on these rows and margins (card_x45rpl1_t0code, results/card/replay_margins_x45rpl1.json; the 40
+    tier-0 code keys).
+  - The mini-panel's own KILL line (a net loss >= 4 of 40 against the base) is unchanged.
+  - tools/lossy_d4.py still prints REPLAY as information. Until it reads these lines, they are applied by hand from
+    card_<tag>_replay.txt. The tool change is a later step, with its own tests, made when no runner that imports the
+    tool is armed.
+  - A REPLAY run needs a snapshot with rpl2's `_gate_block` fix. t1c1, g1a and g1b have it; cc1 does not (read here).
+- **Information, not a rule change:**
+  - m1b passed the card gates (IFBench, GPQA and LCB v6 against NAX6-N). But its code mini-panel against exact reads
+    a net loss of 4 of 40 (0 / 4, exact p 0.125), which is at the KILL line. p2 reads 3 of 40 (2 / 5).
+  - So against exact rows, the mini-panel line sits at the level of the known-good configs. A variant gated against its
+    own lossy base (V0 against B0) carries the base's loss in both arms.
+  - The line stays as registered. Changing it would need its own amendment.
+
 ## Amendment 4 (Mon 2026-11-16 08:4x, before any 1c-tiers run): the plan for variant 1c-tiers (V2), CODE-ONLY; the pins follow in 4a
 - **Why:** the orchestrator approved Fit12's cheapest gateable lossy check at 08:3x. That is the LOSSY32 price's
   candidate "C3": lossy-45 + V2, the 1c expert tiers. Its price [P] is 53-55 ms per 32-row check, against lossy-45's
@@ -1093,6 +1127,50 @@
       PASS (and g1cr with the probe's FAIL), refuses an unpinned name; the chain parses its line.
   - **Armed** Tue 01:52:55: tools/g1_chain.sh, pid 39942 (`CHAIN_MYPID=63835 tools/g1_chain.sh`), waiting for its day-window
     gates. Stop: `kill -TERM 39942`.
+- **Dated Tue 05:2x (before any G1 run or data; BigMoE 05:2x, 4eaf5f3a): C's key test, read per env (5e) and for MEM,
+  from BigMoE's probe re-run.**
+  - **G1P_PROBE_DONE 05:21:59: PASS 3 / 3** (data/r57/g1_keytest_g1bp.json): lx45g1b, g1c45g1b and g1cr45g1b.
+    - The three scored keys are token-equal to lx45cc1 on all three envs (9 / 9). Swap +0.00, 0 swapouts.
+    - COMQOM engages on the '#'-rich probe keys: com_rows 115 (mbpp/303) + 57 (mbpp/237) for g1c, and 54 + 28 for
+      g1cr.
+    - opt_post = com_opt + res_opt = pf.qom_opt on every key. So runner 68's 4b rule holds on C's records.
+  - **5e holds for C.**
+    - The env blobs are the pinned ones (bfd66ced, 78f7932b; read here). They are int8-free: R57_INT8D appears only in
+      their comment lines.
+    - So all nine envs pass, and 5d's 00:5x fallback line (C without a PASS) no longer applies.
+    - tools/g1_pick.sh's PASS test accepts g1c and g1cr on this record (run here on the real file).
+  - **MEM, read by amendment 5's rule** ("the config's key test, whose every peak must be <= the gate - 0.5 GB"):
+    - C's key-test peaks are 42.69 GB (g1c) and 42.75 GB (g1cr). Both come at mbpp/237, each process's last key; the
+      scored keys read 42.39.
+    - That is above 42.5. So under the rule as written, a C pick needs gate 44 (CARD_MEM 40), while G1's armed chain
+      pins CARD_MEM 39 (gate 43).
+    - For C, either G1's chain is re-armed with CARD_MEM 40 (an edit made while it is not armed, with its dry passes),
+      or a dated amendment keeps 43 on at-peak evidence (5a). NewIdeas decides, before the pick is filed.
+    - The evidence on file: every full tier-1 run this week peaked at 43.0-43.1 GB per process under the 43 GB gate,
+      with swap flat (results/lossygate/peaks_2026-11-17.txt). The other envs' key tests read 42.3-42.4 GB because
+      their keys are short.
+  - **Information:** g1cr's mbpp/237 answer is 916 tokens, against 117 for g1c and 220 for lx45cc1.
+    - BigMoE reads it as a docstring that works through the test cases before the same function, not a loop.
+    - Read here: no 20-token n-gram repeats in its last 400 tokens, and it ends at its EOS, under the cap.
+- **Dated Tue 05:2x (NewIdeas 05:2x; before the pick and before any G1 run or data): for a C pick, the gate STAYS 43
+  GB (CARD_MEM 39) on at-peak evidence, 5a's route. No re-arm.**
+  - **What changes:** amendment 5's sizing rule (every key-test peak <= the gate - 0.5) is waived for g1c / g1cr only,
+    whose probe key test read 42.69 / 42.75 GB. It is a resource gate, not a verdict line, so no line or verdict
+    changes.
+  - **The at-peak evidence** (results/lossygate/peaks_2026-11-17.txt):
+    - Every full tier-1 run this week peaked at 43.0-43.1 GB per process under the 43 GB gate, with swap flat:
+      lx45cc1 in both orders, lx45t1c1 B1, t1cx45t1c1 V1, ccx45cc1 in both orders and ccx45cc1d2.
+    - Their own key tests read 42.3-42.4 GB. So the rule is a sizing proxy that full runs already outgrow.
+    - C's 42.69 / 42.75 comes from the longest probe key (mbpp/237). Full runs reach that long-answer regime in every
+      env, so a full C run is expected near the same 43.0-43.1 GB.
+    - Gate 44 would delay G1's start by day, which could push it into the at-Mac yield after 15:00.
+  - **The backstop, as standing:** runner 68's swap guard. A process start more than 2 GB of swap over the runner's
+    base stops the runner (rc 3).
+    - G1's chain then ends, since any runner rc other than 0, 6 and 75 ends it.
+    - A re-arm resumes the step by step()'s rules: a cut tier-1 run with CARD_RESUME=1, a tier-0 run fresh. No line
+      changes.
+  - **The check:** for a C pick, the first C process's lifetime peak is logged next to peaks_2026-11-17.txt (V0's
+    first process; then V1's full processes).
 
 ## Amendment 5c (Mon 2026-11-16 13:0x, before any G2 config, snapshot or data): G2's composition (NewIdeas 13:0x); it replaces 5a's G2 condition
 - **Why:** Breakthrough found that G1 as built reads 6.22 GB per check, not 5.77. g1a is C6 + int8 on lossy-45's
@@ -1685,6 +1763,41 @@
       gone); the night window from 11-17 03:00, priced at 190 min to end by 07:00; else after Leap's slot #1 (window
       to 12:00); cutoff 17:00, no start after 14:30; no start while Kamen is at the Mac, and chain2 yields to him
       mid-run.
+- **Dated Tue 05:2x (NewIdeas' pick B, received 05:1x; BigMoE asked 05:1x, and NewIdeas briefs it at 06:30), before
+  any B2 / V2 data: follower3 RE-ARMED (pid 10793), as a deadlock fix plus use of the free window to 07:00.**
+  - **The deadlock** (found Tue 05:1x, read in the code; NewIdeas checked it too):
+    - follower3's start check (`blocked()`, line 96) holds while any process matches
+      `scripts/g1_follo[w]\.sh|scripts/g1_keytes[t]\.py`.
+    - BigMoE's COMQOM probe re-run (pid 52322, armed Tue 01:15) is a `scripts/g1_follow.sh` shell. It waits for
+      results/T1C_TUEF3_END, which follower3 writes only at its own end.
+    - So after Leap's slot #1, follower3 would have waited until its 14:30 last start and ended with no run. Only then
+      would it have released the probe. Nothing else checks that pattern: chain2, runners 65 / 66 / 68 and g1_chain.sh
+      were read here.
+  - **The fix:** the same file (sha256 e7cbf8732bd978f5), re-armed with CHAIN_KTPAT='scripts/g1_keytes[t]\.py'.
+    - It holds only while a key test RUNS. That is the condition's purpose: no race with BigMoE's key test, which also
+      stops itself if a day runner appears.
+    - The stub sim covers the knob (s9 in results/lossygate/t1c_tue_follower3_sim_2026-11-16.txt).
+  - **The free window (NewIdeas' B):** CHAIN_PRICE_S=3600, so the night window prices B2 -> V2 at 60 min instead of
+    190.
+    - B2 starts after the probe. Runner 65's per-process price (900 s) lets no process start after 06:45.
+    - The registered 07:00 cut (rc 75) then resumes B2's rest and V2 in stage 3, after Leap's slot #1, with
+      CARD_RESUME=1.
+    - The 07:00 COMQOM map stays as registered. If Kamen comes to the Mac before 07:00, the at-Mac yield applies as
+      usual.
+  - **The switch** (in NewIdeas' order: re-arm only once the probe's key test runs, so B2 cannot take the 43 GB
+    before the probe's 38 GB gate):
+    - 05:17:30: TERM 8136. It was waiting for Leap's slot #1, with nothing started, no runner or chain2 alive and no
+      HOLD or PAUSE. It was gone at 05:17:49 with T1C_TUEF3_END "stopped by a signal during: waiting for Leap's slot
+      #1 to be over".
+    - 05:18:22: 52322 started on that marker (NO-SWAP 47.4 / 47.4 GB), and its key test ran as pid 5688.
+    - 05:18:4x: T1C_TUEF3_END and its T1C_RESF2_END copy were moved aside (.f3rearm), so T1C_RESF2_END keeps meaning
+      the 1c-tiers end. 52322 reads no marker after its start (read in g1_follow.sh).
+    - G1's chain reads T1C_TUEF3_END only with follower3 gone AND V2's verdict in CARD_t1cx45t1c1_rev_DONE (absent).
+      So the stop marker could not start G1. G1P_PROBE_DONE counts for G1 whenever it lands (after 01:15).
+    - 05:18:48: re-armed as pid 10793. Its first line: the night window from 03:00 "only if priced (60 min) to end by
+      11-17 07:00"; else after Leap's slot #1; cutoff 17:00, no start after 14:30.
+    - 05:19:18: it read T0A_1117_END twice and entered the night window. It then waited on "BigMoE's key test is armed
+      or running (pid 5688)", as designed.
 
 ## Amendment 5f (Mon 2026-11-16 20:0x, before any G2 config, snapshot or data): G2 without V1, the SVH / full head in V1's place (NewIdeas 20:0x); it amends 5c
 - **Why** (NewIdeas 20:0x, from Breakthrough's paired read). The source is section 7 of ~/Breakthrough's
