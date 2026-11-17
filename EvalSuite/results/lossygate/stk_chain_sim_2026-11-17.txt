@@ -1,0 +1,714 @@
+# the stub sim of tools/stk_chain.sh (sha256 00ed6ab5e403fd14), Tue 2026-11-17 07:0x-07:1x: 18 scenarios, a byte copy of the chain per sandbox; <sim> = the sandbox root
+
+== s1: G1 PASS (g1r) and 'stk: PASS': stk; bases done (G1's): SMOKE (3 keys, _smoke) -> the memory rule replaces the old STK_CARD_MEM (peak 43.27 -> gate 44, CARD_MEM 40) -> T1F -> T1R pooled; done
+chain rc 0
+-- runner calls:
+07:08:47 runner pid 46501 tg=stk45g1b_smoke tier=2 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=ref2tnaxn.r6 ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=stk_smoke_keys.txt later=0
+07:08:51   stk45g1b_smoke done: CARD stk45g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+07:09:02 runner pid 51355 tg=stk45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=none later=0
+07:09:06   stk45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub stk45g1b
+07:09:17 runner pid 56157 tg=stk45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_stk45g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=none later=0
+07:09:21   stk45g1b_rev done: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; stub stk45g1b_re
+-- peer calls: peer unlock;
+-- log:
+11-17 07:08:43 [stkw] stk_chain (pid 43935; session 63835): the stack's tier 1 on g1b through day_runner69.sh, tag stkw; cutoff 2026-11-17 09:09, latest first start 11-17 08:09; after [<sim-path>
+11-17 07:08:43 [stkw] waits for the gates; no first start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 08:09 (cutoff 2026-11-17 09:09)
+11-17 07:08:46 [stkw] start: env stk (G1 (g1r) PASS in both orders: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)); key test: stk: PASS (stub); read again 2 s later
+11-17 07:08:47 [stkw] free NO-SWAP 50 GB; swap 8192.00M
+11-17 07:08:47 [stkw] the env: stk (G1 (g1r) PASS in both orders: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)); stk45g1b, blob aaaa1111; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_c
+11-17 07:08:47 [stkw] B1 base forward (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B1 (stub, G1's)
+11-17 07:08:47 [stkw] B2 base reverse (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B2 (stub, G1's)
+11-17 07:08:47 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4
+11-17 07:09:02 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): rc 0; CARD stk45g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+11-17 07:09:02 [stkw] STK CARD MEM 11-17 07:09:02: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk45g1b_smoke)
+11-17 07:09:02 [stkw] T1F stk forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SCREEN_SHA
+11-17 07:09:17 [stkw] T1F stk forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub stk45g1b
+11-17 07:09:17 [stkw] speed stk45g1b vs lx45g1b (rc 0): 50
+11-17 07:09:17 [stkw] T1R stk reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SC
+11-17 07:09:32 [stkw] T1R stk reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; stub stk45g1b_rev
+11-17 07:09:32 [stkw] speed stk45g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 07:09:32 [stkw] done: the stack = stk (stk45g1b); the both-orders tier-1 verdict in CARD_stk45g1b_rev_DONE; the card gate's memory in STK_CARD_MEM
+11-17 07:09:32 [stkw] end (rc 0):  B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 0; T1R rc 0; done: the stack = stk (stk45g1b); the both-orders tier-1 verdict in CARD_stk45g1b_rev_DONE; the card gate's memory in STK_CARD_MEM; wrote results/STK_CHAIN_END
+-- STK_CARD_MEM: STK CARD MEM 11-17 07:09:02: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk45g1b_smoke)
+-- STK_CHAIN_END: STK STKW END 11-17 07:09:32:  B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 0; T1R rc 0; done: the stack = stk (stk45g1b); the both-orders tier-1 verdict in CARD_stk45g1b_rev_DONE; the card gate's memory in STK_CARD_MEM
+-- after the end: runner processes (46501 51355 56157 ): all gone
+
+== s2: G1 FAIL in both orders: stk0 (blob bbbb2222, CARD_ENGAGE close_call:accepted@run only); done
+chain rc 0
+-- runner calls:
+07:08:47 runner pid 46252 tg=stk045g1b_smoke tier=2 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=bbbb2222 fenv=stk045g1b_env.txt ref=ref2tnaxn.r6 ident=0 fwd_run= engage=close_call:accepted@run keys=stk_smoke_keys.txt later=0
+07:08:51   stk045g1b_smoke done: CARD stk045g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+07:09:02 runner pid 51302 tg=stk045g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=bbbb2222 fenv=stk045g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=close_call:accepted@run keys=none later=0
+07:09:06   stk045g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub stk045g1b
+07:09:17 runner pid 56096 tg=stk045g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=bbbb2222 fenv=stk045g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_stk045g1b_t1code engage=close_call:accepted@run keys=none later=0
+07:09:21   stk045g1b_rev done: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; stub stk045g1b_r
+-- peer calls: peer unlock;
+-- log:
+11-17 07:08:43 [stkw] stk_chain (pid 43948; session 63835): the stack's tier 1 on g1b through day_runner69.sh, tag stkw; cutoff 2026-11-17 09:09, latest first start 11-17 08:09; after [<sim-path>
+11-17 07:08:43 [stkw] waits for the gates; no first start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 08:09 (cutoff 2026-11-17 09:09)
+11-17 07:08:46 [stkw] start: env stk0 (G1 (g1r) FAIL in both orders); key test: stk0: PASS (stub); read again 2 s later
+11-17 07:08:47 [stkw] free NO-SWAP 50 GB; swap 8192.00M
+11-17 07:08:47 [stkw] the env: stk0 (G1 (g1r) FAIL in both orders); stk045g1b, blob bbbb2222; CARD_ENGAGE close_call:accepted@run
+11-17 07:08:47 [stkw] B1 base forward (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B1 (stub, G1's)
+11-17 07:08:47 [stkw] B2 base reverse (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B2 (stub, G1's)
+11-17 07:08:47 [stkw] SMOKE stk0 card tier, 3 keys, both orders (a function check): CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e
+11-17 07:09:02 [stkw] SMOKE stk0 card tier, 3 keys, both orders (a function check): rc 0; CARD stk045g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+11-17 07:09:02 [stkw] STK CARD MEM 11-17 07:09:02: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk045g1b_smoke)
+11-17 07:09:02 [stkw] T1F stk0 forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SCREEN_SH
+11-17 07:09:17 [stkw] T1F stk0 forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub stk045g1b
+11-17 07:09:17 [stkw] speed stk045g1b vs lx45g1b (rc 0): 50
+11-17 07:09:17 [stkw] T1R stk0 reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_S
+11-17 07:09:32 [stkw] T1R stk0 reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; stub stk045g1b_rev
+11-17 07:09:32 [stkw] speed stk045g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 07:09:32 [stkw] done: the stack = stk0 (stk045g1b); the both-orders tier-1 verdict in CARD_stk045g1b_rev_DONE; the card gate's memory in STK_CARD_MEM
+11-17 07:09:32 [stkw] end (rc 0):  B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 0; T1R rc 0; done: the stack = stk0 (stk045g1b); the both-orders tier-1 verdict in CARD_stk045g1b_rev_DONE; the card gate's memory in STK_CARD_MEM; wrote results/STK_CHAIN_END
+-- STK_CARD_MEM: STK CARD MEM 11-17 07:09:02: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk045g1b_smoke)
+-- STK_CHAIN_END: STK STKW END 11-17 07:09:32:  B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 0; T1R rc 0; done: the stack = stk0 (stk045g1b); the both-orders tier-1 verdict in CARD_stk045g1b_rev_DONE; the card gate's memory in STK_CARD_MEM
+-- after the end: runner processes (46252 51302 56096 ): all gone
+
+== s3: G1 PASS but the key test failed stk: no start (a stk0 PASS does not stand in); no start by the latest start (rc 6)
+chain rc 6
+-- runner calls:
+(none)
+-- peer calls: peer unlock;
+-- log:
+11-17 07:08:43 [stkw] stk_chain (pid 44009; session 63835): the stack's tier 1 on g1b through day_runner69.sh, tag stkw; cutoff 2026-11-17 09:09, latest first start 11-17 07:11; after [<sim-path>
+11-17 07:08:43 [stkw] waits for the gates; no first start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 07:11 (cutoff 2026-11-17 09:09)
+11-17 07:09:18 [stkw] waiting: <sim>/s3/BigMoE/data/r57/STK_KEYTEST_DONE has no 'stk: PASS' line (stk: FAIL (stub))
+11-17 07:09:52 [stkw] waiting: <sim>/s3/BigMoE/data/r57/STK_KEYTEST_DONE has no 'stk: PASS' line (stk: FAIL (stub))
+11-17 07:10:26 [stkw] waiting: <sim>/s3/BigMoE/data/r57/STK_KEYTEST_DONE has no 'stk: PASS' line (stk: FAIL (stub))
+11-17 07:11:00 [stkw] no start by 11-17 07:11: <sim>/s3/BigMoE/data/r57/STK_KEYTEST_DONE has no 'stk: PASS' line (stk: FAIL (stub))
+11-17 07:11:00 [stkw] end (rc 6): no start by 11-17 07:11: <sim>/s3/BigMoE/data/r57/STK_KEYTEST_DONE has no 'stk: PASS' line (stk: FAIL (stub)); wrote results/STK_CHAIN_
+-- STK_CARD_MEM: none
+-- STK_CHAIN_END: STK STKW END 11-17 07:11:00: no start by 11-17 07:11: <sim>/s3/BigMoE/data/r57/STK_KEYTEST_DONE has no 'stk: PASS' line (stk: FAIL (stub))
+-- after the end: runner processes (): all gone
+
+== s4: no G1 decision: wait until 15 min before the latest start, then stk0 (NewIdeas 07:0x); done with stk0
+chain rc 0
+-- driver:
+07:09:20 s4 waiting for G1's decision, as designed
+-- runner calls:
+07:10:03 runner pid 69195 tg=stk045g1b_smoke tier=2 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=bbbb2222 fenv=stk045g1b_env.txt ref=ref2tnaxn.r6 ident=0 fwd_run= engage=close_call:accepted@run keys=stk_smoke_keys.txt later=0
+07:10:07   stk045g1b_smoke done: CARD stk045g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+07:10:18 runner pid 72801 tg=stk045g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=bbbb2222 fenv=stk045g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=close_call:accepted@run keys=none later=0
+07:10:22   stk045g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub stk045g1b
+07:10:33 runner pid 76660 tg=stk045g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=bbbb2222 fenv=stk045g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_stk045g1b_t1code engage=close_call:accepted@run keys=none later=0
+07:10:37   stk045g1b_rev done: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; stub stk045g1b_r
+-- peer calls: peer unlock;
+-- log:
+11-17 07:08:43 [stkw] stk_chain (pid 44077; session 63835): the stack's tier 1 on g1b through day_runner69.sh, tag stkw; cutoff 2026-11-17 09:09, latest first start 11-17 07:25; after [<sim-path>
+11-17 07:08:43 [stkw] waits for the gates; no first start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 07:25 (cutoff 2026-11-17 09:09)
+11-17 07:09:19 [stkw] waiting: no G1 decision yet (pick g1r): waiting for G1's decision (stk0 from 11-17 07:10)
+11-17 07:09:53 [stkw] waiting: no G1 decision yet (pick g1r): waiting for G1's decision (stk0 from 11-17 07:10)
+11-17 07:10:02 [stkw] start: env stk0 (no G1 decision yet (pick g1r) by 11-17 07:10: stk0 (NewIdeas 07:0x: no G1 verdict by the latest start)); key test: stk0: PASS (stub); read again 2 s later
+11-17 07:10:02 [stkw] free NO-SWAP 50 GB; swap 8192.00M
+11-17 07:10:02 [stkw] the env: stk0 (no G1 decision yet (pick g1r) by 11-17 07:10: stk0 (NewIdeas 07:0x: no G1 verdict by the latest start)); stk045g1b, blob bbbb2222; CARD_ENGAGE close_call:accepted@run
+11-17 07:10:02 [stkw] B1 base forward (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B1 (stub, G1's)
+11-17 07:10:02 [stkw] B2 base reverse (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B2 (stub, G1's)
+11-17 07:10:02 [stkw] SMOKE stk0 card tier, 3 keys, both orders (a function check): CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e
+11-17 07:10:18 [stkw] SMOKE stk0 card tier, 3 keys, both orders (a function check): rc 0; CARD stk045g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+11-17 07:10:18 [stkw] STK CARD MEM 11-17 07:10:18: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk045g1b_smoke)
+11-17 07:10:18 [stkw] T1F stk0 forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SCREEN_SH
+11-17 07:10:33 [stkw] T1F stk0 forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub stk045g1b
+11-17 07:10:33 [stkw] speed stk045g1b vs lx45g1b (rc 0): 50
+11-17 07:10:33 [stkw] T1R stk0 reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_S
+11-17 07:10:48 [stkw] T1R stk0 reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; stub stk045g1b_rev
+11-17 07:10:48 [stkw] speed stk045g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 07:10:48 [stkw] done: the stack = stk0 (stk045g1b); the both-orders tier-1 verdict in CARD_stk045g1b_rev_DONE; the card gate's memory in STK_CARD_MEM
+11-17 07:10:48 [stkw] end (rc 0):  B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 0; T1R rc 0; done: the stack = stk0 (stk045g1b); the both-orders tier-1 verdict in CARD_stk045g1b_rev_DONE; the card gate's memory in STK_CARD_MEM; wrote results/STK_CHAIN_END
+-- STK_CARD_MEM: STK CARD MEM 11-17 07:10:18: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk045g1b_smoke)
+-- STK_CHAIN_END: STK STKW END 11-17 07:10:48:  B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 0; T1R rc 0; done: the stack = stk0 (stk045g1b); the both-orders tier-1 verdict in CARD_stk045g1b_rev_DONE; the card gate's memory in STK_CARD_MEM
+-- after the end: runner processes (69195 72801 76660 ): all gone
+
+== s5: G1 V1 FAIL, B2 missing: stk0; the latest start moves 75 min earlier; B2 runs first (reverse vs exact), then SMOKE, T1F, T1R; done
+chain rc 0
+-- runner calls:
+07:08:47 runner pid 46335 tg=lx45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= keys=none later=0
+07:08:51   lx45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+07:09:02 runner pid 51208 tg=stk045g1b_smoke tier=2 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=bbbb2222 fenv=stk045g1b_env.txt ref=ref2tnaxn.r6 ident=0 fwd_run= engage=close_call:accepted@run keys=stk_smoke_keys.txt later=0
+07:09:06   stk045g1b_smoke done: CARD stk045g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+07:09:17 runner pid 56030 tg=stk045g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=bbbb2222 fenv=stk045g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=close_call:accepted@run keys=none later=0
+07:09:21   stk045g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub stk045g1b
+07:09:32 runner pid 60838 tg=stk045g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=bbbb2222 fenv=stk045g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_stk045g1b_t1code engage=close_call:accepted@run keys=none later=0
+07:09:36   stk045g1b_rev done: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; stub stk045g1b_r
+-- peer calls: peer unlock;
+-- log:
+11-17 07:08:43 [stkw] stk_chain (pid 43985; session 63835): the stack's tier 1 on g1b through day_runner69.sh, tag stkw; cutoff 2026-11-17 09:09, latest first start 11-17 08:39; after [<sim-path>
+11-17 07:08:43 [stkw] waits for the gates; no first start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 08:39 (cutoff 2026-11-17 09:09)
+11-17 07:08:46 [stkw] start: env stk0 (G1 (g1r) V1 FAIL); key test: stk0: PASS (stub); read again 2 s later
+11-17 07:08:47 [stkw] free NO-SWAP 50 GB; swap 8192.00M
+11-17 07:08:47 [stkw] the env: stk0 (G1 (g1r) V1 FAIL); stk045g1b, blob bbbb2222; CARD_ENGAGE close_call:accepted@run
+11-17 07:08:47 [stkw] B1 base forward (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B1 (stub, G1's)
+11-17 07:08:47 [stkw] B2 base reverse (made if G1's chain did not): CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34
+11-17 07:09:02 [stkw] B2 base reverse (made if G1's chain did not): rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+11-17 07:09:02 [stkw] SMOKE stk0 card tier, 3 keys, both orders (a function check): CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e
+11-17 07:09:17 [stkw] SMOKE stk0 card tier, 3 keys, both orders (a function check): rc 0; CARD stk045g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+11-17 07:09:17 [stkw] STK CARD MEM 11-17 07:09:17: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk045g1b_smoke)
+11-17 07:09:17 [stkw] T1F stk0 forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SCREEN_SH
+11-17 07:09:32 [stkw] T1F stk0 forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub stk045g1b
+11-17 07:09:32 [stkw] speed stk045g1b vs lx45g1b (rc 0): 50
+11-17 07:09:32 [stkw] T1R stk0 reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_S
+11-17 07:09:47 [stkw] T1R stk0 reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; stub stk045g1b_rev
+11-17 07:09:47 [stkw] speed stk045g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 07:09:47 [stkw] done: the stack = stk0 (stk045g1b); the both-orders tier-1 verdict in CARD_stk045g1b_rev_DONE; the card gate's memory in STK_CARD_MEM
+11-17 07:09:47 [stkw] end (rc 0):  B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 0; T1R rc 0; done: the stack = stk0 (stk045g1b); the both-orders tier-1 verdict in CARD_stk045g1b_rev_DONE; the card gate's memory in STK_CARD_MEM; wrote results/STK_CHAIN_END
+-- STK_CARD_MEM: STK CARD MEM 11-17 07:09:17: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk045g1b_smoke)
+-- STK_CHAIN_END: STK STKW END 11-17 07:09:47:  B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 0; T1R rc 0; done: the stack = stk0 (stk045g1b); the both-orders tier-1 verdict in CARD_stk045g1b_rev_DONE; the card gate's memory in STK_CARD_MEM
+-- after the end: runner processes (46335 51208 56030 60838 ): all gone
+
+== s6: G1 V0 KILL, B1 and B2 missing: stk0; latest start 150 min earlier; B1, B2, SMOKE, T1F, T1R; done
+chain rc 0
+-- runner calls:
+07:08:47 runner pid 46729 tg=lx45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 10:29 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= keys=none later=0
+07:08:51   lx45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+07:09:02 runner pid 51412 tg=lx45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 10:29 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= keys=none later=0
+07:09:06   lx45g1b_rev done: LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+07:09:17 runner pid 56268 tg=stk045g1b_smoke tier=2 resume=0 dry=0 cutoff=2026-11-17 10:29 mem=39 fblob=bbbb2222 fenv=stk045g1b_env.txt ref=ref2tnaxn.r6 ident=0 fwd_run= engage=close_call:accepted@run keys=stk_smoke_keys.txt later=0
+07:09:21   stk045g1b_smoke done: CARD stk045g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+07:09:32 runner pid 61081 tg=stk045g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 10:29 mem=39 fblob=bbbb2222 fenv=stk045g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=close_call:accepted@run keys=none later=0
+07:09:36   stk045g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub stk045g1b
+07:09:47 runner pid 65004 tg=stk045g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 10:29 mem=39 fblob=bbbb2222 fenv=stk045g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_stk045g1b_t1code engage=close_call:accepted@run keys=none later=0
+07:09:51   stk045g1b_rev done: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; stub stk045g1b_r
+-- peer calls: peer unlock;
+-- log:
+11-17 07:08:43 [stkw] stk_chain (pid 44103; session 63835): the stack's tier 1 on g1b through day_runner69.sh, tag stkw; cutoff 2026-11-17 10:29, latest first start 11-17 09:54; after [<sim-path>
+11-17 07:08:43 [stkw] waits for the gates; no first start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 09:54 (cutoff 2026-11-17 10:29)
+11-17 07:08:47 [stkw] start: env stk0 (G1 (g1r) V0 KILL); key test: stk0: PASS (stub); read again 2 s later
+11-17 07:08:47 [stkw] free NO-SWAP 50 GB; swap 8192.00M
+11-17 07:08:47 [stkw] the env: stk0 (G1 (g1r) V0 KILL); stk045g1b, blob bbbb2222; CARD_ENGAGE close_call:accepted@run
+11-17 07:08:47 [stkw] B1 base forward (made if G1's chain did not): CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34
+11-17 07:09:02 [stkw] B1 base forward (made if G1's chain did not): rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b
+11-17 07:09:02 [stkw] B2 base reverse (made if G1's chain did not): CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34
+11-17 07:09:17 [stkw] B2 base reverse (made if G1's chain did not): rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub lx45g1b_rev
+11-17 07:09:17 [stkw] SMOKE stk0 card tier, 3 keys, both orders (a function check): CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e
+11-17 07:09:32 [stkw] SMOKE stk0 card tier, 3 keys, both orders (a function check): rc 0; CARD stk045g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+11-17 07:09:32 [stkw] STK CARD MEM 11-17 07:09:32: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk045g1b_smoke)
+11-17 07:09:32 [stkw] T1F stk0 forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SCREEN_SH
+11-17 07:09:47 [stkw] T1F stk0 forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub stk045g1b
+11-17 07:09:47 [stkw] speed stk045g1b vs lx45g1b (rc 0): 50
+11-17 07:09:47 [stkw] T1R stk0 reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_S
+11-17 07:10:02 [stkw] T1R stk0 reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; stub stk045g1b_rev
+11-17 07:10:02 [stkw] speed stk045g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 07:10:02 [stkw] done: the stack = stk0 (stk045g1b); the both-orders tier-1 verdict in CARD_stk045g1b_rev_DONE; the card gate's memory in STK_CARD_MEM
+11-17 07:10:03 [stkw] end (rc 0):  B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 0; T1R rc 0; done: the stack = stk0 (stk045g1b); the both-orders tier-1 verdict in CARD_stk045g1b_rev_DONE; the card gate's memory in STK_CARD_MEM; wrote results/STK_CHAIN_END
+-- STK_CARD_MEM: STK CARD MEM 11-17 07:09:32: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk045g1b_smoke)
+-- STK_CHAIN_END: STK STKW END 11-17 07:10:03:  B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 0; T1R rc 0; done: the stack = stk0 (stk045g1b); the both-orders tier-1 verdict in CARD_stk045g1b_rev_DONE; the card gate's memory in STK_CARD_MEM
+-- after the end: runner processes (46729 51412 56268 61081 65004 ): all gone
+
+== s7: MoonShots' job runs: no start; its marker after the arming: start; done
+chain rc 0
+-- driver:
+07:08:43 s7 a fake MoonShots Q8 job runs (pid 43960, 20 s) and writes its marker at its end
+07:08:54 s7 runner calls while Q8 runs: none
+-- runner calls:
+07:09:06 runner pid 52743 tg=stk45g1b_smoke tier=2 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=ref2tnaxn.r6 ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=stk_smoke_keys.txt later=0
+07:09:10   stk45g1b_smoke done: CARD stk45g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+07:09:21 runner pid 57715 tg=stk45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=none later=0
+07:09:25   stk45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub stk45g1b
+07:09:36 runner pid 62282 tg=stk45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_stk45g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=none later=0
+07:09:40   stk45g1b_rev done: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; stub stk45g1b_re
+-- peer calls: peer unlock;
+-- log:
+11-17 07:08:43 [stkw] stk_chain (pid 43983; session 63835): the stack's tier 1 on g1b through day_runner69.sh, tag stkw; cutoff 2026-11-17 09:09, latest first start 11-17 08:09; after [<sim-path>
+11-17 07:08:43 [stkw] waits for the gates; no first start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 08:09 (cutoff 2026-11-17 09:09)
+11-17 07:09:06 [stkw] start: env stk (G1 (g1r) PASS in both orders: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)); key test: stk: PASS (stub); read again 2 s later
+11-17 07:09:06 [stkw] free NO-SWAP 50 GB; swap 8192.00M
+11-17 07:09:06 [stkw] the env: stk (G1 (g1r) PASS in both orders: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)); stk45g1b, blob aaaa1111; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_c
+11-17 07:09:06 [stkw] B1 base forward (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B1 (stub, G1's)
+11-17 07:09:06 [stkw] B2 base reverse (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B2 (stub, G1's)
+11-17 07:09:06 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4
+11-17 07:09:21 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): rc 0; CARD stk45g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+11-17 07:09:21 [stkw] STK CARD MEM 11-17 07:09:21: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk45g1b_smoke)
+11-17 07:09:21 [stkw] T1F stk forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SCREEN_SHA
+11-17 07:09:36 [stkw] T1F stk forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub stk45g1b
+11-17 07:09:36 [stkw] speed stk45g1b vs lx45g1b (rc 0): 50
+11-17 07:09:36 [stkw] T1R stk reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SC
+11-17 07:09:51 [stkw] T1R stk reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; stub stk45g1b_rev
+11-17 07:09:51 [stkw] speed stk45g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 07:09:51 [stkw] done: the stack = stk (stk45g1b); the both-orders tier-1 verdict in CARD_stk45g1b_rev_DONE; the card gate's memory in STK_CARD_MEM
+11-17 07:09:51 [stkw] end (rc 0):  B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 0; T1R rc 0; done: the stack = stk (stk45g1b); the both-orders tier-1 verdict in CARD_stk45g1b_rev_DONE; the card gate's memory in STK_CARD_MEM; wrote results/STK_CHAIN_END
+-- STK_CARD_MEM: STK CARD MEM 11-17 07:09:21: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk45g1b_smoke)
+-- STK_CHAIN_END: STK STKW END 11-17 07:09:51:  B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 0; T1R rc 0; done: the stack = stk (stk45g1b); the both-orders tier-1 verdict in CARD_stk45g1b_rev_DONE; the card gate's memory in STK_CARD_MEM
+-- after the end: runner processes (52743 57715 62282 ): all gone
+
+== s8: no Q8 marker and no Q8 job: no start until its time has passed, then start; done
+chain rc 0
+-- driver:
+07:09:04 s8 runner calls before the Q8 time: none
+-- runner calls:
+07:11:02 runner pid 83870 tg=stk45g1b_smoke tier=2 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=ref2tnaxn.r6 ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=stk_smoke_keys.txt later=0
+07:11:07   stk45g1b_smoke done: CARD stk45g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+07:11:18 runner pid 86715 tg=stk45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=none later=0
+07:11:22   stk45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub stk45g1b
+07:11:33 runner pid 89747 tg=stk45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_stk45g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=none later=0
+07:11:37   stk45g1b_rev done: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; stub stk45g1b_re
+-- peer calls: peer unlock;
+-- log:
+11-17 07:08:43 [stkw] stk_chain (pid 44175; session 63835): the stack's tier 1 on g1b through day_runner69.sh, tag stkw; cutoff 2026-11-17 09:09, latest first start 11-17 08:09; after [<sim-path>
+11-17 07:08:43 [stkw] waits for the gates; no first start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 08:09 (cutoff 2026-11-17 09:09)
+11-17 07:09:18 [stkw] waiting: no <sim>/s8/q8 after the arming (none of its job before 2026-11-17 07:11)
+11-17 07:09:51 [stkw] waiting: no <sim>/s8/q8 after the arming (none of its job before 2026-11-17 07:11)
+11-17 07:10:24 [stkw] waiting: no <sim>/s8/q8 after the arming (none of its job before 2026-11-17 07:11)
+11-17 07:10:57 [stkw] waiting: no <sim>/s8/q8 after the arming (none of its job before 2026-11-17 07:11)
+11-17 07:11:02 [stkw] start: env stk (G1 (g1r) PASS in both orders: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)); key test: stk: PASS (stub); read again 2 s later
+11-17 07:11:02 [stkw] free NO-SWAP 50 GB; swap 8192.00M
+11-17 07:11:02 [stkw] the env: stk (G1 (g1r) PASS in both orders: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)); stk45g1b, blob aaaa1111; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_c
+11-17 07:11:02 [stkw] B1 base forward (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B1 (stub, G1's)
+11-17 07:11:02 [stkw] B2 base reverse (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B2 (stub, G1's)
+11-17 07:11:02 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4
+11-17 07:11:17 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): rc 0; CARD stk45g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+11-17 07:11:17 [stkw] STK CARD MEM 11-17 07:11:17: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk45g1b_smoke)
+11-17 07:11:18 [stkw] T1F stk forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SCREEN_SHA
+11-17 07:11:33 [stkw] T1F stk forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub stk45g1b
+11-17 07:11:33 [stkw] speed stk45g1b vs lx45g1b (rc 0): 50
+11-17 07:11:33 [stkw] T1R stk reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SC
+11-17 07:11:48 [stkw] T1R stk reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; stub stk45g1b_rev
+11-17 07:11:48 [stkw] speed stk45g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 07:11:48 [stkw] done: the stack = stk (stk45g1b); the both-orders tier-1 verdict in CARD_stk45g1b_rev_DONE; the card gate's memory in STK_CARD_MEM
+11-17 07:11:48 [stkw] end (rc 0):  B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 0; T1R rc 0; done: the stack = stk (stk45g1b); the both-orders tier-1 verdict in CARD_stk45g1b_rev_DONE; the card gate's memory in STK_CARD_MEM; wrote results/STK_CHAIN_END
+-- STK_CARD_MEM: STK CARD MEM 11-17 07:11:17: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk45g1b_smoke)
+-- STK_CHAIN_END: STK STKW END 11-17 07:11:48:  B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 0; T1R rc 0; done: the stack = stk (stk45g1b); the both-orders tier-1 verdict in CARD_stk45g1b_rev_DONE; the card gate's memory in STK_CARD_MEM
+-- after the end: runner processes (83870 86715 89747 ): all gone
+
+== s9: T1F FAIL: the speed read-out, 'ended: T1F did not pass', no T1R
+chain rc 0
+-- runner calls:
+07:08:48 runner pid 46938 tg=stk45g1b_smoke tier=2 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=ref2tnaxn.r6 ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=stk_smoke_keys.txt later=0
+07:08:52   stk45g1b_smoke done: CARD stk45g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+07:09:03 runner pid 51511 tg=stk45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=none later=0
+07:09:07   stk45g1b done: LOSSY tier1 (CODE-ONLY mode): FAIL; stub stk45g1b
+-- peer calls: peer unlock;
+-- log:
+11-17 07:08:43 [stkw] stk_chain (pid 44005; session 63835): the stack's tier 1 on g1b through day_runner69.sh, tag stkw; cutoff 2026-11-17 09:09, latest first start 11-17 08:09; after [<sim-path>
+11-17 07:08:43 [stkw] waits for the gates; no first start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 08:09 (cutoff 2026-11-17 09:09)
+11-17 07:08:47 [stkw] start: env stk (G1 (g1r) PASS in both orders: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)); key test: stk: PASS (stub); read again 2 s later
+11-17 07:08:47 [stkw] free NO-SWAP 50 GB; swap 8192.00M
+11-17 07:08:47 [stkw] the env: stk (G1 (g1r) PASS in both orders: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)); stk45g1b, blob aaaa1111; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_c
+11-17 07:08:47 [stkw] B1 base forward (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B1 (stub, G1's)
+11-17 07:08:47 [stkw] B2 base reverse (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B2 (stub, G1's)
+11-17 07:08:47 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4
+11-17 07:09:02 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): rc 0; CARD stk45g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+11-17 07:09:02 [stkw] STK CARD MEM 11-17 07:09:02: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk45g1b_smoke)
+11-17 07:09:02 [stkw] T1F stk forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SCREEN_SHA
+11-17 07:09:18 [stkw] T1F stk forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): FAIL; stub stk45g1b
+11-17 07:09:18 [stkw] speed stk45g1b vs lx45g1b (rc 0): 50
+11-17 07:09:18 [stkw] ended: T1F did not pass, the stack (stk) ends (no card gate)
+11-17 07:09:18 [stkw] end (rc 0):  B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 0; ended: T1F did not pass, the stack (stk) ends (no card gate); wrote results/STK_CHAIN_END
+-- STK_CARD_MEM: STK CARD MEM 11-17 07:09:02: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk45g1b_smoke)
+-- STK_CHAIN_END: STK STKW END 11-17 07:09:18:  B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 0; ended: T1F did not pass, the stack (stk) ends (no card gate)
+-- after the end: runner processes (46938 51511 ): all gone
+
+== s10: the smoke VOIDs: the chain stops (rc 9); no memory rule, no T1F
+chain rc 9
+-- runner calls:
+07:08:49 runner pid 47634 tg=stk45g1b_smoke tier=2 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=ref2tnaxn.r6 ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=stk_smoke_keys.txt later=0
+07:08:53   stk45g1b_smoke done: CARD stk45g1b_smoke: VOID (stub)
+-- peer calls: peer unlock;
+-- log:
+11-17 07:08:43 [stkw] stk_chain (pid 44026; session 63835): the stack's tier 1 on g1b through day_runner69.sh, tag stkw; cutoff 2026-11-17 09:09, latest first start 11-17 08:09; after [<sim-path>
+11-17 07:08:43 [stkw] waits for the gates; no first start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 08:09 (cutoff 2026-11-17 09:09)
+11-17 07:08:48 [stkw] start: env stk (G1 (g1r) PASS in both orders: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)); key test: stk: PASS (stub); read again 2 s later
+11-17 07:08:48 [stkw] free NO-SWAP 50 GB; swap 8192.00M
+11-17 07:08:48 [stkw] the env: stk (G1 (g1r) PASS in both orders: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)); stk45g1b, blob aaaa1111; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_c
+11-17 07:08:48 [stkw] B1 base forward (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B1 (stub, G1's)
+11-17 07:08:48 [stkw] B2 base reverse (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B2 (stub, G1's)
+11-17 07:08:48 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4
+11-17 07:09:03 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): rc 0; CARD stk45g1b_smoke: VOID (stub)
+11-17 07:09:03 [stkw] stopped: B1 rc 0; B2 rc 0; SMOKE rc 9 (rc 9: 9 = no verdict, VOID or INCOMPLETE)
+11-17 07:09:03 [stkw] end (rc 9): stopped: B1 rc 0; B2 rc 0; SMOKE rc 9 (rc 9: 9 = no verdict, VOID or INCOMPLETE); wrote results/STK_CHAIN_END
+-- STK_CARD_MEM: none
+-- STK_CHAIN_END: STK STKW END 11-17 07:09:03: stopped: B1 rc 0; B2 rc 0; SMOKE rc 9 (rc 9: 9 = no verdict, VOID or INCOMPLETE)
+-- after the end: runner processes (47634 ): all gone
+
+== s11: a yield mid-smoke: the runner stopped, peer unlock; the smoke resumes (CARD_RESUME=1); then the memory rule, T1F, T1R; done
+chain rc 0
+-- driver:
+07:08:48 s11 the smoke started; Kamen arrives
+07:09:10 s11 Kamen leaves
+-- runner calls:
+07:08:48 runner pid 47231 tg=stk45g1b_smoke tier=2 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=ref2tnaxn.r6 ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=stk_smoke_keys.txt later=0
+07:09:05   stk45g1b_smoke pid 47231 got TERM
+07:09:15 runner pid 55433 tg=stk45g1b_smoke tier=2 resume=1 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=ref2tnaxn.r6 ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=stk_smoke_keys.txt later=0
+07:09:45   stk45g1b_smoke done: CARD stk45g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+07:10:00 runner pid 68540 tg=stk45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=none later=0
+07:10:04   stk45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub stk45g1b
+07:10:15 runner pid 72117 tg=stk45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_stk45g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=none later=0
+07:10:19   stk45g1b_rev done: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; stub stk45g1b_re
+-- peer calls: peer unlock;peer unlock;
+-- log:
+11-17 07:08:43 [stkw] stk_chain (pid 44025; session 63835): the stack's tier 1 on g1b through day_runner69.sh, tag stkw; cutoff 2026-11-17 09:09, latest first start 11-17 08:09; after [<sim-path>
+11-17 07:08:43 [stkw] waits for the gates; no first start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 08:09 (cutoff 2026-11-17 09:09)
+11-17 07:08:47 [stkw] start: env stk (G1 (g1r) PASS in both orders: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)); key test: stk: PASS (stub); read again 2 s later
+11-17 07:08:48 [stkw] free NO-SWAP 50 GB; swap 8192.00M
+11-17 07:08:48 [stkw] the env: stk (G1 (g1r) PASS in both orders: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)); stk45g1b, blob aaaa1111; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_c
+11-17 07:08:48 [stkw] B1 base forward (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B1 (stub, G1's)
+11-17 07:08:48 [stkw] B2 base reverse (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B2 (stub, G1's)
+11-17 07:08:48 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4
+11-17 07:09:05 [stkw] Kamen is at the Mac (away_secs 10 s): SMOKE stk card tier, 3 keys, both orders (a function check) yields
+11-17 07:09:05 [stkw] stopping runner 47231 and its children
+11-17 07:09:15 [stkw] nothing holds (away_secs 1000 s): continuing
+11-17 07:09:15 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check), resumed: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9
+11-17 07:10:00 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check), resumed: rc 0; CARD stk45g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+11-17 07:10:00 [stkw] STK CARD MEM 11-17 07:10:00: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk45g1b_smoke)
+11-17 07:10:00 [stkw] T1F stk forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SCREEN_SHA
+11-17 07:10:15 [stkw] T1F stk forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub stk45g1b
+11-17 07:10:15 [stkw] speed stk45g1b vs lx45g1b (rc 0): 50
+11-17 07:10:15 [stkw] T1R stk reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SC
+11-17 07:10:30 [stkw] T1R stk reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; stub stk45g1b_rev
+11-17 07:10:30 [stkw] speed stk45g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 07:10:30 [stkw] done: the stack = stk (stk45g1b); the both-orders tier-1 verdict in CARD_stk45g1b_rev_DONE; the card gate's memory in STK_CARD_MEM
+11-17 07:10:30 [stkw] end (rc 0):  B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 0; T1R rc 0; done: the stack = stk (stk45g1b); the both-orders tier-1 verdict in CARD_stk45g1b_rev_DONE; the card gate's memory in STK_CARD_MEM; wrote results/STK_CHAIN_END
+-- STK_CARD_MEM: STK CARD MEM 11-17 07:10:00: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk45g1b_smoke)
+-- STK_CHAIN_END: STK STKW END 11-17 07:10:30:  B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 0; T1R rc 0; done: the stack = stk (stk45g1b); the both-orders tier-1 verdict in CARD_stk45g1b_rev_DONE; the card gate's memory in STK_CARD_MEM
+-- after the end: runner processes (47231 55433 68540 72117 ): all gone
+
+== s12: G1's chain alive: no start; once it is gone: start, done
+chain rc 0
+-- driver:
+07:08:43 s12 a fake G1 chain runs (pid 44034, 20 s)
+07:08:54 s12 runner calls meanwhile: none
+-- runner calls:
+07:09:07 runner pid 52896 tg=stk45g1b_smoke tier=2 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=ref2tnaxn.r6 ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=stk_smoke_keys.txt later=0
+07:09:11   stk45g1b_smoke done: CARD stk45g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+07:09:22 runner pid 57848 tg=stk45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=none later=0
+07:09:26   stk45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub stk45g1b
+07:09:37 runner pid 62422 tg=stk45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_stk45g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=none later=0
+07:09:41   stk45g1b_rev done: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; stub stk45g1b_re
+-- peer calls: peer unlock;
+-- log:
+11-17 07:08:43 [stkw] stk_chain (pid 44087; session 63835): the stack's tier 1 on g1b through day_runner69.sh, tag stkw; cutoff 2026-11-17 09:09, latest first start 11-17 08:09; after [<sim-path>
+11-17 07:08:43 [stkw] waits for the gates; no first start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 08:09 (cutoff 2026-11-17 09:09)
+11-17 07:09:06 [stkw] start: env stk (G1 (g1r) PASS in both orders: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)); key test: stk: PASS (stub); read again 2 s later
+11-17 07:09:06 [stkw] free NO-SWAP 50 GB; swap 8192.00M
+11-17 07:09:06 [stkw] the env: stk (G1 (g1r) PASS in both orders: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)); stk45g1b, blob aaaa1111; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_c
+11-17 07:09:06 [stkw] B1 base forward (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B1 (stub, G1's)
+11-17 07:09:06 [stkw] B2 base reverse (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B2 (stub, G1's)
+11-17 07:09:06 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4
+11-17 07:09:21 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): rc 0; CARD stk45g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+11-17 07:09:22 [stkw] STK CARD MEM 11-17 07:09:22: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk45g1b_smoke)
+11-17 07:09:22 [stkw] T1F stk forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SCREEN_SHA
+11-17 07:09:37 [stkw] T1F stk forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub stk45g1b
+11-17 07:09:37 [stkw] speed stk45g1b vs lx45g1b (rc 0): 50
+11-17 07:09:37 [stkw] T1R stk reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SC
+11-17 07:09:52 [stkw] T1R stk reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; stub stk45g1b_rev
+11-17 07:09:52 [stkw] speed stk45g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 07:09:52 [stkw] done: the stack = stk (stk45g1b); the both-orders tier-1 verdict in CARD_stk45g1b_rev_DONE; the card gate's memory in STK_CARD_MEM
+11-17 07:09:52 [stkw] end (rc 0):  B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 0; T1R rc 0; done: the stack = stk (stk45g1b); the both-orders tier-1 verdict in CARD_stk45g1b_rev_DONE; the card gate's memory in STK_CARD_MEM; wrote results/STK_CHAIN_END
+-- STK_CARD_MEM: STK CARD MEM 11-17 07:09:22: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk45g1b_smoke)
+-- STK_CHAIN_END: STK STKW END 11-17 07:09:52:  B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 0; T1R rc 0; done: the stack = stk (stk45g1b); the both-orders tier-1 verdict in CARD_stk45g1b_rev_DONE; the card gate's memory in STK_CARD_MEM
+-- after the end: runner processes (52896 57848 62422 ): all gone
+
+== s13: TERM mid-T1F: the runner stopped, peer unlock; STK_CHAIN_END says stopped by a signal
+chain rc 143
+-- driver:
+07:09:07 s13 TERM to the chain
+-- runner calls:
+07:08:49 runner pid 47551 tg=stk45g1b_smoke tier=2 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=ref2tnaxn.r6 ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=stk_smoke_keys.txt later=0
+07:08:53   stk45g1b_smoke done: CARD stk45g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+07:09:03 runner pid 51788 tg=stk45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=none later=0
+07:09:18   stk45g1b pid 51788 got TERM
+-- peer calls: peer unlock;
+-- log:
+11-17 07:08:43 [stkw] stk_chain (pid 44033; session 63835): the stack's tier 1 on g1b through day_runner69.sh, tag stkw; cutoff 2026-11-17 09:09, latest first start 11-17 08:09; after [<sim-path>
+11-17 07:08:43 [stkw] waits for the gates; no first start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 08:09 (cutoff 2026-11-17 09:09)
+11-17 07:08:47 [stkw] start: env stk (G1 (g1r) PASS in both orders: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)); key test: stk: PASS (stub); read again 2 s later
+11-17 07:08:48 [stkw] free NO-SWAP 50 GB; swap 8192.00M
+11-17 07:08:48 [stkw] the env: stk (G1 (g1r) PASS in both orders: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)); stk45g1b, blob aaaa1111; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_c
+11-17 07:08:48 [stkw] B1 base forward (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B1 (stub, G1's)
+11-17 07:08:48 [stkw] B2 base reverse (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B2 (stub, G1's)
+11-17 07:08:48 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4
+11-17 07:09:03 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): rc 0; CARD stk45g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+11-17 07:09:03 [stkw] STK CARD MEM 11-17 07:09:03: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk45g1b_smoke)
+11-17 07:09:03 [stkw] T1F stk forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SCREEN_SHA
+11-17 07:09:18 [stkw] stopping runner 51788 and its children
+11-17 07:09:28 [stkw] end (rc 143): stopped by a signal during: T1F; wrote results/STK_CHAIN_END
+-- STK_CARD_MEM: STK CARD MEM 11-17 07:09:03: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk45g1b_smoke)
+-- STK_CHAIN_END: STK STKW END 11-17 07:09:28: stopped by a signal during: T1F
+-- after the end: runner processes (47551 51788 ): all gone
+
+== s14: HOLD mid-T1R: stopped by HOLD (rc 8), the runner stopped
+chain rc 8
+-- driver:
+07:09:22 s14 HOLD
+-- runner calls:
+07:08:48 runner pid 47351 tg=stk45g1b_smoke tier=2 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=ref2tnaxn.r6 ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=stk_smoke_keys.txt later=0
+07:08:52   stk45g1b_smoke done: CARD stk45g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+07:09:03 runner pid 51670 tg=stk45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=none later=0
+07:09:07   stk45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub stk45g1b
+07:09:18 runner pid 56766 tg=stk45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_stk45g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=none later=0
+07:09:33   stk45g1b_rev pid 56766 got TERM
+-- peer calls: peer unlock;
+-- log:
+11-17 07:08:43 [stkw] stk_chain (pid 44041; session 63835): the stack's tier 1 on g1b through day_runner69.sh, tag stkw; cutoff 2026-11-17 09:09, latest first start 11-17 08:09; after [<sim-path>
+11-17 07:08:43 [stkw] waits for the gates; no first start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 08:09 (cutoff 2026-11-17 09:09)
+11-17 07:08:47 [stkw] start: env stk (G1 (g1r) PASS in both orders: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)); key test: stk: PASS (stub); read again 2 s later
+11-17 07:08:48 [stkw] free NO-SWAP 50 GB; swap 8192.00M
+11-17 07:08:48 [stkw] the env: stk (G1 (g1r) PASS in both orders: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)); stk45g1b, blob aaaa1111; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_c
+11-17 07:08:48 [stkw] B1 base forward (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B1 (stub, G1's)
+11-17 07:08:48 [stkw] B2 base reverse (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B2 (stub, G1's)
+11-17 07:08:48 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4
+11-17 07:09:03 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): rc 0; CARD stk45g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+11-17 07:09:03 [stkw] STK CARD MEM 11-17 07:09:03: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk45g1b_smoke)
+11-17 07:09:03 [stkw] T1F stk forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SCREEN_SHA
+11-17 07:09:18 [stkw] T1F stk forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub stk45g1b
+11-17 07:09:18 [stkw] speed stk45g1b vs lx45g1b (rc 0): 50
+11-17 07:09:18 [stkw] T1R stk reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SC
+11-17 07:09:33 [stkw] HOLD: stopping T1R stk reverse vs B2, pooled
+11-17 07:09:33 [stkw] stopping runner 56766 and its children
+11-17 07:09:43 [stkw] end (rc 8): stopped by HOLD during: T1R; wrote results/STK_CHAIN_END
+-- STK_CARD_MEM: STK CARD MEM 11-17 07:09:03: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk45g1b_smoke)
+-- STK_CHAIN_END: STK STKW END 11-17 07:09:43: stopped by HOLD during: T1R
+-- after the end: runner processes (47351 51670 56766 ): all gone
+
+== s15: DRY (stk): five runner calls with dry=1 (B1, B2, SMOKE, T1F, T1R; CARD_REF_LATER on T1F / T1R); the memory rule's DRY line; no wait, no marker
+chain rc 0
+-- runner calls:
+07:08:44 runner pid 44594 tg=lx45g1b tier=1 resume=0 dry=1 cutoff=2026-11-17 09:09 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= keys=none later=0
+07:08:58 runner pid 50367 tg=lx45g1b_rev tier=1 resume=0 dry=1 cutoff=2026-11-17 09:09 mem=39 fblob=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8 fenv=lx45g1b_env.txt ref=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 ident=0 fwd_run= engage= keys=none later=0
+07:09:13 runner pid 55019 tg=stk45g1b_smoke tier=2 resume=0 dry=1 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=ref2tnaxn.r6 ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=stk_smoke_keys.txt later=0
+07:09:29 runner pid 59881 tg=stk45g1b tier=1 resume=0 dry=1 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=none later=1
+07:09:44 runner pid 64026 tg=stk45g1b_rev tier=1 resume=0 dry=1 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_stk45g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=none later=1
+-- peer calls: none
+-- log:
+11-17 07:08:43 [stkw] stk_chain (pid 43966, DRY; session 63835): the stack's tier 1 on g1b through day_runner69.sh, tag stkw; cutoff 2026-11-17 09:09, latest first start 11-17 08:09; after [<sim-path>
+11-17 07:08:43 [stkw] B1 base forward (made if G1's chain did not): CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34
+11-17 07:08:58 [stkw] B1 base forward (made if G1's chain did not): rc 0; no DONE from this run
+11-17 07:08:58 [stkw] B2 base reverse (made if G1's chain did not): CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34
+11-17 07:09:13 [stkw] B2 base reverse (made if G1's chain did not): rc 0; no DONE from this run
+11-17 07:09:13 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4
+11-17 07:09:29 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): rc 0; no DONE from this run
+11-17 07:09:29 [stkw] DRY: the card gate's memory rule would read results/card/es_cdstk45g1b_smoke_*
+11-17 07:09:29 [stkw] T1F stk forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SCREEN_SHA
+11-17 07:09:44 [stkw] T1F stk forward vs B1: rc 0; no DONE from this run
+11-17 07:09:44 [stkw] T1R stk reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SC
+11-17 07:09:59 [stkw] T1R stk reverse vs B2, pooled: rc 0; no DONE from this run
+11-17 07:09:59 [stkw] DRY end (rc 0): no marker
+-- STK_CARD_MEM: none
+-- STK_CHAIN_END: MISSING
+-- after the end: runner processes (44594 50367 55019 59881 64026 ): all gone
+
+== s16: G1 PASS with pick g1c, but stk carries g1r: no run (rc 5)
+chain rc 5
+-- runner calls:
+(none)
+-- peer calls: peer unlock;
+-- log:
+11-17 07:08:43 [stkw] stk_chain (pid 44031; session 63835): the stack's tier 1 on g1b through day_runner69.sh, tag stkw; cutoff 2026-11-17 09:09, latest first start 11-17 08:09; after [<sim-path>
+11-17 07:08:43 [stkw] waits for the gates; no first start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 08:09 (cutoff 2026-11-17 09:09)
+11-17 07:08:45 [stkw] no run: G1's pick g1c is not the pick stk carries (g1r): no start
+11-17 07:08:46 [stkw] end (rc 5): no run: G1's pick g1c is not the pick stk carries (g1r): no start; wrote results/STK_CHAIN_END
+-- STK_CARD_MEM: none
+-- STK_CHAIN_END: STK STKW END 11-17 07:08:46: no run: G1's pick g1c is not the pick stk carries (g1r): no start
+-- after the end: runner processes (): all gone
+
+== s17: the smoke's peak 42.10: the rule's floor, gate 43, CARD_MEM 39; done
+chain rc 0
+-- runner calls:
+07:08:49 runner pid 47882 tg=stk45g1b_smoke tier=2 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=ref2tnaxn.r6 ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=stk_smoke_keys.txt later=0
+07:08:53   stk45g1b_smoke done: CARD stk45g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+07:09:04 runner pid 52010 tg=stk45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=none later=0
+07:09:08   stk45g1b done: LOSSY tier1 (CODE-ONLY mode): PASS; stub stk45g1b
+07:09:19 runner pid 57004 tg=stk45g1b_rev tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=card_lx45g1b_t1code_rev ident=1 fwd_run=card_stk45g1b_t1code engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=none later=0
+07:09:23   stk45g1b_rev done: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; stub stk45g1b_re
+-- peer calls: peer unlock;
+-- log:
+11-17 07:08:43 [stkw] stk_chain (pid 44067; session 63835): the stack's tier 1 on g1b through day_runner69.sh, tag stkw; cutoff 2026-11-17 09:09, latest first start 11-17 08:09; after [<sim-path>
+11-17 07:08:43 [stkw] waits for the gates; no first start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 08:09 (cutoff 2026-11-17 09:09)
+11-17 07:08:48 [stkw] start: env stk (G1 (g1r) PASS in both orders: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)); key test: stk: PASS (stub); read again 2 s later
+11-17 07:08:49 [stkw] free NO-SWAP 50 GB; swap 8192.00M
+11-17 07:08:49 [stkw] the env: stk (G1 (g1r) PASS in both orders: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)); stk45g1b, blob aaaa1111; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_c
+11-17 07:08:49 [stkw] B1 base forward (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B1 (stub, G1's)
+11-17 07:08:49 [stkw] B2 base reverse (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B2 (stub, G1's)
+11-17 07:08:49 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4
+11-17 07:09:04 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): rc 0; CARD stk45g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+11-17 07:09:04 [stkw] STK CARD MEM 11-17 07:09:04: gate 43 GB NO-SWAP, CARD_MEM 39 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 42.10 GB over 1 processes (stk45g1b_smoke)
+11-17 07:09:04 [stkw] T1F stk forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SCREEN_SHA
+11-17 07:09:19 [stkw] T1F stk forward vs B1: rc 0; LOSSY tier1 (CODE-ONLY mode): PASS; stub stk45g1b
+11-17 07:09:19 [stkw] speed stk45g1b vs lx45g1b (rc 0): 50
+11-17 07:09:19 [stkw] T1R stk reverse vs B2, pooled: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SC
+11-17 07:09:34 [stkw] T1R stk reverse vs B2, pooled: rc 0; LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; stub stk45g1b_rev
+11-17 07:09:34 [stkw] speed stk45g1b_rev vs lx45g1b_rev (rc 0): 50
+11-17 07:09:34 [stkw] done: the stack = stk (stk45g1b); the both-orders tier-1 verdict in CARD_stk45g1b_rev_DONE; the card gate's memory in STK_CARD_MEM
+11-17 07:09:34 [stkw] end (rc 0):  B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 0; T1R rc 0; done: the stack = stk (stk45g1b); the both-orders tier-1 verdict in CARD_stk45g1b_rev_DONE; the card gate's memory in STK_CARD_MEM; wrote results/STK_CHAIN_END
+-- STK_CARD_MEM: STK CARD MEM 11-17 07:09:04: gate 43 GB NO-SWAP, CARD_MEM 39 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 42.10 GB over 1 processes (stk45g1b_smoke)
+-- STK_CHAIN_END: STK STKW END 11-17 07:09:34:  B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 0; T1R rc 0; done: the stack = stk (stk45g1b); the both-orders tier-1 verdict in CARD_stk45g1b_rev_DONE; the card gate's memory in STK_CARD_MEM
+-- after the end: runner processes (47882 52010 57004 ): all gone
+
+== s18: T1F's runner exits 6 (its cutoff): 'cut by the cutoff' (rc 75), the marker written; the rest goes to a re-arm
+chain rc 75
+-- runner calls:
+07:08:49 runner pid 47804 tg=stk45g1b_smoke tier=2 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=ref2tnaxn.r6 ident=0 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=stk_smoke_keys.txt later=0
+07:08:53   stk45g1b_smoke done: CARD stk45g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+07:09:03 runner pid 51891 tg=stk45g1b tier=1 resume=0 dry=0 cutoff=2026-11-17 09:09 mem=39 fblob=aaaa1111 fenv=stk45g1b_env.txt ref=card_lx45g1b_t1code ident=1 fwd_run= engage=lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_call:accepted@run keys=none later=0
+07:09:07   stk45g1b: exit 6 (the runner's cutoff)
+-- peer calls: peer unlock;
+-- log:
+11-17 07:08:43 [stkw] stk_chain (pid 44063; session 63835): the stack's tier 1 on g1b through day_runner69.sh, tag stkw; cutoff 2026-11-17 09:09, latest first start 11-17 08:09; after [<sim-path>
+11-17 07:08:43 [stkw] waits for the gates; no first start while HOLD, PAUSE, a shut lid or Kamen at the Mac, nor after 11-17 08:09 (cutoff 2026-11-17 09:09)
+11-17 07:08:48 [stkw] start: env stk (G1 (g1r) PASS in both orders: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)); key test: stk: PASS (stub); read again 2 s later
+11-17 07:08:48 [stkw] free NO-SWAP 50 GB; swap 8192.00M
+11-17 07:08:48 [stkw] the env: stk (G1 (g1r) PASS in both orders: LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)); stk45g1b, blob aaaa1111; CARD_ENGAGE lossy_check:e3+edrop+lmsl_rows,lossy_check:res_opt@run,lossy_check:opt_post@run,close_c
+11-17 07:08:48 [stkw] B1 base forward (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B1 (stub, G1's)
+11-17 07:08:48 [stkw] B2 base reverse (made if G1's chain did not): already done: LOSSY tier1 (CODE-ONLY mode): PASS; B2 (stub, G1's)
+11-17 07:08:48 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4
+11-17 07:09:03 [stkw] SMOKE stk card tier, 3 keys, both orders (a function check): rc 0; CARD stk45g1b_smoke (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)
+11-17 07:09:03 [stkw] STK CARD MEM 11-17 07:09:03: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk45g1b_smoke)
+11-17 07:09:03 [stkw] T1F stk forward vs B1: CARD_SCOPE=code CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f CARD_SCREEN_SHA
+11-17 07:09:18 [stkw] T1F stk forward vs B1: rc 6; no DONE from this run
+11-17 07:09:18 [stkw] T1F stk forward vs B1: the runner stopped at the cutoff (rc 6): the rest goes to a re-arm
+11-17 07:09:18 [stkw] cut by the cutoff: B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 75 (the rest goes to a re-arm)
+11-17 07:09:19 [stkw] end (rc 75): cut by the cutoff: B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 75 (the rest goes to a re-arm); wrote results/STK_CHAIN_END
+-- STK_CARD_MEM: STK CARD MEM 11-17 07:09:03: gate 44 GB NO-SWAP, CARD_MEM 40 (the rule: max(43, the smoke's lifetime peak + 0.5 GB, rounded up); the smoke's lifetime peak 43.27 GB over 1 processes (stk45g1b_smoke)
+-- STK_CHAIN_END: STK STKW END 11-17 07:09:19: cut by the cutoff: B1 rc 0; B2 rc 0; SMOKE rc 0; T1F rc 75 (the rest goes to a re-arm)
+-- after the end: runner processes (47804 51891 ): all gone
+
+sim done 07:11:48; chain sha256 00ed6ab5e403fd14
+
+## the driver (drive.sh)
+#!/bin/bash
+# drive.sh: the stub sim of tools/stk_chain.sh. A BYTE COPY of the real chain runs per scenario in a sandbox HOME: its
+# EvalSuite holds the chain copy, a stand-in runner (runner_stub.sh) as tools/day_runner69.sh, the real smoke key file,
+# a stand-in .venv/bin/python (logs its calls, prints 50), and the markers the driver writes; away_secs.sh reads
+# $HOME/away; $HOME/.local/bin/peer logs its calls. The chain's sleeps are real but shortened by its test knobs
+# (CHAIN_TICK 1 s, CHAIN_REREAD 2 s); its 15 s run monitor is unchanged. The card memory rule runs as is (system python3).
+D=$(cd "$(dirname "$0")" && pwd); SRC=$HOME/EvalSuite/tools/stk_chain.sh
+t() { date -r $(( $(date +%s) + $1 )) '+%Y-%m-%d %H:%M'; }                      # $1 s from now, minute-floored
+tc() { date -r $(( ( $(date +%s) + $1 + 59 ) / 60 * 60 )) '+%Y-%m-%d %H:%M'; }   # at least $1 s from now, minute-ceiled
+setup() {
+  local H=$D/$1
+  rm -rf "$H"; mkdir -p "$H/EvalSuite/tools" "$H/EvalSuite/results/lossygate" "$H/EvalSuite/results/card" "$H/EvalSuite/.venv/bin" \
+    "$H/.local/bin" "$H/.local/share/quiet" "$H/BigMoE/data/r57" "$H/BigMoE/data/stack"
+  cp "$SRC" "$H/EvalSuite/tools/stk_chain.sh"; cp "$D/runner_stub.sh" "$H/EvalSuite/tools/day_runner69.sh"
+  cp "$HOME/EvalSuite/tools/stk_smoke_keys.txt" "$H/EvalSuite/tools/"
+  printf '#!/bin/bash\necho "$(date +%%H:%%M:%%S) python $*" >> "$HOME/python_calls.txt"\necho 50\n' > "$H/EvalSuite/.venv/bin/python"
+  printf '#!/bin/bash\necho "$(date +%%H:%%M:%%S) peer $*" >> "$HOME/peer_calls.txt"\n' > "$H/.local/bin/peer"
+  printf '#!/bin/bash\ncat "$HOME/away" 2>/dev/null\n' > "$H/.local/share/quiet/away_secs.sh"
+  chmod +x "$H/EvalSuite/tools/"*.sh "$H/EvalSuite/.venv/bin/python" "$H/.local/bin/peer" "$H/.local/share/quiet/away_secs.sh"
+  echo 1000 > "$H/away"
+  echo "# STK45G1B (stub) snap data/r57/snap/g1b/r57_screen_g1b.py" > "$H/BigMoE/data/stack/stk45g1b_env.txt"
+  echo "# STK045G1B (stub)" > "$H/BigMoE/data/stack/stk045g1b_env.txt"
+}
+bases() {       # G1's base runs on g1b: B1 and / or B2 recorded ("both", "b1", "none")
+  local R=$D/$1/EvalSuite/results
+  case "$2" in both|b1) mkdir -p "$R/card_lx45g1b_t1code"; echo "LOSSY tier1 (CODE-ONLY mode): PASS; B1 (stub, G1's)" > "$R/CARD_lx45g1b_DONE";; esac
+  case "$2" in both) mkdir -p "$R/card_lx45g1b_t1code_rev"; echo "LOSSY tier1 (CODE-ONLY mode): PASS; B2 (stub, G1's)" > "$R/CARD_lx45g1b_rev_DONE";; esac
+}
+g1() {          # G1's outcome: pass | fail | kill | v1fail | none, with pick $3
+  local R=$D/$1/EvalSuite/results p=${3:-g1r}
+  echo "G1 PICK 11-17 13:50:00: $p (stub)" > "$R/G1_PICK"
+  case "$2" in
+    pass) echo "LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; pooled (stub)" > "$R/CARD_${p}45g1b_rev_DONE" ;;
+    fail) echo "LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: FAIL; pooled (stub)" > "$R/CARD_${p}45g1b_rev_DONE" ;;
+    kill) echo "LOSSY tier0 (CODE-ONLY mode): KILL (stub)" > "$R/CARD_${p}45g1b_DONE.t0" ;;
+    v1fail) echo "LOSSY tier1 (CODE-ONLY mode): FAIL; stub V1" > "$R/CARD_${p}45g1b_DONE" ;;
+  esac
+}
+kt() { printf '%s\n' "$@" > "$D/$S_/BigMoE/data/r57/STK_KEYTEST_DONE"; }   # the key test's lines (scenario in S_)
+run() {         # scenario, then overrides
+  local H=$D/$1 s=$1; shift
+  env HOME="$H" SIMD="$H" CHAIN_MYPID=63835 CHAIN_TICK=1 CHAIN_REREAD=2 CHAIN_RUNNER="$H/EvalSuite/tools/day_runner69.sh" \
+    CHAIN_RUNPAT="$H/EvalSuite/tools/day_runner6[0-9]\.sh" CHAIN_G1PAT="sim_g1chain_${s}_[x]" \
+    CHAIN_AFTER="$H/q8|sim_q8_${s}_[x]|$(t 0);$H/lband|sim_lband_${s}_[x]|$(t 0)" \
+    CHAIN_CUTOFF="$(tc 7200)" CHAIN_LASTSTART="$(tc 3600)" \
+    CHAIN_STK_ENV="$H/BigMoE/data/stack/stk45g1b_env.txt" CHAIN_STK_BLOB=aaaa1111 CHAIN_STK_TAG=stk45g1b CHAIN_STK_PICK=g1r \
+    CHAIN_STK0_ENV="$H/BigMoE/data/stack/stk045g1b_env.txt" CHAIN_STK0_BLOB=bbbb2222 CHAIN_STK0_TAG=stk045g1b \
+    "$@" bash "$H/EvalSuite/tools/stk_chain.sh" > "$H/chain.out" 2>&1 &
+  CPID=$!; sleep 1
+}
+LOGF() { echo "$D/$1/EvalSuite/results/stk_chain.log"; }
+waitlog() { local i; for i in $(seq 1 "${3:-300}"); do grep -q -- "$2" "$(LOGF "$1")" 2>/dev/null && return 0; sleep 1; done; echo "TIMEOUT waiting for '$2'" >> "$D/$1/note"; return 1; }
+waitrun() { local i; for i in $(seq 1 "${3:-300}"); do grep -q -- "$2" "$D/$1/runner_calls.txt" 2>/dev/null && return 0; sleep 1; done; echo "TIMEOUT waiting for runner '$2'" >> "$D/$1/note"; return 1; }
+note() { echo "$(date +%H:%M:%S) $*" >> "$D/$1/note"; }
+report() {      # scenario, the chain's rc, what is expected
+  local H=$D/$1 R=$D/$1/EvalSuite/results rp
+  rp=$(grep -o 'runner pid [0-9]*' "$H/runner_calls.txt" 2>/dev/null | awk '{print $3}' | tr '\n' ' ')
+  { echo "== $1: $3"; echo "chain rc $2"
+    [ -e "$H/note" ] && { echo "-- driver:"; cat "$H/note"; }
+    echo "-- runner calls:"; if [ -s "$H/runner_calls.txt" ]; then cut -c1-360 "$H/runner_calls.txt"; else echo "(none)"; fi
+    echo "-- peer calls: $(if [ -s "$H/peer_calls.txt" ]; then cut -c10- "$H/peer_calls.txt" | tr '\n' ';'; else echo none; fi)"
+    echo "-- log:"; cut -c1-260 "$R/stk_chain.log"
+    echo "-- STK_CARD_MEM: $(cat "$R/STK_CARD_MEM" 2>/dev/null || echo none)"
+    echo "-- STK_CHAIN_END: $(cat "$R/STK_CHAIN_END" 2>/dev/null || echo MISSING)"
+    local a=""; for p in $rp; do kill -0 "$p" 2>/dev/null && a="$a ALIVE($p)"; done
+    echo "-- after the end: runner processes ($rp): ${a:-all gone}"; } > "$H/report.txt"
+}
+# ---- the scenarios
+s1() { S_=s1; setup s1; bases s1 both; g1 s1 pass g1r; echo "STK CARD MEM (stub, an OLD one)" > $D/s1/EvalSuite/results/STK_CARD_MEM; touch -t 202611010000 $D/s1/EvalSuite/results/STK_CARD_MEM
+  kt "stk: PASS (stub)" "stk0: PASS (stub)"; run s1; wait $CPID
+  report s1 $? "G1 PASS (g1r) and 'stk: PASS': stk; bases done (G1's): SMOKE (3 keys, _smoke) -> the memory rule replaces the old STK_CARD_MEM (peak 43.27 -> gate 44, CARD_MEM 40) -> T1F -> T1R pooled; done"; }
+s2() { S_=s2; setup s2; bases s2 both; g1 s2 fail g1r; kt "stk: PASS (stub)" "stk0: PASS (stub)"; run s2; wait $CPID
+  report s2 $? "G1 FAIL in both orders: stk0 (blob bbbb2222, CARD_ENGAGE close_call:accepted@run only); done"; }
+s3() { S_=s3; setup s3; bases s3 both; g1 s3 pass g1r; kt "stk: FAIL (stub)" "stk0: PASS (stub)"; run s3 CHAIN_LASTSTART="$(tc 120)"; wait $CPID
+  report s3 $? "G1 PASS but the key test failed stk: no start (a stk0 PASS does not stand in); no start by the latest start (rc 6)"; }
+s4() { S_=s4; setup s4; bases s4 both; g1 s4 none g1r; kt "stk: PASS (stub)" "stk0: PASS (stub)"; run s4 CHAIN_LASTSTART="$(tc 960)"
+  waitlog s4 "waiting for G1's decision" 60; note s4 "waiting for G1's decision, as designed"; wait $CPID
+  report s4 $? "no G1 decision: wait until 15 min before the latest start, then stk0 (NewIdeas 07:0x); done with stk0"; }
+s5() { S_=s5; setup s5; bases s5 b1; g1 s5 v1fail g1r; kt "stk0: PASS (stub)"; run s5 CHAIN_LASTSTART="$(tc 5400)"; wait $CPID
+  report s5 $? "G1 V1 FAIL, B2 missing: stk0; the latest start moves 75 min earlier; B2 runs first (reverse vs exact), then SMOKE, T1F, T1R; done"; }
+s6() { S_=s6; setup s6; bases s6 none; g1 s6 kill g1r; kt "stk0: PASS (stub)"; run s6 CHAIN_LASTSTART="$(tc 9900)" CHAIN_CUTOFF="$(tc 12000)"; wait $CPID
+  report s6 $? "G1 V0 KILL, B1 and B2 missing: stk0; latest start 150 min earlier; B1, B2, SMOKE, T1F, T1R; done"; }
+s7() { S_=s7; setup s7; bases s7 both; g1 s7 pass g1r; kt "stk: PASS (stub)"; bash -c 'sleep 20; true' sim_q8_s7_x & local QP=$!
+  note s7 "a fake MoonShots Q8 job runs (pid $QP, 20 s) and writes its marker at its end"; run s7
+  sleep 10; note s7 "runner calls while Q8 runs: $(test -s $D/s7/runner_calls.txt && echo YES || echo none)"; wait $QP; echo "Q8 DONE (stub)" > $D/s7/q8
+  wait $CPID; report s7 $? "MoonShots' job runs: no start; its marker after the arming: start; done"; }
+s8() { S_=s8; setup s8; bases s8 both; g1 s8 pass g1r; kt "stk: PASS (stub)"; run s8 CHAIN_AFTER="$D/s8/q8|sim_q8_s8_[x]|$(tc 90);$D/s8/lband|sim_lband_s8_[x]|$(t 0)"
+  sleep 20; note s8 "runner calls before the Q8 time: $(test -s $D/s8/runner_calls.txt && echo YES || echo none)"
+  wait $CPID; report s8 $? "no Q8 marker and no Q8 job: no start until its time has passed, then start; done"; }
+s9() { S_=s9; setup s9; bases s9 both; g1 s9 pass g1r; kt "stk: PASS (stub)"; run s9 STUB_FAIL1=stk45g1b; wait $CPID
+  report s9 $? "T1F FAIL: the speed read-out, 'ended: T1F did not pass', no T1R"; }
+s10() { S_=s10; setup s10; bases s10 both; g1 s10 pass g1r; kt "stk: PASS (stub)"; run s10 STUB_VOID=stk45g1b_smoke; wait $CPID
+  report s10 $? "the smoke VOIDs: the chain stops (rc 9); no memory rule, no T1F"; }
+s11() { S_=s11; setup s11; bases s11 both; g1 s11 pass g1r; kt "stk: PASS (stub)"; run s11 STUB_S_stk45g1b_smoke=30
+> (a quote from the project owner, kept private)
+> (a quote from the project owner, kept private)
+  wait $CPID; report s11 $? "a yield mid-smoke: the runner stopped, peer unlock; the smoke resumes (CARD_RESUME=1); then the memory rule, T1F, T1R; done"; }
+s12() { S_=s12; setup s12; bases s12 both; g1 s12 pass g1r; kt "stk: PASS (stub)"; bash -c 'sleep 20; true' sim_g1chain_s12_x & local GP=$!
+  note s12 "a fake G1 chain runs (pid $GP, 20 s)"; run s12; sleep 10; note s12 "runner calls meanwhile: $(test -s $D/s12/runner_calls.txt && echo YES || echo none)"
+  wait $GP; wait $CPID; report s12 $? "G1's chain alive: no start; once it is gone: start, done"; }
+s13() { S_=s13; setup s13; bases s13 both; g1 s13 pass g1r; kt "stk: PASS (stub)"; run s13 STUB_S_stk45g1b=40; waitrun s13 "tg=stk45g1b tier=1 resume=0"; sleep 3
+  note s13 "TERM to the chain"; kill -TERM $CPID; wait $CPID; local rc=$?; sleep 1; report s13 $rc "TERM mid-T1F: the runner stopped, peer unlock; STK_CHAIN_END says stopped by a signal"; }
+s14() { S_=s14; setup s14; bases s14 both; g1 s14 pass g1r; kt "stk: PASS (stub)"; run s14 STUB_S_stk45g1b_rev=40; waitrun s14 "tg=stk45g1b_rev tier=1 resume=0"; sleep 3
+  note s14 "HOLD"; touch $D/s14/.local/share/quiet/HOLD; wait $CPID; report s14 $? "HOLD mid-T1R: stopped by HOLD (rc 8), the runner stopped"; }
+s15() { S_=s15; setup s15; run s15 CHAIN_DRY=1 CHAIN_DRYENV=stk; wait $CPID
+  report s15 $? "DRY (stk): five runner calls with dry=1 (B1, B2, SMOKE, T1F, T1R; CARD_REF_LATER on T1F / T1R); the memory rule's DRY line; no wait, no marker"; }
+s16() { S_=s16; setup s16; bases s16 both; g1 s16 pass g1c; kt "stk: PASS (stub)"; run s16; wait $CPID
+  report s16 $? "G1 PASS with pick g1c, but stk carries g1r: no run (rc 5)"; }
+s17() { S_=s17; setup s17; bases s17 both; g1 s17 pass g1r; kt "stk: PASS (stub)"; run s17 STUB_PEAK=42.10; wait $CPID
+  report s17 $? "the smoke's peak 42.10: the rule's floor, gate 43, CARD_MEM 39; done"; }
+s18() { S_=s18; setup s18; bases s18 both; g1 s18 pass g1r; kt "stk: PASS (stub)"; run s18 STUB_RC6=stk45g1b; wait $CPID
+  report s18 $? "T1F's runner exits 6 (its cutoff): 'cut by the cutoff' (rc 75), the marker written; the rest goes to a re-arm"; }
+ALL="s1 s2 s3 s4 s5 s6 s7 s8 s9 s10 s11 s12 s13 s14 s15 s16 s17 s18"
+for s in ${1:-$ALL}; do $s & done; wait
+for s in ${1:-$ALL}; do cat "$D/$s/report.txt"; echo; done > "$D/all_reports.txt"
+echo "sim done $(date +%H:%M:%S); chain sha256 $(shasum -a 256 "$SRC" | cut -c1-16)" >> "$D/all_reports.txt"
+
+## the stand-in runner (runner_stub.sh)
+#!/bin/bash
+# a stand-in for runner 69 under the REAL tools/stk_chain.sh (byte copy) in the stack chain sim: records its settings and
+# pid; refuses an existing run dir without CARD_RESUME=1 (as runner 69 does); makes the run dir(s); "runs" STUB_S s (a
+# resume: STUB_RESUME s); writes the DONE file. Tier 2 (the smoke, CARD_RUNSUF): TG = tag + suffix, runs
+# card_<TG>_t2code_fwd / _rev, a process log with a lifetime peak STUB_PEAK, DONE "CARD <TG> (tier 2, ...)". Per-TG
+# outcomes: STUB_FAIL1 (a tier-1 FAIL), STUB_VOID (a VOID), STUB_RC6 (exit 6 on its FIRST call; no DONE). TERM: 143.
+H=${SIMD:?}; ORD=${CARD_ORDER:-fwd}; T=${CARD_TIER:-1}; TG=$CARD_TAG${CARD_RUNSUF:-}
+if [ "$T" = 2 ]; then RD=results/card_${TG}_t2code_fwd; RD2=results/card_${TG}_t2code_rev
+else RD=results/card_${CARD_TAG}_t${T}code; RD2=""; [ "$ORD" = rev ] && { TG=${TG}_rev; RD=${RD}_rev; }; fi
+echo "$(date +%H:%M:%S) runner pid $$ tg=$TG tier=$T resume=${CARD_RESUME:-0} dry=${CARD_DRY:-0} cutoff=$CARD_CUTOFF mem=$CARD_MEM fblob=$CARD_FBLOB fenv=$(basename "$CARD_FENV") ref=$CARD_REF ident=${CARD_IFEVAL_IDENT:-0} fwd_run=${CARD_FWD_RUN:-} engage=${CARD_ENGAGE:-} keys=$(basename "${CARD_KEYSFILE:-none}") later=${CARD_REF_LATER:-0}" >> "$H/runner_calls.txt"
+[ "${CARD_DRY:-0}" = 1 ] && exit 0
+if [ "${CARD_RESUME:-0}" != 1 ] && [ -e "$RD" ]; then echo "$(date +%H:%M:%S)   $RD exists without CARD_RESUME=1: stops (rc 2)" >> "$H/runner_calls.txt"; exit 2; fi
+mkdir -p "$RD" ${RD2:+"$RD2"} results/card
+trap 'echo "$(date +%H:%M:%S)   $TG pid $$ got TERM" >> "$H/runner_calls.txt"; kill $! 2>/dev/null; exit 143' TERM
+if [ "${CARD_RESUME:-0}" = 1 ]; then S=${STUB_RESUME:-4}; else S=${STUB_S:-4}; fi
+eval "S=\${STUB_S_$(echo "$TG" | tr -c 'A-Za-z0-9\n' '_'):-$S}"
+sleep "$S" & wait $!
+if [ "${STUB_RC6:-}" = "$TG" ] && [ ! -e "$H/rc6_done_$TG" ]; then touch "$H/rc6_done_$TG"; echo "$(date +%H:%M:%S)   $TG: exit 6 (the runner's cutoff)" >> "$H/runner_calls.txt"; exit 6; fi
+if [ "$T" = 2 ]; then
+  printf '  mem: MLX peak prefill 41.5 / decode 40.8 GB; lifetime peak after prefill 42.9 -> after decode %s GB\n' "${STUB_PEAK:-43.27}" \
+    > "results/card/es_cd${TG}_170000_fwd1.log"
+  if [ "${STUB_VOID:-}" = "$TG" ]; then echo "CARD $TG: VOID (stub)" > "results/CARD_${TG}_DONE"
+  else echo "CARD $TG (tier 2, scope code): PASS vs ref2tnaxn.r6 (stub)" > "results/CARD_${TG}_DONE"; fi
+elif [ "${STUB_VOID:-}" = "$TG" ]; then echo "CARD $TG: VOID (stub)" > "results/CARD_${TG}_DONE"
+elif [ "${STUB_FAIL1:-}" = "$TG" ]; then echo "LOSSY tier1 (CODE-ONLY mode): FAIL; stub $TG" > "results/CARD_${TG}_DONE"
+elif [ "$ORD" = rev ] && [ -n "${CARD_FWD_RUN:-}" ]; then echo "LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: PASS; stub $TG" > "results/CARD_${TG}_DONE"
+else echo "LOSSY tier1 (CODE-ONLY mode): PASS; stub $TG" > "results/CARD_${TG}_DONE"; fi
+echo "$(date +%H:%M:%S)   $TG done: $(head -c 70 "results/CARD_${TG}_DONE")" >> "$H/runner_calls.txt"
+exit 0

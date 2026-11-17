@@ -1,0 +1,110 @@
+tap after layer  5: ridge lambda 0.1, val MSE 2.9306
+tap after layer 15: ridge lambda 0.1, val MSE 3.0196
+tap after layer 25: ridge lambda 0.1, val MSE 2.8108
+tap after layer 35: ridge lambda 0.1, val MSE 3.1606
+tap after layer 45: ridge lambda 0.01, val MSE 1.2178
+   (fit 11 s)
+== heplus24: 186465 cells; 125B argmax at the verifying row == cell y on 99.42 % (near-tie flips)
+   plain chain-32 walk: 337 first misses; LAB head right there 68.5 %; y in head top-8 there 92.6 %
+   LOCATOR (first-miss rows vs right rows of the same walks): head margin alone AUC 0.954, recall at 2 % false 45.7 %
+     tap  5: lens alone AUC 0.682 (recall@2%  7.1 %) | lens + head AUC 0.884 (recall@2% 15.4 %)
+     tap 15: lens alone AUC 0.698 (recall@2%  8.0 %) | lens + head AUC 0.893 (recall@2% 15.7 %)
+     tap 25: lens alone AUC 0.685 (recall@2%  8.0 %) | lens + head AUC 0.899 (recall@2% 21.7 %)
+     tap 35: lens alone AUC 0.637 (recall@2%  4.5 %) | lens + head AUC 0.896 (recall@2% 19.0 %)
+     tap 45: lens alone AUC 0.917 (recall@2% 35.9 %) | lens + head AUC 0.980 (recall@2% 74.8 %)
+   tap  5 beta 0: lens-on-top8 = y at first misses  19.6 % | tau 0: fix 19.6 % / false 51.78 % | tau 1: fix 18.1 % / false 41.20 % | tau 2: fix 15.7 % / false 32.17 % | tau 4: fix  9.5 % / false 17.54 %
+   tap  5 beta 1: lens-on-top8 = y at first misses  23.1 % | tau 0: fix 23.1 % / false  8.15 % | tau 1: fix 18.1 % / false  6.07 % | tau 2: fix 13.6 % / false  4.58 % | tau 4: fix  8.6 % / false  2.54 %
+   tap 15 beta 0: lens-on-top8 = y at first misses  22.0 % | tau 0: fix 22.0 % / false 50.34 % | tau 1: fix 19.6 % / false 39.87 % | tau 2: fix 16.6 % / false 30.48 % | tau 4: fix 11.3 % / false 15.51 %
+   tap 15 beta 1: lens-on-top8 = y at first misses  24.3 % | tau 0: fix 24.3 % / false  7.53 % | tau 1: fix 18.4 % / false  5.40 % | tau 2: fix 14.8 % / false  3.99 % | tau 4: fix  9.2 % / false  2.27 %
+   tap 25 beta 0: lens-on-top8 = y at first misses  24.9 % | tau 0: fix 24.9 % / false 49.76 % | tau 1: fix 21.7 % / false 38.48 % | tau 2: fix 18.7 % / false 29.26 % | tau 4: fix 14.2 % / false 14.39 %
+   tap 25 beta 1: lens-on-top8 = y at first misses  25.8 % | tau 0: fix 25.8 % / false  6.17 % | tau 1: fix 20.5 % / false  4.52 % | tau 2: fix 17.5 % / false  3.20 % | tau 4: fix  9.8 % / false  1.79 %
+   tap 35 beta 0: lens-on-top8 = y at first misses  25.5 % | tau 0: fix 25.5 % / false 54.97 % | tau 1: fix 22.3 % / false 42.95 % | tau 2: fix 18.1 % / false 31.95 % | tau 4: fix 12.8 % / false 16.17 %
+   tap 35 beta 1: lens-on-top8 = y at first misses  24.6 % | tau 0: fix 24.6 % / false  6.53 % | tau 1: fix 18.7 % / false  4.57 % | tau 2: fix 16.0 % / false  3.21 % | tau 4: fix 10.1 % / false  1.52 %
+   tap 45 beta 0: lens-on-top8 = y at first misses  64.4 % | tau 0: fix 64.4 % / false 15.19 % | tau 1: fix 54.9 % / false 10.25 % | tau 2: fix 47.5 % / false  6.78 % | tau 4: fix 34.4 % / false  2.40 %
+   tap 45 beta 1: lens-on-top8 = y at first misses  50.7 % | tau 0: fix 50.7 % / false  1.32 % | tau 1: fix 41.2 % / false  0.88 % | tau 2: fix 37.4 % / false  0.58 % | tau 4: fix 23.1 % / false  0.22 %
+   FIX-r with the real decider (no re-anchor = exact from the cells; re-anchor = upper bound), priced at the bound:
+     plain chain-32: kept  13.77  tok/s@bound  462
+     tap  5 (L=6) beta 0 tau 1: no re-anchor r1/2/3 kept  2.77( 76)  2.68( 74)  2.68( 74) | re-anchor  2.78( 77)  2.69( 74)  2.69( 74)
+     tap  5 (L=6) beta 0 tau 2: no re-anchor r1/2/3 kept  3.58( 99)  3.43( 95)  3.43( 95) | re-anchor  3.58( 99)  3.44( 95)  3.44( 95)
+     tap  5 (L=6) beta 0 tau 4: no re-anchor r1/2/3 kept  5.59(159)  5.46(155)  5.46(155) | re-anchor  5.59(160)  5.47(156)  5.47(156)
+     tap  5 (L=6) beta 1 tau 1: no re-anchor r1/2/3 kept  9.96(296)  9.78(288)  9.78(288) | re-anchor 10.27(305) 10.07(296) 10.02(295)
+     tap  5 (L=6) beta 1 tau 2: no re-anchor r1/2/3 kept 10.68(323) 10.57(318) 10.57(318) | re-anchor 10.82(327) 10.66(320) 10.64(319)
+     tap  5 (L=6) beta 1 tau 4: no re-anchor r1/2/3 kept 12.12(379) 11.94(372) 11.94(372) | re-anchor 12.24(382) 12.10(376) 12.10(376)
+     tap 15 (L=16) beta 0 tau 1: no re-anchor r1/2/3 kept  2.84( 69)  2.73( 66)  2.73( 66) | re-anchor  2.84( 69)  2.73( 66)  2.73( 66)
+     tap 15 (L=16) beta 0 tau 2: no re-anchor r1/2/3 kept  3.63( 89)  3.50( 86)  3.50( 86) | re-anchor  3.63( 89)  3.51( 86)  3.50( 86)
+     tap 15 (L=16) beta 0 tau 4: no re-anchor r1/2/3 kept  6.01(154)  5.84(149)  5.84(149) | re-anchor  6.01(154)  5.86(149)  5.86(149)
+     tap 15 (L=16) beta 1 tau 1: no re-anchor r1/2/3 kept 10.28(282) 10.07(273) 10.07(273) | re-anchor 10.47(287) 10.28(278) 10.23(276)
+     tap 15 (L=16) beta 1 tau 2: no re-anchor r1/2/3 kept 10.99(310) 10.82(303) 10.82(303) | re-anchor 11.15(315) 11.03(308) 11.01(307)
+     tap 15 (L=16) beta 1 tau 4: no re-anchor r1/2/3 kept 12.38(369) 12.28(364) 12.28(364) | re-anchor 12.52(373) 12.40(367) 12.40(367)
+     tap 25 (L=26) beta 0 tau 1: no re-anchor r1/2/3 kept  2.94( 64)  2.84( 62)  2.84( 61) | re-anchor  2.96( 65)  2.85( 62)  2.84( 62)
+     tap 25 (L=26) beta 0 tau 2: no re-anchor r1/2/3 kept  3.83( 85)  3.67( 81)  3.67( 81) | re-anchor  3.87( 86)  3.69( 81)  3.68( 81)
+     tap 25 (L=26) beta 0 tau 4: no re-anchor r1/2/3 kept  6.36(149)  6.23(145)  6.23(145) | re-anchor  6.41(151)  6.27(146)  6.27(146)
+     tap 25 (L=26) beta 1 tau 1: no re-anchor r1/2/3 kept 10.99(284) 10.77(273) 10.77(273) | re-anchor 11.24(291) 10.92(277) 10.92(276)
+     tap 25 (L=26) beta 1 tau 2: no re-anchor r1/2/3 kept 11.85(319) 11.72(310) 11.72(310) | re-anchor 12.14(328) 11.98(317) 11.96(315)
+     tap 25 (L=26) beta 1 tau 4: no re-anchor r1/2/3 kept 12.67(368) 12.57(362) 12.57(362) | re-anchor 12.98(378) 12.85(369) 12.85(369)
+     tap 35 (L=36) beta 0 tau 1: no re-anchor r1/2/3 kept  2.70( 53)  2.62( 51)  2.62( 51) | re-anchor  2.71( 53)  2.62( 51)  2.62( 51)
+     tap 35 (L=36) beta 0 tau 2: no re-anchor r1/2/3 kept  3.58( 72)  3.46( 69)  3.46( 69) | re-anchor  3.58( 72)  3.47( 69)  3.47( 69)
+     tap 35 (L=36) beta 0 tau 4: no re-anchor r1/2/3 kept  6.13(132)  6.01(129)  6.01(129) | re-anchor  6.15(132)  6.04(129)  6.04(129)
+     tap 35 (L=36) beta 1 tau 1: no re-anchor r1/2/3 kept 10.86(264) 10.75(254) 10.75(254) | re-anchor 11.22(274) 11.05(263) 10.99(261)
+     tap 35 (L=36) beta 1 tau 2: no re-anchor r1/2/3 kept 11.72(300) 11.74(294) 11.74(294) | re-anchor 12.05(310) 11.83(297) 11.85(297)
+     tap 35 (L=36) beta 1 tau 4: no re-anchor r1/2/3 kept 13.04(369) 12.93(364) 12.93(364) | re-anchor 13.20(375) 13.09(368) 13.09(368)
+     tap 45 (L=46) beta 0 tau 1: no re-anchor r1/2/3 kept  8.31(160)  8.12(149)  8.19(149) | re-anchor  8.70(168)  8.41(155)  8.41(154)
+     tap 45 (L=46) beta 0 tau 2: no re-anchor r1/2/3 kept 10.12(207) 10.12(196) 10.27(197) | re-anchor 10.55(217) 10.37(204) 10.38(202)
+     tap 45 (L=46) beta 0 tau 4: no re-anchor r1/2/3 kept 13.42(325) 13.80(318) 13.80(316) | re-anchor 14.04(343) 14.10(332) 14.20(332)
+     tap 45 (L=46) beta 1 tau 1: no re-anchor r1/2/3 kept 15.66(383) 16.35(376) 16.56(372) | re-anchor 16.26(405) 16.87(394) 17.00(394)
+     tap 45 (L=46) beta 1 tau 2: no re-anchor r1/2/3 kept 15.82(410) 16.47(405) 16.56(401) | re-anchor 16.30(425) 16.82(424) 16.91(422)
+     tap 45 (L=46) beta 1 tau 4: no re-anchor r1/2/3 kept 15.04(430) 15.32(424) 15.40(423) | re-anchor 15.47(447) 15.66(445) 15.70(446)
+   (13 s)
+
+== mbppbank: 438850 cells; 125B argmax at the verifying row == cell y on 100.00 % (near-tie flips)
+   plain chain-32 walk: 2144 first misses; LAB head right there 65.4 %; y in head top-8 there 92.7 %
+   LOCATOR (first-miss rows vs right rows of the same walks): head margin alone AUC 0.896, recall at 2 % false 20.1 %
+     tap  5: lens alone AUC 0.648 (recall@2%  6.4 %) | lens + head AUC 0.793 (recall@2% 10.2 %)
+     tap 15: lens alone AUC 0.652 (recall@2%  6.2 %) | lens + head AUC 0.801 (recall@2% 10.5 %)
+     tap 25: lens alone AUC 0.678 (recall@2%  8.0 %) | lens + head AUC 0.822 (recall@2% 13.4 %)
+     tap 35: lens alone AUC 0.667 (recall@2%  7.4 %) | lens + head AUC 0.829 (recall@2% 14.2 %)
+     tap 45: lens alone AUC 0.915 (recall@2% 37.4 %) | lens + head AUC 0.956 (recall@2% 56.6 %)
+   tap  5 beta 0: lens-on-top8 = y at first misses  19.2 % | tau 0: fix 19.2 % / false 54.31 % | tau 1: fix 17.0 % / false 44.74 % | tau 2: fix 14.9 % / false 36.04 % | tau 4: fix 10.6 % / false 21.11 %
+   tap  5 beta 1: lens-on-top8 = y at first misses  21.1 % | tau 0: fix 21.1 % / false 16.75 % | tau 1: fix 17.2 % / false 12.67 % | tau 2: fix 14.1 % / false  9.51 % | tau 4: fix  9.6 % / false  4.98 %
+   tap 15 beta 0: lens-on-top8 = y at first misses  18.9 % | tau 0: fix 18.9 % / false 54.16 % | tau 1: fix 16.1 % / false 44.07 % | tau 2: fix 14.1 % / false 34.50 % | tau 4: fix  9.9 % / false 19.71 %
+   tap 15 beta 1: lens-on-top8 = y at first misses  20.6 % | tau 0: fix 20.6 % / false 15.77 % | tau 1: fix 17.5 % / false 11.84 % | tau 2: fix 13.7 % / false  8.77 % | tau 4: fix  8.4 % / false  4.42 %
+   tap 25 beta 0: lens-on-top8 = y at first misses  24.1 % | tau 0: fix 24.1 % / false 50.10 % | tau 1: fix 20.9 % / false 39.90 % | tau 2: fix 17.4 % / false 30.50 % | tau 4: fix 11.7 % / false 16.60 %
+   tap 25 beta 1: lens-on-top8 = y at first misses  23.9 % | tau 0: fix 23.9 % / false 13.76 % | tau 1: fix 20.0 % / false 10.10 % | tau 2: fix 16.3 % / false  7.32 % | tau 4: fix 10.0 % / false  3.48 %
+   tap 35 beta 0: lens-on-top8 = y at first misses  23.6 % | tau 0: fix 23.6 % / false 53.71 % | tau 1: fix 20.8 % / false 42.75 % | tau 2: fix 17.0 % / false 31.72 % | tau 4: fix 10.5 % / false 16.29 %
+   tap 35 beta 1: lens-on-top8 = y at first misses  24.7 % | tau 0: fix 24.7 % / false 13.41 % | tau 1: fix 19.7 % / false  9.35 % | tau 2: fix 15.3 % / false  6.28 % | tau 4: fix  8.7 % / false  2.85 %
+   tap 45 beta 0: lens-on-top8 = y at first misses  62.6 % | tau 0: fix 62.6 % / false 14.50 % | tau 1: fix 57.3 % / false  9.69 % | tau 2: fix 49.7 % / false  6.57 % | tau 4: fix 34.6 % / false  2.57 %
+   tap 45 beta 1: lens-on-top8 = y at first misses  53.5 % | tau 0: fix 53.5 % / false  3.17 % | tau 1: fix 46.4 % / false  1.92 % | tau 2: fix 39.0 % / false  1.09 % | tau 4: fix 26.2 % / false  0.35 %
+   FIX-r with the real decider (no re-anchor = exact from the cells; re-anchor = upper bound), priced at the bound:
+     plain chain-32: kept   6.92  tok/s@bound  232
+     tap  5 (L=6) beta 0 tau 1: no re-anchor r1/2/3 kept  2.20( 61)  2.10( 58)  2.10( 58) | re-anchor  2.25( 62)  2.10( 58)  2.10( 58)
+     tap  5 (L=6) beta 0 tau 2: no re-anchor r1/2/3 kept  2.59( 73)  2.49( 69)  2.48( 69) | re-anchor  2.65( 74)  2.50( 69)  2.49( 69)
+     tap  5 (L=6) beta 0 tau 4: no re-anchor r1/2/3 kept  3.61(104)  3.54(101)  3.53(101) | re-anchor  3.68(106)  3.57(102)  3.56(102)
+     tap  5 (L=6) beta 1 tau 1: no re-anchor r1/2/3 kept  4.86(142)  4.72(136)  4.71(136) | re-anchor  5.03(147)  4.84(140)  4.82(139)
+     tap  5 (L=6) beta 1 tau 2: no re-anchor r1/2/3 kept  5.26(157)  5.19(153)  5.18(153) | re-anchor  5.43(162)  5.31(157)  5.30(157)
+     tap  5 (L=6) beta 1 tau 4: no re-anchor r1/2/3 kept  6.07(188)  6.02(186)  6.01(186) | re-anchor  6.21(193)  6.15(190)  6.15(190)
+     tap 15 (L=16) beta 0 tau 1: no re-anchor r1/2/3 kept  2.19( 54)  2.10( 51)  2.10( 51) | re-anchor  2.24( 55)  2.11( 51)  2.11( 51)
+     tap 15 (L=16) beta 0 tau 2: no re-anchor r1/2/3 kept  2.65( 66)  2.56( 63)  2.56( 63) | re-anchor  2.71( 67)  2.57( 63)  2.57( 63)
+     tap 15 (L=16) beta 0 tau 4: no re-anchor r1/2/3 kept  3.69( 96)  3.63( 94)  3.62( 94) | re-anchor  3.76( 98)  3.65( 95)  3.65( 95)
+     tap 15 (L=16) beta 1 tau 1: no re-anchor r1/2/3 kept  4.99(133)  4.87(128)  4.85(127) | re-anchor  5.15(137)  5.00(131)  4.98(130)
+     tap 15 (L=16) beta 1 tau 2: no re-anchor r1/2/3 kept  5.39(148)  5.35(146)  5.34(145) | re-anchor  5.54(153)  5.47(149)  5.46(148)
+     tap 15 (L=16) beta 1 tau 4: no re-anchor r1/2/3 kept  6.11(180)  6.09(179)  6.09(178) | re-anchor  6.22(184)  6.19(181)  6.18(181)
+     tap 25 (L=26) beta 0 tau 1: no re-anchor r1/2/3 kept  2.41( 53)  2.29( 50)  2.29( 50) | re-anchor  2.49( 55)  2.30( 50)  2.30( 50)
+     tap 25 (L=26) beta 0 tau 2: no re-anchor r1/2/3 kept  2.90( 66)  2.79( 62)  2.79( 62) | re-anchor  2.97( 67)  2.80( 62)  2.80( 62)
+     tap 25 (L=26) beta 0 tau 4: no re-anchor r1/2/3 kept  4.04( 98)  3.96( 95)  3.96( 95) | re-anchor  4.11(100)  4.00( 96)  4.00( 96)
+     tap 25 (L=26) beta 1 tau 1: no re-anchor r1/2/3 kept  5.28(130)  5.18(125)  5.18(124) | re-anchor  5.51(136)  5.34(128)  5.32(128)
+     tap 25 (L=26) beta 1 tau 2: no re-anchor r1/2/3 kept  5.69(147)  5.64(143)  5.64(143) | re-anchor  5.87(151)  5.81(147)  5.80(146)
+     tap 25 (L=26) beta 1 tau 4: no re-anchor r1/2/3 kept  6.43(184)  6.41(181)  6.40(181) | re-anchor  6.54(187)  6.51(184)  6.51(184)
+     tap 35 (L=36) beta 0 tau 1: no re-anchor r1/2/3 kept  2.30( 46)  2.19( 43)  2.18( 43) | re-anchor  2.36( 47)  2.19( 43)  2.18( 43)
+     tap 35 (L=36) beta 0 tau 2: no re-anchor r1/2/3 kept  2.85( 58)  2.74( 55)  2.73( 55) | re-anchor  2.91( 60)  2.74( 55)  2.74( 55)
+     tap 35 (L=36) beta 0 tau 4: no re-anchor r1/2/3 kept  4.07( 92)  4.00( 89)  4.00( 89) | re-anchor  4.15( 93)  4.04( 90)  4.03( 90)
+     tap 35 (L=36) beta 1 tau 1: no re-anchor r1/2/3 kept  5.40(125)  5.34(120)  5.33(119) | re-anchor  5.57(129)  5.49(123)  5.48(122)
+     tap 35 (L=36) beta 1 tau 2: no re-anchor r1/2/3 kept  5.87(145)  5.84(141)  5.83(140) | re-anchor  6.04(149)  5.98(144)  5.98(144)
+     tap 35 (L=36) beta 1 tau 4: no re-anchor r1/2/3 kept  6.49(181)  6.46(179)  6.46(178) | re-anchor  6.57(184)  6.57(182)  6.57(181)
+     tap 45 (L=46) beta 0 tau 1: no re-anchor r1/2/3 kept  6.22(123)  6.52(116)  6.56(111) | re-anchor  6.80(134)  6.85(122)  6.90(118)
+     tap 45 (L=46) beta 0 tau 2: no re-anchor r1/2/3 kept  6.79(141)  7.16(135)  7.29(131) | re-anchor  7.40(154)  7.66(144)  7.67(141)
+     tap 45 (L=46) beta 0 tau 4: no re-anchor r1/2/3 kept  7.50(180)  7.80(175)  7.88(172) | re-anchor  7.98(191)  8.30(187)  8.33(185)
+     tap 45 (L=46) beta 1 tau 1: no re-anchor r1/2/3 kept  8.21(185)  8.78(176)  9.00(172) | re-anchor  8.97(202)  9.62(196)  9.85(195)
+     tap 45 (L=46) beta 1 tau 2: no re-anchor r1/2/3 kept  8.23(198)  8.66(189)  8.87(188) | re-anchor  8.91(214)  9.42(211)  9.63(211)
+     tap 45 (L=46) beta 1 tau 4: no re-anchor r1/2/3 kept  7.93(214)  8.20(209)  8.28(207) | re-anchor  8.45(227)  8.73(226)  8.79(226)
+   (18 s)
+

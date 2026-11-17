@@ -675,3 +675,44 @@ and both of my Tuesday-morning runs follow the away rule.**
     difference means run noise or a setup difference, and the reading should be held until it is explained.
 - Tested on fakes (scratch): flips planted in touched rows and in an untouched window landed in the right columns, and
   the NULL CHECK flagged the planted difference.
+
+### Comment-QOM map result (Tue 17 Nov 07:19; run 1 07:00-07:06 + re-run 07:08-07:19): CONFIRMED, null CLEAN
+- **Run 1 stopped early, my mistake.** comqom_run_map.py's in-process self-guard (BG_PEAK_MAX, default 22 GB) ended it
+  at 22.22 GB lifetime, in bt_cq's 3rd window (HumanEval_109, the longest), with rc 7.
+  - Only bt_cq_ctrl was complete. Its read-out is saved as data/m1/comqom_map/run1_readout_0706.out.
+  - Cause: at 21:0x Monday I raised the runner's lock to MEM 24 GB (int8 arms peak 23.7 GB) but left the in-process
+    guard at its default.
+  - Re-run: the same frozen runner, started at once, with CQ_MEM 25 + BG_PEAK_MAX 25 (guard = lock). --skip-done kept
+    the control. Peak 22.22 GB, rc 0.
+  - Fit12's kill test was not delayed by it: it had already passed its COMQOM_END gate and was waiting for
+    NO-SWAP >= 47.
+- **Read-out** (data/m1/comqom_map.out). Code flips vs the exact baseline, 12 code windows, 3,366 scored rows,
+  [95 % window bootstrap]:
+
+  | arm | all-row % | non-tie % | paired vs bt_cq_ctrl (all-row / non-tie pt) |
+  |---|---|---|---|
+  | bt_cq_ctrl: 1c tiers + hc8w_mix + int8 | 1.07 [0.42, 1.97] | 0.45 [0.15, 0.81] | |
+  | bt_cq: + comment rows on QOM | 0.68 [0.24, 1.28] | 0.18 [0.00, 0.38] | -0.39 / -0.27 |
+  | bt_cq_res: + comment rows on QOM + RES | 0.74 [0.10, 1.59] | 0.30 [0.04, 0.62] | -0.33 / -0.15 |
+
+  - **READING (non-tie, amendment f'):** bt_cq / bt_cq_ctrl = 0.18 / 0.45 = 0.40, so **CONFIRMED** (<= 0.5x). All-row
+    ratio 0.64.
+  - RES's paired increment over bt_cq: +0.06 / +0.12 pt, within G2's <= +0.3 pt.
+  - int8 census PASS on all 3 arms.
+- **Engagement add-on** (data/m1/comqom_engage.out):
+  - Comment-QOM changes the masks at 505 of 5,989 positions (8.4 %), all of them scored rows (15.0 % of scored rows).
+    4 windows have no comment rows.
+  - On the 505 touched rows, flips drop from 6.14 / 3.03 % (control) to 3.76 / 1.30 % (bt_cq) and 4.36 / 1.52 %
+    (bt_cq_res).
+  - Untouched rows stay at 0.10-0.22 % all-row and <= 0.15 % non-tie in every arm.
+  - **NULL CHECK** (pre-registered, item 3): bt_cq vs bt_cq_ctrl on the 4 windows without comment rows: 0 of 901 rows
+    differ, so CLEAN.
+- **A script fix after the run.** The first version also compared bt_cq_res on those 4 windows and printed NOT CLEAN
+  (901 of 901 rows differ). That was not a valid null:
+  - RES lives in bt_cq_res's tier masks, which differ from the control's on every window (119-301 positions on those 4).
+  - The script now tests each arm only on windows where its own masks equal the control's. bt_cq_res has none.
+  - bt_cq's result is unchanged. The as-run output is kept as data/m1/comqom_engage_asrun_0720.out.
+- Sent 07:2x to NewIdeas, EvalSuite, Fit12 and BigMoE.
+- **Tue 17 Nov 07:4x: the band screen (section 6) is DISARMED** under the orchestrator's BREAK98 re-pointing (07:3x, via
+  NewIdeas): "STOP ... any +5-50 % lever". It had not started; Fit12's kill test, which it waited on, was still waiting
+  on NO-SWAP. Its launcher, Wednesday fallback included, is stopped. Re-arm only on NewIdeas' word after Saturday.

@@ -1171,6 +1171,23 @@
       changes.
   - **The check:** for a C pick, the first C process's lifetime peak is logged next to peaks_2026-11-17.txt (V0's
     first process; then V1's full processes).
+- **Dated Tue 07:5x (NewIdeas 07:3x; the orchestrator's re-pointing), before any G1 run or data: G1's chain gains the
+  BREAK98 HOLD. Operational, no line changes.**
+  - The rule is 4j's dated line of 07:5x. Nothing starts while /Users/kamen/NewIdeas/research/week98/BREAK98_HOLD
+    exists. Mid-run, the step yields at once and resumes when the marker is gone (tier 1 with CARD_RESUME=1; a cut tier
+    0 starts fresh).
+  - **The file:** tools/g1_chain.sh, the same name, is now sha256 1745d09535b06ea3 (was c1852dfa566ea6e5). The diff adds
+    the marker checks in held() / run() and a header note only.
+  - **Checked** (results/lossygate/b98hold_sims_2026-11-17.txt):
+    - The stub sim on byte copies passes all 25 scenarios: G1's 21, rerun, plus b1-b4. Those cover the hold at the
+      start, mid-B1 with a yield and a CARD_RESUME=1 resume, mid-V0 with the run moved aside (.cut1) and a fresh
+      start, and a hold past the day's last start (B1 rc 75, resumed in the night window).
+    - The 8 DRY passes (tags dry3_<env>): all rc 0, 48 runner calls rc 0.
+  - **The switch:**
+    - TERM 39942 at 07:52:39. It was waiting for its day-window gates, with no runner. It was gone at 07:53:27, and its
+      G1_G1T_END ("stopped by a signal during: waiting (day window)") was moved aside (.b98rearm).
+    - 07:53:39: re-armed as pid 5895, `CHAIN_MYPID=63835 tools/g1_chain.sh` as before. It waits for its gates
+      (T1C_TUEF3_END after the arming with follower3 gone, V2's verdict, G1P_PROBE_DONE, G1_PICK).
 
 ## Amendment 5c (Mon 2026-11-16 13:0x, before any G2 config, snapshot or data): G2's composition (NewIdeas 13:0x); it replaces 5a's G2 condition
 - **Why:** Breakthrough found that G1 as built reads 6.22 GB per check, not 5.77. g1a is C6 + int8 on lossy-45's
@@ -1798,6 +1815,31 @@
       11-17 07:00"; else after Leap's slot #1; cutoff 17:00, no start after 14:30.
     - 05:19:18: it read T0A_1117_END twice and entered the night window. It then waited on "BigMoE's key test is armed
       or running (pid 5688)", as designed.
+- **Dated Tue 07:5x (NewIdeas 07:3x, relaying the orchestrator's re-pointing: a BREAK98 test always goes first on the
+  GPU), before V2's remaining data: follower3 and chain2 gain the BREAK98 HOLD. Operational, no line changes.**
+  - **The rule:** while /Users/kamen/NewIdeas/research/week98/BREAK98_HOLD exists, nothing starts.
+    - follower3's start conditions and chain2's held() / run() read it.
+    - When it appears mid-run, chain2 yields the running step at once (one read; the runner and its children TERM, peer
+      unlock). The step resumes once the marker is gone: a cut tier-1 run with CARD_RESUME=1, under the same cutoff and
+      last-start rules.
+    - NewIdeas creates the marker before a BREAK98 test's window opens and removes it at that test's end marker. Its
+      first line names the test and the expected end.
+    - The soft yields stay: a share lock with "MEM n GB" (n > 5) or a quiet lock, at each process start.
+  - **The files:** the same names, so G1's chain still matches follower3's. tools/t1c_tue_follower3.sh is now sha256
+    5c5134c3b51237c8 (was e7cbf8732bd978f5), and tools/t1c_chain2.sh is 9121baa4d89bd82c (was 822c2fc2db41f880). The
+    diffs add the marker checks and a header note only.
+  - **Checked** (results/lossygate/b98hold_sims_2026-11-17.txt):
+    - The stub sim on byte copies passes all 15 scenarios: follower3's 11, rerun, plus h1-h4 for the hold. Those cover
+      the hold at the start gate, mid-B2 with a yield and then a resume, a hold that outlasts the last start (B2 rc 75,
+      the day route ends), and a hold right after chain2's launch, before its runner.
+    - chain2's DRY passes as follower3 calls it, tags dry4n (runner 66, gate 42) and dry4d (runner 65): both rc 0.
+  - **The switch:**
+    - TERM follower3 (10793) at 07:51:34. It was waiting for Leap's slot #1, with nothing started and no lock. It was
+      gone at 07:52:33, with T1C_TUEF3_END "stopped by a signal during: waiting for Leap's slot #1 to be over".
+    - That marker and its T1C_RESF2_END copy were moved aside (.b98rearm). G1's chain was its only other reader, and it
+      was stopped next.
+    - 07:53:38: re-armed as pid 5797 with the same knobs (CHAIN_KTPAT='scripts/g1_keytes[t]\.py', CHAIN_PRICE_S=3600).
+    - At 07:54:08 it read T0A_1117_END twice. The night window was over, so it waits for Leap's slot #1, as before.
 
 ## Amendment 5f (Mon 2026-11-16 20:0x, before any G2 config, snapshot or data): G2 without V1, the SVH / full head in V1's place (NewIdeas 20:0x); it amends 5c
 - **Why** (NewIdeas 20:0x, from Breakthrough's paired read). The source is section 7 of ~/Breakthrough's

@@ -10,6 +10,4 @@ echo "== exp32 $(date +%T)"; $PY -I scripts/week98/exp32_bench.py
 echo "== exp32 nolsb variants $(date +%T)"; $PY -I scripts/week98/exp32_bench.py nlv
 echo "== gdn_fast $(date +%T)"; $PY -I scripts/week98/gdn_fast.py bench
 echo "== hc np $(date +%T)"; $PY -I scripts/week98/hc_np_bench.py
-# E15 (Tue 06:3x; NewIdeas 06:32: inside slot #1's process): the A8 kill test, last, with its own gates (frozen copy)
-echo "== E15 $(date +%T)"; bash /Users/kamen/Leap/data/week98/e15/frozen/e15_post.sh
 echo "== done $(date +%T)"

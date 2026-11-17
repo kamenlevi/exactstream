@@ -1,0 +1,31 @@
+TEST on window stubwin: arms ['F32o', 'F32c6i'], 16 rounds; MLX cache limit 0 (was 65283502899); BIGMOE_POST_SYS=None BIGMOE_SPIN_COHERENT=None
+ARM F32o: 32 rows; one warm check, then records A and B
+  record A: seq 1001 -> 1002; {'ops': 402, 'encoders': 2, 'dispatches': 59, 'blits': 0, 'commits': 3, 'set_bytes_total': 921}; ops {'ENC': 2, 'END': 2, 'COMMIT': 3, 'PSO': 59, 'BUF': 165, 'BYTES': 93, 'DTG': 5, 'DT': 54, 'BAR': 16, 'FWAIT': 1, 'FUPD': 2}; evals inside the forward {'eval': 0, 'async_eval': 0, 'synchronize': 0}; wall 1.0 ms (encode-then-run: not a timing)
+  record B: seq 1002 -> 1003; {'ops': 402, 'encoders': 2, 'dispatches': 59, 'blits': 0, 'commits': 3, 'set_bytes_total': 921}; ops {'ENC': 2, 'END': 2, 'COMMIT': 3, 'PSO': 59, 'BUF': 165, 'BYTES': 93, 'DTG': 5, 'DT': 54, 'BAR': 16, 'FWAIT': 1, 'FUPD': 2}; evals inside the forward {'eval': 0, 'async_eval': 0, 'synchronize': 0}; wall 1.1 ms (encode-then-run: not a timing)
+  diff: 180 changed targets -> 6 rules, 0 ambiguous, 1 unexplained; 171 per-call words overwritten in the check (pre-run garbage) and 2 persistent state words the check rewrites, ignored; per-call buffers 58 of 70 (50 small, rewritten per replay); new bytes in A + B 0.000 GB
+    rule: setBytes k 19 off 0 (dispatch 13): ring.i32 L=3 -> {'a': 6, 'b': 3, 'd': 0, 'm': 40, 's': 32, 'c': 0}
+    rule: setBytes k 31 off 0 (dispatch 21): seq -> {'a': 1, 'b': 0, 'd': 0, 'm': 0, 's': 1, 'c': 0}
+    rule: bufoff BUF op 191 index 0: tab.bytes L=2 -> {'a': 6, 'b': 2, 'd': 0, 'm': 64, 's': 384, 'c': 0}
+    rule: bufword buffer c5 (BUF op 17, per-call) off 0: reg.i32 L=4 -> {'a': 6, 'b': 4, 'd': 0, 'm': 16, 's': 64, 'c': 0}
+    rule: bufword buffer c5 (BUF op 17, per-call) off 8: seq -> {'a': 1, 'b': 0, 'd': 0, 'm': 0, 's': 1, 'c': 0}
+    rule: bufword buffer c57 (BUF op 289, per-call) off 0: seq -> {'a': 1, 'b': 0, 'd': 0, 'm': 0, 's': 1, 'c': 0}
+    state (rewritten in the check): buffer c56 off 0: 1001 -> 1002
+    state (rewritten in the check): buffer c60 off 0: 1001 -> 1002
+    UNEXPLAINED: setBytes k 65 off 0: 625 -> 676
+  (1) record + diff: FAIL
+ARM F32c6i: 32 rows; one warm check, then records A and B
+  record A: seq 1004 -> 1005; {'ops': 422, 'encoders': 2, 'dispatches': 62, 'blits': 0, 'commits': 3, 'set_bytes_total': 933}; ops {'ENC': 2, 'END': 2, 'COMMIT': 3, 'PSO': 62, 'BUF': 173, 'BYTES': 96, 'DTG': 5, 'DT': 57, 'BAR': 19, 'FWAIT': 1, 'FUPD': 2}; evals inside the forward {'eval': 0, 'async_eval': 0, 'synchronize': 0}; wall 1.0 ms (encode-then-run: not a timing)
+  record B: seq 1005 -> 1006; {'ops': 422, 'encoders': 2, 'dispatches': 62, 'blits': 0, 'commits': 3, 'set_bytes_total': 933}; ops {'ENC': 2, 'END': 2, 'COMMIT': 3, 'PSO': 62, 'BUF': 173, 'BYTES': 96, 'DTG': 5, 'DT': 57, 'BAR': 19, 'FWAIT': 1, 'FUPD': 2}; evals inside the forward {'eval': 0, 'async_eval': 0, 'synchronize': 0}; wall 0.9 ms (encode-then-run: not a timing)
+  diff: 180 changed targets -> 6 rules, 0 ambiguous, 1 unexplained; 171 per-call words overwritten in the check (pre-run garbage) and 2 persistent state words the check rewrites, ignored; per-call buffers 60 of 72 (51 small, rewritten per replay); new bytes in A + B 0.000 GB
+    rule: setBytes k 19 off 0 (dispatch 13): ring.i32 L=3 -> {'a': 6, 'b': 3, 'd': 0, 'm': 40, 's': 32, 'c': 0}
+    rule: setBytes k 31 off 0 (dispatch 21): seq -> {'a': 1, 'b': 0, 'd': 0, 'm': 0, 's': 1, 'c': 0}
+    rule: bufoff BUF op 191 index 0: tab.bytes L=2 -> {'a': 6, 'b': 2, 'd': 0, 'm': 64, 's': 384, 'c': 0}
+    rule: bufword buffer c5 (BUF op 17, per-call) off 0: reg.i32 L=4 -> {'a': 6, 'b': 4, 'd': 0, 'm': 16, 's': 64, 'c': 0}
+    rule: bufword buffer c5 (BUF op 17, per-call) off 8: seq -> {'a': 1, 'b': 0, 'd': 0, 'm': 0, 's': 1, 'c': 0}
+    rule: bufword buffer c57 (BUF op 289, per-call) off 0: seq -> {'a': 1, 'b': 0, 'd': 0, 'm': 0, 's': 1, 'c': 0}
+    state (rewritten in the check): buffer c56 off 0: 1004 -> 1005
+    state (rewritten in the check): buffer c60 off 0: 1004 -> 1005
+    UNEXPLAINED: setBytes k 65 off 0: 784 -> 841
+  (1) record + diff: FAIL
+RESULT: FAIL; per arm (lines 1-4): F32o [False, False, False, False]; F32c6i [False, False, False, False]; 0 s; lifetime peak 0.06 GB
+STUB unexplained: verdict FAIL, lines {'F32o': [False, False, False, False], 'F32c6i': [False, False, False, False]}; expected FAIL with lines [False, False, False, False] on every arm -> AS EXPECTED; toy loader served 6 rows

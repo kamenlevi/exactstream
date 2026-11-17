@@ -340,6 +340,20 @@ static void free_ops(void) {
 void rec_start(void) { free_ops(); atomic_store(&recording, 1); }
 void rec_stop(void) { atomic_store(&recording, 0); }
 void rec_clear(void) { atomic_store(&recording, 0); free_ops(); }
+// Keep the current record's objects alive past the next rec_start (milestone 2's A / B records, Tue 17 Nov): B's fresh
+// buffers can then never reuse A's addresses, so a buffer bound in both A and B with the same pointer is persistent.
+// rec_keep_drop() releases them. Each returns the number of references kept / released (duplicates counted).
+static NSMutableArray *KEEP = nil;
+long rec_keep(void) {
+  if (!KEEP) KEEP = [NSMutableArray new];
+  long n0 = (long)KEEP.count;
+  for (long i = 0; i < nR; i++) {
+    if (R[i].o0) [KEEP addObject:(__bridge id)R[i].o0];
+    if (R[i].o1) [KEEP addObject:(__bridge id)R[i].o1];
+  }
+  return (long)KEEP.count - n0;
+}
+long rec_keep_drop(void) { long n = KEEP ? (long)KEEP.count : 0; [KEEP removeAllObjects]; return n; }
 // per op type: o[k] = number of ops with op == k, k = 0..19
 void rec_opcounts(long *o) {
   for (int k = 0; k < 20; k++) o[k] = 0;

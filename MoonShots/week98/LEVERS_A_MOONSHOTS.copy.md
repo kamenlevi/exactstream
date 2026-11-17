@@ -1687,6 +1687,21 @@ tiles for <= 8-pair segments (the padding), a cheaper decode, a faster grouping 
     code buffer for the chunk partials, so occupancy can't rise without a rewrite. Or a FAST (not bit-exact)
     small-segment path.
 
+### MODULE 2, FAST small-segment path: paper cost (Leap 00:5x, desk only; Tue 07:5x) = KILL on paper
+- **Real histogram** [K m2_seghist.py, CPU replica of _GRP1CQ on exp32's 99 blocks; matches the GPU profile: 60.9
+  segments per block, 5.25 pairs each]: 1 pair 8 %, 2 pairs 15 %. Segments with <= 2 pairs are 23 % of segments and
+  7.2 % of pairs; <= 4 pairs 55 %; <= 8 pairs 84 %.
+- **MMA path:** ~2.43 us per segment, A + B [K: no-MMA saves 94 + 48 us on 58.5 segments, x loads excluded]. The cost is
+  fixed per 16-row tile (the 8-row screen).
+- **SIMD-FMA path:** 4.92 M FMAs per pair (A 2 x 640 x 2560 + B 2560 x 640). At ~4 T FP32 FMA/s [G: 20 cores x 128 lanes
+  x ~1.6 GHz] that is ~1.2 us per pair, plus converting each segment's nibbles to float (~1.3 pair-equivalents per
+  segment).
+- **Break-even:** FMA wins only for 1-2-pair segments, and only if the conversion is free: <= ~6 us per call (~1 %),
+  ~0.3 ms per 48-layer check; likely <= 0 with the conversion [P].
+- **Overlap upside:** up to ~34 us per call (~6 %) only if ALU and MMA work run fully concurrently, which the
+  ablations argue against (decode and MMA costs add) [G].
+- **Verdict:** KILL on paper; no screen. It is also under the orchestrator's 07:3x "no +5-50 % levers" rule.
+
 ## Q8. Is post-hoc 8-bit free on the 125B? (NewIdeas 21:1x; pre-registered Mon 16 Nov 21:2x, before any Q8 run)
 - **Why (NewIdeas):**
   - MTP Head's sandbox S17 (LAB, s30) found post-hoc 8-bit free: tree-16 / 32 MBPP x0.997 / x1.001, HE x0.995 / x1.000.

@@ -206,8 +206,11 @@ def run(a):
     cap = None
     if a.capture:
         z = np.load(a.capture)
-        key = [k for k in z.files if z[k].ndim == 2 and z[k].shape[1] == 10240][0]
+        # data access only (Tue 17 Nov 08:0x, BigMoE's note): each z[k] access re-reads the member, so name the state
+        # array directly and read it ONCE (MBPP's X is 2.56 GB); no analysis change.
+        key = "X" if "X" in z.files else [k for k in z.files if k not in ("fi", "row", "layer")][0]
         cap = {"fi": z["fi"], "row": z["row"], "layer": z["layer"], "X": z[key]}
+        assert cap["X"].ndim == 2 and cap["X"].shape[1] == 10240, f"capture state array {key}: {cap['X'].shape}"
     layers = ["final"] if a.standin == "final" else [int(x) for x in a.layers.split(",")]
     key = ufi * 1_000_000 + urow                           # one state per unique (file, row); units share rows
     uk, ru = np.unique(key, return_inverse=True)

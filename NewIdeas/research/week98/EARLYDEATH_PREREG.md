@@ -116,3 +116,17 @@ Stand-in ceilings (final layer as L; argmax truth; <= 2 % false drops; gap form)
   >= 10 pt; KILL < 60 %.
 - Wednesday's run: `taskpolicy -b ~/BigMoE/.venv/bin/python -I -B ed_stage2.py --set he|mbpp --capture <mid_<tag>.npz>`
   (layers 8,16,24; peak ~5.4 GB on MBPP, so by day when Kamen is away).
+
+## Amendment 4 (Tue 17 Nov 08:0x, BEFORE any capture data; the capture is still being written)
+- **The run moves to TODAY's day capture** (the orchestrator 07:4x, under BREAK98): BigMoE's mid_{heplus24,mbppbank}.npz,
+  running since 07:59, layers 2 / 4 / 8 / 16 / 24 / 32 / 40 / 44 (layer L = the output of layers[L-1], the pre-mixer widened
+  stream), every answer row gen-1 .. N-2, X [N, 10240] fp16 + fi / row / layer. Its own self-checks: final stream == the bank's
+  wd bitwise; layer-16 4-stream mean == the bank's raw tap 15 bitwise; top-32 == tk.
+- **The verdict is unchanged:** Fable B's lines at layer 16 on the best held-out non-oracle probe (PASS >= 90 % droppable at
+  <= 2 % false drops AND P-tuned or P-comb beats P-draft by >= 10 pt; KILL < 60 %; BETWEEN otherwise). Layers 8 / 24 as
+  registered. Layers 2 / 4 / 32 / 40 / 44 are INFORMATION only, run in a separate call so the registered call is unchanged.
+- **Code change, data access only:** ed_stage2.py now reads the capture's X member ONCE (each npz member access re-reads it;
+  MBPP's X is 2.56 GB). No analysis change.
+- **Context, recorded before the data:** Lunatic's floor_lens (number-checked by NewIdeas 07:5x, reproduced exactly) finds the
+  head's first misses at AUC 0.64-0.70 from the bank's 4-stream-mean taps after layers 6-36, against the head's own margin at
+  0.954, and 0.917 after layer 46. If that carries over to tree units, the layer-16 verdict is likely KILL.

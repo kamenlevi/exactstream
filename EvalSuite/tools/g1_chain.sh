@@ -19,6 +19,9 @@
 #   arming, to CHAIN_NIGHT_CUT (default Wed 05:15, for MoonShots' 05:24 cron). No start in a window's last 15 min. A step
 #   cut by the day window resumes in the night window. What is left after it goes to Wednesday (a re-arm, in NewIdeas'
 #   order).
+# BREAK98 hold (NewIdeas Tue 07:3x; PREREG_lossygate 4j / 5b dated lines Tue 07:4x): while $HOME/NewIdeas/research/week98/
+#   BREAK98_HOLD exists, nothing starts; when it appears mid-run, the running step yields at once (the runner and its
+#   children TERM, peer unlock) and resumes once it is gone (a cut tier-1 run with CARD_RESUME=1). CHAIN_BHOLD: tests.
 #   Nothing starts while HOLD, PAUSE, a shut lid (no external display) or Kamen at the Mac (away_secs.sh < 900, one
 #   read; no reading counts as away). Mid-run, Kamen at the Mac on two reads 30 s apart makes the step yield (the runner
 #   and its children TERM, peer unlock); it resumes once nothing holds. Runner 68 gates each process on NO-SWAP 43 GB
@@ -44,6 +47,7 @@ PROBE=${CHAIN_PROBE:-$HOME/BigMoE/data/r57/G1P_PROBE_DONE}; PROBEAFTER=${CHAIN_P
 PICKF=${CHAIN_PICK:-results/G1_PICK}; NMK=${CHAIN_NIGHT_MK:-$HOME/BigMoE/data/r57/NIGHT1117_BIGMOE_END}
 F3PAT=${CHAIN_F3PAT:-tools/t1c_tue_follower[3]\.sh}; RUNPAT=${CHAIN_RUNPAT:-tools/day_runner6[0-9]\.sh}   # pgrep -f patterns
 Q=${CHAIN_QDIR:-$HOME/.local/share/quiet}                  # HOLD and PAUSE live here
+BHOLD=${CHAIN_BHOLD:-$HOME/NewIdeas/research/week98/BREAK98_HOLD}   # NewIdeas Tue 07:3x: while it exists, no process starts (BREAK98 first)
 AWAY=${CHAIN_AWAY:-$HOME/.local/share/quiet/away_secs.sh}; RUNNER=${CHAIN_RUNNER:-tools/day_runner68.sh}
 BMS=$HOME/BigMoE/data/stack; EX=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2
 TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f
@@ -86,6 +90,7 @@ away() { "$AWAY" 2>/dev/null; }
 held() {        # 0 = held: Kamen's HOLD, the PAUSE file, Kamen at the Mac (one read; no reading counts as away), or the
   [ -e "$Q/HOLD" ] && { HELD="HOLD"; return 0; }          # lid shut with no external display (runner 64's lid_shut)
   [ -e "$Q/PAUSE" ] && { HELD="PAUSE"; return 0; }
+  [ -e "$BHOLD" ] && { HELD="BREAK98_HOLD ($(head -1 "$BHOLD" 2>/dev/null | cut -c1-80))"; return 0; }
 > (a quote from the project owner, kept private)
   ioreg -r -k AppleClamshellState -d 4 2>/dev/null | grep -m1 '"AppleClamshellState"' | grep -q Yes || return 1
   (( $(system_profiler SPDisplaysDataType -detailLevel mini 2>/dev/null | grep -c "Resolution:") > 1 )) && return 1
@@ -113,6 +118,7 @@ nightmk() { { [ -e "$NMK" ] && [ "$(stat -f %m "$NMK")" -ge "$ARMED" ]; } || { W
 run() {         # label, the run's TG (for its DONE file), then runner 68's K=V settings; the runner is a stoppable child.
   local lab=$1 tg=$2 rc; shift 2                   # 75: it yielded to Kamen (not started, or stopped; nothing left running)
   [ -e "$Q/HOLD" ] && { STATUS="stopped by HOLD before: $STATUS"; say "HOLD: $lab not started"; exit 8; }
+  if [ "$DRY" != 1 ] && [ -e "$BHOLD" ]; then say "$lab: not started: BREAK98_HOLD ($(head -1 "$BHOLD" 2>/dev/null | cut -c1-80))"; return 75; fi
 > (a quote from the project owner, kept private)
   say "$lab: $*"
   RSTART=$(date +%s)
@@ -120,6 +126,10 @@ run() {         # label, the run's TG (for its DONE file), then runner 68's K=V 
   RPID=$!
   while kill -0 "$RPID" 2>/dev/null; do     # a HOLD mid-run: the finish trap stops the runner and its children
     [ -e "$Q/HOLD" ] && { STATUS="stopped by HOLD during: $STATUS"; say "HOLD: stopping $lab"; exit 8; }
+    if [ "$DRY" != 1 ] && [ -e "$BHOLD" ] && kill -0 "$RPID" 2>/dev/null; then   # the BREAK98 hold: a clean handoff (NewIdeas 07:3x)
+      say "BREAK98_HOLD ($(head -1 "$BHOLD" 2>/dev/null | cut -c1-80)): $lab yields"
+      stoprunner; peer unlock > /dev/null 2>&1; return 75
+    fi
     if [ "$DRY" != 1 ] && back && kill -0 "$RPID" 2>/dev/null; then
 > (a quote from the project owner, kept private)
       stoprunner; peer unlock > /dev/null 2>&1; return 75

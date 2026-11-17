@@ -28,6 +28,8 @@
 #      "stopped by a signal" (a stop for a re-arm), or the window's end, 12:00 (NewIdeas 19:5x: key on the marker, not
 #      the pid). Then the start conditions, then chain2's wed phase on 11-17, tag tued, cutoff 17:00. No start after
 #      14:30.
+# BREAK98 hold (NewIdeas Tue 07:3x): no start while $HOME/NewIdeas/research/week98/BREAK98_HOLD exists (a start condition
+#   below); chain2 holds and yields on it mid-run. CHAIN_BHOLD: tests only.
 #   The start conditions, at every read: no HOLD, PAUSE or shut lid; Kamen not at the Mac (this file); no BigMoE key-test
 #   process (it stops itself when a day runner appears); no other session's shared MEM run above 5 GB (runner 65's yield
 #   rule); NO-SWAP >= 43 GB on two reads 30 s apart (runner 65), or, from 10 min after the stage's start condition, >= 42
@@ -48,6 +50,7 @@ RES=${CHAIN_RES:-results}; L=$RES/t1c_chain.log; END=$RES/T1C_TUEF3_END; V2D=$RE
 T0A=${CHAIN_T0A:-results/T0A_1117_END}; T0APID=${CHAIN_T0APID:-45029}
 LMK=${CHAIN_LEAPMK:-$HOME/Leap/data/week98/c25/C25_tue1_DONE}; LPAT=${CHAIN_LEAPPAT:-run_c25_tue1[^ /]*\.sh}
 KTPAT=${CHAIN_KTPAT:-scripts/g1_follo[w]\.sh|scripts/g1_keytes[t]\.py}; Q=${CHAIN_QDIR:-$HOME/.local/share/quiet}
+BHOLD=${CHAIN_BHOLD:-$HOME/NewIdeas/research/week98/BREAK98_HOLD}   # NewIdeas Tue 07:3x: while it exists, no process starts (BREAK98 first)
 AWAY=${CHAIN_AWAY:-$HOME/.local/share/quiet/away_secs.sh}
 ep() { date -j -f "%Y-%m-%d %H:%M:%S" "$1:00" +%s; }
 hm() { date -r "$1" '+%m-%d %H:%M'; }
@@ -91,6 +94,7 @@ trap 'STATUS="stopped by a signal during: $STATUS"; exit 143' TERM INT
 blocked() {     # 0 = a start condition other than memory does not hold now; WHY says which
   [ -e "$Q/HOLD" ] && { WHY="HOLD"; return 0; }
   [ -e "$Q/PAUSE" ] && { WHY="PAUSE"; return 0; }
+  [ -e "$BHOLD" ] && { WHY="BREAK98_HOLD ($(head -1 "$BHOLD" 2>/dev/null | cut -c1-80))"; return 0; }
   lidshut && { WHY="the lid shut, no external display"; return 0; }
 > (a quote from the project owner, kept private)
   pgrep -f -- "$KTPAT" > /dev/null && { WHY="BigMoE's key test is armed or running (pid $(pgrep -f -- "$KTPAT" | head -3 | tr '\n' ' '))"; return 0; }

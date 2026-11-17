@@ -107,16 +107,31 @@ else:
             a, n, an, nn = part(F[arm], s)
             cells.append(f"{pct(a, n)} / {pct(an, nn)} ({a} / {an} of {n} / {nn})")
         say(f"| {arm} | {cells[0]} | {cells[1]} | {cells[2]} |")
+    # Tue 07:2x fix: a null window is one where THIS arm's masks equal the control's everywhere. RES changes the tier
+    # masks on every window (cq_comqom_res vs tiers_1c differs at 119-301 positions on the 4 COMQOM-quiet windows), so
+    # bt_cq_res has no null window; the first version compared it on COMQOM's quiet windows (901 / 901 rows differ,
+    # expected, not a run problem). bt_cq's null (the pre-registered one, docstring item 3) is unchanged.
+    MDIR = {"bt_cq": "cq_comqom", "bt_cq_res": "cq_comqom_res"}
     for arm in ("bt_cq", "bt_cq_res"):
         if F[arm] is None:
             continue
+        qw = []
+        for nm in code:
+            a = np.load(os.path.join(O, "bt", MDIR[arm], nm))
+            t = np.load(os.path.join(O, "bt", "tiers_1c", nm))
+            if not ((a["keep"] != t["keep"]) | (a["keep3"] != t["keep3"])).any():
+                qw.append(nm)
+        if not qw:
+            say(f"NULL CHECK {arm} vs bt_cq_ctrl: no window has masks identical to the control's (its masks differ on "
+                f"every window), so no null check applies")
+            continue
         diff_rows = tot = 0
-        for nm in quiet_w:
+        for nm in qw:
             if nm in F[arm] and nm in F["bt_cq_ctrl"]:
                 c, x = F["bt_cq_ctrl"][nm], F[arm][nm]
                 k = min(len(c["tk"]), len(x["tk"]))
                 diff_rows += sum(1 for i in range(k) if c["tk"][i] != x["tk"][i] or c["lp"][i] != x["lp"][i])
                 tot += k
-        say(f"NULL CHECK {arm} vs bt_cq_ctrl on the {len(quiet_w)} windows with no touched row: {diff_rows} of {tot} rows "
-            f"differ -> {'CLEAN (identical, as the masks are)' if diff_rows == 0 else 'NOT CLEAN: run noise or a setup difference'}")
+        say(f"NULL CHECK {arm} vs bt_cq_ctrl on the {len(qw)} windows where its masks equal the control's: {diff_rows} of "
+            f"{tot} rows differ -> {'CLEAN (identical, as the masks are)' if diff_rows == 0 else 'NOT CLEAN: run noise or a setup difference'}")
 open(OUTF, "w").write("\n".join(lines) + "\n")

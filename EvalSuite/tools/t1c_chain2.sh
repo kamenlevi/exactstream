@@ -22,6 +22,9 @@
 # dry-run marker ~/BigMoE/data/deepdraft/ceiling/N127_DRY_1117_DONE with mtime >= Mon 09:05; and the t1c1 real-loop key
 # test's marker ~/BigMoE/data/r57/T1C1_KEYTEST_DONE (mtime >= Mon 09:20) saying PASS with every env's peak <= 42.5 GB
 # (a FAIL or a higher peak: no run, rc 5; STOPPED / NOT RUN: it waits for a re-test); all read twice, 30 s apart.
+# BREAK98 hold (NewIdeas Tue 07:3x; PREREG_lossygate 4j / 5b dated lines Tue 07:4x): while $HOME/NewIdeas/research/week98/
+#   BREAK98_HOLD exists, nothing starts; when it appears mid-run, the running step yields at once (the runner and its
+#   children TERM, peer unlock) and resumes once it is gone (a cut tier-1 run with CARD_RESUME=1). CHAIN_BHOLD: tests.
 # Both phases: nothing starts while HOLD, PAUSE, a shut lid (no external display) or Kamen at the Mac, and no
 # start after 14:15 of the phase's day; the cutoff is 14:30 (the capture starts no earlier than Wed 23:30). Runner 65
 # gates each process on NO-SWAP 43 GB (CARD_MEM 39) and yields at each process start to another session's run above
@@ -43,6 +46,7 @@ T0A=${CHAIN_T0A:-results/T0A_1117_END}; T0AAFTER=$(ep "2026-11-16 08:40")
 N127=${CHAIN_N127:-$HOME/BigMoE/data/deepdraft/ceiling/N127_DRY_1117_DONE}; N127AFTER=$(ep "2026-11-16 09:05")
 KT=${CHAIN_KT:-$HOME/BigMoE/data/r57/T1C1_KEYTEST_DONE}; KTAFTER=$(ep "2026-11-16 09:20")   # BigMoE t1c_follow.sh c7cf64a8
 Q=${CHAIN_QDIR:-$HOME/.local/share/quiet}                  # HOLD and PAUSE live here
+BHOLD=${CHAIN_BHOLD:-$HOME/NewIdeas/research/week98/BREAK98_HOLD}   # NewIdeas Tue 07:3x: while it exists, no process starts (BREAK98 first)
 AWAY=${CHAIN_AWAY:-$HOME/.local/share/quiet/away_secs.sh}; RUNNER=${CHAIN_RUNNER:-tools/day_runner65.sh}
 BMS=$HOME/BigMoE/data/stack; EX=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2
 TREES=data/r57/snap/t1c1=04180c59e76e39b5deffd8e38c5ac277c179a005,data/r57/snap/frozen_t1c1=14bb1462b292d2cb366401cf4d30e8967e79a124,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f
@@ -70,6 +74,7 @@ away() { "$AWAY" 2>/dev/null; }
 held() {        # 0 = held: Kamen's HOLD, the PAUSE file, the lid shut with no external display (runner 64's lid_shut), or
   [ -e "$Q/HOLD" ] && { HELD="HOLD"; return 0; }          # Kamen at the Mac (one read; no reading counts as away)
   [ -e "$Q/PAUSE" ] && { HELD="PAUSE"; return 0; }
+  [ -e "$BHOLD" ] && { HELD="BREAK98_HOLD ($(head -1 "$BHOLD" 2>/dev/null | cut -c1-80))"; return 0; }
 > (a quote from the project owner, kept private)
   ioreg -r -k AppleClamshellState -d 4 2>/dev/null | grep -m1 '"AppleClamshellState"' | grep -q Yes || return 1
   (( $(system_profiler SPDisplaysDataType -detailLevel mini 2>/dev/null | grep -c "Resolution:") > 1 )) && return 1
@@ -95,6 +100,7 @@ gates() {       # 0 = the phase's start gates hold (tue: the tier-0a end marker,
 run() {         # label, the run's TG (for its DONE file), then runner 65's K=V settings; the runner is a stoppable child.
   local lab=$1 tg=$2 rc; shift 2                   # 75: it yielded to Kamen (not started, or stopped; nothing left running)
   [ -e "$Q/HOLD" ] && { STATUS="stopped by HOLD before: $STATUS"; say "HOLD: $lab not started"; exit 8; }
+  if [ "$DRY" != 1 ] && [ -e "$BHOLD" ]; then say "$lab: not started: BREAK98_HOLD ($(head -1 "$BHOLD" 2>/dev/null | cut -c1-80))"; return 75; fi
 > (a quote from the project owner, kept private)
   say "$lab: $*"
   RSTART=$(date +%s)
@@ -102,6 +108,10 @@ run() {         # label, the run's TG (for its DONE file), then runner 65's K=V 
   RPID=$!
   while kill -0 "$RPID" 2>/dev/null; do     # a HOLD mid-run: the finish trap stops the runner and its children
     [ -e "$Q/HOLD" ] && { STATUS="stopped by HOLD during: $STATUS"; say "HOLD: stopping $lab"; exit 8; }
+    if [ "$DRY" != 1 ] && [ -e "$BHOLD" ] && kill -0 "$RPID" 2>/dev/null; then   # the BREAK98 hold: a clean handoff (NewIdeas 07:3x)
+      say "BREAK98_HOLD ($(head -1 "$BHOLD" 2>/dev/null | cut -c1-80)): $lab yields"
+      stoprunner; peer unlock > /dev/null 2>&1; return 75
+    fi
     if [ "$DRY" != 1 ] && back && kill -0 "$RPID" 2>/dev/null; then
 > (a quote from the project owner, kept private)
       stoprunner; peer unlock > /dev/null 2>&1; return 75

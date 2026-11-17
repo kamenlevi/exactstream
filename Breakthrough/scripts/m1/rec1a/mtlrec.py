@@ -241,3 +241,15 @@ def buf_snap(op):
     _L.rec_buf_snap.restype = ctypes.c_long
     n = _L.rec_buf_snap(op, b, 4096)
     return b.raw[:n] if n >= 0 else None
+
+
+def keep():
+    """Keep the current record's objects alive past the next start() (A / B records: no address reuse in B)."""
+    _L.rec_keep.restype = ctypes.c_long
+    return _L.rec_keep()
+
+
+def keep_drop():
+    """Release what keep() holds."""
+    _L.rec_keep_drop.restype = ctypes.c_long
+    return _L.rec_keep_drop()

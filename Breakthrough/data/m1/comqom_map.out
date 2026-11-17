@@ -1,0 +1,11 @@
+comment-QOM map arms (information only): code flips % vs the exact baseline, 12 code windows of the original map, [95 % window bootstrap]; ties = the baseline's p1 - p2 <= 0.1
+VALIDITY int8 census line 1: 12 windows, quantized 1418760 (want 1418760), mismatches 0: PASS
+VALIDITY int8 census line 2: 12 windows, quantized 1418760 (want 1418760), mismatches 0: PASS
+VALIDITY int8 census line 3: 12 windows, quantized 1418760 (want 1418760), mismatches 0: PASS
+| arm | all-row % | non-tie % | identical rows | paired vs bt_cq_ctrl (all-row / non-tie pt) |
+|---|---|---|---|---|
+| bt_cq_ctrl: 1c tiers + hc8w_mix + int8 (the matched control) | 1.07 [0.42, 1.97] | 0.45 [0.15, 0.81] | 0/3366 |  |
+| bt_cq: 1c with comment rows on QOM + hc8w_mix + int8 | 0.68 [0.24, 1.28] | 0.18 [0.00, 0.38] | 0/3366 | -0.39 / -0.27 |
+| bt_cq_res: 1c with comment rows on QOM + RES + hc8w_mix + int8 | 0.74 [0.10, 1.59] | 0.30 [0.04, 0.62] | 0/3366 | -0.33 / -0.15 |
+READING (non-tie): bt_cq / bt_cq_ctrl = 0.18 / 0.45 = 0.40 -> CONFIRMED (G1's fix = comment-QOM); all-row beside 0.68 / 1.07 = 0.64 (Fit12's [P] for comment-QOM ~0.42 / ~0.06)
+RES's paired increment (bt_cq_res - bt_cq): all-row +0.06 pt, non-tie +0.12 pt -> within G2's <= +0.3 pt

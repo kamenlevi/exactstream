@@ -1,3 +1,258 @@
 Mon 13:47:17 armed (pid 73554): starts at >= Tue 07:00 once no 'run_ma[p][.]py' process runs (read twice); latest start Tue 08:20, hard stop Tue 08:40
 Mon 21:01:46 DISARMED (amendment (i), b4733d2): old follower pid 73554 stopped (TaskStop); re-armed as run_comqom_1117.frozen.sh (away rule, MEM 24 GB lock to the hard stop, NO-SWAP 32)
 Mon 21:01:49 armed (pid 96610): starts at >= Tue 07:00 once no 'run_ma[p][.]py' process runs and Kamen is away (away_secs >= 900; read twice); latest start Tue 08:20, hard stop Tue 08:40
+Tue 07:00:32 trigger: the start time passed, no map process runs, Kamen away (away_secs 26015 s; read twice)
+Tue 07:00:32 NO-SWAP 44 GB (need 32)
+shared run reserved until 08:44 (about 300% CPU, 60% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done.
+Free for it now: about 17 cores (1757% CPU) and about 100% of the GPU. It fits: use about 3 workers or -j 3.
+Tue 07:00:32 running (NO-SWAP 44 GB, swap 7501 MB)
+[cq] running /Users/kamen/FableGod/decision_map/run_map.py bt_cq_ctrl bt_cq bt_cq_res --max 12 --skip-done (DM_OUT /Users/kamen/FableGod/decision_map/out, DM_SETS code, self-guard 22.0 GB)
+[dm] runs: ['bt_cq_ctrl', 'bt_cq', 'bt_cq_res']
+[dm] loaded in 1s (C 51)
+[dm] discover_layers: 48 layers, {'gdn': 36, 'hc': 96, 'moe': 48, 'att': 12}; missing []
+[dm] MoE block: top_k 10, norm_topk_prob True
+[dm] model /Users/kamen/BigMoE/models/bare; MoE layers 48 (0..47); capture ranks 10
+[dm] hc8w: 194 linears at 8 bits, group 64 (ple False)
+[dm] bt_int8: 420 projections wrapped ({'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180}); answer rows only
+bt_cq_ctrl code tf_code_HumanEval_10.npz 272 positions 25s; k 
+bt_cq_ctrl code tf_code_HumanEval_103.npz 241 positions 49s; k 
+bt_cq_ctrl code tf_code_HumanEval_109.npz 398 positions 77s; k 
+bt_cq_ctrl code tf_code_HumanEval_118.npz 297 positions 102s; k 
+bt_cq_ctrl code tf_code_HumanEval_121.npz 148 positions 123s; k 
+bt_cq_ctrl code tf_code_HumanEval_124.npz 398 positions 151s; k 
+bt_cq_ctrl code tf_code_HumanEval_129.npz 398 positions 179s; k 
+bt_cq_ctrl code tf_code_HumanEval_132.npz 398 positions 204s; k 
+bt_cq_ctrl code tf_code_HumanEval_135.npz 144 positions 224s; k 
+bt_cq_ctrl code tf_code_HumanEval_136.npz 211 positions 247s; k 
+bt_cq_ctrl code tf_code_HumanEval_146.npz 252 positions 271s; k 
+bt_cq_ctrl code tf_code_HumanEval_151.npz 209 positions 295s; k 
+[dm] bt_int8: 12 windows; answer rows x modules quantized 1418760 (want 1418760); windows with a mismatch 0; census {'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180} -> /Users/kamen/FableGod/decision_map/out/bt_int8_census.jsonl
+[dm] bt_cq_ctrl done in 295s
+[dm] hc8w: 194 linears at 8 bits, group 64 (ple False)
+[dm] bt_int8: 420 projections wrapped ({'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180}); answer rows only
+bt_cq code tf_code_HumanEval_10.npz 272 positions 24s; k 
+bt_cq code tf_code_HumanEval_103.npz 241 positions 49s; k 
+[cq] SELF-GUARD: lifetime footprint > 22.0 GB: ending the run (exit 7)
+[cq] PEAK FOOTPRINT 22.219 GB (lifetime max phys_footprint), MLX peak active 16.01 GB, wall 347 s
+Tue 07:06:25 run ended rc 7; swap 7501 MB (start 7501)
+comment-QOM map arms (information only): code flips % vs the exact baseline, 12 code windows of the original map, [95 % window bootstrap]; ties = the baseline's p1 - p2 <= 0.1
+VALIDITY int8 census line 1: 12 windows, quantized 1418760 (want 1418760), mismatches 0: PASS
+| arm | all-row % | non-tie % | identical rows | paired vs bt_cq_ctrl (all-row / non-tie pt) |
+|---|---|---|---|---|
+| bt_cq_ctrl: 1c tiers + hc8w_mix + int8 (the matched control) | 1.07 [0.42, 1.97] | 0.45 [0.15, 0.81] | 0/3366 |  |
+| bt_cq: 1c with comment rows on QOM + hc8w_mix + int8 | NOT RUN | | | |
+| bt_cq_res: 1c with comment rows on QOM + RES + hc8w_mix + int8 | NOT RUN | | | |
+Tue 07:06:25 END: run rc 7; read-out written (data/m1/comqom_map.out)
+Tue 07:08:21 RE-RUN (Breakthrough 07:0x): run 1 ended rc 7 by comqom_run_map.py's own SELF-GUARD (BG_PEAK_MAX default 22 GB, never raised when the lock went to MEM 24 at 21:0x; int8 arms peak 23.7) at 22.22 GB in bt_cq's 3rd window; bt_cq_ctrl complete (read-out saved as run1_readout_0706.out). Same frozen runner, now: CQ_START now, CQ_MEM 25 + BG_PEAK_MAX 25 (guard = lock); --skip-done keeps the control
+Tue 07:08:21 armed (pid 40316): starts at >= Tue 07:08 once no 'run_ma[p][.]py' process runs and Kamen is away (away_secs >= 900; read twice); latest start Tue 08:20, hard stop Tue 08:40
+Tue 07:08:51 trigger: the start time passed, no map process runs, Kamen away (away_secs 26514 s; read twice)
+Tue 07:08:51 NO-SWAP 43 GB (need 32)
+shared run reserved until 08:44 (about 300% CPU, 60% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done.
+Free for it now: about 17 cores (1727% CPU) and about 100% of the GPU. It fits: use about 3 workers or -j 3.
+Tue 07:08:51 running (NO-SWAP 43 GB, swap 7501 MB)
+[cq] running /Users/kamen/FableGod/decision_map/run_map.py bt_cq_ctrl bt_cq bt_cq_res --max 12 --skip-done (DM_OUT /Users/kamen/FableGod/decision_map/out, DM_SETS code, self-guard 25.0 GB)
+[dm] runs: ['bt_cq', 'bt_cq_res']
+[dm] loaded in 1s (C 51)
+[dm] discover_layers: 48 layers, {'gdn': 36, 'hc': 96, 'moe': 48, 'att': 12}; missing []
+[dm] MoE block: top_k 10, norm_topk_prob True
+[dm] model /Users/kamen/BigMoE/models/bare; MoE layers 48 (0..47); capture ranks 10
+[dm] hc8w: 194 linears at 8 bits, group 64 (ple False)
+[dm] bt_int8: 420 projections wrapped ({'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180}); answer rows only
+bt_cq code tf_code_HumanEval_10.npz 272 positions 25s; k 
+bt_cq code tf_code_HumanEval_103.npz 241 positions 50s; k 
+bt_cq code tf_code_HumanEval_109.npz 398 positions 80s; k 
+bt_cq code tf_code_HumanEval_118.npz 297 positions 105s; k 
+bt_cq code tf_code_HumanEval_121.npz 148 positions 126s; k 
+bt_cq code tf_code_HumanEval_124.npz 398 positions 155s; k 
+bt_cq code tf_code_HumanEval_129.npz 398 positions 183s; k 
+bt_cq code tf_code_HumanEval_132.npz 398 positions 208s; k 
+bt_cq code tf_code_HumanEval_135.npz 144 positions 229s; k 
+bt_cq code tf_code_HumanEval_136.npz 211 positions 253s; k 
+bt_cq code tf_code_HumanEval_146.npz 252 positions 277s; k 
+bt_cq code tf_code_HumanEval_151.npz 209 positions 301s; k 
+[dm] bt_int8: 12 windows; answer rows x modules quantized 1418760 (want 1418760); windows with a mismatch 0; census {'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180} -> /Users/kamen/FableGod/decision_map/out/bt_int8_census.jsonl
+[dm] bt_cq done in 301s
+[dm] hc8w: 194 linears at 8 bits, group 64 (ple False)
+[dm] bt_int8: 420 projections wrapped ({'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180}); answer rows only
+bt_cq_res code tf_code_HumanEval_10.npz 272 positions 25s; k 
+bt_cq_res code tf_code_HumanEval_103.npz 241 positions 49s; k 
+bt_cq_res code tf_code_HumanEval_109.npz 398 positions 78s; k 
+bt_cq_res code tf_code_HumanEval_118.npz 297 positions 104s; k 
+bt_cq_res code tf_code_HumanEval_121.npz 148 positions 125s; k 
+bt_cq_res code tf_code_HumanEval_124.npz 398 positions 153s; k 
+bt_cq_res code tf_code_HumanEval_129.npz 398 positions 181s; k 
+bt_cq_res code tf_code_HumanEval_132.npz 398 positions 207s; k 
+bt_cq_res code tf_code_HumanEval_135.npz 144 positions 228s; k 
+bt_cq_res code tf_code_HumanEval_136.npz 211 positions 251s; k 
+bt_cq_res code tf_code_HumanEval_146.npz 252 positions 276s; k 
+bt_cq_res code tf_code_HumanEval_151.npz 209 positions 300s; k 
+[dm] bt_int8: 12 windows; answer rows x modules quantized 1418760 (want 1418760); windows with a mismatch 0; census {'shared_gate': 48, 'shared': 144, 'att': 48, 'gdn': 180} -> /Users/kamen/FableGod/decision_map/out/bt_int8_census.jsonl
+[dm] bt_cq_res done in 300s
+| perturbation | code sure / tie / mid flip % (n) | ifeval sure / tie / mid | multi sure / tie / mid | mean dmargin |
+|---|---|---|---|---|
+| acert_top2_p05_p08_cf099 | 0.03 / 50.00 / 7.61 (3366) | 0.00 / 47.93 / 8.27 (3397) | 0.42 / 46.59 / 8.15 (3553) | -1.452 |
+| acert_top2_p05_p095_cf099 | 0.03 / 48.00 / 7.11 (3366) | 0.00 / 46.90 / 5.47 (3397) | 0.14 / 39.36 / 4.77 (3553) | -1.249 |
+| acert_top2_p07_p09_cf099 | 0.03 / 46.00 / 6.60 (3366) | 0.00 / 47.93 / 5.71 (3397) | 0.21 / 43.78 / 6.06 (3553) | -1.308 |
+| att_q4 | 0.00 / 44.00 / 2.28 (3366) | 0.00 / 37.59 / 2.22 (3397) | 0.00 / 35.34 / 1.82 (3553) | -0.062 |
+| att_reuse_prev | 28.99 / 54.00 / 29.19 (3366) | 7.06 / 60.69 / 25.46 (3397) | 9.87 / 61.04 / 19.52 (3553) | -3.186 |
+| bm_base_agent | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | +0.000 |
+| bm_d2 | 92.20 / 100.00 / 99.24 (3366) | 96.93 / 98.97 / 98.72 (3397) | 95.27 / 99.60 / 98.98 (3553) | -5.426 |
+| bm_d2_rep | 0.00 / 0.00 / 0.00 (0) | 94.61 / 94.44 / 96.72 (503) | 0.00 / 0.00 / 0.00 (0) | -4.566 |
+| bm_d2t | 89.08 / 94.00 / 94.67 (3366) | 91.82 / 97.24 / 95.81 (3397) | 94.02 / 97.19 / 96.94 (3553) | -5.533 |
+| bm_d3 | 3.42 / 66.00 / 37.06 (3366) | 13.85 / 83.10 / 64.55 (3397) | 44.61 / 92.77 / 79.03 (3553) | -3.835 |
+| bm_d4 | 0.03 / 46.00 / 5.33 (3366) | 5.11 / 74.48 / 50.17 (3397) | 26.82 / 83.53 / 68.63 (3553) | -1.901 |
+| bm_ops | 0.00 / 0.00 / 0.00 (3366) | 0.00 / 0.00 / 0.00 (3397) | 0.00 / 0.00 / 0.00 (3553) | +0.000 |
+| bm_res | 0.00 / 26.00 / 4.57 (3366) | 4.93 / 73.45 / 48.89 (3397) | 27.10 / 83.94 / 67.77 (3553) | -1.520 |
+| bt_1c | 0.00 / 44.00 / 4.06 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -0.821 |
+| bt_comb | 0.00 / 44.00 / 4.82 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -1.556 |
+| bt_cq | 0.00 / 34.00 / 1.52 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -0.741 |
+| bt_cq_ctrl | 0.00 / 42.00 / 3.81 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -0.815 |
+| bt_cq_res | 0.00 / 30.00 / 2.54 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -0.761 |
+| bt_ga3 | 0.55 / 58.00 / 26.40 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -3.513 |
+| bt_ga3awq | 0.24 / 62.00 / 23.35 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -2.972 |
+| bt_ga3w0 | 0.55 / 58.00 / 26.40 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -3.513 |
+| bt_mix4 | 0.00 / 46.00 / 4.06 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -0.749 |
+| bt_stats | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (1923) | 0.00 / 0.00 / 0.00 (0) | +0.000 |
+| c3_b2c | 0.00 / 34.00 / 3.81 (3366) | 0.00 / 42.07 / 2.86 (3397) | 0.00 / 35.34 / 2.41 (3553) | -0.596 |
+| c3_b2d | 0.00 / 24.00 / 4.57 (3366) | 0.00 / 47.59 / 4.23 (3397) | 0.00 / 36.14 / 3.38 (3553) | -0.698 |
+| capture | 0.00 / 0.00 / 0.00 (3366) | 0.00 / 0.00 / 0.00 (3397) | 0.00 / 0.00 / 0.00 (3553) | +0.000 |
+| cert_top2_p07 | 0.03 / 44.00 / 10.66 (3366) | 0.00 / 50.00 / 9.50 (3397) | 0.90 / 45.38 / 10.99 (3553) | -1.512 |
+| cert_top2_p08 | 0.03 / 46.00 / 7.87 (3366) | 0.00 / 45.86 / 7.68 (3397) | 0.42 / 44.58 / 7.13 (3553) | -1.416 |
+| cert_top2_p09 | 0.03 / 38.00 / 7.61 (3366) | 0.00 / 43.45 / 5.86 (3397) | 0.21 / 42.57 / 5.36 (3553) | -1.267 |
+| cert_top2_p095 | 0.00 / 42.00 / 5.08 (3366) | 0.00 / 43.10 / 4.68 (3397) | 0.21 / 39.76 / 3.75 (3553) | -1.142 |
+| cert_top2_p099 | 0.00 / 36.00 / 5.33 (3366) | 0.00 / 34.83 / 2.56 (3397) | 0.07 / 25.70 / 1.66 (3553) | -0.814 |
+| cert_top5_p09 | 0.00 / 34.00 / 3.55 (3366) | 0.00 / 39.66 / 2.86 (3397) | 0.00 / 34.14 / 2.84 (3553) | -0.624 |
+| cold6_all | 0.00 / 32.00 / 1.52 (3366) | 0.00 / 38.97 / 2.81 (3397) | 0.00 / 39.76 / 3.91 (3553) | -0.114 |
+| gate_bands | 0.03 / 38.00 / 5.84 (3366) | 0.00 / 38.97 / 3.05 (3397) | 0.00 / 34.14 / 2.31 (3553) | -0.943 |
+| gate_top2_cf09 | 0.10 / 40.00 / 9.39 (3366) | 0.00 / 48.62 / 7.88 (3397) | 0.49 / 42.97 / 8.36 (3553) | -1.425 |
+| gate_top2_cf099 | 0.03 / 32.00 / 7.11 (3366) | 0.00 / 39.66 / 3.40 (3397) | 0.14 / 30.92 / 2.79 (3553) | -1.056 |
+| gate_top2_cf0999 | 0.03 / 40.00 / 5.33 (3366) | 0.00 / 32.07 / 2.07 (3397) | 0.00 / 25.30 / 1.39 (3553) | -0.756 |
+| gate_top2t3_cf099 | 0.00 / 36.00 / 6.60 (3366) | 0.00 / 38.28 / 3.74 (3397) | 0.21 / 33.33 / 2.41 (3553) | -1.108 |
+| gate_top2t3_cf0999 | 0.00 / 40.00 / 5.08 (3366) | 0.00 / 33.10 / 2.61 (3397) | 0.00 / 25.70 / 1.50 (3553) | -0.794 |
+| gate_top2t4_cf099 | 0.00 / 32.00 / 6.09 (3366) | 0.00 / 39.31 / 3.69 (3397) | 0.07 / 32.13 / 2.57 (3553) | -1.056 |
+| gdn_q4 | 0.00 / 40.00 / 3.81 (3366) | 0.00 / 44.83 / 5.96 (3397) | 0.07 / 53.82 / 9.01 (3553) | -0.275 |
+| gdn_reuse_prev | 88.50 / 100.00 / 96.70 (3366) | 95.82 / 98.28 / 98.52 (3397) | 98.89 / 100.00 / 98.82 (3553) | -4.446 |
+| hc8w | 0.00 / 18.00 / 0.51 (3366) | 0.00 / 21.72 / 0.59 (3397) | 0.00 / 20.08 / 0.70 (3553) | +0.006 |
+| hc_mean_raw | 100.00 / 100.00 / 100.00 (3366) | 100.00 / 100.00 / 100.00 (3397) | 100.00 / 100.00 / 100.00 (3553) | -5.375 |
+| hc_q4 | 0.00 / 44.00 / 9.14 (3366) | 0.00 / 56.21 / 12.16 (3397) | 0.00 / 59.04 / 11.47 (3553) | -0.653 |
+| hc_static | 2.87 / 64.00 / 25.89 (3366) | 3.25 / 61.72 / 31.76 (3397) | 5.77 / 68.67 / 29.87 (3553) | -1.878 |
+| hyb_0.9_k1_u10_live_t3 | 0.03 / 44.00 / 7.87 (3366) | 0.09 / 50.00 / 6.79 (3397) | 0.21 / 34.94 / 4.40 (3553) | -1.199 |
+| hyb_0.9_u6 | 0.00 / 40.00 / 5.84 (3366) | 0.00 / 49.31 / 6.35 (3397) | 0.00 / 39.36 / 5.63 (3553) | -0.921 |
+| hyb_0.9_u8 | 0.00 / 40.00 / 6.35 (3366) | 0.00 / 45.52 / 3.84 (3397) | 0.00 / 36.14 / 2.95 (3553) | -0.788 |
+| hyb_0.9_u8_live_t3 | 0.00 / 38.00 / 6.85 (3366) | 0.00 / 51.72 / 5.56 (3397) | 0.07 / 40.96 / 5.04 (3553) | -0.990 |
+| hyb_0.9_u8_t3 | 0.00 / 36.00 / 5.58 (3366) | 0.00 / 46.90 / 4.48 (3397) | 0.00 / 36.14 / 3.54 (3553) | -0.878 |
+| hyb_cold4_lowo_t3 | 0.00 / 40.00 / 6.60 (3366) | 0.00 / 43.79 / 6.60 (3397) | 0.07 / 46.18 / 6.49 (3553) | -0.973 |
+| hyb_cold4_pmt_t3 | 0.00 / 28.00 / 7.11 (3366) | 0.00 / 51.72 / 7.93 (3397) | 0.00 / 44.58 / 7.24 (3553) | -1.010 |
+| hyb_cold4_pmtc_t3 | 0.00 / 30.00 / 5.84 (3366) | 0.00 / 51.03 / 6.79 (3397) | 0.07 / 41.77 / 5.36 (3553) | -0.939 |
+| hyb_cold4_t3 | 0.00 / 36.00 / 6.09 (3366) | 0.00 / 52.07 / 10.29 (3397) | 0.35 / 57.03 / 13.78 (3553) | -1.077 |
+| massB_0.5 | 0.00 / 30.00 / 7.36 (3366) | 0.00 / 51.03 / 8.07 (3397) | 0.07 / 47.79 / 9.22 (3553) | -0.512 |
+| moe_reuse_chain_L12_35 | 8.11 / 48.00 / 21.83 (3366) | 1.67 / 44.48 / 10.00 (3397) | 0.69 / 44.98 / 8.63 (3553) | -1.892 |
+| moe_reuse_lag2_L12_35 | 2.46 / 66.00 / 40.36 (3366) | 4.83 / 73.45 / 51.80 (3397) | 2.85 / 69.48 / 39.73 (3553) | -2.299 |
+| moe_reuse_lag4_L12_35 | 4.76 / 74.00 / 50.51 (3366) | 10.04 / 79.66 / 60.02 (3397) | 5.28 / 77.51 / 50.46 (3553) | -3.114 |
+| moe_reuse_prev_L08_11 | 0.00 / 46.00 / 4.31 (3366) | 0.00 / 45.52 / 5.81 (3397) | 0.00 / 43.37 / 4.24 (3553) | -0.042 |
+| moe_reuse_prev_L12_35 | 1.03 / 66.00 / 32.99 (3366) | 1.77 / 66.90 / 39.83 (3397) | 0.69 / 70.68 / 29.65 (3553) | -1.590 |
+| moe_reuse_prev_L36_39 | 0.82 / 62.00 / 15.99 (3366) | 1.67 / 55.86 / 19.94 (3397) | 2.43 / 59.44 / 21.39 (3553) | -0.767 |
+| moe_reuse_prev_g0 | 22.72 / 88.00 / 67.26 (3366) | 38.01 / 86.90 / 73.12 (3397) | 42.46 / 88.35 / 69.06 (3553) | -3.793 |
+| moe_reuse_prev_g1 | 0.14 / 56.00 / 16.50 (3366) | 0.09 / 58.28 / 19.40 (3397) | 0.00 / 59.44 / 13.19 (3553) | -0.411 |
+| moe_reuse_prev_g2 | 0.10 / 56.00 / 20.81 (3366) | 0.00 / 57.93 / 22.60 (3397) | 0.00 / 61.45 / 15.17 (3553) | -0.687 |
+| moe_reuse_prev_g3 | 18.86 / 82.00 / 63.71 (3366) | 36.34 / 77.93 / 60.12 (3397) | 69.63 / 91.16 / 79.03 (3553) | -3.545 |
+| oea_k6 | 0.00 / 36.00 / 1.52 (3366) | 0.00 / 47.93 / 3.30 (3397) | 0.00 / 41.37 / 4.72 (3553) | -0.303 |
+| oea_k8 | 0.00 / 34.00 / 1.02 (3366) | 0.00 / 35.52 / 1.33 (3397) | 0.00 / 32.93 / 1.45 (3553) | -0.116 |
+| p1_oea_k1 | 0.07 / 54.00 / 27.16 (3366) | 1.30 / 65.17 / 34.56 (3397) | 6.39 / 76.31 / 44.02 (3553) | -2.188 |
+| p1_oea_k1_ku4_t3 | 0.24 / 62.00 / 27.92 (3366) | 2.04 / 68.62 / 36.09 (3397) | 7.78 / 77.11 / 45.20 (3553) | -2.336 |
+| p1_oea_k2 | 0.00 / 42.00 / 15.99 (3366) | 0.00 / 61.38 / 22.30 (3397) | 0.76 / 63.45 / 23.81 (3553) | -1.371 |
+| p1_top_k2 | 0.10 / 54.00 / 21.32 (3366) | 0.56 / 65.86 / 30.77 (3397) | 4.52 / 75.50 / 41.34 (3553) | -2.025 |
+| p1c_oea_k1_ku4_p08_cf09+code | 0.00 / 36.00 / 6.60 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -2.562 |
+| p1c_oea_k1_ku4_p095_cf09+code | 0.00 / 34.00 / 5.08 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -2.381 |
+| p1c_oea_k1_ku4_p09_cf09+code | 0.00 / 34.00 / 5.58 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -2.458 |
+| p1c_oea_k1_p08 | 0.03 / 36.00 / 8.12 (3366) | 0.00 / 50.69 / 8.62 (3397) | 0.21 / 42.17 / 7.67 (3553) | -1.495 |
+| p1c_top_k2_p08 | 0.03 / 48.00 / 10.41 (3366) | 0.00 / 49.31 / 7.78 (3397) | 0.35 / 42.57 / 7.51 (3553) | -1.440 |
+| q1u_0.9_live | 0.00 / 38.00 / 5.84 (3366) | 0.00 / 44.48 / 4.43 (3397) | 0.07 / 33.73 / 2.63 (3553) | -0.802 |
+| q1u_0.9_live_bonus9g | 0.00 / 38.00 / 5.84 (3366) | 0.00 / 45.17 / 4.28 (3397) | 0.07 / 35.74 / 2.52 (3553) | -0.803 |
+| q1u_0.9_live_t3 | 0.00 / 40.00 / 6.35 (3366) | 0.00 / 46.55 / 4.43 (3397) | 0.14 / 39.36 / 2.90 (3553) | -0.890 |
+| q1u_0_live | 0.00 / 42.00 / 11.42 (3366) | 0.00 / 54.14 / 18.56 (3397) | 0.63 / 52.61 / 13.73 (3553) | -1.207 |
+| q1u_cf09 | 0.00 / 32.00 / 4.31 (3366) | 0.00 / 40.69 / 2.41 (3397) | 0.00 / 31.73 / 1.55 (3553) | -0.705 |
+| q1u_cf099 | 0.00 / 28.00 / 2.79 (3366) | 0.00 / 30.00 / 1.33 (3397) | 0.00 / 23.69 / 1.29 (3553) | -0.482 |
+| q1u_cf09_t3 | 0.00 / 40.00 / 5.08 (3366) | 0.00 / 38.62 / 2.95 (3397) | 0.00 / 32.53 / 1.82 (3553) | -0.801 |
+| qom_0.3_live_c147_bonus3g | 0.00 / 28.00 / 2.79 (3366) | 0.00 / 43.79 / 3.05 (3397) | 0.00 / 36.95 / 2.41 (3553) | -0.243 |
+| qom_0.5_live | 0.00 / 20.00 / 0.51 (3366) | 0.00 / 26.21 / 0.74 (3397) | 0.00 / 20.08 / 0.43 (3553) | -0.040 |
+| qom_0.5_live_bonus5g | 0.00 / 24.00 / 1.02 (3366) | 0.00 / 27.93 / 0.84 (3397) | 0.00 / 22.09 / 0.70 (3553) | -0.048 |
+| qom_0.5_live_c147_bonus5g | 0.00 / 26.00 / 2.79 (3366) | 0.00 / 40.34 / 1.43 (3397) | 0.00 / 27.71 / 1.50 (3553) | -0.206 |
+| qom_0.5_live_c164 | 0.00 / 28.00 / 1.52 (3366) | 0.00 / 31.38 / 1.33 (3397) | 0.00 / 30.52 / 0.97 (3553) | -0.177 |
+| qom_0.5_live_t3 | 0.00 / 30.00 / 1.78 (3366) | 0.00 / 35.17 / 2.36 (3397) | 0.00 / 32.53 / 2.31 (3553) | -0.192 |
+| qom_0.5_u8_live_c147_bonus5g | 0.00 / 22.00 / 2.79 (3366) | 0.00 / 38.28 / 1.87 (3397) | 0.00 / 31.33 / 1.07 (3553) | -0.224 |
+| qom_0.9_live | 0.00 / 30.00 / 0.25 (3366) | 0.00 / 24.14 / 0.30 (3397) | 0.00 / 17.67 / 0.38 (3553) | -0.027 |
+| qom_0_k1_live_bq_c147_t3keep | 0.00 / 40.00 / 9.39 (3366) | 0.09 / 57.59 / 10.54 (3397) | 0.00 / 49.40 / 9.81 (3553) | -0.566 |
+| qom_0_k1_live_t3 | 0.00 / 22.00 / 2.28 (3366) | 0.00 / 36.21 / 2.61 (3397) | 0.00 / 28.51 / 2.36 (3553) | -0.170 |
+| qom_0_live | 0.00 / 24.00 / 0.51 (3366) | 0.00 / 24.83 / 0.69 (3397) | 0.00 / 20.88 / 0.59 (3553) | -0.050 |
+| qom_0_live_ball+code | 0.00 / 20.00 / 1.78 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -0.146 |
+| qom_0_live_ball | 0.00 / 20.00 / 1.78 (3366) | 0.00 / 36.55 / 1.53 (3397) | 0.00 / 34.54 / 1.61 (3553) | -0.107 |
+| qom_0_live_ball_c147 | 0.00 / 26.00 / 4.57 (3366) | 0.00 / 42.76 / 4.53 (3397) | 0.00 / 34.14 / 3.27 (3553) | -0.290 |
+| qom_0_live_ball_c147_t3 | 0.00 / 36.00 / 4.57 (3366) | 0.00 / 46.90 / 6.40 (3397) | 0.00 / 47.39 / 5.09 (3553) | -0.435 |
+| qom_0_live_ball_c208+code | 0.00 / 28.00 / 2.79 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -0.260 |
+| qom_0_live_ball_c208 | 0.00 / 28.00 / 2.79 (3366) | 0.00 / 38.97 / 3.25 (3397) | 0.00 / 30.92 / 2.31 (3553) | -0.174 |
+| qom_0_live_ball_c208_nw0+code | 0.00 / 28.00 / 1.78 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -0.290 |
+| qom_0_live_ball_c208_nw1+code | 0.00 / 28.00 / 2.28 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -0.236 |
+| qom_0_live_ball_c208_nw1 | 0.00 / 28.00 / 2.28 (3366) | 0.00 / 37.24 / 3.59 (3397) | 0.00 / 34.54 / 2.47 (3553) | -0.175 |
+| qom_0_live_ball_c208_nw1r1+code | 0.00 / 26.00 / 3.05 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -0.283 |
+| qom_0_live_ball_c208_nw3+code | 0.00 / 28.00 / 3.81 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -0.292 |
+| qom_0_live_ball_c208_nw3 | 0.00 / 28.00 / 3.81 (3366) | 0.00 / 38.97 / 5.02 (3397) | 0.00 / 45.38 / 4.34 (3553) | -0.225 |
+| qom_0_live_ball_c208_nw3c+code | 0.00 / 30.00 / 2.54 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -0.238 |
+| qom_0_live_ball_c266+code | 0.00 / 30.00 / 1.02 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -0.159 |
+| qom_0_live_ball_c266_nw1+code | 0.00 / 28.00 / 2.03 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -0.153 |
+| qom_0_live_ball_c51 | 0.00 / 32.00 / 7.87 (3366) | 0.00 / 53.79 / 10.00 (3397) | 0.00 / 47.39 / 8.90 (3553) | -0.691 |
+| qom_0_live_ball_nw1+code | 0.00 / 28.00 / 1.52 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -0.112 |
+| qom_0_live_ball_nw1 | 0.00 / 28.00 / 1.52 (3366) | 0.00 / 31.72 / 2.12 (3397) | 0.00 / 34.94 / 1.50 (3553) | -0.099 |
+| qom_0_live_ball_nw3+code | 0.00 / 28.00 / 2.54 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -0.121 |
+| qom_0_live_ball_nw3 | 0.00 / 28.00 / 2.54 (3366) | 0.00 / 44.48 / 3.99 (3397) | 0.00 / 46.99 / 4.40 (3553) | -0.141 |
+| qom_0_live_bonus | 0.00 / 28.00 / 2.03 (3366) | 0.00 / 42.07 / 4.23 (3397) | 0.35 / 40.56 / 6.70 (3553) | -0.167 |
+| qom_0_live_bq | 0.00 / 16.00 / 1.27 (3366) | 0.00 / 35.17 / 1.82 (3397) | 0.00 / 34.54 / 1.61 (3553) | -0.097 |
+| qom_0_live_bq_c147_t3 | 0.00 / 36.00 / 4.57 (3366) | 0.00 / 48.62 / 6.55 (3397) | 0.00 / 47.39 / 5.09 (3553) | -0.432 |
+| qom_0_live_bq_t2 | 0.00 / 48.00 / 6.60 (3366) | 0.00 / 50.34 / 9.75 (3397) | 0.00 / 53.41 / 11.47 (3553) | -0.566 |
+| qom_0_live_bq_t3 | 0.00 / 36.00 / 2.03 (3366) | 0.00 / 44.83 / 3.79 (3397) | 0.00 / 44.18 / 4.18 (3553) | -0.261 |
+| qom_0_live_c147 | 0.00 / 34.00 / 2.03 (3366) | 0.00 / 39.31 / 1.92 (3397) | 0.00 / 36.55 / 1.34 (3553) | -0.212 |
+| qom_0_live_c47 | 0.00 / 46.00 / 5.84 (3366) | 0.00 / 48.97 / 8.47 (3397) | 0.00 / 42.57 / 5.20 (3553) | -0.635 |
+| qom_0_live_c51 | 0.00 / 42.00 / 4.57 (3366) | 0.00 / 50.00 / 7.58 (3397) | 0.00 / 39.76 / 4.72 (3553) | -0.607 |
+| qom_0_live_t3 | 0.00 / 34.00 / 1.78 (3366) | 0.00 / 33.79 / 2.61 (3397) | 0.00 / 36.55 / 3.00 (3553) | -0.201 |
+| qom_0_split0.99_k4_live_ball+code | 0.00 / 42.00 / 11.93 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -2.089 |
+| qom_0_split0.99_k6_live_ball+code | 0.00 / 36.00 / 8.12 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -1.955 |
+| qom_0_split0.99_k8_live_ball+code | 0.00 / 34.00 / 5.84 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -1.887 |
+| qom_0_split0.99_live_ball+code | 0.00 / 28.00 / 4.31 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -1.814 |
+| qom_0_split0.99_live_ball | 0.00 / 28.00 / 4.31 (3366) | 0.00 / 40.69 / 4.23 (3397) | 0.00 / 43.37 / 4.02 (3553) | -0.864 |
+| qom_0_split0.99_live_ball_nw1+code | 0.00 / 32.00 / 5.08 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -1.828 |
+| qom_0_split0.99_m0.9_live_ball+code | 0.00 / 40.00 / 6.85 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -1.918 |
+| qom_0_split0.99_r0.7_live_ball+code | 0.00 / 36.00 / 7.36 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -1.888 |
+| qom_0_split0.99_r0.7_z0.999_live_ball+code | 0.00 / 46.00 / 10.15 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -2.454 |
+| qom_0_split0.9_live_ball+code | 0.00 / 36.00 / 6.60 (3366) | 0.00 / 0.00 / 0.00 (0) | 0.00 / 0.00 / 0.00 (0) | -2.026 |
+| qom_0_split0.9_live_ball | 0.00 / 36.00 / 6.60 (3366) | 0.00 / 46.90 / 6.84 (3397) | 0.28 / 44.18 / 6.70 (3553) | -1.095 |
+| reach_0.9_0.5_live | 0.00 / 30.00 / 7.11 (3366) | 0.00 / 46.21 / 4.78 (3397) | 0.07 / 34.54 / 3.54 (3553) | -0.850 |
+| s7_cal | 0.00 / 32.00 / 4.57 (3366) | 0.00 / 45.17 / 5.47 (3397) | 0.00 / 43.78 / 5.52 (3553) | -0.343 |
+| s7_cal_all | 0.00 / 50.00 / 12.69 (3366) | 0.00 / 55.86 / 15.31 (3397) | 0.14 / 60.64 / 17.69 (3553) | -0.946 |
+| s7_ref | 0.00 / 30.00 / 2.54 (3366) | 0.00 / 46.55 / 4.19 (3397) | 0.00 / 41.77 / 4.61 (3553) | -0.298 |
+| s7_ref3 | 0.00 / 36.00 / 4.31 (3366) | 0.00 / 50.00 / 5.61 (3397) | 0.00 / 43.78 / 6.27 (3553) | -0.364 |
+| s7_trl | 0.00 / 40.00 / 3.81 (3366) | 0.00 / 44.48 / 5.17 (3397) | 0.00 / 44.18 / 4.93 (3553) | -0.298 |
+| shared_zero | 0.68 / 66.00 / 30.46 (3366) | 3.35 / 70.69 / 44.81 (3397) | 7.44 / 73.49 / 41.93 (3553) | -0.621 |
+| t3_all | 0.00 / 38.00 / 3.05 (3366) | 0.00 / 47.93 / 5.27 (3397) | 0.00 / 42.17 / 5.47 (3553) | -0.239 |
+| t3_top2_all | 0.34 / 58.00 / 28.43 (3366) | 1.02 / 67.93 / 35.50 (3397) | 6.12 / 78.71 / 45.25 (3553) | -2.449 |
+| t3cert_top2_p08 | 0.03 / 42.00 / 9.39 (3366) | 0.09 / 48.28 / 7.83 (3397) | 0.35 / 43.37 / 7.18 (3553) | -1.464 |
+| t4_all | 0.00 / 18.00 / 0.51 (3366) | 0.00 / 23.10 / 0.30 (3397) | 0.00 / 19.28 / 0.43 (3553) | -0.002 |
+| top_k8 | 0.00 / 30.00 / 1.78 (3366) | 0.00 / 41.03 / 2.90 (3397) | 0.00 / 40.96 / 2.73 (3553) | -0.244 |
+| topk10 | 0.00 / 0.00 / 0.00 (3366) | 0.00 / 0.00 / 0.00 (3397) | 0.00 / 0.00 / 0.00 (3553) | +0.000 |
+| topk2 | 0.21 / 62.00 / 25.63 (3366) | 0.65 / 64.83 / 34.47 (3397) | 5.07 / 77.51 / 44.02 (3553) | -2.335 |
+| topk2r | 2.33 / 74.00 / 43.15 (3366) | 5.58 / 74.83 / 50.57 (3397) | 20.85 / 82.33 / 59.62 (3553) | -2.967 |
+| topk5 | 0.00 / 40.00 / 8.63 (3366) | 0.00 / 52.41 / 11.72 (3397) | 0.07 / 54.62 / 14.53 (3553) | -0.933 |
+| xcapture | 0.00 / 0.00 / 0.00 (3366) | 0.00 / 0.00 / 0.00 (3397) | 0.00 / 0.00 / 0.00 (3553) | +0.000 |
+[cq] PEAK FOOTPRINT 22.224 GB (lifetime max phys_footprint), MLX peak active 16.01 GB, wall 606 s
+Tue 07:19:05 run ended rc 0; swap 7501 MB (start 7501)
+comment-QOM map arms (information only): code flips % vs the exact baseline, 12 code windows of the original map, [95 % window bootstrap]; ties = the baseline's p1 - p2 <= 0.1
+VALIDITY int8 census line 1: 12 windows, quantized 1418760 (want 1418760), mismatches 0: PASS
+VALIDITY int8 census line 2: 12 windows, quantized 1418760 (want 1418760), mismatches 0: PASS
+VALIDITY int8 census line 3: 12 windows, quantized 1418760 (want 1418760), mismatches 0: PASS
+| arm | all-row % | non-tie % | identical rows | paired vs bt_cq_ctrl (all-row / non-tie pt) |
+|---|---|---|---|---|
+| bt_cq_ctrl: 1c tiers + hc8w_mix + int8 (the matched control) | 1.07 [0.42, 1.97] | 0.45 [0.15, 0.81] | 0/3366 |  |
+| bt_cq: 1c with comment rows on QOM + hc8w_mix + int8 | 0.68 [0.24, 1.28] | 0.18 [0.00, 0.38] | 0/3366 | -0.39 / -0.27 |
+| bt_cq_res: 1c with comment rows on QOM + RES + hc8w_mix + int8 | 0.74 [0.10, 1.59] | 0.30 [0.04, 0.62] | 0/3366 | -0.33 / -0.15 |
+READING (non-tie): bt_cq / bt_cq_ctrl = 0.18 / 0.45 = 0.40 -> CONFIRMED (G1's fix = comment-QOM); all-row beside 0.68 / 1.07 = 0.64 (Fit12's [P] for comment-QOM ~0.42 / ~0.06)
+RES's paired increment (bt_cq_res - bt_cq): all-row +0.06 pt, non-tie +0.12 pt -> within G2's <= +0.3 pt
+Tue 07:19:05 END: run rc 0; read-out written (data/m1/comqom_map.out)

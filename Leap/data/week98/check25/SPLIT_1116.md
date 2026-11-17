@@ -167,6 +167,12 @@ GPU-PACED.** File: data/week98/c25/gpubB_run.txt.
   - share locks.
 
 ### Module 2: expert one-call streaming (MoonShots)
+- **Tue 07:4x: the FAST small-segment FMA path = KILL on paper (MoonShots af29c50, LEVERS_A 'MODULE 2'); module 2 is
+  CLOSED.** A CPU replica of _GRP1CQ on exp32's 99 blocks: 60.9 segments / call, 5.25 pairs each; <= 2 pairs = 23 % of
+  segments but 7.2 % of pairs. The MMA costs ~2.43 us per segment, fixed per 16-row tile; SIMD FP32 FMAs ~1.2 us per pair
+  + ~1.3 pair-equivalents per segment to convert nibbles. So FMA wins only on 1-2-pair segments: <= ~0.3 ms per check
+  even with free conversion. The experts stay ~23 ms busy per check; their byte floor is ~16 ms (4.6 GB at ~290 GB/s), so
+  the gap is the MMA / stream non-overlap. MoonShots moved to BREAK98 (the orchestrator 07:3x); module 5 is open.
 - **Kernel:** ~/Leap/scripts/ooo1cq.py, `tier_glu_nax6n_1cq` (FAST-NAX on NAX6-N, the converted records3 pools).
   - The exact control is ooo1c.py: one group per expert, all 4-bit.
   - It streams ~290 GB/s in the engine (CHECK55 pass K: 50.65 ms for 14.66 GB).

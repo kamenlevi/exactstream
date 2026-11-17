@@ -439,6 +439,12 @@ Breakthrough accepted at 18:12. Fable B's design is ~/FableGod/fableb/REPLAYED_C
       Leap's c25 lock reads MEM 43). It only serves misses, and the warm checks have none (misses 0.0 in try B).
   - Setup:
     - c25's env, plus C25_ARMS=F32s,F32o,F32c6i, C25_KEYS=dd__mc_27921 (one window), C25_WARM=1, C25_ROUNDS=0.
+      - Amendment (Tue 07:0x, before any run): C25_ROUNDS=1, not 0. c25_loop.py calls c25_engine.window() only when
+        R57_G32TIME is nonzero (line 1934); 0 would run the screen's own modes instead. One timed round of the 3 arms
+        adds 3 checks.
+      - Amendment (Tue 07:0x): the loop runs from Leap's c25_loop.py source with one line changed in memory, OUT =
+        my run folder (data/m1/rec1a_engine/), because its line 122 points every output at ~/Leap/data/week98/c25.
+        No copy of the loop is written anywhere.
     - The wrapper calls Leap's window() for the warm-up round. Then it runs the test on the same window: arm F32o
       first (the bitwise one-pass forms), then F32c6i (Friday's number 2: C6 + int8). It skips later windows.
   - **Per arm:**
@@ -472,3 +478,60 @@ Breakthrough accepted at 18:12. Fable B's design is ~/FableGod/fableb/REPLAYED_C
     - Info: record A's commits; the mid-record CPU waits, if visible; the retained bytes; the per-arm wall.
   - Known limit: per-call inputs > 4 KB are not snapshotted. They are the same under the rollback; if one differed,
     line 2 would catch it, not hide it. Real decode (milestone 3) needs that answered.
+- Tue 07:1x, **the engine-run wrapper, tested on a stub engine (no 125B).**
+  - scripts/m1/rec1a/rec1a_c25.py: the launcher and the pre-registered test.
+    - It imports Leap's c25_engine read-only and wraps window(). It runs c25_loop.py's source with the OUT line
+      changed in memory (it refuses to run if that line ever changes).
+    - The diff fits each changed target to the plain seq or to ((seq x nl + L) mod M) x S + c over the gate's table,
+      region and slot-ring layouts. M and S are read from the live Gate; the ring row count is ring.size / MAXK.
+    - The loader's 'gated' count is read only once it has stopped moving for 5 ms: a fast-path pass does not wait for
+      the loader.
+  - Recorder: mtlrec keep() / keep_drop() (mtlrec.m 99143b1a, dylib 7a046e75).
+    - Record A's objects stay alive through record B, so B's fresh buffers can't reuse A's addresses. That makes
+      "bound in both with the same pointer" a sound test for persistent buffers.
+  - The stub test found one gap; it is fixed. Small persistent buffers that hold the last pass's seq and are rewritten
+    in the check (the toy's post row and release word) were flagged unexplained. Classification now:
+    - a word the check itself overwrites is state (or pre-run garbage, if per-call), listed and ignored;
+    - a word that changes between checks without being written stays unexplained.
+  - Stub (scripts/m1/rec1a/rec1a_c25_stub.py): every seq-dependent target of the engine map in toy form:
+    - a setBytes seq word, a table-block buffer offset, a ring-start setBytes word, the CPU-built offs, a
+      system-scope post + coherent spin against mtlrec's toy loader, an in-place KV write, a recurrent state;
+    - seq-invariant logits when patched consistently.
+  - Results, data/m1/rec1a_engine/stub_*_rec1a.out (all four AS EXPECTED; seqs cross 1024):
+
+    | stub mode | what it tests | lines 1-4, both arms | verdict |
+    |---|---|---|---|
+    | ok | the whole path | 6 rules (seq x 3, ring L=3, tab L=2, reg L=4); 16/16 bitwise; 16/16 served; hashes equal | PASS |
+    | unexplained | an s x s setBytes word | line 1 FAIL (the word flagged), no replay | FAIL |
+    | stale | the wrapper's new_pass returns the last seq | line 2 16/16 bitwise, line 3 0/16 (gated 0) | FAIL |
+    | badrule | the table rule reads row L + 1 | line 2 0/16, lines 1, 3, 4 pass | FAIL |
+
+  - The stale mode is Leap's point 4 in miniature: stale slots can still give bitwise logits under the rollback.
+    Only the served-row count tells.
+  - Still to do before the slot: a runner (run_rec1a_c25.sh: slot times, the away rule, MEM 35 GB share lock,
+    NO-SWAP >= 43, swap guard, hard stop) and a flag check of the real loop up to its model load.
+- Tue 07:2x, **the engine-run runner and the flag check: ready for a slot.**
+  - scripts/m1/rec1a/run_rec1a_c25.sh "<START>" "<HARD>" follows the pre-registered setup. It waits for the slot,
+    holding nothing, until no c25 / rec1a loop runs and Kamen is away (read twice). Then:
+    - HOLD / PAUSE / lid / HEALTH ACT checks; the NO-SWAP gate >= 43 on two reads;
+    - a share lock whose reason starts 'MEM 35 GB'; a +2 GB swap guard; a yield when Kamen is back; TERM at HARD;
+    - the end marker data/m1/rec1a_engine/REC1A_END.
+    - A DRY pass checked the gates in order (rec1a_1117_dry_runner.log).
+  - Flag check (RJ_FLAGCHECK=1): the real c25 loop in the run's exact env, up to its model load, with no model and no
+    GPU work. Leap's head-test pattern. rc 97 with the marker (rec1a_1117_fc_flagcheck.txt):
+    - OUT = data/m1/rec1a_engine and c25_engine wrapped;
+    - BIGMOE_POST_SYS='1', BIGMOE_SPIN_COHERENT='1' live in the loop (the 06:5x correction, seen in the running loop);
+    - R57_VTIER='', R57_G32TIME='1', WARM '1', the one window, C25_PROF / CPUSPLIT / PASSK unset, MAXK 320.
+    - Nothing was written under ~/Leap.
+  - Next: a slot from NewIdeas (~15 min, MEM 35 GB, NO-SWAP >= 43, Kamen away).
+- Tue 07:2x, **the slot: Thu 19 Nov, START 07:30, HARD 09:30 (NewIdeas 07:2x).**
+  - Why not sooner: every earlier gap is on Saturday's critical path.
+  - Armed 07:26 as a frozen copy, data/m1/rec1a_engine/run_rec1a_c25_1119.frozen.sh (pid 38027, tag rec1a_1119).
+    It starts when its gates hold inside the window; latest start 09:10.
+  - Pins at arming (data/m1/rec1a_engine/pins_1119.txt): the wrapper, the recorder and Leap's three c25 files by md5.
+  - Two runner changes before arming:
+    - The flag check also runs inside the slot, right after the trigger. If Leap's files change by Thursday and the
+      loop no longer reaches its model load in this env, the runner skips cleanly.
+    - The "a c25 / rec1a loop is running" test counts only Python processes. A monitor shell whose text names
+      c25_loop.py no longer blocks it; tested both ways with fake processes.
+  - BigMoE's T8-32 dumps (~12.5 GB) may overlap; the NO-SWAP gate waits them out.

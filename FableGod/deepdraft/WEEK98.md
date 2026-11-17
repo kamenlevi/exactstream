@@ -7,6 +7,204 @@ unlocks 98% accuracy at 30 tokens deep. By then we must know what it is, and eit
 know the principles of how everything will work and it's certain, and we still have a week of building everything. I
 don't care about that. I just need to get that."
 
+## KAMEN, Tue 17 Nov 07:2x (verbatim, dictated): THE TWO BREAKTHROUGHS BY SATURDAY; LOSSY >= 550 OR NOTHING
+"I'm missing the point of all of this. I'm not trying to make another 50% or it's even less improvement on code and
+exact and lossy. I don't really care about whether we bump up speed from 100 and something tokens per second to 100 and
+something tokens per second plus 25. The thing I care about is the breakthrough. You know it. You know how much I need
+to get it by Saturday. And I think we already established that we need to find a way to find the cheapest possible way,
+which hasn't been done by anybody before. The cheapest possible way to give the drafter information from the big model.
+I thought we already got to that conclusion. So yes, the project, you will have to do that. It's going to be a big part
+of it, and especially for Saturday. 1 hour minute. So by Saturday, the breakthrough you have made is create something
+beyond the physical theoretical limit on how fast we can give the drafter information from the big model, as well as
+getting the drafter to 97.8% accuracy at 30 tokens deep, which also hasn't been done by anybody and is also just as big
+as a part of the project. So we have to accomplish these goals. Do you understand me? That's like we're going to play
+tennis and not actually playing tennis and just warming up. I mean, yeah, so these are the goals and you should do them
+by Saturday. As I told you, you already have all the needed information, so you want to use it. So yeah, both things
+done by Saturday, and remember that, not some goofy little improvements of 5%. I'm not accepting an end result of lossy
+under 550 tokens per second."
+- **GOAL 1 (by Sat):** the cheapest way ever to give the drafter the 125B's information on the drafted tokens, beyond
+  the believed limit (today that limit is "a 125B row per drafted token").
+- **GOAL 2 (by Sat):** the drafter at >= 97.8 % per guess, 30 tokens deep.
+- **END RESULT:** lossy >= 550 tok/s on code. Small levers (+5-50 %) are not the work.
+- (CORRECTED 07:5x, Fable C's audit: "97.8 % flat to 30 with true states" is the marginal row. Walk-strict with true
+  states: 93.2 / 95.3 / 96.4 / 97.8 / 98.8 / 99.2 / 99.3 % by band, so >= 97.8 % from band 7-10 to 30. See BREAK98.md.)
+- On record, it is the same wall (Lunatic IDEAS_1116c_drift.md, HE+ kept per 32-row check):
+  - own tree-32 16.26; ORACLE-31 18.48; true-state chain 20.77;
+  - true-state + tie siblings 26.79, so drift fixed + a tree = ~24.5-26.8;
+  - "the only source that delivers it at scale is a 125B row".
+  So GOAL 1 (cheap true-state information) is what lifts GOAL 2's deep accuracy. 550 at kept ~24-26 needs a cycle of
+  ~44-47 ms (today 56.4 check + 19.1 draft + ~4).
+- The orchestrator's response (07:3x): BREAK98.md (the sprint brief) to the five thinkers + MoonShots + Breakthrough.
+- **07:3x NewIdeas, ORACLE-31 NUMBER CHECK** (Lunatic's script re-run on a copy):
+  - It reproduces 18.48 / 11.21, K127 23.70, LAB 20.77 and EAGLE-2-31 16.26.
+  - REFINED: ORACLE-31 is a hindsight bound. Without new information, the head's own cap at 32 rows is 16.26 in
+    expectation (calibrated head, best-first).
+  - So kept 24 at 32 rows needs (1) true-state-class information (BREAK98; it also gives GOAL 2), or (2) ~128
+    own-information rows (23.70) at the price of 32 (early death + compute; speed only).
+  - The relay to all seven sessions is done. The GPU queue rule is set (a BREAK98 test always goes first). The stack
+    chain is not armed. G1 is filler.
+- **BREAK98 results as they land** (NewIdeas screens from ~09:00):
+  - **Fable B (IDEAS_1117_partialwidth.md): partial-width 125B rows per drafted token are NOT route 1** [P, config +
+    280 GB/s].
+    - A 3 ms-per-block channel buys ~28 MB per token, about one 125B layer.
+    - The candidates are all over that: dense + attention + shared 57x, shared + top-1 62x, 8 dense layers 10x, layer 0
+      alone 2x (worthless for drift).
+    - Batching across positions informs only the correct prefix, i.e. a fork re-anchor, measured +2.4 % kept: KILL.
+    - Rows 33-64 inside the check: +15-18 ms compute, route 2 only.
+    - Capture ask to NewIdeas: ablated forwards (shared + top-1 first) dumping the final state + top-8, to price what a
+      learned proxy (FAR's lens) must reproduce.
+  - **07:3x NewIdeas' pricing tool** (b98sim.py, HE+ chain-32, true state given at):
+    - every 2nd depth: 19.20 (78 % of the own -> LAB gap);
+    - every 4th: 17.18 (49 %);
+    - one refresh per block: <= 15.32 (22 %);
+    - depths 0-15 only: 18.64 (70 %).
+    So a channel must be DENSE and EARLY.
+  - **Fable FAR (IDEAS_1117_futurestates.md): FUTURE-STATE ROWS.**
+    - k = 8 placeholder rows (<|fim_pad|> or the mean embedding) hang as chains in the check batch under the end row
+      and the lowest-p rows. They give the next block's head the 125B's state at its first 8 drafted positions,
+      conditioned on the true prefix plus an explicit unknown (so not SIB).
+    - 2 chains cover 71 % of HE+ block ends (59 % MBPP; CPU screen endcover.out).
+    - ~0.28 ms per marginal row [P, band 0.19-0.45; the placeholder routing is unknown]. 16 rows ~4.5 ms.
+    - Pay line at the bound: +18 % kept.
+    - Screen 1 (Sandbox98, 2B, <= 5 GB, ~30 min): dispatched by the orchestrator at 07:3x with FAR's lines.
+    - Screen 2: TrainLab on tonight's capture.
+    - Second idea: PREFIX-DEPTH INPUTS (EAGLE-3 fusion of layers 8 / 16 / 24 + a GLIDE read of the 125B's attention
+      K/V).
+    - Capture asks went to NewIdeas to consolidate for BigMoE by 18:00.
+  - **Fable ZERO (IDEAS_1117_channel.md): CHECK-AS-TAP-PASS.**
+    - Byte law: a 125B-class state per drafted token comes only from a BATCHED pass over the draft. Sequential or
+      wavefront shapes re-read the dense weights (1.4 GB per block for ONE layer). The bar is 504 MB of reads per
+      extra kept token.
+    - Best (route 1): at layers 8-16 the check already holds the 125B's state at every drafted row. Tap the head with
+      those states and re-draft the rows early death would drop, inside the same check: +0.7-1.1 GB, +2.6-3.8 ms,
+      +1.5..+3 kept [P], exact acceptance.
+    - Screen: TAP-LAB / FORK-TAP on tonight's mid_*.npz (a ridge map from layer L to the head's tap input, frozen
+      head). PASS >= 40 % of the drift gap closed at layer 16, bands 3-14; KILL < 15 %.
+    - Capture ask: the 10,240 pre-mixer stream at layers 8 / 16 / 24 at the same rows, plus a dense-only layer-8 state.
+    - **Honest cycle:** route 1 alone gives kept ~18-19, ~420-500 tok/s at a 29.6 ms check. Kept 24 needs route 1 +
+      route 2's rows, not either alone.
+  - **07:3x NewIdeas: THE LEAD = IN-CHECK REPAIR** (= ZERO's CHECK-AS-TAP-PASS; research/week98/b98_repair.py / .txt, a
+    CPU bound on the cells).
+    - Mechanism: at layer L (8-16) the check holds the 125B's state at every drafted row. Locate the first error,
+      re-predict it from the tap, refresh the head and re-draft the tail. The new rows catch up through layers 1..L,
+      then rejoin the check.
+    - Bound (perfect location, true-state repair, chain-32 HE+):
+      - one round: 13.77 -> 18.97 (+38 %, 74 % of the own -> LAB gap);
+      - two rounds: 20.83 (= LAB);
+      - MBPP 6.92 -> 10.65 / 13.13.
+    - Partial repair quality q, one round, HE+: q 0.5 gives +22 %, q 0.3 gives +13 %.
+    - FAR's FUTURE-STATE ROWS bounded the same way: <= +14 % even with perfect states, +6 % at G 0.5. Its sandbox screen
+      stays only as a probe.
+    - Deciding unknowns: (a) the layer-L error location (false repairs break correct tokens); (b) q; (c) the cost per
+      round (re-draft ~2-4 ms + catch-up ~0.7-1.1 GB, +2.6-3.8 ms, with the check paused). (a) and (b) are measured by
+      TAP-LAB / FORK-TAP on the mid capture.
+    - **Orchestrator 07:4x: its capture (L8 / 16 / 24 streams along the true text) is pulled forward to TODAY by day**
+      if BigMoE is ready by ~13:00 (the owner away). The other capture asks stay tonight.
+  - **07:4x NewIdeas, IN-CHECK REPAIR PRICED (BREAK98_SCREEN.md, 50eac1a): a big kept bound, a moderate net gain.**
+    - Tree version, HE+, perfect location (q = the share of true-state-quality repairs):
+      - one round: 22.06 (+36 %) at q 1 / 19.20 at q 0.5;
+      - two rounds: 24.06 (+48 %, the 24 that 550 needs) / 19.98;
+      - MBPP 9.03 -> 14.10 / 17.04 at q 1.
+    - Cost per round, with the check paused: readout + tail re-draft (~12 levels) + catch-up of layers 1..L for ~16
+      rows (~0.40 ms per layer at the bound).
+    - Net vs tree-32 at the bound (551 tok/s), one round, q 1 / q 0.5: L4 +24 % / +8 %; L8 +18 % / +2 %; L16 +8 % /
+      -6 %. Today's engine: at most +18 %. It pays only with a SHALLOW, high-quality tap.
+    - Swap-only repair: KILL (the old tail is right after a wrong token only 16 % / 12 %).
+    - The cheaper cousin is EARLY DEATH on a big tree: the same readout selects among pre-drafted K64 / K127 rows, with
+      no pause and no catch-up. The day capture serves both; the spec is now layers 4 / 8 / 16 / 24.
+  - **MoonShots (IDEAS_1117_valuepred.md): SESSION VALUE PREDICTION = KILL** (R2 <= 0.22; the hindsight-best earlier
+    state is 0.67-0.76 rad off).
+  - **Breakthrough (IDEAS_1117_landmark.md, f499735): LANDMARK = BETWEEN, KILL side.** Context-matched states are close
+    at mid-depth (tap 15 cos 0.785 vs 0.405) but not at tap 45. Late states are history-specific, so no token-keyed
+    source delivers them.
+  - **NewIdeas' read for 550:** after costs, every channel found so far is a +10-25 % lever at the bound, and plain
+    tree-32 already reaches ~551 there. So the gap from today's 205 is mostly the CHECK (56.4 -> ~25-30 ms) and the
+    DRAFT (19.1 -> ~3 ms), with information levers multiplying on top.
+  - **Orchestrator 07:4x: three parallel lines under BREAK98:**
+    1. CHECK (Leap): -> ~28-32 ms.
+    2. DRAFT: -> <= 4-5 ms. MTP Head (8-bit + screen head) + MoonShots (sync-free block drafting + a fused level kernel,
+       pulled into this week). NewIdeas assigns.
+    3. INFORMATION: repair / early death / FAR rows.
+    NewIdeas sends owners, dates and a Saturday-realistic range by ~10:00. The orchestrator's rough range: ~300-500.
+  - **07:4x Breakthrough's correction (036e34d) + NewIdeas' bound (b98_landmark.txt): LANDMARK-ANS = the best
+    ECONOMICS so far.**
+    - Mechanism: where a drafted position's last k tokens recur EARLIER IN THE ANSWER, feed the head that verified
+      row's stored state (a state store + a GPU k-gram hash). Free and exact.
+    - Coverage 38 % of HE answer positions (49 % past the first third). The late state is cos 0.795 to the true state,
+      as close as the true state one step back (0.798); the stale anchor is 0.644.
+    - ~~Bound (random refreshes at 38 %, the head treats a landmark like the true state): HE+ chain-32 13.77 -> 17.83
+      (+29 %, 58 % of the drift gap); MBPP +40 %.~~ **CORRECTED 07:5x (NewIdeas 98cce14, b98_landmark_real.txt): with
+      the REAL, clustered coverage (answer-only k-gram matches on the bank's ids):**
+      - coverage 34 / 18 / 11 / 2 % at k = 2 / 3 / 4 / 8;
+      - ceiling at true-state quality, HE+ chain: +24 / +13 / +5 / +2 %.
+      - The 38 % is the k ~2 regime, where MoonShots' kill bites (retrieval = copy, R2 <= 0.22). The likely outcome is
+        a copy-class gain (+5-10 %).
+      - The audit addendum adds KILL-COPY (G_landmark <= G_copy + 0.10 -> KILL) and a stale-by-one reference (WARN if
+        < 0.5 x G_stale1), per k.
+      - **The information line's honest ceiling today: every channel nets ~+5-25 %. The 550 rests mostly on the check
+        (Leap) and the draft (MTP Head + MoonShots).**
+  - **07:5x Fable C (IDEAS_1117_repairshape.md): in-check repair TRANSFERS to trees, budget-correct on the real 127-node
+    dumps** (NewIdeas' chain 18.97 reproduced).
+    - Tree-32 16.30 -> 23.10 kept at one round (x1.42) / 25.81 at two (x1.58), with perfect location + LAB-quality
+      guess, rows-neutral. At q 0.5: 20.0 / 20.6. MBPP 9.05 -> 15.01 / 19.45.
+    - So kept 24-26 at 32 rows is inside route 1 alone if location x guess >= ~0.8 with two rounds.
+    - A probe-free refresh at a fixed row is DEAD (x1.04-1.16). LOCATION is the mechanism, so the deciding number is
+      the layer-L probe's first-miss RECALL.
+    - Twist: repair as an ADDED branch (the original tail stays; false flags cost rows, never kept): 24.61 / 29.93
+      perfect, ~22 / ~23.5 at q ~0.65 [P].
+    - Screen: two lines added to the early-death run:
+      - first-miss recall vs the false-flag curve at L 8 / 16 / 24;
+      - P(correction in the head's top-2 from the true state, or in the lens top-2) at the last right row.
+      PASS: recall >= 0.8 at <= 20 % false flags AND multi-guess >= 0.75 at L16.
+    - Audit:
+      - "97.8 % flat walk-strict" is the marginal row (corrected above and in BREAK98.md);
+      - 26.79 is unbudgeted;
+      - a marginal batched row costs ~0.11-0.18 ms at Leap's floor;
+      - 550 needs the check's fall (x2.7) AND the channel (x1.5); each round adds +1.7-3.8 ms.
+  - **07:5x MoonShots CORRECTION, the draft line (DRAFT_PLAN_1117.md, b8e4e76):** the planned head (8-bit Linears + 32K
+    screen) reads 177.6 MB per level (dense 99.7 + head 47.2 + experts 30.7) [K p3_m012_stock.log], not ~42-73.
+    - Byte floor: 0.607 ms per level = 12.6 ms per HE+ tree-32 block at zero fixed cost (today 20.0).
+    - So <= 4-5 ms needs a 2.4-5x SMALLER head (MTP Head's lane), not kernels.
+    - Kernels: fused2 18.2 ms now (bitwise); a persistent kernel ~14.5-16 ms by Saturday.
+    - **The orchestrator's ~300-500 Saturday range was too high on the draft side; NewIdeas' 10:00 report re-prices
+      it.**
+  - **07:5x Lunatic (IDEAS_1117_floor.md): the floor is 1-3 located 125B DECISIONS per block, not states, and the 125B
+    forms them LATE.**
+    - Two decisions at the chain's first misses (the 125B's own token, no state) give HE+ 23.65 / MBPP 15.39 kept,
+      against 20.77 / 12.83 for the true state at all 31 rows. The LAB head fixes only 68.5 % of first misses.
+    - States must be dense: every 2nd row 78 %, every 8th 25 % of the LAB gain.
+    - Late verdict: a tuned lens finds the head's misses at AUC 0.64-0.70 after layers 6-36 (the head's own margin
+      0.954), 0.92 after 46, 0.99 at 48. As repair deciders, layers <= 36 LOWER kept (13.77 -> 10-13).
+    - Screen: VERDICT-DEPTH on the capture (floor_lens.py, < 1 min). LIVE if a layer <= 24 gives decider phi >= 0.7 at
+      psi <= 0.5 %; otherwise route 1 by partial depth is CLOSED, and the GPU goes to route 2 + the check + the draft.
+    - Capture ask: layers 32 / 40 / 44. **The orchestrator put them into TODAY's capture (07:5x)**, with the two verdict
+      screens run first.
+    - It costs nothing in the check, so the gain holds at any check speed.
+    - Risks: clustered real coverage; whether the head can use a state stale by one (needs training). The orchestrator
+      asked that the pre-registration answer MoonShots' KILL of the close cousin (R2 <= 0.22, 0.67-0.76 rad).
+    - Screens: Sandbox98's SIB harness after FAR's screen (PASS G >= 0.5 HE, ~30-50 min), then the 125B on the capture
+      (ask: token id + head-input state per mid_* row, ~0.2 GB).
+    - Information-line order (NewIdeas): LANDMARK-ANS > early death / in-check repair > FAR's rows.
+    - The draft line went to MTP Head + MoonShots; they answer by ~09:45.
+  The queue is re-pointed: no new small-lever work, and the GPU nights go to these tests first.
+
+## KAMEN, Tue 17 Nov 07:1x (verbatim, dictated while walking, after the 06:4x lossy correction): 775 ON CODE, NO COMPROMISE
+"Why so low? What are these numbers? They were at for projection of 536 tokens per second. I mean, 150 is lower than
+what we have right now. Is this on chat or what is this on? But I want to reach at least 600 tokens per second from
+Claude. Actually, no, as I told you, there is no room for compromise. We need to achieve 775 tokens per second on
+Claude. I need this breakthrough, you know it, so do it."
+- My reading: "Claude" = "code" (dictation). **Target unchanged: >= 775 tok/s lossy at quality on CODE.**
+- The orchestrator's answer (07:1x):
+  - All of these numbers are code.
+  - The 536 was the ungated tree-32 lossy projection with the engine at its limit (~480-545), not a Saturday number.
+  - Exact ~150 (replay, heplus24) is ~50 % above the published exact (101.4 on 12 copy-heavy HumanEval prompts).
+  - B2 runs 117.6 on those same 12 prompts even on a busy Mac, and 80.6 on all 164.
+  - 775 needs kept >= ~24 per check AND a ~25-29 ms cycle. Lunatic's ORACLE-31 caps the head's OWN information at
+    18.48 kept on HE+ for a 32-row check (IDEAS_1116c_drift.md; K127 = 23.70 at 128 rows). So a better tree or
+    training on the same information cannot reach it. The draft must get NEW 125B information cheaply, or a check
+    must cover far more rows at the same cost.
+  - No line was running on that wall at 07:1x; it restarts today (NewIdeas orders it).
+
 ## KAMEN, Mon 16 Nov 17:3x (verbatim, the target part): 775-800 LOSSY, AT QUALITY, BY SATURDAY
 "We can't stop at what is the estimate you gave me for Saturday, 270 to 340 tokens per second or something like that.
 It can't be that. It must be that 800 tokens per second we said. I don't care how you achieve it. I mean, it just has to

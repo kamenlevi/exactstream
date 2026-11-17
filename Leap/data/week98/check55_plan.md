@@ -400,6 +400,9 @@ scripts/week98/c7d_r24.py (the docstring has the full design).
 - **Files:** data/week98/e14/e14_run.txt, e14.json and run_e14.log; marker data/week98/screens/E1E4_1117_DONE.
 
 ## E15 (PRE-REGISTERED Tue 17 Nov 06:3x EET, before the run): NewIdeas' ADAPTIVE K DOWN kill test (adaptk_k8.txt)
+- **STOPPED Tue 07:2x, never ran** (the orchestrator's 07:3x re-pointing to BREAK98, relayed by NewIdeas 07:29: the A8 / DOWN
+  test, ADAPTIVE K and E-lever polishing incl. the v3 switch tests are out). tue1_post.sh restored to its original
+  (md5 9f68db3d); the E15 code stays in scripts/week98/e15 (c0cfb6c) for later.
 - Where: the last step of tue1's post (tue1_post.sh -> data/week98/e15/frozen/e15_post.sh, md5 1747db9a), inside slot #1's
   process and quiet window (NewIdeas 06:32). Gates: away >= 900 before and after the memory reads, >= 6 min left before
   tue1's cap, no other process > 16 GB, NO-SWAP >= 39 twice, head test; cap 8 min; marker data/week98/e15/E15_DONE.
