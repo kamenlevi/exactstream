@@ -324,6 +324,11 @@ draft is MoonShots' fused2 measured (full head) or the QAT ~26 MB head [P].
   B's), which Wed tests (research/week98/ed_chain_trunc.txt; prereg amendment 2).
 
 ## SATURDAY LADDER v4 (NewIdeas, Mon 16 Nov 20:5x; PUSH800 frame, every input from today's records)
+- **CORRECTED Tue 06:4x (EvalSuite's finding, verified in BigMoE's snap/g1b r57_screen_g1b.py lines 125 / 1236, no tree path):**
+  the lossy stack being GATED this week runs chain-16 checks with the DFlash drafter (dfl + d7b on code, copy g2;
+  R57_ROWS unset). Gated code kept per check is 7.0 (lx45cc1) / 7.4 (ccx45cc1). The lossy rows below (t30b, tree-32 + CC(1),
+  kept 16.91) are an UNGATED projection, not "at quality". Saturday's lossy number at quality = the gated chain-16 stack
+  as measured. ADAPTIVE K is an exact-line lever only (under CC(1) it changes outputs and is not in the gated config).
 tok/s = kept / (check + draft + overhead), HE+ lossy, 32-row tree check, AT QUALITY.
 - KEPT: 16.91 (tree-32 + CC(1)). The acceptance frontier at quality is FLAT (tree_frontier_t16.txt: guarded T16 adds
   x1.00-1.02; wholesale INERT is the recorded CD16-DROP KILL). Times the head's 8K-screen loss: x0.963 post hoc
@@ -345,6 +350,11 @@ tok/s = kept / (check + draft + overhead), HE+ lossy, 32-row tree check, AT QUAL
   (Tue-night capture, Wed screens).
 
 ## LADDER v4 + a CONDITIONAL rung: ADAPTIVE K (NewIdeas, Tue 17 Nov 01:1x by date; ADAPTK.md)
+- **CORRECTED Tue 06:4x (EvalSuite's finding, verified in BigMoE's snap/g1b r57_screen_g1b.py lines 125 / 1236, no tree path):**
+  the lossy stack being GATED this week runs chain-16 checks with the DFlash drafter (dfl + d7b on code, copy g2;
+  R57_ROWS unset). Gated code kept per check is 7.0 (lx45cc1) / 7.4 (ccx45cc1). The lossy rows below (t30b, tree-32 + CC(1),
+  kept 16.91) are an UNGATED projection, not "at quality". Saturday's lossy number at quality = the gated chain-16 stack
+  as measured. ADAPTIVE K is an exact-line lever only (under CC(1) it changes outputs and is not in the gated config).
 - What it is: per check, 16 or 32 rows, picked by the drafter's own path_p (pop while >= tau 0.9). It is exact.
 - Measured on dev (CPU replay, E14 costs, draft cost counted):
   - HE+ +8.0-10.3 % with today's two kernels (95 % window bootstrap +6.6..+10.7 at L 0.66; 24 / 24 windows up);

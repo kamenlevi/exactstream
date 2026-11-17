@@ -390,3 +390,85 @@ Breakthrough accepted at 18:12. Fable B's design is ~/FableGod/fableb/REPLAYED_C
     (~15 min, >= 31 GB lifetime, NO-SWAP >= 39, Kamen away).
   - Milestone 1's official number: scripts/m1/rec1a/run_rec_quiet.sh (200 repeats inside a quiet lock the caller
     holds; ~3.2 GB; ~2 min), in the ~10 min quiet slot Leap's split plans for Wed.
+- Tue 06:5x, **Leap's review of the engine-run plan (06:48), and the amended plan. PRE-REGISTERED here, before any
+  engine record.** Leap: "OK to pre-register once 1-4 are in the plan." Each point and what it changes:
+  1. **MLX allocator reuse (the big one).** After record B, MLX's buffer cache can hand B's MTLBuffers to live arrays,
+     such as the reference logits or the cache states. A replay would then write into them, and could even hide its
+     own error. Changes:
+     - `mx.set_cache_limit(0)` + `mx.clear_cache()` from just before record A to the end of the test, so freed buffers
+       go back to Metal instead of MLX's cache.
+     - The recorder already retains every object an op names (mtlrec.m, header line 10). So B's buffers stay alive
+       and MLX never hands them out again.
+     - The reference logits are copied to numpy before every replay.
+  2. **What the verify forward reads** (Leap's list, c25_engine.check):
+     - the token ids: a new array per check, same content under the rollback;
+     - the KV prefix: in place if slice_update donates;
+     - the snapshot's states S0: kept alive by the snapshot, not donated;
+     - ref2's KEEP-C caches: persistent;
+     - the PLE n-gram stage;
+     - BigMoE's pools and slot tables (the seq formulas).
+     Changes:
+     - (a) Before every replay, each small buffer (<= 4 KB) whose pointer differs between A and B is rewritten from
+       B's bind-time snapshot (token ids, offs). Then the seq rules are applied.
+     - (b) Leap's proof: hash every array of states(P) (S0 and the KV caches, append rows included) before and after
+       the first replay. The hashes must be equal (line 4).
+  3. **Commit counts.** A correction to the premise: c25's env already has W1-PICKUP ON.
+     - c25_loop.py lines 76-81 setdefault BIGMOE_SPIN_COHERENT=1 and BIGMOE_POST_SYS=1 under R57_PRESET=45, with
+       R57_D45 and R57_COMBINE at their default 1. c25_env.py sets the preset and nothing sets the flags to 0.
+     - I evaluated lines 36-81 under c25_env's exports (06:5x). Before: both unset; after: both "1".
+     - So try B's 266 commits per check are the W1-PICKUP count, and the record needs no env change: it runs in
+       try B's env.
+     - "One command buffer" is my ICB replay's property, not MLX's: MLX keeps its own split. Record A's commits are
+       counted (info only).
+     - No timing comes from this run.
+  4. **Seq.** Each replay takes s = G["BG"].new_pass(): strictly new, and = the reference check's seq + 1. That makes
+     its tables the ones the loader published a pass ahead.
+     - post_ids writes the loader row on every pass, the fast path included (EXT:1112-1128).
+     - The loader accepts a row only for a new seq (MODULE1A_ENGINE_MAP.md, EXT:1679-1714) and counts it in
+       ext.stats()["gated"] (EXT:1755).
+     - So line 3: the replay's gated delta must equal the engine's own check's, and be > 0. Timeouts = 0 alone
+       don't count.
+  - Leap's extras, adopted:
+    - C25_PROF, C25_CPUSPLIT and C25_PASSK unset. mtlprof interposes Metal too; the wrapper asserts they are unset.
+    - knobs(G, arm, n) / unknob(G) around every record and replay, as check() does.
+    - c25_engine stays Leap's file. My wrapper module goes in as sys.modules["c25_engine"]; tue1 imports it live until
+      ~12:00 today.
+  - **The run** needs a NewIdeas slot: ~15 min, MEM 35 GB, NO-SWAP >= 43, Kamen away.
+    - Sizing: try B's lifetime peak 31.4 GB (gpubB_run.txt) + up to 3 GB of retained record buffers.
+    - R57_VTIER is set empty, which turns off the 7.45 GB volatile victim tier (outside phys_footprint; it is why
+      Leap's c25 lock reads MEM 43). It only serves misses, and the warm checks have none (misses 0.0 in try B).
+  - Setup:
+    - c25's env, plus C25_ARMS=F32s,F32o,F32c6i, C25_KEYS=dd__mc_27921 (one window), C25_WARM=1, C25_ROUNDS=0.
+    - The wrapper calls Leap's window() for the warm-up round. Then it runs the test on the same window: arm F32o
+      first (the bitwise one-pass forms), then F32c6i (Friday's number 2: C6 + int8). It skips later windows.
+  - **Per arm:**
+    1. Record A and record B: two consecutive checks of the arm.
+       - Each runs inside the recorder: knobs; snapshot; the verify forward; the logits astype + eval; synchronize.
+       - The engine's own commit + back() follow, outside the recorder.
+       - If the retained buffers that are new in B total > 3 GB, stop before any replay.
+    2. Diff A vs B:
+       - The op sequence, kernels, setBytes layout and canonical bindings must match.
+       - Every changed setBytes word, buffer offset and small-buffer word must be explained by a MODULE1A_ENGINE_MAP.md
+         formula, using A's and B's seqs.
+    3. Register the rules and build the ICB from B. If the ICB build refuses (blits), use the mode-2 replay (also one
+       command buffer).
+    4. 16 rounds, each:
+       - the engine's own check (logits -> numpy; gated delta d_ref; status[0] and status[16] deltas);
+       - back();
+       - s = new_pass(); rewrite the small inputs; rules_apply_v([s]);
+       - knobs; the one-buffer replay; unknob;
+       - read B's logits buffer and the replay's gated, status[0] and status[16] deltas.
+       - The states(P) hashes are taken around round 1's replay only.
+  - **Lines (per arm):**
+    1. Record + diff: same structure, and 0 unexplained changes. A FAIL means no replay: read the diff.
+    2. The replayed logits are bitwise == the engine's own check's logits, all 32 rows, on 16/16 rounds.
+    3. Each replay's gated delta == the engine check's right before it, and > 0, on 16/16; status[0] timeouts stay 0.
+       Info: status[16] fast hits, replay vs engine.
+    4. The states(P) hashes are equal before / after round 1's replay.
+  - **Verdict:**
+    - PASS: lines 1-4 on both arms.
+    - BETWEEN: F32o passes and F32c6i does not (that arm's components to fix).
+    - FAIL: F32o fails. A failing replay is a bug until shown otherwise; it gets a cause, not a KILL.
+    - Info: record A's commits; the mid-record CPU waits, if visible; the retained bytes; the per-arm wall.
+  - Known limit: per-call inputs > 4 KB are not snapshotted. They are the same under the rollback; if one differed,
+    line 2 would catch it, not hide it. Real decode (milestone 3) needs that answered.

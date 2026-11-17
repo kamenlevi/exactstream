@@ -85,6 +85,10 @@ Files: adaptk_oracle.py / .txt (stage 1, drafting hidden), adaptk_draft.py / .tx
 adaptk_sens.py / .txt (kernel variants), costs from costs_e14.json.
 
 ## The LOSSY line (Tue 03:0x; adaptk_lossy.py / .txt)
+- **CORRECTED Tue 06:4x (EvalSuite's finding, verified in BigMoE's snap/g1b r57_screen_g1b.py lines 125 / 1236, no tree path):**
+  the lossy stack being GATED this week runs chain-16 checks with the DFlash drafter (dfl + d7b on code, copy g2;
+  R57_ROWS unset). Gated code kept per check is 7.0 (lx45cc1) / 7.4 (ccx45cc1). The replay below (t30b trees + CC(1)) is an UNGATED projection, not "at quality". Saturday's lossy number at quality = the gated chain-16 stack
+  as measured. ADAPTIVE K is an exact-line lever only (under CC(1) it changes outputs and is not in the gated config).
 
 The lossy line runs trees with close-call CC(1), and trees and CC overlap (TREES-x-CLOSECALL), so the
 exact screen did not settle the lossy case. Replayed with tree_cc32's tree + CC rule at 15 / 31 pops:

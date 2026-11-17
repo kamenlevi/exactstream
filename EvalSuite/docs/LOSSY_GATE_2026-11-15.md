@@ -175,6 +175,12 @@ prompt ids and reference completion ids.
 2. **Checks:** run checks of the variant's normal width (32 rows = the current token plus 31 drafted rows). The drafted
    rows are the next 31 REFERENCE tokens, not the drafter's. The check path, expert selection, row count and lossy
    flags are exactly those of decoding.
+   - **CORRECTED (Tue 2026-11-17 06:4x, information):** "32 rows" was this spec's assumption.
+     - On the r57 screens (cc1, rpl1/2, t1c1, g1a, g1b) the normal width is 16 rows: up to 15 drafts plus the current
+       token. Every gated env leaves R57_ROWS unset (default 16), and 32 rows exist only under R57_ROWS=32 or
+       R57_G32TEST.
+     - The REPLAY runs used that width, as rule 2 requires: 10,315 drafted rows over 708 checks (14.6 per check).
+     - No tier-0a line or verdict changes.
 3. **Teacher forcing:** after each check, commit the REFERENCE block whatever the check accepted, and never the check's
    correction token. Every position is then judged with the exact prefix. Continue to the row's end, or a cap
    (R57_REPLAY_CAP, default 2048).

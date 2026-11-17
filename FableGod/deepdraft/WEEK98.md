@@ -91,6 +91,117 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- **Tue 06:4x NewIdeas (slot order, on the orchestrator's 06:5x ask): Saturday's two headline measurements are PLACED (the
+  owners are confirming harness and length).** Both: a quiet ticket, HE+ 164 + MBPP 100, one order, n / decode wall per set and
+  pooled.
+  - (i) LOSSY: the gated chain-16 stack on its pinned env line, the same one tier 1 + the card gate run (EvalSuite, or
+    BigMoE).
+  - (ii) EXACT: t30b + tree-16 fixed, after tonight's M4 PASS (BigMoE).
+  - **Thu night order** (cool, after the 23:30 quit): ADAPTK's C T T C (only if its bit test passed) -> (i) -> (ii) -> the
+    proofs' COUNT check (results/certify98/ENGINE_CHECK_END) -> the card gate's remainder. Fri night is the reserve.
+  - (ii') EXACT + ADAPTIVE K: only if it passes all its gates by Fri 12:00; Fri ~12:00-15:00, else at the head of Fri
+    night. A missed (i) / (ii) moves to the head of Fri night.
+- **Tue 06:4x orchestrator (NewIdeas' correction below, checked: r57_screen_g1b.py lines 125 / 1236 and 0 tree
+  references; ccx45cc1's own log reads "[code: dfl] ... 23 checks (kept 10.35)"): option (a) for Saturday. Gating the
+  ladder config (b) is next week's FIRST lossy job.**
+  1. **Saturday:**
+     - LOSSY at quality = the gated chain-16 r57 stack (lossy-45 + CC(1) + G1's pick), measured by whole decode on
+       its env line.
+     - EXACT = t30b + tree-16 (+ ADAPTIVE K if it passes Fri 12:00), with no quality gate needed.
+     - LADDER v4's lossy rows and every "lossy at quality" price for tree-32 (mine at Tue 00:5x, ~277-315, included)
+       read "projected from measured parts, quality NOT gated".
+  2. **Two clean measurements for Saturday** (NewIdeas places both; quiet, known benchmarks, n / decode wall):
+     - the gated lossy stack on its env line;
+     - exact t30b + tree-16 after M4's PASS (+ ADAPTIVE K's arm if it passes).
+     **PLACED (NewIdeas 06:4x, approved by the orchestrator; owners confirm harness and length):**
+     - (i) LOSSY: the gated stack, whole decode on its pinned env line (EvalSuite, or BigMoE if EvalSuite's runner
+       cannot print n / decode wall).
+     - (ii) EXACT: t30b + tree-16 fixed, after tonight's M4 PASS (BigMoE, the M4 harness).
+     - Both: HE+ 164 + MBPP 100, one order, per set + pooled, quiet ticket, ~20-40 min each.
+     - Thu night order: C T T C (if its bit test passed) -> (i) -> (ii) -> the proofs' count check -> the card gate's
+       remainder.
+     - (ii') EXACT + ADAPTIVE K, only if it passes all gates by Fri 12:00: Fri ~12:00-15:00 after Leap's Friday check
+       (quiet, away >= 900), else at the head of Fri night. A missed (i) / (ii) also goes to the head of Fri night.
+     - **The orchestrator's three conditions:**
+       - No heat pause (fanwatch SIGSTOP) inside a timed decode. The fans are at Kamen's 5k line, so log fanwatch's
+         pause lines for the window. Any pause inside a set re-runs that set.
+       - Each number prints its config next to it: drafter, rows, tree or chain, acceptance rule, env blob.
+       - (ii) and (ii') print token identity against the exact reference per prompt (264 / 264). Any mismatch means
+         it is not exact.
+     **Reference points for Saturday (06:5x), NOT measurements:**
+     - B2 = the lossy-45 base, chain-16, dfl on all 264 code answers, share lock, not quiet. Whole decode n / decode
+       wall, recomputed by the orchestrator from es_cdlx45t1c1_rev_170523_*_runs.json (it matches EvalSuite):
+       - "humaneval" 60 keys 107.8; "humanevalx" 104 keys 71.5; so all 164 HE+ keys = 80.6;
+       - MBPP 100 keys 75.5;
+       - pooled code 78.6; IFEval 35.9.
+     - EvalSuite expects the gated stack near 80-100 tok/s.
+     - Exact t30b + tree-16 replay (E14's quiet costs, draft counted, decode only; dev sets heplus24 / mbppbank): HE+
+       147.6, MBPP 100.0. So the EXACT headline may well beat the gated LOSSY one. Thursday's two runs settle it.
+> (a quote from the project owner, kept private)
+  3. **Card-gate scope (EvalSuite's ask): the FULL card gate (A), 5.8-6.5 h, with lcb6 in every lever's sets.**
+     - lcb6 joins every lever's sets (BigMoE writes it), so LCB v6 tests the stack on long code. Without it the card
+       gate tests no lever.
+     - IFBench / GPQA-D stay in full. Tier 1 compares against lossy-45, not exact, so the card gate is the first and
+       only comparison of base + stack against NAX6-N on those sets.
+     - ~~Identity checks against cached base rows, ~3 h~~ (CORRECTED 06:5x, NewIdeas / EvalSuite: no base card rows
+       are cached for lossy-45 / lx45g1b, so that would cost a base run first).
+     - Fallback (ii) if tier 1's PASS or runner 69's dry passes are not in by Wed 21:00: LCB v6 both orders (~3 h) +
+       a switch-off spot check (20 IFBench + 20 GPQA keys, stack vs base, ~40 min).
+     - EvalSuite files the scope as a dated amendment before any card-gate data. Adoption stays Kamen's.
+  4. **Sizing (EvalSuite's numbers; replaces items 1-2 of 06:2x):**
+     - Stack tier 1: Wed ~10:30-13:30, after G1's verdict (~09:30-10:30).
+     - The card gate: Wed night right after the capture (~2.1 h; ~5 h of the gate fits there), if tier 1 passed
+       and runner 69 is ready.
+     - Thu night, in this order:
+       1. ADAPTK's C T T C first while cool (~30 min, only if its bit test passed);
+       2. the proofs' engine check (COUNT, ~30 min; marker results/certify98/ENGINE_CHECK_END, named Wed night);
+       3. the card gate's remainder.
+     - Fri night: the reserve. Expected verdict: Fri morning.
+     - No TREE16 arm is in EvalSuite's records. One goes in only if BigMoE or Leap name it.
+- **Tue 06:4x NewIdeas: CORRECTED: the lossy stack being GATED is CHAIN-16 with the DFlash (dfl) drafter, not the ladder's
+  config.** (EvalSuite found it; I verified it in BigMoE's data/r57/snap/g1b/r57_screen_g1b.py: line 125 R = R57_ROWS or 16;
+  line 1236 allows 32 rows only where the copy runs; no tree path.)
+  - Every gated env (lx45cc1, ccx45cc1, lx45t1c1, lx45g1b, the G1 envs) leaves R57_ROWS / R57_CHATROWS unset. Drafter:
+    dfl, d7b on code, copy g2. Gated code kept per check is 7.0 / 7.4.
+  - Reference point (EvalSuite 06:4x; share lock, NOT quiet, NOT a measurement): this morning's B2, the lossy-45 base on
+    chain-16, decoded code at 78.6 tok/s whole decode pooled (humaneval, the 60-key subset, 107.8; humanevalx 71.5; mbpp
+    75.5; 31.7 with prefill). All 164 HE+ keys pool to 80.6 (the orchestrator's recompute), so compare Thursday's (i) with 80.6. Expect Saturday's gated-stack number near 80-100 tok/s. For comparison, the exact t30b + tree-16 replay on E14
+    costs gives HE+ 147.6 / MBPP 100.0 (dev sets heplus24 / mbppbank, decode only; not the 164 keys), so the EXACT headline may
+    come out above the gated LOSSY one. (i) and (ii) must run the SAME 264 code keys (HE+ 164 = humaneval 60 + humanevalx 104,
+    MBPP 100).
+  - So LADDER v4's lossy rows (t30b, tree-32 + CC(1), kept 16.91, HE+ ~310-430) and ADAPTK-LOSSY's "serves the lossy
+    headline" are UNGATED projections. Rows, trees and the drafter decide which rows exist, and with them close calls,
+    1c tiers and COMQOM / RES rows, so this week's gate verdicts do not transfer to them.
+  - Saturday's lossy number at quality = the gated chain-16 r57 stack (lossy-45 + CC(1) + G1's pick), measured on its
+    env line. EXACT (t30b + tree-16, + ADAPTIVE K if it passes) needs no quality gate. Options are with the orchestrator:
+    accept, or gate the ladder config (a t30b / tree path in the r57 screen; very tight).
+- **Tue 06:2x orchestrator (NewIdeas' 06:2x slot ask; LOSSY_GATE section 4): the lossy STACK's quality gates run
+  BEFORE Saturday; "after Saturday" is only the fallback.** (Items 1-2 SUPERSEDED by 06:4x's sizing and the ~3 h
+  card-gate scope.) The stack = lossy-45 + CC(1) + G1's pick. G2 is out
+> (a quote from the project owner, kept private)
+  combination.
+  1. **Tier 1, both orders (~2.5 h, 45 GB):** Wed by day in G2's freed slot, chained on G1's verdict + pick, ending by
+     Wed 21:30 (>= 2 h before the capture). If G1 settles too late for that, Thu by day after the TOPK / T8-32 dumps
+     and Leap's slot.
+  2. **The card gate (IFBench 150 + GPQA-D 100 + LCB v6 131, both orders vs NAX6-N; 5-7 h):** chained on tier 1's
+     PASS, split at process boundaries:
+     - Wed by day to 21:30;
+     - then Thu night AFTER the proofs' GPU steps, chained on their end marker;
+     - then Fri night as the reserve.
+     The capture, the proofs and Leap's Friday measured check keep priority.
+  3. **A verdict by Sat 08:00 counts for Saturday.** Otherwise Saturday's lossy number reads "measured; card gate
+     pending", and the gate finishes after.
+  - (Moot for Saturday under 06:4x's option (a): the lossy headline is chain-16.)
+  - **Asked of NewIdeas + EvalSuite (their call):** under CC(1) the tree can change WHICH tokens are kept (exact mode
+    cannot), so ADAPTIVE K may change lossy outputs, not only speed. If Saturday's lossy headline uses ADAPTIVE K, the
+    card gate's config must name the tree policy; otherwise the lossy headline stays on fixed tree-32.
+  - **Verified in the records (orchestrator 06:2x):**
+    - CC(1) PASS in both orders (n 528, -1.14 pt, p 0.26; EvalSuite 61f5f46);
+    - d2 FAIL (MBPP -6.00 pt, pooled -4.17, p 0.013);
+    - tier-0a lines ADOPTED (A 0.9775, F 0.00 / 1k; 7528c5f);
+    - BigMoE's probe re-run PASS 3 / 3 at 05:21:59 (peaks 42.4-42.7 GB, swap 0, 0 swapouts; G1P_PROBE_DONE);
+    - B2 (lx45t1c1 reverse) running since 05:23;
+    - COMQOM 07:00, the band re-run and the Fit12 kill test are armed.
 - **Tue 04:5x NewIdeas: ADAPTIVE K DOWN (verify 8 rows when the drafter is unsure) = a SMALL lever. It passes on CPU;
   the engine's 8-row cost decides.** (~/NewIdeas/research/week98/adaptk_k8.txt, adaptk_k8lossy.txt; ADAPTK.md)
   - PEEK rule: verify 8 rows iff the 8th pop's path_p < ~0.25 (cross-fit), else ADAPTIVE K as frozen. path_p is
@@ -209,7 +320,8 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
     So fold dependent chains (GDN core, attention core, MoE tail) into one launch. The HC read in one launch already
     does it: 72/72 bitwise, -5.6..-6.4 ms per check (rough), 288 -> 96 launches.
   - Saturday, priced by the orchestrator [P] with ladder v4's other inputs; NewIdeas re-prices: at a ~46 ms check,
-    HE+ lossy at quality is ~277-282 (f 0.269, overhead 4) / ~290-295 (overhead 1.5) / ~309-315 (f 0.10). Ladder
+    HE+ lossy ~~at quality~~ (CORRECTED 06:4x: projected, quality NOT gated; the gated lossy stack is chain-16)
+    is ~277-282 (f 0.269, overhead 4) / ~290-295 (overhead 1.5) / ~309-315 (f 0.10). Ladder
     v4's ~385-428 needs ~14 ms more off the check, from the chain folds and / or the FAST expert path.
 - Tue 17 00:38-00:48 (BigMoE): **G1 key test (g1b, base + 8 int8-free envs) = 7 / 9 PASS.**
   - Scored keys exact 27 / 27, swap +0.00, 0 swapouts.

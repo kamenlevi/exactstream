@@ -1,0 +1,647 @@
+# runner 69 checks (Tue 2026-11-17 07:0x, rerun after CARD_RUNSUF): tools/day_runner69.sh sha256 5b2a9fb8ad4e22e5, built from runner 68 (sha256 80e2e33cd02e5f14, unchanged); smoke keys tools/stk_smoke_keys.txt sha256 96480e20dce278b8
+
+## 1. The diff, runner 68 -> runner 69
+1a2,17
+> # EvalSuite runner 69 = runner 68 with the card tier for the lossy stack (PREREG_lossygate, the stack's amendment; the
+> # orchestrator Tue 06:4x / 06:5x: the FULL card gate, lcb6 in every lever's sets). Runner 68 is unchanged for tiers 0 / 1;
+> # this file adds, and its logs are results/day69_*:
+> #   CARD_TIER=2, the card gate (LOSSY_GATE section 4; docs/PREREG_card_gates_2026-11-08.md's lines and its amendment 1):
+> #   - The keys: tools/card_keys.json's gate keys (IFBench 150, GPQA Diamond 100, LCB v6 131) of the sets in CARD_SETS
+> #     (default all three), or every key of CARD_KEYSFILE; with CARD_EXTEND="<sets>" (and CARD_RESUME=1) also those sets'
+> #     "extend" keys, which the reference must hold already (runner 61's ref stage).
+> #   - Both prompt orders in one call, as runner 61: forward = the keys sorted, then reverse, in their own runs
+> #     card_<tag>_t2<scope>_fwd / _rev; 20 prompts per process; the screen's CAP, each row cut to its item's max_tokens.
+> #   - The verdict, per benchmark and order vs CARD_REF (NAX6-N: ref2tnaxn.r6): tools/set_d4.py's decision 4. A benchmark
+> #     PASSES only in both orders; the gate PASSES when every judged benchmark does. Amendment 1: exactly one order failing
+> #     on the delta alone (McNemar p >= 0.05) is PENDING (extend that set: CARD_EXTEND); any other failure is a FAIL.
+> #   - CARD_IDENTSETS="<sets>" with CARD_IDENT_REF="<base fwd run>+<base rev run>": those sets are judged by token identity
+> #     with the base's same-order rows instead (the switch-off check), on every key of the set.
+> #   - In the code scope the chat sets are IFBench and GPQA: each engagement term must read 0 there; LCB v6 is the code
+> #     side (as IFEval and the code sets are in tier 1).
+47c63
+< LOG=results/day68_${TG}_runner.log
+---
+> LOG=results/day69_${TG}_runner.log
+51c67,68
+< TIER=${CARD_TIER:-1}; case "$TIER" in 0|1) ;; *) echo "CARD_TIER is 0 or 1"; exit 2;; esac
+---
+> TIER=${CARD_TIER:-1}; case "$TIER" in 0|1|2) ;; *) echo "CARD_TIER is 0, 1 or 2"; exit 2;; esac
+> [ "$TIER" = 2 ] && [ "$ORDER" = rev ] && { echo "CARD_TIER=2 runs both orders in one call: leave CARD_ORDER unset"; exit 2; }
+56,57c73,94
+< RUNF=card_${TAG}_t${TIER}${SCOPE/all/}${OSUF}; RUNC=$RUNF
+< STAGE=${CARD_STAGE:-arm}; PERPROC=20; CAP=2048; NK=364; [ "$TIER" = 0 ] && NK=40
+---
+> RUNF=card_${TAG}_t${TIER}${SCOPE/all/}${OSUF}; RUNC=$RUNF; RUNR=""
+> CHATSETS=ifeval; [ "$TIER" = 2 ] && CHATSETS=ifbench,gpqad   # runner 69: the code scope's chat (switch-off) sets
+> if [ "$TIER" = 2 ]; then RUNF=card_${TAG}_t2${SCOPE/all/}_fwd; RUNR=card_${TAG}_t2${SCOPE/all/}_rev; RUNC=$RUNR; fi
+> if [ -n "${CARD_RUNSUF:-}" ]; then   # runner 69: a tier-2 run that is not the gate's (the stack's smoke) gets its own names
+>   [ "$TIER" = 2 ] || { echo "CARD_RUNSUF is for CARD_TIER=2 only"; exit 2; }
+>   echo "$CARD_RUNSUF" | grep -qE '^_[a-z0-9]+$' || { echo "CARD_RUNSUF is _ and lowercase letters or digits"; exit 2; }
+>   TG=${TAG}${CARD_RUNSUF}; LOG=results/day69_${TG}_runner.log; DONE=results/CARD_${TG}_DONE
+>   RUNF=card_${TG}_t2${SCOPE/all/}_fwd; RUNR=card_${TG}_t2${SCOPE/all/}_rev; RUNC=$RUNR
+> fi
+> TIMING=${CARD_TIMING:-0}   # runner 69: a timing run for a headline (tier 1's code keys, one order, a quiet lock; no verdict)
+> if [ "$TIMING" = 1 ]; then
+>   [ "$TIER" = 1 ] && [ "$SCOPE" = code ] && [ "$ORDER" = fwd ] \
+>     || { echo "CARD_TIMING=1 needs CARD_TIER=1, CARD_SCOPE=code and the forward order"; exit 2; }
+>   TG=${TAG}_timing; LOG=results/day69_${TG}_runner.log; DONE=results/CARD_${TG}_DONE; RUNF=card_${TAG}_timing; RUNC=$RUNF
+> fi
+> TLED=results/$RUNF/timing_procs.txt   # the timing run's process windows: tag, start, end (epoch s)
+> if [ "$TIER" = 2 ]; then
+>   case "$REFS" in *,*) echo "CARD_TIER=2 takes one reference run (NAX6-N: ref2tnaxn.r6), not a comma list"; exit 2;; esac
+>   [ -z "${CARD_IDENTSETS:-}" ] || echo "${CARD_IDENT_REF:-}" | grep -qE '^[^+,]+\+[^+,]+$' \
+>     || { echo "CARD_IDENTSETS needs CARD_IDENT_REF=<base fwd run>+<base rev run>"; exit 2; }
+> fi
+> STAGE=${CARD_STAGE:-arm}; PERPROC=20; CAP=2048; NK=364; [ "$TIER" = 0 ] && NK=40; [ "$TIER" = 2 ] && NK=0   # tier 2: set below
+59,60c96,98
+< EXT=""   # runner 62: no extension (CARD_EXTEND is runner 61's)
+< XF=$AF/card_ext_keys.txt; RKF=$AF/lossy_ref_keys_${TG}_t${TIER}${SCOPE}.txt; RNK=$NK   # the reference's keys: its own file (01:3x: card_ref_keys.txt is the card gate's; runner 64 had overwritten it)
+---
+> EXT=""; [ "$TIER" = 2 ] && EXT=$(echo "${CARD_EXTEND:-}" | tr ',' ' ')   # runner 69: amendment 1's extension, tier 2 only
+> IDS=""; [ "$TIER" = 2 ] && IDS=$(echo "${CARD_IDENTSETS:-}" | tr ',' ' ')   # runner 69: sets judged by identity with the base
+> XF=$AF/card_ext_keys_${TG}.txt; RKF=$AF/lossy_ref_keys_${TG}_t${TIER}${SCOPE}.txt; RNK=$NK   # the reference's keys: its own file (01:3x: card_ref_keys.txt is the card gate's; runner 64 had overwritten it)
+70c108
+< [ "$DRY" = 1 ] && LOG=results/day68_dry_${TG}.log
+---
+> [ "$DRY" = 1 ] && LOG=results/day69_dry_${TG}.log
+269c307
+<   share_lock "evalsuite: MEM $MEM GB: $PHASE, $3" "$(( ${STEP:-900} / 30 ))"   # the lease: 2x the step (30 min at HARD 600)
+---
+>   [ "$TIMING" = 1 ] || share_lock "evalsuite: MEM $MEM GB: $PHASE, $3" "$(( ${STEP:-900} / 30 ))"   # the lease: 2x the step (30 min at HARD 600); runner 69's timing run holds its quiet lock instead
+273c311,312
+<   peer unlock > /dev/null 2>&1
+---
+>   [ "$TIMING" = 1 ] || peer unlock > /dev/null 2>&1
+>   [ "$TIMING" = 1 ] && mkdir -p "results/$RUNF" && echo "$tag $t0 $(date +%s)" >> "$TLED"   # runner 69: the process's window
+313c352
+<   ENGAGE="$ENGAGE" ENGMODE="${CARD_ENGAGE_MODE:-each}" PANEL="$KF" SCOPE="$SCOPE" python3 - "$AF/${tag}_runs.json" <<'ENG2' >> "$LOG" 2>&1 || void "LOSSY $3: the variant is not engaged as registered (runs.json ${ENGAGE:-}, ${CARD_ENGAGE_MODE:-each})"
+---
+>   ENGAGE="$ENGAGE" ENGMODE="${CARD_ENGAGE_MODE:-each}" PANEL="$KF" SCOPE="$SCOPE" CHATSETS="$CHATSETS" python3 - "$AF/${tag}_runs.json" <<'ENG2' >> "$LOG" 2>&1 || void "LOSSY $3: the variant is not engaged as registered (runs.json ${ENGAGE:-}, ${CARD_ENGAGE_MODE:-each})"
+329c368,369
+< chat = lambda k: os.environ.get("SCOPE") == "code" and k.split("/")[0] == "ifeval"   # CODE-ONLY mode: chat runs the base path
+---
+> CS = set(os.environ.get("CHATSETS", "ifeval").split(","))   # runner 69: tier 2's chat sets are IFBench and GPQA
+> chat = lambda k: os.environ.get("SCOPE") == "code" and k.split("/")[0] in CS   # CODE-ONLY mode: chat runs the base path
+355c395
+<   ENGAGE="$RUNTERMS" SCOPE="$SCOPE" WHEN="$2" python3 - "$1" <<'RT' >> "$LOG" 2>&1 \
+---
+>   ENGAGE="$RUNTERMS" SCOPE="$SCOPE" WHEN="$2" CHATSETS="$CHATSETS" python3 - "$1" <<'RT' >> "$LOG" 2>&1 \
+359c399,400
+< chat = lambda k: os.environ.get("SCOPE") == "code" and k.split("/")[0] == "ifeval"
+---
+> CS = set(os.environ.get("CHATSETS", "ifeval").split(","))   # runner 69: tier 2's chat sets are IFBench and GPQA
+> chat = lambda k: os.environ.get("SCOPE") == "code" and k.split("/")[0] in CS
+400c441
+<     if [ -n "$RUNTERMS" ] && [ "$run" = "$RUNF" ] && [ -s "$AF/${tag}_runs.json" ] && [ -d "results/$run" ]; then   # runner 68: the ledger
+---
+>     if [ -n "$RUNTERMS" ] && { [ "$run" = "$RUNF" ] || [ "$run" = "$RUNR" ]; } && [ -s "$AF/${tag}_runs.json" ] && [ -d "results/$run" ]; then   # runner 68: the ledger (69: both tier-2 runs)
+504a546,570
+> if [ "$TIER" = 2 ]; then   # runner 69: the card gate's keys (tools/card_keys.json); the extension keys also apart, in XF
+>   python3 - "$KF" "$XF" "${CARD_SETS:-ifbench,gpqad,lcb6}" "${CARD_KEYSFILE:-}" "$EXT" "$IDS" <<'PK2' >> "$LOG" 2>&1 \
+>     || { say "the card keys do not build (CARD_SETS / CARD_KEYSFILE / CARD_EXTEND / CARD_IDENTSETS): runner stops"; exit 2; }
+> import json, sys
+> kf, xf, sets, kfile, ext, ids = sys.argv[1], sys.argv[2], [s for s in sys.argv[3].split(",") if s], sys.argv[4], sys.argv[5].split(), sys.argv[6].split()
+> d = json.load(open("tools/card_keys.json"))
+> assert sets and all(s in d["keys"] for s in sets), f"CARD_SETS {sets}: the card sets are {sorted(d['keys'])}"
+> assert all(s in sets for s in ext + ids), f"CARD_EXTEND {ext} / CARD_IDENTSETS {ids} name a set outside CARD_SETS {sets}"
+> assert not set(ext) & set(ids), "a set judged by identity is never extended"
+> if kfile:                                               # an explicit, registered key list (e.g. a spot check's subset)
+>     ks = [k for k in open(kfile).read().split() if k]
+>     allk = {k for s in d["keys"] for k in d["keys"][s]}
+>     assert set(ks) <= allk, f"CARD_KEYSFILE: {len(set(ks) - allk)} keys are not gate keys"
+>     assert {k.split("/")[0] for k in ks} == set(sets), "CARD_KEYSFILE's sets are not CARD_SETS"
+> else:
+>     ks = [k for s in sets for k in d["keys"][s]]
+> xs = [k for s in ext for k in d["extend"][s]]
+> assert len(ks) == len(set(ks)) and not set(ks) & set(xs), "duplicate keys"
+> open(kf, "w").write("\n".join(ks + xs) + "\n")          # the panel (the engagement check's PANEL) = the reference's keys
+> open(xf, "w").write("\n".join(xs) + ("\n" if xs else ""))
+> print(f"card keys: {len(ks)} gate keys of {sets}" + (f" ({kfile})" if kfile else "") + (f"; + {len(xs)} extension keys of {ext}" if xs else "")
+>       + (f"; judged by identity: {ids}" if ids else ""))
+> PK2
+>   NK=$(sort -u "$KF" | grep -c .); RNK=$NK
+> else
+512a579
+> fi
+521c588
+< [ "$STAGE" = arm ] || { say "runner 68 has the arm stage only: runner stops"; exit 2; }
+---
+> [ "$STAGE" = arm ] || { say "runner 69 has the arm stage only: runner stops"; exit 2; }
+528c595
+< echo $$ > results/q64_${TG}.pid; trap 'rm -f results/q64_${TG}.pid' EXIT
+---
+> echo $$ > results/q69_${TG}.pid; trap 'rm -f results/q69_${TG}.pid' EXIT
+530c597
+< say "runner 68 (the lossy gate, $TAG, tier $TIER, scope $SCOPE) start (pid $$)$([ "${CARD_RESUME:-0}" = 1 ] && echo ', a resume'): waits for $FENV (written after Wed 14:33); cutoff $(date -r "$CUTOFF" '+%m-%d %H:%M')"
+---
+> say "runner 69 (the lossy gate, $TAG, tier $TIER$([ "$TIER" = 2 ] && echo ': the card gate, both orders'), scope $SCOPE) start (pid $$)$([ "${CARD_RESUME:-0}" = 1 ] && echo ', a resume'): waits for $FENV (written after Wed 14:33); cutoff $(date -r "$CUTOFF" '+%m-%d %H:%M')"
+570c637,638
+< for s_ in humaneval humanevalx mbpp ifeval; do   # the lossy panel's sets (keys carry their set name before "/")
+---
+> SETS_="humaneval humanevalx mbpp ifeval"; [ "$TIER" = 2 ] && SETS_="ifbench gpqad lcb6"   # runner 69: the card sets
+> for s_ in $SETS_; do   # the panel's sets (keys carry their set name before "/")
+601a670,676
+> RKEYS=""; XKEYS=""; XRKEYS=""
+> [ "$TIMING" = 1 ] && KEYS=$(echo "$KEYS" | tr ',' '\n' | grep -v '^ifeval/' | paste -sd, -)   # runner 69: the timed code keys
+> if [ "$TIER" = 2 ]; then   # runner 69 (runner 61's orders): forward = the gate keys sorted, reverse = that reversed; the
+>   KEYS=$(grep . "$KF" | grep -v -x -F -f "$XF" | LC_ALL=C sort | paste -sd, -)   # extension keys likewise, appended after
+>   RKEYS=$(echo "$KEYS" | tr ',' '\n' | tail -r | paste -sd, -)
+>   if [ -s "$XF" ]; then XKEYS=$(LC_ALL=C sort "$XF" | grep . | paste -sd, -); XRKEYS=$(echo "$XKEYS" | tr ',' '\n' | tail -r | paste -sd, -); fi
+> fi
+612a688,689
+> [ "$DRY" = 1 ] && [ "$TIMING" = 1 ] && { say "DRY: a timing run (no verdict): run $RUNF; $(echo "$KEYS" | tr ',' '\n' | grep -c .) code keys in the panel's forward order ($(echo "$KEYS" | tr ',' '\n' | cut -d/ -f1 | sort | uniq -c | awk '{printf "%s %s ", $2, $1}')), first $(echo "$KEYS" | cut -d, -f1-2); one quiet lock of ${CARD_QUIET_MIN:-90} min, no share locks; heat pauses read from ${CARD_FANLOG:-$HOME/Library/Logs/fanwatch.log}; engagement ${ENGAGE:-none} (whole-run terms ${RUNTERMS:-none}); QOM sets ${QS:-unset}; 1c sets ${TS:-none}; pin $PIN0; bm_pin $(bm_pin && echo OK || echo FAILS); stops before the first GPU step"; exit 0; }
+> [ "$DRY" = 1 ] && [ "$TIER" = 2 ] && { say "DRY: tier 2 (the card gate), scope $SCOPE, chat sets $CHATSETS; runs $RUNF / $RUNR; forward first $(echo "$KEYS" | cut -d, -f1-2), last $(echo "$KEYS" | tr ',' '\n' | tail -1); reverse first $(echo "$RKEYS" | cut -d, -f1); $(echo "$KEYS" | tr ',' '\n' | grep -c .) gate keys per order ($(echo "$KEYS" | tr ',' '\n' | cut -d/ -f1 | sort | uniq -c | awk '{printf "%s %s ", $2, $1}'))$([ -n "$XKEYS" ] && echo "+ $(echo "$XKEYS" | tr ',' '\n' | grep -c .) extension keys ($EXT)"); identity sets ${IDS:-none}${IDS:+ vs ${CARD_IDENT_REF:-UNSET}}; engagement ${ENGAGE:-none} (whole-run terms ${RUNTERMS:-none}); QOM sets ${QS:-unset}; 1c sets ${TS:-none}; reference $REFS holds $(refcount) of $RNK; pin $PIN0; bm_pin $(bm_pin && echo OK || echo FAILS); stops before the first GPU step"; exit 0; }
+689a767,819
+> card_verdict() {   # runner 69, tier 2: per benchmark and order vs $REFS (runner 61's assembly; PREREG_card_gates' lines,
+>   # amendment 1); the CARD_IDENTSETS sets by token identity with the base's same-order run instead
+>   local s_ o l n_ ext_ nf nd ni p_ ir_ out_ rr_ F="" I="" X="" S=""
+>   share_lock "evalsuite: card verdict scoring (CPU only: graders; LCB tests one process at a time)" 60 "--cpu 150 --gpu 0"
+>   for s_ in $(echo "${CARD_SETS:-ifbench,gpqad,lcb6}" | tr ',' ' '); do
+>     nf=0; nd=0; ni=0; ext_=0; case " $EXT " in *" $s_ "*) ext_=1 ;; esac
+>     n_=$(grep -c "^$s_/" "$KF")   # the set's keys in this panel (its gate keys, or the full set once extended): set_d4's N
+>     for o in fwd rev; do
+>       rr_=$RUNF; [ "$o" = rev ] && rr_=$RUNR   # this call's run of that order
+>       if case " $IDS " in *" $s_ "*) true ;; *) false ;; esac; then
+>         ir_=$(echo "$CARD_IDENT_REF" | cut -d+ -f"$([ "$o" = fwd ] && echo 1 || echo 2)"); out_="results/card_${TG}_t2_${s_}_${o}_ident.txt"
+>         python3 - "$s_" "$rr_" "$ir_" "$KF" > "$out_" 2>&1 <<'ID'
+> import json, os, sys
+> s, arm, base, kf = sys.argv[1:5]
+> keys = [k for k in open(kf).read().split() if k.split("/")[0] == s]
+> def rows(run):
+>     p = f"results/{run}/decode.jsonl"
+>     return {r["key"]: r["completion_ids"] for r in map(json.loads, open(p))} if os.path.exists(p) else {}
+> A, B = rows(arm), rows(base)
+> miss = [k for k in keys if k not in A or k not in B]
+> same = sum(1 for k in keys if k in A and k in B and A[k] == B[k])
+> print(f"{s} identity vs {base}: " + (f"INCOMPLETE ({len(miss)} of {len(keys)} keys without a row in both)" if miss
+>       else f"tokens identical on {same} of {len(keys)}: " + ("PASS" if same == len(keys) else "FAIL")))
+> ID
+>         l=$(tail -1 "$out_")
+>         say "CARD $TAG $s_ $o (identity, the switch-off check): ${l:-missing}"
+>         case "$l" in *": PASS") ;; *INCOMPLETE*|"") ni=$((ni + 1)) ;; *) nf=$((nf + 1)) ;; esac
+>       else
+>         out_="results/card_${TG}_t2_${s_}_${o}_d4.txt"
+>         SET_D4_N="$n_" $PY tools/set_d4.py "$s_" "$rr_" "$REFS" > "$out_" 2>&1
+>         l=$(grep "^$s_ vs $REFS " "$out_" | tail -1)
+>         say "CARD $TAG $s_ $o (decision 4, n $n_$([ "$ext_" = 1 ] && echo ', the full set')): ${l:-missing}"
+>         case "$l" in
+>           "") ni=$((ni + 1)) ;;
+>           *": PASS"|*": DIFFERS (HIGHER)") ;;
+>           *) nf=$((nf + 1)); p_=$(echo "$l" | sed -E 's/.*McNemar p ([0-9.]+).*/\1/')
+>              awk -v p="$p_" 'BEGIN {exit !(p >= 0.05)}' && nd=$((nd + 1)) ;;
+>         esac
+>       fi
+>       S="$S; $s_ $o$(echo "$l" | sed -E 's/^[^:]*://' | cut -c1-60)"
+>     done
+>     if [ "$ni" -gt 0 ]; then I="$I $s_"
+>     elif [ "$nf" = 0 ]; then :
+>     elif [ "$ext_" = 0 ] && [ "$nf" = 1 ] && [ "$nd" = 1 ] && ! case " $IDS " in *" $s_ "*) true ;; *) false ;; esac; then
+>       X="$X $s_"   # amendment 1: one order failing on the delta alone
+>     else F="$F $s_"; fi
+>   done
+>   peer unlock > /dev/null 2>&1
+>   V=PASS
+>   [ -n "$X" ] && V="PENDING: extend$X to the full set in both orders (amendment 1: runner 61's ref stage, then CARD_RESUME=1 CARD_EXTEND=\"$(echo $X)\")"
+>   [ -n "$I" ] && V="INCOMPLETE ($I )"; [ -n "$F" ] && V="FAIL ($F )"
+>   echo "CARD $TG (tier 2, scope $SCOPE): $V vs $REFS$S" > "$DONE"
+> }
+691c821,934
+< if [ "$TIER" = 0 ]; then
+---
+> quiet_take() {   # runner 69, timing: one queued quiet lock for the whole run (peer lock quiet --queue <min>), no share locks
+>   local r
+>   say "timing: queueing for a quiet lock of ${CARD_QUIET_MIN:-90} min"
+>   r=$(peer lock quiet --queue "${CARD_QUIET_MIN:-90}m" "evalsuite: MEM $MEM GB: lossy headline timing $TAG (HE+ 164 + MBPP 100, one order)" 2>&1) \
+>     || { say "timing: no quiet lock ($(echo "$r" | tail -1 | cut -c1-160)): runner stops"; exit 3; }
+>   [ -e "$QPAUSE" ] && { peer unlock > /dev/null 2>&1; say "timing: PAUSE right after the quiet lock: released it: runner stops"; exit 3; }
+>   say "timing: quiet lock held from $(date +%H:%M:%S) ($(echo "$r" | tail -1 | cut -c1-140))"
+> }
+> timing_py() {    # runner 69, timing: tainted | summary, over the process windows (TLED), their runs.json and fanwatch's pauses
+>   TLED="$TLED" AF="$AF" FANLOG="${CARD_FANLOG:-$HOME/Library/Logs/fanwatch.log}" ENVLINE="$ENVLINE" FB="$FB" TREES="${CARD_TREES:-}" \
+>     SCR="$(shasum -a 256 "$SCREEN" | cut -c1-12)" C_="$C" MEM_="$MEM" KEYS="$KEYS" TAG="$TAG" python3 - "$1" <<'TM'
+> import datetime as dt, json, os, re, sys
+> mode = sys.argv[1]
+> keys = [k for k in os.environ["KEYS"].split(",") if k]
+> procs = [l.split() for l in open(os.environ["TLED"]).read().splitlines() if l.strip()] if os.path.exists(os.environ["TLED"]) else []
+> pauses, start = [], None                                # fanwatch: "<date> <time> heat pause ...: PAUSE set" .. "<date> <time> cool ... PAUSE cleared"
+> if os.path.exists(os.environ["FANLOG"]):
+>     for l in open(os.environ["FANLOG"], errors="replace"):
+>         m = re.match(r"(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d) (.*)", l)
+>         if not m:
+>             continue
+>         t = dt.datetime.strptime(m.group(1), "%Y-%m-%d %H:%M:%S").timestamp()
+>         if "heat pause" in m.group(2) and "PAUSE set" in m.group(2):
+>             start = t if start is None else start
+>         elif "PAUSE cleared" in m.group(2) and start is not None:
+>             pauses.append((start, t)); start = None
+> if start is not None:                                   # a pause still on
+>     pauses.append((start, dt.datetime.now().timestamp()))
+> def hit(a, b):
+>     return [(p, q) for p, q in pauses if p < b and q > a]
+> rec, bad = {}, {}                                       # per key: the latest record from an untainted window; tainted ones apart
+> for tag, a, b in procs:
+>     a, b = int(a), int(b)
+>     p = os.path.join(os.environ["AF"], f"{tag}_runs.json")
+>     rs = json.load(open(p)) if os.path.exists(p) else []
+>     h = hit(a, b)
+>     for r in rs:
+>         if r.get("cut") or not r.get("tps"):
+>             continue
+>         (bad if h else rec)[r["key"]] = dict(r, _tag=tag, _pause=h)
+> if mode == "tainted":                                   # the keys to re-run: a timed key with no clean record
+>     print(",".join(k for k in keys if k not in rec))
+>     sys.exit(0)
+> env = dict(t.split("=", 1) for t in re.split(r",(?=[A-Z0-9_]+=)", os.environ["ENVLINE"]) if "=" in t)
+> rows = env.get("R57_ROWS") or "16 (R57_ROWS unset)"
+> acc = "; ".join(f"{k}={env[k]}" for k in ("R57_FAST", "R57_QOM_SETS", "R57_TIERS", "R57_TIERS_S", "R57_TIERS_SETS",
+>                  "R57_TIERS_LAM", "R57_RELAX_DELTA", "R57_RELAX_DELTA_SETS", "R57_COMQOM_SETS", "R57_COMQOM_DOC_SETS",
+>                  "R57_RES_SETS", "R57_RELAX_SPAN", "R57_RELAX_SPAN_RULE", "R57_COPY") if k in env)
+> miss = [k for k in keys if k not in rec]
+> def agg(ks):
+>     rs = [rec[k] for k in ks if k in rec]
+>     n = sum(r["n"] for r in rs); dw = sum(r["n"] / r["tps"] for r in rs); pf = sum(r.get("pfs") or 0 for r in rs)
+>     ck = sum(r.get("checks") or 0 for r in rs)
+>     return len(rs), n, dw, pf, ck
+> out = []
+> for lab, ks in (("humaneval", [k for k in keys if k.startswith("humaneval/")]),
+>                 ("humanevalx", [k for k in keys if k.startswith("humanevalx/")]),
+>                 ("HE+ (humaneval + humanevalx)", [k for k in keys if k.split("/")[0] in ("humaneval", "humanevalx")]),
+>                 ("mbpp", [k for k in keys if k.startswith("mbpp/")]), ("pooled code", keys)):
+>     na, n, dw, pf, ck = agg(ks)
+>     out.append(f"{lab} ({na} of {len(ks)} answers): whole decode {n / dw if dw else 0:.2f} tok/s = n {n} / decode wall "
+>                f"{dw:.1f} s; with prefill {n / (dw + pf) if dw + pf else 0:.2f} (information); kept per check {n / ck if ck else 0:.2f}")
+> drf = {}
+> for k, r in rec.items():
+>     drf.setdefault(k.split("/")[0], {}).setdefault(str(r.get("drafter")), 0)
+>     drf[k.split("/")[0]][str(r.get("drafter"))] += 1
+> win = [(int(a), int(b)) for _, a, b in procs]
+> print(f"TIMING {os.environ['TAG']} (runner 69; one quiet lock; the panel's forward order; {len(procs)} processes, "
+>       f"{(max(b for _, b in win) - min(a for a, _ in win)) / 60 if win else 0:.1f} min with loads)")
+> for l in out:
+>     print("  " + l)
+> print(f"  config: {rows} rows per check, a chain (the r57 screen has no tree path); drafters {drf}; acceptance: {acc}; "
+>       f"env blob {os.environ['FB']}; trees [{os.environ['TREES']}]; screen {os.environ['SCR']}; C {os.environ['C_']}; MEM {os.environ['MEM_']}")
+> print(f"  heat pauses (fanwatch) inside a timed window: " + (", ".join(f"{t} {[(dt.datetime.fromtimestamp(p).strftime('%H:%M:%S'), dt.datetime.fromtimestamp(q).strftime('%H:%M:%S')) for p, q in hit(int(a), int(b))]}" for t, a, b in procs if hit(int(a), int(b))) or "none")
+>       + (f"; tainted answers replaced by clean re-runs: {len(bad)}" if bad else ""))
+> pooled = agg(keys)
+> print(f"TIMING {os.environ['TAG']}: whole decode {pooled[1] / pooled[2] if pooled[2] else 0:.2f} tok/s pooled code "
+>       f"(n {pooled[1]} / {pooled[2]:.1f} s, {pooled[0]} of {len(keys)} answers)" + (f"; INCOMPLETE: {len(miss)} answers without a clean record" if miss else ""))
+> sys.exit(1 if miss else 0)
+> TM
+> }
+> timing_rerun() { # runner 69, timing: re-run the keys whose only records come from a window with a heat pause (twice at most)
+>   local round ks i
+>   for round in 1 2; do
+>     ks=$(timing_py tainted 2> /dev/null); [ -z "$ks" ] && return 0
+>     say "timing: $(echo "$ks" | tr ',' '\n' | grep -c .) answers lack a clean record (a heat pause inside their window, or no record): re-run $round"
+>     i=0
+>     while [ -n "$ks" ]; do
+>       i=$((i + 1))
+>       fast "${TAGP}tr${round}_${i}" "$(echo "$ks" | tr ',' '\n' | head -"$PERPROC" | paste -sd, -)" "timing re-run $round process $i"
+>       ks=$(echo "$ks" | tr ',' '\n' | tail -n +"$((PERPROC + 1))" | paste -sd, -)
+>     done
+>   done
+> }
+> if [ "$TIMING" = 1 ]; then   # runner 69: the timing run (one quiet lock, the code keys in one order, no verdict)
+>   quiet_take
+>   order "$RUNF" tm "$KEYS"
+>   timing_rerun
+>   peer unlock > /dev/null 2>&1; say "timing: quiet lock released"
+>   runterms "$RUNF" full
+>   timing_py summary > "results/card_${TG}.txt" 2>&1
+>   grep -E '^ |^TIMING' "results/card_${TG}.txt" | while read -r l_; do say "$l_"; done
+>   tail -1 "results/card_${TG}.txt" > "$DONE"
+> elif [ "$TIER" = 2 ]; then   # runner 69: the card gate, both orders in one call (runner 61's arm flow on runner 68's checks)
+>   order "$RUNF" fwd "$KEYS"
+>   order "$RUNR" rev "$RKEYS"
+>   if [ -n "$XKEYS" ]; then   # amendment 1: the extension keys, in both orders, appended to the same runs
+>     say "extension ($EXT): $(echo "$XKEYS" | tr ',' '\n' | grep -c .) keys per order"
+>     order "$RUNF" xfwd "$XKEYS"
+>     order "$RUNR" xrev "$XRKEYS"
+>   fi
+>   runterms "$RUNF" full; runterms "$RUNR" full
+>   card_verdict
+> elif [ "$TIER" = 0 ]; then
+724c967
+< say "runner 68 end"
+---
+> say "runner 69 end"
+
+## 2. DRY passes of the file itself on BigMoE's lx45g1b env (g1b pins), 16 calls (dry69.sh, below): rc, the runner's first output lines, and its DRY / stop line
+== t2full: rc 0
+07:03:13 pins: trees [data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f], screen 6039fa8dbea5, .so ff69fa24a745: OK
+07:03:13 DRY: tier 2 (the card gate), scope code, chat sets ifbench,gpqad; runs card_lx45g1b_t2code_fwd / card_lx45g1b_t2code_rev; forward first gpqad/rec0Arme2jcXQZnAW,gpqad/rec0yTRmO1o1xCA6H, last lcb6/arc196_d; reverse first lcb6/arc196_d; 381 gate keys per order (gpqad 100 ifbench 150 lcb6 131 ); identity sets none; engagement lossy_check:e3+edrop+lmsl_rows (whole-run terms none); QOM sets humaneval,mbpp; 1c sets none; reference ref2tnaxn.r6 holds 381 of 381; pin 200d776668be; bm_pin OK; stops before the first GPU step
+== t2lcb: rc 0
+07:03:14 pins: trees [data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f], screen 6039fa8dbea5, .so ff69fa24a745: OK
+07:03:14 DRY: tier 2 (the card gate), scope code, chat sets ifbench,gpqad; runs card_lx45g1b_t2code_fwd / card_lx45g1b_t2code_rev; forward first lcb6/3692,lcb6/3696, last lcb6/arc196_d; reverse first lcb6/arc196_d; 131 gate keys per order (lcb6 131 ); identity sets none; engagement none (whole-run terms none); QOM sets humaneval,mbpp; 1c sets none; reference ref2tnaxn.r6 holds 131 of 131; pin 200d776668be; bm_pin OK; stops before the first GPU step
+== t2spot: rc 0
+07:03:14 pins: trees [data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f], screen 6039fa8dbea5, .so ff69fa24a745: OK
+07:03:14 DRY: tier 2 (the card gate), scope code, chat sets ifbench,gpqad; runs card_lx45g1b_t2code_fwd / card_lx45g1b_t2code_rev; forward first gpqad/rec0Arme2jcXQZnAW,gpqad/rec0yTRmO1o1xCA6H, last lcb6/arc196_d; reverse first lcb6/arc196_d; 171 gate keys per order (gpqad 20 ifbench 20 lcb6 131 ); identity sets ifbench gpqad vs card_base_fwd+card_base_rev; engagement none (whole-run terms none); QOM sets humaneval,mbpp; 1c sets none; reference ref2tnaxn.r6 holds 171 of 171; pin 200d776668be; bm_pin OK; stops before the first GPU step
+== t2ext: rc 2
+card keys: 381 gate keys of ['ifbench', 'gpqad', 'lcb6']; + 44 extension keys of ['lcb6']
+07:03:14 the reference (ref2tnaxn.r6) holds 381 of 425 keys: runner stops
+== t2rev: rc 2
+CARD_TIER=2 runs both orders in one call: leave CARD_ORDER unset
+card keys: 381 gate keys of ['ifbench', 'gpqad', 'lcb6']; + 44 extension keys of ['lcb6']
+07:03:14 the reference (ref2tnaxn.r6) holds 381 of 425 keys: runner stops
+== t2refs: rc 2
+CARD_TIER=2 takes one reference run (NAX6-N: ref2tnaxn.r6), not a comma list
+card keys: 381 gate keys of ['ifbench', 'gpqad', 'lcb6']; + 44 extension keys of ['lcb6']
+07:03:14 the reference (ref2tnaxn.r6) holds 381 of 425 keys: runner stops
+== t2idnoref: rc 2
+CARD_IDENTSETS needs CARD_IDENT_REF=<base fwd run>+<base rev run>
+card keys: 381 gate keys of ['ifbench', 'gpqad', 'lcb6']; + 44 extension keys of ['lcb6']
+07:03:14 the reference (ref2tnaxn.r6) holds 381 of 425 keys: runner stops
+== t2badset: rc 2
+AssertionError: CARD_SETS ['lcb6', 'mbpp']: the card sets are ['gpqad', 'ifbench', 'lcb6']
+07:03:14 the card keys do not build (CARD_SETS / CARD_KEYSFILE / CARD_EXTEND / CARD_IDENTSETS): runner stops
+== timing: rc 0
+07:03:15 pins: trees [data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f], screen 6039fa8dbea5, .so ff69fa24a745: OK
+07:03:15 DRY: a timing run (no verdict): run card_lx45g1b_timing; 264 code keys in the panel's forward order (humaneval 60 humanevalx 104 mbpp 100 ), first humaneval/HumanEval/1,mbpp/100; one quiet lock of 90 min, no share locks; heat pauses read from /Users/kamen/Library/Logs/fanwatch.log; engagement none (whole-run terms none); QOM sets humaneval,mbpp; 1c sets none; pin 200d776668be; bm_pin OK; stops before the first GPU step
+== timingrev: rc 2
+CARD_TIMING=1 needs CARD_TIER=1, CARD_SCOPE=code and the forward order
+07:03:15 pins: trees [data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f], screen 6039fa8dbea5, .so ff69fa24a745: OK
+07:03:15 DRY: a timing run (no verdict): run card_lx45g1b_timing; 264 code keys in the panel's forward order (humaneval 60 humanevalx 104 mbpp 100 ), first humaneval/HumanEval/1,mbpp/100; one quiet lock of 90 min, no share locks; heat pauses read from /Users/kamen/Library/Logs/fanwatch.log; engagement none (whole-run terms none); QOM sets humaneval,mbpp; 1c sets none; pin 200d776668be; bm_pin OK; stops before the first GPU step
+== t1code: rc 0
+07:03:15 pins: trees [data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f], screen 6039fa8dbea5, .so ff69fa24a745: OK
+07:03:15 DRY: tier 1, scope code, order fwd (first humaneval/HumanEval/1,mbpp/100, last ifeval/3757), 364 keys; engagement field none (whole-run terms none); QOM sets humaneval,mbpp; 1c sets none; reference ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 holds 364 of 364; pin 200d776668be; bm_pin OK; stops before the first GPU step
+== t1rev: rc 0
+07:03:16 pins: trees [data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f], screen 6039fa8dbea5, .so ff69fa24a745: OK
+07:03:16 DRY: tier 1, scope code, order rev (first humanevalx/HumanEval/99,mbpp/321, last ifeval/1000), 364 keys; engagement field none (whole-run terms none); QOM sets humaneval,mbpp; 1c sets none; reference card_lx45cc1_t1code_rev holds 364 of 364; pin 200d776668be; bm_pin OK; stops before the first GPU step
+== t0code: rc 0
+07:03:16 pins: trees [data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f], screen 6039fa8dbea5, .so ff69fa24a745: OK
+07:03:16 DRY: tier 0, scope code, order fwd (first humaneval/HumanEval/1,mbpp/100, last mbpp/157), 40 keys; engagement field none (whole-run terms none); QOM sets humaneval,mbpp; 1c sets none; reference ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2 holds 40 of 40; pin 200d776668be; bm_pin OK; stops before the first GPU step
+== t2smoke: rc 0
+07:03:17 pins: trees [data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f], screen 6039fa8dbea5, .so ff69fa24a745: OK
+07:03:17 DRY: tier 2 (the card gate), scope code, chat sets ifbench,gpqad; runs card_lx45g1b_smoke_t2code_fwd / card_lx45g1b_smoke_t2code_rev; forward first gpqad/rec2ZTsqazBZ3LTWZ,ifbench/124, last lcb6/3692; reverse first lcb6/3692; 3 gate keys per order (gpqad 1 ifbench 1 lcb6 1 ); identity sets none; engagement none (whole-run terms none); QOM sets humaneval,mbpp; 1c sets none; reference ref2tnaxn.r6 holds 3 of 3; pin 200d776668be; bm_pin OK; stops before the first GPU step
+== t1runsuf: rc 2
+CARD_RUNSUF is for CARD_TIER=2 only
+07:03:17 pins: trees [data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f], screen 6039fa8dbea5, .so ff69fa24a745: OK
+07:03:17 DRY: tier 2 (the card gate), scope code, chat sets ifbench,gpqad; runs card_lx45g1b_smoke_t2code_fwd / card_lx45g1b_smoke_t2code_rev; forward first gpqad/rec2ZTsqazBZ3LTWZ,ifbench/124, last lcb6/3692; reverse first lcb6/3692; 3 gate keys per order (gpqad 1 ifbench 1 lcb6 1 ); identity sets none; engagement none (whole-run terms none); QOM sets humaneval,mbpp; 1c sets none; reference ref2tnaxn.r6 holds 3 of 3; pin 200d776668be; bm_pin OK; stops before the first GPU step
+== t2badsuf: rc 2
+CARD_RUNSUF is _ and lowercase letters or digits
+07:03:17 pins: trees [data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f], screen 6039fa8dbea5, .so ff69fa24a745: OK
+07:03:17 DRY: tier 2 (the card gate), scope code, chat sets ifbench,gpqad; runs card_lx45g1b_smoke_t2code_fwd / card_lx45g1b_smoke_t2code_rev; forward first gpqad/rec2ZTsqazBZ3LTWZ,ifbench/124, last lcb6/3692; reverse first lcb6/3692; 3 gate keys per order (gpqad 1 ifbench 1 lcb6 1 ); identity sets none; engagement none (whole-run terms none); QOM sets humaneval,mbpp; 1c sets none; reference ref2tnaxn.r6 holds 3 of 3; pin 200d776668be; bm_pin OK; stops before the first GPU step
+
+## 3. card_verdict stub tests (test_verdict.sh, below)
+PASS allpass: CARD t (tier 2, scope code): PASS vs ref2tnaxn.r6; ifbench fwd delta -1.00 pt, McNemar p 0.6000 (arm only 1 / reference on; ifbench rev delta -1.00 pt
+PASS pending: CARD t (tier 2, scope code): PENDING: extend lcb6 to the full set in both orders (amendment 1: runner 61's ref stage, then CARD_RESUME=1 CARD_EXTEND="
+PASS both_orders_delta: CARD t (tier 2, scope code): FAIL ( lcb6 ) vs ref2tnaxn.r6; ifbench fwd delta -1.00 pt, McNemar p 0.6000 (arm only 1 / reference on; ifbench rev delta
+PASS p_below: CARD t (tier 2, scope code): FAIL ( ifbench ) vs ref2tnaxn.r6; ifbench fwd delta -1.00 pt, McNemar p 0.0100 (arm only 1 / reference on; ifbench rev de
+PASS missing: CARD t (tier 2, scope code): INCOMPLETE ( gpqad ) vs ref2tnaxn.r6; ifbench fwd delta -1.00 pt, McNemar p 0.6000 (arm only 1 / reference on; ifbench re
+PASS ext_final: CARD t (tier 2, scope code): FAIL ( lcb6 ) vs ref2tnaxn.r6; ifbench fwd delta -1.00 pt, McNemar p 0.6000 (arm only 1 / reference on; ifbench rev delta
+PASS higher: CARD t (tier 2, scope code): PASS vs ref2tnaxn.r6; ifbench fwd delta -1.00 pt, McNemar p 0.6000 (arm only 1 / reference on; ifbench rev delta -1.00 pt
+PASS fail_over_pending: CARD t (tier 2, scope code): FAIL ( ifbench ) vs ref2tnaxn.r6; ifbench fwd delta -1.00 pt, McNemar p 0.6000 (arm only 1 / reference on; ifbench rev de
+PASS incomplete_over_pending: CARD t (tier 2, scope code): INCOMPLETE ( gpqad ) vs ref2tnaxn.r6; ifbench fwd delta -1.00 pt, McNemar p 0.6000 (arm only 1 / reference on; ifbench re
+PASS lcb_only: CARD t (tier 2, scope code): PASS vs ref2tnaxn.r6; lcb6 fwd delta -1.00 pt, McNemar p 0.6000 (arm only 1 / reference on; lcb6 rev delta -1.00 pt, McNe
+PASS ident_pass: CARD t (tier 2, scope code): PASS vs ref2tnaxn.r6; ifbench fwd tokens identical on 150 of 150: PASS; ifbench rev tokens identical on 150 of 150: PASS;
+PASS ident_fail: CARD t (tier 2, scope code): FAIL ( ifbench ) vs ref2tnaxn.r6; ifbench fwd tokens identical on 150 of 150: PASS; ifbench rev tokens identical on 149 o
+PASS ident_fail_one_order_not_pending: CARD t (tier 2, scope code): FAIL ( ifbench ) vs ref2tnaxn.r6; ifbench fwd tokens identical on 150 of 150: PASS; ifbench rev tokens identical on 149 o
+PASS ident_incomplete: CARD t (tier 2, scope code): INCOMPLETE ( ifbench ) vs ref2tnaxn.r6; ifbench fwd tokens identical on 150 of 150: PASS; ifbench rev INCOMPLETE (1 of 15
+ifbench identity vs base_rev: INCOMPLETE (1 of 150 keys without a row in both)
+the extended set scored on n 175: 2
+card_verdict stub tests: 14 PASS, 0 FAIL
+
+## 4. Python stub tests: ENG2 / RT with the chat sets, the timing run's taint + summary (test_eng_timing.py, below)
+PASS ENG2 tier 2: LCB engaged, IFBench / GPQA at 0 (a code-typed IFBench row too)
+PASS ENG2 tier 2: a code-typed IFBench row engaged = engaged on chat: VOID
+PASS ENG2 tier 2: an LCB row at 0 (each): VOID
+PASS ENG2 tier 2: an LCB row at 0, mode any (summed): OK
+PASS ENG2 tier 2: a key outside the panel: VOID
+PASS ENG2 tier 2: an @run term is left to the run (no per-process VOID)
+PASS ENG2 tier 1 (CHATSETS unset): runner 68's check
+PASS ENG2 tier 1: IFEval engaged: VOID
+PASS RT tier 2: @run sum > 0 over LCB (full)
+PASS RT tier 2: @run sum 0 (full): VOID
+PASS RT tier 2: 40 code answers at 0 (early, >= 32): VOID
+PASS RT tier 2: counts 40 code answers (IFBench / GPQA are chat)
+PASS TM: a heat pause inside p_b's window taints its two keys
+PASS TM: after the clean re-run nothing is tainted
+PASS TM summary: pooled whole decode = sum n / sum decode wall (450 / 7 s)
+PASS TM summary: HE+ 300 / 5 s
+PASS TM summary: MBPP from the clean re-run (150 / 2 s)
+PASS TM summary: the config line (16 rows, chain, acceptance, blob)
+PASS TM summary: the pause is named
+PASS TM summary: rc 0 when complete
+PASS TM summary: INCOMPLETE with a key lacking a clean record (rc 1)
+PASS TM: a pause still on taints a window after it
+runner 69 python stub tests: 22 PASS, 0 FAIL
+
+## the test script dry69.sh
+#!/bin/bash
+# DRY passes of tools/day_runner69.sh on BigMoE's lx45g1b env (g1b pins). Each prints its rc and its DRY / stop line.
+cd ~/EvalSuite || exit 1
+SP=/private/tmp/claude-501/-Users-kamen-OjoX/1f41593c-35ca-4381-b7b7-ee6cdb51f7ca/scratchpad/r69test
+P=(CARD_DRY=1 CARD_FENV=$HOME/BigMoE/data/stack/lx45g1b_env.txt CARD_FBLOB=2e5b7167af865cc7867c2f1fd8165a5d40fdb9c8
+   "CARD_TREES=data/r57/snap/g1b=fb0ee18288dae0ac5528006557dfaf8487d63c3b,data/r57/snap/frozen_g1b=2584e36a814ae956ac5c2d9c9090c4d787298502,bigmoe=d92cdb4b9e81d386e4170323d50f11b34147aa5f"
+   CARD_SCREEN_SHA=6039fa8dbea5 CARD_SO_SHA=ff69fa24a745 CARD_MEM=39 "CARD_CUTOFF=2026-11-18 07:00" CHAIN_MYPID=63835)
+EX=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2
+# a spot-check key file: LCB's 131 + the first 20 sorted IFBench and GPQA gate keys
+python3 - "$SP/spot_keys.txt" <<'K'
+import json, sys
+d = json.load(open("tools/card_keys.json"))["keys"]
+open(sys.argv[1], "w").write("\n".join(d["lcb6"] + sorted(d["ifbench"])[:20] + sorted(d["gpqad"])[:20]) + "\n")
+K
+run() {   # label, then settings
+  local lab=$1; shift
+  local t=$(echo "$@" | grep -oE 'CARD_TAG=[^ ]+' | cut -d= -f2)
+  env "${P[@]}" "$@" bash tools/day_runner69.sh > "$SP/dry_$lab.out" 2>&1; local rc=$?
+  local lg=$(ls -t results/day69_dry_*.log 2>/dev/null | head -1)
+  echo "== $lab: rc $rc"
+  cat "$SP/dry_$lab.out" | head -3 | cut -c1-260
+  [ -n "$lg" ] && tail -2 "$lg" | cut -c1-600
+}
+run t2full CARD_TAG=lx45g1b CARD_TIER=2 CARD_SCOPE=code CARD_REF=ref2tnaxn.r6 "CARD_ENGAGE=lossy_check:e3+edrop+lmsl_rows"
+run t2lcb CARD_TAG=lx45g1b CARD_TIER=2 CARD_SCOPE=code CARD_REF=ref2tnaxn.r6 CARD_SETS=lcb6
+run t2spot CARD_TAG=lx45g1b CARD_TIER=2 CARD_SCOPE=code CARD_REF=ref2tnaxn.r6 CARD_KEYSFILE=$SP/spot_keys.txt CARD_IDENTSETS=ifbench,gpqad "CARD_IDENT_REF=card_base_fwd+card_base_rev"
+run t2ext CARD_TAG=lx45g1b CARD_TIER=2 CARD_SCOPE=code CARD_REF=ref2tnaxn.r6 CARD_EXTEND=lcb6 CARD_RESUME=1
+run t2rev CARD_TAG=lx45g1b CARD_TIER=2 CARD_SCOPE=code CARD_REF=ref2tnaxn.r6 CARD_ORDER=rev
+run t2refs CARD_TAG=lx45g1b CARD_TIER=2 CARD_SCOPE=code CARD_REF=ref2tnaxn.r6,ref2tnax
+run t2idnoref CARD_TAG=lx45g1b CARD_TIER=2 CARD_SCOPE=code CARD_REF=ref2tnaxn.r6 CARD_IDENTSETS=ifbench
+run t2badset CARD_TAG=lx45g1b CARD_TIER=2 CARD_SCOPE=code CARD_REF=ref2tnaxn.r6 CARD_SETS=lcb6,mbpp
+run timing CARD_TAG=lx45g1b CARD_TIER=1 CARD_SCOPE=code CARD_REF=$EX CARD_TIMING=1
+run timingrev CARD_TAG=lx45g1b CARD_TIER=1 CARD_SCOPE=code CARD_REF=$EX CARD_TIMING=1 CARD_ORDER=rev
+run t1code CARD_TAG=lx45g1b CARD_TIER=1 CARD_SCOPE=code CARD_REF=$EX
+run t1rev CARD_TAG=lx45g1b CARD_TIER=1 CARD_SCOPE=code CARD_REF=card_lx45cc1_t1code_rev CARD_ORDER=rev
+run t0code CARD_TAG=lx45g1b CARD_TIER=0 CARD_SCOPE=code CARD_REF=$EX
+run t2smoke CARD_TAG=lx45g1b CARD_TIER=2 CARD_SCOPE=code CARD_REF=ref2tnaxn.r6 CARD_KEYSFILE=tools/stk_smoke_keys.txt CARD_RUNSUF=_smoke
+run t1runsuf CARD_TAG=lx45g1b CARD_TIER=1 CARD_SCOPE=code CARD_REF=$EX CARD_RUNSUF=_smoke
+run t2badsuf CARD_TAG=lx45g1b CARD_TIER=2 CARD_SCOPE=code CARD_REF=ref2tnaxn.r6 CARD_RUNSUF=Smoke
+
+## the test script test_verdict.sh
+#!/bin/bash
+# Stub tests of runner 69's card_verdict (the assembly, amendment 1's PENDING, identity sets). The function is extracted
+# from tools/day_runner69.sh as is; set_d4.py, share_lock, say and peer are stubs. Each case prints PASS / FAIL.
+R=~/EvalSuite/tools/day_runner69.sh
+T=$(mktemp -d /private/tmp/claude-501/-Users-kamen-OjoX/1f41593c-35ca-4381-b7b7-ee6cdb51f7ca/scratchpad/r69test/v.XXXX)
+cd "$T" || exit 1
+mkdir -p results tools
+sed -n '/^card_verdict() {/,/^}/p' "$R" > cv.sh
+[ "$(grep -c '^card_verdict() {' cv.sh)" = 1 ] || { echo "extract failed"; exit 1; }
+cat > stub_d4.py <<'S'
+import os, sys
+s, arm, ref = sys.argv[2], sys.argv[3], sys.argv[4]          # argv[1] = tools/set_d4.py
+o = arm.rsplit("_", 1)[1]
+v = os.environ.get(f"STUB_{s}_{o}", "PASS")
+n = os.environ.get("SET_D4_N", "?")
+if v == "MISSING":
+    print(f"{s}: 0 of {n} rows in both {arm} and {ref}"); sys.exit(2)
+p = {"PASS": "0.6000", "HIGHER": "0.0100"}.get(v.split()[0], v.split()[1] if len(v.split()) > 1 else "0.5000")
+res = {"PASS": "PASS", "HIGHER": "DIFFERS (HIGHER)"}.get(v.split()[0], "FAIL")
+print(f"{s} vs {ref} (n {n}): delta -1.00 pt, McNemar p {p} (arm only 1 / reference only 2): {res}")
+print(f"SET_D4 {s}: {res}")
+sys.exit(1 if res == "FAIL" else 0)
+S
+say() { echo "$*" >> say.log; }; share_lock() { :; }; peer() { :; }
+PY="python3 stub_d4.py"; TAG=t; TG=t; SCOPE=code; REFS=ref2tnaxn.r6; DONE=results/CARD_t_DONE; RUNF=card_t_t2code_fwd; RUNR=card_t_t2code_rev
+python3 - <<'K'
+import json
+d = json.load(open("/Users/kamen/EvalSuite/tools/card_keys.json"))["keys"]
+open("panel.txt", "w").write("\n".join(d["ifbench"] + d["gpqad"] + d["lcb6"]) + "\n")
+open("panel_ext.txt", "w").write("\n".join(d["ifbench"] + d["gpqad"] + d["lcb6"]
+     + json.load(open("/Users/kamen/EvalSuite/tools/card_keys.json"))["extend"]["lcb6"]) + "\n")
+K
+mkrows() {   # run, set, "same" | "diff" | "short": synthetic decode.jsonl rows for every panel key of the set
+  mkdir -p "results/$1"
+  python3 - "$1" "$2" "$3" <<'M'
+import json, sys
+run, s, how = sys.argv[1:4]
+ks = [k for k in open("panel.txt").read().split() if k.startswith(s + "/")]
+if how == "short":
+    ks = ks[:-1]
+with open(f"results/{run}/decode.jsonl", "a") as f:
+    for i, k in enumerate(ks):
+        f.write(json.dumps({"key": k, "completion_ids": [1, 2, 3] + ([9] if how == "diff" and i == 0 else [])}) + "\n")
+M
+}
+. ./cv.sh
+pass=0; fail=0
+case_() {   # label, expected DONE substring, then KEY=VALUE settings (STUB_*, EXT, IDS, CARD_SETS, CARD_IDENT_REF, KF)
+  local lab=$1 want=$2; shift 2
+  unset $(env | grep -oE '^STUB_[a-z0-9]+_(fwd|rev)'); EXT=""; IDS=""; CARD_SETS=""; CARD_IDENT_REF=""; KF=panel.txt
+  local kv; for kv in "$@"; do export "$kv"; eval "${kv%%=*}=\"\${kv#*=}\""; done
+  rm -f "$DONE"; card_verdict
+  if grep -qF "$want" "$DONE"; then pass=$((pass + 1)); echo "PASS $lab: $(cut -c1-150 "$DONE")"
+  else fail=$((fail + 1)); echo "FAIL $lab: wanted '$want'; got: $(cut -c1-300 "$DONE")"; fi
+}
+case_ allpass ": PASS vs ref2tnaxn.r6"
+case_ pending "PENDING: extend lcb6" "STUB_lcb6_fwd=FAIL 0.3000"
+case_ both_orders_delta "FAIL ( lcb6 )" "STUB_lcb6_fwd=FAIL 0.3000" "STUB_lcb6_rev=FAIL 0.4000"
+case_ p_below "FAIL ( ifbench )" "STUB_ifbench_fwd=FAIL 0.0100"
+case_ missing "INCOMPLETE ( gpqad )" "STUB_gpqad_fwd=MISSING"
+case_ ext_final "FAIL ( lcb6 )" "STUB_lcb6_fwd=FAIL 0.3000" "EXT=lcb6" "KF=panel_ext.txt"
+case_ higher "PASS vs" "STUB_gpqad_fwd=HIGHER" "STUB_gpqad_rev=HIGHER"
+case_ fail_over_pending "FAIL ( ifbench )" "STUB_lcb6_fwd=FAIL 0.3000" "STUB_ifbench_rev=FAIL 0.0010"
+case_ incomplete_over_pending "INCOMPLETE ( gpqad )" "STUB_lcb6_fwd=FAIL 0.3000" "STUB_gpqad_rev=MISSING"
+case_ lcb_only "PASS vs" "CARD_SETS=lcb6"
+# the identity sets: the arm's runs vs a base's, both orders
+mkrows card_t_t2code_fwd ifbench same; mkrows card_t_t2code_rev ifbench same; mkrows base_fwd ifbench same; mkrows base_rev ifbench same
+mkrows card_t_t2code_fwd gpqad same; mkrows card_t_t2code_rev gpqad same; mkrows base_fwd gpqad same; mkrows base_rev gpqad same
+case_ ident_pass "PASS vs" "IDS=ifbench gpqad" "CARD_IDENT_REF=base_fwd+base_rev"
+rm -rf results/base_rev; mkrows base_rev ifbench diff; mkrows base_rev gpqad same
+case_ ident_fail "FAIL ( ifbench )" "IDS=ifbench gpqad" "CARD_IDENT_REF=base_fwd+base_rev"
+case_ ident_fail_one_order_not_pending "FAIL ( ifbench )" "IDS=ifbench gpqad" "CARD_IDENT_REF=base_fwd+base_rev" "STUB_lcb6_fwd=PASS"
+rm -rf results/base_rev; mkrows base_rev ifbench short; mkrows base_rev gpqad same
+case_ ident_incomplete "INCOMPLETE ( ifbench )" "IDS=ifbench gpqad" "CARD_IDENT_REF=base_fwd+base_rev"
+grep -h "identity vs" results/card_t_t2_ifbench_rev_ident.txt | head -1
+grep -c "decision 4, n 175, the full set" say.log | sed 's/^/the extended set scored on n 175: /'
+echo "card_verdict stub tests: $pass PASS, $fail FAIL"
+
+## the test script test_eng_timing.py
+#!/usr/bin/env python3
+"""Stub tests of runner 69's changed python: ENG2 (each process's engagement check), RT (the whole-run terms) with the
+chat sets, and TM (the timing run's taint + summary). The heredocs are extracted from tools/day_runner69.sh as they are."""
+import datetime as dt, json, os, re, subprocess, sys, tempfile
+
+R = os.path.expanduser("~/EvalSuite/tools/day_runner69.sh")
+src = open(R).read()
+def heredoc(tag):
+    m = re.search(r"<<'%s'[^\n]*\n(.*?)\n%s\n" % (tag, tag), src, re.S)
+    assert m, tag
+    body = m.group(1).split("\n")
+    while body and re.match(r"\s*\|\|", body[0]):   # a bash continuation line after the heredoc's start line
+        body.pop(0)
+    return "\n".join(body)
+ENG2, RT, TM = heredoc("ENG2"), heredoc("RT"), heredoc("TM")
+T = tempfile.mkdtemp(dir=os.path.dirname(os.path.abspath(__file__)))
+os.chdir(T)
+os.makedirs("results/card", exist_ok=True)
+ok = bad = 0
+def check(lab, got, want, out=""):
+    global ok, bad
+    if got == want:
+        ok += 1; print(f"PASS {lab}")
+    else:
+        bad += 1; print(f"FAIL {lab}: got {got}, wanted {want}\n{out[-600:]}")
+def run(code, env, *args):
+    p = subprocess.run([sys.executable, "-", *args], input=code, text=True, capture_output=True, env={**os.environ, **env})
+    return p.returncode, p.stdout + p.stderr
+def runs(path, rs):
+    json.dump(rs, open(path, "w"))
+LC = lambda e3: {"e3": e3, "edrop": 0, "lmsl_rows": 0, "checks": 4, "e4": 9}   # checks / e4: nonzero on every prompt
+# ---- ENG2 (tier 2, code scope: the chat sets are IFBench and GPQA)
+open("panel.txt", "w").write("lcb6/1\nlcb6/2\nifbench/1\nifbench/2\ngpqad/1\n")
+base = dict(ENGAGE="lossy_check:e3+edrop+lmsl_rows", ENGMODE="each", PANEL="panel.txt", SCOPE="code", CHATSETS="ifbench,gpqad")
+good = [dict(key="lcb6/1", type="code", lossy_check=LC(5)), dict(key="lcb6/2", type="code", lossy_check=LC(2)),
+        dict(key="ifbench/1", type="chat", lossy_check=LC(0)), dict(key="ifbench/2", type="code", lossy_check=LC(0)),
+        dict(key="gpqad/1", type="math", lossy_check=LC(0))]
+runs("r.json", good); rc, o = run(ENG2, base, "r.json"); check("ENG2 tier 2: LCB engaged, IFBench / GPQA at 0 (a code-typed IFBench row too)", rc, 0, o)
+runs("r.json", good[:3] + [dict(good[3], lossy_check=LC(3))] + good[4:]); rc, o = run(ENG2, base, "r.json")
+check("ENG2 tier 2: a code-typed IFBench row engaged = engaged on chat: VOID", rc, 1, o)
+runs("r.json", [dict(good[0], lossy_check=LC(0))] + good[1:]); rc, o = run(ENG2, base, "r.json"); check("ENG2 tier 2: an LCB row at 0 (each): VOID", rc, 1, o)
+runs("r.json", [dict(good[0], lossy_check=LC(0))] + good[1:]); rc, o = run(ENG2, dict(base, ENGMODE="any"), "r.json")
+check("ENG2 tier 2: an LCB row at 0, mode any (summed): OK", rc, 0, o)
+runs("r.json", good + [dict(key="mbpp/1", type="code", lossy_check=LC(1))]); rc, o = run(ENG2, base, "r.json")
+check("ENG2 tier 2: a key outside the panel: VOID", rc, 1, o)
+runs("r.json", good); rc, o = run(ENG2, dict(base, ENGAGE="lossy_check:e3+edrop+lmsl_rows,close_call:accepted@run"), "r.json")
+check("ENG2 tier 2: an @run term is left to the run (no per-process VOID)", rc, 0, o)
+# tiers 0 / 1 keep IFEval as the only chat set (CHATSETS unset or ifeval)
+open("panel.txt", "w").write("mbpp/1\nifeval/1\n")
+t1 = [dict(key="mbpp/1", type="code", lossy_check=LC(4)), dict(key="ifeval/1", type="chat", lossy_check=LC(0))]
+runs("r.json", t1); rc, o = run(ENG2, {k: v for k, v in base.items() if k != "CHATSETS"}, "r.json"); check("ENG2 tier 1 (CHATSETS unset): runner 68's check", rc, 0, o)
+runs("r.json", [t1[0], dict(t1[1], lossy_check=LC(2))]); rc, o = run(ENG2, dict(base, CHATSETS="ifeval"), "r.json")
+check("ENG2 tier 1: IFEval engaged: VOID", rc, 1, o)
+# ---- RT (the whole-run terms over a run's ledger), tier 2's chat sets
+os.makedirs("results/card_x", exist_ok=True)
+keys = [f"lcb6/{i}" for i in range(40)] + ["ifbench/1", "gpqad/1"]
+open("results/card_x/decode.jsonl", "w").write("".join(json.dumps({"key": k}) + "\n" for k in keys))
+def ledger(cc):
+    runs("p1.json", [dict(key=k, type="code", close_call={"accepted": cc if k == "lcb6/5" else 0}) for k in keys])
+    open("results/card_x/engage_runs.txt", "w").write("p1.json\n")
+renv = dict(ENGAGE="close_call:accepted@run", SCOPE="code", CHATSETS="ifbench,gpqad")
+ledger(3); rc, o = run(RT, dict(renv, WHEN="full"), "card_x"); check("RT tier 2: @run sum > 0 over LCB (full)", rc, 0, o)
+ledger(0); rc, o = run(RT, dict(renv, WHEN="full"), "card_x"); check("RT tier 2: @run sum 0 (full): VOID", rc, 1, o)
+ledger(0); rc, o = run(RT, dict(renv, WHEN="early"), "card_x"); check("RT tier 2: 40 code answers at 0 (early, >= 32): VOID", rc, 1, o)
+check("RT tier 2: counts 40 code answers (IFBench / GPQA are chat)", "40 kept code answers" in o, True, o)
+# ---- TM (the timing run): windows, a heat pause, re-runs, the summary
+now = int(dt.datetime.now().timestamp()) - 3 * 3600   # synthetic windows 3 h back, so a pause still on reaches the present
+def W(t): return dt.datetime.fromtimestamp(t).strftime("%Y-%m-%d %H:%M:%S")
+open("fan.log", "w").write(f"23:59:00 die max 50\n{W(now + 700)} heat pause (die 90): PAUSE set\n{W(now + 720)} froze 2 (1 2)\n"
+                           f"{W(now + 800)} cool (die 50) after 100 s: PAUSE cleared, 2 frozen jobs resumed\n")
+K = ["humaneval/1", "humanevalx/1", "mbpp/1", "mbpp/2"]
+def rec(k, n, tps): return dict(key=k, n=n, tps=tps, pfs=2.0, checks=n // 8, drafter="dfl", type="code")
+runs("results/card/p_a_runs.json", [rec("humaneval/1", 100, 100.0), rec("humanevalx/1", 200, 50.0)])
+runs("results/card/p_b_runs.json", [rec("mbpp/1", 100, 80.0), rec("mbpp/2", 50, 25.0)])
+open("tled.txt", "w").write(f"p_a {now} {now + 600}\np_b {now + 600} {now + 1200}\n")   # p_b's window holds the pause
+tenv = dict(TLED="tled.txt", AF="results/card", FANLOG="fan.log", ENVLINE="R57_FAST=QOM,R57_QOM_SETS=humaneval,mbpp,lcb6,R57_RELAX_DELTA=1,R57_RELAX_DELTA_SETS=humaneval,humanevalx,mbpp,lcb6,R57_COPY=g2",
+            FB="abc123", TREES="g1b=fb0e", SCR="6039fa8dbea5", C_="256", MEM_="39", KEYS=",".join(K), TAG="stk")
+rc, o = run(TM, tenv, "tainted"); check("TM: a heat pause inside p_b's window taints its two keys", o.strip(), "mbpp/1,mbpp/2", o)
+runs("results/card/p_c_runs.json", [rec("mbpp/1", 100, 100.0), rec("mbpp/2", 50, 50.0)])      # the clean re-run
+open("tled.txt", "a").write(f"p_c {now + 900} {now + 1100}\n")
+rc, o = run(TM, tenv, "tainted"); check("TM: after the clean re-run nothing is tainted", o.strip(), "", o)
+rc, o = run(TM, tenv, "summary")
+# pooled: n 450; decode wall 1 + 4 + 1 + 1 = 7 s -> 64.29 tok/s; HE+ 300 / 5 s = 60.00; mbpp 150 / 2 s = 75.00
+check("TM summary: pooled whole decode = sum n / sum decode wall (450 / 7 s)", "whole decode 64.29 tok/s pooled code (n 450 / 7.0 s, 4 of 4 answers)" in o, True, o)
+check("TM summary: HE+ 300 / 5 s", "HE+ (humaneval + humanevalx) (2 of 2 answers): whole decode 60.00 tok/s" in o, True, o)
+check("TM summary: MBPP from the clean re-run (150 / 2 s)", "mbpp (2 of 2 answers): whole decode 75.00 tok/s" in o, True, o)
+check("TM summary: the config line (16 rows, chain, acceptance, blob)", "16 (R57_ROWS unset) rows per check, a chain" in o and "R57_RELAX_DELTA=1" in o and "env blob abc123" in o, True, o)
+check("TM summary: the pause is named", "p_b [(" in o and "tainted answers replaced by clean re-runs: 2" in o, True, o)
+check("TM summary: rc 0 when complete", rc, 0, o)
+runs("results/card/p_c_runs.json", [rec("mbpp/1", 100, 100.0)])                               # mbpp/2 still tainted
+rc, o = run(TM, tenv, "summary"); check("TM summary: INCOMPLETE with a key lacking a clean record (rc 1)", (rc, "INCOMPLETE: 1 answers" in o), (1, True), o)
+open("fan.log", "a").write(f"{W(now + 1500)} heat pause (die 91): PAUSE set\n")                # a pause still on
+open("tled.txt", "a").write(f"p_d {int(dt.datetime.now().timestamp()) - 60} {int(dt.datetime.now().timestamp())}\n")
+runs("results/card/p_d_runs.json", [rec("mbpp/2", 50, 50.0)])
+rc, o = run(TM, tenv, "tainted"); check("TM: a pause still on taints a window after it", o.strip(), "mbpp/2", o)
+print(f"runner 69 python stub tests: {ok} PASS, {bad} FAIL")
+

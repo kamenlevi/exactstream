@@ -398,3 +398,29 @@ scripts/week98/c7d_r24.py (the docstring has the full design).
   - The contract arms are evidence for Kamen's reference switch; adopting it is his call.
 - **Sent 00:5x** to the orchestrator, BigMoE, EvalSuite, Breakthrough and NewIdeas.
 - **Files:** data/week98/e14/e14_run.txt, e14.json and run_e14.log; marker data/week98/screens/E1E4_1117_DONE.
+
+## E15 (PRE-REGISTERED Tue 17 Nov 06:3x EET, before the run): NewIdeas' ADAPTIVE K DOWN kill test (adaptk_k8.txt)
+- Where: the last step of tue1's post (tue1_post.sh -> data/week98/e15/frozen/e15_post.sh, md5 1747db9a), inside slot #1's
+  process and quiet window (NewIdeas 06:32). Gates: away >= 900 before and after the memory reads, >= 6 min left before
+  tue1's cap, no other process > 16 GB, NO-SWAP >= 39 twice, head test; cap 8 min; marker data/week98/e15/E15_DONE.
+- What: scripts/week98/e15 (e15_loop.py = e14_loop.py with the engine / OUT swapped; e15_engine.py = e14_engine.py + arms A8,
+  A8b). Arms A16, A8, A16b, A8b, C32one on G32T's 3 windows, 2 warm-up + 16 timed rounds, rotated. Lab, check-level (warm
+  n-gram rows, rotated arms), like E14.
+- Lines (NewIdeas' own, matched 06:32):
+  - R8 = A8 / A16 as a RATIO OF MEANS over the paired timed rounds: >= 0.82 -> KILL; < 0.82 -> ALIVE. NewIdeas' bracket:
+    0.71 -> HE+ +3.9 % / MBPP +7.8 %; 0.78 -> +1.6 / +3.0 %; 0.86 -> +0.2 / +0.4 %; break-even (+1 %) 0.78 HE+, 0.82 MBPP.
+  - Also reported, no verdict: R8b = A8b / A16b (BOF lightens the fixed part), R32 = C32one / A16 (E14: 1.437 by means),
+    paired medians beside every ratio.
+  - Bits (value compares, as E14): A8 == A16's first 8 rows; A8b == A8; A8b == A16b's first 8 rows; C32one's first 16 rows
+    == A16. A mismatch voids the arm's timing.
+- If E15 is skipped or cut: the fallback is the head of slot #2 tonight (same frozen step).
+- Then, in the same step, the SW pass (added 06:4x, before any run): BigMoE's v3 test list on v3-PATCHED COPIES
+  (data/week98/e15/v3tree/scripts: ref2 589b840c, bofi beebe5af, bof edb1ed1e; the live files untouched), E15_MODE=sw,
+  REF2_BOF=1 REF2_HC_B=1, the switches through ref2.apply(). Own gates: >= 4 min left, away, NO-SWAP >= 39 twice, live
+  files at the patch base (33021885 / 7d37a80d / e5e29b6f), head test + v3_import_check.py; cap 6 min; e15_sw_run.txt.
+  - PASS iff, on G32T's 3 windows: 16- and 32-row checks on == off bit for bit; 16 ref2.ar_step()s == the 16-row check (on);
+    the check again after the AR rollback == itself; the loop's prefill with last chunks of 24 / 9 rows (+ 17 / 32 / 16 / 1
+    and two PFCHUNK cases on window 1), on vs off: cache states + first logits bit-equal, BOF2 never fired there; BOF and
+    hc_b fired when on, nothing when off; bofi DRIFT 0. BOF2's count in checks is info (a default 32-row check may split
+    o_proj at its seams; E14 had C32oneB == C32).
+  - Applying v3 to the live tree stays a manual step after tue1, with this verdict in hand.
