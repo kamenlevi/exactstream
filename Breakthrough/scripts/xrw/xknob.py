@@ -27,9 +27,12 @@ def impl(mode=None):
     if mode == "tgl16":
         import tgl16
         return tgl16.tier_glu_nax6n_1cq_tgl16
-    if mode in ("tgl16g", "a8b16", "tgl16e", "tgl16eh", "tgl16ep", "tgl16eu", "w4a8u"):   # bench variants (tgl16v.py)
+    if mode in ("tgl16g", "a8b16", "tgl16e", "tgl16eh", "tgl16ep", "tgl16eu", "w4a8u", "tgl16eu1"):   # tgl16v.py
         import tgl16v
         return getattr(tgl16v, f"tier_glu_nax6n_1cq_{mode}")
+    if mode in ("o1p", "o1pu"):                            # the pipelined ooo1cq kernels (o1p.py)
+        import o1p
+        return getattr(o1p, f"tier_glu_nax6n_1cq_{mode}")
     if mode.startswith("tgl16abl"):                        # timing ablations of tgl16, e.g. tgl16abl4 = no MMA
         import functools
         import tgl16v

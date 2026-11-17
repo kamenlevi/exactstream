@@ -1213,6 +1213,18 @@
   - **The switch:**
     - TERM 5895 at 09:48:59. It was waiting for its gates, with no runner. Its G1_G1T_END was moved aside (.fixrearm).
     - 10:03:12: re-armed as pid 28020, `CHAIN_MYPID=63835 tools/g1_chain.sh` as before.
+- **Dated Tue 11:1x, before any G1 run or data: G1's night window follows Leap's slot #2. Operational, no line changes.**
+  - **Why:** NewIdeas' order puts Leap's c25 slot #2 ahead of G1 tonight (Leap 11:12). Slot #2 gates on BigMoE's
+    NIGHT1117_BIGMOE_END, the same marker as G1's night window, so the two could have started together.
+  - **The change:** G1's night marker (CHAIN_NIGHT_MK, set at arming) is now ~/Leap/data/week98/c25/C25_n2_DONE.
+    Leap writes it on ANY end of slot #2, a no-start included. Tonight's order is therefore BigMoE's M4, then slot #2,
+    then G1. The night cutoff stays Wed 05:15. The file is unchanged (aee07902038fc1d3).
+  - **The switch:** TERM 28020 at 11:14:13. It was waiting, with no runner. Its G1_G1T_END was moved aside
+    (.n2rearm). 11:14:20: re-armed as pid 14508, `CHAIN_MYPID=63835 CHAIN_NIGHT_MK=$HOME/Leap/data/week98/c25/
+    C25_n2_DONE tools/g1_chain.sh`.
+  - **By day** (no file change): EvalSuite writes G1_PICK after V2's verdict only once Leap's
+    ~/Leap/data/week98/c25/C25_wed3smoke_DONE exists newer than V2's end, or at V2's end + 10 min if that smoke has not
+    started (Leap 11:10: a ~3-min, ~31 GB smoke in the gap).
 
 ## Amendment 5c (Mon 2026-11-16 13:0x, before any G2 config, snapshot or data): G2's composition (NewIdeas 13:0x); it replaces 5a's G2 condition
 - **Why:** Breakthrough found that G1 as built reads 6.22 GB per check, not 5.77. g1a is C6 + int8 on lossy-45's

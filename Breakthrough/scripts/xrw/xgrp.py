@@ -203,3 +203,99 @@ def self_test(n=40, seed=1117):
 
 if __name__ == "__main__":
     sys.exit(0 if self_test() else 1)
+
+
+# ---- v2 (Tue 11:2x): the upgrade's lookup in O(1). v1 lets every candidate scan all P pairs for the FIRST eligible
+# tier-4 pair (smallest index) with its identity: x6_grp_cost.py measured 19.9 vs today's 9.0 us at P = 160, 39.9 vs 16.5
+# at P = 320, on every call's critical path. v2 has each eligible pair atomic-min its index into a threadgroup table
+# keyed by its identity (resident slot < RT_C, or late id < LT_C), then each candidate reads its identity's entry.
+# Identical choice to v1 by construction (the first eligible pair with that identity); an identity outside the
+# tables falls back to v1's scan, so the output equals v1's for ANY input. The rank / start / segment phases are v1's.
+_SRC2 = _SRC.replace(
+    """    threadgroup int up_s[P_C];
+    int key = 0, cand = 0, up = 0;""",
+    """    threadgroup int up_s[P_C];
+    threadgroup atomic_int rtab[RT_C];                              // resident slot -> first eligible pair index
+    threadgroup atomic_int ltab[LT_C];                              // late expert id -> first eligible pair index
+    for (int t = (int)i; t < RT_C; t += (int)threads_per_threadgroup.x) atomic_store_explicit(&rtab[t], P_C, memory_order_relaxed);
+    for (int t = (int)i; t < LT_C; t += (int)threads_per_threadgroup.x) atomic_store_explicit(&ltab[t], P_C, memory_order_relaxed);
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+    int key = 0, cand = 0, up = 0;""").replace(
+    """    threadgroup_barrier(mem_flags::mem_threadgroup);
+    if ((int)i < P && cand && UP_C) {                              // the UPGRADE: adopt the expert's tier-4 key
+        const int me = id_s[i];
+        for (int j = 0; j < P; ++j) {
+            const int t = tgt_s[j];
+            if (t != NOTGT && id_s[j] == me) { key = t; up = 1; break; }
+        }
+    }""",
+    """    if ((int)i < P && tgt_s[i] != NOTGT) {                         // v2: eligible pairs post their index (first wins)
+        const int me = id_s[i];
+        if (me >= 0 && me < RT_C) atomic_fetch_min_explicit(&rtab[me], (int)i, memory_order_relaxed);
+        else if (me >= (1 << 20) && me - (1 << 20) < LT_C) atomic_fetch_min_explicit(&ltab[me - (1 << 20)], (int)i, memory_order_relaxed);
+    }
+    threadgroup_barrier(mem_flags::mem_threadgroup);
+    if ((int)i < P && cand && UP_C) {                              // the UPGRADE: adopt the expert's tier-4 key
+        const int me = id_s[i];
+        int jf = P_C;
+        if (me >= 0 && me < RT_C) jf = atomic_load_explicit(&rtab[me], memory_order_relaxed);
+        else if (me >= (1 << 20) && me - (1 << 20) < LT_C) jf = atomic_load_explicit(&ltab[me - (1 << 20)], memory_order_relaxed);
+        else {                                                     // outside the tables: v1's scan
+            for (int j = 0; j < P; ++j) { if (tgt_s[j] != NOTGT && id_s[j] == me) { jf = j; break; } }
+        }
+        if (jf < P) { key = tgt_s[jf]; up = 1; }
+    }""")
+assert _SRC2 != _SRC and _SRC2.count("atomic_fetch_min_explicit") == 2
+
+
+def _kg2():
+    if "g2" not in _K:
+        _K["g2"] = mx.fast.metal_kernel(name="xgrp_up2", input_names=["msb_slot", "lsb_slot", "ids"],
+                                        output_names=["pidx", "seg", "nseg"], source=_SRC2)
+    return _K["g2"]
+
+
+def gpu_grp_up2(pre_m, pre_l, ids, plan, up=1, rt=1024, lt=1024):
+    from tierglu import plan_masks
+    R = len(plan)
+    m4, m2, r4 = plan_masks(plan)
+    ms = pre_m.astype(mx.int32).reshape(-1)
+    P = ms.size
+    assert P <= 1024 and m2 == 0, (P, m2)
+    ls = pre_l.astype(mx.int32).reshape(-1) if r4 else mx.zeros((1,), mx.int32)
+    pidx, seg, nseg = _kg2()(inputs=[ms, ls, ids.astype(mx.int32).reshape(-1)],
+                             template=[("P_C", P), ("NR_C", R), ("MASK4_C", m4), ("MASK2_C", m2), ("R4_C", max(r4, 1)),
+                                       ("UP_C", int(up)), ("RT_C", rt), ("LT_C", lt)],
+                             grid=(max(32, (P + 31) // 32 * 32), 1, 1), threadgroup=(max(32, (P + 31) // 32 * 32), 1, 1),
+                             output_shapes=[(P,), (P + 1,), (1,)], output_dtypes=[mx.int32] * 3)
+    return pidx, seg, nseg, P
+
+
+def self_test2(n=120, seed=2117):
+    """v2 == v1 (pidx, seg, nseg) on random calls: resident / late / QOM / -2 sidecars, popular experts, sidecar slots
+    that are NOT consistent per expert (stress: v1 takes the first eligible index per identity), slots beyond the
+    resident table (the fallback scan), M = 1..32"""
+    rng = np.random.default_rng(seed)
+    plan = "4433333333"
+    bad = 0
+    for t in range(n):
+        M = int(rng.choice([1, 2, 3, 5, 8, 16, 17, 24, 32]))
+        ex = rng.integers(0, 60, size=(M, 10))
+        if t % 4 == 0 and M >= 4:
+            ex[:, 0] = 7
+        big = t % 5 == 0                                       # slots beyond the resident table -> v1's scan
+        slot = {e: ((int(rng.integers(1000, 1200)) if big else int(rng.integers(0, 400))) if rng.random() > 0.1
+                    else int(rng.choice([-1, -2]))) for e in range(60)}
+        pm = np.vectorize(lambda e: slot[e])(ex).astype(np.int32)
+        pl = np.where(rng.random((M, 2)) < 0.15, -2, rng.integers(0, 400, size=(M, 2))).astype(np.int32)
+        pl = np.where(rng.random((M, 2)) < 0.1, -1, pl)
+        for up in (0, 1):
+            a = gpu_grp_up(mx.array(pm), mx.array(pl), mx.array(ex.astype(np.int32)), plan, up=up)
+            b = gpu_grp_up2(mx.array(pm), mx.array(pl), mx.array(ex.astype(np.int32)), plan, up=up)
+            mx.eval(a[:3], b[:3])
+            na, nb_ = int(np.array(a[2])[0]), int(np.array(b[2])[0])   # seg past nseg is never written (uninitialized)
+            ok = na == nb_ and (np.array(a[0]) == np.array(b[0])).all() and \
+                (np.array(a[1])[:na + 1] == np.array(b[1])[:nb_ + 1]).all()
+            bad += not ok
+    print(f"xgrp v2 self-test: {2 * n - bad} of {2 * n} PASS (gpu_grp_up2 == gpu_grp_up: pidx, seg, nseg)")
+    return bad == 0

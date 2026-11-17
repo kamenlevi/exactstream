@@ -1,0 +1,54 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=24.4 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=175 C_l=112 per layer, 21.21 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.45 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R57_WIRED: mx.set_wired_limit(55.66 GB), was 0.00 GB
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 160), loaded in 2 s, 26.9 GB active; REF2 + SB; gate rows MAXK 320 (ext build_g32), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 2048
+[r57] DENSE-N-RAM: 180 weights native (1531 MB, in place)
+[r57] HC8: 194 mixers 8-bit (1271 -> 675 MB), hc8_fast v4
+[r57] FAST-TAX: gdn_inproj skipped under R57_DNR=1 (K-83's gdn_inproj_x stays)
+[r57] FAST-TAX: att on (ref2 att_single True, gdn_inproj False, fatt_verify False)
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 27.2 tok/s; MLX peak prefill 29.8 / decode 29.7 GB, lifetime peak 30.8 -> 30.9 GB
+[mtplx] verify SDPA head-chunked: q_len=3 heads_per_chunk=10 chunks=4
+  warm-up (discarded): gsm8k/708 [gate+t, mtp] 64 tokens, 57.0 tok/s; MLX peak prefill 30.1 / decode 29.7 GB, lifetime peak 31.1 -> 31.1 GB
+  warm-up (discarded): gsm8k/708 [gate+t, d7b] 64 tokens, 67.8 tok/s; MLX peak prefill 30.1 / decode 29.7 GB, lifetime peak 31.1 -> 31.1 GB
+G32TEST: v32 /Users/kamen/Leap/scripts/week98/v32.py; block _moeblock; MAXK 320, XLINES 9, ext build_g32; FAST QOM
+G32TEST dd__mc_27921: prompt 378, gate_req 142
+C25: setup done (arms ['F16', 'F16g', 'F16gd', 'F16gk', 'F16gu', 'F16gx', 'F32s', 'F32c6i', 'F32c6p', 'F32c6x', 'F32c6k', 'F32c6u', 'F32c6xu']; f32one / hc4i / int8d installed off; V3 4-bit mixer copies 97 modules; V1 16K head ready; lambda 0.016; TIERS '1c'; FAST 'QOM'; ref2 dn_ks 1, small_native True, hc8_fast True, att_single True, screened_head True, gdn_lazy False; DNR weights 216)
+C25 dd__mc_27921: 1 warm-up + 2 timed rounds of 13 arms in 3 s; (rows bitwise, argmax rows, rows, max |logit diff|): {'F32s_vs_F16': (0, 16, 16, 2.4219), 'F16g_vs_F16': (0, 16, 16, 2.0), 'F16gd_vs_F16g': (16, 16, 16, 0.0), 'F32c6p_vs_F32c6i': (32, 32, 32, 0.0), 'F32c6x_vs_F32c6i': (32, 32, 32, 0.0), 'F16gk_vs_F16g': (16, 16, 16, 0.0), 'F16gu_vs_F16g': (0, 16, 16, 1.9297), 'F32c6k_vs_F32c6i': (32, 32, 32, 0.0), 'F32c6u_vs_F32c6i': (0, 30, 32, 2.3125), 'F16gx_vs_F16gu': (16, 16, 16, 0.0), 'F32c6xu_vs_F32c6u': (32, 32, 32, 0.0)}; f32one {'hc32x2': 18, 'sdpa32': 216, 'svh32': 18, 'passthru': 1080, 'gdn32': 648, 'att32': 216, 'inproj32': 648, 'gdnx32': 648, 'gdn_fast': 216}; int8d {'int8': 4572, 'int8_rows': 145728, 'quant': 3492}; hc4i {'hc4_16': 0, 'hc4_32': 1728, 'passthru': 2055}
+C25 report: 2 (window, round) samples; arms ['F16', 'F16g', 'F16gd', 'F16gk', 'F16gu', 'F16gx', 'F32s', 'F32c6i', 'F32c6p', 'F32c6x', 'F32c6k', 'F32c6u', 'F32c6xu']
+C25: m16 COUNTS {'hc16p': 0, 'gdn16': 216, 'hc32p': 864}; one-launch HC spin-cap fails 0 (must be 0); int8fold COUNTS {'folds': 240, 'hits': 300, 'learned': 48, 'bad_plan': 0}; xknob COUNTS {'cand': 864, 'orig': 1008, 'fallback_not_p11': 0}
+  F16    median    39.59 ms over 2 checks (build+submit 35.38, wait 3.90, commit 0.31); expert GB 2.68; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F16g   median    38.95 ms over 2 checks (build+submit 34.86, wait 3.77, commit 0.33); expert GB 2.47; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F16gd  median    38.03 ms over 2 checks (build+submit 33.99, wait 3.72, commit 0.32); expert GB 2.47; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F16gk  median    38.08 ms over 2 checks (build+submit 34.01, wait 3.75, commit 0.32); expert GB 2.47; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F16gu  median    36.83 ms over 2 checks (build+submit 32.96, wait 3.55, commit 0.33); expert GB 2.48; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F16gx  median    36.38 ms over 2 checks (build+submit 32.54, wait 3.50, commit 0.33); expert GB 2.48; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F32s   median    68.15 ms over 2 checks (build+submit 60.32, wait 7.41, commit 0.42); expert GB 4.19; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F32c6i median    56.35 ms over 2 checks (build+submit 50.88, wait 5.17, commit 0.31); expert GB 3.91; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F32c6p median    55.97 ms over 2 checks (build+submit 50.54, wait 5.09, commit 0.33); expert GB 3.91; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F32c6x median    54.09 ms over 2 checks (build+submit 48.80, wait 4.97, commit 0.31); expert GB 3.91; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F32c6k median    55.44 ms over 2 checks (build+submit 50.07, wait 5.04, commit 0.33); expert GB 3.91; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F32c6u median    53.73 ms over 2 checks (build+submit 48.58, wait 4.83, commit 0.32); expert GB 3.91; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F32c6xu median    51.55 ms over 2 checks (build+submit 46.53, wait 4.69, commit 0.33); expert GB 3.91; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F32s / F16: median +1.721 [IQR +1.719, +1.723] over 2 paired rounds
+  F32c6i / F16: median +1.423 [IQR +1.423, +1.424] over 2 paired rounds
+  F16g - F16: median -0.640 ms [IQR -0.690, -0.590] over 2 paired rounds
+  F16gd - F16g: median -0.926 ms [IQR -0.966, -0.885] over 2 paired rounds
+  F32c6p - F32c6i: median -0.385 ms [IQR -0.415, -0.355] over 2 paired rounds
+  F32c6x - F32c6i: median -2.263 ms [IQR -2.305, -2.222] over 2 paired rounds
+  F32c6x / F16: median +1.366 [IQR +1.365, +1.367] over 2 paired rounds
+  F16gd - F16: median -1.566 ms [IQR -1.575, -1.556] over 2 paired rounds
+  F16gk - F16g: median -0.877 ms [IQR -0.909, -0.846] over 2 paired rounds
+  F16gu - F16g: median -2.123 ms [IQR -2.170, -2.076] over 2 paired rounds
+  F32c6k - F32c6i: median -0.915 ms [IQR -0.956, -0.874] over 2 paired rounds
+  F32c6u - F32c6i: median -2.626 ms [IQR -2.668, -2.583] over 2 paired rounds
+  F16gx - F16g: median -2.576 ms [IQR -2.580, -2.573] over 2 paired rounds
+  F16gx - F16: median -3.216 ms [IQR -3.263, -3.170] over 2 paired rounds
+  F32c6xu - F32c6i: median -4.803 ms [IQR -4.877, -4.730] over 2 paired rounds
+  F32c6xu / F16: median +1.302 [IQR +1.300, +1.303] over 2 paired rounds
+  forms over the run: f32one {'dense32': 0, 'small32': 0, 'dn32': 0, 'hc32': 0, 'hc32x2': 18, 'sdpa32': 216, 'svh32': 18, 'passthru': 1080, 'gdn32': 648, 'att32': 216, 'inproj32': 648, 'gdn_chunk': 0, 'gdnx32': 648, 'gdn_fast': 216}; int8d {'int8': 4572, 'int8_rows': 145728, 'quant': 3492, 'layout': 0, 'layout_mb': 0.0, 'passthru': 8223}; hc4i {'hc4_16': 0, 'hc4_32': 1728, 'passthru': 2055}
+G32TEST verdict: TIME MODE (T1 / T2 not run; C32 == B2x16 logits checked per window above); peak 30.8 GB

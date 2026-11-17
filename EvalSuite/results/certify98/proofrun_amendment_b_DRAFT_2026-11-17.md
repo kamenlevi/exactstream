@@ -48,16 +48,31 @@ Placeholders are in <angle brackets>.
       - chain-32 (31 drafts + the current token, kept/32's cap) and exact acceptance;
       - >= 20 fresh HumanEval+ windows. The engine's tokens per check must be within +-3 % of kept_walk on the same
         windows. Failing it voids only the kept/32 claim.
-      - <BigMoE's confirmation of the path (asked Tue 09:4x): the load, the full vocab, the same matmul precision
-        (MLX_ENABLE_TF32) as the dumps', and the per-window output.>
+      - **BigMoE confirmed the path (Tue 10:56):**
+        - The flags: R57_DRAFT=t30b R57_T30B_FMT=stored R57_TREE_K=1 R57_TREE_NODES=31 (k = 1 best-first = the
+          greedy 31-draft chain), with exact acceptance (no R57_RELAX_DELTA).
+        - The weights: dd_t30b.safetensors as stored over the shipped MTP layer. That means fp32 Linears, the full
+          248,320-row lm_head, no screen and no session tokens.
+          - r57 loads them through its own model load, not mtp125.load, so identity is checked, not assumed (the
+            rehearsal below).
+        - The precision: MLX_ENABLE_TF32 unset, i.e. TF32 on (MLX 0.32.2's default), as the dumps ran. runs.json
+          prints it with the MLX version.
+        - Per window: tokens, checks, kept per check, and an identity flag of the answer tokens against the capture's
+          ids. A differing window is dropped and counted.
+        - **A dev rehearsal** (Wed by day): heplus24 vs kept_walk from the dev TOPK dump.
+          - Each check's drafts up to its first miss must equal dd_topk's TOPK top-1 at (fi, anchor row, depth).
+          - It also shows the dropped-window rate. A 32-row verify is outside REF2-T's certified 1-16 rows.
+      - **The windows (proposed):** the first 24 fresh HumanEval+ windows in the manifest's order. If fewer than 20 of
+        them have identical answer tokens, the next windows in order are added until 20 do. Every drop is reported.
     - The shipping forms (Q8 or bf16 + the 32K screen, chosen Wed ~07:30) are not certified here.
       - In lossy mode, the gates (tier 1 + the card gate) run on the chosen form, and the headline timings use it.
       - The RESULT names both forms. MTP Head's sandbox read (8-bit x0.995-1.001 kept; the 32K screen free) is
         information.
-- **The capture + dump script:** BigMoE's <scripts/dd_capture_b.py or the capture with --dump> at commit <...>,
-  sha256 <...>.
-  - The passes are scripts/dd_topk.py (sha256 <...>) and scripts/dd_tree.py (sha256 <...>), called per file in the
-    sitting, with these arguments:
+- **The capture script:** BigMoE's new scripts/dd_cert.py at commit <...>, sha256 <...> (BigMoE sends both before
+  filing; this is the pinned capture_script_sha256).
+  - It is built like dd_mid.py (31f92cd1): dd_bank's runtime path verbatim, with BIGMOE_EXT_BUILD=build_qom.
+  - The passes are the UNCHANGED scripts/dd_topk.py and scripts/dd_tree.py (the shas above). They run in a second
+    process that follows the capture file by file, with these arguments:
     - TOPK as registered (layout 9f49e03);
     - T8: k 8, 32 nodes (amendment 7a, item 2).
   - DROPPED: amendment 7a's conditional HE+ T8 at 127 nodes. NewIdeas 09:3x: early death is KILLED (stage 2, as
@@ -82,9 +97,21 @@ Placeholders are in <angle brackets>.
      (`_run.wd_sha256`, keyed by the fresh file's name).
   3. The slim file is written: the capture's arrays minus wd (<the exact list: ids, lp, tk, gen, raw taps ...>). Its
      sha256 goes in files_sha256.json, and the temporary wd file is deleted.
-- **Disk:** at most one file's wd exists at a time.
-- **Memory:** the head-only passes need ~12.5 GB beside the capture's process. BigMoE states how it runs them (the
-  same process, or an alternation), and the NO-SWAP gate it uses.
+- **How it runs (BigMoE, Tue 10:56):**
+  - The capture writes each file in the bank format, with wd (fp16, as FULL would), to a temp path. It records the
+    file's sha256 BEFORE any pass.
+  - The follower process reads wd from that temp file and writes its dump parts. It then writes the slim file (the same
+    arrays minus wd) and deletes that wd.
+- **Memory:** the capture takes ~22 GB (the mid capture peaked at 21.8) and the head ~12.5 GB.
+  - One share lock covers both: MEM 36 GB.
+  - The capture is gated on NO-SWAP >= 42, on two reads 30 s apart. The follower is gated on its own NO-SWAP read
+    before each file.
+- **Disk:** a wd file exists until the follower has read it.
+  - **The queue cap** (the orchestrator 11:1x): the wd queue on disk is capped at ~1 GB. While it is full, the capture
+    waits rather than queueing more.
+    - Without the cap, a lagging follower could queue the set's wd (~4.4 GB, BigMoE).
+    - With it, the whole sitting stays above Kamen's 100 GiB floor. (b) ends at ~100-102 GiB with the 3.8 GB rawtaps
+      delete, which is still pending Kamen's answer.
 
 ### 3. The integrity checks
 - **Before the capture (Wednesday by day, on the dev bank, not the fresh files):**

@@ -269,7 +269,14 @@ def _core_abl():
          "        if (ABL_C & 2) {\n            for (int q = 0; q < 8; ++q) nb[q] = ch[q] ^ ((uint)q * 0x11111111u);\n"
          "        } else if (tier == 4) {\n            const uint l0"),
         ("        op.run(ta0, tb0, cg);\n        op.run(ta1, tb1, cg);",
-         "        if (!(ABL_C & 4)) { op.run(ta0, tb0, cg); op.run(ta1, tb1, cg); }"),
+         "        if (ABL_C & 32) { op.run(ta0, tbx0, cg); op.run(ta1, tbx1, cg); }\n"
+         "        else if (!(ABL_C & 4)) { op.run(ta0, tb0, cg); op.run(ta1, tb1, cg); }"),
+        ("    auto cg = op.template get_destination_cooperative_tensor<TA, TB, float>();",
+         "    auto cg = op.template get_destination_cooperative_tensor<TA, TB, float>();\n"
+         "    // ABL 32: the MMA reads the NEXT simdgroup's code tile (racy garbage, timing only): no dependency on this\n"
+         "    // simdgroup's own decode, which still runs and stores\n"
+         "    TB tbx0((threadgroup uchar*)(tg_all + ((sg + 1) % (SGN_)) * SGW_C), dextents<int32_t, 2>(32, 32), array<int32_t, 2>{1, 64});\n"
+         "    TB tbx1((threadgroup uchar*)(tg_all + ((sg + 1) % (SGN_)) * SGW_C) + 16, dextents<int32_t, 2>(32, 32), array<int32_t, 2>{1, 64});"),
         ("            acc[i] += sbw[ecol[i]] * cg[i] + sbw[32 + ecol[i]] * rxw[erow[i]];",
          "            acc[i] += (ABL_C & 8) ? cg[i] : sbw[ecol[i]] * cg[i] + sbw[32 + ecol[i]] * rxw[erow[i]];"),
     ]
@@ -287,12 +294,13 @@ def _kabl(which, abl):
         import coh1cq as CQ
         core = _core_abl()
         if which == "a":
-            src = OQ.a_one_call_q(W._PRE_A1 + OC._OLD_HEAD + "\n" + G._PRE_A2 + core + W._POST_A)
+            src = OQ.a_one_call_q(W._PRE_A1 + OC._OLD_HEAD + "\n" + G._PRE_A2 + core.replace("SGN_", "(2 * KS_C)") + W._POST_A)
             names = ["x", "xs", "w3g", "w3u", "s3g", "s3u", "b3g", "b3u", "b2g", "b2u", "l1g", "l1u", "bg", "bu",
                      "msb_slot", "lsb_slot", "pidx", "seg", "nseg", "region", "offs", "status"]
             outs = ["h", "rs_m", "rs_l"]
         else:
-            src = OQ.b_drop(W._PRE_B1.replace(G._PRE_B_STAGE_OLD, G._PRE_B_STAGE_NEW) + core + W._POST_B)
+            src = OQ.b_drop(W._PRE_B1.replace(G._PRE_B_STAGE_OLD, G._PRE_B_STAGE_NEW) + core.replace("SGN_", "(NSG_C * KS_C)")
+                            + W._POST_B)
             names = ["h", "hs", "w3d", "s3d", "b3d", "b2d", "l1d", "bd", "msb_slot", "lsb_slot", "pidx", "seg", "nseg"]
             outs = ["y"]
         _K[key] = mx.fast.metal_kernel(name=f"tgl16abl{abl}_{which}", input_names=names, output_names=outs,
@@ -658,7 +666,7 @@ def tier_glu_nax6n_1cq_tgl16eu(x, msb_n, lsb_n, pre_m, pre_l, ids, plan, region,
     import xgrp
     from tierglu_nax import rowsum64
     if grp is None:
-        grp = xgrp.gpu_grp_up(pre_m, pre_l, ids, plan)
+        grp = xgrp.gpu_grp_up2(pre_m, pre_l, ids, plan)                 # v2: the O(1) lookup (== v1 output)
     M, K, R, r4, N, D, grp, bb, ls, ms, tmpl, PROJ = _common(x, msb_n, lsb_n, pre_m, pre_l, ids, plan, grp, ks, ks_b, nsg_b)
     pidx, seg, nsg_, nseg = grp
     g, u, d = (msb_n[p] for p in PROJ)
@@ -686,7 +694,7 @@ def tier_glu_nax6n_1cq_w4a8u(x, msb_n, lsb_n, pre_m, pre_l, ids, plan, region, o
                              nsg_b=2, ks=4, ks_b=2):
     import xgrp
     if grp is None:
-        grp = xgrp.gpu_grp_up(pre_m, pre_l, ids, plan)
+        grp = xgrp.gpu_grp_up2(pre_m, pre_l, ids, plan)                 # v2: the O(1) lookup (== v1 output)
     M, K, R, r4, N, D, grp, bb, ls, ms, tmpl, PROJ = _common(x, msb_n, lsb_n, pre_m, pre_l, ids, plan, grp, ks, ks_b, nsg_b)
     pidx, seg, nsg_, nseg = grp
     g, u, d = (msb_n[p] for p in PROJ)
@@ -708,3 +716,13 @@ def tier_glu_nax6n_1cq_w4a8u(x, msb_n, lsb_n, pre_m, pre_l, ids, plan, region, o
         grid=(D // (32 * nsg_b) * 32 * nsg_b * ks_b, nseg, 1), threadgroup=(32 * nsg_b * ks_b, 1, 1),
         output_shapes=[(M * R, D)], output_dtypes=[x.dtype])
     return y.reshape(M, R, D), rs_m, rs_l
+
+
+def tier_glu_nax6n_1cq_tgl16eu1(x, msb_n, lsb_n, pre_m, pre_l, ids, plan, region, offs, status, xs=None, grp=None,
+                                nsg_b=2, ks=4, ks_b=2):
+    """bench-only: tgl16eu with knob_v1's grouping (the O(P) scan), to time v2's grouping against it"""
+    import xgrp
+    if grp is None:
+        grp = xgrp.gpu_grp_up(pre_m, pre_l, ids, plan)
+    return tier_glu_nax6n_1cq_tgl16eu(x, msb_n, lsb_n, pre_m, pre_l, ids, plan, region, offs, status, xs=xs, grp=grp,
+                                      nsg_b=nsg_b, ks=ks, ks_b=ks_b)

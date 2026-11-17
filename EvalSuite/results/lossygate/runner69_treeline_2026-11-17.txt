@@ -1,0 +1,82 @@
+# runner 69's timing summary reads the tree flags (BigMoE's r57 names, Tue 10:56), EvalSuite 11-17 11:1x
+# tools/day_runner69.sh sha256 407b29b0a1e75ac3 (was 5b2a9fb8ad4e22e5). The change is in the TM heredoc's config line only:
+# 'a chain (the r57 screen has no tree path)' becomes the env's shape (a tree of R57_TREE_NODES pops + 1 rows, top-R57_TREE_K
+# children, else '<R57_ROWS> rows per check, a chain') plus the draft flags R57_DRAFT / R57_T30B_FMT / R57_TREE_* / R57_XRW.
+
+## the diff
+diff --git a/tools/day_runner69.sh b/tools/day_runner69.sh
+index 3015eb5..7f7f8ba 100755
+--- a/tools/day_runner69.sh
++++ b/tools/day_runner69.sh
+@@ -863,6 +863,11 @@ if mode == "tainted":                                   # the keys to re-run: a
+     sys.exit(0)
+ env = dict(t.split("=", 1) for t in re.split(r",(?=[A-Z0-9_]+=)", os.environ["ENVLINE"]) if "=" in t)
+ rows = env.get("R57_ROWS") or "16 (R57_ROWS unset)"
++tn = env.get("R57_TREE_NODES", "")                      # BigMoE's tree flags (Tue 10:56): pops + the current token = rows
++shape = (f"a tree, {tn} best-first pops + the current token = {int(tn) + 1} rows per check, top-{env.get('R57_TREE_K', '?')} "
++         f"children" if tn.isdigit() else f"{rows} rows per check, a chain")
++drv = "; ".join(f"{k}={env[k]}" for k in ("R57_DRAFT", "R57_T30B_FMT", "R57_TREE_NODES", "R57_TREE_K", "R57_TREE_SF",
++                 "R57_TREE_CC_MAX", "R57_XRW") if k in env)
+ acc = "; ".join(f"{k}={env[k]}" for k in ("R57_FAST", "R57_QOM_SETS", "R57_TIERS", "R57_TIERS_S", "R57_TIERS_SETS",
+                  "R57_TIERS_LAM", "R57_RELAX_DELTA", "R57_RELAX_DELTA_SETS", "R57_COMQOM_SETS", "R57_COMQOM_DOC_SETS",
+                  "R57_RES_SETS", "R57_RELAX_SPAN", "R57_RELAX_SPAN_RULE", "R57_COPY") if k in env)
+@@ -889,7 +894,7 @@ print(f"TIMING {os.environ['TAG']} (runner 69; one quiet lock; the panel's forwa
+       f"{(max(b for _, b in win) - min(a for a, _ in win)) / 60 if win else 0:.1f} min with loads)")
+ for l in out:
+     print("  " + l)
+-print(f"  config: {rows} rows per check, a chain (the r57 screen has no tree path); drafters {drf}; acceptance: {acc}; "
++print(f"  config: {shape}; draft flags: {drv or 'none (R57_DRAFT unset)'}; drafters {drf}; acceptance: {acc}; "
+       f"env blob {os.environ['FB']}; trees [{os.environ['TREES']}]; screen {os.environ['SCR']}; C {os.environ['C_']}; MEM {os.environ['MEM_']}")
+ print(f"  heat pauses (fanwatch) inside a timed window: " + (", ".join(f"{t} {[(dt.datetime.fromtimestamp(p).strftime('%H:%M:%S'), dt.datetime.fromtimestamp(q).strftime('%H:%M:%S')) for p, q in hit(int(a), int(b))]}" for t, a, b in procs if hit(int(a), int(b))) or "none")
+       + (f"; tainted answers replaced by clean re-runs: {len(bad)}" if bad else ""))
+
+## the python stub tests (heredocs extracted from the runner as is): 27 / 27 (22 before + 5 new tree / chain cases)
+PASS ENG2 tier 2: LCB engaged, IFBench / GPQA at 0 (a code-typed IFBench row too)
+PASS ENG2 tier 2: a code-typed IFBench row engaged = engaged on chat: VOID
+PASS ENG2 tier 2: an LCB row at 0 (each): VOID
+PASS ENG2 tier 2: an LCB row at 0, mode any (summed): OK
+PASS ENG2 tier 2: a key outside the panel: VOID
+PASS ENG2 tier 2: an @run term is left to the run (no per-process VOID)
+PASS ENG2 tier 1 (CHATSETS unset): runner 68's check
+PASS ENG2 tier 1: IFEval engaged: VOID
+PASS RT tier 2: @run sum > 0 over LCB (full)
+PASS RT tier 2: @run sum 0 (full): VOID
+PASS RT tier 2: 40 code answers at 0 (early, >= 32): VOID
+PASS RT tier 2: counts 40 code answers (IFBench / GPQA are chat)
+PASS TM: a heat pause inside p_b's window taints its two keys
+PASS TM: after the clean re-run nothing is tainted
+PASS TM summary: pooled whole decode = sum n / sum decode wall (450 / 7 s)
+PASS TM summary: HE+ 300 / 5 s
+PASS TM summary: MBPP from the clean re-run (150 / 2 s)
+PASS TM summary: the config line (16 rows, chain, acceptance, blob)
+PASS TM summary: the pause is named
+PASS TM summary: rc 0 when complete
+PASS TM summary: a chain env prints no draft flags
+PASS TM summary, the tree env: shape from R57_TREE_NODES / R57_TREE_K
+PASS TM summary, the tree env: the draft flags, in order
+PASS TM summary, the tree env: acceptance keeps the CC sets whole
+PASS TM summary, a 31-pop tree without R57_TREE_K: 32 rows, top-? children
+PASS TM summary: INCOMPLETE with a key lacking a clean record (rc 1)
+PASS TM: a pause still on taints a window after it
+runner 69 python stub tests: 27 PASS, 0 FAIL
+
+## card_verdict stub tests
+card_verdict stub tests: 14 PASS, 0 FAIL
+
+## the 16 DRY calls (dry69.sh): rc per call identical to runner69_checks_2026-11-17.txt (the rc 2 ones are the designed refusals)
+== t0code: rc 0
+== t1code: rc 0
+== t1rev: rc 0
+== t1runsuf: rc 2
+== t2badset: rc 2
+== t2badsuf: rc 2
+== t2ext: rc 2
+== t2full: rc 0
+== t2idnoref: rc 2
+== t2lcb: rc 0
+== t2refs: rc 2
+== t2rev: rc 2
+== t2smoke: rc 0
+== t2spot: rc 0
+== timing: rc 0
+== timingrev: rc 2

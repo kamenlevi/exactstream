@@ -863,6 +863,11 @@ if mode == "tainted":                                   # the keys to re-run: a 
     sys.exit(0)
 env = dict(t.split("=", 1) for t in re.split(r",(?=[A-Z0-9_]+=)", os.environ["ENVLINE"]) if "=" in t)
 rows = env.get("R57_ROWS") or "16 (R57_ROWS unset)"
+tn = env.get("R57_TREE_NODES", "")                      # BigMoE's tree flags (Tue 10:56): pops + the current token = rows
+shape = (f"a tree, {tn} best-first pops + the current token = {int(tn) + 1} rows per check, top-{env.get('R57_TREE_K', '?')} "
+         f"children" if tn.isdigit() else f"{rows} rows per check, a chain")
+drv = "; ".join(f"{k}={env[k]}" for k in ("R57_DRAFT", "R57_T30B_FMT", "R57_TREE_NODES", "R57_TREE_K", "R57_TREE_SF",
+                 "R57_TREE_CC_MAX", "R57_XRW") if k in env)
 acc = "; ".join(f"{k}={env[k]}" for k in ("R57_FAST", "R57_QOM_SETS", "R57_TIERS", "R57_TIERS_S", "R57_TIERS_SETS",
                  "R57_TIERS_LAM", "R57_RELAX_DELTA", "R57_RELAX_DELTA_SETS", "R57_COMQOM_SETS", "R57_COMQOM_DOC_SETS",
                  "R57_RES_SETS", "R57_RELAX_SPAN", "R57_RELAX_SPAN_RULE", "R57_COPY") if k in env)
@@ -889,7 +894,7 @@ print(f"TIMING {os.environ['TAG']} (runner 69; one quiet lock; the panel's forwa
       f"{(max(b for _, b in win) - min(a for a, _ in win)) / 60 if win else 0:.1f} min with loads)")
 for l in out:
     print("  " + l)
-print(f"  config: {rows} rows per check, a chain (the r57 screen has no tree path); drafters {drf}; acceptance: {acc}; "
+print(f"  config: {shape}; draft flags: {drv or 'none (R57_DRAFT unset)'}; drafters {drf}; acceptance: {acc}; "
       f"env blob {os.environ['FB']}; trees [{os.environ['TREES']}]; screen {os.environ['SCR']}; C {os.environ['C_']}; MEM {os.environ['MEM_']}")
 print(f"  heat pauses (fanwatch) inside a timed window: " + (", ".join(f"{t} {[(dt.datetime.fromtimestamp(p).strftime('%H:%M:%S'), dt.datetime.fromtimestamp(q).strftime('%H:%M:%S')) for p, q in hit(int(a), int(b))]}" for t, a, b in procs if hit(int(a), int(b))) or "none")
       + (f"; tainted answers replaced by clean re-runs: {len(bad)}" if bad else ""))

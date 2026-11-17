@@ -31,8 +31,22 @@ Prepared Tue 2026-11-17 10:0x, beside the (b) draft (results/certify98/proofrun_
   - chain-32 (31 drafts + the current token, kept/32's cap) and exact acceptance;
   - >= 20 fresh HumanEval+ windows. The engine's tokens per check must be within +-3 % of kept_walk on the same
     windows. Failing it voids only the kept/32 claim.
-  - <BigMoE's confirmation of the path: the load, the full vocab, the matmul precision (MLX_ENABLE_TF32) the same as
-    the dumps', and the per-window output.>
+  - **BigMoE confirmed the path (Tue 10:56):**
+    - The flags: R57_DRAFT=t30b R57_T30B_FMT=stored R57_TREE_K=1 R57_TREE_NODES=31 (k = 1 best-first = the greedy
+      31-draft chain), with exact acceptance (no R57_RELAX_DELTA).
+    - The weights: dd_t30b.safetensors as stored over the shipped MTP layer. That means fp32 Linears, the full
+      248,320-row lm_head, no screen and no session tokens.
+      - r57 loads them through its own model load, not mtp125.load, so identity is checked, not assumed (the
+        rehearsal below).
+    - The precision: MLX_ENABLE_TF32 unset, i.e. TF32 on (MLX 0.32.2's default), as the dumps ran. runs.json prints
+      it with the MLX version.
+    - Per window: tokens, checks, kept per check, and an identity flag of the answer tokens against the capture's
+      ids. A differing window is dropped and counted.
+    - **A dev rehearsal** (Wed by day): heplus24 vs kept_walk from the dev TOPK dump.
+      - Each check's drafts up to its first miss must equal dd_topk's TOPK top-1 at (fi, anchor row, depth).
+      - It also shows the dropped-window rate. A 32-row verify is outside REF2-T's certified 1-16 rows.
+  - **The windows (proposed):** the first 24 fresh HumanEval+ windows in the manifest's order. If fewer than 20 of
+    them have identical answer tokens, the next windows in order are added until 20 do. Every drop is reported.
   - The shipping forms (Q8 or bf16 + the 32K screen) are not certified here. The lossy gates cover them in lossy mode.
 - **The scorers:** tools/certify98.py c0528ad765fd5e59885a1e1066292a3c4dbf6908064b83956b0280773b077eee,
   tools/certify98_tree.py 4a0ba21625497be1..., and tools/certify98_dumpcheck.py

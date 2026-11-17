@@ -7,6 +7,18 @@ unlocks 98% accuracy at 30 tokens deep. By then we must know what it is, and eit
 know the principles of how everything will work and it's certain, and we still have a week of building everything. I
 don't care about that. I just need to get that."
 
+## KAMEN, Tue 17 Nov 11:4x (verbatim, on the compiled check): MODEL-SPECIFIC WORK
+"I don't know how I feel about building layers which are only model specific-there is no benefit from it for other
+models"
+- Orchestrator 11:4x:
+  - Most of the gain is in GENERAL methods: stream / MMA overlap in the expert step, folding router / shared / combine,
+    SLC prefetch, tree checks, sync-free drafting. They apply to any MoE model on Apple Silicon.
+  - Only the final tuning is model-specific. So the MoE-block proof is built as a TEMPLATE (shapes, experts, top-k,
+    bits, tiles as parameters + a per-model config), so a new MoE model (Qwen 4 next) needs a config, not new kernels.
+  - Fixes that belong in MLX itself go upstream (as with the sorted-gather bug #4632).
+  - Asked of Breakthrough 11:4x, with a heads-up if the template costs > ~half a day extra. Kamen can still say to drop
+    model-specific work entirely.
+
 ## KAMEN, Tue 17 Nov 11:0x (verbatim, after the morning's closures and the ~200-220 Saturday range)
 "Bro. I'm not accepting we can't do that. These are actual thinking problems. Which require more smart new ideas with
 much less tests than anything"
@@ -20,7 +32,141 @@ much less tests than anything"
     at no extra bytes; Leap reviewed it as acceptable on FAST). It enters as a flag before Thursday's tier 1, if Leap's
     c25 A/B confirms by Wed evening. Quality is judged inside the stack's gate; the first bisect turns it off.
     w4a8u: NO for Saturday (3 % expert-output error).
-
+- 11:1x EvalSuite (with BigMoE, 10:56): the CERTIFY98 count check on t30b's STORED format keeps the +-3 % check valid
+  with no separate amendment. The form is R57_T30B_FMT=stored, R57_TREE_K=1, 31 nodes, exact acceptance, TF32 default;
+  identity is checked per window.
+  - (b)'s lagging head-pass follower could queue up to ~4.4 GB of wd on disk. The orchestrator agreed to cap it at ~1 GB
+    (the capture waits), to hold the 100 GiB floor.
+  - G1's chain had a gate bug (it read V2's verdict in the single-order form). Fixed and re-armed 10:03. V2 resumed
+    11:08; verdict ~12:00-12:30.
+- **11:2x BREAK98c, Fable FAR (IDEAS_1117c_prefix_eyes.md): PREFIX EYES** (assumption 3).
+  - Mechanism: the head cross-attends, at every level, into the 125B's EXACT prefix K/V at 2-3 late attention layers.
+    Inside copied spans, the prefill state replaces the carried state. ~12 MB per pop, no 125B pass, exact (drafter
+    input only).
+  - Number: the drift gap is the lever (chain own 13.77 -> true 20.77; LAB + ties 26.79). G 0.8 + a hidden draft +
+    a 40 ms check gives ~600; G 0.5 at K64 ~364-426.
+  - Decisive test: Sandbox98 kvx vs ctl (a zero-init cross-attention over the frozen 2B trunk's layer-3 / 4 prefix
+    K/V; ~40 min). PASS G >= 0.3 at bands 9-30 AND tree-32 kept >= +8 %; KILL G < 0.1. Dispatched 11:2x, to start when
+    memory allows (V2 runs to ~12:30).
+  - Also from FAR: assumption 4 is worth only ~x1.05-1.09 on HE+. Old-suffix reuse after a miss was TESTED: KILL (13 %
+    right per row vs 58-63 % fresh).
+- **11:2x BREAK98c, Fable B (IDEAS_1117c_carryover.md): assumptions 1 + 2 are THEOREMS of (greedy walk) x (unified
+  memory), not choices.**
+  - No on-chip store holds a pass's bytes (the SLC is tens of MB against a ~5 GB working set).
+  - After the walk, every unreached row has a wrong token in its prefix: 70.7 % (HE+) / 91.0 % (MBPP) of a 127-row
+    tree's rows are such bets [K].
+  - The carry-overs that exist (prefix KV / GDN, the bonus token, 45 GB residency) are all in use.
+  - The one missing row is the bonus-token row at the walk's end node: in the head's top-8 there 80.8 % HE+, but in
+    the tree by construction 0 %. Expanding the top-8 at the ~4 lowest-margin chain nodes (+28 rows) gives ~+1.3 kept
+    for ~4-5 ms: under the 1.8 ms-per-kept bar, and EAGLE-2 already approximates it. Not run (orchestrator: small).
+  - Verdict: the frame breaks only at positions per weight read (the drafter, assumptions 3-6) or at the per-row price
+    (7-8).
+- **11:2x Kamen's hunch:** Taalas HC1 / ChatJimmy (Llama 3.1 8B hardwired into silicon; ~17K tok/s claimed, ~14.4K
+  measured independently): could a SOFTWARE version of weight-etching work on this Mac? Forwarded to ZERO for its
+  BREAK98c lens: SLC-resident drafter, ~2-bit codebook weights with in-register decode, a compiled check.
+- **11:2x Leap: the c25 SMOKE of the new arms (11:18) = wiring PASS; real numbers come from slot #2 tonight.**
+  - Bitwise as designed: GDN16, exact tgl16e, the 32-row one-launch HC read, the 32-row bitwise stack and its
+    compositions.
+  - ROUGH, not for quoting: F16gx (G1 + GDN16 + tgl16eu = Saturday's flags) 36.4 ms vs G1's 38.95; F32c6xu 51.6 vs
+    F32c6i 56.4. tgl16eu: expert GB +0.01 at 16 rows, argmax 16 / 16.
+  - Slot #2 (14 arms x 36 checks, with a determinism re-run) is armed after M4.
+- **11:2x BREAK98c, Fable ZERO (IDEAS_1117c_slc.md + price_1117c_slc.py), answering Kamen's software-etching idea:**
+  - DRAM's 280 GB/s is a wall, but "read by the GPU, once" is not. The SLC re-serves bytes at ~x2.5 [K: 6.6 MB, 38.9
+    -> 13-18.7 us].
+  - The CPU can fill the SLC with no dispatch and no sync inside the expert phase's DRAM slack (tue1: 175 GB/s, i.e.
+    38 % idle, ~58 MB per layer).
+  - Priced: -1..-4.5 ms per check (the next layer's dense into the SLC) and -1..-3.7 ms per tree-16 draft block (the
+    head's 85 MB re-read part), x1.03-1.18 depending on the SLC's unknown size.
+  - Decisive test: a 10-min Metal microbench (GPU re-read bandwidth vs buffer size 2-256 MB; a 21 MB buffer cold /
+    CPU-touched / GPU-touched; PASS CPU ~= GPU). Assigned to MoonShots for the next quiet gap.
+  - Second idea: expert widths by row survival (path_p x gate; sure rows keep C6), -0.5..-1.1 GB per check [P / G].
+    ZERO runs its bytes screen on the dumps now; EvalSuite gets a quality arm if it's >= ~0.5 GB.
+  - Priced DEAD on this chip: entropy coding at DRAM rates, texture decode, T-MAC LUT GEMM, pre-decoded int8.
+  - Assumption 8's "compute-bound" is really serialization (bytes 16.4 + MMA 6.1 + decode 3.1 + loads 2.9 ~ 26.3 ms):
+    Breakthrough's ground.
+  - **ZERO's plain answer to Kamen's HC1 hunch (IDEAS_1117c_slc.md section 5): only a COMPILED CHECK moves 550.**
+    - (i) On-chip: GPU-resident storage is a few MB; the SLC's usable reach is ~10-40 MB (x2.5 at 6.6 MB, x1.45 at
+      14.75 [K]), against the drafter's 95-178 MB per pop (85 MB re-read every pop at Q8).
+      - A drafter SHAPED for the SLC + a fused level kernel gives pops ~0.2-0.3 ms and a tree-16 block 3-4 ms:
+        ~292 -> ~320 tok/s (+10 %), exact.
+      - The check is 48 of 58 ms, so this alone can't reach 550.
+    - (ii) 2-bit trellis / codebook on the check: byte floor 25.2 -> ~15.7 ms, but the decode makes the expert call
+      1.15-1.21x SLOWER [K], and quality kills 2-bit (2.49x MSB-3 error). Only TRL-3 (3.07 b) passed: -1.4 ms, PARKED.
+    - (iii) A COMPILED CHECK (fused per-sub-block kernels in this model's shapes, native tile layouts, one replayed
+      command buffer) at 85-90 % of the byte floor: ~28-30 ms at 32 rows.
+      - At 29 + 3 + 1.5 ms: kept 17 -> ~507, kept 19 -> ~567, K64's 20.8 -> ~620.
+      - Leap prices it at weeks (A+B), then 4-6 weeks (D/E).
+    - **So 550 = a compiled check + a 48-64-row tree + a <= 4 ms draft.** The "software HC1" works for the drafter; for
+      the check, the 6.7 GB per block fits no cache.
+  - **11:3x orchestrator -> Leap:** can ONE full layer, compiled that way, be shown at >= 85 % of its byte floor (quiet,
+    bitwise or FAST-gated) by FRIDAY, without hurting Saturday's measured numbers? That would prove the engine half of
+> (a quote from the project owner, kept private)
+  - **11:3x Leap's answer:**
+    - A FULL layer at >= 85 % by Friday: NO (~10-15 %). Today the 32-row check runs at ~46 % of the C6 + int8 bound
+      (54.2 ms GPU vs 25.2).
+    - Per class vs its floor:
+      - experts ~62 % (26.3 vs 16.4; tgl16eu takes it to ~73 %);
+      - dense ~52 % (14.7 vs 7.6, compute-bound);
+      - cores + HC ~20-35 % (latency-bound).
+      A whole layer needs ~1.85x on all of them at once: the 4-6 week D/E work.
+    - **PLAUSIBLE by Friday (~50 %): one layer's MoE BLOCK (router -> experts -> shared -> combine) at >= 85 % of ITS
+      byte floor.** It is ~48 % of the check's GPU time. Plain streaming of the real expert planes already runs at
+      x0.92 of the 280 floor, and Breakthrough's X0 shows MMA and stream overlap.
+    - **Orchestrator: GO.** Breakthrough builds it (pre-registered floor + 85 % line). Leap reviews, wires it as a c25 arm
+      and measures it quiet in slot #4 (Thu). It is bitwise or FAST-gated; Saturday's path doesn't change.
+    - MoonShots' dense sub-block (~70 % expected): not now (account-1 is ahead of its weekly pace).
+    - Main account at ~76 %, where Leap and BigMoE stop at 85 %: the main-account thinkers pause after BREAK98c unless
+      an idea earns a test, to protect Saturday's slots and BigMoE's plumbing.
+- **11:3x ZERO's idea 2, bytes screen** (screen_1117c_pathp.py, CPU; chain-window proxies for tree rows):
+  - Width-only (MSB-2 for rows with path_p < 0.2): -0.29 GB per 32-row check. Under the 0.5 GB bar.
+  - DROP form (drop an expert used ONLY by one row with path_p < 0.2 at rank 2-9; gate renormalized): -19.8 % = -0.91 GB
+    per 32-row check (-3.3 ms at the floor, -5.2 at tue1's rate); 24 % of rows demoted, 20 % of the union dropped.
+    tau 0.3: -1.13 GB. At 16 rows: -0.25 GB only. Expected kept cost ~0.2-0.5 %.
+  - Orchestrator: recorded as the top 32-row byte lever for the 550 check line. The EvalSuite quality arm comes AFTER
+    Saturday (this week's 45 GB EvalSuite time goes to Saturday's tree-16 gates), re-screened on real tree rows first.
+- **11:3x Breakthrough: the template costs ~2-3 h extra; proceeding as a TEMPLATE.** The kernels are already
+  shape-templated; what's left is a per-model config + no 125B constants in the Python wrappers. The 85 % pre-registration
+  stands (f6f806e). Odds: the expert call is at ~77 % of its floor today (tgl16eu), so 85 % for the whole block needs
+  ~15 % more + folding. Leap's ~50 % stands.
+- **11:3x BREAK98c, Fable C (IDEAS_1117c_walls.md; its file says 12:2x, but the date was 11:3x): AUDIT VERDICT: 550 = kept 16.5 at a 30 ms cycle = the check at its
+  byte floor + the draft at its physics. NO new information is needed. 775 needs an information source not found.**
+  - The kept, row and byte walls are physics for greedy + the gates: sampling KILLed 23 Oct; 72 % of shallow HE+ misses
+    sit at 125B margins < 1 nat; the A_line is spent by CC(1).
+  - The one wall made of assumptions is the DRAFT (0.55 ms fixed + 0.56 ms of bytes per pop, serial).
+  - New fact: the HE+ tree-32 is a ~25-deep chain (24.9 distinct depths in 31 pops), so level batching buys ~0 on HE+
+    (x1.9 MBPP). The draft floor is depth x bytes per forward: 14 ms with the Q8 head, 2.3 ms with a QAT head.
+  - Best idea, the POOL DRAFTER: the head keeps a refilled pool ahead of the cursor, and checks take the best 31 nodes
+    under it. The refill runs on the idle CPU during the check once the head is <= ~40 MB (after S22's QAT).
+    - Measured lower bound: an unrefilled pool serves 19-25 % of HE+ checks with no draft, at x0.978-0.949 kept.
+    - Net +5-12 % at the floor.
+    - Decisive test (<= 10 min CPU, refill emulation; PASS fresh-draft share <= 0.25 at >= x0.95 kept): asked of
+      Fable C 11:3x.
+    - **RESULT 11:4x: KILL** (section 7; pool_cursor_1117c.py mode C).
+      - The fresh-draft share passes (0.136 HE+ / 0.167 MBPP per check).
+      - The kept bar fails: the pool-block factor measures x0.88 against the x0.943 needed.
+      - Root cause: right after a correction, the drifted head is right 86.5 % vs 94.2 % for a head re-rooted at the
+        125B's true state (MBPP 76.2 vs 91.1). A draft must be re-rooted there: the serial dependency the frame already
+        pays. The only hybrid that could pass is a wash at the floor.
+- **11:4x BREAK98c, Lunatic (IDEAS_1117c_channels.md): CODE || COMMENTARY** (assumptions 5 + 6). **The first idea on
+  record past 775 at the bound (HE+).**
+  - Mechanism: the code decodes as ONE causal channel that never reads the answer's comments / docstrings. Each comment
+    is a branch forked at its slot and decoded in the same sweeps. Every token is still 125B-verified in its channel.
+  - Why: comment and docstring wording holds 66 % (HE+) / 74 % (MBPP) of the exact check-ending misses, so ~2/3 of the
+    sequential decisions leave the critical path.
+  - Number (t30b cells, chain walks, CC(1)): x1.67-1.87 fewer sweeps on HE+ (x1.39-1.47 MBPP); kept per sweep 16.9 ->
+    28-32 on HE+ at ~47 rows.
+    - Full cycle at this week's costs: x1.41-1.54 HE+ / x1.21-1.33 MBPP.
+    - At the C6 + int8 bound with a 3 ms draft: ~860-960 HE+ / ~395-410 MBPP, vs 568 / 288 coupled.
+  - Decisive test: a paired plain-decode quality run of the comment-blind code with branch comments; a Sandbox98 2B
+    pre-screen first (~30 min, queued after PREFIX EYES).
+  - **NEEDS KAMEN'S CALL on the form:** the comments are written and verified, but the code doesn't read them. That is
+    neither COMMENT-FREE (his "cheating", on the kill list) nor INERT. Asked 11:5x.
+  - Lunatic also killed today: fresh-name and tokenization-equivalent acceptance (x1.002-1.027), and reusing rows after
+    a miss.
+- **11:5x GPU gap after V2 (orchestrator, covering for NewIdeas):** Leap's 3-min smoke -> Breakthrough's ~6-min quiet
+  MoE-block bench (F1: the shared expert folded into the routed kernels, routed rows bitwise) -> MoonShots' SLC
+  microbench (if ready) -> Sandbox98 PREFIX EYES -> Sandbox98 CODE || COMMENTARY pre-screen. EvalSuite holds G1 (filler)
+  until ~13:30 at the latest.
 ## KAMEN, Tue 17 Nov 07:2x (verbatim, dictated): THE TWO BREAKTHROUGHS BY SATURDAY; LOSSY >= 550 OR NOTHING
 "I'm missing the point of all of this. I'm not trying to make another 50% or it's even less improvement on code and
 exact and lossy. I don't really care about whether we bump up speed from 100 and something tokens per second to 100 and

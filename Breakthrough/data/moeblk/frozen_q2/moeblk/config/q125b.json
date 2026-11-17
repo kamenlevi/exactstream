@@ -1,0 +1,17 @@
+{
+  "_doc": "moeblk per-model config (Breakthrough, Tue 17 Nov 2026 11:5x): every model-specific number of the MoE-block template. A new MoE model needs a new file like this (plus a tiered-store conversion if its routed experts use the MSB / LSB tier records).",
+  "model": "the 125B (qwen4_exp, MTPLX), BigMoE's converted store",
+  "model_dir": "~/BigMoE/models/bare",
+  "weight_prefix": "language_model.model.layers.{L}.mlp.",
+  "hidden": 2560,
+  "n_experts": 512,
+  "top_k": 10,
+  "expert_inter": 640,
+  "shared_inter": 640,
+  "group_size": 64,
+  "router": {"bits": 8, "tensor": "gate", "softmax_precise": true, "norm_topk_prob": true, "sort_by_score": true},
+  "shared": {"bits": 4, "tensors": ["shared_expert.gate_proj", "shared_expert.up_proj", "shared_expert.down_proj"], "gate_tensor": "shared_expert_gate", "gate_bits": 4, "act": "silu_mul", "gate_act": "sigmoid_mul"},
+  "routed_store": {"format": "native+p11+pad", "plan": "4433333333", "msb_bits": 3, "lsb_bits": 1, "tile_rows": 32},
+  "tiers_1c": {"s": 0.98, "lam": 0.016},
+  "kernel": {"ks": 4, "ks_b": 2, "nsg_b": 2, "mma": [16, 32, 32]}
+}

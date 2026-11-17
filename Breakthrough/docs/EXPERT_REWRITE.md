@@ -364,3 +364,79 @@ The EXPERT class is 17.44 ms of the 16-row check (F16) and 26.31 ms of the 32-ro
 | tgl16 (exact) | ~-0.8 ms | ~-0.9 ms |
 
 Saturday's 16-row check (Leap: 38.9 ms) would go to ~35.9 with tgl16eu.
+
+## DECISION (orchestrator 11:1x): tgl16eu INTO Saturday's stack; w4a8u NO
+- tgl16eu joins BigMoE's r57 stack as a flag BEFORE Thursday's tier 1, if Leap's c25 A/B confirms by Wed evening ~-2.5..-3
+  ms at 16 rows, no extra expert GB, and determinism.
+- Quality is judged inside the stack's gate (tier 1 Thu + card gate Fri night). If the stack fails, the first bisect turns
+  tgl16eu off.
+- w4a8u: NO. It adds 3 % expert-output error for only ~0.6 ms more.
+- Handoff to BigMoE: docs/EXPERT_REWRITE_HANDOFF.md (wiring lines, scope, smoke check, the frozen knob_v1). EvalSuite is
+  told that tgl16eu is in the stack.
+- **Robustness before BigMoE wires it (scripts/xrw/xrw_robust.py through the FROZEN knob_v1; Tue 11:1x): PASS, 18 cases.**
+  - Coverage: row counts M = 1, 2, 3, 5, 8, 16, 17, 24, 32 x layers 20 / 44; random routing with a popular expert,
+    2-D nolsb marks and QOM-dropped experts.
+  - tgl16e == ooo1cq in y, rs_m and rs_l, bitwise, in every case.
+  - tgl16eu's unchanged pairs == ooo1cq bitwise, with 2 repeats identical; 0-66 pairs upgraded per case.
+  - QOM-dropped pairs are exactly 0 in every arm.
+- **Leap's arm names (11:12): the deciding number is F16gu - F16g.**
+  - F16gk / F32c6k = tgl16e (exact); F16gu / F32c6u = tgl16eu; F16gx = G1 + GDN16 + tgl16eu (the flags BigMoE would get).
+  - Each arm's line carries its expert GB per check. Determinism: pass K re-runs F16gu / F16gx and compares rows
+    bitwise.
+  - Schedule: a 13-arm smoke ~12:00-12:30 (after EvalSuite's V2); the full A/B in slot #2 tonight; the repeat in slot #3
+    Wed morning. Results by Wed ~07:00.
+
+## knob_v2 (Tue 11:2x): the same outputs as knob_v1, a faster upgrade grouping
+- **Why:** Leap's in-engine smoke (11:18, ROUGH, 2 checks per arm) showed:
+  - tgl16e BITWISE in the real check (F16gk == F16g 16 / 16 rows; F32c6k == F32c6i 32 / 32).
+  - tgl16eu: argmax 16 / 16 and 30 / 32; expert GB 2.47 -> 2.48 (16 rows; tokens diverge) and 3.91 = 3.91 (32 rows).
+  - Walls F16g 38.95 -> F16gu 36.83 (-2.1 ms) and F32c6i 56.35 -> F32c6u 53.73 (-2.6 ms). That is short of the
+    -2.5..-3 decision band.
+  - x6_grp_cost.py found why: the upgrade's grouping kernel (one threadgroup, on every call's critical path) ran
+    ~2.2x today's, 9.0 -> 19.9 us at P = 160 and 16.5 -> 39.9 us at P = 320 (min over real blocks). Each tier-3
+    candidate scanned all P pairs.
+- **v2 (xgrp.gpu_grp_up2):** eligible 4-bit pairs atomic-min their index into a threadgroup table keyed by identity; a
+  candidate reads its entry in O(1). That is the same choice as v1 (the first eligible pair of its identity), and an
+  identity outside the tables falls back to v1's scan.
+- **Grouping cost (contended GPU; ratios):** orig / v1 / v2 = 28.7 / 64.9 / 34.5 us at P = 160 and 54.4 / 126.5 / 63.7
+  at P = 320. The upgrade's grouping overhead falls from ~+125 % to ~+17-20 %, worth ~0.4 / ~0.9 ms per 16 / 32-row
+  check at quiet scale [P].
+- **Equivalence:**
+  - xgrp.self_test2: v2 == v1 in 240 / 240 random calls, including inconsistent sidecar slots, slots beyond the table,
+    late slots and QOM drops. The first run of this test compared seg past nseg (never written) and failed falsely; the
+    test was fixed.
+  - xrw_v1v2.py: tgl16eu with v2 == with v1, BITWISE in y, rs_m and rs_l, on 24 real calls (L20 / L44, 32 and 16 rows).
+- **Release checks of the FROZEN data/xrw/knob_v2 (md5s in knob_v2.md5):** knob_check PASS; xrw_robust PASS (18 cases).
+- **Steering (shared, NOT quotable; orig 820 us):** tgl16eu with v1 grouping 0.904, with v2 0.878 x orig at 32 rows.
+
+## GENERAL methods vs MODEL-SPECIFIC tuning (orchestrator 11:29, from Kamen: build templates, not one-model layers)
+**General: these carry to any MoE model on this GPU (and mostly to any GPU with a matrix unit).**
+- **The MMA's left operand staged in threadgroup memory** (tgl16): bitwise-preserving. The accelerator's sums don't
+  depend on which memory feeds the operand.
+- **The cooperative dest's layout is analytic** (x2b): the epilogue can load scales / biases as vectors.
+- **SEGMENT REDUCTION before kernel tuning.** On this accelerator the MMA pads both M and N to 16 (X3), so the work
+  scales with segments, not tokens. Any merge of an expert's segments pays directly: the tier upgrade merges precision
+  tiers whose higher plane is read anyway, at no extra bytes and with more accurate weights.
+- **Single-threadgroup glue on the critical path must be O(P),** not O(P^2) (xgrp v2: table lookups).
+- **Fold independent work under the expert stream** (router, shared expert, combine): the MoE-block proof
+  (docs/MOEBLOCK.md).
+- **The measurement kit:**
+  - X0 (can the MMA run under the stream at all?);
+  - X3 (operand shapes and their padding);
+  - removal ablations per component;
+  - interleaved, order-rotated benches with frozen copies;
+  - fp32 dequant references;
+  - knob releases with md5s.
+- **Facts found:** int8 x int4b runs at ~0.78 x bf16 x uint4b's MMA time; register prefetch and fewer-but-heavier
+  simdgroups were slower here; 3-bit -> nibble decode is ~12 ALU ops per 8 codes.
+
+**Model-specific: config, not code.** For the 125B:
+- hidden 2560, expert intermediate 640, 512 experts, top-10; group size 64;
+- the tier plan "4433333333" (ranks 0-1 at MSB + LSB);
+- the converted store's records (MSB-3 + LSB planes in the native 32-row tile layout; p11 11-bit scale / bias pieces);
+- the K-split ks = 4 / ks_b = 2 / nsg_b = 2 (Leap's NAX6 choices);
+- router 8-bit g64, shared expert 4-bit g64 (640);
+- the 1c-tier thresholds (s 0.98, lam 0.016).
+
+The MoE-block code takes these from a per-model config file (moeblk: config/<model>.json); a new MoE model needs a new
+config, plus a store conversion if its experts use the tiered format.
