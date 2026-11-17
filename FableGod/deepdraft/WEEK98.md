@@ -64,6 +64,22 @@ don't care about that. I just need to get that."
 - 15:06 Breakthrough: tgl16eu does NOT need the 1c tiers (no-tier segments -13.9 % at 16 rows; unchanged pairs
   bitwise). Orchestrator rule: if slot #3 (Wed 07:15) prices it at >= ~1 ms on the no-tier path, it goes back into the
   stack amendment before Thursday's tier 1 (FAST, judged inside the stack's gate).
+- **16:0x SATURDAY STACK MANIFEST (orchestrator; sent to BigMoE to confirm against the Wednesday plumbing):**
+  - LOSSY (gated, tier 1 Thu + card gate Fri night):
+    - lossy-45 base + CC(1) + t30b Q8H32 (b5388cc4) tree-16 + sync-free + GDN16 + tgl16e;
+    - tgl16eu only if slot #3 shows >= ~1 ms;
+    - no tiers / G1.
+  - EXACT (ii) (no gate; token identity 264 / 264):
+    - t30b tree-16 Q8H32 + sync-free + REF2_BOF + REF2_HC_B (V3KT PASS) + GDN16 + tgl16e;
+    - the S22 4-bit head only if S22 passes Thursday (MoonShots' engine side READY: M-47, bitwise 168 / 168, 74.7 MB per
+      level, ~0.81 vs 1.11 ms per pop).
+  - Each flag goes ON only after its bit test in BigMoE's own loop; the timings record each flag ON vs OFF.
+  - 16:1x BigMoE CONFIRMED every line as a flag in Wednesday's loop (lossy: ccx45cc1 + R57_T30B_FMT=q8h32
+    R57_TREE_NODES=15 R57_TREE_K=8 R57_TREE_SF=1 + GDN16 + R57_XRW=tgl16e; exact: x45rpl1 + the same + REF2 switches;
+    S22 via R57_T30B_FMT=c2).
+    - ADD 1 (orchestrator YES): REF2_BOF + REF2_HC_B in the LOSSY headline too, ~-3 ms per 16-row check, after the same
+      bit test on the lossy loop (Wed).
+    - ADD 2 (YES if Leap confirms + it bit-tests): REF2_GDN_LAZY (Leap's lazy GDN commit).
 > (a quote from the project owner, kept private)
   replies are BIG-only from now on.
 

@@ -5275,3 +5275,8 @@ Prediction [G]: qa PASS 30 % (HE+ is capped near x0.976 by H8 alone at t16 befor
   - trainer: step 1's loss 0.5225, then the peak guard stopped it at 18.2 GB (> 18). The fake-quant made one weight
     copy per depth, 30 per step.
   - Fixed (dada1b2): one STE weight per step, cached outside the module. Re-smoke from 16:30 (sb98/s22_resmoke.sh).
+- S22 trainer RE-SMOKE PASS (Tue 16:30-16:31, after dada1b2):
+  - peak 15.0-15.8 GB (t30b's was 15.6), 2.6-3.9 s per step, so qa's 1,479 steps take ~1.3-1.6 h.
+  - Bits are from C2: 4-bit everywhere, router 8, HC mixes 4, top-4.
+  - Loss 0.5225 -> 0.3025 over 5 steps: C2's cuts raise t30b's loss and QAT starts adapting. Nothing was saved.
+  - qa (sb98/s22.sh qa MARKER) waits for the Wed-night CERTIFY98 capture's END marker.
