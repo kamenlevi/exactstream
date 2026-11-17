@@ -1,0 +1,30 @@
+
+MOEBLK BENCH Tue 17 Nov 12:18:22: arms ['today', 'knob', 'f1', 'f2', 'f2c', 'c_exp', 'c_route', 'c_shared', 'c_comb']; knob /Users/kamen/Breakthrough/data/xrw/knob_v2; layers 20; rows 32; 2 blocks x 1 back-to-back calls x 1 rounds (rotated); floor = block bytes / 280 GB/s (pre-registered f6f806e)
+  L20 32 rows: f2c == f2 bitwise on 2 blocks: True
+  L20 32 rows: 2 blocks; router == the capture's routing on 60.9 % of rows; floor mean 399.8 us (bytes 0.1119 GB)
+    today   : CPU build  126.5 + encode  167.5 =  294.0 us / call; GPU busy 1685.3; wall 2060.0; GPU idle (wall - busy)  374.7; floor / busy 0.241; command buffers during the build 0
+    today   :  2060.0 us / call (median over blocks); efficiency floor / time median 0.197 [p10 0.174, p90 0.220] -> FAIL; x5.65 the 305 GB/s ceiling
+    knob    : CPU build  110.9 + encode  148.8 =  259.8 us / call; GPU busy 1715.1; wall 2046.5; GPU idle (wall - busy)  331.4; floor / busy 0.236; command buffers during the build 0
+    knob    :  2046.5 us / call (median over blocks); efficiency floor / time median 0.198 [p10 0.177, p90 0.219] -> FAIL; x5.61 the 305 GB/s ceiling
+    f1      : CPU build   96.9 + encode  112.7 =  209.6 us / call; GPU busy 1680.4; wall 1984.8; GPU idle (wall - busy)  304.4; floor / busy 0.240; command buffers during the build 0
+    f1      :  1984.8 us / call (median over blocks); efficiency floor / time median 0.203 [p10 0.186, p90 0.219] -> FAIL; x5.43 the 305 GB/s ceiling
+    f2      : CPU build  117.6 + encode  130.6 =  248.2 us / call; GPU busy 1927.6; wall 2259.6; GPU idle (wall - busy)  332.0; floor / busy 0.207; command buffers during the build 0
+    f2      :  2259.6 us / call (median over blocks); efficiency floor / time median 0.177 [p10 0.174, p90 0.179] -> FAIL; x6.16 the 305 GB/s ceiling
+    f2c     : CPU build   27.7 + encode  106.4 =  134.2 us / call; GPU busy 1989.3; wall 2217.4; GPU idle (wall - busy)  228.0; floor / busy 0.213; command buffers during the build 0
+    f2c     :  2217.4 us / call (median over blocks); efficiency floor / time median 0.189 [p10 0.153, p90 0.224] -> FAIL; x6.10 the 305 GB/s ceiling
+    c_exp   : CPU build   63.8 + encode   75.1 =  139.0 us / call; GPU busy 1227.6; wall 1492.2; GPU idle (wall - busy)  264.6; floor / busy 0.326; command buffers during the build 0
+    c_exp   :  1492.2 us / call (median over blocks); efficiency floor / time median 0.268 [p10 0.265, p90 0.271] -> FAIL; x4.07 the 305 GB/s ceiling
+    c_route : CPU build   45.5 + encode   50.3 =   95.8 us / call; GPU busy  132.2; wall  380.1; GPU idle (wall - busy)  247.9; floor / busy 4.176; command buffers during the build 0
+    c_route :   380.1 us / call (median over blocks); efficiency floor / time median 1.090 [p10 0.908, p90 1.272] -> PASS; x1.05 the 305 GB/s ceiling
+    c_shared: CPU build   37.0 + encode   62.4 =   99.4 us / call; GPU busy  157.4; wall  450.9; GPU idle (wall - busy)  293.5; floor / busy 3.450; command buffers during the build 0
+    c_shared:   450.9 us / call (median over blocks); efficiency floor / time median 0.944 [p10 0.742, p90 1.146] -> PASS; x1.24 the 305 GB/s ceiling
+    c_comb  : CPU build   29.0 + encode   29.6 =   58.6 us / call; GPU busy   13.9; wall  219.1; GPU idle (wall - busy)  205.3; floor / busy 29.014; command buffers during the build 0
+    c_comb  :   219.1 us / call (median over blocks); efficiency floor / time median 1.829 [p10 1.782, p90 1.876] -> PASS; x0.60 the 305 GB/s ceiling
+    knob / today per block: median 0.995 [p10 0.983, p90 1.007]
+    f1 / today per block: median 0.968 [p10 0.931, p90 1.006]
+    f2 / today per block: median 1.112 [p10 0.995, p90 1.229]
+    f2c / today per block: median 1.066 [p10 0.990, p90 1.142]
+    c_exp / today per block: median 0.735 [p10 0.656, p90 0.814]
+    c_route / today per block: median 0.183 [p10 0.174, p90 0.193]
+    c_shared / today per block: median 0.216 [p10 0.194, p90 0.238]
+    c_comb / today per block: median 0.108 [p10 0.093, p90 0.124]

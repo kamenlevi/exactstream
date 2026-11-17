@@ -1,5 +1,34 @@
 # IDEAS_1117c_channels: take the commentary off the critical path (Lunatic, BREAK98c, Tue 17 Nov 11:1x-12:1x)
 
+> **ADDENDUM 12:5x: the 2B pre-screen ran (Sandbox98 CHAN, 0609c6d). Quality FAILS by the 3-pt rule. The speed side
+> holds. The faithful form is KILLED by its own comment-consistency count.** [K, ~/Sandbox98/results/LEVERS_A.md
+> section CHAN result]
+> - **Quality.** Pass@1 pooled 36.74 -> 33.71 (-3.03 pt, 25 / 33 discordant, McNemar p 0.36); HE+ -4.88, MBPP +0.00.
+>   - 7 of HE+'s lost passes no longer parse: with the docstring opener masked, the 2B writes the docstring it copies
+>     from the prompt as bare code.
+>   - A guard (the trunk keeps a copied prompt docstring) would likely remove that part (HE+ ~16 / 17 discordant without
+>     those 7). This is post hoc and untested.
+> - **Speed.** Confirmed in real decoding:
+>   - check-ending misses per code token x1.04 (the line was 1.5);
+>   - x1.72 fewer sweeps (HE+ x1.71, MBPP x1.74);
+>   - the 2B's own miss split matches the 125B's: 66.7 % comment + docstring;
+>   - but rows per sweep are 48.6 (p90 64), and the answers are 11 % shorter (68.7k vs 76.8k tokens).
+>   - In tok/s that is x1.54 per sweep at equal cost. Priced as in 3.4, it is x1.29 at this week's costs and x1.35 at
+>     the bound [P], not the x1.7 the sweep count suggests.
+> - **The blocker is the form, not pass@1.**
+>   - Comment consistency is 25.6 % ('#' 14 %, docstrings 37 %): having written the comment, the model would write a
+>     different next line in ~3/4 of slots.
+>   - The code is identical to the coupled answer's in only 32 / 264 answers (line match 0.49).
+>   - So the commentary steers the code. Splitting the channels does not take a side decision off the chain. It writes
+>     a different program and attaches comments meant for the program the model would have written.
+>   - Correction to 3.3: the head-side miss rates after comments were the wrong proxy. They measure drafting
+>     difficulty, not the model's dependence on its comments. This also explains INERT's code drift.
+> - **Verdict.**
+>   - KILL for the faithful form (comments that describe the code they sit in), on the 2B. No 125B run is recommended.
+>   - The only rescue left is comments written by infill AFTER their code (FIM-style, reading the trunk's next lines).
+>     It is untested, it costs suffix rows plus a one-check lag per comment, and it ships comment-blind code. That
+>     makes it an owner's call, not a lever to queue.
+
 Lens: assumptions 5 + 6 (kept = per-position acceptance of one chain / tree; the answer is produced left to right, one
 token per position). Marks: [K] measured here or in a named record, [P] priced from measured parts, [G] judgement.
 Data: BigMoE's t30b cells + topk dumps (HE+ 24 answers, 6,375 tokens; MBPP 100 answers, 15,641 tokens), the same
@@ -123,7 +152,8 @@ law, that wording costs sequential sweeps only because the code after it reads i
   - PAR-CHAT / L1-32p (SoT, < 1.25 on chat; f(code) < 20 %): those split prose into points; this split is measured at
     2/3-3/4 of the code answers' decisions.
   - Hogwild (GDN can't take interleaved writers): each branch owns its forked state.
-- **Plan transfer.** Do comments carry the code's next decision, so that cutting the read would add code misses? The
+- **Plan transfer** (CORRECTED by the 12:5x addendum: the head-side numbers below were the wrong proxy; in real
+  decoding, comments steer ~3/4 of the 2B's next lines). Do comments carry the code's next decision, so that cutting the read would add code misses? The
   head-side record says no [K, shape_channels.out]. On the first code line after a comment line, the head misses more,
   not less:
   - HE+ depth-0 3.3 % vs 1.2 % elsewhere (depth 0-15: 10.4 vs 8.7 %);
@@ -239,4 +269,4 @@ openers masked, run one short decode per slot for the branches, splice, then sco
 
 - SHAPE-NAMES (fresh-name / tokenization-equivalent acceptance at misses: alpha-renaming and same-text tokenizations, which tests can't see) | wall: kept | line: 45 GB lossy | exact: no (semantics-preserving) | verdict: KILL: 0.4-0.8 % / 2.9-4.0 % of check-ending misses, x1.002-1.027 kept over exact or CC(1) (HE+ / MBPP chain-32) | 2026-11-17 | ~/FableGod/lunatic/shape_names.out | [lunatic]
 - DECISION-SHARE (where the sequential 125B decisions sit in code answers) | wall: kept | line: all | exact: n/a | verdict: MEASURED: comments + docstrings hold 65.6 / 74.1 % of exact check-ending misses (HE+ / MBPP; CC(1) 63.6 / 72.5); comments 22-23 per 100 tokens vs code 6-9 | 2026-11-17 | ~/FableGod/lunatic/shape_names.out | [lunatic]
-- CODE || COMMENTARY (the code channel never reads the answer's comments / docstrings; each is a branch forked at its slot, decoded in the same sweeps; all tokens 125B-verified in their channel) | wall: kept / critical path | line: 45 GB lossy | exact: no (a different answer; gated) | verdict: UNTESTED (quality); [K cells] CC(1) x1.67-1.87 fewer sweeps HE+, x1.39-1.47 MBPP; [P] full cycle this week x1.41-1.54 HE+ / x1.21-1.33 MBPP, at the bound + 3 ms draft ~860-960 / ~395-410 vs 568 / 288 | decisive: a paired plain-decode quality run (2B pre-screen first) + the owner's call on the form | 2026-11-17 | ~/FableGod/lunatic/IDEAS_1117c_channels.md | [lunatic]
+- CODE || COMMENTARY (the code channel never reads the answer's comments / docstrings; each is a branch forked at its slot, decoded in the same sweeps; all tokens 125B-verified in their channel) | wall: kept / critical path | line: 45 GB lossy | exact: no (a different answer; gated) | verdict: KILL (faithful form) on the 2B pre-screen (Sandbox98 CHAN 0609c6d): pass@1 -3.03 pt pooled (p 0.36; 7 HE+ parse failures from the masked copied docstring), speed confirmed (x1.04 misses per code token, x1.72 fewer sweeps, ~x1.3 tok/s after rows), comment consistency 25.6 % (comments steer ~3/4 of next lines; code identical in 32 / 264) | pre-screen numbers before it: [K cells] CC(1) x1.67-1.87 fewer sweeps HE+, x1.39-1.47 MBPP; [P] full cycle this week x1.41-1.54 HE+ / x1.21-1.33 MBPP, at the bound + 3 ms draft ~860-960 / ~395-410 vs 568 / 288 | decisive: a paired plain-decode quality run (2B pre-screen first) + the owner's call on the form | 2026-11-17 | ~/FableGod/lunatic/IDEAS_1117c_channels.md | [lunatic]

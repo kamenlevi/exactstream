@@ -3,15 +3,35 @@ today's block alone (no overlap with the rest), so the block's time can be split
   c_route  router logits + router_fused + t1cf + the slot lookups
   c_shared the shared expert (3 MLX quantized matmuls + silu * mul) and its sigmoid gate
   c_exp    the routed one-call (knob tgl16eu), on routing precomputed outside the timed region
-  c_comb   combine_phase + the shared add, on precomputed inputs"""
+  c_comb   combine_phase + the shared add, on precomputed inputs
+  c_t1     Leap's t1cf alone (the 1c tiers), on router outputs precomputed outside the timed region. Added Tue 12:4x:
+           the 1c tiers were not adopted (EvalSuite V2 FAIL, 12:3x), so the engine's glue does not run it"""
 import moeblk as MB
 
 mx = MB.mx
 _CACHE = {}
 
 
+_RC = {}
+
+
 def reset():
     _CACHE.clear()
+    _RC.clear()
+
+
+def _pre_r(lay, x):
+    k = (id(lay), id(x))                                   # as _pre: bench.py holds every x alive and reset()s per pass
+    if k not in _RC:
+        ids, scores = MB.route(lay, x)
+        mx.eval(ids, scores)
+        _RC[k] = (ids, scores)
+    return _RC[k]
+
+
+def c_t1(lay, x):
+    ids, scores = _pre_r(lay, x)
+    return list(MB.glue(lay, ids, scores))
 
 
 def _pre(lay, x):

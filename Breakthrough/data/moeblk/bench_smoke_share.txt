@@ -1,0 +1,18 @@
+
+MOEBLK BENCH Tue 17 Nov 12:15:20: arms ['today', 'knob', 'f1', 'f2', 'f2c']; knob /Users/kamen/Breakthrough/data/xrw/knob_v2; layers 20; rows 32; 2 blocks x 2 back-to-back calls x 1 rounds (rotated); floor = block bytes / 280 GB/s (pre-registered f6f806e)
+  L20 32 rows: f2c == f2 bitwise on 2 blocks: True
+  L20 32 rows: 2 blocks; router == the capture's routing on 60.9 % of rows; floor mean 399.8 us (bytes 0.1119 GB)
+    today   : CPU build   75.3 + encode   98.2 =  173.5 us / call; GPU busy  952.3; wall 1155.0; GPU idle (wall - busy)  202.7; floor / busy 0.420; command buffers during the build 0
+    today   :  1155.0 us / call (median over blocks); efficiency floor / time median 0.346 [p10 0.338, p90 0.354] -> FAIL; x3.15 the 305 GB/s ceiling
+    knob    : CPU build   62.0 + encode   91.2 =  153.2 us / call; GPU busy  798.0; wall  977.7; GPU idle (wall - busy)  179.8; floor / busy 0.501; command buffers during the build 0
+    knob    :   977.7 us / call (median over blocks); efficiency floor / time median 0.409 [p10 0.406, p90 0.412] -> FAIL; x2.66 the 305 GB/s ceiling
+    f1      : CPU build   53.4 + encode   67.8 =  121.2 us / call; GPU busy  734.2; wall  898.9; GPU idle (wall - busy)  164.6; floor / busy 0.544; command buffers during the build 0
+    f1      :   898.9 us / call (median over blocks); efficiency floor / time median 0.445 [p10 0.435, p90 0.454] -> FAIL; x2.45 the 305 GB/s ceiling
+    f2      : CPU build   65.1 + encode   67.6 =  132.7 us / call; GPU busy  661.6; wall  841.5; GPU idle (wall - busy)  180.0; floor / busy 0.604; command buffers during the build 0
+    f2      :   841.5 us / call (median over blocks); efficiency floor / time median 0.475 [p10 0.460, p90 0.490] -> FAIL; x2.30 the 305 GB/s ceiling
+    f2c     : CPU build   13.4 + encode   57.5 =   70.9 us / call; GPU busy  673.6; wall  785.9; GPU idle (wall - busy)  112.3; floor / busy 0.594; command buffers during the build 0
+    f2c     :   785.9 us / call (median over blocks); efficiency floor / time median 0.510 [p10 0.481, p90 0.539] -> FAIL; x2.15 the 305 GB/s ceiling
+    knob / today per block: median 0.846 [p10 0.833, p90 0.859]
+    f1 / today per block: median 0.778 [p10 0.778, p90 0.778]
+    f2 / today per block: median 0.729 [p10 0.722, p90 0.735]
+    f2c / today per block: median 0.681 [p10 0.657, p90 0.705]

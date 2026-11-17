@@ -3,6 +3,15 @@
 BREAK98c, lens 3 + 4: "the drafter is a separate head that sees the 125B only at the last verified position" and
 "drafting and checking alternate". Marks: [K] measured (source), [P] arithmetic on [K], [G] judgement.
 
+> **RESULT (Sandbox98 12:3x, LEVERS_A.md section B98C, e7d558a): PREFIX EYES = KILL on the 2B, both arms.** HE G(9-30)
+> +0.023 [-0.080, +0.135] at block lr 3e-5 / -0.077 [-0.200, +0.046] at 1e-4; every band's G < 0.10; tree-32 x0.985 /
+> x0.974 vs the control (MBPP x0.978 / x0.979). The arm was the GLIDE-form block reading the frozen trunk's cached K/V
+> of the verified prefix at full-attention layers 15 + 19, zero-init output, with the control keeping the native head's
+> attention over the trunk's final states (my caveat). The block grew (4-11 % of o_proj) and the training loss ROSE
+> (0.538-0.540 vs 0.529): on the 2B the mid-layer prefix K/V add nothing to what the head already reads from the final
+> states. Not tested: more steps, q learned from scratch, other layers, the copy-source prefill input (the one half of
+> idea 1 still open; it needs a capture with prefill states).
+
 ## 0. What the two assumptions are worth, from the measured parts
 
 - **Assumption 4 (alternation) is bounded at x1.16-1.35 and is really worth ~x1.1.** The draft is 8.8-16.6 ms of a
@@ -89,7 +98,7 @@ real per-pop time for the Q8 head (a one-afternoon Leap/MoonShots bench, not min
 - Future-state rows, SIB states, 2B siblings, level pairing, a student head: on the kill list.
 
 ## Summary line
-Best: PREFIX EYES, the drafter cross-attends into the 125B's exact prefix K/V at 2-3 late layers (+ copy-source
+(PREFIX EYES = KILL on the 2B, see the banner; the copy-source half is untested.) Best was: PREFIX EYES, the drafter cross-attends into the 125B's exact prefix K/V at 2-3 late layers (+ copy-source
 prefill states inside copied spans): the only lens-3 lever whose ceiling (LAB + ties 26.79 at 32 rows = 558 at 48 ms)
 is above 550; G 0.8 + hidden draft + Leap's 40 ms check = ~600; decisive test = Sandbox98 arm kvx, PASS G >= 0.3 at bands
 9-30. Assumption 4 is worth ~x1.05-1.09 on HE+ (old-suffix reuse KILLED today: 13 % right per row vs 58-63 % fresh).

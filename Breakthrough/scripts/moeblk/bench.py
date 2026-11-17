@@ -101,8 +101,12 @@ def main():
                 tot, routed, other = MB.block_bytes(lay, idn, nl)
                 floors.append(1e6 * tot / FLOOR_BPS)
                 xs.append(x)
-            for arm in arms:                                # build + warm
-                mx.eval([ARMS[arm](lay, x) for x in xs[:2]])
+            for arm in list(arms):                          # build + warm (a failing arm is dropped, not fatal)
+                try:
+                    mx.eval([ARMS[arm](lay, x) for x in xs[:2]])
+                except Exception as e:                      # noqa: BLE001
+                    say(f"  L{L} {rows} rows: arm {arm} FAILED to build ({type(e).__name__}: {str(e)[:160]}); dropped")
+                    arms = [v for v in arms if v != arm]
             mx.synchronize()
             for arm in [v for v in arms if v.endswith("c") and v[:-1] in arms]:   # a compiled arm must equal its source
                 same = all(bool(mx.all(ARMS[arm](lay, x).view(mx.uint16) == ARMS[arm[:-1]](lay, x).view(mx.uint16)).item())

@@ -167,6 +167,35 @@ much less tests than anything"
   MoE-block bench (F1: the shared expert folded into the routed kernels, routed rows bitwise) -> MoonShots' SLC
   microbench (if ready) -> Sandbox98 PREFIX EYES -> Sandbox98 CODE || COMMENTARY pre-screen. EvalSuite holds G1 (filler)
   until ~13:30 at the latest.
+- **12:14 EvalSuite: 1c-tiers V2 (both orders pooled) FAILS, so 1c-tiers is NOT adopted** (RESULT_t1c_2026-11-16.md,
+  a3a7efc).
+  - HE+ 89.6 vs 93.0 %, -3.35 pt, p 0.0074 (2 / 13).
+  - Runaway guard: 23 vs 8, p 0.011.
+  - Pooled code -2.84 pt, p 0.0041. MBPP passes.
+  - G1's 5d pick (delegated, pick5d.py): branch C, comments-only, env g1c, RES off. G1_PICK is written by 13:30.
+    G1's chain then runs on g1b by day / tonight after slot #2 / Wed by day; verdict ~Wed midday, before Thursday's
+    stack tier 1.
+  - **Saturday's stack lever is now g1c, if it passes its gate.**
+- **12:4x Sandbox98: PREFIX EYES (B98C) = KILL, both arms** (e7d558a). HE G(9-30) +0.023 [-0.080, +0.135] at block lr
+  3e-5 and -0.077 at 1e-4; every band's G < 0.10; tree-32 x0.985 / x0.974. The mid-layer prefix K/V add nothing to the
+  head's own view of the final states. FAR: the copy-source half is untested.
+- **11:55 Breakthrough: the MoE-block proof FAILS its first quiet read vs 85 %** (best F2 0.52 at L20/32, ~0.40
+  elsewhere). The megakernel yes / no is a pre-registered 3-min quiet GPU split at 18:00: propose if the glue GPU is
+  >= 150 us per block, close if <= 60.
+- **13:xx Lunatic closes CODE || COMMENTARY: the faithful form is a KILL** (Sandbox98 CHAN pre-screen; addendum in
+  IDEAS_1117c_channels.md).
+  - Speed was confirmed (x1.72 fewer sweeps), but after the extra rows (48.6 per sweep) and 11 % shorter answers it is
+    only ~x1.3 tok/s.
+  - pass@1 -3.03 (mostly fixable parse failures).
+  - The FORM fails: comment consistency 25.6 %, and the code matches the coupled answer in only 32 / 264. Comments steer
+    ~3/4 of the next lines, so the split writes a different program.
+  - The only rescue (FIM-style comments written after their code) is untested and would be Kamen's call. Kamen's form
+    question is moot.
+- **BREAK98c round CLOSED:** no idea breaks the kept wall. What stays open:
+  - ZERO's SLC prefetch (+3-18 %; MoonShots' microbench);
+  - the compiled check (the 550 path, weeks);
+  - the expert-drop byte lever (after Saturday);
+  - Breakthrough's megakernel split at 18:00.
 ## KAMEN, Tue 17 Nov 07:2x (verbatim, dictated): THE TWO BREAKTHROUGHS BY SATURDAY; LOSSY >= 550 OR NOTHING
 "I'm missing the point of all of this. I'm not trying to make another 50% or it's even less improvement on code and
 exact and lossy. I don't really care about whether we bump up speed from 100 and something tokens per second to 100 and

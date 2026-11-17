@@ -1,0 +1,7 @@
+
+MOEBLK BENCH Tue 17 Nov 12:38:37: arms ['c_t1', 'c_route']; knob /Users/kamen/Breakthrough/data/xrw/knob_v2; layers 20; rows 32; 1 blocks x 1 back-to-back calls x 1 rounds (rotated); floor = block bytes / 280 GB/s (pre-registered f6f806e)
+  L20 32 rows: 1 blocks; router == the capture's routing on 68.8 % of rows; floor mean 382.6 us (bytes 0.1071 GB)
+    c_t1    : CPU build   25.7 + encode   42.0 =   67.7 us / call; GPU busy   76.1; wall  328.7; GPU idle (wall - busy)  252.6; floor / busy 5.026; command buffers during the build 0
+    c_t1    :   328.7 us / call (median over blocks); efficiency floor / time median 1.164 [p10 1.164, p90 1.164] -> PASS; x0.94 the 305 GB/s ceiling
+    c_route : CPU build   69.8 + encode   68.8 =  138.6 us / call; GPU busy  153.5; wall  538.6; GPU idle (wall - busy)  385.1; floor / busy 2.493; command buffers during the build 0
+    c_route :   538.6 us / call (median over blocks); efficiency floor / time median 0.710 [p10 0.710, p90 0.710] -> FAIL; x1.53 the 305 GB/s ceiling

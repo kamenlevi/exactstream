@@ -1225,6 +1225,24 @@
   - **By day** (no file change): EvalSuite writes G1_PICK after V2's verdict only once Leap's
     ~/Leap/data/week98/c25/C25_wed3smoke_DONE exists newer than V2's end, or at V2's end + 10 min if that smoke has not
     started (Leap 11:10: a ~3-min, ~31 GB smoke in the gap).
+- **Dated Tue 12:1x, at V2's verdict: G1's pick is g1c (5d branch C, comments-only; RES off). Applied by EvalSuite,
+  as NewIdeas handed over at 09:4x (NewIdeas paused for pacing).**
+  - **V2, both orders pooled: FAIL (HumanEval+, runaway, pooled).** See results/card_t1cx45t1c1_rev_tier1pooledcode.txt
+    and RESULT_t1c_2026-11-16.md. The IFEval switch-off is identical on 200 / 200, so this is not 5d item 4's scope
+    bug.
+  - **The pick:** NewIdeas' ~/NewIdeas/research/week98/pick5d.py, run with `--tiers FAIL_RUNAWAY --runaway FAIL
+    --map 0.40 --C none --D none --probe pass`, gives {"branch": "C", "res": false, "env": "g1c"}.
+    - It matches pick5d_prestage.txt's row. The FAIL_DEC4 label gives the same env, as 5d item 4 treats the fails
+      alike.
+    - RES (5c): (a) and (b) hold, but (d) fails with the runaway guard, so the pick is the RES-free env.
+    - The key test: g1c45g1b PASS in BigMoE's probe re-run (g1_keytest_g1bp.json; G1P_PROBE_DONE 05:21:59).
+  - **The hold** (the orchestrator 11:5x, covering for NewIdeas): G1's first start waits until the gap's short decisive
+    tests are done, or 13:30 at the latest.
+    - The tests: Leap's smoke, Breakthrough's quiet bench, MoonShots' SLC microbench if ready, and Sandbox98's PREFIX
+      EYES screen.
+    - G1_PICK, G1's last start gate, is written then: `tools/g1_pick.sh g1c "..."`.
+  - **MEM:** C keeps the 43 GB gate (5b, Tue 05:2x). The first C process's lifetime peak is logged next to
+    peaks_2026-11-17.txt.
 
 ## Amendment 5c (Mon 2026-11-16 13:0x, before any G2 config, snapshot or data): G2's composition (NewIdeas 13:0x); it replaces 5a's G2 condition
 - **Why:** Breakthrough found that G1 as built reads 6.22 GB per check, not 5.77. g1a is C6 + int8 on lossy-45's

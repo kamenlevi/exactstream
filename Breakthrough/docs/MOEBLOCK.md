@@ -182,3 +182,50 @@ as INFO beside the pre-registered verdict; the verdict (wall-based, FAIL) stands
 Owners if the gap is CPU: module 1a replay (mine) and 1b compile / diet (Fit12). Leap's dispatch-diet price applies
 (data/week98/dispatch_diet_price.md): per MLX glue dispatch ~3.0 us to build + ~3.5 us to encode on the CPU vs ~1.1-2.1
 us on the GPU.
+AMENDED Tue 12:1x, before any run:
+- The run moves to a QUIET lock. At 12:11, EvalSuite's lossy gate and Sandbox98's capture held the GPU at 98-100 %, so
+  a share read of GPU-busy would mean nothing. At 12:15 the Mac was idle (GPU 0 %) and Kamen away: one short quiet lock.
+- The grid is the main bench's: L20 + L44, 32 + 16 rows, 12 blocks x 6 reps x 5 rounds.
+- Arms: today / knob / f1 / f2 / f2c. f1 is added because F2 - F1 is exactly the front fold.
+- A share-lock smoke (L20, 2 blocks, 1 round) runs first, only to prove the arms run. Its numbers are not used.
+- Decision rule for the front fold: it goes to Leap's slot #4 as a knob only if F2's GPU-busy per block is >= 10 us below
+  F1's at 32 rows on BOTH layers (~0.5 ms per 32-row check [P]). Otherwise the MoE-block line closes with tgl16eu as its
+  result. The GPU side decides because the engine is GPU-paced, and Leap's fused t1cf (one threadgroup) was +0.49 ms
+  SLOWER in it (Leap HANDOVER: "t1cf +0.49 ... SLOWER in the engine").
+- Megakernel: not built. Its gain is bounded by the glue's GPU-busy, which this run measures (today's busy minus the
+  expert kernels' busy).
+AMENDED again Tue 12:2x, before the quiet run (the smoke ran at 12:15 under share; its numbers are not used):
+- The smoke showed the bench's REPS calls are INDEPENDENT, so MLX can overlap call i+1's kernels with call i's. The
+  engine's layers are dependent, so a per-call time from 6 independent calls understates a block's GPU timeline.
+- So the quiet run has two passes on frozen_q3:
+  - Run A (pre-registered grid): reps 6, rounds 5, arms today / knob / f1 / f2 / f2c. Comparable with the 11:55 run.
+  - Run B (serialized, engine-like): reps 1, rounds 9, arms today / knob / f1 / f2 / f2c + the components c_exp /
+    c_route / c_shared / c_comb (cand_comp.py, on precomputed inputs).
+- The decision rule above uses Run B's GPU-busy: F2 - F1 <= -10 us per block at 32 rows on both layers -> the front
+  fold goes to slot #4 as a knob.
+- The glue's GPU time per block = knob - c_exp (Run B, 32 rows):
+  - >= 150 us on both layers (>= ~7 ms per 32-row check [P]): a glue megakernel / fusion is proposed to the
+    orchestrator as a BIG lever, priced against Leap's per-class line (tue1: 10.7 ms per 32-row check outside the five
+    classes bounds the engine's whole glue).
+  - <= 60 us (<= ~3 ms): not worth it. Between: reported, no proposal.
+SMOKES (share lock; NOT used for any decision, as pre-registered; data/moeblk/bench_smoke*_share.txt):
+- 12:15, L20 / 32 rows, 2 blocks, reps 2, the GPU idle at the start: every arm runs, f2c == f2 bitwise, and no command
+  buffer is committed during any build (no hidden syncs). Peak footprint 1.74 GB (one layer).
+- 12:17, the frozen_q3 copy, reps 1, all nine arms incl. the components: all run; Sandbox98's training held ~40 % of
+  the GPU, so its GPU-busy numbers are inflated ~2x.
+- The CPU side does not depend on GPU load, so one smoke reading stands: mx.compile of F2 (f2c) cuts the CPU graph
+  build from 65.1 to 13.4 us per call (12:15) and from 117.6 to 27.7 (12:17, CPU-contended), bitwise identical. The
+  encode stays (67.6 -> 57.5). For Fit12's 1b compile / diet: a custom-kernel block compiles cleanly.
+- The quiet run is ARMED for NewIdeas' 18:00 slot: scripts/moeblk/md_run.sh, MD_START 18:00, MD_LATEST 20:15. It waits
+  (never skips) while Kamen is at the Mac. If he is back when the lock is granted, it releases the lock and waits again.
+AMENDED a third time Tue 12:4x, before the quiet run:
+- EvalSuite 12:3x: the 1c tiers (t1cf) FAILED V2 and are not adopted, so the engine's MoE glue will not run t1cf.
+- Added component c_t1: t1cf alone, on router outputs precomputed outside the timed region. frozen_q4 = q3 + that one
+  file (cand_comp.py). Runner data/moeblk/md_run2.frozen.sh, tags q4_r6 / q4_r1; q3's runner was stopped while still
+  in its start wait, holding no ticket.
+- The megakernel rule now applies to the glue WITHOUT the 1c tiers: knob - c_exp - c_t1 (Run B, 32 rows, both layers)
+  >= 150 us -> propose; <= 60 -> close. The glue with t1cf is reported beside it.
+- The front fold's rule is unchanged (F2 - F1). Caveat: without the 1c tiers the engine's fold would cover only slots +
+  grouping + rowsum64, and its share of F2 - F1 cannot be separated here. Leap's engine A/B would price it.
+- c_t1 smoke (12:38, share, 1 block, Sandbox98 at ~40 % of the GPU; not used): runs, no hidden sync, GPU-busy 76 us,
+  vs 154 for the whole route path (c_route) in the same pass.
