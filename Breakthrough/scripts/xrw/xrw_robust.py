@@ -5,7 +5,8 @@ expert's base slot -2); layers 20 and 44. Per case, vs the live COH one-call (oo
   - tgl16e: y, rs_m, rs_l bitwise;
   - tgl16eu: the pairs whose tier the upgrade did not change bitwise (xgrp's replica), 2 repeats identical;
   - QOM-dropped pairs: y exactly 0 in every arm.
-Usage: ~/BigMoE/.venv/bin/python -I -B scripts/xrw/xrw_robust.py   (share lock, MEM ~4 GB)"""
+Usage: [XRW_NOLSB_P=0.3] ~/BigMoE/.venv/bin/python -I -B scripts/xrw/xrw_robust.py [knob dir]   (share lock, MEM ~4 GB)
+XRW_NOLSB_P=0 sends the form Saturday's stack sends without the 1c tiers: no nolsb marks (QOM drops stay)."""
 import os
 import sys
 
@@ -23,6 +24,7 @@ import xrw_check as XC                                      # noqa: E402
 assert XC.XK is xknob
 
 mx, BG, T, CQ = XC.mx, XC.BG, XC.T, XC.CQ
+NOLSB_P = float(os.environ.get("XRW_NOLSB_P", "0.3"))       # share of rank-0/1 pairs marked nolsb (the 1c tiers' marks)
 
 
 def main():
@@ -53,7 +55,7 @@ def main():
             ids = np.stack([rng.choice(pool, 10, replace=False) for _ in range(M)]).astype(np.int64)
             if M >= 8:
                 ids[:, 0] = pool[0]                                         # a popular expert at rank 0
-            nolsb = rng.random((M, 2)) < 0.3
+            nolsb = rng.random((M, 2)) < NOLSB_P                         # 0 = the stack without the 1c tiers
             qom = set(rng.choice(pool[1:], size=2, replace=False).tolist())
             pm = np.where(np.isin(ids, list(qom)), -2, sm_of[ids]).astype(np.int32)
             pl = np.where(nolsb | np.isin(ids[:, :2], list(qom)), -2, sl_of[ids[:, :2]]).astype(np.int32)
@@ -85,7 +87,8 @@ def main():
             print(f"  L{Lm} M {M:2d}: tgl16e == ooo1cq (y, rs_m, rs_l): {e_ok}; tgl16eu unchanged pairs == ooo1cq + 2 repeats "
                   f"identical: {u_ok} ({int(chg.sum())} of {M * 10} upgraded); QOM pairs ({int(q.sum())}) zero in every arm: {z}",
                   flush=True)
-    print(f"XRW ROBUST ({os.path.basename(KD)}): {'PASS' if ok else 'FAIL'} ({n} cases); calls {xknob.COUNTS}", flush=True)
+    print(f"XRW ROBUST ({os.path.basename(KD)}, nolsb share {NOLSB_P}): {'PASS' if ok else 'FAIL'} ({n} cases); calls "
+          f"{xknob.COUNTS}", flush=True)
     return 0 if ok else 1
 
 

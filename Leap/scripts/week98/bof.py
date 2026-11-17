@@ -14,7 +14,9 @@ import sys
 from functools import lru_cache
 import mlx.core as mx
 
-sys.path.insert(0, os.path.expanduser("~/Leap/scripts"))
+_PS = os.path.expanduser("~/Leap/scripts")
+if _PS not in sys.path:                              # appended: no shadowing of later imports (BigMoE 01:1x)
+    sys.path.append(_PS)
 import qmm16 as Q16
 
 _TERMS = {0: "#define TERM(s, c, b, x) ((s) * (c) + (b) * (x))\n",

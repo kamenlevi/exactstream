@@ -15,6 +15,7 @@ MAP = os.path.expanduser("~/FableGod/decision_map/out")
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "data", "xrw", "x5_seg_merge.txt")
 R4 = 2
 RW = int(os.environ.get("X5_ROWS", "32"))
+NO1C = os.environ.get("X5_NO1C") == "1"                     # Tue 15:0x: the stack without the 1c tiers (plan tiers only)
 
 
 def nseg(keys):
@@ -38,6 +39,9 @@ def main():
                 ids = z["ids"][b0:b0 + RW, Lm].astype(np.int64)
                 k4 = tz["keep"][a + b0:a + b0 + RW, Lm].astype(bool)
                 k3 = tz["keep3"][a + b0:a + b0 + RW, Lm].astype(bool)
+                if NO1C:                                        # no 1c tiers: every use kept, rank 0-1 at 4 bits
+                    k4 = np.ones_like(k4)
+                    k3 = np.zeros_like(k3)
                 kept = k4 | k3
                 idk = np.where(kept, ids, ids[:, :1])
                 tier = np.full(idk.shape, 3)
@@ -50,7 +54,8 @@ def main():
                 merged = nseg(e * 8 + t2)
                 rows.append((Lm, now, merged, len(np.unique(e)), int((t == 4).sum()), int(((t2 == 4) & (t == 3)).sum())))
     A = np.array(rows, dtype=float)
-    lines = [f"X5 SEGMENT MERGE (CPU; {len(code)} code windows, every captured layer, {len(rows)} {RW}-row blocks)",
+    lines = [f"X5 SEGMENT MERGE (CPU; {len(code)} code windows, every captured layer, {len(rows)} {RW}-row blocks"
+             f"{'; NO 1c tiers: plan tiers only' if NO1C else ''})",
              f"  segments per call today {A[:, 1].mean():.1f}; with the tier-4 upgrade {A[:, 2].mean():.1f} "
              f"({100 * (1 - A[:, 2].sum() / A[:, 1].sum()):.1f} % fewer); distinct experts {A[:, 3].mean():.1f}; tier-4 pairs "
              f"{A[:, 4].mean():.1f} per call; tier-3 pairs upgraded {A[:, 5].mean():.1f} of {RW * 10 - A[:, 4].mean():.1f}"]

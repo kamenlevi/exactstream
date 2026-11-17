@@ -211,7 +211,8 @@ CFG = {"dense_min_n": 1024, "experts": True, "experts_cfg_a": (4, 1), "experts_c
        "commit_phase": True, "sdpa_classes": True, "sdpa_bounds": (128,), "key_buckets": True, "kb_from": 512,
        "kb_step": 512, "tiers": True, "gdn_exact": True, "tier_nax4": False, "tier_nax_ooo": False, "att_single": False,
        "gdn_inproj": False, "att_rope": False, "idx_prep": False, "hc_write": False, "hc_gate": False,
-       "gdn_inproj_x": False, "gdn_body": False, "hc_b": False,
+       "gdn_inproj_x": False, "gdn_body": False,
+       "hc_b": os.environ.get("REF2_HC_B") == "1",   # D1-B; E14 A16h (Tue 00:5x): PASS -0.81 ms per 16-row check, bitwise (default off)
        "nax_hybrid": False, "nax_native": False, "nax_repack_p1": False, "native_3c": False,
        "fatt_verify": os.environ.get("REF2_FATT_VERIFY") == "1", "fatt_r8": os.environ.get("REF2_FATT_R8") == "1",
        "dense_native": os.environ.get("REF2_DENSE_NATIVE") == "1",
@@ -225,6 +226,7 @@ CFG = {"dense_min_n": 1024, "experts": True, "experts_cfg_a": (4, 1), "experts_c
        "commit_sub": int(os.environ.get("REF2_COMMIT_SUB", "0") or 0),   # PLAN 220 seam (e): send the commit's GDN replays every N (0 off)
        "seam_hi": int(os.environ.get("REF2_SEAM_HI", "16") or 16),   # seams (b) / (d) fire on 5..seam_hi-row passes; 32 covers v32's 17-32-row checks (Breakthrough pass S 2757be6: bitwise, -2.0 ms per 32-row check); default 16 = unchanged
        "tier_chunk": os.environ.get("REF2_TIER_CHUNK") == "1",   # F24: a tier call whose expert union exceeds the slots runs in row groups (default off)
+       "bof": os.environ.get("REF2_BOF") == "1",   # E14 (Tue 00:5x): BOF <= 16 rows (A16b -2.36 ms) + BOF2-O 17-32 rows (C32oneB -2.16 ms), bitwise; _bof_on (default off)
        "tier_chunk_cap": int(os.environ.get("REF2_TIER_CHUNK_CAP", "0") or 0),   # test only: group at this union cap (0: the pools' own)
        "hc8_fold": os.environ.get("REF2_HC8_FOLD") == "1",   # CHAT-150 G1 / B1: HC8 reads with <= 4 rows fold K2 into K3 (hc8f; bitwise; default off)
        "hc8_k1m": os.environ.get("REF2_HC8_K1M") == "1",   # CHAT-150 G1: HC8 reads with <= 4 rows: K1 reads the M-row h / pending (no pad launches), then k2b + k3c, or K3F with hc8_fold (hc8f; bitwise; default off)
@@ -1891,6 +1893,29 @@ def _gdk(q, k, v, g, beta, state, mask=None):
         return gdn_step_r.kernel_tg(q, k, v, g, beta, state, R=2)
     return _ORIG["gdk"](q, k, v, g, beta, state, mask)
 
+_BOF_OWN = [False]                                     # _bof_on turned bofi.ON on (CFG["bof"] is then the switch)
+
+def _bof_on():
+    """E14 (Tue 00:5x; A16b -2.36 ms, C32oneB -2.16 ms; both bitwise, REF2-T's own bits): week98/bofi.py as the
+    OUTERMOST mx.quantized_matmul wrapper, with E14's exact config: BOF on its <= 16-row TABLE (o_proj / out_proj, QSA,
+    shared down, lm_head) and BOF2 on o_proj / out_proj at 17-32 rows (TABLE32). E14's order was v32one -> refc -> bofi.
+    A wrapper installed AFTER this sits outside bofi; its forms then win (the same bits; BOF just does not fire).
+    bofi.install is idempotent. bofi fires only while ref2 is on (RF._ON[0]); r57 removes ref2 before every draft.
+    Under CFG["bof"] (REF2_BOF=1) the switch is CFG["bof"]: apply() runs before every check and sets bofi.ON from it, so
+    turning bofi.ON off by hand is undone at the next apply(). Set CFG["bof"] = False instead (apply() then turns off what
+    _bof_on turned on). Harnesses that drive bofi.ON themselves (E14) leave CFG["bof"] off and keep control.
+    week98 is APPENDED to sys.path (no shadowing of later imports); an already-imported bofi is reused."""
+    bofi = sys.modules.get("bofi")
+    if bofi is None:
+        p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "week98")
+        if p not in sys.path:
+            sys.path.append(p)
+        import bofi
+    bofi.install(sys.modules[__name__])
+    bofi.TABLE32[(2560, 6144)] = (4, 1)
+    bofi.ON[0] = True
+    _BOF_OWN[0] = True
+
 def apply():
     """install the patches (idempotent) and switch them on"""
     if not _ORIG:
@@ -1956,6 +1981,11 @@ def apply():
             BT.LAYOUT_ROUTER = True                        # BigMoE's guards: REF2 routes layouts 1 / 2 (per layer)
         except Exception:
             pass
+    if CFG.get("bof"):                                  # E14: REF2_BOF (or CFG["bof"] before apply())
+        _bof_on()
+    elif _BOF_OWN[0]:                                   # CFG["bof"] turned off at run time: undo _bof_on's ON
+        sys.modules["bofi"].ON[0] = False
+        _BOF_OWN[0] = False
     _ON[0] = True
 
 def counts():

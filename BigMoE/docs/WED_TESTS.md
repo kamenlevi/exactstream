@@ -2800,3 +2800,18 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
     records need.
   - Cost: 26 min (HE+ 370 s, MBPP 1,198 s), lifetime peak 21.8 GB, under a share lock "MEM 22 GB" (away_secs 29,549 at
     the start).
+- **Tue 14:58-15:00, the V3 KEY TEST (Leap's ref2_switches_v3, b4331e4: REF2_BOF + REF2_HC_B): PASS** (scripts/
+  v3_keytest.sh, kt_launch.py, v3kt_compare.py; data/r57/v3kt_1117.log, v3kt1117{off,on}.log / _runs.json / _tokens.json,
+  V3KT_RESULT; snapshot data/r57/snap/g1v3).
+  - What: the switches' in-loop ON-vs-OFF bit test, which had never run (E15 was dropped). On PASS they are ON in
+    Saturday's exact headline config (ii).
+  - How: the real r57 loop, exact-45 (data/stack/x45rpl1_env.txt, R57_PRESET=45, 16-row checks), R57_LOGHASH=1, the same
+    4 code keys (HumanEval/68, /16, mbpp/2, /13) twice: switches OFF, then ON. Snapshot g1v3 = g1b with Leap's scripts +
+    third_party at b4331e4 instead of b43efc4. Its build checks every tracked file: frozen_g1b == b43efc4 (632 files),
+    frozen_g1v3 == b4331e4 (698), the screen differs from g1b's only in its 16 path lines. Each run goes through
+    kt_launch.py (the screen in-process; one line of ref2 / bofi counters at exit).
+  - Result: 628 tokens and 90 checks; every key's tokens and every check's verify-logit sha1 are identical OFF vs ON. ON
+    engaged: BOF fired 11,174 times, HC_B 11,060, zero drift fallbacks. OFF was clean (both switches false, no fires).
+    Scope: 16-row checks only. BOF2 (17-32 rows) never fired.
+  - Cost: two runs of about 1 min each (load 2 s, 26.9 GB active) under a share lock "MEM 34 GB"; NO-SWAP 37.3 GB and
+    away_secs 54,652 at the start; gates and a mid-run at-Mac yield as in mid_run.sh (sims: a full pass and a yield).

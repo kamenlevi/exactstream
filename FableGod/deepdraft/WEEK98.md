@@ -7,6 +7,55 @@ unlocks 98% accuracy at 30 tokens deep. By then we must know what it is, and eit
 know the principles of how everything will work and it's certain, and we still have a week of building everything. I
 don't care about that. I just need to get that."
 
+## KAMEN, Tue 17 Nov 14:1x (after the deep pass): "You've found 600-800. Then do it ... make sure it's done for Saturday"
+(He objects to every "physical limit" phrasing. The walls are the limits of the KNOWN methods, not of the Mac.)
+- **Orchestrator 14:1x: BUILD THE STACK NOW, all four pieces, not after Saturday.**
+  1. Draft fixed cost: MoonShots UNPARKS the persistent fused tree level for the Q8H32 head (0.55 -> <= 0.10 ms per pop,
+     bitwise), by Friday. That's 211 -> ~261 on Saturday's 16-row config if it lands.
+  2. Expert phase: Breakthrough's MoE block (megakernel decision at 18:00).
+  3. Check: Leap's 32-row line + the 16-row modules (slots #2-#4).
+  4. Lighter head: MTP Head starts S22 (the path-A QAT head, ~0.19 ms per level) NOW and asks for a GPU window.
+  Every piece that lands is measured and goes into Saturday's number. No promise of 600 by Saturday.
+- 14:3x S22 placement (MTP Head; pre-registered c9cdf7d, PASS kept >= 0.95x full t30b at tree-16 on both sets):
+  - SMOKE (~15 min, <= 16 GB) from ~16:30, in any gap where Kamen has been away >= 15 min;
+  - qa (~2.8 h, ~16 GB) chained on the Wed-night CERTIFY98 capture's end marker, latest start Thu 05:00;
+  - qc not this week.
+- 14:4x MoonShots' PERSISTENT draft kernel (PK; NewIdeas QUEUE M-46 e129db5; PK_PLAN.md 3720b44):
+  - Lines: bit test PK == SF on all 120 real trees; quiet timing f <= 0.10 ms PASS, >= 0.25 KILL; a non-bitwise skeleton
+    first (f <= 0.15 GO).
+  - Flag R57_TREE_PK=1 (default off), bitwise, so it can go on after Thursday's key test with only the timing re-run.
+  - ETA: skeleton Wed ~09:00; flag to BigMoE Thu evening for runner 69's timing; verdict Fri.
+  - CORRECTED gain: at f 0.10 a Q8H32 pop is 0.66 ms (SF 1.11), a tree-16 block 9.9 ms, so HE+ 211 -> ~240 (x1.14). The
+    deep pass's 261 used path A's 76.7 MB head, which failed C2. Confidence: skeleton ~60 %, bitwise by Fri ~50 %.
+- 14:4x Exact headline: Leap is asked to confirm ref2_switches_v3 (REF2_BOF + REF2_HC_B, bitwise, ~-3..-5 ms per exact
+  check). BigMoE adds its key test to tonight's chain after M4, ON in (ii) on PASS.
+- 14:5x Leap:
+  - ref2_switches_v3 is applied as b4331e4 (default OFF). Its in-loop ON / OFF bit test never ran, so BigMoE's key test
+    must compare tokens + logits bitwise ON vs OFF.
+  - CORRECTION: tgl16eu's -2.1 ms came from c25 arms modelling 1c tiers on every row (failed V2). Under g1c (comments
+    only), code rows carry few tier-3 pairs, so ~-0.5..-0.9 ms [G]; GDN16 carries over. The deciding number comes from a
+    g1c-shaped check (BigMoE's knob ON vs OFF, or a tiers-OFF 16-row arm in slot #2, once BigMoE names g1c's code-row
+    expert path).
+  - Saturday's gated lossy is therefore more likely ~205-215.
+- 15:0x BigMoE + Leap: g1c's HE+ code rows DO run the 1c tiers (lambda 0.016, S 0.98; TIERS_SETS = humaneval). Only
+  '#' rows run COMQOM; MBPP / HE-X / IFEval run the base path.
+  - So tgl16eu's HE+ gain carries over. Leap withdrew most of his 14:5x correction; slot #2's F16g arms now run at 0.016
+    (1f605c4); tiers-OFF arms F16n / F16nx go to slot #3.
+  - **Orchestrator flag to EvalSuite (15:0x): V2 FAILED 1c-tiers on HE+ (lambda 0.018 setting), yet g1c carries 1c
+    tiers at 0.016 on HE+.** Confirm g1c's tier setting is not the failed one, or re-pick / strip it before G1's B0.
+- **14:49 EvalSuite CONFIRMED: g1c carries the IDENTICAL failed tier setting on HE+** (R57_TIERS=1c, LAM 0.016, S 0.98,
+  SETS humaneval, + COMQOM). All 8 G1 envs carry 1c tiers on HE+. G1's chain was STOPPED at 14:49 (no GPU spent).
+- **Orchestrator 15:0x: G1 SKIPPED this week** (a dated deviation from 5d, covering NewIdeas).
+  - The tiers buy ~-0.3 ms of bytes, and the extra tgl16eu gain they enable is ~-1.5 ms (~3 %): not worth a likely
+    stack tier-1 fail or ~5 h of 45 GB GPU.
+  - **Saturday's stack = t30b Q8H32 + tree-16 + CC(1) on lossy-45's base path + sync-free + GDN16 + exact tgl16e, NO
+    tiers.** Leap prices it on the tiers-OFF arms (F16n / F16nx, slot #3).
+- **15:00 BigMoE V3KT PASS:** REF2_BOF=1 + REF2_HC_B=1 vs OFF (Leap b4331e4) are BITWISE identical (tokens + every
+  check's verify logits; 4 code keys, 628 tokens, 90 checks; BOF 11,174 / HC_B 11,060 fires, drift 0). Scope is 16-row
+  checks. **ON in Saturday's exact headline (ii).** Tonight's chain is M4 only.
+> (a quote from the project owner, kept private)
+  replies are BIG-only from now on.
+
 ## KAMEN, Tue 17 Nov 11:4x (verbatim, on the compiled check): MODEL-SPECIFIC WORK
 "I don't know how I feel about building layers which are only model specific-there is no benefit from it for other
 models"

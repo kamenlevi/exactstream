@@ -440,3 +440,36 @@ Saturday's 16-row check (Leap: 38.9 ms) would go to ~35.9 with tgl16eu.
 
 The MoE-block code takes these from a per-model config file (moeblk: config/<model>.json); a new MoE model needs a new
 config, plus a store conversion if its experts use the tiered format.
+
+## STACK-FORM CHECK for tgl16e (pre-registered Tue 15:0x, before running)
+The orchestrator (15:0x, relayed by EvalSuite) put tgl16e (exact) in Saturday's stack and took tgl16eu out, because
+the 1c tiers failed V2. Without the 1c tiers the engine still runs the one-call (REF2_OOO_1C=1 + REF2_NAX_1CQ=1; the
+tiers are a separate flag, R57_TIERS=1c). But its calls carry NO nolsb marks. Every earlier robustness case had ~30 %
+of rank-0/1 pairs marked.
+- Check: scripts/xrw/xrw_robust.py through the FROZEN knob_v2 (20eaaf3). The 18 cases are as before: M 1-32, layers
+  20 / 44, popular experts, QOM drops.
+  - (a) XRW_NOLSB_P=0: the stack's form;
+  - (b) the default 0.3: v2 on v1's coverage.
+- PASS iff tgl16e == ooo1cq bitwise in y, rs_m and rs_l in all 18 cases of both runs. tgl16eu's lines are reported, not
+  judged.
+- v2 vs v1 for tgl16e: tgl16.py is identical (md5 e5747ceb...). tgl16v.py v2 changes only the upgrade's grouping call
+  (gpu_grp_up -> gpu_grp_up2, two lines in the tgl16eu path) and adds the bench-only tgl16eu1. tgl16e's code path is
+  byte-identical to v1.
+- Also pre-registered (INFO, no rule): x5_seg_merge.py with X5_NO1C=1 (every use kept, rank 0-1 at 4 bits = the plan's
+  tiers only), at 16 and 32 rows, on real routing (the decision map's code windows, every captured layer). It gives
+  segments per call today vs with the upgrade, i.e. what the upgrade would save in a stack without the 1c tiers. CPU only.
+- **RESULT (Tue 15:04, share lock; data/xrw/robust_knob_v2_p0.txt and _p0.3.txt): PASS, both runs, 18 of 18 cases.**
+  - tgl16e == ooo1cq bitwise in y, rs_m and rs_l in every case, with and without nolsb marks, through the frozen knob_v2.
+    COUNTS per run {cand 54, orig 18, fallback_not_p11 0} (orig = the reference calls).
+  - tgl16eu, reported only: unchanged pairs bitwise + repeats identical in every case. Without nolsb marks it STILL
+    upgrades, e.g. 70 of 320 pairs at M 32 on L20: the plan's tier-3 pairs (ranks 2-9) join their expert's tier-4 key.
+- **X5 without the 1c tiers (CPU, 15:05; data/xrw/x5_seg_merge.txt): the upgrade does not need the tiers.**
+
+  | rows | segments per call today | with the upgrade | fewer | tier-3 pairs upgraded |
+  |---|---|---|---|---|
+  | 16 | 89.0 | 76.6 | 13.9 % | 33.6 of 128 |
+  | 32 | 138.1 | 115.5 | 16.3 % | 90.9 of 256 |
+
+  - With the 1c tiers it was 48.0 -> 38.9 (-19.0 %) at 16 rows. Without them the call has ~85 % more segments (no
+    drops), and the upgrade removes more in absolute terms (12.4 vs 9.1 per 16-row call).
+  - Engine value without the tiers: UNMEASURED. All of Leap's tgl16eu arms sit on G1, which carries the tiers.

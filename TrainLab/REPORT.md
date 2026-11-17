@@ -5259,3 +5259,19 @@ Line:
 - Report tree-32 and qa vs qc.
 - If qa fails but recovers > half of C2's loss: a from-b5 QAT pass (t30b's recipe with C2's cuts on, ~6 h night).
 Prediction [G]: qa PASS 30 % (HE+ is capped near x0.976 by H8 alone at t16 before any training loss).
+- S22 BUILD (Tue 17 Nov 15:xx; the orchestrator moved S22 to NOW, Kamen's 600-800 order):
+  - trainer sb98/dd_qat.py: dd_ttt's loop mirrored, with C2's cuts as straight-through fake quant. Bits are read from
+    P3.CUTS['C2'] through apply_cut's own mapping. The screen is not in the loss.
+  - read-out: sb98/m3_tree.py + m3_score.py, TrainLab copies of MoonShots' harness / scorer; only OUT, --weights and
+    --tag changed; sources' sha256 in data/s22/m3/SOURCES.
+  - runner: sb98/s22.sh.
+  - Placement (orchestrator 14:3x):
+    - smoke (~15 min, <= 16 GB) in a Kamen-away gap from ~16:30: 5 QAT steps + the harness's bitwise gate on HE+ 24.
+    - qa chained on the Wed-night capture's END marker, latest start Thu 05:00.
+    - qc not this week.
+- S22 smoke (Tue 14:38-14:40; the gates passed, Kamen away):
+  - harness gate PASS: sb98/m3_tree.py --cut none reproduces BigMoE's tree_t30b_heplus24.npz BITWISE, every array
+    (78 s, MLX peak 11.24 GB).
+  - trainer: step 1's loss 0.5225, then the peak guard stopped it at 18.2 GB (> 18). The fake-quant made one weight
+    copy per depth, 30 per step.
+  - Fixed (dada1b2): one STE weight per step, cached outside the module. Re-smoke from 16:30 (sb98/s22_resmoke.sh).

@@ -1243,6 +1243,42 @@
     - G1_PICK, G1's last start gate, is written then: `tools/g1_pick.sh g1c "..."`.
   - **MEM:** C keeps the 43 GB gate (5b, Tue 05:2x). The first C process's lifetime peak is logged next to
     peaks_2026-11-17.txt.
+- **Dated Tue 14:4x, before any G1 row: G1 is HELD on the orchestrator's question (15:0x by its clock, received 14:47).
+  Operational, no line changes.**
+  - **The question:** does g1c carry the tier setting V2 just failed on HumanEval+?
+  - **The answer (env files, read here):** yes, identically. g1c45g1b_env.txt has R57_TIERS=1c, R57_TIERS_LAM=0.016,
+    R57_TIERS_S=0.98, R57_TIERS_SETS=humaneval, as t1cx45t1c1_env.txt does, plus R57_COMQOM_SETS=humaneval ('#' rows to
+    QOM).
+    - That is 5d's branch C as filed: a bet, on the COMQOM map 0.40, that V2's HumanEval+ loss sits on the '#' rows.
+      V2 also failed the runaway guard, which comment-QOM is not shown to fix.
+    - All eight G1 envs carry 1c tiers on HumanEval+: g1 0.018, g1c / g1cd 0.016, g1l 0.008.
+  - **The switch:**
+    - G1_PICK (g1c) was written at 13:30:41. The chain started at 13:32:06, but B0's runner waited for memory
+      (NO-SWAP 38-42 GB < 43), so no process ran.
+    - TERM 14508 at 14:48:57. The runner (40759) was stopped by the chain's trap, the chain ended at 14:49:22, and
+      G1_G1T_END was moved aside (.qrearm).
+  - **The options put to the orchestrator** (it covers for NewIdeas, who is paused):
+    - (a) run g1c as picked;
+    - (b) re-pick g1l, filed as a deviation from 5d;
+    - (c) skip G1 this week.
+    - The re-arm follows its word, with a new dated line (and G1_PICK --replace for (b)).
+- **Dated Tue 15:0x, before any G1 row: G1 is SKIPPED this week, a DEVIATION from 5d (the orchestrator's call,
+  covering NewIdeas, who is paused). 5d's lines are unchanged, and no G1 data exists.**
+  - **The decision** (the orchestrator, received 15:0x): option (c). The chain stays stopped and G1's GPU time is freed.
+  - **Its reasons:**
+    - Every G1 env carries the 1c tiers that FAILED V2 on HumanEval+, on quality and on runaway.
+    - The tiers buy only ~-0.3 ms of bytes on the check (Leap's re-price). The extra tgl16eu gain they enable is
+      ~-1.5 ms, ~3 % of the cycle.
+    - That is not worth a likely tier-1 fail of the stack, nor ~5 h of 45 GB GPU.
+  - **The state:**
+    - The chain was stopped at 14:49:22 with no rows.
+    - G1_PICK (g1c, 13:30:41) was moved aside (.skipped), so no re-arm can read it.
+    - results/G1_G1T_END says SKIPPED (15:00:38), for anything that keys on G1's end.
+  - **Saturday's stack** (the orchestrator, same message): lossy-45 + CC(1) + the exact-safe engine levers (GDN16,
+    tgl16e, sync-free, the Q8H32 drafter), with no G1 lever. Its tier 1 (Thu) and card gate (Fri night) decide its
+    quality, under the stack's own amendment (6).
+  - G2 (amendment 5f) is built on G1. It is not run this week either, unless the orchestrator or NewIdeas says
+    otherwise.
 
 ## Amendment 5c (Mon 2026-11-16 13:0x, before any G2 config, snapshot or data): G2's composition (NewIdeas 13:0x); it replaces 5a's G2 condition
 - **Why:** Breakthrough found that G1 as built reads 6.22 GB per check, not 5.77. g1a is C6 + int8 on lossy-45's
