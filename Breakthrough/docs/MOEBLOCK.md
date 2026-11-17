@@ -238,3 +238,30 @@ SCHEDULE Tue 17:4x (the pre-registered lines, files and runner are unchanged):
   real S22 pid; the real lock list).
 - A 17:38 attempt on the orchestrator's 17:35 "run now" was withdrawn a minute later. Its queued ticket lived ~30 s and
   made S22 yield once (saved at step 48, resumed 17:39:05). No measurement ran.
+RESULT (QUIET, Tue 19:39; the waiter found the gap at 19:38:52, lock granted 19:39:22, NO-SWAP 37 GB, Kamen away;
+data/moeblk/bench_q4_r6.* = Run A, bench_q4_r1.* = Run B, rules_q4.txt = the rules applied by scripts/moeblk/rules_q4.py,
+paired per block: the median over the 12 blocks of per-block differences, each a median over rounds):
+- Integrity: every arm ran; f2c == f2 bitwise on 12 blocks in all four layer / row cases; the candidate arms committed no
+  command buffer during the build. c_exp (3) and c_t1 (1) did, once: their cached inputs were computed inside the timed
+  region in round 0 on blocks 3-12 (the warm-up covered blocks 1-2). The 9-round median absorbs it: component / knob
+  GPU-busy is the same on blocks 1-2 and 3-12 (c_exp 0.785 vs 0.770 at L20, 0.767 vs 0.771 at L44; c_t1 0.047-0.051).
+- FRONT FOLD (the rule: Run B GPU-busy, 32 rows, F2 - F1 <= -10 us on both layers): -18.7 us at L20 [-22.8, -13.3],
+  -17.1 at L44 [-19.8, -15.1]; 12/12 blocks <= -10 on both -> PASS -> a slot #4 knob for Leap. Info: 16 rows -9.4 / -8.9;
+  Run A (independent calls) -22.6 / -23.3 at 32 rows.
+  Fit to Saturday's stack, found after the rule: F2 as built folds t1cf (the 1c tiers: out, V2 FAIL) and tgl16eu's
+  grouping (xgrp v2, the upgrade: out since 15:0x). The stack's tgl16e groups with gpu_grp_1cq. A stack form (slots +
+  gpu_grp_1cq + rowsum64, no t1cf) is not built and not checked bitwise, and its share of the -18 us is unknown. So this
+  run gives no knob that fits Saturday as is; Leap decides on slot #4.
+- MEGAKERNEL (the rule, amended 12:4x: Run B GPU-busy, 32 rows, glue without t1cf = knob - c_exp - c_t1): 110.1 us at
+  L20 [102.0, 115.7], 109.0 at L44 [104.5, 112.6] -> BETWEEN the 60 and 150 lines -> reported, NO PROPOSAL. With t1cf
+  140.1 / 139.3 (also under 150). x 48 layers = 5.3 / 5.2 ms per 32-row check [P], inside tue1's 10.7 ms outside the
+  five classes. The glue includes the shared expert (c_shared alone 79.9 / 79.5 us), which is weight traffic, so a
+  megakernel's removable part is smaller still. F2 already takes 50.0 / 48.0 us off knob's block.
+- DIAG reading (Run A, 32 rows): GPU-BOUND at L44 for every arm (CPU 0.36-0.46 x busy, idle 9.0-14.0 % of wall). At
+  L20, today and f2c are GPU-BOUND; knob, f1 and f2 are MIXED (CPU <= 0.49 x busy, but idle 16.1-16.4 % > 15 %).
+- f2c (mx.compile of F2): CPU build 51.0 -> 9.1 us per call at L20 / 32 (Run A), bitwise, GPU-busy unchanged
+  (522.0 -> 521.8). Its wall gain (617.3 -> 578.3) comes from the bench, which never hides the build; in the GPU-paced
+  engine it is CPU headroom.
+- Block GPU-busy (Run B, 32 rows, L20 / L44): today 705.1 / 673.8, knob (tgl16eu) 621.3 / 602.9, f1 592.6 / 571.9,
+  f2 573.0 / 555.1 us. Floor / GPU-busy: today 0.54 / 0.52 -> f2 0.66 / 0.63 (info).
+- The pre-registered efficiency verdict (wall-based, Run A) stays FAIL for every arm (floor / time 0.50-0.66).

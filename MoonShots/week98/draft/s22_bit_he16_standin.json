@@ -1,0 +1,70 @@
+{
+ "fmt": "c2",
+ "screen": 8192,
+ "weights": null,
+ "format": [
+  "P.q_proj 4-bit",
+  "P.o_proj 4-bit",
+  "P.k_proj 4-bit",
+  "P.v_proj 4-bit",
+  "P.se_gate 4-bit",
+  "P.se_up 4-bit",
+  "P.se_down 4-bit",
+  "P.fc_hidden 4-bit",
+  "P.fc_embedding 4-bit",
+  "P.router 8-bit",
+  "attn_hc.input_mix_weight_down 4-bit",
+  "attn_hc.input_mix_weight_up 4-bit",
+  "mlp_hc.input_mix_weight_down 4-bit",
+  "mlp_hc.input_mix_weight_up 4-bit",
+  "mixer.input_mix_weight_down 4-bit",
+  "mixer.input_mix_weight_up 4-bit",
+  "experts top-4",
+  "FORMAT CHECK c2: 16 / 16 modules == M3's fake quant bitwise",
+  "head: ScreenedHead FR-Spec top-8192 + 4096 extras"
+ ],
+ "set": "heplus24",
+ "nodes": 16,
+ "k": 8,
+ "cut": "none",
+ "windows": "0,1",
+ "trees": 48,
+ "sf_eq_hs": 48,
+ "sf_bad": 0,
+ "ref_tree_diff": 0,
+ "ref_tp_cells_diff": 0,
+ "ref_tp_cells": 0,
+ "ref_tp_max_ulp": 0,
+ "first_fail": null,
+ "ms_per_pop": {
+  "HS": {
+   "median": 1.2537877773866057,
+   "p10": 1.2264859455171973,
+   "p90": 1.2917658663354814,
+   "n": 48
+  },
+  "SF": {
+   "median": 0.8098059915937483,
+   "p10": 0.7946114405058324,
+   "p90": 0.8373208198463544,
+   "n": 48
+  },
+  "REF": null
+ },
+ "bytes_level": {
+  "dense_mb": 50.60608,
+  "experts_mb": 12.29888,
+  "head_mb": 11.81664,
+  "total_mb": 74.7216
+ },
+ "extras": [
+  14
+ ],
+ "sf_cpu_build_ms_per_pop": 0.7792395917931572,
+ "sf_final_wait_ms_per_tree": 0.41458290070295334,
+ "sf_build_cpu_ms_per_pop": 1.9534687500000065,
+ "sf_async_eval_wall_us": 605.8542057871819,
+ "sf_async_eval_cpu_us": 1365.0000000000607,
+ "PASS": true,
+ "peak_gb": 8.51
+}

@@ -1,0 +1,37 @@
+MOEBLK RULES on the quiet run of Tue 17 Nov 19:39 (Run A = bench_q4_r6, Run B = bench_q4_r1; GPU-busy, us per block)
+  L20 32 rows: Run B F2 - F1 median   -18.7 [min   -22.8, max   -13.3]; blocks <= -10: 12/12
+  L20 32 rows: Run B glue w/o t1cf (knob - c_exp - c_t1) median   110.1 [min   102.0, max   115.7]
+  L20 32 rows: Run B glue with t1cf (knob - c_exp)        median   140.1 [min   131.9, max   145.6]
+  L20 32 rows: Run A F2 - F1 median   -22.6 [min   -26.8, max   -19.2] (info: independent calls)
+  L20 16 rows: Run B F2 - F1 median    -9.4 [min   -13.1, max    -5.5]; blocks <= -10: 4/12
+  L20 16 rows: Run B glue w/o t1cf (knob - c_exp - c_t1) median    75.1 [min    71.3, max    78.2]
+  L20 16 rows: Run B glue with t1cf (knob - c_exp)        median    91.1 [min    87.9, max    94.3]
+  L20 16 rows: Run A F2 - F1 median   -11.2 [min   -13.7, max   -10.4] (info: independent calls)
+  L44 32 rows: Run B F2 - F1 median   -17.1 [min   -19.8, max   -15.1]; blocks <= -10: 12/12
+  L44 32 rows: Run B glue w/o t1cf (knob - c_exp - c_t1) median   109.0 [min   104.5, max   112.6]
+  L44 32 rows: Run B glue with t1cf (knob - c_exp)        median   139.3 [min   134.9, max   143.0]
+  L44 32 rows: Run A F2 - F1 median   -23.3 [min   -25.5, max   -22.5] (info: independent calls)
+  L44 16 rows: Run B F2 - F1 median    -8.9 [min   -10.8, max    -7.0]; blocks <= -10: 2/12
+  L44 16 rows: Run B glue w/o t1cf (knob - c_exp - c_t1) median    74.1 [min    70.8, max    76.9]
+  L44 16 rows: Run B glue with t1cf (knob - c_exp)        median    90.3 [min    87.4, max    93.1]
+  L44 16 rows: Run A F2 - F1 median   -11.2 [min   -12.6, max    -9.4] (info: independent calls)
+FRONT FOLD (Run B, 32 rows): F2 - F1 = -18.7 / -17.1 us per block (L20 / L44); rule <= -10 on both -> PASS -> Leap's slot #4 knob
+MEGAKERNEL (Run B, 32 rows): glue without t1cf = 110.1 / 109.0 us per block (L20 / L44; with t1cf 140.1 / 139.3); rule >= 150 propose, <= 60 close -> BETWEEN -> reported, no proposal; x 48 layers = 5.3 / 5.2 ms per 32-row check [P]
+DIAG reading (Run A, 32 rows):
+  L20 today: CPU  299.5 = 0.47 x busy  642.2; idle  104.1 = 13.9 % of wall  746.8 -> GPU-BOUND
+  L20 knob : CPU  248.5 = 0.45 x busy  549.7; idle  106.3 = 16.4 % of wall  649.6 -> MIXED
+  L20 f1   : CPU  265.7 = 0.49 x busy  546.6; idle  104.7 = 16.3 % of wall  642.7 -> MIXED
+  L20 f2   : CPU  237.7 = 0.46 x busy  522.0; idle   99.5 = 16.1 % of wall  617.3 -> MIXED
+  L20 f2c  : CPU  194.9 = 0.37 x busy  521.8; idle   56.3 =  9.7 % of wall  578.3 -> GPU-BOUND
+  L44 today: CPU  260.8 = 0.43 x busy  612.3; idle   81.9 = 11.8 % of wall  694.7 -> GPU-BOUND
+  L44 knob : CPU  228.4 = 0.43 x busy  530.3; idle   83.3 = 13.6 % of wall  613.5 -> GPU-BOUND
+  L44 f1   : CPU  241.5 = 0.46 x busy  524.9; idle   85.5 = 14.0 % of wall  610.1 -> GPU-BOUND
+  L44 f2   : CPU  210.6 = 0.42 x busy  501.7; idle   78.4 = 13.5 % of wall  580.4 -> GPU-BOUND
+  L44 f2c  : CPU  181.1 = 0.36 x busy  501.4; idle   49.6 =  9.0 % of wall  550.8 -> GPU-BOUND
+Round-0 cache check (Run B, 32 rows): component / knob GPU-busy, median over blocks 1-2 (warmed) vs 3-12:
+  L20 c_exp : blocks 1-2 0.785, blocks 3-12 0.770
+  L20 c_t1  : blocks 1-2 0.047, blocks 3-12 0.050
+  L20 c_comb: blocks 1-2 0.019, blocks 3-12 0.020
+  L44 c_exp : blocks 1-2 0.767, blocks 3-12 0.771
+  L44 c_t1  : blocks 1-2 0.051, blocks 3-12 0.050
+  L44 c_comb: blocks 1-2 0.020, blocks 3-12 0.020

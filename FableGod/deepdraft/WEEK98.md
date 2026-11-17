@@ -893,6 +893,26 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Tue 17 19:5x (NewIdeas; BigMoE 19:50, MoonShots 19:5x): **THE THURSDAY-NIGHT EXACT A/B IS FULLY SPECIFIED.** MoonShots M-47 READY on
+  S22's real checkpoint (sha256 verified; c2 16 / 16 bitwise; HE+ t16 SF == HS 48 / 48; 74.7 MB per level; indicative 0.736 vs 1.207 ms per pop:
+  a tree-16 block ~11.0 vs ~16.6 ms). BigMoE: A = R57_T30B_FMT=q8h32, B = R57_T30B_FMT=c2 + R57_T30B_W=~/datasets/deepdraft/ckpt/
+  dd_t30qa.safetensors (sha256 checked at load against 353965c5...); the runner takes a prompt range, so A then B on the first half and B then
+  A on the second, each in its own process under the quiet lock; arm B adds ~45 min, (ii) ~90 min in all. Thursday night: lossy timing ~45 +
+  exact ~90 + count check ~30 = ~2 h 45 from 23:35. Estimate updated with the -5.6 ms (still not used): HE+ +8-10 %, MBPP +4-6 %, pooled
+  ~+6-8 %.
+- Tue 17 19:4x (the orchestrator's 19:4x decision, relayed by NewIdeas to BigMoE, MTP Head, MoonShots): **S22 is NOT a default and never
+  in the lossy stack (that stays Q8H32). EXACT headline only: ONE A/B in Thursday night's exact timing, A = Q8H32 vs B = R57_T30B_FMT=c2 +
+  dd_t30qa (sha256 353965c5...).** Gate: token identity 264 / 264 for both arms. Protocol (NewIdeas' number check): each arm in its own
+  process, quiet; A then B on the first half and B then A on the second if the runner takes a prompt range (else A then B); score = pooled
+  whole-decode tok/s (n / decode wall), both sets reported; B wins only if faster pooled AND in both halves, else A stays (one drafter for
+  both headlines). NewIdeas' estimate (not used): kept vs Q8H32 x0.974 HE+ / x0.939 MBPP (Q8H32 costs ~2.4 % HE+, ~0 MBPP vs the full
+  head), draft -4.4 ms per tree-16 block (MoonShots M-47: ~12.2 vs 16.6 ms) on a ~51-58 ms exact cycle -> HE+ +5-7 %, MBPP +1-3 %,
+  pooled ~+3-5 %. Open: MoonShots' bit test on the real checkpoint (s22_bittest.sh he16); BigMoE's c2 wiring, flag names and the added
+  arm's minutes.
+- Tue 17 19:4x (MTP Head, REPORT 0669fe3; 125B, M3 TRUE-STATE): **S22 QATC2 = FAIL by its line, but close.** The
+  C2-trained 4-bit + top-4 head (~75 MB per level) keeps HE+ x0.951 / MBPP x0.939 at tree-16 (x0.885 / x0.910 at
+  tree-32), vs x0.874 / x0.854 post hoc: ~60 % recovered. Est. tok/s ~+6-7 % at f 0.1-0.27 (-4.4 ms per tree-16
+  block for -5-6 % kept). Weights dd_t30qa.safetensors (sha256 353965c5...). The decision is the orchestrator's.
 - Tue 17 11:0x (MTP Head, REPORT 77090eb; CPU LAB): **LEVEL PAIRING KILL at stage 0.** A perfect pairing saves at
   most 12-27 % (MBPP) / 23-34 % (HE+) of levels at depth 20 on t30b's dumps (pessimistic-optimistic). FAR's
   mechanism also lacks the double-step state + K / V transition. HE+ best case is ~1-1.5 ms per tree-32 block on

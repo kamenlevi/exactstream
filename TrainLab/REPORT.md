@@ -5280,3 +5280,25 @@ Prediction [G]: qa PASS 30 % (HE+ is capped near x0.976 by H8 alone at t16 befor
   - Bits are from C2: 4-bit everywhere, router 8, HC mixes 4, top-4.
   - Loss 0.5225 -> 0.3025 over 5 steps: C2's cuts raise t30b's loss and QAT starts adapting. Nothing was saved.
   - qa (sb98/s22.sh qa MARKER) waits for the Wed-night CERTIFY98 capture's END marker.
+
+## WEEK98 S22 QATC2 RESULT (qa run Tue 17 Nov 17:35-19:37, read 19:39; 125B, M3 harness copy, TRUE-STATE, real best-first trees): FAIL by the line (MBPP t16 x0.939 < 0.95); HE+ passes at x0.951
+| kept vs the full t30b | post-hoc C2 (M3) | qa (C2-trained, read at cut C2) |
+|---|---|---|
+| HE+ tree-16 | x0.8735 | x0.9513 [0.9294, 0.9723] |
+| HE+ tree-32 | x0.7762 | x0.8849 [0.8533, 0.9122] |
+| MBPP tree-16 | x0.8544 | x0.9393 [0.9250, 0.9534] |
+| MBPP tree-32 | x0.8128 | x0.9097 [0.8928, 0.9250] |
+- One annealed QAT pass (1,479 steps of manifest A, 6,695 s, peak 15.9 GB) recovers ~60 % of C2's kept loss at
+  tree-16 (HE+ 62 %, MBPP 58 %) and about half at tree-32.
+  - It yielded once to Breakthrough's quiet ticket at step 48 and resumed (dd_qat's SIGTERM save path, as designed).
+- VERDICT by the pre-registered line (>= 0.95 x the full head at tree-16 on BOTH sets): FAIL. HE+ passes (x0.951),
+  MBPP misses by 1.1 pt (x0.939).
+- The HE+ cap: H8 alone costs x0.976 at t16, so after QAT the 4-bit + top-4 part costs ~2.5 % on HE+ and ~5 % on MBPP.
+- tok/s, estimate (the S21 rule, check 28 ms):
+  - ~75 MB per level vs Q8H32's 177.6. At f 0.1 a tree-16 block drafts in ~4.5 ms vs ~8.9: -4.4 ms for -5-6 % kept,
+    ~1.3 % per ms (inside the 1.5 %-per-ms rule), ~+7 % tok/s at equal kept per check.
+  - At today's f 0.269, ~+6.5 %.
+  - So the line fails, but the trade is mildly positive in tok/s. The decision is the orchestrator's.
+- Next levers (none run): a longer QAT (two passes / from b5), the qc control, or 8-bit Linears + top-4 (drop only
+  the experts).
+- Weights: ~/datasets/deepdraft/ckpt/dd_t30qa.safetensors (latent fp32; the engine applies C2's cut), sha256 353965c596dc363001913fc9ccf22bf1a72bd2f9d6ecbe562d7acd671d346ad7.
