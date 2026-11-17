@@ -229,3 +229,12 @@ AMENDED a third time Tue 12:4x, before the quiet run:
   grouping + rowsum64, and its share of F2 - F1 cannot be separated here. Leap's engine A/B would price it.
 - c_t1 smoke (12:38, share, 1 block, Sandbox98 at ~40 % of the GPU; not used): runs, no hidden sync, GPU-busy 76 us,
   vs 154 for the whole route path (c_route) in the same pass.
+SCHEDULE Tue 17:4x (the pre-registered lines, files and runner are unchanged):
+- The orchestrator moved the quiet run to the first quiet gap after TrainLab's S22 training (~20:35-20:39), before
+  BigMoE's M4 (23:35).
+- Waiter data/moeblk/md_after_s22.frozen.sh (= scripts/moeblk/md_after_s22.sh) holds no lock and no ticket until S22's
+  runner exits and no other session holds or queues a lock (two reads 60 s apart). Then it starts md_run2.frozen.sh as is.
+  Latest start 22:15, so no grant after 23:15. Dry-run: 4 cases (start after both waits; skip at the latest start; the
+  real S22 pid; the real lock list).
+- A 17:38 attempt on the orchestrator's 17:35 "run now" was withdrawn a minute later. Its queued ticket lived ~30 s and
+  made S22 yield once (saved at step 48, resumed 17:39:05). No measurement ran.
