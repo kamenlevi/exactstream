@@ -1188,6 +1188,31 @@
       G1_G1T_END ("stopped by a signal during: waiting (day window)") was moved aside (.b98rearm).
     - 07:53:39: re-armed as pid 5895, `CHAIN_MYPID=63835 tools/g1_chain.sh` as before. It waits for its gates
       (T1C_TUEF3_END after the arming with follower3 gone, V2's verdict, G1P_PROBE_DONE, G1_PICK).
+- **Dated Tue 10:0x, before any G1 run or data: G1's V2 gate and the G1_PICK writer now read V2's verdict in its pooled
+  form. A gate fix; no line changes.**
+  - **The bug:** both matched `LOSSY tier1 (CODE-ONLY mode): PASS|FAIL`. V2's verdict is the both-orders line,
+    `LOSSY tier1 (CODE-ONLY mode) [2 orders pooled]: ...` (lossy_d4.py labels pooled runs; see CARD_ccx45cc1_rev_DONE).
+    - So G1 would never have started, and tools/g1_pick.sh would have refused the pick (exit 3).
+    - The sims had faked V2's line in the single-order form.
+    - Found Tue 09:4x while preparing the pick that NewIdeas handed to EvalSuite (NewIdeas 09:4x: EvalSuite applies 5d's
+      pick at V2's verdict, by pick5d.py).
+  - **The files:** tools/g1_chain.sh is now sha256 aee07902038fc1d3 (was 1745d09535b06ea3). tools/g1_pick.sh is
+    f3c04df66a1dac28 (was bf8ab777f688c2cd). Each diff is the one regex.
+  - **Checked** (results/lossygate/g1_chain_fix_2026-11-17.txt):
+    - **The stub sim** on byte copies: all 27 scenarios as intended.
+      - The 25 from before now use V2's line in the pooled form.
+      - p1 (new): a single-order line gives no start in 15 s. The pooled line plus a newer pick: start, done.
+      - p2 (new): a pooled INCOMPLETE line gives no start. A pooled FAIL plus a newer pick: start, done.
+      - The runner stub now labels its pooled runs as lossy_d4.py does.
+    - **The 8 DRY passes:** all rc 0, 48 runner calls rc 0.
+    - **The pick writer:**
+      - The pooled PASS and FAIL lines are accepted.
+      - The single-order, INCOMPLETE and VOID lines are refused (exit 3), a non-pinned env exits 2, and a second pick
+        exits 4.
+      - g1r, g1, g1cr and g1c each write against copies of the real key-test records.
+  - **The switch:**
+    - TERM 5895 at 09:48:59. It was waiting for its gates, with no runner. Its G1_G1T_END was moved aside (.fixrearm).
+    - 10:03:12: re-armed as pid 28020, `CHAIN_MYPID=63835 tools/g1_chain.sh` as before.
 
 ## Amendment 5c (Mon 2026-11-16 13:0x, before any G2 config, snapshot or data): G2's composition (NewIdeas 13:0x); it replaces 5a's G2 condition
 - **Why:** Breakthrough found that G1 as built reads 6.22 GB per check, not 5.77. g1a is C6 + int8 on lossy-45's

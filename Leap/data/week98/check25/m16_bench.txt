@@ -1,0 +1,3 @@
+M16 bench (scripts/week98/m16.py bench; 11-17 09:5x, share locks beside MoonShots' C2 at ~60 % GPU): line 1 = read16p with row tile 2 still computed; line 2 = tile 2 compiled out (MR <= 16). Verdict: HC16P KILL at 16 rows (both >= 1.0x).
+  HC read, 96 chained reads at 16 rows with the pending write (ROUGH, share lock), ms: hc8r.read v4 18.27 -> read16p 20.60 (+2.33, 1.127x); launches 288 -> 96; spin-cap fails 0
+  HC read, 96 chained reads at 16 rows with the pending write (ROUGH, share lock), ms: hc8r.read v4 15.34 -> read16p 15.97 (+0.63, 1.041x); launches 288 -> 96; spin-cap fails 0

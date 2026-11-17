@@ -104,7 +104,7 @@ gates() {       # 0 = G1's start gates hold; 1 = not yet; 5 = never (the pick na
   { [ -e "$T1E" ] && [ "$(stat -f %m "$T1E")" -ge "$ARMED" ]; } || { WHY="no $T1E written after the arming"; return 1; }
   pgrep -f "$F3PAT" > /dev/null && { WHY="follower3 still runs"; return 1; }
   pgrep -f "$RUNPAT" > /dev/null && { WHY="an EvalSuite runner is alive"; return 1; }
-  head -1 "$V2D" 2>/dev/null | grep -qE '^LOSSY tier1 \(CODE-ONLY mode\): (PASS|FAIL)' || { WHY="no both-orders PASS / FAIL verdict in $V2D"; return 1; }
+  head -1 "$V2D" 2>/dev/null | grep -qE '^LOSSY tier1 \(CODE-ONLY mode\) \[2 orders pooled\]: (PASS|FAIL)' || { WHY="no both-orders PASS / FAIL verdict in $V2D"; return 1; }
   { [ -e "$PROBE" ] && [ "$(stat -f %m "$PROBE")" -ge "$PROBEAFTER" ]; } || { WHY="no G1P_PROBE_DONE after $(hm "$PROBEAFTER") yet"; return 1; }
   [ -s "$PICKF" ] || { WHY="no G1_PICK yet"; return 1; }
   [ "$(stat -f %m "$PICKF")" -ge "$(stat -f %m "$V2D")" ] || { WHY="G1_PICK is older than V2's verdict"; return 1; }

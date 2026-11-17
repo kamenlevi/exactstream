@@ -1,0 +1,226 @@
+# tools/certify98_dumpcheck.py with the (b) mode --incapture (CERTIFY98 proof-run amendment, variant (b), still a DRAFT), EvalSuite 11-17 09:4x
+# sha256 884e5cb415633eab53f89cb203b64a95d59b62e7106d8232daf09bda1c7d773f (the (a) tool was 92410754282d977d...; without --incapture its output is unchanged: the old 26 checks below)
+# 50 of 50 checks as wanted: u1-u8 + 1-18 (the old checks, results only; their detail is in dumpcheck_checks_2026-11-16.txt) and b1-b24 (new)
+# Fixtures (mk.py, below): BigMoE's sample manifest (37744f27: the dev bank heplus24, NOT the capture) with the three (b) _run
+# fields added (in_capture, capture_script_sha256, wd_sha256 with stand-in hashes), a slim dir of links to the 24 bank files
+# (they still hold wd; the check reads only ids), and one broken copy per test. The identities the mode checks hold
+# exactly on the real dumps (b1): TOPK y == ids[row + 1] on 186,465 / 186,465 cells; T8-32 y == ids[an + depth + 2]
+# (-1 past the end) on 204,000 / 204,000 nodes (T8-127: 809,625 / 809,625); tree anchors == TOPK depth-0 (fi, row - 1), 6,375.
+
+u1 all match (want 0): 0
+u2 a file not in the manifest (want 1): 1
+u3 a missing file (want 1): 1
+u4 one byte appended (want 1): 1
+u5 same size, one byte changed (want 1): 1
+u6 a size-only mismatch (want 1): 1
+u7 no files (want 2): 2
+u8 restored (want 0): 0
+1 sample, gated (want 0): 0
+2 sample, gated + pins from itself (want 0): 0
+3 pins: mtp125.py sha differs (want 1): 1
+4 pins: one module fewer than the manifest (want 1): 1
+5 pins: checkpoint differs (want 1): 1
+6 no modules (want 1): 1
+7 no checkpoint_path (want 1): 1
+8 bigmoe_dirty not a bool (want 1): 1
+9 a file without script (want 1): 1
+10 a file's args not in _run.args (want 1): 1
+11 _run.args lacks the 127-node pass (want 1): 1
+12 topk args differ from _run (want 1): 1
+13 --fresh on the SAMPLE (want 1): 1
+14 --fresh with the right manifest_sha256 (want 0): 0
+15 the bank manifest, ungated (want 0): 0
+16 the bank manifest, gated (want 1): 1
+17 --pins without --gated (want 2): 2
+18 a file not in the sample (want 1): 1
+b1 the sample as an in-capture run, TOPK + T8-32 + T8-127 (want 0): 0
+       in-capture run: in_capture True, capture_script_sha256 abababababababababababababababababababababababababababababababab
+       wd_sha256: 24 entries for 24 slim files: one per file
+       slim files in slim: 24 of 24 match files_sha256.json
+         topk_t30b_heplus24.npz (dd_topk): 186465 cells; y == ids[row + 1] of its slim file on 186465
+         tree_t30b_heplus24.npz (dd_tree): 6375 anchors == its TOPK dump's depth-0 cells (row - 1)
+           204000 nodes; y == ids[an + depth + 2] of its slim file (-1 past its end) on 204000
+         tree_t30b_heplus24_n127k8.npz (dd_tree): 6375 anchors == its TOPK dump's depth-0 cells (row - 1)
+           809625 nodes; y == ids[an + depth + 2] of its slim file (-1 past its end) on 809625
+       coverage: 24 of 24 slim files in exactly one TOPK dump; 24 in a tree dump
+     DUMP MANIFEST: PASS (3 files; gated; in-capture)
+b2 TOPK + T8-32 only, the (b) form (want 0): 0
+       coverage: 24 of 24 slim files in exactly one TOPK dump; 24 in a tree dump
+     DUMP MANIFEST: PASS (2 files; gated; in-capture)
+b3 no in_capture (want 1): 1
+       in-capture run: in_capture None, capture_script_sha256 abababababababababababababababababababababababababababababababab
+b4 in_capture the string "true" (want 1): 1
+       in-capture run: in_capture 'true', capture_script_sha256 abababababababababababababababababababababababababababababababab
+b5 no capture_script_sha256 (want 1): 1
+       in-capture run: in_capture True, capture_script_sha256 MISSING
+b6 wd_sha256 lacks a file (want 1): 1
+       wd_sha256: 23 entries for 24 slim files: MISMATCH (missing ['tf_code_HumanEval_10.npz'], extra [], 64-hex True)
+b7 wd_sha256 has an extra name (want 1): 1
+       wd_sha256: 25 entries for 24 slim files: MISMATCH (missing [], extra ['tf_code_HumanEval_9999.npz'], 64-hex True)
+b8 a wd_sha256 value not lower-case 64-hex (want 1): 1
+       wd_sha256: 24 entries for 24 slim files: MISMATCH (missing [], extra [], 64-hex False)
+b9 a slim file missing (want 1): 1
+       wd_sha256: 24 entries for 24 slim files: one per file
+       slim files in slim_drop: 23 of 24 match files_sha256.json; MISSING or DIFFERENT: ['tf_code_HumanEval_118.npz']
+         topk_t30b_heplus24.npz (dd_topk): 1 of its files are not slim files of files_sha256.json: ['tf_code_HumanEval_118.npz']
+       coverage: 0 of 24 slim files in exactly one TOPK dump (not: ['tf_code_HumanEval_10.npz', 'tf_code_HumanEval_103.npz', 'tf_code_HumanEval_109.npz']); 0 in a tree dump (not: ['tf_code_HumanEval_10.npz
+b10 a slim file's bytes differ from files_sha256.json (want 1): 1
+       wd_sha256: 24 entries for 24 slim files: one per file
+       slim files in slim_tok: 23 of 24 match files_sha256.json; MISSING or DIFFERENT: ['tf_code_HumanEval_10.npz']
+       coverage: 24 of 24 slim files in exactly one TOPK dump; 24 in a tree dump
+b11 one ids token changed, files_sha256.json re-made to match (want 1): 1
+       files_sha256_json == sha256 of files_tok.json (760fb86952416d6d7c6dc6f551ac9a450af6bef294a4f704cf65e6e2cf411cee)
+       wd_sha256: 24 entries for 24 slim files: one per file
+       slim files in slim_tok: 24 of 24 match files_sha256.json
+         topk_t30b_heplus24.npz (dd_topk): 186465 cells; y == ids[row + 1] of its slim file on 186464; MISMATCH on 1
+           204000 nodes; y == ids[an + depth + 2] of its slim file (-1 past its end) on 203999; MISMATCH on 1
+       coverage: 24 of 24 slim files in exactly one TOPK dump; 24 in a tree dump
+b12 one slim file cut short, files_sha256.json re-made (want 1): 1
+       wd_sha256: 24 entries for 24 slim files: one per file
+       slim files in slim_cut: 24 of 24 match files_sha256.json
+         topk_t30b_heplus24.npz (dd_topk): 186465 cells; y == ids[row + 1] of its slim file on 186434; MISMATCH on 31
+           204000 nodes; y == ids[an + depth + 2] of its slim file (-1 past its end) on 203972; MISMATCH on 28
+       coverage: 24 of 24 slim files in exactly one TOPK dump; 24 in a tree dump
+b13 a tree dump with one anchor dropped (want 1): 1
+         script dd_tree, args {"k": 8, "nodes": 32, "parts": 1}: in _run.args
+         tree_drop.npz (dd_tree): 6374 anchors != its TOPK dump's depth-0 cells
+b14 a tree dump with one anchor moved by a row (want 1): 1
+         script dd_tree, args {"k": 8, "nodes": 32, "parts": 1}: in _run.args
+         tree_shift.npz (dd_tree): 6375 anchors (1 repeated) != its TOPK dump's depth-0 cells
+b15 a tree dump whose file list is in another order (want 1): 1
+         script dd_tree, args {"k": 8, "nodes": 32, "parts": 1}: in _run.args
+         tree_order.npz (dd_tree): 6375 anchors but no TOPK dump with the same file list
+       coverage: 24 of 24 slim files in exactly one TOPK dump; 0 in a tree dump (not: ['tf_code_HumanEval_10.npz', 'tf_code_HumanEval_103.npz', 'tf_code_HumanEval_109.npz'])
+b16 a tree node's y changed (want 1): 1
+         script dd_tree, args {"k": 8, "nodes": 32, "parts": 1}: in _run.args
+         tree_y.npz (dd_tree): 6375 anchors == its TOPK dump's depth-0 cells (row - 1)
+           204000 nodes; y == ids[an + depth + 2] of its slim file (-1 past its end) on 203999; MISMATCH on 1
+b17 a past-the-end tree node's y 0, not -1 (want 1): 1
+         script dd_tree, args {"k": 8, "nodes": 32, "parts": 1}: in _run.args
+           204000 nodes; y == ids[an + depth + 2] of its slim file (-1 past its end) on 203999; MISMATCH on 1
+b18 the dumps name a file files_sha256.json lacks (want 1): 1
+         script dd_topk, args {"k": 8, "parts": 1}: in _run.args
+         topk_t30b_heplus24.npz (dd_topk): 1 of its files are not slim files of files_sha256.json: ['tf_code_HumanEval_124.npz']
+       coverage: 0 of 23 slim files in exactly one TOPK dump (not: ['tf_code_HumanEval_10.npz', 'tf_code_HumanEval_103.npz', 'tf_code_HumanEval_109.npz']); 0 in a tree dump (not: ['tf_code_HumanEval_10.npz
+b19 a path, not a plain name, in files_sha256.json (want 1): 1
+       wd_sha256: 24 entries for 24 slim files: one per file
+       slim files in slim: 23 of 24 match files_sha256.json; MISSING or DIFFERENT: ['../slim/tf_code_HumanEval_129.npz']
+         topk_t30b_heplus24.npz (dd_topk): 1 of its files are not slim files of files_sha256.json: ['tf_code_HumanEval_129.npz']
+       coverage: 0 of 24 slim files in exactly one TOPK dump (not: ['../slim/tf_code_HumanEval_129.npz', 'tf_code_HumanEval_10.npz', 'tf_code_HumanEval_103.npz']); 0 in a tree dump (not: ['../slim/tf_code_
+b20 no tree dump named (want 1): 1
+       coverage: 24 of 24 slim files in exactly one TOPK dump; 0 in a tree dump (not: ['tf_code_HumanEval_10.npz', 'tf_code_HumanEval_103.npz', 'tf_code_HumanEval_109.npz'])
+b21 the TOPK dump named twice (want 1): 1
+       coverage: 0 of 24 slim files in exactly one TOPK dump (not: ['tf_code_HumanEval_10.npz', 'tf_code_HumanEval_103.npz', 'tf_code_HumanEval_109.npz']); 24 in a tree dump
+b22 no slim dir (want 1): 1
+       wd_sha256: 24 entries for 24 slim files: one per file
+       slim files in slim_none: 0 of 24 match files_sha256.json; MISSING or DIFFERENT: ['tf_code_HumanEval_10.npz', 'tf_code_HumanEval_103.npz', 'tf_code_HumanEval_109.npz']
+         topk_t30b_heplus24.npz (dd_topk): 24 of its files are not slim files of files_sha256.json: ['tf_code_HumanEval_10.npz', 'tf_code_HumanEval_103.npz', 'tf_code_HumanEval_109.npz']
+       coverage: 0 of 24 slim files in exactly one TOPK dump (not: ['tf_code_HumanEval_10.npz', 'tf_code_HumanEval_103.npz', 'tf_code_HumanEval_109.npz']); 0 in a tree dump (not: ['tf_code_HumanEval_10.npz
+b23 --incapture without --gated (want 2): 2
+b24 the plain sample manifest under --incapture (want 1): 1
+       in-capture run: in_capture None, capture_script_sha256 MISSING
+       wd_sha256: 0 entries for 24 slim files: MISMATCH (missing ['tf_code_HumanEval_10.npz', 'tf_code_HumanEval_103.npz', 'tf_code_HumanEval_109.npz'], extra [], 64-hex True)
+
+## mk.py (the fixtures)
+"""Fixtures for certify98_dumpcheck.py --incapture: BigMoE's heplus24 sample (dumps + files_sha256.json) dressed as an
+in-capture run, a slim dir of links to the dev-bank files, and one broken copy per test."""
+import hashlib, json, os, shutil, sys
+import numpy as np
+D = os.path.dirname(os.path.abspath(__file__)); os.chdir(D)
+SM = os.path.expanduser("~/BigMoE/data/deepdraft/certify98_sample"); CE = os.path.expanduser("~/BigMoE/data/deepdraft/ceiling")
+BANK = os.path.expanduser("~/datasets/deepdraft/bank")
+def sha(p):
+    h = hashlib.sha256()
+    with open(p, "rb") as f:
+        for b in iter(lambda: f.read(1 << 24), b""): h.update(b)
+    return h.hexdigest()
+def jw(p, o): json.dump(o, open(p, "w"), indent=1, sort_keys=True)
+M0 = json.load(open(f"{SM}/dumps_sha256.json")); F0 = json.load(open(f"{SM}/files_sha256.json")); names = sorted(F0["files"])
+def base(files_json=f"{SM}/files_sha256.json", wd_names=names):
+    M = json.loads(json.dumps(M0)); R = M["_run"]
+    R["in_capture"] = True; R["capture_script_sha256"] = "ab" * 32
+    R["wd_sha256"] = {n: hashlib.sha256(("wd " + n).encode()).hexdigest() for n in wd_names}
+    R["files_sha256_json"] = sha(files_json)
+    return M
+def slimdir(d, swap=None, drop=None):
+    shutil.rmtree(d, ignore_errors=True); os.makedirs(d)
+    for n in names:
+        if n == drop: continue
+        if swap and n in swap: shutil.copy(swap[n], f"{d}/{n}")
+        else: os.symlink(f"{BANK}/{n}", f"{d}/{n}")
+def npz_with(src, dst, **arrays):
+    z = np.load(src); a = {k: z[k] for k in z.files}; a.update(arrays); np.savez(dst, **a)
+def entry(p, like):
+    e = dict(M0[like]); e["sha256"] = sha(p); e["bytes"] = os.path.getsize(p); return e
+TK, TR = f"{CE}/topk_t30b_heplus24.npz", f"{CE}/tree_t30b_heplus24.npz"
+z = np.load(TK); t = np.load(TR); fl = [str(x) for x in z["files"]]
+
+jw("m_b.json", base()); slimdir("slim")
+M = base(); del M["_run"]["in_capture"]; jw("m_noic.json", M)
+M = base(); M["_run"]["in_capture"] = "true"; jw("m_icstr.json", M)
+M = base(); del M["_run"]["capture_script_sha256"]; jw("m_nocs.json", M)
+jw("m_wdless.json", base(wd_names=names[1:]))
+M = base(); M["_run"]["wd_sha256"]["tf_code_HumanEval_9999.npz"] = "cd" * 32; jw("m_wdextra.json", M)
+M = base(); M["_run"]["wd_sha256"][names[0]] = "AB" * 32; jw("m_wdhex.json", M)
+slimdir("slim_drop", drop=names[3])
+# one ids token changed where a TOPK cell reads it (row + 1 of file 0's first cell)
+i0 = fl.index(names[0]); r1 = int(z["row"][z["fi"] == i0][0]) + 1
+ids = np.load(f"{BANK}/{names[0]}")["ids"].copy(); ids[r1] = ids[r1] + 1
+npz_with(f"{BANK}/{names[0]}", "alt_tok.npz", ids=ids); slimdir("slim_tok", swap={names[0]: "alt_tok.npz"})
+Ft = json.loads(json.dumps(F0)); Ft["files"][names[0]] = sha("slim_tok/" + names[0]); jw("files_tok.json", Ft); jw("m_tok.json", base("files_tok.json"))
+# one file's ids cut so its last TOPK cell reads past the end
+ids = np.load(f"{BANK}/{names[1]}")["ids"]; i1 = fl.index(names[1]); mx = int(z["row"][z["fi"] == i1].max())
+npz_with(f"{BANK}/{names[1]}", "alt_cut.npz", ids=ids[: mx + 1]); slimdir("slim_cut", swap={names[1]: "alt_cut.npz"})
+Fc = json.loads(json.dumps(F0)); Fc["files"][names[1]] = sha("slim_cut/" + names[1]); jw("files_cut.json", Fc); jw("m_cut.json", base("files_cut.json"))
+# tree variants, each with its own manifest entry
+a_fi, a_an = t["a_fi"], t["a_an"]
+npz_with(TR, "tree_drop.npz", a_fi=a_fi[:-1], a_an=a_an[:-1], a_walk_start=t["a_walk_start"][:-1],
+         root_top_ids=t["root_top_ids"][:-1], root_top_p=t["root_top_p"][:-1])
+an2 = a_an.copy(); an2[0] += 1; npz_with(TR, "tree_shift.npz", a_an=an2)
+npz_with(TR, "tree_order.npz", files=t["files"][::-1].copy())
+y = t["y"].copy(); j = int(np.flatnonzero(y >= 0)[0]); y[j] = y[j] + 1; npz_with(TR, "tree_y.npz", y=y)
+y = t["y"].copy(); j = int(np.flatnonzero(y == -1)[0]); y[j] = 0; npz_with(TR, "tree_pastend.npz", y=y)
+M = base()
+for n in ("tree_drop.npz", "tree_shift.npz", "tree_order.npz", "tree_y.npz", "tree_pastend.npz"):
+    M[n] = entry(n, "tree_t30b_heplus24.npz")
+jw("m_trees.json", M)
+# files_sha256.json without one file (and wd_sha256 without it): the dumps name a file it lacks
+Fl = json.loads(json.dumps(F0)); del Fl["files"][names[5]]; jw("files_less.json", Fl)
+jw("m_less.json", base("files_less.json", wd_names=[n for n in names if n != names[5]]))
+# a path, not a plain name, in files_sha256.json
+Fp = json.loads(json.dumps(F0)); Fp["files"]["../slim/" + names[6]] = Fp["files"].pop(names[6]); jw("files_path.json", Fp)
+jw("m_path.json", base("files_path.json", wd_names=sorted(Fp["files"])))
+print("fixtures written:", sorted(os.listdir(D)))
+
+## t.sh (the b-checks driver)
+#!/bin/bash
+# certify98_dumpcheck.py --incapture (variant (b)) on BigMoE's heplus24 sample dressed as an in-capture run (mk.py).
+cd "$(dirname "$0")"
+PY=~/EvalSuite/.venv/bin/python; T=~/EvalSuite/tools/certify98_dumpcheck.py; SM=~/BigMoE/data/deepdraft/certify98_sample; CE=~/BigMoE/data/deepdraft/ceiling
+TK=$CE/topk_t30b_heplus24.npz; TR=$CE/tree_t30b_heplus24.npz; T127=$CE/tree_t30b_heplus24_n127k8.npz; G=$SM/files_sha256.json
+r() { $PY -I $T "$@" > out.txt 2>&1; echo $?; }
+sh_() { grep -E "$1" out.txt | cut -c1-200 | sed 's/^/     /'; }
+echo "b1 the sample as an in-capture run, TOPK + T8-32 + T8-127 (want 0): $(r m_b.json $TK $TR $T127 --gated $G --incapture slim)"; sed -n '/in-capture run/,$p' out.txt | cut -c1-200 | sed 's/^/     /'
+echo "b2 TOPK + T8-32 only, the (b) form (want 0): $(r m_b.json $TK $TR --gated $G --incapture slim)"; sh_ 'coverage|DUMP'
+echo "b3 no in_capture (want 1): $(r m_noic.json $TK $TR --gated $G --incapture slim)"; sh_ 'in-capture run'
+echo "b4 in_capture the string \"true\" (want 1): $(r m_icstr.json $TK $TR --gated $G --incapture slim)"; sh_ 'in-capture run'
+echo "b5 no capture_script_sha256 (want 1): $(r m_nocs.json $TK $TR --gated $G --incapture slim)"; sh_ 'in-capture run'
+echo "b6 wd_sha256 lacks a file (want 1): $(r m_wdless.json $TK $TR --gated $G --incapture slim)"; sh_ 'wd_sha256'
+echo "b7 wd_sha256 has an extra name (want 1): $(r m_wdextra.json $TK $TR --gated $G --incapture slim)"; sh_ 'wd_sha256'
+echo "b8 a wd_sha256 value not lower-case 64-hex (want 1): $(r m_wdhex.json $TK $TR --gated $G --incapture slim)"; sh_ 'wd_sha256'
+echo "b9 a slim file missing (want 1): $(r m_b.json $TK $TR --gated $G --incapture slim_drop)"; sh_ 'slim files'
+echo "b10 a slim file's bytes differ from files_sha256.json (want 1): $(r m_b.json $TK $TR --gated $G --incapture slim_tok)"; sh_ 'slim files'
+echo "b11 one ids token changed, files_sha256.json re-made to match (want 1): $(r m_tok.json $TK $TR --gated files_tok.json --incapture slim_tok)"; sh_ 'slim files|MISMATCH on|files_sha256_json'
+echo "b12 one slim file cut short, files_sha256.json re-made (want 1): $(r m_cut.json $TK $TR --gated files_cut.json --incapture slim_cut)"; sh_ 'slim files|MISMATCH on'
+echo "b13 a tree dump with one anchor dropped (want 1): $(r m_trees.json $TK tree_drop.npz --gated $G --incapture slim)"; sh_ 'dd_tree'
+echo "b14 a tree dump with one anchor moved by a row (want 1): $(r m_trees.json $TK tree_shift.npz --gated $G --incapture slim)"; sh_ 'dd_tree'
+echo "b15 a tree dump whose file list is in another order (want 1): $(r m_trees.json $TK tree_order.npz --gated $G --incapture slim)"; sh_ 'dd_tree|coverage'
+echo "b16 a tree node's y changed (want 1): $(r m_trees.json $TK tree_y.npz --gated $G --incapture slim)"; sh_ 'dd_tree|nodes'
+echo "b17 a past-the-end tree node's y 0, not -1 (want 1): $(r m_trees.json $TK tree_pastend.npz --gated $G --incapture slim)"; sh_ 'nodes'
+echo "b18 the dumps name a file files_sha256.json lacks (want 1): $(r m_less.json $TK $TR --gated files_less.json --incapture slim)"; sh_ 'dd_topk|coverage'
+echo "b19 a path, not a plain name, in files_sha256.json (want 1): $(r m_path.json $TK $TR --gated files_path.json --incapture slim)"; sh_ 'slim files'
+echo "b20 no tree dump named (want 1): $(r m_b.json $TK --gated $G --incapture slim)"; sh_ 'coverage'
+echo "b21 the TOPK dump named twice (want 1): $(r m_b.json $TK $TK $TR --gated $G --incapture slim)"; sh_ 'coverage'
+echo "b22 no slim dir (want 1): $(r m_b.json $TK $TR --gated $G --incapture slim_none)"; sh_ 'slim files|coverage'
+echo "b23 --incapture without --gated (want 2): $(r m_b.json $TK $TR --incapture slim)"
+echo "b24 the plain sample manifest under --incapture (want 1): $(r $SM/dumps_sha256.json $TK $TR --gated $G --incapture slim)"; sh_ 'in-capture run|wd_sha256'

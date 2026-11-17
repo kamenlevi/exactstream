@@ -4,14 +4,16 @@ BREAK98, FAR's lens: the drafter that consumes partial or approximate 125B infor
 recipe TrainLab can run this week, with a 2B analog in Sandbox98 first. Route 1 (true-state-class information), as the
 orchestrator refined at 07:3x. Marks: [K] measured (source), [P] arithmetic on [K], [G] judgement.
 
-> **RESULT (Sandbox98, 08:3x, LEVERS_A.md section B98S1): Screen 1 variant A (`<|fim_pad|>`) = KILL, negative.** HE G(1-8)
-> -0.105 [-0.145, -0.060], tree-32 x0.960; MBPP G -0.072, tree-32 x0.970. The frozen 2B's own top-1 at a placeholder row is
-> right 26 % at offset 1 and 6-10 % at offsets 2-8 (the head: 93 % at depth 1), so the placeholder carries almost no plan;
-> the learned projection stayed at noise size (1.9 % of fc's W-column norm). Wiring verified (zero-init P bitwise = the
-> head; real tokens reproduce the true states, cos 0.9998). Variants B (mean embedding) and C (`<|vision_pad|>`) were
-> still running (~09:30); the idea is KILL only if all three fail. My reading: a frozen trunk gives no usable
-> future state at an unknown-content position; the published form needs the trunk fine-tuned for mask rows, which a
-> streamed 125B cannot get this week.
+> **RESULT (Sandbox98, 09:0x, LEVERS_A.md "B98S1 result", e68d9cc): Screen 1 = KILL on all three variants, each
+> negative.** HE G(1-8): A `<|fim_pad|>` -0.105 [-0.145, -0.060], B mean embedding -0.130 [-0.168, -0.090], C
+> `<|vision_pad|>` -0.174 [-0.221, -0.123]; HE tree-32 kept x0.960 / x0.958 / x0.949; MBPP G -0.072 / -0.048 / -0.094.
+> The frozen 2B's own top-1 at a placeholder row is right 21-26 % at offset 1 and 6-11 % at offsets 2-8 (the head:
+> 88-93 % at depth 1): every placeholder behaves as an unknown token and carries no plan. The learned projection stayed
+> at noise size (~1.9 % of fc's W columns), so the input entered as noise, which is why the arms are negative rather
+> than flat. Wiring verified. Kill condition (1) holds: **FUTURE-STATE ROWS = KILL** (a frozen trunk gives no usable
+> state at an unknown-content position; the published form needs the trunk fine-tuned for mask rows, which a streamed
+> 125B cannot get this week). Untested and not worth a run: a pure-noise control, the soft-token variant. The capture
+> request in this file is WITHDRAWN.
 
 > **CORRECTION 08:2x (Fable FAR): the coverage numbers below were computed with the wrong grouping** (a topk cell's
 > `row` is the TARGET position = anchor + depth; I grouped by row as if it were the anchor, so each "chain" mixed 31

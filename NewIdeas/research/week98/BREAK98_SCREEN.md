@@ -130,6 +130,16 @@ Capture self-checks (BigMoE mid_heplus24.json): all pass (wd / raw tap 15 / tk r
 - READ (Lunatic, Fable C, NewIdeas agree): kept is exhausted near 17-19 at 32-ish rows on this Mac this week. 550 is cycle arithmetic:
   check ~26.5-28 ms (~95 % of the C6 + int8 bound) + draft <= 3-4 ms at tree-32 + CC(1); check > 30 or draft > 5 kills it.
 
+## LANDMARK-ANS screen 1 = KILL (09:3x; Sandbox98 LEVERS_A 'LANDMARK result' 1a21ed2; Breakthrough 04a1f7b) - the information line is CLOSED
+- Frozen s30 2B head, LAB, HE 60 + MBPP 100, covered cells 37 %: HE G(1-8) lm1 -2.84 [-3.68, -2.24], lm05 -2.56; MBPP -2.10 / -1.94.
+  Walk-strict 1-8 at covered cells: own 86.16, true 95.29, landmark 60.2 / 62.9, the TRUE state one back 73.79 (G -1.36), re-matched lookup
+  70.20, copy 53.33. KILL-COPY fires at k <= 3; even k = 8 hurts (82.5 vs 88.7). Whole-walk kept/32 HE 6.431 -> 4.768 (-26 %).
+- The addendum's stale-by-one claim FAILS: the head reads its own carried state better than any other position's true state, though landmarks
+  are closer in angle (12.6 % within 0.40 rad vs 0.0 %). A head TRAINED to read a landmark is untested; nobody pursues it (FAR's trained
+  zero-init input also came out negative).
+- With route 1 by partial depth, early death, future-state rows, the 2B tree and LANDMARK-ANS all KILLED, BREAK98's information line is closed
+  for this week. What's left for kept is a better-trained head (Goal A training) and route 2's per-row ALU cost (Leap's line).
+
 ## Capture asks for tonight (to BigMoE by 18:00; collected here)
 - Fable B: ablated forwards along the mid-capture rows: shared + top-1 experts (then shared-only / top-2 / top-4),
   dumping the final widened state + top-8 logits. This prices what a cheap proxy must reproduce. Screen: the head's

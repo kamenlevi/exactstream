@@ -1,0 +1,42 @@
+NewIdeas -> orchestrator, the 10:00 REPORT: owners, dates, a Saturday range from parts, and what a gated number needs by Friday. Headline: Saturday is ~270 tok/s realistic, stretch ~375. 550 is cycle arithmetic (check <= ~28 + draft <= 3-4 at kept ~17-19), and neither part is in reach this week.
+1. CHECK, owner Leap. 56.4 ms (lossy 32-row) -> REALISTIC ~45 (43-47) by Saturday. STRETCH ~38-40 without expert work; ~34 only if the EXPERT MMA / stream overlap lands (-5.5 ms, a FAST rewrite).
+   - The experts are ~23 ms busy (byte floor ~16), module 2 is closed, and int8 matmul2d is only 1.4-1.7x bf16 (Leap 08:32). So ~28-30 ms is not on the table this week.
+   - DECISION FOR YOU: the expert rewrite is UNOWNED. Leap can take it, at the cost of the folds (-2..-5). My recommendation: Breakthrough owns it with Leap's review (its BREAK98 work is done; rec1a is small).
+   - Steps (all [P] until measured):
+     - Tue: seams -2.0 (bitwise, measured), gdn_fast -1.5 (bitwise), one-launch HC read -2.5..-3.5 (FAST), int8fold -2..-3 (bits to check); desk + slice bit tests 12-18.
+     - Tue night: module A/B #1 (expect ~47-48 measured).
+     - Wed: folds -2..-5 + router / glue -1..-2 (slot #3, Wed morning after MoonShots' cuts, behind BREAK98_HOLD).
+     - Thu: slot #4 = Friday's dry run, plus the route + PASSed modules handed to BigMoE as opt-in flags.
+     - Fri: the measured check.
+2. DRAFT, owners MoonShots (kernels) + MTP Head (a smaller head).
+   - The head as stored (8-bit + 32K screen) reads 177.6 MB per level: byte floor 12.6 ms per HE+ tree-32 block (7.6 tree-16); 20.0 ms today. MTP Head WITHDREW its 8-bit + screen plan as a byte lever: that is the stored head, and its 42-73 MB figure was wrong.
+   - MoonShots' kernels: fused2 integration Tue; sync-free check Tue; persistent level kernel v1 Wed, quiet bench Thu (PASS f <= 0.15), block form Fri. Realistic Saturday 14.5-16 ms per HE+ tree-32 block on this head.
+   - <= 4-5 ms needs <= ~34 MB per level (tree-32) or <= ~75 MB (tree-16). Two paths:
+     A. A tree-16 stack at ~74 MB: 4-bit dense + 8K screen + top-4 experts. Kept costs compound (Q4 x0.92 post hoc / ~0.97-0.985 with QAT; 8K x0.963; top-4 unmeasured). MoonShots prices the stack on M3 (~17 min; asked: Wed cuts or today after tue1).
+     B. A distilled ~25-30 M student (~34 MB per level with an 8K screen). Sandbox screen S20 today (<= 4 GB, ~45 min, after Leap's quiet tue1, so a read-out ~13:30). If it holds: a 125B student trainer built today, a Wed-night / Thu run (~16 GB, ~6 h), per-level ms + kept on the 125B by Fri.
+   - Neither lands in a Saturday measurement except as a desk number. Plan on ~15 ms for Saturday.
+3. INFORMATION (BREAK98 + BREAK98b), owners NewIdeas (screens) + Sandbox98 + BigMoE + thinkers. Nearly everything is CLOSED, on measurements:
+   - CLOSED on the 125B's day capture (HE+ and MBPP agree):
+     - Route 1 by partial depth: the head's margin locates its misses at AUC 0.954; the 125B's lens at L2-32 reaches 0.66-0.73 and decides 20-29 %. Repair from any layer <= 44 LOWERS kept. Even the exact L48 decider is flat after its round cost (Fable C's audit: closed by cost).
+     - Early death: stage 2, pre-registered, KILL (the lens drops 2-5 % vs the head's 31 %).
+   - KILLED in the sandbox / on CPU:
+     - FAR's future-state rows: Sandbox98, all 3 placeholder variants NEGATIVE (G -0.10..-0.17; tree-32 x0.95-0.96).
+     - FAR's 2B tree: the 2B is right 52 % at walk first misses; FAR's 67 % is an all-anchor population counting each position 6.3x. At equal rows 2B siblings give 15.94 vs best-first's 20.77.
+     - Also: Fable B's partial-width rows (bytes), MoonShots' value prediction, swap-only repair.
+   - CLOSED by arithmetic (BREAK98b): nearly free rows (a row >= 0.13-0.25 ms; int8 1.4-1.7x); two decisions <= 1.3 passes (a second pass >= 0.57-0.66).
+   - OPEN:
+     - LANDMARK-ANS: free. On Sandbox98 since 09:21, yielding to tue1. Its real ceiling at true-state quality is +24 % only with 2-token matches; KILL-COPY and stale-by-one lines apply.
+     - 64 cheap expert rows: Leap S2, 1.15-1.19x, within your 1.2x gate. But the dense ALU per row still makes K64 ~flat at the bound (Lunatic: own trees peak at 48 rows, +3 %).
+   - So kept is exhausted near ~17-19 this week (Lunatic, Fable C and NewIdeas agree). The remaining kept levers are each <= ~5-9 %; the stopped ADAPTIVE K was the largest, +8.6-9 % on HE+.
+4. SATURDAY RANGE from parts, HE+ lossy, ungated (kept tree-32 + CC(1) 16.91; cycle = check + draft + overhead):
+   - REALISTIC: check 45 + draft 15 + 3 -> ~270. With LANDMARK-ANS if it passes (+5-10 %): ~285-295.
+   - STRETCH: check 34 (the expert rewrite) + draft ~9 (a small head lands early) + 2 -> ~375. With LANDMARK: ~410.
+   - 550: check <= ~28 + draft <= 3-4 at kept ~17-19 (Lunatic / Fable C). Both parts are below this week's stretch.
+5. A GATED, MEASURED number by Friday, on t30b + tree + CC(1) + G1's pick (no information lever):
+   - BigMoE plumbs it into the r57 gated path Wed + Thu morning. Tree-16 is lower risk (M4 tonight) than tree-32 (the C32one hook). CC(1) on tree acceptance + G1's levers on tree rows are new code.
+   - Then: a key test Thu midday; EvalSuite tier 1 both orders (~2.5 h) Thu; runner 69's quiet timing run (~45 min) Thu night; the card gate Fri night (5.8-6.5 h) -> verdict ~Sat 07:00.
+   - Possible only if BigMoE starts Wed morning and nothing breaks. Your call whether BigMoE's Wed goes to that plumbing.
+6. CAPTURES + DISK:
+   - TONIGHT: EMPTY. In-check repair, FAR's rows and Fable B's ablations are all closed. The night goes M4 (~30 min) -> Leap's slot #2 (check-module A/B) -> G1 as filler, with MoonShots' draft bit tests under share locks.
+   - WED NIGHT: CERTIFY98 goes SLIM, option (b). MTP Head confirms the candidate = t30b AS IS, pinned by Wed 18:00 (checkpoint sha256, commit, amendment-8 settings, scorer). So raw taps + tk (~5.5 GB) + the candidate's TOPK / T8 dumps written in the sitting. That needs only the 3.8 GB delete. Early death is killed and ADAPTIVE K is stopped, so the conditional HE+ T8-127 and my T8-32 re-read are dropped.
+7. G1 (filler): the kill test was SKIPPED (no memory by its 08:30 latest start), so the 5d pick uses its no-kill-test rows. A tiers FAIL at V2 (~13:40) -> comments-only (g1c, or g1cr with RES); a PASS -> G1 as filed.

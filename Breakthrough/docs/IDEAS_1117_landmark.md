@@ -287,3 +287,26 @@ and predicts ids[p + 2].
   - **Stricter, and accepted:** a screen PASS needs an arm PASS whose k <= 3 cells also clear KILL-COPY. A PASS that
     clears it only at k >= 4 reads "BETWEEN (k >= 4 only)", because k >= 4 alone covers ~11 % of positions, not ~33 %.
   - It starts after FAR's B98S1 (ETA ~10:15): HE 60 + MBPP 100, frozen s30, ~15 min.
+
+## Screen 1 RESULT (Sandbox98, Tue 09:30; read against the registered lines 09:3x) = KILL, both arms
+Source: ~/Sandbox98/results/LEVERS_A.md 'LANDMARK result' (1a21ed2); results/landmark_verdict.json. The 2B is in LAB mode
+(teacher-forced, not real decoding), with the frozen s30 head on HE 60 + MBPP 100. Covered cells are 37 % (HE) / 35 % (MBPP)
+of bands 1-8.
+
+| HE covered cells, walk-strict 1-8 | own | true | lm1 | lm05 | stale1 | copy (i) | copy (ii) |
+|---|---|---|---|---|---|---|---|
+| all (27,789) | 86.16 | 95.29 | 60.22, G -2.84 [-3.68, -2.24] | 62.85, G -2.56 | 73.79, G -1.36 | 53.33, G -3.60 | 70.20, G -1.75 |
+| k <= 3 (15,525) | 85.93 | 94.60 | 50.43, G -4.09 | 55.16, G -3.55 | 73.84, G -1.39 | 34.34, G -5.95 | 66.64, G -2.22 |
+| k = 8 (4,255) | 88.70 | 97.58 | 82.51, G -0.70 | 82.70, G -0.67 | 80.44, G -0.93 | 85.53, G -0.36 | 86.35, G -0.26 |
+
+On MBPP, lm1 gives G -2.10 and lm05 gives -1.94. Whole-walk kept/32 on HE falls from 6.431 to 4.768 (-26 %).
+
+- **Lines:** both arms' HE G is below 0 and far under KILL (< 0.10), so the screen is KILL. KILL-COPY also fires at
+  k <= 3 (-4.09 vs copy (ii) -2.22). WARN is moot: G_stale1 is itself negative (-1.36).
+- **What it says:** the frozen head reads its own carried state for the right position better than any true state from
+  another position. That holds for the 1-back true state too, and even for an 8-token match (82.5 vs own 88.7). By angle
+  the landmarks are the closer ones: 12.6 % lie within 0.40 rad (cos 0.716), against 0.0 % (0.518) for the 1-back state.
+  So cosine nearness to the true state is not what this head needs. The addendum's premise ("the head handles one step of
+  staleness") fails, and with it the +29 % bound.
+- **Untested (not pursued under BREAK98's one-shot rule):** a head TRAINED to read a landmark (zero-init) beside its own
+  state.

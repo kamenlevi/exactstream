@@ -26,20 +26,47 @@ Placeholders are in <angle brackets>.
   capture. Section 2's rule is unchanged: no drafter runs on the fresh files before this amendment.
 
 ### 1. The pins (section 2's list: they would otherwise be filed after the capture)
-- **The candidate:** <t30b-class head> at <checkpoint path>.
-  - checkpoint sha256 <...>; code commit <TrainLab ...>; settings <as MTP Head names them>;
-  - the modules map (path: sha256), ~/TrainLab/mtp125.py included (amendment 7a, item 4).
+- **The candidate:** t30b AS IS (MTP Head 09:30, ~/TrainLab/data/t30b_pin.md at TrainLab 82171b2; NewIdeas 09:3x).
+  - ~/datasets/deepdraft/ckpt/dd_t30b.safetensors, sha256
+    790c42db393ad158f0f61e64962c868967995268babb816b27cbf8f4e215d502 (recomputed here, Tue 09:3x). State done at step
+    4206.
+  - Recipe: BigMoE's TTT30B, dd_ttt.py train --run t30b, depth 30, rows 192.
+  - Code, recomputed here Tue 09:3x, every file clean in its repo:
+    - TrainLab mtp125.py (commit 0c855a2): 8ca9b5dcde9120715e3161d17d0e747177d82a922f6ea9d66f4e4f9a64534677;
+    - BigMoE 31f92cd1: dd_ttt.py 7864d28da79680c31cb19d56a94c3b1de6c1708bdf90855e64a9a05cc7c9d560; dd_d22_ttt.py
+      a6c0e892a1658b01fe704c37099024fabd0b5dccb22f760da7b74d66777f5b97; dd_tree.py
+      71b7faf5ae8cbc98ce5c9ff3e13a2b23803cdc62043c5554fe8613aad092c3a2; dd_topk.py
+      35556b4e46cb2dcfbf23c7a729a30cb6097f7524405af89c598dd6b9abf68f57.
+    - If any changes before the capture, the pins are re-read and re-filed.
+  - Settings: amendment 8's. The modules map (path: sha256) carries mtp125.py (amendment 7a, item 4).
+  - **The certified form** (MTP Head asked; it is the registered reading):
+    - The cells measure the head as dd_topk.py / dd_tree.py load it: mtp125.load(frac 0.03) -> Trainable(head)
+      .load_weights(dd_t30b.safetensors), with fp32 Linears (the file's 11 tensors are all F32) and the full vocab.
+      That is the form CERTIFY98 certifies.
+    - **The engine check runs the same stored form** (the orchestrator 09:4x, via NewIdeas):
+      - t30b as stored, on BigMoE's r57 stored-format path;
+      - chain-32 (31 drafts + the current token, kept/32's cap) and exact acceptance;
+      - >= 20 fresh HumanEval+ windows. The engine's tokens per check must be within +-3 % of kept_walk on the same
+        windows. Failing it voids only the kept/32 claim.
+      - <BigMoE's confirmation of the path (asked Tue 09:4x): the load, the full vocab, the same matmul precision
+        (MLX_ENABLE_TF32) as the dumps', and the per-window output.>
+    - The shipping forms (Q8 or bf16 + the 32K screen, chosen Wed ~07:30) are not certified here.
+      - In lossy mode, the gates (tier 1 + the card gate) run on the chosen form, and the headline timings use it.
+      - The RESULT names both forms. MTP Head's sandbox read (8-bit x0.995-1.001 kept; the 32K screen free) is
+        information.
 - **The capture + dump script:** BigMoE's <scripts/dd_capture_b.py or the capture with --dump> at commit <...>,
   sha256 <...>.
   - The passes are scripts/dd_topk.py (sha256 <...>) and scripts/dd_tree.py (sha256 <...>), called per file in the
     sitting, with these arguments:
     - TOPK as registered (layout 9f49e03);
     - T8: k 8, 32 nodes (amendment 7a, item 2).
-  - NOT in the sitting: amendment 7a's conditional HE+ T8 at 127 nodes. It needs Wednesday's probe and a by-day window,
-    and without wd it cannot run later. Under (b) it is dropped, and the dev K-curve stays the record. If NewIdeas
-    wants it, it must be named here and run in the same sitting, before this amendment is filed.
-- **The scorers:** tools/certify98.py <sha256>, tools/certify98_tree.py 4a0ba21625497be1..., and
-  tools/certify98_dumpcheck.py <sha256 of its (b) mode, below>.
+  - DROPPED: amendment 7a's conditional HE+ T8 at 127 nodes. NewIdeas 09:3x: early death is KILLED (stage 2, as
+    pre-registered), and the ADAPTIVE K build is stopped. So neither needs a fresh 127-node tree, and the gated lines
+    read T8-32 only. The dev K-curve stays the record.
+- **The scorers:** tools/certify98.py c0528ad765fd5e59885a1e1066292a3c4dbf6908064b83956b0280773b077eee (MTP Head's pin
+  file names the same), tools/certify98_tree.py 4a0ba21625497be1..., and
+  tools/certify98_dumpcheck.py 884e5cb415633eab53f89cb203b64a95d59b62e7106d8232daf09bda1c7d773f (with its (b) mode,
+  --incapture; section 3).
 - **The fresh-set manifest:** results/certify98/fresh_manifest_2026-11-15.json (manifest sha256 acdf3e62...). The
   capture takes exactly these ids.
 - **The everyday pool:** amendment 3's, unchanged.
@@ -51,7 +78,8 @@ Placeholders are in <angle brackets>.
   2. The candidate's TOPK and T8-32 passes on that file's wd.
      - wd is first written exactly as FULL would store it: fp16, (N - 1, 10240). It is then read back through the
        offline code path (dd_topk / dd_tree's loader: fp16 -> bf16), so each dump equals what FULL + an offline pass
-       would give. The fp16 file is hashed BEFORE the passes, and that sha256 goes in the dump manifest.
+       would give. The fp16 file is hashed BEFORE the passes, and that sha256 goes in the dump manifest
+     (`_run.wd_sha256`, keyed by the fresh file's name).
   3. The slim file is written: the capture's arrays minus wd (<the exact list: ids, lp, tk, gen, raw taps ...>). Its
      sha256 goes in files_sha256.json, and the temporary wd file is deleted.
 - **Disk:** at most one file's wd exists at a time.
@@ -66,14 +94,20 @@ Placeholders are in <angle brackets>.
   - If they are not bitwise equal, (b) is not used.
 - **After the capture, before any scoring:**
   - EvalSuite copies files_sha256.json and dumps_sha256.json to results/certify98/ and commits both.
-  - tools/certify98_dumpcheck.py must pass in its (b) mode, `--gated --pins <this amendment's pins> --fresh --incapture`.
-    It checks:
-    - `_run.in_capture: true`, with the capture + dump script's sha256;
-    - one dump entry per fresh file;
-    - each dump's fp16-wd sha256 is present;
-    - each dump's row count and ids match its slim file's;
-    - the slim files' sha256s match files_sha256.json, whose manifest_sha256 is acdf3e62...
-  - The (b) mode is EvalSuite's to build and test before this amendment is filed. Its sha256 is pinned above.
+  - tools/certify98_dumpcheck.py must pass in its (b) mode:
+    `--gated <files_sha256.json> --pins <this amendment's pins> --fresh <the fresh-set manifest> --incapture <the slim dir>`.
+    The pins file also carries capture_script_sha256. Beyond the registered checks (amendments 7 / 7a), the mode checks:
+    - `_run.in_capture` is true, and `_run.capture_script_sha256` is set (and pinned);
+    - `_run.wd_sha256` holds exactly one fp16-wd sha256 (64 hex) per file of files_sha256.json;
+    - every file of files_sha256.json is a plain name, and is in the slim dir with that sha256. files_sha256.json's
+      manifest_sha256 is acdf3e62... (--fresh);
+    - the dumps were computed on the stored token sequences: every TOPK cell's y == ids[row + 1] of its slim file, and
+      every T8 node's y == ids[an + depth + 2] (-1 past the file's end);
+    - every T8 dump's anchors (a_fi, a_an) are exactly its TOPK dump's depth-0 cells (fi, row - 1);
+    - every fresh file is in exactly one named TOPK dump and in a named T8 dump.
+  - EvalSuite built and tested the mode on Tue 09:4x: 24 new checks, and the old 26 unchanged, 50 / 50 as wanted
+    (results/certify98/dumpcheck_b_checks_2026-11-17.txt). Its identities hold exactly on BigMoE's dev dumps (heplus24:
+    186,465 TOPK cells, 204,000 T8-32 nodes, 6,375 anchors).
 - **The scorer** runs only on dumps whose sha256 match the manifest, as registered. The RESULT quotes both manifests.
 
 ### 4. Unchanged

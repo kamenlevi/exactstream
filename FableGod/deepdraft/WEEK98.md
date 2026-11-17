@@ -291,6 +291,106 @@ under 550 tokens per second."
       depth 1).
     - Variants B (mean embedding) and C (<|vision_pad|>) are running; the screen is KILL only if all three are. ETA
       ~09:30, then LANDMARK-ANS (~15 min).
+    - **09:2x FINAL: KILL on all three variants, each NEGATIVE** (LEVERS_A "B98S1 result", e68d9cc; TRIED SB-B98S1).
+      - HE G(1-8): A -0.105, B -0.130, C -0.174. HE tree-32 x0.960 / 0.958 / 0.949. MBPP x0.970 / 0.971 / 0.958.
+      - The frozen 2B's own top-1 at a placeholder row is right 21-26 % at offset 1 and 6-11 % at 2-8.
+      - FAR's own kill condition holds (a frozen trunk carries no usable plan at a placeholder), so the 125B
+        placeholder capture is NOT needed.
+      - LANDMARK-ANS started 09:21 (~15 min).
+- **Tue 17 09:3x (NewIdeas' 10:00 REPORT, BREAK98_SCREEN.md): Saturday ~270 tok/s realistic, stretch ~375 (HE+ lossy,
+  ungated, tree-32 + CC(1) at kept 16.91). 550 = check <= ~28 ms + draft <= 3-4 ms, neither in reach this week.**
+  - CHECK (Leap): 56.4 -> realistic ~45 (43-47); stretch ~38-40, or ~34 only with the expert MMA / stream overlap
+    (-5.5 ms, a FAST rewrite).
+    - Steps: Tue seams -2.0 (measured), gdn_fast -1.5, one-launch HC read -2.5..-3.5, int8fold -2..-3; Tue night
+      module A/B #1; Wed folds -2..-5 + router / glue; Thu Friday's dry run + opt-in flags to BigMoE; Fri the
+      measured check.
+  - DRAFT (MoonShots kernels + MTP Head): realistic Saturday 14.5-16 ms per block (the stored head reads 177.6 MB per
+    level; MTP Head withdrew 8-bit + screen as a byte lever). <= 4-5 ms needs <= ~34 MB per level (tree-32) or ~75 MB
+    (tree-16):
+    - Path A: a tree-16 stack (M3 pricing).
+    - Path B: a distilled ~25-30 M student (Sandbox S20 today, ~13:30; if it holds, a 125B run Wed night / Thu).
+  - INFORMATION: nearly all CLOSED on measurements. Open: LANDMARK-ANS and 64 cheap expert rows (~flat at the bound).
+    Kept is exhausted near ~17-19 this week.
+  - Range:
+    - realistic: check 45 + draft 15 + 3 -> ~270 (~285-295 with LANDMARK);
+    - stretch: check 34 + draft ~9 + 2 -> ~375 (~410 with LANDMARK).
+  - **Orchestrator decisions (09:3x):**
+    1. The expert rewrite: Breakthrough owns it, Leap reviews; FAST track via EvalSuite's gate; opt-in flag.
+    2. A GATED, MEASURED lossy number by Saturday: YES. BigMoE plumbs t30b + tree-16 + CC(1) + G1's pick into r57 from
+       Wed morning: key test Thu midday -> tier 1 Thu -> quiet timing Thu night -> card gate Fri night -> verdict ~Sat
+       07:00. If a step slips, it reads "measured, card gate pending".
+    3. The exact headline timing (ii) is back in for Thu night (t30b + tree-16 after M4, token identity 264 / 264).
+    4. Wed night: CERTIFY98 SLIM (b), with t30b as is pinned by Wed 18:00. It needs Kamen's OK on the 3.8 GB delete.
+    5. Tonight's capture is EMPTY: M4 -> Leap slot #2 -> G1 filler.
+  - **09:4x MTP Head: the CERTIFY98 candidate is PINNED: t30b AS IS** (TrainLab data/t30b_pin.md, 82171b2:
+    dd_t30b.safetensors sha256 790c42db...d502, code + scorer hashes, and an engine-form flag for EvalSuite). So
+    Wednesday can go SLIM, pending Kamen's OK on the 3.8 GB delete.
+    - CORRECTION from MTP Head: its 22:2x head plan saves NO bytes. 8-bit + 32K screen is the head as stored, 177.6 MB
+      per level; the 42-73 MB figures were wrong. That also voids the orchestrator's earlier "draft ~8.8-11.2 ms,
+      ~235-240 tok/s" relay.
+    - The draft line: path A (Q4 + 8K screen + top-4 experts, tree-16, ~74 MB per level) on MoonShots' M3; path B = S20
+      (dd16a7a; the sandbox head at 0.53x / 0.46x params, full budget), read-out ~13:30. If it holds, a 125B student
+      trainer for a Wed / Thu night run.
+  - **09:4x Sandbox98: LANDMARK-ANS = KILL** (LAB, frozen head). HE covered-cell G(1-8) -2.84 at w 1 / -2.56 at w 0.5.
+    Even the TRUE state one position back hurts the frozen head (G -1.36), so the "stale by one" premise fails. **With
+    this, every BREAK98 information lever tested this week is CLOSED.** Saturday's realistic range loses LANDMARK's
+    +5-10 %: ~270 / stretch ~375.
+    - Sandbox98 memory correction (LEVERS_A 1a21ed2): its read-out steps peaked at 6.4-7.5 GB lifetime footprint, above
+      the 5 GB locks (swap flat, no harm). Its locks are now 8 GB for read-outs and 6 GB for 2-arm training, with the
+      NO-SWAP gate at the lock + 8.
+  - **09:4x Leap asked: build the folds for the 16-row check too?** Saturday's gated number runs tree-16, and c25's
+    F16 lossy check is 38.6 ms with the same kernels. Estimate -5..-10 ms at 16 rows, +10-20 % on Saturday's number.
+    **Orchestrator: YES (b).** Time the modules at 16 rows in slot #3 (Wed morning), including a 16-row one-launch HC
+    read. The passing ones go to BigMoE as r57 flags by Wednesday evening, before Thursday's key test, with EvalSuite's
+    gate deciding (FAST). The 32-row work stays first for the 550 path. tue1 is waiting for NO-SWAP >= 39 (latest
+    start 11:30).
+  - **09:3x NewIdeas: BREAK98's INFORMATION line is CLOSED for this week** (LANDMARK-ANS KILL, read by Breakthrough on its
+    registered lines, 04a1f7b). What is left for kept: a better-trained head (Goal A training, after Saturday) and route
+    2's per-row ALU cost (Leap).
+    - GPU: tue1 waits behind MoonShots' C2 (path-A pricing, ~10:15) and MTP Head's S20 (~10:19), then ~10:20-13:20,
+      then V2 (~14:30), then G1 filler. The orchestrator left the order as is.
+    - MoonShots: the r57 path drafts a block per forward, so fused2 / sync-free have no engine target this week.
+      MoonShots starts the persistent level kernel today. Breakthrough's expert rewrite started 09:3x under Leap's
+      review.
+    - **Orchestrator 09:4x:** BigMoE's Wednesday tree-16 loop IS per level, so sync-free (-28 % per level, exact) +
+      fused2 (bitwise) become its DEFAULT if they bit-test equal by Wednesday evening: ~-5 ms of draft, ~+8-10 % on
+      Saturday's measured number. **CORRECTED 09:4x (MoonShots / NewIdeas): fused2 is bitwise only for the stored MTP
+      head on a chain, so it is OUT for this loop. Sync-free stays (~-3 ms per tree-16 block, bit-tested by Wed
+      evening).**
+  - **09:4x NewIdeas CORRECTION: Saturday's GATED numbers are LOWER than the 10:00 range.**
+    - BigMoE's t30b tree loop (dd_tree.py) reads ~676 MB PER POP as stored (fp32 dense 277 MB, the full 248K lm_head
+      358 MB, a host sync per pop): ~35-43 ms of draft per tree-16 block.
+    - The format sets the draft: bf16 + 32K screen ~17 ms; Q8 + 32K ~14; 4-bit + 8K (C1) ~10 (kept x0.963 x 0.976). The
+      32K screen is free in kept (MTP Head's sandbox).
+    - Saturday's GATED config (t30b + tree-16 + CC(1) + G1, 16-row check), HE+ [P from parts; kept 11.26 x 1.04]:
+      - check 38.6 ms (today): as stored ~145; bf16 + 32K ~200; Q8 + 32K ~209; C1 ~213;
+      - check ~31 ms (Leap's 16-row modules): as stored ~160; bf16 + 32K ~230; Q8 + 32K ~242; C1 ~250.
+    - The EXACT headline (ii), tree-16, exact check ~66.5 ms: as stored ~104; bf16 / Q8 + 32K ~130-134.
+    - **So the gated, measured lossy number is ~200-250 and the exact one ~130. The 10:00 "~270 / ~375" was the
+      UNGATED tree-32 projection.**
+  - **Orchestrator 09:4x decision:**
+    - t30b in r57 runs at Q8 + 32K if MoonShots' Wed ~07:30 Q8 read-out holds kept, else bf16 + 32K. NEVER as stored.
+      (Drafter format: the gate covers it in lossy; speed only in exact.)
+    - CERTIFY98's count check runs the PINNED stored format; EvalSuite + BigMoE confirm the +-3 % check stays valid, or
+      file an amendment.
+    - The corrected range went to Kamen at 09:4x.
+  - **09:4x NewIdeas PAUSES for usage pacing until ~17:42** (the account-1 weekly pace line). Coverage:
+    - G1's 5d pick at V2's verdict (~13:40-14:30) is EvalSuite's; it's mechanical.
+    - GPU slot questions go to the orchestrator.
+    - Standing order: Leap's tue1 after C2 / S20 -> V2 -> G1 filler. Tonight: M4 -> Leap's slot #2 -> G1's night
+      window. Wed morning: MoonShots' cuts -> Leap's slot #3.
+    - Results due go straight to the orchestrator: MoonShots' C2 (~10:15) and Q8 (~13:30-14:00), MTP Head's S20
+      (~13:30), BigMoE's answers (tree flags + chain-32 path), EvalSuite's amendment drafts.
+  - **09:5x Leap CORRECTION: the 16-row modules are -1..-4 ms of 38.6 [P], not -5..-10 (+3-8 % on Saturday's number).**
+    - The 16-row one-launch HC read is built and bitwise (m16.py, 32 / 32) but 1.04-1.13x SLOWER: KILL at 16 rows. The
+      32-row one-launch read stays.
+    - GDN16: bitwise, ~-0.5..-1 ms [P], into slot #3.
+    - t1cf (fused tier-glue): +0.49 ms slower at 32 rows already.
+    - The launch-fold lever is unsized until a quiet boundary microbench runs after tue1. Fold estimates go down.
+    - So most of what is left is Breakthrough's expert kernel (~-5.5 ms), if it lands. Per-class numbers after tue1
+      (~12:00).
+    - **The orchestrator's read: Saturday's gated lossy number is more likely ~200-220 (Q8 + 32K, check ~35-37 ms),
+      ~240-250 only with the expert kernel. Exact ~130.**
     - BigMoE 08:3x sizes:
       - tonight 0.1-1.5 GB;
       - Wednesday's CERTIFY98 capture ~10 GB (9-12) + TOPK / tree dumps ~1-1.5 + ~1 GB temporary parts = 11-13.5 GB,
@@ -452,6 +552,30 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- **Tue 09:4x NewIdeas: CORRECTION to the 10:00 report's Saturday range. The ~270 realistic / ~375 stretch was the UNGATED tree-32 projection.
+  Saturday's GATED, MEASURED config runs TREE-16 (t30b + tree-16 + CC(1) + G1's pick, on the 16-row check): ~200-250 tok/s HE+.
+  The EXACT headline (ii) is ~130.** [P from parts]
+  - Kept: tree-16 11.26 x CC(1) ~1.04. Check: 38.6 ms today, ~31 with Leap's 16-row modules.
+  - Draft: set by t30b's FORMAT in r57 (MoonShots' read of dd_tree.py):
+    - as stored: fp32 dense + the full 248K lm_head + a host sync per pop, ~676 MB per pop, ~35-43 ms per tree-16 block -> ~145-160 tok/s;
+    - bf16 + 32K screen: ~17 ms -> ~200-230;
+    - Q8 + 32K: ~14 ms -> ~209-242;
+    - 4-bit + 8K: ~10 ms, kept x0.94 -> ~213-250.
+  - Recommended (to the orchestrator + BigMoE): Q8 + 32K if MoonShots' Wed ~07:30 Q8 read-out holds kept (the 32K screen is free in MTP
+    Head's sandbox), else bf16 + 32K; never as stored.
+  - fused2 is OUT for this loop (bitwise only for the stored MTP head on a chain). Sync-free is IN (MoonShots, bit-tested on BigMoE's
+    ops by Wed evening, ~-3 ms per block).
+  - CERTIFY98's chain-32 count check runs the PINNED stored format, or is amended.
+- **Tue 09:3x NewIdeas: the three-line REPORT to the orchestrator (~/NewIdeas/research/week98/REPORT_1117_1000.txt). Saturday HE+ lossy,
+  ungated, from parts: REALISTIC ~270 tok/s (check ~45 [Leap] + draft ~15 [the stored head, 177.6 MB per level] + 3; kept 16.91);
+  STRETCH ~375-410.** 550 = check <= ~28 + draft <= 3-4 at kept ~17-19 (Lunatic / Fable C / NewIdeas agree that kept is exhausted near
+  17-19 this week).
+  - Information (BREAK98 + 98b) is closed on measurements: route 1 by partial depth on the 125B capture; early death stage 2; FAR's
+    future-state rows (Sandbox98, negative); FAR's 2B tree (52 % at walk first misses; loses to best-first at equal rows); free rows and
+    two-decisions-per-pass by arithmetic. OPEN: LANDMARK-ANS (free; Sandbox98) and 64 cheap expert rows (Leap S2: 1.15-1.19x).
+  - Draft: MTP Head withdrew 8-bit + screen as a byte lever. Paths: A (a tree-16 ~74 MB stack, priced by MoonShots on M3) and B (a
+    distilled ~25-30 M student; sandbox S20 today).
+  - CERTIFY98 Wednesday: SLIM, option (b); the candidate = t30b AS IS, pinned by Wed 18:00 (MTP Head).
 - **Tue 08:1x NewIdeas (BREAK98, on BigMoE's day capture, HE+; self-checks all pass): ROUTE 1 BY PARTIAL DEPTH IS CLOSED,
   AND EARLY DEATH IS KILLED, on the 125B itself.** (~/NewIdeas/research/week98/BREAK98_SCREEN.md, 2b30212 + this entry)
   - VERDICT-DEPTH (Lunatic's floor_lens, number-checked, adapted to the widened capture): the head's own margin locates its first

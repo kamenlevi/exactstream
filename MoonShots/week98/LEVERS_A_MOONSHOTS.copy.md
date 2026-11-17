@@ -1746,6 +1746,99 @@ tiles for <= 8-pair segments (the padding), a cheaper decode, a faster grouping 
     beside). M3's H8 is re-scored beside them (must reproduce x0.9759 / x0.9631 HE+, x0.9896 / x0.9847 MBPP).
   - Start: 06:30, or earlier if the Mac is free (no other session's quiet lock held or queued, no other GPU job over
     4 GB, >= 20 GB available, away >= 900 s), per NewIdeas' "or earlier in any >= 12 GB window".
+- **Amendment 2 (Tue 17 Nov 09:5x, before any Q8 run; the orchestrator's 09:4x decision via NewIdeas):** t30b in r57
+  runs at Q8 + the 32K screen IF Q8 holds its line above, ELSE at bf16 + 32K ("never as stored"). So:
+  - Order: Q8 (its line decides) > Q8H32 (the decided config's price) > H32 (the screen's share) > B16H32 > H16.
+  - New cut B16H32: t30b's trained tensors (the 10 Linears incl. the router, and se_gatew) rounded to bf16
+    (fp32 -> bf16 -> fp32, no quantization); the head's HC mixes as stored (bf16); the 32K screen + the session
+    extras; experts top-10. It is the fallback config's price. Line as the others: >= 0.99x at tree-16 AND tree-32 on
+    both sets.
+  - Start: TODAY in share windows, right after C2 (the early-start clause above; NewIdeas 09:2x: beside EvalSuite's
+    filler is fine). A dump doesn't start while another session waits for or holds a quiet lock.
+  - Wed 05:24 / 06:24 stays armed for what's left. Cuts already dumped are skipped.
+  - Each verdict goes to BigMoE, the orchestrator and NewIdeas as it lands.
+- **RESULT Q8 (Tue 17 Nov 09:56, share lock; scored alone at once) [K p3/q8early_scores.{txt,json}, p3/q8_run.log]: PASS.**
+  - Kept vs the full head (window-clustered 95 % CI):
+
+    | set | tree-16 | tree-32 |
+    |---|---|---|
+    | HE+ | x0.9947 [0.9760, 1.0093] | x0.9975 [0.9788, 1.0126] |
+    | MBPP | x0.9962 [0.9897, 1.0028] | x1.0035 [0.9962, 1.0105] |
+
+  - The Q4 anchor reproduced exactly.
+  - Under the 09:4x decision, t30b in r57 runs at Q8 + 32K. Q8H32 is that config's own price (next in the run).
+  - Sent at once to BigMoE, the orchestrator and NewIdeas.
+
+## C2. MTP Head's path A for a tree-16 head: 4-bit dense + 8K screen + experts top-4 (NewIdeas 09:2x; pre-registered Tue 17 Nov 09:4x, before any C2 run)
+- **Why (NewIdeas, after the 177.6 MB correction):** <= 4-5 ms per block needs <= ~75 MB per level at tree-16. Path A
+  stacks 4-bit dense + the 8K screen + top-4 experts (~74 MB on NewIdeas' arithmetic). The orchestrator (09:3x): fine to
+  run, Wed's cuts or today after tue1.
+- **The cut is M3's ladder C2**, defined in p3_dd_tree.py's CUTS since Mon and never dumped. It is C1 (q / k / v / o, the
+  shared expert and fc at 4 bits g64; router 8; the head's HC mixes at 4; FR-Spec top-8K + the session extras) with the
+  routed experts at top-4.
+  - Bytes: **76.7 MB per level** at F = 1 (dense 52.6, head 11.8, experts 4 x 3.07) [K p3_m012_stock.log line 5].
+  - Stock per level at F = 1: 0.833 ms host-synced, 0.573 async [K ibid., line 42].
+- **Run:** p3_dd_tree.py --cut C2, heplus24 then mbppbank. Runner week98/p3_c2.sh.
+  - The harness gate PASSed Mon 08:4x. BigMoE's dd_tree.py changed after it only in its manifest code (37744f27:
+    sha_manifest / --files-manifest), which the harness doesn't call.
+- **Score:** `p3_score.py --cuts none,C1,C2,C3 --tag c2`, as Q8: rows 16 / 32 under certify98's walk, window-clustered
+  95 % CI. C1 and C3 are re-scored beside it and must reproduce M3's numbers.
+- **Prediction (before the run) [P]:** C2 sits inside the measured bracket [C3, C1]:
+  - tree-16: HE+ [0.863, 0.936], MBPP [0.836, 0.925];
+  - tree-32: HE+ [0.767, 0.875], MBPP [0.791, 0.889].
+  - Point: tree-16 ~x0.88 HE+ / ~x0.85 MBPP. Most of C1 -> C3's loss is assigned to top-4: the screen step 8K -> 4K
+    adds only +0.8 / +1.5 pt of pick change, worth ~1 % kept at H8's rate.
+  - A C2 outside [C3's CI low, C1's CI high] means: check the harness before reporting.
+- **Line (as Q8's):** PASS = >= 0.99x at tree-16 AND tree-32 on both sets (point estimates). Expected FAIL: C1 alone is
+  x0.936 / x0.925 at tree-16.
+  - The measured ratio is then the price. It is reported with the break-even [P]: top-4 saves 18.4 MB per level, i.e.
+    0.063 ms per level at 292.7 GB/s, or 0.79 ms per HE+ tree-16 block (12.6 levels).
+  - So top-4 pays only if its kept cost vs C1 is below 0.79 ms / (draft + check): ~2.2 % at a ~35 ms cycle.
+- **Slot (my call; NewIdeas offered Wed or after tue1):** now, under a share lock "MEM 12 GB".
+  - MTP Head's s20_h2 share run holds the Mac to 10:19 anyway.
+  - No dump starts after 10:05, or while another session waits for or holds a quiet lock. A deferred set runs after tue1,
+    else Wed ahead of Q8H32.
+  - ~17-25 min of dumps; scoring is CPU-only, after the unlock.
+- **RESULT (Tue 17 Nov 09:45, share lock, 10 min of dumps) [K p3/c2_scores.{txt,json}, c2_run.log]: FAIL vs the line
+  (expected); top-4 is a net LOSS vs C1.**
+  - Kept vs the full head (certify98's walk, window-clustered 95 % CI):
+
+    | set | tree-16 | tree-32 |
+    |---|---|---|
+    | HE+ | x0.8735 [0.8450, 0.9005] | x0.7762 [0.7476, 0.8012] |
+    | MBPP | x0.8544 [0.8396, 0.8680] | x0.8128 [0.7951, 0.8274] |
+
+  - The prediction held: ~x0.88 / ~x0.85 at tree-16, inside the [C3, C1] bracket. C1 and C3 re-scored identical to
+    Monday's M3. Screened kernel bitwise 24 / 24 HE+ and 79 / 100 MBPP windows (as C1); pick change 2.00 / 2.59 %.
+  - Top-4's own price (C2 / C1): tree-16 x0.934 HE+ / x0.923 MBPP; tree-32 x0.887 / x0.914. The break-even was
+    <= ~2.2-3 %, so at a ~35 ms cycle C2 gives ~0.95x C1's tok/s [P]. The experts (30.7 of C1's 95.1 MB) are the
+    wrong bytes to cut: the 74 MB stack loses to C1 (95.1 MB, top-10).
+
+## SYNC-FREE. Best-first tree drafting with the frontier on the GPU (the orchestrator 09:4x via NewIdeas: BigMoE's DEFAULT for the r57 t30b tree-16 loop if this bit test passes by Wed evening; pre-registered Tue 17 Nov 10:0x, before any model run)
+- **What:** week98/draft/sf_tree.py (6a96a20). dd_tree.py's per-anchor best-first tree at B = 1, on BigMoE's own ops
+  (T.fuse / qkv / tree_attn / finish / logits, imported read-only), in two forms:
+  - HS (host-synced): the CPU frontier (dd_tree.Forest), one sync per pop.
+  - SF (sync-free): the frontier on the GPU, one single-thread kernel per pop. Float64 path products are exact in
+    integer arithmetic, popped in heapq's (-p, count) order. The ancestor rows have a static width t + 1 per pop,
+    padding masked. mx.async_eval per pop.
+  - Both use the top-K on the GPU (topk_rows' ops + a stable sort kernel + mx.exp).
+  - REF (dd_tree's own topk_rows with numpy exp + Forest) runs beside them for information.
+- **Synthetic selftest (done 09:5x): PASS.** 200K float64 products bitwise; 300 tie-heavy sorts = numpy's stable
+  argsort; 120 random tie-heavy trees pop-for-pop equal to dd_tree.Forest.
+- **Model runs** (week98/draft/sf_bittest.sh; share lock MEM 12 GB):
+  - heplus24 and mbppbank windows 0,1 (48 trees each) at --cut none (t30b fp32 + the full head, as dumped), 16 nodes;
+  - heplus24 at --cut Q8H32 (the decided r57 config), 16 nodes;
+  - heplus24 at --cut none, 32 nodes.
+- **Line:** PASS = SF == HS bitwise on every node of every tree in all four runs (parent, token, depth, path_p float64
+  bits, top-K ids and probability bits, the state h), with no kernel domain flag. FAIL otherwise, naming the first
+  failing node.
+- **Information, not the line:**
+  - REF vs HS: trees that differ and top_p cells off by >= 1 ulp. This is the price of moving exp to the GPU: numpy's
+    float32 exp and MLX's GPU exp differ in ~1/3 of values by 1-2 ulp [K, 20M-value probe].
+  - ms per pop for HS / SF / REF: INDICATIVE, interleaved per tree under a share lock. A quiet bench only if BigMoE
+    needs a timing verdict.
+- **Known cost of SF as written:** tree_attn's Python loop runs t + 1 columns per pop instead of depth + 1, a few extra
+  small kernels at late pops. A fused tree-attention kernel would remove that, if BigMoE wants it.
 
 ## Ranked (final, 01:3x)
 1. **The 2B audits and repairs the head's deep tokens: CONFIRMED on HE+** (D). On MBPP, the frozen schedule was chosen

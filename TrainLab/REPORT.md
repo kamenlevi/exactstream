@@ -5161,3 +5161,19 @@ Prediction [G]: 16K reaches 0.99 (55 %); 32K (85 %).
   with 8K slightly ahead. The 125B's own curve decides: MoonShots' M3 H32 (+ H16) beside Q8, Wed 06:30.
 - Note: S18 / S19's screens are NOT static-only. Like the 125B's screen_masks, they add the session's committed ids
   (ids[0 .. s + 1], first appearance; ~20 per HE window beyond the top-N).
+
+## WEEK98 S20 SMALLHEAD: does a 2x smaller head keep kept? (the DRAFT LINE; pre-registered Tue 17 Nov 09:29, before any run)
+Why: MoonShots' correction (b8e4e76): the 125B head as stored (8-bit Linears + 32K screen) reads 177.6 MB per level
+(dense 99.7, vocab 47.2, experts 30.7). So S17-S19's plan cuts no bytes. Hitting <= 4-5 ms per block needs <= ~34 MB
+per level at tree-32 (or <= ~75 at tree-16), a 2.4-5x smaller head. Path B: a distilled smaller student. This
+sandbox screen asks whether the head's capacity can shrink at all without losing kept.
+Lever mlpw (sb98/levers/mlpw.py): native's MLP cut to MLPW neurons (the most important by |down col| x |up row|),
+pruned init; attention, fc and norms unchanged.
+Arms (train_multi, s30's full recipe from native: base files, seed 1114, depth 30, 1,889 steps, cosine; <= 4 GB):
+- h2: MLPW=1536 (60.8 M -> 32.5 M params, 0.53x).
+- h3: MLPW=768 (27.8 M, 0.46x).
+Read-out: sb98/tree8.py, kept under the walk at chain-32 / tree-16 / tree-32 (S9b proxy, gamma 1), vs s30.
+Line: HOLDS if kept >= 0.99 x s30 at tree-16 AND tree-32 on both sets. If h3 holds, a 125B student is worth a night
+run (Wed / Thu). If only h2 holds, the 125B's dense part can shrink ~2x at most.
+Prediction [G]: h2 HOLDS 40 %, h3 HOLDS 20 %.
+Disk: h2 / h3 overwrite mhd1_c2 / mhd1_c2h (S4, read).

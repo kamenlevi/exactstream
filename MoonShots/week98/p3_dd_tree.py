@@ -17,10 +17,13 @@ PILLAR 3's draft-only byte cuts (the C1-C8 ladder of p3_m012.py):
     mixes at 8 bits, g64; router 8; full head, top-10): is post-hoc 8-bit free on the 125B?
   - H16 / H32 / Q8H32 (Mon 16 Nov 22:3x, NewIdeas): the screen at FR-Spec top-16K / top-32K + the session extras (as
     H8), fp32 weights; and Q8 with the 32K screen stacked.
+  - B16H32 (Tue 17 Nov 09:5x, the orchestrator's r57 format decision: Q8 + 32K if Q8 holds its line, else bf16 + 32K):
+    t30b's 11 trained tensors rounded to bf16 (fp32 -> bf16 -> fp32, no quantization), HC mixes as stored, the 32K
+    screen + the session extras, top-10: the fallback config's price.
 Gate: --cut none at --run t30b must reproduce BigMoE's tree_t30b_<set>.npz bitwise (every array): --gate compares.
 Kept is TRUE-STATE (lab): teacher-forced, the 125B's true state at every anchor; score with NewIdeas' treek_final.py
 (--dump-dir ~/MoonShots/week98/p3 --dump-fmt tree_t30b_{tag}_<cut>.npz --out <a MoonShots path>).
-usage: ~/BigMoE/.venv/bin/python -I -B p3_dd_tree.py --set heplus24|mbppbank --cut none|Q4|Q8|H8|H16|H32|Q8H32|C1..C8 [--part i/n]
+usage: ~/BigMoE/.venv/bin/python -I -B p3_dd_tree.py --set heplus24|mbppbank --cut none|Q4|Q8|H8|H16|H32|Q8H32|B16H32|C1..C8 [--part i/n]
        [--merge n] [--gate]     (MEM ~11-12 GB: the day's one big GPU job; share lock with MEM, after `peer ls`)"""
 import argparse, json, os, sys, time
 import numpy as np
@@ -39,6 +42,7 @@ CUTS = {                                                    # qo / kv / se / fc 
     "H16": dict(qo=None, kv=None, se=None, fc=None, hc=None, top=10, nh=16384),
     "H32": dict(qo=None, kv=None, se=None, fc=None, hc=None, top=10, nh=32768),
     "Q8H32": dict(qo=8, kv=8, se=8, fc=8, hc=8, top=10, nh=32768),
+    "B16H32": dict(qo=None, kv=None, se=None, fc=None, hc=None, top=10, nh=32768, bf16=True),
     "H8": dict(qo=None, kv=None, se=None, fc=None, hc=None, top=10, nh=8192),
     "C1": dict(qo=4, kv=4, se=4, fc=4, hc=4, top=10, nh=8192),
     "C2": dict(qo=4, kv=4, se=4, fc=4, hc=4, top=4, nh=8192),
@@ -63,6 +67,15 @@ def apply_cut(mx, c, P, head):
     done = []
     if c is None:
         return done
+    if c.get("bf16"):                                       # B16H32: t30b's trained tensors rounded to bf16, no quantization
+        names = ("q_proj", "o_proj", "k_proj", "v_proj", "se_gate", "se_up", "se_down", "se_gatew", "fc_hidden",
+                 "fc_embedding", "router")
+        for name in names:
+            lin = getattr(P, name)
+            assert lin.weight.dtype == mx.float32, f"P.{name} is not fp32"
+            lin.weight = lin.weight.astype(mx.bfloat16).astype(mx.float32)
+            done.append(f"P.{name} bf16")
+        assert len(done) == 11
     for name, key in (("q_proj", "qo"), ("o_proj", "qo"), ("k_proj", "kv"), ("v_proj", "kv"), ("se_gate", "se"),
                       ("se_up", "se"), ("se_down", "se"), ("fc_hidden", "fc"), ("fc_embedding", "fc"), ("router", "rt")):
         bits = 8 if key == "rt" else c[key]

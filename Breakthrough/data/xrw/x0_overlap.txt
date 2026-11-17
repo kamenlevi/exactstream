@@ -1,0 +1,12 @@
+X0 OVERLAP SCREEN Tue 17 Nov 09:46:23 (pre-registered 0aee02c): MLX 0.32.2; grid 20 x 62 threadgroups x 256; code bytes 0.076 GB; 5 rounds x 10 launches; build + warm 0.8 s
+| kernel | GPU us per launch (median of round medians) | spread (max-min)/med | GB/s on the codes |
+|---|---|---|---|
+| S1 | 457.6 | 21.7 % | 166 |
+| S2 | 344.8 | 142.6 % | 221 |
+| S3 | 481.9 | 77.7 % | 158 |
+| S3f | 477.0 | 69.3 % | 160 |
+| S4 | 491.3 | 81.3 % | 155 |
+S3 481.9 vs max(S1, S2) 457.6 (FEASIBLE <= x1.15 = 526.3) and S1 + S2 802.5 (KILL >= x0.90 = 722.2); hidden share of the smaller term 93 % -> FEASIBLE
+info: S3f (loads folded BEFORE the MMAs, the smoke's form) 477.0 = 0.59 x (S1 + S2)
+info: S4 (today's dependent chain) 491.3 = 0.61 x (S1 + S2), 1.07 x max(S1, S2)
+

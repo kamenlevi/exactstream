@@ -6,6 +6,11 @@ BREAK98b, lens (c): fewer first misses at <= ~5 ms per block. Marks: [K] measure
 proposer), `endcover.py` -> `.out` (corrected block-end coverage; see the banner now on IDEAS_1117_futurestates.md).
 Alignment self-check: rows2b's 125B argmax equals the cell's y on 99.4 % (HE+) / 100 % (MBPP) of cells.
 
+> **CLOSED (NewIdeas 09:2x, b98_2b_reconcile.txt, ad06be2).** My 67 / 72 % counted the first misses of chains started at
+> EVERY anchor (3,401 misses at 542 positions, the same hard position up to 30x); on the walk's own first misses the 2B is
+> right 52 % (4B 58 %). Budgeted, 2B siblings keep 15.94 at 71.9 rows per check, against best-first K63's 20.77 at 64
+> rows. **2B-INFORMED TREE = KILL.** Lesson for my screens: weight first misses by the walk, never by every anchor.
+
 ## 0. What the drafter's first misses are, and who knows the answer [K sib2b.out]
 At the own chain's first misses (walk, teacher-forced cells; 3,401 HE+ / 13,797 MBPP):
 

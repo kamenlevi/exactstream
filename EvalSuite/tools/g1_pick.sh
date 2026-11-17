@@ -10,7 +10,7 @@
 cd "$HOME/EvalSuite" || exit 1
 E=${1:?the env: g1 g1r g1c g1cr g1cd g1cdr g1l g1lr}; WHY=${2:?why (NewIdeas time, the 5d branch, RES)}; P=results/G1_PICK
 case "$E" in g1|g1r|g1c|g1cr|g1cd|g1cdr|g1l|g1lr) ;; *) echo "not a pinned env: $E"; exit 2;; esac
-head -1 results/CARD_t1cx45t1c1_rev_DONE 2>/dev/null | grep -qE '^LOSSY tier1 \(CODE-ONLY mode\): (PASS|FAIL)' \
+head -1 results/CARD_t1cx45t1c1_rev_DONE 2>/dev/null | grep -qE '^LOSSY tier1 \(CODE-ONLY mode\) \[2 orders pooled\]: (PASS|FAIL)' \
   || { echo "no both-orders PASS / FAIL in results/CARD_t1cx45t1c1_rev_DONE"; exit 3; }
 [ -e "$P" ] && [ "${3:-}" != --replace ] && { echo "$P exists: $(head -1 "$P")"; exit 4; }
 KT=$(python3 -I - "$E" <<'KT'
