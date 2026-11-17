@@ -358,3 +358,4 @@ tok/s = kept / (check + draft + overhead), HE+ lossy, 32-row tree check, AT QUAL
   - BigMoE's 32-row tree verify, bit-tested;
   - the C T T C engine A/B by Fri 12:00.
   Otherwise v4 stands. MBPP is unchanged. The gap to 775 still needs the drafter (kept ~x1.4-1.6).
+- MEASURED Tue 03:0x (adaptk_lossy.txt): the rung's lossy claim holds. Under CC(1) on v4's modules-PASS costs, HE+ +9.0 % [95 % window bootstrap +4.3, +13.5] at the frozen tau 0.9 (exact acceptance +8.1 %); v4 stretch +9.0 %; byte floor +4.8 % [+0.8, +8.4]. MBPP ~0.

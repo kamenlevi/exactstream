@@ -83,3 +83,15 @@ once a 32-row tree verify exists.
 
 Files: adaptk_oracle.py / .txt (stage 1, drafting hidden), adaptk_draft.py / .txt (draft cost + policy),
 adaptk_sens.py / .txt (kernel variants), costs from costs_e14.json.
+
+## The LOSSY line (Tue 03:0x; adaptk_lossy.py / .txt)
+
+The lossy line runs trees with close-call CC(1), and trees and CC overlap (TREES-x-CLOSECALL), so the
+exact screen did not settle the lossy case. Replayed with tree_cc32's tree + CC rule at 15 / 31 pops:
+- v4 modules-PASS costs (40 ms at 32 rows, 16 rows at E14's ratio, L 0.42, overhead 4): HE+ fixed 16 320.1 /
+  fixed 32 320.7 (a tie), policy tau 0.9 349.4 = +9.0 % [+4.3, +13.5]; exact acceptance +8.1 %.
+- v4 stretch (32 ms, L 0.25, overhead 1.5): +9.0 % [+7.3, +10.9].
+- Byte floor (25 ms x R_floor ratio, L 0.42): +4.8 % [+0.8, +8.4]; +6.1 % at the cross tau 0.4.
+- MBPP +0.1-0.2 % on every model. Hindsight ceiling HE+ +15-19 %.
+- Self-checks: kept 11.263 / 16.263 (exact) and 11.762 / 16.910 (CC), the published values.
+Registered line: HOLDS at >= +5 % HE+ (CC, v4pass, tau 0.9). Result: HOLDS.

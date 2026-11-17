@@ -91,6 +91,12 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- **Tue 03:0x NewIdeas: ADAPTIVE K also pays on the LOSSY line (ADAPTK-LOSSY, CPU replay, 20 s).** With close-call
+  CC(1) acceptance (tree_cc32's rule) on LADDER v4's modules-PASS costs: HE+ +9.0 % [+4.3, +13.5] over the better
+  fixed K at the frozen tau 0.9 (exact acceptance: +8.1 %); v4 stretch +9.0 %; on the 25 ms byte floor +4.8 %, because
+  32 rows are relatively cheaper there. MBPP ~0, never a loss. So BigMoE's gated build serves both headlines, and
+  PLAN900's conditional rung (lossy HE+ ~335-465) now rests on a measurement instead of an assumption. Self-checks
+  reproduce kept 11.263 / 16.263 and 16.910 (v4's tree-32 + CC). NewIdeas research/week98/adaptk_lossy.py / .txt.
 - Tue 17 01:0x (NewIdeas, ~/NewIdeas/research/week98/ADAPTK.md, f36cb3c): **ADAPTIVE K screen PASS (exact): choose 16
   or 32 rows PER CHECK by the drafter's own path_p. HE+ +8-10 % on today's kernels, MBPP ~0.**
   - The rule: best-first drafting pops while the next pop's path_p >= tau, and the rows round up to 16 / 32. Under
