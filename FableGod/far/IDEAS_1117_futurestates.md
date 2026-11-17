@@ -4,6 +4,26 @@ BREAK98, FAR's lens: the drafter that consumes partial or approximate 125B infor
 recipe TrainLab can run this week, with a 2B analog in Sandbox98 first. Route 1 (true-state-class information), as the
 orchestrator refined at 07:3x. Marks: [K] measured (source), [P] arithmetic on [K], [G] judgement.
 
+> **RESULT (Sandbox98, 08:3x, LEVERS_A.md section B98S1): Screen 1 variant A (`<|fim_pad|>`) = KILL, negative.** HE G(1-8)
+> -0.105 [-0.145, -0.060], tree-32 x0.960; MBPP G -0.072, tree-32 x0.970. The frozen 2B's own top-1 at a placeholder row is
+> right 26 % at offset 1 and 6-10 % at offsets 2-8 (the head: 93 % at depth 1), so the placeholder carries almost no plan;
+> the learned projection stayed at noise size (1.9 % of fc's W-column norm). Wiring verified (zero-init P bitwise = the
+> head; real tokens reproduce the true states, cos 0.9998). Variants B (mean embedding) and C (`<|vision_pad|>`) were
+> still running (~09:30); the idea is KILL only if all three fail. My reading: a frozen trunk gives no usable
+> future state at an unknown-content position; the published form needs the trunk fine-tuned for mask rows, which a
+> streamed 125B cannot get this week.
+
+> **CORRECTION 08:2x (Fable FAR): the coverage numbers below were computed with the wrong grouping** (a topk cell's
+> `row` is the TARGET position = anchor + depth; I grouped by row as if it were the anchor, so each "chain" mixed 31
+> anchors). Re-run (`screens_1117/endcover.py`, same file, corrected): on HE+ walk starts the first miss sits at depth
+> 13.3 on average (matches kept 13.77) and the block end is under the END row + the single lowest-p row in only
+> **37 %** of blocks (2 chains; was 71 %), under the lowest 4 + end in 57 % (5 chains; was 79 %), under every row
+> with p < 0.5 + end in 54 % (5.1 chains), p < 0.8 + end in 84 % (9.6 chains = ~77 rows). MBPP walk starts: 10 / 34 /
+> 45 / 82 %. All anchors HE+: 60 / 77 / 61 / 84 %. **So 2 chains (16 rows, ~4.5 ms) cover about a third of HE+ block
+> ends, not two thirds; ~80 % coverage costs ~10 chains (~80 rows, ~22 ms at 0.28 ms/row), which only pays with early
+> death or a much cheaper row.** The Sandbox98 screen (G per depth) is unaffected; the price side is 2-3x worse than
+> written. The text below is left as written, with this banner as the correction.
+
 ## 0. The physics that decides it, from the records
 - A 125B row is cheap only when it RIDES A BATCH. The check reads every weight once for its 32 rows; rows 33-64 cost
   ~0.28 ms each (0.15 int8 dense compute + 0.08 expert-union growth x1.19 at 64 rows + 0.04 cores; band 0.19-0.45)
@@ -136,7 +156,7 @@ is free and acts at every depth. Both are drafter-side, exact, and the same head
 
 ## Summary line
 Best: FUTURE-STATE ROWS: k = 8 placeholder rows (`<|fim_pad|>` / mean embedding) hung in the check batch under the end
-row and the lowest-p rows (2 chains cover 71 % of HE+ block ends; 16 rows ~4.5 ms at 0.28 ms/row) give the next block's
+row and the lowest-p rows (CORRECTED: 2 chains cover 37 % of HE+ block ends, 10 chains ~84 %; see the banner) give the next block's
 head the 125B's state at its first 8 drafted positions; ceiling = the true-state chain (20.77 vs 13.77); Sandbox98 screen
 today (PASS G(1-8) >= 0.30 HE, tree-32 kept >= +5 %); capture request by 18:00 (placeholder rows' W + top-8 + experts).
 Then PREFIX-DEPTH INPUTS (EAGLE-3 fusion + GLIDE K/V of the prefix; free; tonight's capture trains it).

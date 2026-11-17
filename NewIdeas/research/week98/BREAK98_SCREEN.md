@@ -85,6 +85,51 @@ Each landmark refreshes the head with true-state quality (the ceiling statement)
 - Caveat: half the coverage is 2-token matches (cos 0.69, top-1 agree 39 %); k >= 4 is ~11 % (cos 0.76-0.80). The k >= 4 vs
   k <= 3 split of G and G_copy is in the pre-reg (report-only).
 
+## VERDICT-DEPTH on the 125B's DAY CAPTURE, HE+ (08:1x; floor_lens_capture.py = Lunatic's floor_lens with only the features + a
+## file-parity cross-fitted ridge changed; floor_lens_capture_he.out). ROUTE 1 BY PARTIAL DEPTH IS CLOSED (HE+).
+Capture self-checks (BigMoE mid_heplus24.json): all pass (wd / raw tap 15 / tk rows differ 0; no non-finite). 337 first misses.
+| layer L | locator AUC lens alone (recall @2 % / @20 % false) | lens + head AUC (@20 %) | decider: lens-on-top8 = y at first misses | best FIX-r kept (r 1, re-anchor, tau 2) vs plain 13.77 |
+|---|---|---|---|---|
+| head margin alone | 0.954 (45.7 % / 97.6 %) | | | |
+| 2 / 4 / 8 | 0.687 / 0.703 / 0.732 | 0.868 / 0.875 / 0.885 | 20-26 % | below 13.77 |
+| 16 | 0.720 (6.8 % / 46.9 %) | 0.883 (83.1 %) | 24.6-27.0 % (false 3-9 %) | 10.49 |
+| 24 | 0.734 (8.9 % / 48.1 %) | 0.900 (86.1 %) | 26.1-28.8 % | 11.32 |
+| 32 / 40 | 0.699 / 0.756 | 0.888 / 0.923 | 24-36 % | below 13.77 |
+| 44 | 0.839 (14.8 % / 70.6 %) | 0.950 (95.8 %) | 37-42 % | 13.80 (no gain) |
+| 47 (final 4-stream mean) | 0.972 | 0.986 | 52-59 % | 16.30 |
+| 48 (exact final mixer) | 0.999 | 0.998 | 59-87 % | 17.00 |
+- Lunatic's LIVE line (a layer <= 24 with decider phi >= 0.7 at psi <= 0.5 %): FAILS by a wide margin (phi <= 29 % at psi 2-9 %).
+- Fable C's line: the recall part is met only through the HEAD's margin (alone 97.6 % at 20 % false); the 125B's mid layers
+  add nothing to location (lens + head < head alone) and decide the right token at only ~25 % of first misses at L16. FAIL.
+- In-check repair driven by a layer <= 44 LOWERS kept (false overrides end blocks under exact acceptance). The decision forms in the
+  last ~4 layers (44 -> 48). So in-check repair, shallow taps and partial-depth rows are CLOSED on the 125B, as Lunatic predicted.
+
+## EARLY DEATH stage 2 on the day capture, HE+ (08:1x; pre-registered; ed_stage2_he_capture.txt): KILL
+- Droppable off-spine children at <= 2 % false drops (16,170 units): P-draft (the head) 31.4 %; P-lens L8 / 16 / 24 3.0 / 3.6 / 3.7 %;
+  P-tuned 2.2 / 2.9 / 4.6 %; P-comb 23.7 / 24.7 / 25.9 % (below the head alone). Fable B's line at L16 (PASS >= 90 %, KILL < 60 %): KILL.
+- With VERDICT-DEPTH above: the 125B's states before layer ~44 carry neither the location nor the decision. Route 2 via early
+  death is closed too; route 2 is left with the per-row ALU cost alone (Leap's check line).
+
+## MBPP on the day capture (08:3x; floor_lens_capture_mbpp.out): CONFIRMS HE+
+- Locator: head margin AUC 0.896 (recall 85.4 % at 20 % false); 125B lens 0.66-0.73 at L2-32, 0.783 L40, 0.868 L44, 0.98-0.997 final.
+- Decider at L16 / 24: right at 24-28 % of first misses with 9-16 % false overrides. FIX-r driven by L <= 44 lowers kept (L16 5.5,
+  L24 6.1 vs 6.92); only the final layer helps.
+- Fable C's audit (IDEAS_1117b_closure.md): the closure stands, but for COST, not readout. The ridge (2,561 dims, ~3,200 rows per parity
+  on HE+) pins lambda at the grid's top, so 'no cheap linear readout reads it' is shown, not 'the 125B decides only in its last 4 layers'.
+  What closes repair is that even the EXACT L48 decider is flat (430-466 vs 462 tok/s at the bound): a round costs about a pass.
+  Lunatic number-checked the adaptation (only the features + the parity fit changed; L16 0.720 vs his 0.698 = the in-domain fit).
+
+## BREAK98b (08:3x): kept >= 24 at a 32-row cost
+| idea (thinker) | key number | verdict |
+|---|---|---|
+| (a) nearly free extra rows (ZERO, Fable B, Lunatic) | a row's dense part = 3.6-3.7 G MAC = 0.26 ms bf16 / 0.15-0.17 ms int8 at the measured peak; Leap: int8 matmul2d = 1.4-1.7x bf16 (needs 2.5x); 96 rows >= 12.5-36 ms, not 5 | CLOSED (Leap's int8 bench decides it) |
+| (a') cheap expert rows (ZERO; Leap S2) | the expert one-call at 64 rows = 1.15-1.19x the 32-row call (rows routed inside the loaded union); 96 rows ~1.5x, 128 ~1.7-1.9x | 64 rows HOLD the 1.2x gate; caps a cheap tree at ~64 rows |
+| (b) two located decisions <= 1.3 passes (Fable C, Lunatic) | a second weight stream >= 0.57-0.66 pass; one-pass form = rows (K127 23.70) | CLOSED by arithmetic |
+| (c) 2B-informed tree (FAR) | RECONCILED (b98_2b_reconcile.txt): at WALK first misses (337 HE+, the decoding process) 2B right 52.2 %, 4B 58.2 %, head #2 58.2 % (Lunatic); FAR's 67.1 % / 71.9 % / 66.8 % are the ALL-anchor population (3,401 misses at 542 positions, each counted 6.3x, up to 30x). As siblings at equal rows: 2B 15.94 kept at 71.9 rows vs best-first K63 20.77 (limit_auditree, reproduced) | KILL: FAR's unbudgeted 22.06 doesn't survive the row budget |
+| (d) other | none new | - |
+- READ (Lunatic, Fable C, NewIdeas agree): kept is exhausted near 17-19 at 32-ish rows on this Mac this week. 550 is cycle arithmetic:
+  check ~26.5-28 ms (~95 % of the C6 + int8 bound) + draft <= 3-4 ms at tree-32 + CC(1); check > 30 or draft > 5 kills it.
+
 ## Capture asks for tonight (to BigMoE by 18:00; collected here)
 - Fable B: ablated forwards along the mid-capture rows: shared + top-1 experts (then shared-only / top-2 / top-4),
   dumping the final widened state + top-8 logits. This prices what a cheap proxy must reproduce. Screen: the head's

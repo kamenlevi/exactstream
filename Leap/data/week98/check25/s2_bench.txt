@@ -1,0 +1,28 @@
+
+S2 BENCH Tue 17 Nov 08:28:11: MLX 0.32.2; layer 20; 12 code windows -> 48 64-row chunks (timing 24); spine union 45.9 experts; off-spine uses inside it 5.64 of 10 per row; segments 32 / 64 rows 46.5 / 46.5; largest segment 34.3 / 88.4 pairs; 16-row tiles by id 50.2 / 65.5
+  spine rows of the 64-row call == the 32-row call (values): True (shapes (32, 2560) / (64, 2560))
+  coh 0: 32 rows   594.4 us/call, 64 rows   730.3 us/call -> 1.229x (runs 32: 590, 594, 627; 64: 723, 730, 806)
+  coh 1: 32 rows   697.0 us/call, 64 rows   895.9 us/call -> 1.285x (runs 32: 693, 697, 746; 64: 833, 896, 958)
+  S2 at 64 rows (the worse COH setting): 1.285x -> BETWEEN; the orchestrator's S1 gate (<= ~1.2x): CLOSED
+done; peak 1.6 GB
+
+S2 BENCH [chain] Tue 17 Nov 08:29:56: MLX 0.32.2; layer 20; 12 code windows -> 48 64-row chunks (timing 24); spine union 45.9 experts; off-spine uses inside it 5.64 of 10 per row; segments 32 / 64 rows 46.5 / 46.5; largest segment 34.3 / 88.4 pairs; 16-row tiles by id 50.2 / 65.5; by (id, tier) 62.0 / 76.5
+  spine rows of the 64-row call == the 32-row call (values): True (shapes (32, 2560) / (64, 2560))
+  coh 0: 32 rows   586.0 us/call, 64 rows   775.4 us/call -> 1.323x (runs 32: 586, 581, 684; 64: 716, 775, 926)
+  coh 1: 32 rows   990.7 us/call, 64 rows  1207.5 us/call -> 1.219x (runs 32: 877, 993, 991; 64: 1190, 1227, 1207)
+  [chain] S2 at 64 rows (the worse COH setting): 1.323x -> BETWEEN; the orchestrator's S1 gate (<= ~1.2x): CLOSED
+done; peak 1.6 GB
+
+S2 BENCH [fill] Tue 17 Nov 08:29:59: MLX 0.32.2; layer 20; 12 code windows -> 48 64-row chunks (timing 24); spine union 45.9 experts; off-spine uses inside it 5.64 of 10 per row; segments 32 / 64 rows 46.5 / 46.5; largest segment 34.3 / 55.0 pairs; 16-row tiles by id 50.2 / 57.5; by (id, tier) 62.0 / 67.8
+  spine rows of the 64-row call == the 32-row call (values): True (shapes (32, 2560) / (64, 2560))
+  coh 0: 32 rows   592.4 us/call, 64 rows   682.1 us/call -> 1.151x (runs 32: 584, 592, 635; 64: 652, 682, 777)
+  coh 1: 32 rows   809.9 us/call, 64 rows   910.8 us/call -> 1.125x (runs 32: 759, 871, 810; 64: 903, 911, 927)
+  [fill] S2 at 64 rows (the worse COH setting): 1.151x -> BETWEEN; the orchestrator's S1 gate (<= ~1.2x): OPEN
+done; peak 1.6 GB
+
+S2 BENCH [sib] Tue 17 Nov 08:30:02: MLX 0.32.2; layer 20; 12 code windows -> 48 64-row chunks (timing 24); spine union 45.9 experts; off-spine uses inside it 10.00 of 10 per row; segments 32 / 64 rows 46.5 / 46.5; largest segment 34.3 / 68.7 pairs; 16-row tiles by id 50.2 / 62.2; by (id, tier) 62.0 / 71.0
+  spine rows of the 64-row call == the 32-row call (values): True (shapes (32, 2560) / (64, 2560))
+  coh 0: 32 rows   588.2 us/call, 64 rows   700.1 us/call -> 1.190x (runs 32: 587, 588, 668; 64: 682, 700, 824)
+  coh 1: 32 rows   766.7 us/call, 64 rows   908.3 us/call -> 1.185x (runs 32: 757, 767, 798; 64: 876, 908, 959)
+  [sib] S2 at 64 rows (the worse COH setting): 1.190x -> BETWEEN; the orchestrator's S1 gate (<= ~1.2x): OPEN
+done; peak 1.6 GB

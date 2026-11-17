@@ -177,6 +177,169 @@ under 550 tokens per second."
       0.954), 0.92 after 46, 0.99 at 48. As repair deciders, layers <= 36 LOWER kept (13.77 -> 10-13).
     - Screen: VERDICT-DEPTH on the capture (floor_lens.py, < 1 min). LIVE if a layer <= 24 gives decider phi >= 0.7 at
       psi <= 0.5 %; otherwise route 1 by partial depth is CLOSED, and the GPU goes to route 2 + the check + the draft.
+  - **08:1x NewIdeas, BIG: VERDICT-DEPTH on BigMoE's day capture (HE+, 07:59-08:27, all self-checks pass; 2b30212):
+    ROUTE 1 BY PARTIAL DEPTH IS CLOSED on the 125B.**
+    - Location: the head's own margin finds its first misses at AUC 0.954. The 125B's lens: 0.69-0.73 at layers 2-32,
+      0.756 at 40, 0.839 at 44, 0.97-0.999 only at the final layer.
+    - Decision: the lens picks the right token at 20-29 % of first misses through layer 32.
+    - Repair driven by any layer <= 44 LOWERS kept.
+    - EARLYDEATH stage 2: KILL (the lens drops 3.0-4.6 % of wrong children at <= 2 % false drops; the head alone 31.4 %).
+    - The 125B decides in its last ~4 layers. Logged by NewIdeas (TRIED VERDICT-DEPTH + EARLYDEATH-S2, 363ee3c).
+  - **08:1x orchestrator: BREAK98b** (~/FableGod/deepdraft/BREAK98b.md) went to the five thinkers, until ~09:45.
+    - The question: kept >= 24 for about a 32-row check's cost, via:
+      - (a) nearly free extra rows (compute);
+      - (b) two located decisions per block for <= ~1.3 passes;
+      - (c) a smarter drafter at <= ~5 ms;
+      - (d) anything else.
+    - What is left this week for kept: LANDMARK-ANS (+5-10 % realistic), FAR's rows (<= +14 %), and route 2's per-row
+      ALU cost (Leap).
+  - **08:2x Fable ZERO, BREAK98b (IDEAS_1117b_cheapest_row.md): kept 24 for a 32-row price is OUT by arithmetic, but
+    bigger trees get CLOSE to 550 at the bound.**
+    - A row is 3.6 G dense MACs: 0.16 ms at the measured int8 peak (0.13 without lm_head), ~7 ms on the ANE, ~35 ms on
+      the CPU, and all of them share the saturated DRAM bus. So 96 rows cost >= 12.5 ms.
+    - Free per row: the experts (off-spine rows routed inside the loaded union ride in the one-call's 16-row MMA
+      tiles, now 2/3 padding) and the GDN cores (a chunked TREE form reads the 226 MB state once: ~2 ms at 128 rows;
+      lossy line).
+    - Marginal row ~0.13 ms, so K64-96 gives ~580-610 tok/s at 100 % of every peak, ~530 at 85 % (K128 545 / 474) [P].
+    - Screens: Leap's 10-min slice microbenches, sent to Leap 08:2x to run first.
+      - S1: chunked tree GDN at 64 / 128 rows, PASS <= 3 ms per 36 layers.
+      - S2: the one-call at 64 / 128 rows with off-spine routing clamped to the 32-row union (lossy), PASS <= 1.10x the
+        32-row time.
+  - **08:2x Fable B, BREAK98b (IDEAS_1117b_dense.md): route (a) on the dense pass is closed at the desk, unless the
+    matrix rate is higher.**
+    - A marginal row is 3.6 G dense MACs (layers 2.75 + shared 0.24 + lm_head 0.64): 0.26 ms bf16 / 0.15-0.17 ms int8
+      AT the measured 14 T MAC/s matrix peak [K]. So 0.15 is the floor, and the 0.05 ms-per-row frame is 3x below it.
+    - Activation precision maxes at the measured 1.55-1.73x (already counted). Sibling / prefix sharing is 0 on the
+      dense pass.
+    - Exact skips: lm_head at internal nodes only, -0.6..-1.3 ms per 128-row check. int8 on the head -2 ms (G1-gated).
+    - The ONE deciding screen: is 14 T MAC/s the neural-accelerator rate? A Metal 4 tensor-op matmul on GDN qkv|z at
+      M 128 vs dn32q; PASS >= 2.5x, KILL < 1.3x.
+    - Leap's M27-P (data/nax_peak.txt) already calls 14.0 T MAC/s the matrix-unit peak (rough smoke, shared GPU).
+      Asked of Leap 08:2x: answer from the record, or run it after S1 / S2.
+  - **08:2x Fable FAR, BREAK98b (IDEAS_1117b_2bproposer.md): the 2B-INFORMED TREE, the first bound on record near 24.**
+    Measured on the HE+ / MBPP cells + MoonShots' rows2b / rows4b (alignment self-check 99.4 %).
+    - At the own chain's first misses: the frozen 2B is right 67 % (4B 72 %), the head's #2 67 %, #2|#3 82 %. They are
+      complementary: head #2 OR 2B 86 %, #2 / #3 OR 2B 90 %.
+    - As an inline DECIDER the 2B buys only 13.77 -> 15.1-15.5 (+10-13 %), capped by false overrides.
+    - As a SIBLING PROPOSER (the 2B's token as a tree node beside the head's #2): unbudgeted bound 22.06 HE+ (23.61 with
+      #3; MBPP 15.9 / 18.3) vs own information 19.14, at ~1.3 siblings per check.
+    - Realistic tree-32: ~18.5-19.5 [G]. 22-24 needs the siblings' sub-chains budgeted (48-64 rows), i.e. this knowledge
+      PLUS route (a)'s cheap rows (ZERO's K64-96).
+    - Cost: one batched 2B pass per block (1.06 GB, ~4 ms), unless hidden on the ANE (WHOLE-CHIP measured +23-25 %).
+    - Screens:
+      - NewIdeas' tree join on the 127-node dumps + rows2b (PASS >= +12 % kept at <= 40 rows);
+      - then a 10-min GPU 2B pass over the tree nodes.
+      Second idea: a distilled chooser over the head's top-3 at flagged rows (TrainLab; Sandbox98 screen).
+    - CORRECTION to FAR's IDEAS_1117: block-end coverage was overstated 2-3x by a grouping bug. Two placeholder chains
+      cover 37 % of HE+ block ends (not 71 %); 10 chains ~84 %. The Sandbox98 G screen is unaffected; the price is
+      2-3x worse.
+  - **08:2x Leap on the route-(a) screens:**
+    - S2 (the one-call at 64 rows, off-spine routing inside the 32-row union, real layer-20 routing): building, ETA
+      ~09:10. 128 rows needs the grouping kernel widened (P <= 1024 pairs), so it will be projected.
+    - M27-P's 14 T MAC/s was the bf16 NEURAL-ACCELERATOR path (Metal 4 MPP matmul2d, 13.7-15.0); INT8 was never
+      measured. An int8 register-peak test follows S2 (~10 min). < 1.3x bf16 = KILL; >= 2.5x = Fable B's GEMM screen.
+    - S1 (tree-chunk GDN) needs a new kernel (~2-4 h; ~1.5-3 ms at 128 rows [P]).
+    - Orchestrator rule: S1 starts only if S2 holds at 64 rows (<= ~1.2x the 32-row time). Otherwise Leap returns to
+      the 32-row check modules. tue1 runs at 09:30 as armed.
+  - **08:25 BigMoE: the day mid capture LANDED, PASS.** mid_{heplus24,mbppbank}.npz, layers 2 / 4 / 8 / 16 / 24 / 32 /
+    40 / 44, 22,016 answer rows each; 124 / 124 files bitwise equal to the bank; 26 min, peak 21.8 GB.
+    - Disk 110 -> 105 GiB (floor ~100). BigMoE asks to delete ~/datasets/deepdraft/rawtaps (3.8 GB, superseded,
+      re-creatable ~1 h) and its intermediate t30x2 / t30x4 step checkpoints (5.4 GB).
+    - HELD: permanent deletes need Kamen's OK; asked at 08:2x.
+    - **08:3x EvalSuite: the proofs need wd on the fresh set, so the capture is FULL** (dd_topk.py feeds the candidate
+      z["wd"]; raw taps can't rebuild it; a re-prefill differs from the runtime path).
+      - Slim works only as option (b): the candidate's TOPK + T8 dumps written during the capture, from the in-memory
+        wd (~0.8 h of dump GPU). That needs the proof-run amendment (candidate sha256, commit, settings, scorer sha256)
+        filed BEFORE the capture, i.e. the candidate pinned by Wednesday evening.
+    - **Orchestrator plan (08:3x):**
+      1. If Kamen approves both deletes by Wed ~15:00: FULL (~100-104 GiB after).
+      2. Else (b), if t30b can be pinned by Wed ~18:00 (NewIdeas + MTP Head confirm today), with the 3.8 GB delete:
+         ~100-102 GiB.
+      3. Else the capture slips until the disk is cleared.
+      EvalSuite prepares the (b) amendment variant now as the fallback.
+    - **08:3x NewIdeas:** the candidate should be t30b AS IS (BREAK98 found no better drafter), pinnable today, so (b)
+      is the safe route and needs only the 3.8 GB delete. Exception: MTP Head's 8-bit + screen head as the candidate
+      would pin Wed afternoon. MTP Head answers ~09:45.
+  - **08:3x NewIdeas: the 2B discrepancy is RECONCILED (b98_2b_reconcile.txt, ad06be2). FAR's 2B-informed tree: KILL.**
+    - Lunatic's 52 / 58 % are the WALK's first misses (the decoding process, 337 HE+). FAR's 67 / 72 / 67 % count first
+      misses of chains started at EVERY anchor: 3,401 misses at only 542 positions, each counted 6.3x (up to 30x).
+    - Budgeted: 2B siblings keep 15.94 at 71.9 rows per check vs best-first K63 20.77. FAR's 22.06 was unbudgeted.
+  - **BREAK98b OVERALL (NewIdeas):**
+    - (a) closed: int8 = 1.4-1.7x bf16, not 2.5x;
+    - (a') 64 cheap expert rows hold the 1.2x gate (S2);
+    - (b) closed by arithmetic;
+    - (c) KILL;
+    - no new (d).
+    Kept is exhausted near 17-19. **550 = check ~26.5-28 ms + draft <= 3-4 ms.** The 10:00 report follows after MTP
+    Head's ~09:45 answer.
+  - **08:4x EvalSuite: the (b) fallback amendment is DRAFTED, not filed** (86d1e55,
+    results/certify98/proofrun_amendment_b_DRAFT_2026-11-17.md).
+    - Per fresh file, in the capture sitting: write wd (fp16, hashed), read it back through the offline loader into
+      dd_topk (TOPK) + dd_tree (T8, 32 nodes), write the slim file, delete the temporary wd. At most one wd on disk.
+    - Owners:
+      - NewIdeas / MTP Head: the candidate's pins by Wed ~18:00.
+      - BigMoE: the sitting script; the head-only passes beside the capture with a NO-SWAP gate; and Wed by day a
+        BITWISE equivalence check vs the offline dumps on the dev bank. Not bitwise means (b) is off.
+      - EvalSuite: a (b) mode of certify98_dumpcheck.py.
+      - NewIdeas: 7a's conditional HE+ T8-127 is dropped unless it is named and run in the sitting.
+    - Filing conditions (orchestrator 08:4x): Kamen approves at least the 3.8 GB delete by Wed ~15:00 (without it, (b)
+      ends at ~96-98 GiB), and the candidate is pinned by ~18:00. Otherwise the capture slips.
+  - **08:4x Sandbox98, BREAK98 Screen 1 (FAR's future-state rows): variant A (<|fim_pad|>) = KILL and NEGATIVE**
+    (LEVERS_A B98S1, af17982).
+    - HE G(1-8) -0.105 [-0.145, -0.060], tree-32 x0.960; MBPP G -0.072, x0.970.
+    - The frozen 2B's own top-1 at a placeholder row is right 26 % at offset 1 and 6-10 % at 2-8 (the head 93 % at
+      depth 1).
+    - Variants B (mean embedding) and C (<|vision_pad|>) are running; the screen is KILL only if all three are. ETA
+      ~09:30, then LANDMARK-ANS (~15 min).
+    - BigMoE 08:3x sizes:
+      - tonight 0.1-1.5 GB;
+      - Wednesday's CERTIFY98 capture ~10 GB (9-12) + TOPK / tree dumps ~1-1.5 + ~1 GB temporary parts = 11-13.5 GB,
+        i.e. ~92-94 GiB free without deletes (below the floor).
+      - Slim option: raw taps + tk only, ~5.5 GB (NewIdeas + EvalSuite decide whether the proofs need the final state).
+      - Outcomes: slim + both deletes ~105 GiB; full + deletes ~101-103.
+    - Leap S2 08:28: the one-call at 64 rows = 1.229x (COH off) / 1.285x (on) the 32-row call: BETWEEN. Pessimistic:
+      chain rows keep only 5.64 of 10 uses inside the union. Fill + sibling-like variants are next (~10 min), then the
+      S1 call.
+  - **08:3x Lunatic, BREAK98b (IDEAS_1117b_limits.md): kept 24 for a 32-row price is beyond (a)-(c) on this Mac.**
+    - (a) An exact extra row costs >= 0.25-0.37 ms (dense 3.73 G MAC = 0.27 ms bf16 at 14.0 T MAC/s, ~0.15 with int8
+      activations; union +0.06-0.10; cores 0.04), so 96 rows cost >= 24-36 ms. Own-information trees peak at 48 rows
+      (581 vs 566 at the bound, +3 %).
+    - (b) A dependent decision needs a second weight stream (>= 0.57 pass), so two cost >= ~1.6 passes. Hindsight-
+      perfect selection from the head's 127: 18.48 / 21.39 / 22.45 / 23.70 at 32 / 48 / 64 / 128 rows.
+    - (c) At the chain's first misses the 2B / 4B top-1 is right 52 / 58 % (head #2 58 %, head + true state 68.5 %).
+      As deciders <= 15.6 kept; as siblings they lose to best-first at equal rows. (DISCREPANCY with FAR's 67 / 72 %:
+      NewIdeas reconciles.)
+    - **(d), best: re-aim the week at the cycle.** Tree-32 + CC(1) (~17.0 kept) is 550 at a ~26.5 ms check (~95 % of the
+      C6 + int8 bound) with a 3 ms draft; 523 at 90 %; 480 at a 7.4 ms draft. Line: check <= 28 ms + draft <= 3-4 ms
+      keeps 550 alive; a check > 30 ms or a draft > 5 ms kills it for any kept lever within these limits.
+  - **08:30 Leap S2 RESULT:** the one-call at 64 rows HOLDS with realistic placement: sib 1.19x, fill 1.15x (COH on
+    1.13x); chain 1.23-1.32x. Projected: 96 rows ~1.46-1.57x, 128 rows ~1.70-1.87x. So the padding absorbs rows only up
+    to ~64 (s2_bench.txt).
+  - **08:3x orchestrator, REVISED: S1 (tree-chunk GDN) is DEFERRED despite S2 holding.** Lunatic's limits put big trees
+    at +3 % at the bound (~+9 % at today's check; ZERO +5-10 %): not worth 2-4 h of Leap's time this week.
+    - **Leap's whole line is the 32-row check, 56.4 -> <= 28-30 ms** (Lunatic's (d) line for 550).
+    - The int8 NAX register peak (~10 min) still runs: today's experts are compute-bound, so the int8 matrix rate
+      decides the FAST expert path for the 32-row check.
+    - tue1 at 09:30 as armed.
+  - **08:3x Fable C, BREAK98b (IDEAS_1117b_closure.md), AUDIT of VERDICT-DEPTH: the conclusion stands, but for COST,
+    not readout.**
+    - The readout was a ridge (3,200 rows per parity, 10,240 dims, lambda pinned at 0.1). So "the 125B decides in its
+      last ~4 layers" is NOT established; what is established is "no cheap readout reads the decision before the last
+      layers". A translator trained at scale would settle it but changes no Saturday decision.
+    - It closes repair regardless: with the EXACT L48 verdict, FIX-r is flat at the bound (430-466 vs 462 tok/s). At
+      L <= 24 the decision rate (24-29 %) would need ~70-80 %.
+    - (b) is a KILL by arithmetic: a second pass is >= 0.66 of a pass, so 23.65 kept costs 1.66-1.78 passes = 13.3-14.2
+      kept per pass < tree-32's 16.26. So (b) = (a): kept 24 at a 32-row price needs a marginal row <= ~0.08 ms (0.28
+      today).
+    - (d): the recorded levers stacked and halved give kept ~19-21 at ~1.1x cost. 550 on HE+ is then cycle arithmetic:
+      kept 20 needs check 25-30 + draft 3-5 ms; kept 24 clears it at check 32 + draft 5.
+  - **08:32 Leap, the int8 NAX register peak (nax_peak_i8.txt; rough, shared GPU):** int8 x int8 -> int32 on Metal 4
+    matmul2d is 1.4-1.7x bf16 at 32x32x32 (15.2-20.4 vs 10.8-12.2 T MAC/s), 1.15-1.53x at 16x32x32, ~none at K = 16.
+    Quiet int8 is ~20-25 T MAC/s [P].
+    - Route (a)'s 2.5x premise FAILS (BETWEEN on Fable B's lines). Big trees stay a small lever.
+    - For the 32-row check: the experts' MMA is ~150 of ~530 us busy per call, so W4A8 (int8 activations, lossy,
+      EvalSuite-gated) would save ~-2 ms per check [P]. It goes on the check-module list as an option; it is not the
+      28-30 ms lever.
     - Capture ask: layers 32 / 40 / 44. **The orchestrator put them into TODAY's capture (07:5x)**, with the two verdict
       screens run first.
     - It costs nothing in the check, so the gain holds at any check speed.
@@ -289,6 +452,16 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- **Tue 08:1x NewIdeas (BREAK98, on BigMoE's day capture, HE+; self-checks all pass): ROUTE 1 BY PARTIAL DEPTH IS CLOSED,
+  AND EARLY DEATH IS KILLED, on the 125B itself.** (~/NewIdeas/research/week98/BREAK98_SCREEN.md, 2b30212 + this entry)
+  - VERDICT-DEPTH (Lunatic's floor_lens, number-checked, adapted to the widened capture): the head's own margin locates its first
+    misses at AUC 0.954. The 125B's lens: 0.69-0.73 at layers 2-32, 0.839 at 44, 0.97-0.999 only at the final layer. It picks the
+    right token at 20-29 % of first misses by layer 32 and 37-42 % at 44. In-check repair driven by any layer <= 44 LOWERS kept
+    (L16 10.5, L24 11.3, L44 13.8 vs 13.77). The decision forms in the last ~4 layers.
+  - EARLY DEATH stage 2 (pre-registered): droppable children at <= 2 % false drops, P-lens / P-tuned 2-5 % at L8-24, P-draft (the
+    head) 31.4 %, combined 24-26 %. KILL on Fable B's line (< 60 % at L16).
+  - What stays open: LANDMARK-ANS (free; Sandbox98 ~10:15) and FAR's placeholder rows (Sandbox98 now), both ~+5-15 %
+    realistic. Route 2 is left with the per-row ALU cost (Leap's check line). MBPP's capture (landing ~08:27) is run for completeness.
 - **Tue 06:4x NewIdeas (slot order, on the orchestrator's 06:5x ask): Saturday's two headline measurements are PLACED (the
   owners are confirming harness and length).** Both: a quiet ticket, HE+ 164 + MBPP 100, one order, n / decode wall per set and
   pooled.

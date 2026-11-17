@@ -2778,3 +2778,25 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
     1,986-character docstring that works through the test cases ("Let me re-examine ...") before the same function.
     It is not a loop (43 lines, 40 distinct), but it is a length cost to watch in the quality runs.
   - With the first run (7 of 9), all nine G1 envs now pass the key test.
+- **Tue 07:59-08:25, the BREAK98 mid capture: PASS** (scripts/dd_mid.py + scripts/mid_run.sh; data/deepdraft/ceiling/
+  mid_capture.log, mid_capture_py.log, mid_{heplus24,mbppbank}.json, MID_CAPTURE_DONE; the two .npz files, 1.05 + 2.56 GB,
+  stay local).
+  - What: the 125B's pre-mixer widened stream (the 10,240-wide hyper-connection stream, fp16) after layers 2, 4, 8, 16,
+    24, 32, 40 and 44, at every answer row of the bank's heplus24 + mbppbank texts (rows gen-1 .. N-2: 6,375 + 15,641 =
+    22,016). Layer L is the output of layers[L-1]; layer 48 would be the bank's final state. Rows align to the bank and
+    to the 127-node tree dumps by fi / row / layer. It serves BREAK98's in-check repair (shallow taps) and the question
+    of where the 125B forms its decision (layers 32-44), then EARLY DEATH stage 2.
+  - How: dd_bank.py's own runtime path, copied verbatim: the prompt prefill on the 1,024 grid with REF2 on, then 9-row
+    verify calls at C 100, with the bank's own ext build (build_qom). Only the taps and the writer are new. Each npz is
+    stored (uncompressed) and streamed file by file.
+  - Self-check against the bank, per file: the final widened stream equals the stored one bitwise on every row; the
+    4-stream mean after layers[15] equals the stored raw tap 15 bitwise; the top-32 ids equal the stored ones on every
+    answer row. 124 of 124 files: 0 rows differ on all three, and there is no inf / nan after the fp16 cast. A read-back
+    of 8 random files by seek gives the same layer-16 means to fp16 rounding.
+  - Scale grows with depth: max |x| about 0.6-0.7 at layer 2, 1.1-1.2 at 24, 2.6-2.8 at 32, 6.5-6.8 at 40, 7.8-8.4 at 44.
+  - Before it: a head test (2 + 2 files to a scratch folder, 0 rows differ) and six runner simulations (PASS, FAIL,
+    STOPPED, NOT RUN, the stop time, a big lock). The first head test failed at load. The bank was built with
+    BIGMOE_EXT_BUILD=build_qom, and the script's own default (build_next) lacks set_direct_split, which the native+p11+pad
+    records need.
+  - Cost: 26 min (HE+ 370 s, MBPP 1,198 s), lifetime peak 21.8 GB, under a share lock "MEM 22 GB" (away_secs 29,549 at
+    the start).

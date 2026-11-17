@@ -278,3 +278,12 @@ and predicts ids[p + 2].
   - Info only: ids[q + 1] replacing band d-1's prediction, one band earlier than the landmark acts.
 - **Covered-position G:** walk-strict, counted only over covered cells, with own / true / each arm on its own chain.
   Plus the k split (8 / 6 / 4 vs 3 / 2) and whole-walk kept as info. Sets HE 60 + MBPP 100, frozen s30.
+- **Registered by Sandbox98 (LEVERS_A section LANDMARK, 9c6d421, 08:10; accepted 08:1x).** Same lines, read per arm
+  (lm1 = w 1.0, lm05 = w 0.5), HE covered-cell G over bands 1-8:
+  - KILL < 0.10;
+  - KILL-COPY if G <= max(copy (i), copy (ii)) + 0.10;
+  - PASS if G >= 0.50 on HE AND >= 0.25 on MBPP;
+  - else BETWEEN; WARN if G < 0.5 x G_stale1.
+  - **Stricter, and accepted:** a screen PASS needs an arm PASS whose k <= 3 cells also clear KILL-COPY. A PASS that
+    clears it only at k >= 4 reads "BETWEEN (k >= 4 only)", because k >= 4 alone covers ~11 % of positions, not ~33 %.
+  - It starts after FAR's B98S1 (ETA ~10:15): HE 60 + MBPP 100, frozen s30, ~15 min.

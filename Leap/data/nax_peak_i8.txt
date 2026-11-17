@@ -1,0 +1,48 @@
+NAX int8 vs bf16 / fp16 peak Tue 17 Nov 08:32 (rough, shared GPU; ratios within one run); 1280 simdgroups x 1024 ops per chain, operands in registers
+  16x32x16 ch1 bf16:  11.6 T MAC/s (0.92 ms per launch)
+  16x32x16 ch1 fp16:  11.0 T MAC/s (0.97 ms per launch)
+  16x32x16 ch1 int8:  11.1 T MAC/s (0.97 ms per launch)
+  16x32x16 ch2 bf16:  11.0 T MAC/s (1.95 ms per launch)
+  16x32x16 ch2 fp16:   8.2 T MAC/s (2.61 ms per launch)
+  16x32x16 ch2 int8:  11.2 T MAC/s (1.91 ms per launch)
+  16x32x32 ch1 bf16:  11.2 T MAC/s (1.91 ms per launch)
+  16x32x32 ch1 fp16:  11.6 T MAC/s (1.85 ms per launch)
+  16x32x32 ch1 int8:  13.0 T MAC/s (1.66 ms per launch)
+  16x32x32 ch2 bf16:  10.6 T MAC/s (4.07 ms per launch)
+  16x32x32 ch2 fp16:  10.7 T MAC/s (4.02 ms per launch)
+  16x32x32 ch2 int8:  16.2 T MAC/s (2.65 ms per launch)
+  32x32x16 ch1 bf16:   9.9 T MAC/s (2.17 ms per launch)
+  32x32x16 ch1 fp16:   9.9 T MAC/s (2.17 ms per launch)
+  32x32x16 ch1 int8:   9.8 T MAC/s (2.19 ms per launch)
+  32x32x16 ch2 bf16:   8.1 T MAC/s (5.29 ms per launch)
+  32x32x16 ch2 fp16:   8.5 T MAC/s (5.05 ms per launch)
+  32x32x16 ch2 int8:  11.3 T MAC/s (3.82 ms per launch)
+  32x32x32 ch1 bf16:  10.8 T MAC/s (3.97 ms per launch)
+  32x32x32 ch1 fp16:  12.0 T MAC/s (3.57 ms per launch)
+  32x32x32 ch1 int8:  15.2 T MAC/s (2.83 ms per launch)
+  32x32x32 ch2 bf16:  11.0 T MAC/s (7.78 ms per launch)
+  32x32x32 ch2 fp16:  10.6 T MAC/s (8.11 ms per launch)
+  32x32x32 ch2 int8:  16.8 T MAC/s (5.11 ms per launch)
+best: bf16 11.6, fp16 12.0, int8 16.8 T MAC/s -> int8 / bf16 1.44x; same-shape ratios: 16x32x16 ch1 0.95x, 16x32x16 ch2 1.02x, 16x32x32 ch1 1.15x, 16x32x32 ch2 1.53x, 32x32x16 ch1 0.99x, 32x32x16 ch2 1.39x, 32x32x32 ch1 1.40x, 32x32x32 ch2 1.52x
+VERDICT (Fable B's lines): int8 / bf16 = 1.44x -> BETWEEN
+K64 / N64 shapes Tue 08:32 (rough, shared GPU):
+  16x32x64 ch1 bf16: FAILED [metal::Device] Unable to build metal library from source
+  16x32x64 ch1 int8: FAILED [metal::Device] Unable to build metal library from source
+  16x32x64 ch2 bf16: FAILED [metal::Device] Unable to build metal library from source
+  16x32x64 ch2 int8: FAILED [metal::Device] Unable to build metal library from source
+  32x32x64 ch1 bf16: FAILED [metal::Device] Unable to build metal library from source
+  32x32x64 ch1 int8: FAILED [metal::Device] Unable to build metal library from source
+  32x32x64 ch2 bf16: FAILED [metal::Device] Unable to build metal library from source
+  32x32x64 ch2 int8: FAILED [metal::Device] Unable to build metal library from source
+  16x64x32 ch1 bf16: FAILED [metal::Device] Unable to build metal library from source
+  16x64x32 ch1 int8: FAILED [metal::Device] Unable to build metal library from source
+  16x64x32 ch2 bf16: FAILED [metal::Device] Unable to build metal library from source
+  16x64x32 ch2 int8: FAILED [metal::Device] Unable to build metal library from source
+  32x64x32 ch1 bf16: FAILED [metal::Device] Unable to build metal library from source
+  32x64x32 ch1 int8: FAILED [metal::Device] Unable to build metal library from source
+  32x64x32 ch2 bf16: FAILED [metal::Device] Unable to build metal library from source
+  32x64x32 ch2 int8: FAILED [metal::Device] Unable to build metal library from source
+  32x32x32 ch1 bf16:  12.2 T MAC/s
+  32x32x32 ch1 int8:  20.4 T MAC/s
+  32x32x32 ch2 bf16:  11.6 T MAC/s
+  32x32x32 ch2 int8:  18.5 T MAC/s

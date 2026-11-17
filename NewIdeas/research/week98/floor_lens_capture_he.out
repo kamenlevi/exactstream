@@ -1,0 +1,109 @@
+== heplus24: capture X (51000, 10240) float16, layers [2, 4, 8, 16, 24, 32, 40, 44]; 24 topk files
+   rows lacking a capture state: 0 (zero-filled)
+   tap after layer  2: lambda 0.1 (val MSE 4.2595, fit parity 0)
+   tap after layer  4: lambda 0.1 (val MSE 4.0413, fit parity 0)
+   tap after layer  8: lambda 0.1 (val MSE 4.1129, fit parity 0)
+   tap after layer 16: lambda 0.1 (val MSE 4.5120, fit parity 0)
+   tap after layer 24: lambda 0.1 (val MSE 4.2125, fit parity 0)
+   tap after layer 32: lambda 0.1 (val MSE 4.9019, fit parity 0)
+   tap after layer 40: lambda 0.1 (val MSE 4.6425, fit parity 0)
+   tap after layer 44: lambda 0.1 (val MSE 3.4005, fit parity 0)
+   tap after layer 47: lambda 0.1 (val MSE 1.2176, fit parity 0)
+   (fit 143 s)
+   186465 cells; 125B argmax at the verifying row == cell y on 99.42 %
+   plain chain-32 walk: 337 first misses; LAB head right there 68.5 %; y in head top-8 there 92.6 %
+   LOCATOR (first-miss rows vs right rows): head margin alone AUC 0.954, recall@2% 45.7 %, recall@20% 97.6 %
+     layer  2: lens alone AUC 0.687 (recall@2%  5.3 %, @20% 40.1 %) | lens + head AUC 0.868 (recall@2% 17.8 %, @20% 78.0 %)
+     layer  4: lens alone AUC 0.703 (recall@2%  6.8 %, @20% 44.2 %) | lens + head AUC 0.875 (recall@2% 17.5 %, @20% 79.5 %)
+     layer  8: lens alone AUC 0.732 (recall@2%  8.9 %, @20% 46.6 %) | lens + head AUC 0.885 (recall@2% 23.1 %, @20% 82.8 %)
+     layer 16: lens alone AUC 0.720 (recall@2%  6.8 %, @20% 46.9 %) | lens + head AUC 0.883 (recall@2% 19.0 %, @20% 83.1 %)
+     layer 24: lens alone AUC 0.734 (recall@2%  8.9 %, @20% 48.1 %) | lens + head AUC 0.900 (recall@2% 24.9 %, @20% 86.1 %)
+     layer 32: lens alone AUC 0.699 (recall@2%  6.5 %, @20% 42.1 %) | lens + head AUC 0.888 (recall@2% 22.0 %, @20% 82.8 %)
+     layer 40: lens alone AUC 0.756 (recall@2%  8.6 %, @20% 49.0 %) | lens + head AUC 0.923 (recall@2% 29.1 %, @20% 90.8 %)
+     layer 44: lens alone AUC 0.839 (recall@2% 14.8 %, @20% 70.6 %) | lens + head AUC 0.950 (recall@2% 45.7 %, @20% 95.8 %)
+     layer 47: lens alone AUC 0.972 (recall@2% 58.8 %, @20% 98.5 %) | lens + head AUC 0.986 (recall@2% 77.4 %, @20% 100.0 %)
+     layer 48: lens alone AUC 0.999 (recall@2% 99.1 %, @20% 100.0 %) | lens + head AUC 0.998 (recall@2% 97.3 %, @20% 100.0 %)
+   layer  2 beta 0: lens-on-top8 = y at first misses  19.9 % | tau 0: fix 19.9 % / false 51.81 % | tau 1: fix 19.0 % / false 44.22 % | tau 2: fix 17.5 % / false 36.16 % | tau 4: fix 14.2 % / false 23.38 %
+   layer  2 beta 1: lens-on-top8 = y at first misses  23.4 % | tau 0: fix 23.4 % / false 10.47 % | tau 1: fix 20.5 % / false  8.34 % | tau 2: fix 17.5 % / false  6.28 % | tau 4: fix 12.8 % / false  3.65 %
+   layer  4 beta 0: lens-on-top8 = y at first misses  21.7 % | tau 0: fix 21.7 % / false 48.39 % | tau 1: fix 20.2 % / false 40.93 % | tau 2: fix 18.4 % / false 33.90 % | tau 4: fix 16.3 % / false 21.14 %
+   layer  4 beta 1: lens-on-top8 = y at first misses  24.6 % | tau 0: fix 24.6 % / false  9.59 % | tau 1: fix 21.1 % / false  7.53 % | tau 2: fix 17.5 % / false  5.87 % | tau 4: fix 14.2 % / false  3.55 %
+   layer  8 beta 0: lens-on-top8 = y at first misses  24.3 % | tau 0: fix 24.3 % / false 43.42 % | tau 1: fix 23.1 % / false 36.94 % | tau 2: fix 20.5 % / false 30.60 % | tau 4: fix 16.3 % / false 18.81 %
+   layer  8 beta 1: lens-on-top8 = y at first misses  25.8 % | tau 0: fix 25.8 % / false  9.20 % | tau 1: fix 22.3 % / false  7.26 % | tau 2: fix 18.7 % / false  5.43 % | tau 4: fix 14.2 % / false  3.13 %
+   layer 16 beta 0: lens-on-top8 = y at first misses  24.6 % | tau 0: fix 24.6 % / false 45.60 % | tau 1: fix 23.4 % / false 38.85 % | tau 2: fix 21.4 % / false 32.48 % | tau 4: fix 17.8 % / false 19.94 %
+   layer 16 beta 1: lens-on-top8 = y at first misses  27.0 % | tau 0: fix 27.0 % / false  9.05 % | tau 1: fix 23.7 % / false  6.88 % | tau 2: fix 19.9 % / false  5.43 % | tau 4: fix 15.1 % / false  3.08 %
+   layer 24 beta 0: lens-on-top8 = y at first misses  26.1 % | tau 0: fix 26.1 % / false 42.41 % | tau 1: fix 24.9 % / false 35.52 % | tau 2: fix 22.8 % / false 28.50 % | tau 4: fix 18.7 % / false 16.44 %
+   layer 24 beta 1: lens-on-top8 = y at first misses  28.8 % | tau 0: fix 28.8 % / false  7.46 % | tau 1: fix 24.0 % / false  5.53 % | tau 2: fix 19.6 % / false  4.11 % | tau 4: fix 15.4 % / false  2.25 %
+   layer 32 beta 0: lens-on-top8 = y at first misses  24.0 % | tau 0: fix 24.0 % / false 47.28 % | tau 1: fix 21.4 % / false 40.00 % | tau 2: fix 19.3 % / false 32.09 % | tau 4: fix 14.8 % / false 19.01 %
+   layer 32 beta 1: lens-on-top8 = y at first misses  25.5 % | tau 0: fix 25.5 % / false  8.24 % | tau 1: fix 20.2 % / false  6.36 % | tau 2: fix 16.9 % / false  4.65 % | tau 4: fix 12.8 % / false  2.35 %
+   layer 40 beta 0: lens-on-top8 = y at first misses  35.6 % | tau 0: fix 35.6 % / false 39.99 % | tau 1: fix 31.5 % / false 33.56 % | tau 2: fix 27.9 % / false 26.71 % | tau 4: fix 20.5 % / false 14.72 %
+   layer 40 beta 1: lens-on-top8 = y at first misses  31.5 % | tau 0: fix 31.5 % / false  5.72 % | tau 1: fix 25.2 % / false  4.25 % | tau 2: fix 22.0 % / false  3.28 % | tau 4: fix 15.7 % / false  1.64 %
+   layer 44 beta 0: lens-on-top8 = y at first misses  42.1 % | tau 0: fix 42.1 % / false 26.40 % | tau 1: fix 39.5 % / false 20.04 % | tau 2: fix 34.1 % / false 14.87 % | tau 4: fix 27.9 % / false  8.02 %
+   layer 44 beta 1: lens-on-top8 = y at first misses  37.1 % | tau 0: fix 37.1 % / false  3.57 % | tau 1: fix 32.6 % / false  2.67 % | tau 2: fix 29.7 % / false  1.86 % | tau 4: fix 20.8 % / false  0.88 %
+   layer 47 beta 0: lens-on-top8 = y at first misses  59.3 % | tau 0: fix 59.3 % / false  4.28 % | tau 1: fix 54.6 % / false  3.28 % | tau 2: fix 47.2 % / false  2.25 % | tau 4: fix 37.1 % / false  0.90 %
+   layer 47 beta 1: lens-on-top8 = y at first misses  51.6 % | tau 0: fix 51.6 % / false  1.18 % | tau 1: fix 46.0 % / false  0.88 % | tau 2: fix 39.8 % / false  0.63 % | tau 4: fix 30.0 % / false  0.22 %
+   layer 48 beta 0: lens-on-top8 = y at first misses  86.6 % | tau 0: fix 86.6 % / false  0.10 % | tau 1: fix 65.6 % / false  0.00 % | tau 2: fix 52.2 % / false  0.00 % | tau 4: fix 38.9 % / false  0.00 %
+   layer 48 beta 1: lens-on-top8 = y at first misses  58.8 % | tau 0: fix 58.8 % / false  0.00 % | tau 1: fix 47.2 % / false  0.00 % | tau 2: fix 39.5 % / false  0.00 % | tau 4: fix 31.8 % / false  0.00 %
+   FIX-r with the real decider (no re-anchor = exact from the cells; re-anchor = upper bound), priced at the bound:
+     plain chain-32: kept  13.77  tok/s@bound  462
+     layer  2 (L=2) beta 0 tau 1: no re-anchor r1/2/3 kept  2.53( 74)  2.45( 71)  2.44( 71) | re-anchor  2.55( 74)  2.44( 71)  2.44( 71)
+     layer  2 (L=2) beta 0 tau 2: no re-anchor r1/2/3 kept  3.13( 92)  3.03( 88)  3.02( 88) | re-anchor  3.16( 92)  3.03( 88)  3.02( 88)
+     layer  2 (L=2) beta 0 tau 4: no re-anchor r1/2/3 kept  4.50(133)  4.41(130)  4.40(130) | re-anchor  4.55(135)  4.42(130)  4.42(130)
+     layer  2 (L=2) beta 1 tau 1: no re-anchor r1/2/3 kept  8.79(268)  8.60(260)  8.56(259) | re-anchor  9.15(279)  8.74(264)  8.72(263)
+     layer  2 (L=2) beta 1 tau 2: no re-anchor r1/2/3 kept  9.64(297)  9.43(288)  9.42(287) | re-anchor  9.99(308)  9.64(295)  9.63(294)
+     layer  2 (L=2) beta 1 tau 4: no re-anchor r1/2/3 kept 11.24(354) 11.15(350) 11.15(350) | re-anchor 11.42(360) 11.30(355) 11.30(355)
+     layer  4 (L=4) beta 0 tau 1: no re-anchor r1/2/3 kept  2.73( 77)  2.64( 75)  2.63( 74) | re-anchor  2.75( 78)  2.64( 75)  2.64( 74)
+     layer  4 (L=4) beta 0 tau 2: no re-anchor r1/2/3 kept  3.27( 93)  3.18( 90)  3.17( 90) | re-anchor  3.32( 94)  3.18( 90)  3.17( 90)
+     layer  4 (L=4) beta 0 tau 4: no re-anchor r1/2/3 kept  4.80(139)  4.69(135)  4.68(135) | re-anchor  4.87(141)  4.71(136)  4.70(135)
+     layer  4 (L=4) beta 1 tau 1: no re-anchor r1/2/3 kept  9.06(271)  8.82(261)  8.78(260) | re-anchor  9.27(277)  9.03(268)  9.02(267)
+     layer  4 (L=4) beta 1 tau 2: no re-anchor r1/2/3 kept  9.75(295)  9.56(288)  9.54(287) | re-anchor  9.93(301)  9.73(293)  9.72(292)
+     layer  4 (L=4) beta 1 tau 4: no re-anchor r1/2/3 kept 11.30(351) 11.11(343) 11.11(343) | re-anchor 11.53(358) 11.38(352) 11.38(352)
+     layer  8 (L=8) beta 0 tau 1: no re-anchor r1/2/3 kept  2.98( 80)  2.87( 77)  2.86( 77) | re-anchor  3.02( 81)  2.88( 77)  2.87( 77)
+     layer  8 (L=8) beta 0 tau 2: no re-anchor r1/2/3 kept  3.58( 97)  3.42( 92)  3.41( 92) | re-anchor  3.62( 98)  3.43( 92)  3.42( 92)
+     layer  8 (L=8) beta 0 tau 4: no re-anchor r1/2/3 kept  5.25(145)  5.11(140)  5.10(140) | re-anchor  5.29(146)  5.14(141)  5.13(141)
+     layer  8 (L=8) beta 1 tau 1: no re-anchor r1/2/3 kept  9.23(265)  9.00(256)  8.97(254) | re-anchor  9.46(272)  9.19(261)  9.16(260)
+     layer  8 (L=8) beta 1 tau 2: no re-anchor r1/2/3 kept 10.10(296)  9.87(286)  9.84(285) | re-anchor 10.30(302) 10.06(291) 10.02(290)
+     layer  8 (L=8) beta 1 tau 4: no re-anchor r1/2/3 kept 11.70(356) 11.40(345) 11.40(344) | re-anchor 11.89(362) 11.68(352) 11.68(352)
+     layer 16 (L=16) beta 0 tau 1: no re-anchor r1/2/3 kept  2.79( 68)  2.70( 65)  2.70( 65) | re-anchor  2.82( 69)  2.72( 66)  2.71( 65)
+     layer 16 (L=16) beta 0 tau 2: no re-anchor r1/2/3 kept  3.33( 81)  3.24( 79)  3.24( 79) | re-anchor  3.36( 82)  3.26( 79)  3.25( 79)
+     layer 16 (L=16) beta 0 tau 4: no re-anchor r1/2/3 kept  4.93(124)  4.80(120)  4.79(120) | re-anchor  4.96(125)  4.82(120)  4.81(120)
+     layer 16 (L=16) beta 1 tau 1: no re-anchor r1/2/3 kept  9.51(254)  9.20(241)  9.19(241) | re-anchor  9.73(261)  9.42(247)  9.36(245)
+     layer 16 (L=16) beta 1 tau 2: no re-anchor r1/2/3 kept 10.38(285) 10.14(274) 10.12(273) | re-anchor 10.49(289) 10.33(279) 10.30(278)
+     layer 16 (L=16) beta 1 tau 4: no re-anchor r1/2/3 kept 11.78(340) 11.49(328) 11.49(328) | re-anchor 11.92(345) 11.83(338) 11.81(337)
+     layer 24 (L=24) beta 0 tau 1: no re-anchor r1/2/3 kept  3.05( 68)  2.94( 65)  2.94( 65) | re-anchor  3.09( 69)  2.94( 65)  2.94( 65)
+     layer 24 (L=24) beta 0 tau 2: no re-anchor r1/2/3 kept  3.77( 85)  3.62( 81)  3.61( 81) | re-anchor  3.79( 85)  3.62( 81)  3.62( 81)
+     layer 24 (L=24) beta 0 tau 4: no re-anchor r1/2/3 kept  5.56(130)  5.43(126)  5.43(126) | re-anchor  5.60(131)  5.44(126)  5.44(126)
+     layer 24 (L=24) beta 1 tau 1: no re-anchor r1/2/3 kept 10.23(262) 10.01(250) 10.02(250) | re-anchor 10.40(266) 10.15(254) 10.12(253)
+     layer 24 (L=24) beta 1 tau 2: no re-anchor r1/2/3 kept 11.16(295) 10.97(284) 10.97(283) | re-anchor 11.32(300) 11.05(287) 11.03(286)
+     layer 24 (L=24) beta 1 tau 4: no re-anchor r1/2/3 kept 12.48(352) 12.35(344) 12.35(343) | re-anchor 12.85(366) 12.65(353) 12.65(353)
+     layer 32 (L=32) beta 0 tau 1: no re-anchor r1/2/3 kept  2.79( 57)  2.68( 54)  2.67( 54) | re-anchor  2.80( 57)  2.68( 54)  2.68( 54)
+     layer 32 (L=32) beta 0 tau 2: no re-anchor r1/2/3 kept  3.40( 71)  3.28( 67)  3.27( 67) | re-anchor  3.43( 71)  3.29( 68)  3.28( 67)
+     layer 32 (L=32) beta 0 tau 4: no re-anchor r1/2/3 kept  5.17(112)  5.05(108)  5.05(108) | re-anchor  5.19(112)  5.06(109)  5.06(109)
+     layer 32 (L=32) beta 1 tau 1: no re-anchor r1/2/3 kept  9.72(231)  9.53(220)  9.47(219) | re-anchor  9.93(237)  9.59(222)  9.59(222)
+     layer 32 (L=32) beta 1 tau 2: no re-anchor r1/2/3 kept 10.62(265) 10.40(254) 10.40(253) | re-anchor 10.77(270) 10.47(256) 10.45(255)
+     layer 32 (L=32) beta 1 tau 4: no re-anchor r1/2/3 kept 12.17(329) 12.07(323) 12.07(322) | re-anchor 12.40(338) 12.33(331) 12.31(330)
+     layer 40 (L=40) beta 0 tau 1: no re-anchor r1/2/3 kept  3.22( 61)  3.12( 59)  3.12( 59) | re-anchor  3.26( 62)  3.13( 59)  3.11( 59)
+     layer 40 (L=40) beta 0 tau 2: no re-anchor r1/2/3 kept  3.99( 77)  3.91( 75)  3.89( 74) | re-anchor  4.05( 78)  3.88( 74)  3.88( 74)
+     layer 40 (L=40) beta 0 tau 4: no re-anchor r1/2/3 kept  6.24(129)  6.14(125)  6.13(125) | re-anchor  6.35(131)  6.15(125)  6.15(125)
+     layer 40 (L=40) beta 1 tau 1: no re-anchor r1/2/3 kept 11.24(261) 11.22(252) 11.18(249) | re-anchor 11.63(271) 11.32(255) 11.28(254)
+     layer 40 (L=40) beta 1 tau 2: no re-anchor r1/2/3 kept 11.92(291) 11.98(284) 12.01(283) | re-anchor 12.38(305) 12.19(291) 12.17(290)
+     layer 40 (L=40) beta 1 tau 4: no re-anchor r1/2/3 kept 13.20(357) 13.17(351) 13.17(350) | re-anchor 13.65(373) 13.48(360) 13.48(360)
+     layer 44 (L=44) beta 0 tau 1: no re-anchor r1/2/3 kept  5.02( 95)  4.79( 88)  4.79( 88) | re-anchor  5.12( 96)  4.82( 89)  4.78( 88)
+     layer 44 (L=44) beta 0 tau 2: no re-anchor r1/2/3 kept  6.26(122)  6.04(114)  6.07(114) | re-anchor  6.39(124)  6.08(115)  6.05(114)
+     layer 44 (L=44) beta 0 tau 4: no re-anchor r1/2/3 kept  8.78(186)  8.71(180)  8.74(179) | re-anchor  9.07(193)  8.87(183)  8.83(182)
+     layer 44 (L=44) beta 1 tau 1: no re-anchor r1/2/3 kept 12.48(290) 12.67(281) 12.70(279) | re-anchor 13.25(312) 13.12(294) 13.06(291)
+     layer 44 (L=44) beta 1 tau 2: no re-anchor r1/2/3 kept 13.25(328) 13.34(318) 13.36(315) | re-anchor 13.80(345) 13.86(332) 13.83(330)
+     layer 44 (L=44) beta 1 tau 4: no re-anchor r1/2/3 kept 14.26(394) 14.33(388) 14.39(387) | re-anchor 14.55(406) 14.72(401) 14.72(401)
+     layer 47 (L=48) beta 0 tau 1: no re-anchor r1/2/3 kept 13.12(281) 13.23(258) 13.36(256) | re-anchor 13.89(300) 13.54(267) 13.45(263)
+     layer 47 (L=48) beta 0 tau 2: no re-anchor r1/2/3 kept 13.89(313) 14.10(292) 14.26(292) | re-anchor 14.55(330) 14.59(307) 14.59(305)
+     layer 47 (L=48) beta 0 tau 4: no re-anchor r1/2/3 kept 14.69(375) 15.07(359) 15.21(362) | re-anchor 15.55(401) 15.62(384) 15.59(382)
+     layer 47 (L=48) beta 1 tau 1: no re-anchor r1/2/3 kept 15.66(378) 16.30(360) 16.47(356) | re-anchor 16.64(406) 17.00(383) 17.00(382)
+     layer 47 (L=48) beta 1 tau 2: no re-anchor r1/2/3 kept 15.59(395) 16.14(380) 16.30(378) | re-anchor 16.30(419) 16.78(406) 16.78(406)
+     layer 47 (L=48) beta 1 tau 4: no re-anchor r1/2/3 kept 15.07(420) 15.44(413) 15.55(414) | re-anchor 15.82(446) 16.10(441) 16.10(441)
+     layer 48 (L=48) beta 0 tau 1: no re-anchor r1/2/3 kept 17.91(430) 19.98(418) 21.11(416) | re-anchor 19.38(466) 21.32(464) 21.61(459)
+     layer 48 (L=48) beta 0 tau 2: no re-anchor r1/2/3 kept 16.95(435) 18.64(426) 18.92(419) | re-anchor 18.06(465) 19.09(462) 19.20(462)
+     layer 48 (L=48) beta 0 tau 4: no re-anchor r1/2/3 kept 15.98(441) 16.82(429) 17.05(428) | re-anchor 16.82(464) 17.28(463) 17.37(463)
+     layer 48 (L=48) beta 1 tau 1: no re-anchor r1/2/3 kept 16.56(431) 17.96(422) 18.59(423) | re-anchor 17.66(461) 18.75(461) 18.86(461)
+     layer 48 (L=48) beta 1 tau 2: no re-anchor r1/2/3 kept 16.02(436) 17.23(432) 17.37(429) | re-anchor 17.00(462) 17.61(461) 17.66(460)
+     layer 48 (L=48) beta 1 tau 4: no re-anchor r1/2/3 kept 15.51(446) 16.22(438) 16.39(439) | re-anchor 16.22(466) 16.52(464) 16.52(463)
+   (162 s)
+
