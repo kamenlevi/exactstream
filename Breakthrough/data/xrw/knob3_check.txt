@@ -1,0 +1,54 @@
+KNOB_V3 CHECK (G2 + G3): /Users/kamen/Breakthrough/data/xrw/knob_v3
+  G3 tgl16.py: knob_v3 e5747cebc18fcad18a54ab481d987a20 == knob_v2 e5747cebc18fcad18a54ab481d987a20: True
+  G3 tgl16v.py: knob_v3 272df4d93a7b22caed9b2da9a99815ae == knob_v2 272df4d93a7b22caed9b2da9a99815ae: True
+  G3 w4a8.py: knob_v3 75c9c3b29d42ca3c4de0ed70ec945ffe == knob_v2 75c9c3b29d42ca3c4de0ed70ec945ffe: True
+  G3 xgrp.py: knob_v3 6f7b3be9bafef860a7b75b138954e61d == knob_v2 6f7b3be9bafef860a7b75b138954e61d: True
+  G3 xknob.py vs knob_v2's: only the tgl16ef line + the docstring: True; diff:
+     -with ON[0] True a p11-store call goes to the candidate MODE[0] ("w4a8" = int8 x int4b, FAST; "tgl16" = bf16 threadgroup
+     +knob_v3 (Tue 17 Nov 21:2x) adds MODE "tgl16ef" = tgl16e with its grouping + rowsum64(x) from one dispatch (xfront.py),
+     +bitwise == tgl16e; every other line is knob_v2's.
+     +With ON[0] True a p11-store call goes to the candidate MODE[0] ("w4a8" = int8 x int4b, FAST; "tgl16" = bf16 threadgroup
+     +    if mode == "tgl16ef":                                  # knob_v3: tgl16e + the front fold (xfront.py), EXACT
+     +        import xfront
+     +        return xfront.tier_glu_nax6n_1cq_tgl16ef
+  G3 xfront.py: knob_v3 1fd6d0cb937c4a02b0ce1b84b73c1ed5 == scripts/xrw 1fd6d0cb937c4a02b0ce1b84b73c1ed5: True; VAR ['r']
+  L20 marks tf_code_HumanEval_10.npz rows 0-31: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L20 marks tf_code_HumanEval_10.npz rows 32-63: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L20 stack tf_code_HumanEval_10.npz rows 0-31: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L20 stack tf_code_HumanEval_10.npz rows 0-15: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L20 stack tf_code_HumanEval_10.npz rows 32-63: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L20 stack tf_code_HumanEval_10.npz rows 32-47: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L20 stack tf_code_HumanEval_10.npz rows 64-95: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L20 stack tf_code_HumanEval_10.npz rows 64-79: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L20 stack tf_code_HumanEval_10.npz rows 96-127: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L20 stack tf_code_HumanEval_10.npz rows 96-111: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L20 robust M  1: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L20 robust M  2: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L20 robust M  3: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L20 robust M  5: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L20 robust M  8: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L20 robust M 16: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L20 robust M 17: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L20 robust M 24: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L20 robust M 32: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L44 marks tf_code_HumanEval_10.npz rows 0-31: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L44 marks tf_code_HumanEval_10.npz rows 32-63: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L44 stack tf_code_HumanEval_10.npz rows 0-31: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L44 stack tf_code_HumanEval_10.npz rows 0-15: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L44 stack tf_code_HumanEval_10.npz rows 32-63: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L44 stack tf_code_HumanEval_10.npz rows 32-47: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L44 stack tf_code_HumanEval_10.npz rows 64-95: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L44 stack tf_code_HumanEval_10.npz rows 64-79: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L44 stack tf_code_HumanEval_10.npz rows 96-127: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L44 stack tf_code_HumanEval_10.npz rows 96-111: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L44 robust M  1: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L44 robust M  2: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L44 robust M  3: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L44 robust M  5: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L44 robust M  8: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L44 robust M 16: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L44 robust M 17: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L44 robust M 24: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  L44 robust M 32: tgl16e == orig True; tgl16ef == tgl16e True; tgl16ef == orig True; tgl16ef twice identical True; folded True
+  G2: 38 cases, 76 folded calls; xknob {'cand': 114, 'orig': 38, 'fallback_not_p11': 0}; xfront {'fold': 76, 'plain_big_p': 0, 'plain_src': 0}
+KNOB_V3 CHECK: G2 PASS; G3 PASS

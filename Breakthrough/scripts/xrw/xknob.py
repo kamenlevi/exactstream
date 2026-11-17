@@ -27,6 +27,9 @@ def impl(mode=None):
     if mode == "tgl16":
         import tgl16
         return tgl16.tier_glu_nax6n_1cq_tgl16
+    if mode == "tgl16ef":                                  # knob_v3: tgl16e + the front fold (xfront.py), EXACT
+        import xfront
+        return xfront.tier_glu_nax6n_1cq_tgl16ef
     if mode in ("tgl16g", "a8b16", "tgl16e", "tgl16eh", "tgl16ep", "tgl16eu", "w4a8u", "tgl16eu1"):   # tgl16v.py
         import tgl16v
         return getattr(tgl16v, f"tier_glu_nax6n_1cq_{mode}")

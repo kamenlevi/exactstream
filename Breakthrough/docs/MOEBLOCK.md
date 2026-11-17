@@ -265,3 +265,78 @@ paired per block: the median over the 12 blocks of per-block differences, each a
 - Block GPU-busy (Run B, 32 rows, L20 / L44): today 705.1 / 673.8, knob (tgl16eu) 621.3 / 602.9, f1 592.6 / 571.9,
   f2 573.0 / 555.1 us. Floor / GPU-busy: today 0.54 / 0.52 -> f2 0.66 / 0.63 (info).
 - The pre-registered efficiency verdict (wall-based, Run A) stays FAIL for every arm (floor / time 0.50-0.66).
+FRONT FOLD, STACK FORM (mode tgl16ef) - PRE-REGISTERED Tue 17 Nov 21:1x, before any of its code ran:
+- The ask (Leap 21:03): build it ONLY if it is BITWISE == today's front. Then it is an exact lever that can join Thu
+  night's exact timing and Saturday's stack without re-gating (NewIdeas places it), delivered as a frozen knob_v3 by
+  Thu ~12:00; Leap arms it in slot #4 (base path / F32c6x + fold, bits pairs). If it cannot be bitwise: skip.
+- Scope, read from ref2 before building: the engine builds pre_m / pre_l itself (the posts + the NW where-chain) and
+  only then calls the one-call that the knob wraps. So a knob can fold only what tgl16e runs inside the call:
+  gpu_grp_1cq (one threadgroup on the call's critical path; 9.0 / 16.5 us alone at P = 160 / 320, x6_grp_cost) and
+  rowsum64(x). The slots stay the engine's. F2's -18.7 us does NOT carry over (F2 also folded t1cf, the slots and xgrp
+  v2's heavier grouping).
+- Build: scripts/xrw/xfront.py. Mode "tgl16ef" calls knob_v2's tgl16e unchanged, with grp and xs from ONE dispatch:
+  threadgroup 0 groups the pairs; threadgroups 1.. compute rowsum64(x) with rowsum64's own loop (a sequential fp32 sum
+  per row and 64-value group). If P > 1024, it calls plain tgl16e (today's behaviour, including its assert).
+  Two grouping variants, both keyed by _GRP1CQ's own key code:
+  - V (verbatim): _GRP1CQ's text.
+  - S (sort): a bitonic sort by (key, pair index) plus a SIMD prefix count for seg. This is the same order _GRP1CQ's
+    rank loop defines, and the same segment starts (a new key, then every 16 pairs inside it).
+- Bitwise gates. All must hold, or there is no knob_v3 and Leap is told "not bitwise":
+  - G1 (front): for each variant, pidx (all P), nseg, seg[0..nseg] and xs must equal gpu_grp_1cq + rowsum64 exactly.
+    The kernels read seg only up to nseg. Cases:
+    - (a) 2,000 random synthetic calls: M 1..102, base slots including -1 / -2, sidecars including -1 / -2, few
+      distinct experts (key runs > 16 and > 32), bf16 x across magnitudes;
+    - (b) real routing ids from the decision map, L20 + L44, 16 + 32 rows.
+  - G2 (end to end, through the frozen knob_v3 imported first): tgl16ef == tgl16e == ooo1cq (ON off), bitwise in y,
+    rs_m and rs_l. Grid: knob_check's (L20 / L44, real 32-row blocks) plus xrw_robust's (M 1-32, QOM drops, no
+    nolsb marks = the stack's form).
+  - G3 (release diff): knob_v3's tgl16.py, tgl16v.py, w4a8.py and xgrp.py are byte-identical to knob_v2's (md5).
+    xknob.py = v2's plus the tgl16ef line. xfront.py is new.
+- Ship rule (piece timing). Measure the GPU interval of one command buffer, taking the min over real L20 blocks x
+  rounds, at P = 160 and 320:
+  - today = gpu_grp_1cq + rowsum64(x) in one command buffer, as tgl16e issues them;
+  - fold = the one dispatch.
+  Ship the faster bitwise variant iff fold < today at both P. Report L44 and the x 48-layer projection per check [P]
+  beside it; the engine's value is Leap's slot #4.
+RESULT, STACK FORM (Tue 21:15-21:19; share locks for the bitwise checks, a quiet lock for the timing; Kamen away):
+- G1 PASS for all three variants (data/xrw/xfront_check.txt, rerun with the negative control; the first pass,
+  identical, is xfront_check_first.txt). pidx, nseg, seg[0..nseg] and xs are bitwise == gpu_grp_1cq + rowsum64 on:
+  - 2,000 random calls (M 1..102; 1,242 with a full 16-pair segment);
+  - 48 real-routing calls (L20 / L44, 32 / 16 rows, 12 blocks each).
+  Negative control: pair 0's slot and x changed, detected in 18 / 20 calls per variant (a detection needs pidx / seg /
+  nseg AND xs to differ; in a miss the new key left the order and segments as they were).
+- Ship rule PASS for variants r and s; v fails (data/xrw/xfront_time.txt). GPU-busy per call, min over 12 real blocks x
+  8 rounds; today = gpu_grp_1cq + rowsum64(x) in one eval:
+
+  | layer, P | today | v | r | s |
+  |---|---|---|---|---|
+  | L20, 160 | 28.8 | 28.9 | 14.9 | 19.4 |
+  | L20, 320 | 16.7 | 16.2 | 8.0 | 8.1 |
+  | L44, 160 | 9.1 | 9.2 | 5.1 | 6.4 |
+  | L44, 320 | 16.8 | 16.4 | 8.2 | 8.3 |
+
+  -> SHIP r. L20 at 160 ran first, at a cold GPU clock (the same P reads 9.1 at L44), so take its absolute numbers as
+  low-clock; both arms were interleaved there, so the comparison stands.
+  - Clean savings per layer call: -8.7 / -8.6 us at 32 rows (L20 / L44) and -4.0 us at 16 rows (L44).
+  - x 48 layers: ~-0.41 ms per 32-row check and ~-0.19 ms per 16-row check [P]. That is below Leap's -0.5..-0.9 ms
+    estimate, which was read off F2.
+  - The saving is the faster exact grouping. rowsum64 already overlaps the grouping in today's command buffer (today
+    == grp alone), so the fold itself (v) saves ~0.4 us. The engine's value is Leap's slot #4.
+  - Timing metric fix (before any reading): the first pass took the span of the eval's command buffers, and with a
+    second, empty command buffer per eval (the sync's) it counted the host gap (70-110 us). Discarded
+    (xfront_time_span_DISCARDED.*); the rerun uses the union of busy intervals.
+- G2 PASS (data/xrw/knob3_check.txt). Through the frozen data/xrw/knob_v3 on the real pools of L20 + L44, tgl16ef ==
+  tgl16e == the original one-call, bitwise in y, rs_m and rs_l, and two runs identical, in all 38 cases:
+  - knob_check's marked blocks;
+  - the stack's form (raw ids, 32 / 16 rows);
+  - xrw_robust's grid (M 1-32, QOM drops, no marks).
+  76 fold calls, 0 fallbacks; peak 3.2 GB.
+- G3 PASS. knob_v3's tgl16.py / tgl16v.py / w4a8.py / xgrp.py md5 == knob_v2's. xknob.py adds only the tgl16ef lines
+  plus 2 docstring lines. xfront.py == scripts/xrw's (variant r). md5s in data/xrw/knob_v3.md5.
+-> DELIVERED: data/xrw/knob_v3, MODE "tgl16ef" (EXACT). Leap arms it in slot #4; NewIdeas places it.
+PLACEMENT (NewIdeas, Tue 21:2x): NOT in Saturday's stack, which stays knob_v2 + tgl16e (pin 20eaaf3).
+- If Leap's slot #4 (Thu) shows an engine gain, tgl16ef becomes the exact default right after Saturday with no
+  re-gating, since it is bitwise.
+- Why not now: Saturday's 16-row tree-16 check gains ~-0.19 ms of a ~45-55 ms cycle (~0.4 %), which one timing pass
+  cannot resolve, and a knob change in the gated build is not worth that before the engine has measured it.
+- Leap's slot #4 loads knob_v3 beside tgl16e (a bits pair, which must be bitwise) and reports xfront.COUNTS.

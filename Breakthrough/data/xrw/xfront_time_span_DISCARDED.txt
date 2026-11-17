@@ -1,0 +1,7 @@
+XFRONT TIME: GPU us per launch (one eval; span of its command buffers), min / p25 / median over 12 real blocks x 8 rounds; today = gpu_grp_1cq + rowsum64(x) together
+  L20_P160: today 87.1 / 102.9 / 109.7 (cbs [2]); grp 88.6 / 102.1 / 109.2 (cbs [2]); rs 66.5 / 71.2 / 77.9 (cbs [2]); v 87.3 / 101.2 / 109.5 (cbs [2]); r 72.8 / 82.9 / 89.0 (cbs [2]); s 80.4 / 89.2 / 95.6 (cbs [2])
+  L20_P320: today 16.6 / 69.3 / 76.3 (cbs [1, 2]); grp 16.7 / 69.0 / 77.9 (cbs [1, 2]); rs 2.5 / 54.7 / 58.8 (cbs [1, 2]); v 16.2 / 70.0 / 77.6 (cbs [1, 2]); r 7.9 / 60.3 / 67.7 (cbs [1, 2]); s 8.0 / 62.0 / 67.7 (cbs [1, 2])
+  L44_P160: today 9.2 / 57.9 / 62.1 (cbs [1, 2]); grp 9.1 / 57.0 / 61.5 (cbs [1, 2]); rs 2.3 / 50.5 / 54.9 (cbs [1, 2]); v 9.2 / 59.0 / 61.6 (cbs [1, 2]); r 5.0 / 5.4 / 57.5 (cbs [1, 2]); s 6.4 / 6.8 / 59.1 (cbs [1, 2])
+  L44_P320: today 16.7 / 17.2 / 67.8 (cbs [1, 2]); grp 16.7 / 17.2 / 67.9 (cbs [1, 2]); rs 2.4 / 2.6 / 52.6 (cbs [1, 2]); v 16.4 / 16.8 / 66.0 (cbs [1, 2]); r 8.1 / 8.5 / 58.1 (cbs [1, 2]); s 8.2 / 8.6 / 58.2 (cbs [1, 2])
+SHIP RULE (L20, min; fold < today at P = 160 and 320): v: 87.3 / 16.2 vs today 87.1 / 16.6 -> no; r: 72.8 / 7.9 vs today 87.1 / 16.6 -> pass; s: 80.4 / 8.0 vs today 87.1 / 16.6 -> pass
+  -> SHIP variant r; saving per call (min, today - fold): L20_P160 14.3 us; L20_P320 8.7 us; L44_P160 4.3 us; L44_P320 8.5 us; x 48 layers per check [P]: L20_P160 0.69 ms; L20_P320 0.42 ms; L44_P160 0.20 ms; L44_P320 0.41 ms

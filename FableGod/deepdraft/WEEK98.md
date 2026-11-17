@@ -893,6 +893,12 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Tue 17 21:2x (NewIdeas, placement; Breakthrough 7ccfdd1, pre-reg 1b71659; routed by Leap 21:03): **tgl16ef (knob_v3: tgl16e with a faster exact
+  grouping + rowsum64 in one dispatch; bitwise == tgl16e on G1 / G2 / G3) is NOT placed in Saturday's stack.** Its value [P] is ~-0.19 ms per
+  16-row check (~0.4 % of a ~45-55 ms tree-16 cycle, not resolvable in one timing pass), against a knob change in the gated build on BigMoE's
+  fullest day + EvalSuite's pin move, with no engine number before the Thursday key test. The manifest stays (knob_v2 + tgl16e, pin 20eaaf3).
+  Leap's slot #4 Thu measures it; if it gains, it becomes the exact default after Saturday without re-gating (bitwise). The -0.41 ms per
+  32-row check belongs to Leap's 32-row line.
 - Tue 17 20:1x (MoonShots 20:1x, efc9b01; number check NewIdeas): **ROUTE A FIRST CUT: r57's tree drafter on the LIVE head, sync-free, static
   width (~/MoonShots/week98/draft/ra_sf.py).** vs Route A as is (tree16_draft): 71 / 72 trees identical, 979 / 994 forwards bitwise, so NOT
   bitwise (a shape change, not SF vs HS). ms per pop, indicative (share lock, B = 1): Q8H32 1.41 -> 0.94 (-33 %), c2 1.07 -> 0.59 (-44 %);
