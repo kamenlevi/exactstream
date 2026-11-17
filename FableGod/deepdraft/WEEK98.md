@@ -53,6 +53,17 @@ don't care about that. I just need to get that."
 - **15:00 BigMoE V3KT PASS:** REF2_BOF=1 + REF2_HC_B=1 vs OFF (Leap b4331e4) are BITWISE identical (tokens + every
   check's verify logits; 4 code keys, 628 tokens, 90 checks; BOF 11,174 / HC_B 11,060 fires, drift 0). Scope is 16-row
   checks. **ON in Saturday's exact headline (ii).** Tonight's chain is M4 only.
+- **15:29 MoonShots: PK (persistent fused draft level) = KILL by its pre-registered skeleton line** (f 0.444 >= 0.25;
+  QUEUE M-46 5e063a9).
+  - Cold GEMVs read at ~260 GB/s at most on this chip, whatever the order. So 178 MB per pop gives f >= 0.076 from bytes
+    alone. A fully tuned bitwise PK would reach only x1.08-1.10 for ~3 days at ~50 % risk.
+  - The draft's real lever is BYTES per level. Orchestrator: KILL accepted. MoonShots now prepares the engine side for
+    S22's ~74-77 MB head, so a Thu PASS can be measured in the EXACT headline (no gate needed for a drafter swap).
+- 15:0x EvalSuite: G1 SKIPPED and filed (PREREG 5b, d66c334); G2 isn't run either. The stack amendment draft is lossy-45
+  + CC(1) + t30b Q8H32 tree-16 + GDN16 + tgl16e + sync-free.
+- 15:06 Breakthrough: tgl16eu does NOT need the 1c tiers (no-tier segments -13.9 % at 16 rows; unchanged pairs
+  bitwise). Orchestrator rule: if slot #3 (Wed 07:15) prices it at >= ~1 ms on the no-tier path, it goes back into the
+  stack amendment before Thursday's tier 1 (FAST, judged inside the stack's gate).
 > (a quote from the project owner, kept private)
   replies are BIG-only from now on.
 

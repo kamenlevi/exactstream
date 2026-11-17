@@ -262,7 +262,9 @@ def main():
     ap.add_argument("--capture", default=None, help="save tree_attn's inputs of the first SF tree (every pop) to this npz")
     ap.add_argument("--capture-finish", default=None,
                     help="save T.finish's inputs / output and moe_train's input / output of the first SF tree to this npz")
-    ap.add_argument("--screen", type=int, default=32768)
+    ap.add_argument("--screen", type=int, default=0, help="screen rows (0: the format's own, s22_format.FORMATS)")
+    ap.add_argument("--fmt", default="q8h32", help="--real format: q8h32 (today) | c2 (S22 / path A); s22_format.py")
+    ap.add_argument("--weights", default=None, help="the head's dd checkpoint (default dd_<run>.safetensors), e.g. S22's")
     ap.add_argument("--extra-cap", type=int, default=4096)
     ap.add_argument("--out", default=None)
     a = ap.parse_args()
@@ -279,7 +281,7 @@ def main():
     t0 = time.time()
     rt_, lm, head = M.load(a.frac)
     P = M.Trainable(head)
-    P.load_weights(os.path.join(DD.CKD, f"dd_{a.run}.safetensors")); mx.eval(P.parameters())
+    P.load_weights(a.weights or os.path.join(DD.CKD, f"dd_{a.run}.safetensors")); mx.eval(P.parameters())
     c = P3.CUTS[a.cut]
     done = P3.apply_cut(mx, c, P, head)
     base = None
@@ -293,23 +295,17 @@ def main():
     SHC = None
     if a.real:
         import mlx.nn as nn
-        assert a.cut == "none", "--real builds its own format (Q8 + the screen)"
+        assert a.cut == "none", "--real builds its own format (--fmt: s22_format.FORMATS + the screen)"
         a.no_ref = True
 
-        def qlin(lin):
-            w = lin.weight.astype(mx.bfloat16)
-            ql = nn.QuantizedLinear(w.shape[1], w.shape[0], bias=False, group_size=64, bits=8)
-            ql.weight, ql.scales, ql.biases = mx.quantize(w, group_size=64, bits=8)
-            return ql
-        for name in ("q_proj", "o_proj", "k_proj", "v_proj", "se_gate", "se_up", "se_down", "fc_hidden",
-                     "fc_embedding", "router"):
-            setattr(P, name, qlin(getattr(P, name)))
-            done.append(f"P.{name} Q8")
-        for gname, g in (("attn_hc", layer.attn_hyper_connection), ("mlp_hc", layer.mlp_hyper_connection),
-                         ("mixer", head.hyper_connection_mixer)):
-            for sub in ("input_mix_weight_down", "input_mix_weight_up"):
-                setattr(g, sub, qlin(getattr(g, sub)))
-                done.append(f"{gname}.{sub} Q8")
+        import s22_format as SF22
+        if not a.screen:
+            a.screen = SF22.FORMATS[a.fmt]["screen"]
+        fmt_done, fmt_orig = SF22.apply_real(mx, nn, P, head, a.fmt)
+        done += fmt_done
+        n_ok, n_mod, n_bad = SF22.check_vs_fakequant(mx, P, head, fmt_orig, P3.fq)
+        done.append(f"FORMAT CHECK {a.fmt}: {n_ok} / {n_mod} modules == M3's fake quant bitwise{' BAD ' + str(n_bad) if n_bad else ''}")
+        del fmt_orig
         mx.eval(P.parameters(), head.parameters())
         sys.path.insert(0, H("~/Leap/scripts"))
         from screened_head import ScreenedHead as SHC     # read-only import
@@ -520,7 +516,8 @@ def main():
         return dict(par=list(P_[:, 0]), tok=list(P_[:, 1]), dep=list(P_[:, 2]), bad=int(P_[:, 3].max()),
                     pp=list(np.array(G.npp)), ti=[np.array(x) for x in tis_l], tp=[np.array(x) for x in tp_l], h=HS[1:])
 
-    res = dict(set=a.set, nodes=NODES, k=K, cut=a.cut, windows=a.windows, trees=0, sf_eq_hs=0, sf_bad=0,
+    res = dict(fmt=(a.fmt if a.real else None), screen=(a.screen if a.real else None), weights=a.weights, format=done,
+               set=a.set, nodes=NODES, k=K, cut=a.cut, windows=a.windows, trees=0, sf_eq_hs=0, sf_bad=0,
                ref_tree_diff=0, ref_tp_cells_diff=0, ref_tp_cells=0, ref_tp_max_ulp=0, first_fail=None,
                ms_per_pop=dict(HS=[], SF=[], REF=[]))
     wins = [int(x) for x in a.windows.split(",")]
@@ -553,6 +550,14 @@ def main():
             sh = SHC(lm.lm_head, RANK[:a.screen], extra_cap=a.extra_cap)
             nx = sh.add(ids[:int(ancs.min()) + 2])
             SH["sh"] = sh
+            if "bytes_level" not in res:                     # dense + top-k routed experts + the screened rows, MB
+                from mlx.utils import tree_flatten
+                E = int(P.router.weight.shape[0])
+                eb = sum(v.nbytes for _, v in tree_flatten(head.layers[0].mlp.parameters()) if v.ndim >= 2 and v.shape[0] == E) / E
+                dn, ex, _ = SF22.bytes_per_level(P, head, None, int(head.layers[0].mlp.top_k), eb)
+                hr = sum(x.nbytes for x in (sh.w, sh.s, sh.b)) + int(nx) * (sh.xw.nbytes + sh.xs.nbytes + sh.xb.nbytes) // sh.cap
+                res["bytes_level"] = dict(dense_mb=dn / 1e6, experts_mb=ex / 1e6, head_mb=hr / 1e6, total_mb=(dn + ex + hr) / 1e6)
+                print(f"[sf] bytes per level: {res['bytes_level']}", flush=True)
             SH["idmap"] = mx.concatenate([sh.ids, sh.xids]) if sh.n_extra else sh.ids
             mx.eval(SH["idmap"])
             res.setdefault("extras", []).append(int(nx))

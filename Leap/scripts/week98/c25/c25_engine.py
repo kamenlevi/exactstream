@@ -23,6 +23,8 @@ Arms (C25_ARMS selects), each a set of components (CFG below):
            comment rows run COMQOM instead): F16's own config, so F16g == F16 bit for bit (a drift / noise check);
            its module arms below are g1c's HE+ flags (was lambda 1.8e-2 = the 1c-everywhere G1 that FAILED V2)
   F16n     1c tiers OFF: lossy-45's base path (R57_FAST=QOM's U3), g1c on MBPP / HumanEval-X / IFEval; F16nx = + GDN16 + tgl16eu
+           (c25 runs it with no keep masks: all 10 experts at 4-bit, an upper bound); F16ne = + GDN16 + tgl16e (EXACT), so
+           F16nx - F16ne isolates tgl16eu's upgrade on the no-tier path (the orchestrator 15:3x: back in the stack if >= ~1 ms)
   F16gd    F16g + GDN16 (m16.py: gdn_fast at 2-16 rows; bitwise: must equal F16g in every row)
   F32c6p   F32c6i + HC32P (m16.py: the 32-row HC read in one launch, per-call barrier slots; bitwise == F32c6i)
   F32c6x   F32c6i + the bitwise stack: FASTGDN + HC32P + seams at 32 rows (ref2 seam_hi 32) + int8fold (MODE bit)
@@ -46,7 +48,7 @@ import mlx.core as mx
 REC = []
 S = dict(ok=False, bits={}, notes=[])
 ALL = ["F16", "F32s", "F32o", "F32d", "F32df", "F32if", "F32if6", "F32c5", "F32c6i", "F32g", "F32c6g", "F16g", "F16gd",
-       "F32c6p", "F32c6x", "F16gk", "F16gu", "F32c6k", "F32c6u", "F16gx", "F32c6xu", "F16n", "F16nx"]
+       "F32c6p", "F32c6x", "F16gk", "F16gu", "F32c6k", "F32c6u", "F16gx", "F32c6xu", "F16n", "F16nx", "F16ne"]
 CFG = {"F16": {}, "F32s": {}, "F32o": dict(one=True, form="qmm32n"), "F32d": dict(one=True, form="dn32"),
        "F32df": dict(one=True, form="dn32", t1cf=True), "F32if": dict(one=True, form="dn32", t1cf=True, int8=True),
        "F32if6": dict(one=True, form="dn32", t1cf=True, int8=True, lam=0.018),
@@ -63,6 +65,7 @@ CFG = {"F16": {}, "F32s": {}, "F32o": dict(one=True, form="qmm32n"), "F32d": dic
        "F32c6u": dict(one=True, form="dn32", t1cf=True, hc4=True, v1=True, int8=True, lam=0.018, xk="tgl16eu"),
        "F16gx": dict(lam=0.016, gdn16=True, xk="tgl16eu"),
        "F16n": dict(no1c=True), "F16nx": dict(no1c=True, gdn16=True, xk="tgl16eu"),
+       "F16ne": dict(no1c=True, gdn16=True, xk="tgl16e"),
        "F32c6xu": dict(one=True, form="dn32", t1cf=True, hc4=True, v1=True, int8=True, lam=0.018, fastgdn=True, hc32p=True,
                       seam=True, fold=True, xk="tgl16eu")}
 ARMS = [a for a in os.environ.get("C25_ARMS", ",".join(ALL[:9])).split(",") if a]   # the 11-16 nine by default
@@ -75,7 +78,7 @@ PAIRS = [("F32s", "F16", "ratio"), ("F32o", "F16", "ratio"), ("F32df", "F16", "r
          ("F32c6p", "F32c6i", "diff"), ("F32c6x", "F32c6i", "diff"), ("F32c6x", "F16", "ratio"), ("F16gd", "F16", "diff"),
          ("F16gk", "F16g", "diff"), ("F16gu", "F16g", "diff"), ("F32c6k", "F32c6i", "diff"), ("F32c6u", "F32c6i", "diff"),
          ("F16gx", "F16g", "diff"), ("F16gx", "F16", "diff"), ("F32c6xu", "F32c6i", "diff"), ("F32c6xu", "F16", "ratio"),
-         ("F16n", "F16", "diff"), ("F16nx", "F16n", "diff")]
+         ("F16n", "F16", "diff"), ("F16nx", "F16n", "diff"), ("F16ne", "F16n", "diff"), ("F16nx", "F16ne", "diff")]
 E4_MB, E3_MB = 2.784, 2.064                              # MB per expert READ: records3 pieces, 4-bit = MSB + LSB part, MSB-3 =
                                                          # the MSB part (corrected 11-16 13:4x from 2.135 / 1.661: check25_bound_real.py)
 
@@ -323,7 +326,8 @@ def window(G, key, P, S0, gids, gen, Greq, first):
     for x, y in (("F32o", "F32s"), ("F32d", "F32s"), ("F32df", "F32d"), ("F32if", "F32df"), ("F32if6", "F32if"),
                  ("F32c5", "F32df"), ("F32c6i", "F32c5"), ("F32s", "F16"), ("F32g", "F32o"), ("F32c6g", "F32c6i"),
                  ("F16g", "F16"), ("F16gd", "F16g"), ("F32c6p", "F32c6i"), ("F32c6x", "F32c6i"), ("F16gk", "F16g"),
-                 ("F16gu", "F16g"), ("F32c6k", "F32c6i"), ("F32c6u", "F32c6i"), ("F16gx", "F16gu"), ("F32c6xu", "F32c6u"), ("F16n", "F16"), ("F16nx", "F16n")):
+                 ("F16gu", "F16g"), ("F32c6k", "F32c6i"), ("F32c6u", "F32c6i"), ("F16gx", "F16gu"), ("F32c6xu", "F32c6u"), ("F16n", "F16"), ("F16nx", "F16n"), ("F16ne", "F16n"),
+                 ("F16nx", "F16ne")):
         if x in LG and y in LG:
             A, B = (LG[x][:16], LG[y]) if y == "F16" else (LG[x], LG[y])
             b[f"{x}_vs_{y}"] = cmp(A, B)                        # (rows bitwise, argmax rows, rows, max |diff|)

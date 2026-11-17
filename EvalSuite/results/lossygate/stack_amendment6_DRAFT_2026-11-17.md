@@ -21,11 +21,14 @@ Prepared Tue 2026-11-17 09:4x from the orchestrator's decisions of 09:3x and 09:
 - **The orchestrator, 15:0x (Tue): the composition.** The stack is lossy-45 + CC(1) + the exact-safe engine levers:
   GDN16, tgl16e, sync-free, and the Q8H32 drafter.
   - G1 is SKIPPED this week: every G1 env carries the 1c tiers that failed V2 on HumanEval+ (PREREG 5b, dated 15:0x).
-  - tgl16eu is OUT. The orchestrator priced its extra gain at ~-1.5 ms (~3 % of the cycle), as measured with the
-    tiers.
-    - Breakthrough (15:0x) notes that the upgrade does not mechanically need the tiers: without them it still cuts
-      one-call segments 13.9 % at 16 rows (f09e1e6). Its engine value without the tiers is unmeasured. It raised this
-      with the orchestrator as a premise check; the decision stays the orchestrator's.
+  - **tgl16eu is CONDITIONAL** (the orchestrator 15:3x, correcting 15:0x's premise). Breakthrough showed it does not need
+    the 1c tiers: without them, one-call segments shrink 13.9 % at 16 rows, and the unchanged pairs stay bitwise
+    (f09e1e6).
+    - **The rule:** if Leap's slot #3 (Wed 07:15) prices tgl16eu at >= ~1 ms on the no-tier base path (F16nx vs the same
+      arm without it), it goes BACK into this amendment before Thursday's tier 1, as a FAST lever judged inside the
+      stack's gate. Otherwise it stays out, and tgl16e alone is in.
+    - BigMoE's live key test gives the real ON / OFF number (information, beside the rule).
+    - <Slot #3's reading, with its file: IN (R57_XRW=tgl16eu) or OUT (R57_XRW=tgl16e).>
 
 ### 1. The pins (from BigMoE's blob; the runner checks them at every start and per process)
 - **The env:** <path>, blob sha256 <...>, tag <...>. The snapshot trees, the screen and the .so are <...> (bm_pin).
@@ -101,6 +104,8 @@ Prepared Tue 2026-11-17 09:4x from the orchestrator's decisions of 09:3x and 09:
   - **Sync-free** and **the Q8H32 drafter:** above.
 - **Engagement (validity):** CARD_ENGAGE = close_call:accepted@run, tree:sib_accepted@run, xrw:cand@run <+ GDN16's
   field, if it has one>.
+  - If tgl16eu is back in, the tgl16e checks below apply with xrw.mode == "tgl16eu". Its upgrade changes outputs
+    (toward the 4-bit tier), so it is a FAST lever: the stack's tier 1 and card gate judge it, with no separate pass.
   - runs.json's "tree" block is {"nodes", "k", "checks", "sib_accepted"}. sib_accepted counts accepted nodes that are
     not their parent's head-top-1 child, i.e. what a chain could not have kept.
   - Runner 69's parser reads these as is. A term is field[:key+key][@run]; a dict field's listed keys are summed over
@@ -195,6 +200,8 @@ Prepared Tue 2026-11-17 09:4x from the orchestrator's decisions of 09:3x and 09:
   - tgl16e's R57_XRW value, and GDN16's flag;
   - any flag change forced by a test.
   - The tree flags, the CC-on-tree rule, the engagement field and chat's path are named (10:56 Tue).
+- **Leap (Wed 07:15, slot #3):** tgl16eu's price on the no-tier base path (F16nx vs the same arm without it). At >= ~1 ms
+  it is back in, by the orchestrator's 15:3x rule.
 - **Leap / Breakthrough:** DONE 15:0x, both bitwise records are cited above. Still open: GDN16's runs.json field, if
   r57 writes one (BigMoE).
 - **NewIdeas:** a per-check cap on close calls (R57_TREE_CC_MAX) or none, by Wed midday.

@@ -122,3 +122,60 @@ Confidence [G]:
 - GRANDMA's 261 assumes 0.37 ms per level for path A's 76.7 MB head. Path A failed its quality line (C2 x0.874). Q8H32
   reads ~163 MB per pop.
 - f <= 0.10 means running at the measured overlap bound (0.092). The realistic range is 0.12-0.18 [G].
+
+## SKELETON VERDICT (Tue 17 Nov 15:29, quiet lock): KILL by the pre-registered line (f >= 0.25)
+**Measured (quiet; pk_skel2_quiet.json / .log, pk_qcold_quiet.log).**
+- The tuned skeleton (v2, the one tuning pass) takes **1.053 ms per pop** against a byte floor of 0.609 ms (178.2 MB at
+  292.7 GB/s): **f = 0.444**.
+  - 17 grid barriers cost 0.029 ms per pop.
+  - A plain stream of the same bytes reads at 289.5 GB/s.
+  - 0 barrier failures. 40 x 512 threadgroups are co-resident.
+- **Cold GEMV rate, the decisive fact.** MLX's shipped 8-bit qmv_fast reads cold weights at 260 / 257 / 236 GB/s (q_proj /
+  o_proj / fc).
+  - The impl is bitwise == mx.quantized_matmul on every PK shape (pk_qpf.py).
+  - A NON-bitwise row-stream GEMV is no faster: 267 / 261 / 251 GB/s.
+  - Prefetch variants change nothing.
+  - So ~260 GB/s is this chip's cold rate for these GEMVs, whatever the order.
+
+**Per-phase increments** (cumulative masks, pk_skel2_ablate.json; us per pop):
+
+| phase | us | note |
+|---|---|---|
+| fuse | 76 | |
+| attention HC | 13 | |
+| q / k / v | 170 | 36.2 MB = 213 GB/s |
+| scores | 11 | |
+| softmax + PV | 90 | |
+| o_proj | 68 | |
+| MLP HC | 52 | |
+| router + shared expert | 54 | |
+| experts gate / up | 84 | |
+| experts down | 54 | |
+| mixer HC | 67 | |
+| head | 202 | 53.1 MB = 263 GB/s |
+| tail | 84 | |
+| barriers | 32 | |
+
+**Why f <= 0.10 is out of reach on this format.**
+- 178 MB per pop at <= 260 GB/s is 0.685 ms, so f >= 0.076 from the GEMV rate alone, and the barriers alone take 0.029.
+- **Optimistic ceiling** (us; every GEMV phase at the cold rate, small Q8 GEMVs at ~240 GB/s, attention 25 us (stock
+  tree_attn: 77), tail 12):
+  - big GEMVs: 580;
+  - small GEMVs: 115;
+  - attention: 25;
+  - tail: 12;
+  - barriers: 29;
+  - total: ~0.76 ms per pop, **f ~ 0.15-0.20 at best**.
+- That is a pop of ~0.76-0.81 ms vs SF's 1.11 (-0.30 to -0.35 ms per pop), i.e. -4.5 to -5.3 ms per tree-16 block:
+  HE+ 211 -> ~228-232 (x1.08-1.10).
+- The cost: the full bitwise build (attention, moe_train, head + tail, HC, norms, RoPE), ~3 days at ~50 % risk.
+
+**What failed / what was learned.**
+1. Each phase moves at most ~260 GB/s cold, so the persistent form saves only the boundaries: 1.11 (SF) -> 1.05.
+2. Dedicated helper simdgroups with per-round threadgroup barriers made it slower (1.67-1.86 ms). BET 7 had already
+   killed separate touch kernels.
+3. Two persistent kernels must never overlap. Trees without a data dependency between them deadlocked into spin caps
+   until chained through the frontier state. That is a hard integration rule for any PK.
+
+**Recommendation.** KILL as pre-registered. The draft's lever is the bytes per level (a head that reads less), not the
+fixed cost: f is bounded below by bytes / 260 GB/s.
