@@ -95,3 +95,9 @@ exact screen did not settle the lossy case. Replayed with tree_cc32's tree + CC 
 - MBPP +0.1-0.2 % on every model. Hindsight ceiling HE+ +15-19 %.
 - Self-checks: kept 11.263 / 16.263 (exact) and 11.762 / 16.910 (CC), the published values.
 Registered line: HOLDS at >= +5 % HE+ (CC, v4pass, tau 0.9). Result: HOLDS.
+
+## Switch cost budget (Tue 03:1x; adaptk_switch.py / .txt)
+
+Consecutive checks change row count on 16-17 % of HE+ checks (1 % on MBPP): the choices cluster. With s ms
+paid per switch, HE+ exact stays +8.2 % at s 2 and +6.9 % at s 8; CC(1) on v4 costs +8.1 / +5.5 %. So a
+switch may cost several ms; keeping both kernels' buffers live is enough.
