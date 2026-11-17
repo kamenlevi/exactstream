@@ -26,3 +26,22 @@
 - In-process alternative (no file): apply exactly the quantize call above to the same 16 modules at load.
   - Dequantize back for the measured form, or keep them packed for quantized matmuls.
   - This is p3_dd_tree.py's apply_cut with CUTS['Q8'] plus ScreenedHead(RANK[:32768]).
+- ENGINE NOTE (MoonShots 20:12, measured on r57's live head): se_gatew is fp32 ("as stored in t30b"). Installed as a
+  plain Linear, its fp32 output promotes the MoE output and the residual stream to fp32. The stored experts'
+  bf16-scale gather_qmm then costs ~1.25 ms each: the MTP MoE takes 6.0 ms per pop instead of 0.55.
+  - Cast se_gatew's output to the stream's dtype, as TrainLab mtp125's moe_train does (.astype(hyper.dtype)).
+  - BigMoE has the fix. The artifacts themselves don't change.
+
+# C2-QAT head pin (S22 qa; the orchestrator 19:4x: ONE A/B vs Q8H32 in Thursday night's EXACT timing, never lossy)
+- File: ~/datasets/deepdraft/ckpt/dd_t30qa.safetensors (276.6 MB),
+  sha256 353965c596dc363001913fc9ccf22bf1a72bd2f9d6ecbe562d7acd671d346ad7.
+  - Made read-only (chmod a-w) so nothing overwrites it until Saturday; the same for its .json / _opt.
+- LATENT fp32 weights of mtp125.Trainable(head)'s 10 Linears (t30b's keys). THE ENGINE APPLIES C2's CUT: MoonShots'
+  p3_dd_tree.CUTS['C2'] =
+  - 4-bit Linears (bf16 cast -> mx.quantize g64 -> dequantize), router 8-bit;
+  - the head's 6 HC mixes at 4 bits;
+  - routed experts top-k 4; the 8K screen (frspec_rank[:8192] + session tokens).
+  - This is exactly the form it was trained under (sb98/dd_qat.py, STE) and scored in (sb98/m3_tree.py --cut C2).
+- The same se_gatew cast applies.
+- Measured kept (125B, M3 TRUE-STATE, vs the full t30b): HE+ t16 x0.9513 / t32 x0.8849; MBPP t16 x0.9393 / t32
+  x0.9097 (REPORT 'S22 QATC2 RESULT', 0669fe3).

@@ -893,6 +893,14 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Tue 17 20:1x (MoonShots 20:1x, efc9b01; number check NewIdeas): **ROUTE A FIRST CUT: r57's tree drafter on the LIVE head, sync-free, static
+  width (~/MoonShots/week98/draft/ra_sf.py).** vs Route A as is (tree16_draft): 71 / 72 trees identical, 979 / 994 forwards bitwise, so NOT
+  bitwise (a shape change, not SF vs HS). ms per pop, indicative (share lock, B = 1): Q8H32 1.41 -> 0.94 (-33 %), c2 1.07 -> 0.59 (-44 %);
+  at ~15 pops per tree-16 block that is ~14.1 ms (Q8H32) vs ~8.9 (c2), against the 16.6 ms this week's estimates used. MUST-KNOW: t30b's
+  fp32 se_gatew installed as is turns the live stream fp32 (MTP MoE 6.0 vs 0.55 ms per pop); fixed with an output cast.
+  Number check: exact mode is unaffected (token identity covers any drafter form). LOSSY: the drafter form in BigMoE's Thu-midday blob must be
+  the one in tier 1, runner 69's timing and the card gate; no swap after the key test. The stack amendment names the form (by blob) and the
+  cast. Open: whether the cast touches R57_T30B_FMT=stored (the count check needs the dumps' numerics).
 - Tue 17 19:5x (NewIdeas; BigMoE 19:50, MoonShots 19:5x): **THE THURSDAY-NIGHT EXACT A/B IS FULLY SPECIFIED.** MoonShots M-47 READY on
   S22's real checkpoint (sha256 verified; c2 16 / 16 bitwise; HE+ t16 SF == HS 48 / 48; 74.7 MB per level; indicative 0.736 vs 1.207 ms per pop:
   a tree-16 block ~11.0 vs ~16.6 ms). BigMoE: A = R57_T30B_FMT=q8h32, B = R57_T30B_FMT=c2 + R57_T30B_W=~/datasets/deepdraft/ckpt/
