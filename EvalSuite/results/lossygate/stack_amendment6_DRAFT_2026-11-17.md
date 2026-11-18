@@ -1,10 +1,12 @@
-# DRAFT, not filed: PREREG_lossygate amendment 6, the GATED, MEASURED lossy stack for Saturday (lossy-45 + CC(1) + the t30b Q8H32 tree-16 drafter + tgl16eu + the exact-safe engine levers)
+# DRAFT, not filed: PREREG_lossygate amendment 6, the GATED, MEASURED lossy stack for Saturday (blob 1: the t30b Q8H32 tree-16 drafter + CC(1) + tgl16eu on the exact-safe base; the fallback: lossy-45 + bitwise flags)
 
 Prepared Tue 2026-11-17 09:4x from the orchestrator's decisions of 09:3x and 09:4x (relayed by NewIdeas). Rewritten at
 15:0x for the orchestrator's 15:0x composition: G1 is skipped, tgl16eu is out, and tgl16e and GDN16 are in. Updated
 Wed 04:3x: tgl16eu is back IN (the orchestrator 04:3x, by its 15:3x rule). The base line, the format, sync-free and the
 CC cap are settled (section 1). Wed 07:4x: section 8 adds the second tier-1 passes and the card gate's choice of stack
 (the orchestrator's GO on NewIdeas' ALL_LEVERS_PLAN), with NewIdeas' answers to its six open points (received 07:4x).
+Wed 08:1x: blob 1 carries no R2 / QOM, the fallback headline is lossy-45 + bitwise flags, and blob 1's first bisect
+goes by the failing line (the orchestrator, received 08:0x; NewIdeas' plan section 1b).
 - It is filed into docs/PREREG_lossygate_2026-11-15.md when BigMoE sends the stack's blob (Thu ~midday). That is
   BEFORE the smoke and before any stack data.
 - Placeholders are in <angle brackets>. The open points are listed at the end.
@@ -41,20 +43,24 @@ CC cap are settled (section 1). Wed 07:4x: section 8 adds the second tier-1 pass
         lever reads. F16ne vs F16n: 16 / 16 rows bitwise in each window.
       - Deterministic: F16nx's pass K bits equal its pass T bits, 16 / 16 rows in all 3 windows.
       - The release: "C25: xknob release knob_v2" (line 21), as in slot #2 (n2_run.txt line 21).
+- **The orchestrator with BigMoE, Wed 07:5x, and the orchestrator, received 08:0x** (NewIdeas' plan section 1b,
+  ab2c2ff and 3fee5e0):
+  - r57's TREE16 path admits none of lossy-45's lossy levers: lossy-45's QOM masks need DFlash's cf, and R2
+    (RELAX_SPAN) is chain-only. So blob 1 carries no R2 / QOM (section 1).
+  - A fallback headline is added: lx45cc1 + bitwise flags, chosen after EvalSuite's 08:0x finding (section 8).
+  - Blob 1's first bisect goes by the failing line (section 6).
 
 ### 1. The pins (from BigMoE's blob; the runner checks them at every start and per process)
 - **The env:** <path>, blob sha256 <...>, tag <...>. The snapshot trees, the screen and the .so are <...> (bm_pin).
-- **The base: lossy-45 + CC(1)** (BigMoE 15:32 Tue, checked here Wed 04:3x). It is ccx45cc1's line verbatim
-  (~/BigMoE/data/stack/ccx45cc1_env.txt line 2, 36 flags): lx45cc1 + R57_RELAX_DELTA=1 +
-  R57_RELAX_DELTA_SETS=humaneval,humanevalx,mbpp.
-  - lx45cc1's flags equal lx45g1b's (parsed with the comma lists whole).
-  - It has no R57_TIERS (so no 1c tiers), no R57_XRW and no R57_DRAFT. QOM is on humaneval,mbpp (R57_FAST=QOM).
-  - BigMoE adds on top: R57_DRAFT=t30b R57_T30B_FMT=q8h32 R57_TREE_NODES=15 R57_TREE_K=8 R57_TREE_SF=1
-    R57_XRW=tgl16eu, and GDN16's flag.
-  - REF2_BOF / REF2_HC_B (BigMoE's V3KT PASS, 15:00 Tue) are in the exact headline (ii) only. They enter this stack only
-    if the orchestrator says so. PK (R57_TREE_PK) is out (MoonShots' skeleton KILL, 15:29 Tue).
-  - The CC(1) chain arm (ccx45cc1) PASSED tier 1 in both orders on Monday night (RESULT_lossygate_2026-11-17).
-  - CC(1) uses amendment 3's flags unchanged: R57_RELAX_DELTA=1, R57_RELAX_DELTA_SETS=humaneval,humanevalx,mbpp.
+- **Blob 1's base** (the orchestrator with BigMoE, 07:5x Wed): the base path's exact-safe verify levers, as BigMoE's
+  blob manifests them, with NO R2 / QOM. <The manifest's flag list, Thu midday.>
+  - CC(1) runs on the tree walk with amendment 3's flags: R57_RELAX_DELTA=1,
+    R57_RELAX_DELTA_SETS=humaneval,humanevalx,mbpp.
+  - On top: R57_DRAFT=t30b R57_T30B_FMT=q8h32 R57_TREE_NODES=15 R57_TREE_K=8 R57_TREE_SF=1 R57_XRW=tgl16eu, and
+    GDN16's flag. Whether REF2_BOF / REF2_HC_B (BigMoE's V3KT PASS, 15:00 Tue) are among the exact-safe levers: the
+    manifest says. PK (R57_TREE_PK) is out (MoonShots' skeleton KILL, 15:29 Tue).
+  - Superseded at 07:5x: until then this bullet named lossy-45 + CC(1) (ccx45cc1's line, checked here 04:3x) as the
+    base. lx45cc1's line is now the fallback's (section 8).
 - **The drafter** (BigMoE's flags, 10:56 Tue; final unless a test forces a change, and BigMoE says so first):
   - **Code:** R57_DRAFT=t30b, i.e. code drafting by t30b over the shipped MTP layer (unset = DFlash, as today).
     - **The format (Q8H32):** R57_T30B_FMT=q8h32, i.e. MTP Head's t30b_q8h32.safetensors (b5388cc4...) + Leap's
@@ -156,7 +162,7 @@ CC cap are settled (section 1). Wed 07:4x: section 8 adds the second tier-1 pass
         call (checked here Wed 04:3x; the five files still match the md5 table).
     - xrw.cand > 0 (the engagement term) also proves the one-call path is on (REF2_OOO_1C=1 + REF2_NAX_1CQ=1). The 1c
       tiers are a separate flag (R57_TIERS=1c), so dropping them keeps the knob active (Breakthrough 15:0x).
-  - The QOM sets are humaneval,mbpp (R57_FAST=QOM and R57_QOM_SETS, in the base line).
+  - Blob 1 has no QOM. (The fallback's QOM sets are humaneval,mbpp, in lx45cc1's line.)
 - **The format's evidence:**
   - MoonShots' Q8 PASS on Tue was the basis of the orchestrator's 09:4x choice (~/MoonShots/week98/draft/
     DRAFT_PLAN_1117.md, STATUS Tue 11:1x). The Q8 run was moved up to Tuesday, so there is no Wed read-out (MoonShots
@@ -203,8 +209,11 @@ CC cap are settled (section 1). Wed 07:4x: section 8 adds the second tier-1 pass
 - **Tiers 0 and 0a** are not run. They only kill, the smoke checks function, and tier 1 decides.
 
 ### 4. The headline timing run (i) (Thursday night, first in the night's order)
-- **What runs:** runner 69, CARD_TIMING=1, with the stack's pinned env on the chosen format.
-  - One queued quiet lock (90 min) and no share locks.
+- **What runs:** runner 69, CARD_TIMING=1, in two arms (the orchestrator with BigMoE, 07:5x): blob 1 (B1 if #1
+  failed) and the fallback, each on its pinned env. They run in order-balanced halves (half 1: blob 1, then the
+  fallback; half 2: the reverse), ~90 min, and everything after shifts ~45 min.
+  - One queued quiet lock (<~2 h>) and no share locks.
+  - The fallback arm also gives its identity check (section 8).
   - HumanEval+ 164 + MBPP 100 (the code keys; IFEval dropped), in the panel's forward order, one order. No verdict.
 - **The number:** whole decode, n / decode wall (sum n / sum(n / tps)), per set and pooled.
   - The config line goes beside it: format, screen, tree flags, CC(1), sync-free, tgl16eu, the exact-safe levers.
@@ -212,7 +221,7 @@ CC cap are settled (section 1). Wed 07:4x: section 8 adds the second tier-1 pass
 - **Heat:** a heat pause inside a timed decode (the fanwatch log) taints that answer, and the answer is re-run (twice at
   most).
 - **The night's order (NewIdeas):**
-  1. this run, ~45 min, quiet;
+  1. this run, two arms in halves, ~90 min, quiet;
   2. BigMoE's exact timing (ii): t30b + tree-16, HE+ 164 + MBPP 100, token identity 264 / 264;
   3. CERTIFY98's count check, ~30 min (its own PREREG: t30b as stored, chain-32, exact acceptance).
 
@@ -232,8 +241,15 @@ CC cap are settled (section 1). Wed 07:4x: section 8 adds the second tier-1 pass
 - **A tier-1 FAIL:** the stack is not adopted, and any number is information only.
   - A bisect is a NEW config. It needs its own dated amendment before its data, and its own tier 1 and card gate. This
     gate's runs are not reused as its reference.
-- **The first bisect** (the orchestrator Wed 04:3x): if the stack fails, the first bisect turns tgl16eu off
-  (R57_XRW=tgl16e, everything else unchanged). It is a new config under the rule above.
+- **The first bisect, by the failing line** (the orchestrator, received 08:0x Wed; it replaces 04:3x's "tgl16eu off").
+  The line is read from the verdict that ended blob 1's tier 1 (the interim, the forward order alone, or the pooled
+  pair).
+  - The runaway guard fails: CC(1) off (R57_RELAX_DELTA and R57_RELAX_DELTA_SETS unset), everything else unchanged.
+  - An accuracy line fails (the pooled line, a set's decision 4, or the interim STOP-FAIL): tgl16eu off
+    (R57_XRW=tgl16e), everything else unchanged.
+  - Both fail: both off.
+  - It is a new config under the rule above. Why: Monday's CC(1) arm FAILS the runaway guard against exact, while its
+    lossy-45 base passes (RESULT_lossygate_2026-11-17, Wed section).
 
 ### 7. Carried over
 - **BREAK98_HOLD:** nothing starts while it exists. A running step yields at once and resumes when it is gone.
@@ -258,7 +274,8 @@ CC cap are settled (section 1). Wed 07:4x: section 8 adds the second tier-1 pass
   - **CONDITIONAL** (NewIdeas, received 07:4x Wed). #2a runs only if Leap's slot #4 w4a8u arm (Thu ~08:00-09:30) shows
     >= ~1 ms per 16-row check over tgl16eu, deterministic, with no extra expert GB. That is the bar tgl16eu cleared.
     The answer is known by ~10:00 Thu, so the filed amendment states it with its record: <runs | does not run; file>.
-  - Otherwise there is no #2a, and w4a8u stays out of 2b. Thursday night ends after (iii), or runs B1 if #1 failed.
+  - Otherwise there is no #2a, and w4a8u stays out of 2b. The slot then runs blob 2u, or B1 if #1 failed (the slot's
+    order, below).
   - Why (Breakthrough's correction): w4a8u over tgl16eu is only ~-0.3 ms per 16-row check [P], not -1..-2 ms. It
     moves every pair: rel L2 vs tgl16eu mean 0.028, max 0.075, ~6x tgl16eu's own error vs fp32. Its release check
     through the frozen knob_v2 PASSES (Breakthrough 644f189).
@@ -278,9 +295,30 @@ CC cap are settled (section 1). Wed 07:4x: section 8 adds the second tier-1 pass
   - The chain compares blob 2a's flags with blob 1's before the smoke, and refuses any other difference.
   - Validity as blob 1's, with xrw.mode == "w4a8u".
   - It reads w4a8u ALONE, so its ~3 % expert-output error can't sink Friday's bundle.
+- **The fallback headline** (the orchestrator, received 08:0x Wed; it replaces 07:5x's ccx45cc1-based one): lx45cc1
+  (lossy-45: DFlash chain-16 with QOM + R2, no CC(1)) + bitwise flags only: REF2_BOF / REF2_HC_B, GDN16, tgl16e.
+  - It has no tier 1 of its own. Its standing against EXACT comes from lx45cc1's stored tier-1 answers, scored post
+    hoc: PASS on every line (pooled -0.57 pt p 0.70; runaway 16 / 9, p 0.23; RESULT_lossygate_2026-11-17, Wed
+    section). The write-up carries that caveat. ccx45cc1 (+ CC(1)) FAILS the runaway guard against exact (14 / 2,
+    p 0.0042), so it is not the fallback.
+  - lx45cc1's line: ~/BigMoE/data/stack/lx45cc1_env.txt line 2, 34 flags (ccx45cc1's 36 minus R57_RELAX_DELTA and
+    R57_RELAX_DELTA_SETS; checked here Wed 04:3x), equal to lx45g1b's. No R57_TIERS, R57_XRW or R57_DRAFT; QOM on
+    humaneval,mbpp.
+  - tgl16eu is FAST (argmax-equal, not bitwise), so the fallback carries tgl16e, not tgl16eu.
+  - **Its validity: identity** (the orchestrator, received 08:0x). Timing (i)'s fallback arm must reproduce lx45cc1's
+    104 humanevalx answers exactly (completion ids). lx45cc1's stored forward and reverse runs agree on all 104, and on
+    all 100 ifeval keys; they differ only on QOM's sets (humaneval 28 / 60, mbpp 65 / 100; checked here 08:0x). On a
+    mismatch, the fallback does not carry that standing.
+- **Blob 2u (the AUTOMATIC UPGRADE):** if #2a does not run and #1 passed, the slot after (iii) runs key test + tier 1 on
+  blob 2u = the fallback with R57_XRW=tgl16eu in place of tgl16e (~-2.7 ms per check), against the EXACT references.
+  A PASS lets the fallback carry tgl16eu.
+- **The slot's order:** blob 2a if it exists, else blob 2u. If #1 failed, B1 takes the slot instead.
+- **Timing for a passing 2u or 2b not yet timed:** a free quiet slot on Friday by day; else an extra arm of timing #2 on
+  Friday night (the verdict slips ~45 min).
 - **#2b (Friday 08:00; the blob is cut at 07:30):** blob 1 + the bundle's flags whose own bit or unit tests passed by
   Fri 07:00. The candidates are c2 in lossy (if it won Thursday night's A/B), ADAPTIVE K, the MoE block (if FAST), DROP,
-  dynamic vocabulary, and w4a8u in place of tgl16eu (if #2a passed).
+  dynamic vocabulary, w4a8u in place of tgl16eu (if #2a passed), and R2 + QOM_MTP on trees (BigMoE's tree ports).
+  The last two enter only if bit-tested by Fri 07:00 (plan section 1b), like every other flag.
   - BigMoE's cut list names, per flag: its passing test record, its runs.json engagement field (added to
     CARD_ENGAGE), and its landing time. A flag without an engagement field stays out (NewIdeas, received 07:4x).
   - EvalSuite files the 2b addendum (the list and the pins) before #2b's data, and the chain waits for that commit.
@@ -288,17 +326,21 @@ CC cap are settled (section 1). Wed 07:4x: section 8 adds the second tier-1 pass
     than R57_XRW=w4a8u (then 2a needs its own addendum before its data).
 - **The bisect (contract NO only):** if #2b fails tier 1, there is one pass, 11:15-13:45, on 2b minus its newest lever
   (the latest landing time). It is a new config, with its own addendum before its data.
-- **If #1 fails** (NewIdeas, received 07:4x): the orchestrator's first bisect B1 (#1 with R57_XRW=tgl16e, 04:3x) takes
-  #2a's night slot. w4a8u is then out, since it shares tgl16eu's upgrade grouping. Timing #1 on Thursday night times B1
-  instead of #1, and 2b builds on whichever of #1 and B1 passed. If neither passed, nothing has passed (below).
-- **The card gate's stack (frozen Fri 22:00):** the last stack in time that passed tier 1, if it also won its timing;
-  else the stack timing #1 timed (Thursday's stack, or B1 if #1 failed).
-  - Timing #2 (runner 69, quiet, ~45 min, Fri 23:35) runs only if that stack differs from timing #1's.
-  - **"Won"** (NewIdeas, received 07:4x): timing #2's pooled whole-decode tok/s (HE+ 164 + MBPP 100; section 4's
-    definition) >= 1.01 x timing #1's. Under that, timing #1's stack goes to the card gate. Both numbers are quoted
-    either way. The reason: a card-gate FAIL leaves no time for a second card gate, and a sub-1 % edge is inside
-    cross-night noise.
-  - If nothing passed tier 1, there is no card gate, and the reading is "measured, not gated".
+- **If #1 fails** (NewIdeas, received 07:4x; the bisect's form by the orchestrator, received 08:0x): the first bisect
+  B1 (section 6: CC(1) off, tgl16eu off, or both, by the failing line) takes the night slot. w4a8u is then out. Timing
+  (i)'s tree arm is B1 instead of blob 1, and 2b builds on whichever of #1 and B1 passed.
+- **Thursday's stack** (the orchestrator with BigMoE, 07:5x): blob 1 if it passed tier 1 #1 AND beats the fallback by
+  >= 1 % pooled in timing (i); else the fallback (fewer new parts). If #1 failed, B1 stands in for blob 1, and needs its
+  own tier-1 PASS in the slot.
+- **The card gate's stack (frozen Fri 22:00):** the last stack in time that passed tier 1, if it also won its timing
+  against Thursday's stack; else Thursday's stack. The card gate takes the winner.
+  - Timing #2 (runner 69, quiet, ~45 min, Fri 23:35) runs only if that stack differs from Thursday's.
+  - **"Won"** (NewIdeas, received 07:4x): pooled whole-decode tok/s (HE+ 164 + MBPP 100; section 4's definition) >=
+    1.01 x Thursday's stack's arm in timing (i). Under that, Thursday's stack goes to the card gate. Both numbers are
+    quoted either way. The reason: a card-gate FAIL leaves no time for a second card gate, and a sub-1 % edge is
+    inside cross-night noise.
+  - If no stack holds a tier-1 PASS (the fallback's standing included), there is no card gate, and the reading is
+    "measured, not gated".
 - **Multiplicity:** up to four tier-1 passes read the same 364 keys. The choice among them is pre-registered (the
   latest pass, then its timing), never by tier-1 score, and the card gate's benchmarks are separate from tier 1's. The
   reading lists every pass and its verdict.
@@ -309,10 +351,13 @@ CC cap are settled (section 1). Wed 07:4x: section 8 adds the second tier-1 pass
   Part A, there is no #2a, and #2b follows stage 2, with no bisect.
 
 ## Open (to settle before filing)
+- **The orchestrator:** DONE (received Wed 08:0x): the fallback = lx45cc1 + bitwise flags, the bisect by the failing
+  line, and the humanevalx identity check.
 - **NewIdeas:** DONE (received Wed 07:4x), section 8's six points, as written there. The 64-row clamp's gate is
   pre-registered after the verdict.
 - **BigMoE:**
-  - the blob (Thu midday): the env path, its sha256 and the snapshot, with the base line above in it;
+  - the blobs (Thu midday): blob 1 (with its manifest's flag list) and the fallback's (lx45cc1's line + REF2_BOF /
+    REF2_HC_B, GDN16, tgl16e), each with its env path, sha256 and snapshot;
   - GDN16's flag and its runs.json counter, if any (Leap hands its 16-row modules over by Wed evening; BigMoE 15:32);
   - any flag change forced by a test.
   - DONE: the tree flags, the CC-on-tree rule, the engagement field and chat's path (10:56 Tue). Also the base line, the

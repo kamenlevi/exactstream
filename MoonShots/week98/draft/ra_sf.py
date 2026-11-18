@@ -159,7 +159,8 @@ def install_format(lm, fmt, weights=None, extra_cap=4096, screen_order="rank"):
         rank = np.sort(rank)
     done.append(f"screen order {screen_order}")
     V = int(lm.lm_head.weight.shape[0])
-    state = {"sh": None}
+    state = SCREEN                                            # the screen the draft head reads (settable)
+    state["sh"] = None
 
     def new_screen():
         state["sh"] = ScreenedHead(lm.lm_head, rank, extra_cap=extra_cap)
@@ -182,6 +183,7 @@ def install_format(lm, fmt, weights=None, extra_cap=4096, screen_order="rank"):
 
 
 SCREENED = {"on": True}                                     # False: the full-vocabulary row (-inf off the screen)
+SCREEN = {"sh": None}                                       # the current ScreenedHead (install_format's draft head)
 
 
 def idmap(sh):

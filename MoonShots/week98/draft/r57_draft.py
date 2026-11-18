@@ -46,6 +46,9 @@ import ra_sf as RA  # noqa: E402
 import tree16_draft as T16D  # noqa: E402
 
 DD_T30B = H("~/datasets/deepdraft/ckpt/dd_t30b.safetensors")
+STORED_ATTN = os.environ.get("R57D_STORED_ATTN", "fp32")      # 'stored': fp32 | bf16 q / k / v (+ the KV rows they write)
+PK_ON = os.environ.get("R57_TREE_PK") == "1"                   # the persistent level (pk_level.PK), q8h32 + sync-free only;
+                                                               # bitwise == draft_sf, falls back to it per tree
 ST = {"fmt": None, "new_screen": None, "sh": None, "prov": None, "orig_hc": None, "P": None}
 
 
@@ -115,11 +118,14 @@ def _install_stored(lm, wpath):
         hn = head.pre_fc_norm_hidden(widened).reshape(B, S, head._hc, -1).astype(mx.float32)
         en = P.fc_embedding(head.pre_fc_norm_embedding(tok_emb).astype(mx.float32))
         return (P.fc_hidden(hn) + en[:, :, None, :]).reshape(B, S, W_).astype(widened.dtype)
-    object.__setattr__(head, "_mtp_prepare_inputs_impl", prep)
+    object.__setattr__(head, "_mtp_prepare_inputs_impl", prep)   # mtp_forward's route (fuse_and_run)
+    object.__setattr__(head, "_prepare_inputs_eager", prep)      # mtp_update_cache's route (fuse_and_run_history calls
+    head.fc_hidden, head.fc_embedding = P.fc_hidden, P.fc_embedding   # _prepare_inputs_eager with the head's own fc)
     if getattr(att, "qkv_fused", None) is not None:
         att.qkv_fused = None
-    att.q_proj, att.k_proj = _CastOut(P.q_proj.weight, sdt), _CastOut(P.k_proj.weight, sdt)
-    att.v_proj, att.o_proj = _CastOut(P.v_proj.weight, sdt), _CastOut(P.o_proj.weight, sdt)
+    qkv_dt = mx.float32 if STORED_ATTN == "fp32" else sdt      # fp32: q / k / v and the attention in fp32 (dd_topk's
+    att.q_proj, att.k_proj = _CastOut(P.q_proj.weight, qkv_dt), _CastOut(P.k_proj.weight, qkv_dt)   # qkv / ttt_attn);
+    att.v_proj, att.o_proj = _CastOut(P.v_proj.weight, qkv_dt), _CastOut(P.o_proj.weight, sdt)      # o_proj -> stream
     L0.mlp = _MoeTrain(moe, P, M)
     mx.eval(head.parameters())
     ST["P"] = P
@@ -152,7 +158,10 @@ def install(model, fmt, weights=None):
                     done=done)
     else:
         raise ValueError(f"fmt {fmt!r}: q8h32 | c2 | stored")
-    ST["fmt"], ST["prov"] = fmt, prov
+    from mtplx.runtime_options import qwen4_opdiet_enabled as _od
+    prov["env"] = {k: v for k, v in sorted(os.environ.items()) if k.startswith(("MTPLX_", "TL_", "R57_"))}
+    prov["opdiet"] = {it: bool(_od(it)) for it in ("rope", "resid", "bank")}   # the static draft follows the same
+    ST["fmt"], ST["prov"] = fmt, prov                                          # switches as the live path
     print(f"[r57_draft] install {json.dumps(prov)}", flush=True)
     return prov
 
@@ -207,7 +216,20 @@ def draft(model, head, tok, n=15, k=8, sync_free=True):
     assert not getattr(head.cache[0], "fixed_capacity", False), "a fixed-capacity MTP cache: RoPE from rope_offset"
     RA.SCREENED["on"] = imap is not None
     try:
-        if sync_free:
+        out = None
+        if sync_free and PK_ON and ST["fmt"] == "q8h32":
+            pk = ST.setdefault("pk", {}).get((n, k))
+            if pk is None:
+                import pk_level as PKL
+                pk = ST["pk"][(n, k)] = PKL.PK(lm, n=n, k=k)
+            out = pk.draft(view, int(tok), ST["sh"], imap)     # None: the 2-pass attention range or a barrier timeout
+            if out is not None:
+                ST["pk_trees"] = ST.get("pk_trees", 0) + 1
+            else:
+                ST["pk_fallback"] = ST.get("pk_fallback", 0) + 1
+        if out is not None:
+            pass
+        elif sync_free:
             out = RA.draft_sf(lm, view, int(tok), n=n, k=k, imap=imap)
         else:
             imap_np = None if imap is None else np.array(imap)

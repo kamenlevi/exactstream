@@ -33,6 +33,21 @@ as you possibly can. Thanks, and also don't skip optimizations just because of t
   - Defaults until Kamen answers:
     - the contract is NO (the exact headline = chain-16);
     - the CERTIFY98 (b) capture files only with the 3.8 GB delete OK by Wed 15:00.
+- **08:0x EvalSuite, BIG (CPU, Monday's stored answers; 53e0c83): ccx45cc1's tier-1 PASS holds only vs lossy-45.**
+  - Against the EXACT refs, ccx45cc1 FAILS the runaway guard (14 / 2, p 0.0042; accuracy passes: pooled -1.70 pt).
+  - lx45cc1 (lossy-45 alone) PASSES vs exact on every line.
+  - So CC(1) tips the runaways vs exact.
+  - **Orchestrator 08:5x:**
+    - the fallback headline = lx45cc1 + the bitwise flags (a post-hoc caveat in the write-up);
+    - amendment 6 pre-registers the bisect by the FAILING LINE (runaway FAIL -> CC(1) off; accuracy FAIL -> tgl16eu
+      off);
+    - timing (i)'s fallback arm must reproduce Monday's 104 humanevalx answers exactly.
+- 08:3x-08:4x BigMoE scope finding: TREE16 is exact-only by construction, so blob 1 = the exact-safe levers + tree-16
+  + CC(1), no R2 / QOM. HE+ ~199-204, MBPP ~144 [P]; the Saturday top on the tree line is ~230-235 HE+.
+  - R2 + QOM_MTP on trees = item 15 (blob 2b only if bit-tested by Fri 07:00).
+  - The rule: Thursday's stack = blob 1 if it passes tier 1 #1 AND beats the fallback by >= 1 % in (i).
+- 08:1x BigMoE's share of main is raised to 92 % until Thu 17:00. MoonShots (account-1) took the drafter-side r57
+  integration (Q8H32 + ra_sf + the sync-free tree loop).
 
 ## KAMEN, Tue 17 Nov 14:1x (after the deep pass): "You've found 600-800. Then do it ... make sure it's done for Saturday"
 (He objects to every "physical limit" phrasing. The walls are the limits of the KNOWN methods, not of the Mac.)
@@ -1006,6 +1021,11 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
     blob 2u in #2a's Thursday-night slot when #2a doesn't run (orchestrator 07:5x). (b) R2 + QOM_MTP tree ports -> blob 2b if bit-tested by
     Fri 07:00. (i) times blob 1 + the fallback in halves (~90 min). Thursday's stack = blob 1 if it passed tier 1 #1 and beats the fallback
     by >= 1 % pooled; later stacks need >= 1 % over it; the card gate takes the winner.
+  - **08:0x EvalSuite (53e0c83, BIG): scored post hoc vs the EXACT refs, ccx45cc1 FAILS the runaway guard (14 / 2, p 0.0042; accuracy
+    passes, -1.70 pt); lx45cc1 PASSES (16 / 9, p 0.23; -0.57 pt). CC(1) tips runaways against exact.** Orchestrator 08:0x, all three as asked:
+    (1) the fallback = lx45cc1 + the bitwise flags (blob 2u = it + tgl16eu); (2) blob 1's first bisect by the failing line (runaway -> CC(1)
+    off; accuracy -> tgl16eu off); (3) a 104-key humanevalx identity check on (i)'s fallback arm. Cost if CC(1) fails on trees too: blob 1
+    HE+ 204 -> 196, MBPP 144 -> 135; the tree line's top ~220-225 HE+ (NewIdeas, adaptk_sat).
 - Wed 18 02:2x (NewIdeas, for the orchestrator; NOTHING ARMED; ~/NewIdeas/research/week98/CONTRACT_YES_PLAN.md, 899926d): **A READY PLAN FOR
   A YES on Leap's reference contract (M4 = batch variance: mbpp/16 a 1-bf16-step near-tie, mbpp/30 an exact tie).** Scope: the EXACT build
   only; the lossy stack, its gates and CERTIFY98 stay on NAX6-N (one build for the capture + the count check), so EvalSuite runs Part A

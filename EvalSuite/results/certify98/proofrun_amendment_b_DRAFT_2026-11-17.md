@@ -65,7 +65,13 @@ Placeholders are in <angle brackets>.
         - Per window: tokens, checks, kept per check, and an identity flag of the answer tokens against the capture's
           ids. A differing window is dropped and counted.
         - **A dev rehearsal** (Wed by day): heplus24 vs kept_walk from the dev TOPK dump.
-          - Each check's drafts up to its first miss must equal dd_topk's TOPK top-1 at (fi, anchor row, depth).
+          - Each check's drafts up to its first miss are compared with dd_topk's TOPK top-1 at (fi, anchor row,
+            depth). At least 99 % must be equal, and each mismatch is listed with dd_topk's top-1 minus top-2 margin.
+            - Why not 100 % (NewIdeas, received 08:1x Wed): MoonShots' r57 drafter piece (week98/draft/r57_draft.py,
+              261b266) matched 453 / 454 positions in FMT=stored chain-32, and the miss was a near-tie. A load error
+              would show as a far lower rate.
+            - Near-tie flips can move the engine's tokens per check either way. The rehearsal's own tokens per check
+              vs kept_walk on the dev windows shows their net effect before the fresh check, whose line stays +-3 %.
           - It also shows the dropped-window rate. A 32-row verify is outside REF2-T's certified 1-16 rows.
       - **The windows (agreed with BigMoE, Tue 13:51):** the first 24 fresh HumanEval+ windows in the manifest's order. If fewer than 20 of
         them have identical answer tokens, the next windows in order are added until 20 do. Every drop is reported.

@@ -47,11 +47,18 @@ TREE16 in r57 is exact-only by construction (it asserts no FAST / RLX_D / SPAN /
 need DFlash's cf, and R2 (RELAX_SPAN) is chain-only. So:
 - (a) BLOB 1 = the base path's exact-safe verify levers + tree-16 + CC(1) on the tree walk + tgl16eu, with no R2 / QOM.
   Tier 1 #1 Thu.
-- (c) THE FALLBACK = ccx45cc1 (DFlash chain-16 + QOM + R2 + CC(1); tier 1 PASSED both orders Mon night) + bitwise flags
-  only: BOF / HC_B, GDN16, tgl16e. tgl16eu is FAST (argmax-equal, not bitwise), so adding it would leave Monday's PASS.
+- (c) THE FALLBACK = lx45cc1 + bitwise flags only (BOF / HC_B, GDN16, tgl16e) (orchestrator 08:0x, on EvalSuite's finding,
+  53e0c83). Scored post hoc vs the EXACT refs (both orders pooled): ccx45cc1, i.e. lx45cc1 + CC(1), FAILS the runaway guard
+  (14 / 2, p 0.0042; accuracy passes, -1.70 pt), while lx45cc1 PASSES (16 / 9, p 0.23; -0.57 pt). CC(1) tips runaways
+  against exact, and the gate standard is lossy vs EXACT. tgl16eu is FAST (argmax-equal, not bitwise), so it stays out
+  of the fallback unless tier 1 covers it.
   - AUTOMATIC UPGRADE: if #2a doesn't run (slot #4's w4a8u arm under ~1 ms, decided ~10:00 Thu), its Thursday-night
     slot runs key test + tier 1 on blob 2u = the fallback with tgl16eu (~-2.7 ms per check). A pass lets the fallback
     carry tgl16eu.
+  - A 104-key humanevalx identity check runs on (i)'s fallback arm.
+- BLOB 1's FIRST BISECT, by the failing line: a runaway fail -> CC(1) off; an accuracy fail -> tgl16eu off. Blob 1 carries
+  CC(1) on the tree walk, so the runaway tip is its likeliest failure. If CC(1) fails on trees too (exact acceptance,
+  adaptk_sat): blob 1 HE+ 204 -> 196, MBPP 144 -> 135, and the tree line's top ~230-235 -> ~220-225 HE+.
 - (b) R2 + QOM_MTP on trees (BigMoE's tree ports, ~1 day after the reset) enter blob 2b only if bit-tested by Fri 07:00.
 - Thursday night's lossy timing (i) has two arms, blob 1 and the fallback, in halves (~90 min).
 - RULE: Thursday's stack = blob 1 if it passed tier 1 #1 AND beats the fallback by >= 1 % pooled in (i); else the
@@ -63,8 +70,31 @@ Each: owner -> what lands -> its test -> ETA -> gain [P] -> odds of landing by S
 
 1. **PK, the persistent draft level** - MoonShots. Resume the tuned bitwise form (M-46: x1.08-1.10 on the draft; KILLed
    Tue only by the skeleton line). Q8H32 first (lossy + exact arm A), c2 second (arm B). Test: PK == SF on the 120 real
-   trees + a quiet timing. ETA: skeleton v2 Wed (share lock) -> bit test + quiet timing Thu morning -> flag
-   R57_TREE_PK=1 to BigMoE Thu 18:00 -> exact timing #2 Fri + lossy timing #2 Fri night (bitwise: no tier 1).
+   trees + a quiet timing.
+   - 08:1x SKELETON v3 = GO (MoonShots, QUEUE M-46, 720cd87): 0.758 ms per pop at 20 TGs x 1024 threads, f 0.150 (M-46's GO
+     line), 73 us above the 260 GB/s cold floor; live SF 0.93-0.95. Fewer, larger TGs halve the redundant prologue work.
+     Bitwise projection 0.78-0.81 ms per pop: -2.0..-2.4 ms per tree-16 block, HE+ ~+3-4 %.
+   - ETA, honest: the bitwise phases (BET 7's fused2 steps ported into the persistent form, plus the format deltas) take
+     ~2 days. So the 120-tree bit test lands Thu evening / Fri morning, the quiet timing needs a Fri-morning slot
+     (MoonShots asks when the bit test passes), and the flag makes lossy timing #2 (Fri 23:35) if bitwise by Fri 12:00.
+     If the account reaches 85 % first, MoonShots' HANDOVER carries PK to its main-account session after Thu 17:00.
+   - 08:4x BUILT AND BITWISE, a day early (MoonShots d62c6b6; logs checked by NewIdeas): 120 / 120 real trees == SF (HE+ t16
+     48 / 48, HE+ t32 24 / 24, MBPP t16 48 / 48), 0 fallbacks; 0.77 vs SF 0.93 ms per pop at tree-16, 0.786 vs 1.015 at
+     tree-32 (share lock, indicative): -2.4 ms per tree-16 block, HE+ ~+4 %. Flag R57_TREE_PK=1 in r57_draft (default off;
+     falls back to SF past 1024 keys or on a barrier timeout, same bits).
+   - LANDING (NewIdeas as number checker): M-46's f thresholds (0.16 = PARTIAL) decided the build; PK lands if a quiet
+     pk_timing (PK vs SF interleaved, 12 trees x 8 rounds; GO today in a W1 gap) shows it faster by more than the
+     round-to-round spread AND BigMoE's loop bit test passes (tonight). Then R57_TREE_PK=1 goes into BLOB 1 (Thu ~11:30)
+     and exact arm A: bitwise, so tier 1 #1's outputs are unchanged and Thursday night's timings include it.
+   - c2 PK (arm B, ~1 day of format work): in arm B only if bit-tested by Thu 18:00; else the A/B compares the shippable
+     forms (Q8H32 + PK vs c2 + SF) and exact timing #2 re-checks if c2 PK lands Friday.
+   - 08:5x QUIET TIMING CONFIRMS (MoonShots b5c7c80): SF 0.938 -> PK 0.772 ms per pop interleaved (12 trees, 6 rounds kept;
+     round spread ~0.01), -2.49 ms per tree-16 block, bitwise 12 / 12 after a harness fix (the timing harness drafted earlier
+     windows on the last window's screen). It lands on BigMoE's loop bit test of the HAND-OFF commit (b5c7c80 or later;
+     the 120-tree test is re-run on that commit, since 43cd82e and b5c7c80 came after d62c6b6). c2 PK waits for main's reset.
+   - 08:5x RE-RUN AT THE HAND-OFF COMMIT b5c7c80 (no uncommitted .py; evidence da66380, checked by NewIdeas): 120 / 120 trees
+     == SF, 0 fallbacks; R57_TREE_PK=1 through r57_draft 24 / 24 == Route A. BigMoE pins b5c7c80 into blob 1 after its loop
+     bit test tonight.
    Gain HE+ ~+3..+4 % (replay 204 -> 211 / 213 at 0.80 / 0.76 ms per pop; corrected 07:4x, see section 1). First gate:
    today's skeleton v3 must beat the live SF's 0.93 ms per pop at all (~14:00, share lock); if it can't get under ~0.88,
    MoonShots says so before the bitwise phases. Bitwise freebies it takes: skip the unused extra-screen rows (-inf) and
@@ -146,7 +176,7 @@ the SLC CPU fill, 1c tiers (V2 FAIL, so G1 stays out), close-call d2 (tier 1 FAI
 | W4 Thu ~04:30-07:25 | 16 GB: MTP Head's S22 continuation, if it wants it (it must end by 07:25) -> Breakthrough's rec1a_c25 07:30-07:50 (share lock MEM 35 GB) |
 | W5 Thu 08:00-15:00 | Leap's slot #4 08:00 (tgl16ef + the w4a8u pair F16nw / F16gw) -> PK quiet timing -> BigMoE's key test (blob 1) ~11:30 -> tier 1 #1 12:00-14:30, as set |
 | W6 Thu 15:00-23:30 | main resets 17:00: ADAPTIVE K, the replayed-check flag if bitwise, blob 2a (w4a8u) by 22:00 only if slot #4's arm cleared ~1 ms |
-| W7 Thu 23:35-08:00 | (i) lossy timing #1, blob 1 + the fallback in halves (~90 min) -> (ii) exact + the c2 A/B -> (iii) count check (~03:05) -> NO: key test + tier 1 on blob 2a if it exists, else on blob 2u (the fallback with tgl16eu), or the tgl16eu-off bisect if #1 failed (~03:05-06:15); YES: Part A ~4 h |
+| W7 Thu 23:35-08:00 | (i) lossy timing #1, blob 1 + the fallback in halves (~90 min) -> (ii) exact + the c2 A/B -> (iii) count check (~03:05) -> NO: key test + tier 1 on blob 2a if it exists, else on blob 2u (the fallback with tgl16eu), or blob 1's bisect by the failing line if #1 failed (~03:05-06:15); YES: Part A ~4 h |
 | W8 Fri 08:00-15:00 | (YES: stage 2 if needed, <= 3.3 h) -> blob 2b key test + tier 1 #2b -> (NO: one bisect pass if it failed) -> exact timing #2 ~13:45 |
 | W9 Fri 15:00-23:30 | <= ~6 GB; the final lossy stack frozen 22:00 |
 | W10 Fri 23:35-Sat ~07:00 | lossy timing #2 (45 min, only if the stack changed) -> card gate (5.8-6.5 h) -> verdict ~07:00 |
@@ -167,8 +197,9 @@ the SLC CPU fill, 1c tiers (V2 FAIL, so G1 stays out), close-call d2 (tier 1 FAI
   30-min key test and its 15-min smoke). By day it stretches with at-Mac yields, so #2b's 08:00-11:00 holds only if
   Kamen is away from 08:00.
 - Rules agreed with EvalSuite (07:4x; in its amendment 6 draft, b881eb7, filed Thu midday before any stack data):
-  1. If tier 1 #1 fails, the tgl16eu-off bisect takes #2a's night slot (w4a8u shares tgl16eu's grouping, so it is
-     out); timing #1 times the bisect blob; 2b builds on whichever passed.
+  1. If tier 1 #1 fails, blob 1's bisect by the failing line takes #2a's night slot (runaway -> CC(1) off; accuracy ->
+     tgl16eu off, and then w4a8u, which shares tgl16eu's grouping, is out too); timing #1 times the bisect blob; 2b builds
+     on whichever passed. (Refined 08:0x by the orchestrator, from 'tgl16eu off' first.)
   2. "Won its timing": pooled whole-decode tok/s (HE+ 164 + MBPP 100) above timing #1's by >= 1 %; else Thursday's
      stack goes to the card gate (fewer new parts, lower card-gate risk). Both are quoted.
   3. If #1 failed, the card gate runs the latest passing stack (rule 2 decides between two); if nothing passed, there
@@ -198,5 +229,10 @@ the SLC CPU fill, 1c tiers (V2 FAIL, so G1 stays out), close-call d2 (tier 1 FAI
   if the account reaches 85 % first (a HANDOVER hand-off; one session owns each repo and its runners).
 - MTP Head, on its own account, takes the head work: items 2, 9 and 10.
 - NewIdeas stays coordination-only and lean; at 85 % routine coordination returns to the orchestrator.
+- PRIORITY ORDER on the second account until main's Thu 17:00 reset (orchestrator, 08:4x): 1. EvalSuite's gates; 2. MoonShots'
+  r57 drafter-side integration (blob 1 is Saturday-critical); 3. PK's quiet timing + its hand-off to BigMoE; 4. Breakthrough's
+  overhead installer (item 12); 5. everything else waits for main's reset (c2 PK, the MoE megakernel, the DROP installer,
+  anything for after Saturday) and resumes on the main-account sessions at Thu 17:00. If the account nears 85 % before
+  then, items 3-4 pause before 2.
 - Defaults until Kamen answers (orchestrator 07:4x): contract NO, so the exact headline is chain-16, the c2 A/B runs on
   chain-16, and Thursday night takes key test 2a + tier 1 #2a.

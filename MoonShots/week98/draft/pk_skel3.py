@@ -29,7 +29,9 @@ import pk_skel2 as S2                                      # noqa: E402
 
 DENSE, NE, EW_PER, ES_PER = S2.DENSE, S2.NE, S2.EW_PER, S2.ES_PER
 NBAR = 15
-HELP = S2.HDR[len(QHEADER) + len(S2.FAST4):]               # gbar, prep4, mix4, silu320 (M-46)
+HELP = (S2.HDR[len(QHEADER) + len(S2.FAST4):]              # gbar, prep4, mix4, silu320 (M-46), its red[] stride
+        .replace("r * 16u + (tid >> 5)", "r * NSG + (tid >> 5)").replace("red[tid * 16u + q]", "red[tid * NSG + q]")
+        .replace("red[64u + tid]", "red[4u * NSG + tid]").replace("red[64u + r]", "red[4u * NSG + r]"))   # = NSG
 
 PF = r"""
 // qdot with the packed weights in registers: the shipped qdot's arithmetic (bits 4 / 8)
@@ -147,8 +149,16 @@ def sg_dispatch(segs, indent="    "):
     return "\n".join(out)
 
 
+STOCK = {"on": False}
+
+
 def qc(name, x, y, K, N, cfg, bits=8, gs=64, ppt=2, nv=1):
     R, UB = cfg
+    if STOCK["on"]:                                   # the shipped impls: rows 4u .. 4u + 3 (bitwise by construction)
+        impl = "qmv_fast_impl" if ppt == 2 else "qmv_impl"
+        calls = " ".join(f"{impl}<bfloat16_t, {gs}, {bits}>(dw + W_{name}, ds + S_{name}, db + S_{name}, {x} + {v} * {K}, "
+                         f"{y} + {v} * {N}, {K}, {N}, uint3(0, u >> 1, 0), u & 1u, lane);" for v in range(nv))
+        return (calls, N // 4)
     return (f"qmv_pf<bfloat16_t, {gs}, {bits}, {R}, {UB}, {ppt}, {nv}, false>(dw + W_{name}, ds + S_{name}, "
             f"db + S_{name}, {x}, {y}, {K}, {N}, int(u) * {R}, lane, tv, ti);", N // R)
 
@@ -174,12 +184,12 @@ def build_src(c):
     ng = 640 // R
     G["P11"] = sg_dispatch([(
         f"uint e = u / {2 * ng}u, rr = u % {2 * ng}u, gu = rr / {ng}u, rg = rr % {ng}u; "
-        f"uint ex = (uint(((device int*)(scf + O_TOPf))[e]) + e * 13u) % uint(NE_C); "
+        f"uint ex = (uint(((device int*)(scf + O_TOPf))[e]) + e * 13u + t * 41u) % uint(NE_C); "
         f"qmv_pf<bfloat16_t, 32, 4, {R}, {UB}, 2, 1, false>(ew + size_t(ex) * EW_PER + gu * 204800u, "
         f"es + size_t(ex) * ES_PER + gu * 51200u, eb + size_t(ex) * ES_PER + gu * 51200u, scr + O_MX2, "
         f"scr + O_EGU + e * 1280u + gu * 640u, 2560, 640, int(rg) * {R}, lane, tv, ti);", 10 * 2 * ng)])
     G["P12"] = sg_dispatch([(
-        "uint e = u % 10u, cb = u / 10u; uint ex = (uint(((device int*)(scf + O_TOPf))[e]) + e * 13u) % uint(NE_C); "
+        "uint e = u % 10u, cb = u / 10u; uint ex = (uint(((device int*)(scf + O_TOPf))[e]) + e * 13u + t * 41u) % uint(NE_C); "
         "qmv_pf<bfloat16_t, 32, 4, 4, 1, 1, 1, false>(ew + size_t(ex) * EW_PER + 409600u, es + size_t(ex) * ES_PER + "
         "102400u, eb + size_t(ex) * ES_PER + 102400u, mine + e * 640u, scr + O_EY + e * 2560u, 640, 2560, int(cb) * 4, "
         "lane, tv, ti);", 10 * 2560 // 4)])
@@ -205,9 +215,9 @@ SRC_T = r"""
   device bfloat16_t* hsw = (device bfloat16_t*)hsbuf;
   device bfloat16_t* tkw = (device bfloat16_t*)tkv;
   threadgroup uint tflag;
-  threadgroup float red[96];
-  threadgroup float stv[128];
-  threadgroup int sti[128];
+  threadgroup float red[4u * NSG + 72u];
+  threadgroup float stv[NSG * 8u];
+  threadgroup int sti[NSG * 8u];
   threadgroup float cvv[NTG * 8u];
   threadgroup int cii[NTG * 8u];
   float tv = -INFINITY;
@@ -252,7 +262,7 @@ SRC_T = r"""
       const uint h = tg, g = h / 12u;
       float qv[8];
       for (uint e = 0; e < 8u; ++e) qv[e] = float(scr[O_Q + h * 512u + lane * 8u + e]) * 0.0625f;
-      for (uint hv = 0; hv < 2u; ++hv) {
+      for (uint hv = 0; hv < 32u / NSG; ++hv) {
         const uint vs = sg + hv * NSG;
         float m = -INFINITY, l = 0.0f, o[8];
         for (uint e = 0; e < 8u; ++e) o[e] = 0.0f;
@@ -485,11 +495,13 @@ def main():
     ap.add_argument("--rh", default="2,2", help="R,UB of the head (4-bit)")
     ap.add_argument("--re", default="2,1", help="R,UB of the experts gate / up (4-bit)")
     ap.add_argument("--ablate", action="store_true")
+    ap.add_argument("--stock", action="store_true", help="the dense GEMVs as the shipped qmv_fast_impl / qmv_impl")
     ap.add_argument("--out", default="")
     a = ap.parse_args()
     NTG, NT, S1, NH = a.ntg, a.nt, a.s1, a.nh
     cfg = {k: tuple(int(x) for x in getattr(a, k).split(",")) for k in ("r8", "rs", "rh", "re")}
     cfg["nh"] = NH
+    STOCK["on"] = a.stock
     W, S, nw32, ns16 = S2.offsets()
     sc, scr_n = scratch_layout(NTG)
     mx.random.seed(0)
@@ -526,7 +538,7 @@ def main():
             name=f"pk_skel3_w{int(work)}_m{mask}_{NTG}_{NT}_{S1}_{NH}_{tagc}",
             input_names=["dw", "ds", "db", "ew", "es", "eb", "hw", "hs", "hb", "embt", "k1", "v1", "hsbuf", "tkv",
                          "scratch", "syncb", "fst", "meta"],
-            output_names=["out_pop", "out_tis", "out_tp", "fst_out"], source=src, header=HDR)
+            output_names=["out_pop", "out_tis", "out_tp", "fst_out"], source=src, header=f"#define NSG {NT // 32}u\n" + HDR)
 
     KW, KB = kern(1), kern(0)
     ks = mx.fast.metal_kernel(name="pk_stream2", input_names=["dw", "ds", "db", "ew", "es", "eb", "hw", "hs", "hb"],

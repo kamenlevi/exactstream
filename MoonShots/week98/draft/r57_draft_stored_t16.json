@@ -1,0 +1,71 @@
+{
+ "fmt": "stored",
+ "prov": {
+  "fmt": "stored",
+  "weights": "/Users/kamen/datasets/deepdraft/ckpt/dd_t30b.safetensors",
+  "weights_sha256": "790c42db393ad158f0f61e64962c868967995268babb816b27cbf8f4e215d502",
+  "screen": null,
+  "top_k": 10,
+  "done": [
+   "fc: head_train's fp32 sum -> stream dtype",
+   "q / k / v / o: fp32 weights, outputs in the stream dtype",
+   "MoE block: mtp125.moe_train -> stream dtype (top-10 as loaded)",
+   "draft head: the full lm_head"
+  ]
+ },
+ "check": {
+  "P.fc_hidden": true,
+  "P.fc_embedding": true,
+  "P.q_proj": true,
+  "P.k_proj": true,
+  "P.v_proj": true,
+  "P.o_proj": true,
+  "P.router": true,
+  "P.se_gate": true,
+  "P.se_up": true,
+  "P.se_down": true,
+  "P.se_gatew": true,
+  "live.q_proj": true,
+  "live.k_proj": true,
+  "live.v_proj": true,
+  "live.o_proj": true
+ },
+ "set": "heplus24",
+ "windows": "2",
+ "n": 15,
+ "k": 8,
+ "observe": true,
+ "trees": 8,
+ "sf_eq_hs": 8,
+ "sf_twice_bitwise": 8,
+ "cache_kept": 8,
+ "bad": 0,
+ "ms_pop": {
+  "SF": [
+   2.7866222585241,
+   2.7976249965528646,
+   2.775294457872709,
+   2.793161136408647,
+   2.8902833350002766,
+   2.953783329576254,
+   2.979647181928158,
+   2.844586130231619
+  ],
+  "HS": [
+   3.4509972048302493,
+   3.292275002847115,
+   3.2972360650698342,
+   3.46310002108415,
+   3.624902789791425,
+   3.5832472145557404,
+   3.7417111297448478,
+   3.5031333255271115
+  ],
+  "SF_med": 2.8674347326159477,
+  "HS_med": 3.5431902700414257
+ },
+ "diffs": [],
+ "topk_cells": 0,
+ "topk_eq": 0,
+ "topk_bad": []
+}
