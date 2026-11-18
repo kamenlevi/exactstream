@@ -122,7 +122,7 @@ ms = re.search(r"used = ([0-9.]+)M", sw)
 swap_gb = float(ms.group(1)) / 1024 if ms else None
 print(sw, f"-> {swap_gb:.1f} GB" if swap_gb is not None else "",
       f"(change since last review {swap_gb - last_swap:+.1f} GB)" if swap_gb is not None and last_swap is not None else "")
-print(sh("df -g / | tail -1").strip(), "  (GB; floor 100, stop big writes at 110)")
+> (a quote from the project owner, kept private)
 print(sh("memory_pressure | tail -1").strip())
 
 print("\n== processes: >= 50 % CPU, >= 4 GB RSS, or stopped (T)")

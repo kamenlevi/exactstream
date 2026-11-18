@@ -10,7 +10,18 @@ Contract forms (4-bit g64; MLX's weight layout, so no DENSE-N copies; the native
   copy padded to 1,312 rows (output sliced back) | shared down 2,560 x 640: ks 10 | lm_head 248,320 x 2,560: ks 4.
   <= 16 rows: qmm16c(ks) (pads to 16); 17-32 rows: ck.qmm16c2a_ks(ks) (one weight pass, each tile == qmm16c(ks)).
   HC read: S4 at PS[0] = 2,048 (leapk.s4_partials / s4_gemm at 16 rows; one32.s4_partials2i / 2 at 32 rows).
-Untouched: the 8-bit router / indexer, HC up, PLE, experts, attention, GDN body (REF2-T's forms)."""
+Untouched: the 8-bit router / indexer, HC up, PLE, experts, attention, GDN body (REF2-T's forms).
+CONTRACT YES (Kamen, Wed 18 Nov 11:1x, via the orchestrator / NewIdeas CONTRACT_YES_PLAN 899926d): the EXACT build only.
+  - BigMoE's one line after ref2.apply(): refc.install_from_env(ref2, model). REF2_REFC=1 installs + turns it on; unset / 0
+    patches nothing (today's build, bitwise).
+  - Scope (11-18 12:2x, after BigMoE's s98m install found targets for only 3 / 7 shapes: the fused in-projections are plain
+    objects / derived arrays that the module walk cannot see, so the allow-list cost most of E14's -5.76 ms): DEFAULT
+    REF2_REFC_SCOPE=ref2 = every contract form fires only while ref2 is on (ref2._ON[0]), the scope BigMoE reviewed for bofi
+    (r57 removes ref2 before every draft), as in E14. REF2_REFC_SCOPE=target adds the allow-list (the target model's
+    QuantizedLinear arrays, "mtp" names skipped). PK's pk_level runs its own kernels, not mx.quantized_matmul. Runtime proof
+    either way: report()'s forms taken stay flat across a draft block.
+  - BOF (bofi) falls through while the contract is on; REF2_HC_B also routes through leapk.s4_partials (so the contract's S4
+    partials) but that pair has never run together: NOT in this week's set. Self-test: scripts/week98/refc_rowinv.py."""
 import math
 import os
 import sys
@@ -23,13 +34,27 @@ import ck
 
 ON = [False]
 PS = [2048]
+ENV = "REF2_REFC"
+WSET = [None]                                          # ids of the target model's contract-shape weights (None: any)
+WCOV = {}                                              # (N, K) -> target arrays found at install (a shape found 0 times
+                                                       # keeps REF2-T's own <= 16-row form: still row-invariant, no gain)
 # (N, K): (ks, nt at 16 rows, nt at 32 rows, padded N or None)
 CON = {(16384, 2560): (4, 1, 1, None), (96, 2560): (10, 1, 1, None), (2560, 6144): (4, 2, 2, None),
        (13312, 2560): (4, 2, 1, None), (1281, 2560): (5, 1, 1, 1312), (2560, 640): (10, 1, 1, None),
        (248320, 2560): (4, 1, 2, None)}
 CNT = dict(c16=0, c32=0, s4=0, s4x2=0, s4g=0)
+CNTS = {}                                              # (N, K) -> contract dense forms taken
 _S = {}
 _PADW = {}
+
+
+def _live():
+    """the contract is on AND ref2 is on (r57 removes ref2 for drafts)"""
+    return ON[0] and bool(_S) and bool(_S["ref2"]._ON[0])
+
+
+def _livew(w):
+    return _live() and (WSET[0] is None or id(w) in WSET[0])
 
 
 def _padded(w, s, b, Np):
@@ -45,6 +70,7 @@ def _padded(w, s, b, Np):
 def _form(x2, w, s, b, N, K):
     """x2 [rows <= 32, K] -> [rows, N] under the contract"""
     ks, nt16, nt32, Np = CON[(N, K)]
+    CNTS[(N, K)] = CNTS.get((N, K), 0) + 1
     if Np:
         w, s, b = _padded(w, s, b, Np)
     if x2.shape[0] <= 16:
@@ -57,7 +83,7 @@ def _form(x2, w, s, b, N, K):
 
 
 def _qmmc(x, w, *a, **kw):
-    if ON[0]:
+    if _livew(w):
         scales = a[0] if len(a) > 0 else kw.get("scales")
         biases = a[1] if len(a) > 1 else kw.get("biases")
         transpose = a[2] if len(a) > 2 else kw.get("transpose", True)
@@ -76,34 +102,34 @@ def _qmmc(x, w, *a, **kw):
 
 def _c2a(x, w, s, b, nt=1):                       # v32one's 32-row GDN in-proj call (one32.qmm16c2a)
     N, K = int(w.shape[0]), int(x.shape[-1])
-    if ON[0] and (N, K) in CON:
+    if _livew(w) and (N, K) in CON:
         return _form(x, w, s, b, N, K)
     return _S["c2a"](x, w, s, b, nt=nt)
 
 
 def _c2(x, w, s, b, ks=1, nt=1):                  # one32.qmm16c2 (two-tile grid form)
     N, K = int(w.shape[0]), int(x.shape[-1])
-    if ON[0] and (N, K) in CON:
+    if _livew(w) and (N, K) in CON:
         return _form(x, w, s, b, N, K)
     return _S["c2"](x, w, s, b, ks=ks, nt=nt)
 
 
 def _qv32(x, w, s, b, bits, k_lanes, vecs_per_tg=4, rows=32):   # one32.qmvw32 (v32one's 32-row small shapes, b | a)
     N, K = int(w.shape[0]), int(x.shape[-1])
-    if ON[0] and bits == 4 and (N, K) in CON:
+    if _livew(w) and bits == 4 and (N, K) in CON:
         return _form(x, w, s, b, N, K)
     return _S["qv32"](x, w, s, b, bits, k_lanes, vecs_per_tg, rows)
 
 
 def _s4p(a, w, pf=4):                             # leapk.s4_partials (the 16-row HC read)
-    if ON[0]:
+    if _live():
         CNT["s4"] += 1
         return ck.s4_partials_ps(a, w, PS[0], pf)
     return _S["s4p"](a, w, pf)
 
 
 def _s4g(a, w, pf=4):                             # leapk.s4_gemm (partials + leapk's ordered partition sum)
-    if ON[0]:
+    if _live():
         LK = _S["LK"]
         cs, NP = ck.s4_partials_ps(a, w, PS[0], pf)
         N = int(w.shape[0])
@@ -115,21 +141,32 @@ def _s4g(a, w, pf=4):                             # leapk.s4_gemm (partials + le
 
 
 def _s42i(a, w, pf=4):                            # one32.s4_partials2i / s4_partials2 (the 32-row HC read)
-    if ON[0]:
+    if _live():
         CNT["s4x2"] += 1
         return ck.s4_partials2i_ps(a, w, PS[0], pf)
     return _S["s42i"](a, w, pf)
 
 
 def _s42(a, w, pf=4):
-    if ON[0]:
+    if _live():
         CNT["s4x2"] += 1
         return ck.s4_partials2i_ps(a, w, PS[0], pf)     # the same per-tile arithmetic as the tile-on-y form
     return _S["s42"](a, w, pf)
 
 
-def install(ref2):
-    """after ref2.apply() (and v32 / v32one if 32-row checks run): idempotent; ON[0] stays False"""
+def install(ref2, model=None):
+    """after ref2.apply() (and v32 / v32one if 32-row checks run): idempotent; ON[0] stays False. model: the TARGET model;
+    its 4-bit g64 weights of the contract shapes become the only arrays the dense forms take (None: any array, the C8 slice)"""
+    if model is not None and WSET[0] is None:
+        import mlx.nn as nn
+        ws = set()
+        for nm, m in model.named_modules():
+            if (isinstance(m, nn.QuantizedLinear) and "mtp" not in nm and m.bits == 4 and m.group_size == 64
+                    and (int(m.weight.shape[0]), int(m.weight.shape[1]) * 8) in CON):
+                ws.add(id(m.weight))
+                k_ = (int(m.weight.shape[0]), int(m.weight.shape[1]) * 8)
+                WCOV[k_] = WCOV.get(k_, 0) + 1
+        WSET[0] = ws
     if _S:
         return
     import leapk as LK
@@ -140,3 +177,21 @@ def install(ref2):
     one32.qmm16c2a, one32.qmm16c2, one32.qmvw32 = _c2a, _c2, _qv32
     LK.s4_partials, LK.s4_gemm = _s4p, _s4g
     one32.s4_partials2i, one32.s4_partials2 = _s42i, _s42
+
+
+def install_from_env(ref2, model):
+    """BigMoE's one line for r57's exact paths (chain + tree), after ref2.apply(): REF2_REFC=1 installs the contract (target
+    weights only) and turns it on -> True; otherwise nothing is patched (today's build, bitwise) -> False"""
+    if os.environ.get(ENV) != "1":
+        return False
+    install(ref2, model if os.environ.get("REF2_REFC_SCOPE", "ref2") == "target" else None)
+    ON[0] = True
+    return True
+
+
+def report():
+    """one line for the run log: on / installed, the target arrays per contract shape, the forms taken so far"""
+    cov = ({f"{n}x{k}": WCOV.get((n, k), 0) for (n, k) in CON} if WSET[0] is not None
+           else "scope ref2 (any array while ref2 is on)")
+    per = {f"{n}x{k}": CNTS.get((n, k), 0) for (n, k) in CON}
+    return (f"refc: ON {ON[0]}, installed {bool(_S)}, targets {cov}, dense forms taken per shape {per}, totals {dict(CNT)}")

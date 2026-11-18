@@ -2868,3 +2868,22 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
     sent to today's kernel, 0 fallbacks).
   The newer snapshot (merged screen, Leap b4331e4) leaves lx45cc1's answers unchanged on these keys. GDN16 is not in yet.
   The full 104-key identity check runs in Thursday's timing (i).
+- **Wed 11:2x-11:3x, contract tests on s98c (the s98 screen + Leap 3ec85e8's reference contract, REF2_REFC=1;
+  data/r57/bt98c/).**
+  - **M4C = FAIL, 15 / 16.** M4's 16 keys x 256 tokens, contract ON + tgl16e + the q8h32 drafter; tree-16 (sync-free +
+    PK), chain-16 and AR (chain with 0 drafts).
+    - Chain == AR on 16 / 16 keys, and tree == chain == AR on 15. The contract fixed mbpp/16 (refc took c16 1,782 + s4
+      1,764 forms per run).
+    - mbpp/30 differs tree vs chain at token 95. That is M4's near-tie, now flipped: without the contract chain took
+      10598 and tree 364; with it chain and AR take 364 and tree takes 10598. The tree's masked attention / GDN
+      recurrence is not row-local, so the contract cannot make it bit-identical.
+    - By the agreed rule: no exact tree-16 this week. Contract chain-16 is exact against its own AR.
+  - **c2 format (S22's head) on contract tree-16: PASS.** Sync-free and host-synced give identical tokens, equal to q8h32's
+    exact tokens (4 keys x 128).
+  - **Stored chain-32 (CERTIFY98's count check) cannot run through the tree path:** "32 nodes > 16", tree_meta's
+    maximum. r57 has no plain MTP chain-32 (R57_ROWS=32 belongs to the copy rule).
+- **Wed 11:37, the CERTIFY98 FULL capture started by day** (the orchestrator's GO after EvalSuite's amendments 9 + 10,
+  EvalSuite fac490e). It runs scripts/cert98_run.sh with scripts/dd_capture.py's new DLOG_SRC=cert98 (EvalSuite's
+  647-line list, sha256 bb721ff9; per-line cap 512) -> ~/datasets/deepdraft/certify98/<set>/<name>.npz +
+  files_sha256.json at a PASS end; marker data/deepdraft/cert98/CERT98_CAPTURE_END on any end. The end-to-end head test
+  passed (3 / 3 on-path 1.0000), and the simulations covered PASS placement and a mid-run yield.

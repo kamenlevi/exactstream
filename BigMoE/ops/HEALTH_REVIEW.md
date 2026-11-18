@@ -13,8 +13,8 @@ Run `taskpolicy -b python3 ~/BigMoE/ops/health_review.py` (read-only facts), the
    still matches it: `( nohup /bin/zsh $HOME/.local/share/quiet/fanwatch.sh > /dev/null 2>&1 & )`; after ~60 s check that
    "/Library/Application Support/Baro/helper-status.json" shows mode fixed for every fan; log it and tell the orchestrator
    with `peer send`. A live controller in fallback or started another way: tell the orchestrator, don't restart it.
-2. **Swap:** an in-RAM run must stop if swap grew > 2 GB (tell its owner). **Disk:** stop big writes below 110 GB free,
-   floor 100.
+2. **Swap:** an in-RAM run must stop if swap grew > 2 GB (tell its owner). **Disk:** stop big writes below 60 GB free,
+> (a quote from the project owner, kept private)
 3. **Runaway / leftover processes:** a research Python at high CPU whose session is gone; stopped (T) leftovers of
    killed runners (kill only your own; tell the owner otherwise). **CPU-only jobs above 4 cores (400 %).**
 4. **GPU queue (`peer ls`):** a frozen waiter at the head, a quiet lock held with nothing on the GPU while others wait

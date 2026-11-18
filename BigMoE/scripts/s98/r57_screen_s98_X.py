@@ -141,6 +141,15 @@ SETOF = {"humaneval": "humaneval", "math500": "math", "gsm8k": "math", "ifeval":
          "ifbench": "ifbench", "gpqad": "gpqad", "lcb6": "lcb6"}   # Fri 08:2x-21:5x: EvalSuite dec_agentlong / mbpp / humanevalt / humanevalx / mathx (FAST there needs R57_QOM_SETS); Sun 11:5x: the card sets IFBench / GPQA diamond / LCB v6
 if os.environ.get("R57_KEYS"):                           # an explicit prompt list ("set/key,..." or '+'-joined inside c45_runner's
     PICK = tuple((SETOF[k.split("/")[0]], k) for k in os.environ["R57_KEYS"].replace("+", ",").split(","))   # arm lists)
+J98 = {}                                                 # s98 (11-18): R57_ITEMS_JSONL = EvalSuite's fresh-window jsonl ({key, set,
+if os.environ.get("R57_ITEMS_JSONL"):                    # prompt_ids, ...}, CERTIFY98's count check): PICK = its keys in order;
+    _jl = [json.loads(l) for l in open(os.path.expanduser(os.environ["R57_ITEMS_JSONL"])) if l.strip()]   # R57_ITEMS_KEYS = a
+    _sub = [k for k in os.environ.get("R57_ITEMS_KEYS", "").split(",") if k]   # subset (comma list), R57_ITEMS_FIRST = how many
+    _jl = [x for x in _jl if not _sub or x["key"] in _sub]
+    _jl = _jl[:int(os.environ.get("R57_ITEMS_FIRST", str(len(_jl))))]
+    assert _jl and (not _sub or len(_jl) == len(_sub)), ("R57_ITEMS_JSONL / R57_ITEMS_KEYS", len(_jl), len(_sub))
+    J98 = {x["key"]: x for x in _jl}
+    PICK = tuple((x["set"], x["key"]) for x in _jl)
 TAG = os.environ.get("R57_TAG", "r57")
 REPS = int(os.environ.get("R57_REPS", "2"))
 TRUNC = float(os.environ.get("R57_TRUNC", "0.3"))
@@ -390,6 +399,18 @@ if XRW:                                                  # docs/EXPERT_REWRITE_H
     xknob.MODE[0] = XRW
     xknob.ON[0] = True
     print(f"[r57] R57_XRW={XRW}: xknob {xknob.__file__} (md5-pinned)", flush=True)
+REFC = os.environ.get("REF2_REFC") == "1"                # s98: Leap's reference contract (3ec85e8, REFC_CONTRACT_RECIPE.md): row-
+if REFC:                                                 # invariant forms on the target's 4-bit layers while ref2 is on; unset
+    for _p in ("/Users/kamen/BigMoE/data/r57/snap/frozen_X/Leap_scripts", "/Users/kamen/BigMoE/data/r57/snap/frozen_X/Leap_scripts/week98"):
+        if _p not in sys.path:                           # = today's bits. Installed once, after a ref2.apply(), on the TARGET
+            sys.path.append(_p)                          # model; ref2's on / off state is restored after
+    import refc
+    _rw = bool(ref2._ON[0])
+    ref2.apply()
+    refc.install_from_env(ref2, model)
+    if not _rw:
+        ref2.remove()
+    print(f"[r57] REF2_REFC=1 (start): {refc.report()}", flush=True)
 if os.environ.get("R57_NAX") == "1":                     # C1 (DAY9 #4; Leap 101573d): NAX6 on every tier call, OOO's two phases
     assert "tier_nax_ooo" in ref2.CFG, "Leap's ref2 has no tier_nax_ooo (needs ~/Leap 101573d)"   # included; a NEW reference:
     ref2.CFG["tier_nax_ooo"] = True                      # tokens != REF2-T, so determinism across NAX processes only
@@ -500,7 +521,7 @@ _W0 = {"q8h32": "", "c2": "~/datasets/deepdraft/ckpt/dd_t30qa.safetensors",
        "stored": "~/datasets/deepdraft/ckpt/dd_t30b.safetensors"}
 T30B_W = os.path.expanduser(os.environ.get("R57_T30B_W") or _W0.get(T30B_FMT, "")) or None   # q8h32: None = r57_draft's pinned artifact
 if RDR:                                                  # install(fmt) replaces the mtp125 install; draft() replaces T16D.draft;
-    assert MTPALL and T16 and T30B_FMT in _W0, "R57_DRAFT=t30b needs R57_MTP_ALL=1 + R57_TREE16=1 and a known R57_T30B_FMT"
+    assert MTPALL and T30B_FMT in _W0, "R57_DRAFT=t30b needs R57_MTP_ALL=1 and a known R57_T30B_FMT (chain checks: observe())"
     sys.path.insert(0, "/Users/kamen/BigMoE/data/r57/snap/frozen_X/MoonShots_draft")   # begin_window per prompt; observe() on
     import r57_draft as RD                               # fallback chain checks (M3's screen); R57_TREE_PK is read by r57_draft
 _MTP_MD5 = {"b5": "1f8de68a468b6ae16a9f42c62cbca39f"}   # D-23d's head, pinned like the M-17 sizes
@@ -1197,6 +1218,7 @@ def prefill_p2(ids, arm, want_w=False, rows=16):
 
 def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=None):
     xc0_ = dict(xknob.COUNTS) if XRW else None          # s98: R57_XRW per-run counts
+    rc0_ = dict(refc.CNT) if REFC else None             # s98: REF2_REFC per-run forms taken
     if RDR:
         RD.begin_window(model, list(ids))                # s98: the screen's session extras for this prompt
     tcut = tcut or TRUNC                                 # R57_CHATTRUNC: this prompt's confidence cut
@@ -1928,7 +1950,8 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
                                  D_mean=float(np.mean(M1T["D"])) if M1T["D"] else None,
                                  T_mean=float(np.mean(M1T["T"])) if M1T["T"] else None)} if M1T is not None else {}),   # t16a
                 **({"t16": dict(T16L.summary(T16S), prov=T16P), "tree": T16L.tree_block(T16S, TREE_NODES, TREE_K)} if T16 else {}),
-                **({"xrw": {"mode": xknob.MODE[0], **{k_: xknob.COUNTS[k_] - xc0_[k_] for k_ in xknob.COUNTS}}} if XRW else {}))   # t16b: per run, the tree checks
+                **({"xrw": {"mode": xknob.MODE[0], **{k_: xknob.COUNTS[k_] - xc0_[k_] for k_ in xknob.COUNTS}}} if XRW else {}),
+                **({"refc": {str(k_): refc.CNT[k_] - rc0_.get(k_, 0) for k_ in refc.CNT}} if REFC else {}))   # t16b: per run, the tree checks
 
 # R57_REPLAY=<rows.jsonl>[:margins.json] (Sun 15 Nov; EvalSuite docs/LOSSY_GATE_2026-11-15.md section 9, tier 0a): each
 # key's prompt prefilled as the variant does, then checks of the variant's normal width whose drafts are the next REFERENCE
@@ -2255,6 +2278,8 @@ if os.environ.get("R57_G32TEST"):
         mx.clear_cache()
     say(f"G32TEST verdict: {('OVERFLOW GUARD OK: flagged, finite, and the 16 + 16 redo bitwise on every rep' if allok else 'OVERFLOW GUARD FAIL') if os.environ.get('R57_G32OVF') == '1' else 'TIME MODE (T1 / T2 not run; C32 == B2x16 logits checked per window above)' if int(os.environ.get('R57_G32TIME', '0') or 0) else 'ALL BITWISE: the 32-row check through the widened gate on the exact-45 loop equals <= 16-row checks' if allok else 'NOT BITWISE'}"
         f"; peak {mx.get_peak_memory() / 1e9:.1f} GB")
+    if REFC:
+        print(f"[r57] REF2_REFC=1 (end): {refc.report()}", flush=True)
     sys.exit(0)
 if INT8D:                                                # R57_INT8D: Leap's installer LAST, over ref2 and every other wrapper
     sys.path.insert(0, os.path.expanduser("/Users/kamen/BigMoE/data/r57/snap/frozen_X/Leap_scripts/week98"))
@@ -2264,8 +2289,13 @@ if INT8D:                                                # R57_INT8D: Leap's ins
     ref_on(False)
     assert mx.quantized_matmul is I8._qmm8, "R57_INT8D: int8d must be the outermost quantized_matmul wrapper"
     say(f"INT8D: int8 dense on {', '.join(sorted(INT8D_SETS))} ({I8.__file__}, 1-{I8.HI} rows, verify phase only)")
+if os.environ.get("R57_DIAG95"):                         # s98 (11-18): Leap's tree-vs-chain diagnostic at mbpp/30's token 95
+    assert T16, "R57_DIAG95 needs R57_TREE16=1"          # (scripts/s98/diag95.py, frozen beside this screen)
+    import diag95
+    diag95.run(globals())
+    sys.exit(0)
 for n_p, (s, key) in enumerate(PICK):
-    it = next(x for x in ED.load("dec_" + s) if x["key"] == key)
+    it = J98[key] if key in J98 else next(x for x in ED.load("dec_" + s) if x["key"] == key)   # s98: R57_ITEMS_JSONL
     ids, want = list(it["prompt_ids"]), REFROWS.get(key, {}).get("completion_ids", [])
     if NOCOM and s == "humaneval":                       # R57_NOCOM: before the user turn's <|im_end|> (the prompt's last one)
         _j = len(ids) - 1 - ids[::-1].index(NOCOM_END)
@@ -2323,7 +2353,7 @@ for n_p, (s, key) in enumerate(PICK):
         RUNS.append(dict(key=key, arm=arm, type=typ, bad=r["bad"], cut=r["cut"], P=len(ids),
                          **{k_: r[k_] for k_ in ("drafter", "hist", "a6", "n", "tps", "tpsw", "kept", "checks", "cyc", "ck",
                                                  "drf", "miss", "io", "mb", "mpk", "mem", "copy", "fast", "pf", "lh", "inert")},
-                         d7b=draft is DRAFT4, replay=None if r.get("replay") is None else {k_: v_ for k_, v_ in r["replay"].items() if k_ != "pos"}, rlx=r.get("rlx"), **({"close_call": r["close_call"]} if r.get("close_call") is not None else {}), **{k_: r[k_] for k_ in ("lossy_check", "t1c_ck", "m1t", "t16", "tree", "xrw") if r.get(k_) is not None}, spn=r.get("spn"), nwk=r.get("nwk"), pfs=r.get("pfs"), pfst=r.get("pfst"), pflm=r.get("pflm"), pfd=r.get("pfd"), p2=r.get("p2")))   # Thu 18:5x / Fri 10:0x: relaxed / span / INERT
+                         d7b=draft is DRAFT4, replay=None if r.get("replay") is None else {k_: v_ for k_, v_ in r["replay"].items() if k_ != "pos"}, rlx=r.get("rlx"), **({"close_call": r["close_call"]} if r.get("close_call") is not None else {}), **{k_: r[k_] for k_ in ("lossy_check", "t1c_ck", "m1t", "t16", "tree", "xrw", "refc") if r.get(k_) is not None}, spn=r.get("spn"), nwk=r.get("nwk"), pfs=r.get("pfs"), pfst=r.get("pfst"), pflm=r.get("pflm"), pfd=r.get("pfd"), p2=r.get("p2")))   # Thu 18:5x / Fri 10:0x: relaxed / span / INERT
                                                          # stats were computed but never written (the pre-flight's MISSING)
         m = min(len(want), r["n"])
         agree = same(r["out"], want)

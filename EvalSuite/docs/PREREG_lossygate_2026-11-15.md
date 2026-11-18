@@ -1978,3 +1978,19 @@
     amendment checks that.
 - **Dated 21:2x (NewIdeas 21:0x), before any G2 config or data:** G2's chain on Wednesday carries the AWAY rule, as
   G1's does (4j's dated line, 21:2x).
+
+## Amendment 5g (Wed 2026-11-18 11:3x, before any stack data): every HE+ number also on the 92 outside the drafters' lineage (NewIdeas' proposal, received 11:2x; the orchestrator approved, received 11:2x)
+- **Why:** CERTIFY98 amendment 9 (docs/PREREG_certify98_2026-11-15.md). t30b's start checkpoint b5 trained on L1-20's 72
+  HE+ train windows (l120 he_<id>, token-identical to the suite's HumanEval/<id> prompts, 80 / 80) and on d22c's 97 IFEval
+  (97 of dec_ifeval's 100). L1-20 trained on the same 72 (8 more are its val). On trained items a drafter proposes the
+  125B's own answers more often, so a lossy arm may deviate less there, and tok/s may read high.
+- **The rule** (information beside every registered line; no line, bar or decision changes):
+  - Every HE+ number is also quoted on the 92 HE+ problems outside the 72 (HumanEval/0-163 minus the CERTIFY98 v2
+    manifest's heplus_lineage_b5), beside the 164: tok/s in the timing runs and the card gate, and the HE+ lossy deltas
+    of tier 1 and the card gate. MBPP 100 is the clean anchor: no drafter in play trained on MBPP.
+  - The 72 all sit in tier 1's humanevalx keys; humaneval's 60 are outside them.
+  - IFEval: 97 of tier 1's 100 are in b5's training (t30b's lineage: blob 1's, 2u's and B1's drafter), none in L1-20's.
+    Tier 1 has no clean IFEval subset of useful size, so IFEval numbers carry that note.
+  - GSM: l120 holds gsm_0-28 (27 train, 2 val). dec_mathx's gsm8k/0-24 may lie in them (dec_math's 700-724 do not); the
+    mapping is checked before any gate reads a GSM set, and such a set is then quoted the same way.
+- The stack amendment (6) carries this rule into its tables.

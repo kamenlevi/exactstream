@@ -690,3 +690,173 @@ tools/certify98_lines.py power: 2,000 draws of windows with replacement from the
     it is bitwise and a C T T C A/B passes by Fri 12:00.
   - If adopted, it is ENGINE CONFIGURATION. The RESULT states its per-check mix (e.g. "16 / 32 rows, tau 0.9") beside
     the tok/s, never as K*. C1 at tree-16 stays the claim: a 32-row check covers at least what the 16-row one does.
+
+## Amendment 9 (Wed 2026-11-18 11:3x, before the capture and before any candidate pass): t30b's lineage; HE+ gated on 68
+- **Why** (EvalSuite 11:1x; the orchestrator accepted (a)-(e), received 11:1x; NewIdeas checked it, received 11:2x; MTP
+  Head, b5's owner, asked to confirm): t30b starts from MTP Head's D-22 checkpoint b5. b5 trained on the 125B's own
+  answers to 72 of the 140 fresh HE+ problems and to 57 of amendment 3's 60 IFEval prompts.
+  - BigMoE scripts/dd_ttt.py (pinned, 7864d28d...) starts the TTT30 runs from ~/TrainLab/ckpt/d22_b5.safetensors
+    ("start b5" in ~/TrainLab/data/t30b_pin.md).
+  - b5 trained with --data l120,d22c (~/TrainLab/ckpt/d22_b5.json: the train split, one epoch, 246 steps, no init):
+    every train-split window of ~/Leap/data/l120 (L1-20's windows) and ~/TrainLab/data/d22c that has a d16w file, 246
+    windows. MTP Head's REPORT says the same (D-23d amendment 1, 11-02: "b5: those + d22c's 97 IFEval").
+  - l120 holds 80 HumanEval windows (he_<id>, captured 10-30): exactly amendment 2's strict 80. Their prompt tokens
+    equal the suite's HumanEval/<id> prompts, 80 / 80. 72 are train (in b5); 8 are val (23, 43, 61, 78, 94, 113, 131,
+    152).
+  - d22c's 97 IFEval windows are dec_ifeval prompts. They hold 57 of amendment 3's 60 (not 1220, 1561, 3280).
+  - Amendment 2 excluded only the 24 d16w windows in BigMoE's bank split.json, and amendment 3's "no drafter trained
+    on them" checked t30b's own TTT data (n1112) only. Neither traced t30b's starting point.
+  - Clean: MBPP 300 (b5 has no MBPP; t30b's own TTT data is n1112 Magicoder only, ~/BigMoE/data/deepdraft/ttt30b/
+    split.json, 2,164 train files). The 29 agent windows were not trained on; 12 of them sit in d16w, and D-22's
+    read-outs and D-23d's timing prompts used some of them (screens).
+  - Section 2's contamination rule would likely flag the 72 against t30b's lineage after the look (51 % of the 140:
+    VOID), and HumanEval has no problems left to re-draw. So the sets are re-scoped now, before any capture data.
+- **The sets** (tools/certify98_manifest_v2.py -> results/certify98/fresh_manifest_v2_2026-11-18.json, sha256
+  12e2bf9ad722fbda17176d664a930f4a21664d6677ce95421513fe7356473132; it reads the frozen v1 manifest acdf3e62... and
+  adds the lineage; `--check` rebuilds it):
+  - **HE+ gated: the 68** of the 140 outside b5's training. All 140 are still captured. The 72 are reported as
+    information, labelled "in the candidate's lineage"; the 72-vs-68 split sizes the lineage effect (information).
+  - **The strict-80 sensitivity line is dropped.** 72 of its 80 are b5's, and each of the 68 was screened somewhere
+    (Sandbox98's 2B dev 60; L1-20's 8 val), so no strict subset remains.
+  - **MBPP: the 300, unchanged.** It is the clean anchor.
+  - **Everyday (reported, never gated):** agent 29 and IFBench 61 unchanged. IFEval keeps its 3 prompts outside b5's
+    training. 57 replacements are drawn by amendment 3's method (seed [20261115, 2], the first 57 of a permutation,
+    sorted) from IFEval's other 441 (data/items/dec_ifevalx.jsonl) minus the 30 tf_ifeval prompts (d16w, d02a and
+    D-22's read-outs hold them). A scan of every drafter data tree's file names and json / jsonl / txt / log indexes
+    (Wed 11:2x) finds only dec_ifeval's 100 and tf_ifeval's 30 IFEval prompts. The replacements have no NAX6-N rows, so
+    amendment 3's cross-check covers the other 93 only. The v1 IFEval 57 are still captured, as information.
+- **Power of the gated HE+ at K 68** (results/certify98/power_k68_2026-11-18.py: the pinned certify98_lines.py,
+  579a60ac..., at HE+ K 68; seed 1116, 2,000 draws; output power_k68_2026-11-18.txt), at the pinned bars (c32 1.04,
+  R32/R16 1.433):
+  - LAB: 0.49 (0.71 at K 140; 0.54 at the strict 80).
+  - C1: tree-16 1.00; tree-32 0.70 (0.92 at K 140).
+  - C2 (P = 2): 0.90 at the dev truth (0.97 at K 140); 0.70 if both deep bands' truth is 98.0 (0.81).
+  - T32/32: 1.00. T32/16 at 1.433 x 1.04: 0.46 (0.39 at K 140).
+  - MBPP 300's rows are unchanged.
+- **The contamination check** (section 2; after the capture, before any scoring) runs against t30b's whole lineage:
+  - n1112's 3,072 captures, with the registered source tags (--forbid humaneval, mbpp, he_, tf_code);
+  - b5's 246 windows (the v2 manifest's lineage.b5_windows), on the span rule alone. They hold he_ and IFEval sources by
+    construction; this amendment handles those by name (the 72 and the 57 are outside the gated and reported sets), so
+    the source-tag rule does not read them.
+  - A window flagged by either is dropped. More than 5 % dropped in a set VOIDs it, as registered.
+- **The engine count check** (section 2's +-3 % line) reads the first 24 of the gated 68 in manifest order
+  (heplus_count_check: HumanEval 1, 3, 4, 6, 8, 9, 11, 12, 13, 16, 17, 19, 23, 26, 27, 28, 29, 30, 36, 41, 42, 43, 45,
+  48). If fewer than 20 of them have identical answer tokens, the next gated windows in order are added until 20 do.
+- **The capture list** (tools/certify98_capture_build.py, run in BigMoE's venv for the chat template; log
+  results/certify98/capture_list_build_2026-11-18.txt): data/certify98/capture_list_2026-11-18.jsonl, sha256
+  bb721ff97a338d5eee268d60b3c74ba1a75937540d8b3a8f120100fdf691f2e2, outside git (its agent prompts are agent turns).
+  - 647 windows in this order: HE+ 140, MBPP 300, everyday 207 (agent 29, IFBench 61, the v1 IFEval 60), then the 57
+    replacements last.
+  - Each line is {key '<set>/<name>' (amendment 5's layout), set, src, prompt_ids, max_tokens 512 (amendment 7)}.
+  - Amendment 2's formats, token for token: d16w's 24 tf_code windows (the dev bank's heplus24) 24 / 24; L1-20's 80 he_
+    windows 80 / 80; d1102mbpp's prompt rows 375 / 375; dec_mbpp 100 / 100; the 178 chat items equal D.chat of their
+    user text, 178 / 178.
+- **The same lineage elsewhere** (the orchestrator approved, received 11:2x): EvalSuite's lossy gates quote every HE+
+  number on the 92 HE+ problems outside the 72 beside the 164, with MBPP as the clean anchor
+  (docs/PREREG_lossygate_2026-11-15.md, amendment 5g).
+- **Unchanged:** every line, bar and scorer pin; the MBPP set; the capture's path and cap.
+
+## Amendment 10 (Wed 2026-11-18 11:3x, before the capture and before any candidate pass): the proof run, FULL
+- **Why FULL, and why now:** Kamen lowered the disk floor to 50 GB, so CERTIFY98 runs FULL (the orchestrator, received
+  11:0x): wd stored, the single look offline Thursday by day. BigMoE's capture moves to today by day, from ~12:15 (the
+  orchestrator, received 11:3x). The (b) draft (results/certify98/proofrun_amendment_b_DRAFT_2026-11-17.md) is moot.
+- **Filed before the capture.** That is earlier than the timeline's "capture; freeze the manifest; file the proof-run
+  amendment", which only tightens it. So this text cannot name the capture's sha256s; section 3 freezes them before any
+  pass.
+
+### 1. The pins (section 2's list)
+- **The candidate:** t30b AS IS (MTP Head, ~/TrainLab/data/t30b_pin.md at TrainLab 82171b2; NewIdeas Tue 09:3x).
+  - ~/datasets/deepdraft/ckpt/dd_t30b.safetensors, sha256
+    790c42db393ad158f0f61e64962c868967995268babb816b27cbf8f4e215d502 (state done at step 4206; 11 tensors, all F32).
+  - **Recipe:** BigMoE's TTT30B, dd_ttt.py train --run t30b, depth 30, rows 192, from b5 (amendment 9).
+  - **Code** (re-read Wed 11:3x, unchanged since Tue 09:3x):
+    - TrainLab mtp125.py (0c855a2): 8ca9b5dcde9120715e3161d17d0e747177d82a922f6ea9d66f4e4f9a64534677;
+    - BigMoE (Tue: 31f92cd1):
+      - dd_ttt.py 7864d28da79680c31cb19d56a94c3b1de6c1708bdf90855e64a9a05cc7c9d560;
+      - dd_d22_ttt.py a6c0e892a1658b01fe704c37099024fabd0b5dccb22f760da7b74d66777f5b97;
+      - dd_tree.py 71b7faf5ae8cbc98ce5c9ff3e13a2b23803cdc62043c5554fe8613aad092c3a2;
+      - dd_topk.py 35556b4e46cb2dcfbf23c7a729a30cb6097f7524405af89c598dd6b9abf68f57.
+    - If any of them changes before the pass, the pins are re-read and re-filed as a dated line here, before the pass.
+  - **Settings:** amendments 8 / 8a. The modules map ({path: sha256}) carries mtp125.py (amendment 7a, item 4).
+- **The certified form:** the head as dd_topk.py / dd_tree.py load it: mtp125.load(frac 0.03) -> Trainable(head)
+  .load_weights(dd_t30b.safetensors), with fp32 Linears and the full vocab.
+- **The engine check** (the orchestrator, Mon 09:4x) runs the same stored form:
+  - t30b as stored on BigMoE's r57 stored-format path (BigMoE confirmed Tue 10:56): R57_DRAFT=t30b R57_T30B_FMT=stored
+    R57_TREE_K=1 R57_TREE_NODES=31 (k = 1 best-first = the greedy 31-draft chain), exact acceptance (no
+    R57_RELAX_DELTA), chain-32 (31 drafts + the current token, kept/32's cap).
+  - The weights: dd_t30b.safetensors as stored over the shipped MTP layer: fp32 Linears, the full 248,320-row lm_head,
+    no screen, no session tokens. r57 loads them through its own model load, so identity is checked (the rehearsal).
+  - The numerics: the stored form mirrors dd_topk's block-level cast (mtp125.py computes the shared expert and its
+    se_gatew gate in fp32, lines 135-139, then casts the MoE block's output to the stream dtype, line 172; checked Wed
+    07:5x). The shipping forms (Q8H32, c2) keep MoonShots' CastLinear on the se_gatew output; they are not certified
+    here.
+  - The precision: MLX_ENABLE_TF32 unset (TF32 on, MLX 0.32.2's default), as the dumps ran. runs.json prints it with the
+    MLX version.
+  - **The build:** the capture's (NAX6-N), as CONTRACT_YES_PLAN keeps it: the capture and the count check share one build.
+  - **The windows:** amendment 9's (the first 24 of the gated 68; topped up in order to 20 identical windows). The
+    engine's tokens per check must be within +-3 % of kept_walk on the same windows. Failing it voids only the kept/32
+    claim.
+  - Per window: tokens, checks, kept per check, and an identity flag of the answer tokens against the capture's ids. A
+    differing window is dropped and counted.
+  - **When:** right after the capture (BigMoE's follower), after section 3's freeze marker. The comparison runs after
+    Thursday's TOPK dump, since kept_walk on these windows comes from it.
+  - **The dev rehearsal** (Wed by day): heplus24 vs kept_walk from the dev TOPK dump.
+    - Each check's drafts up to its first miss are compared with dd_topk's TOPK top-1 at (fi, anchor row, depth). At
+      least 99 % must be equal, and each mismatch is listed with dd_topk's top-1 minus top-2 margin (MoonShots' r57
+      drafter matched 453 / 454 stored chain-32 positions; the miss was a near-tie; NewIdeas, received Wed 08:1x).
+    - Its tokens per check vs kept_walk on the dev windows shows the near-tie flips' net effect before the fresh check.
+    - It also shows the dropped-window rate. A 32-row verify is outside REF2-T's certified 1-16 rows.
+- **The scorers:** tools/certify98.py c0528ad765fd5e59885a1e1066292a3c4dbf6908064b83956b0280773b077eee,
+  tools/certify98_tree.py 4a0ba21625497be19a2e2c2c2331f571024beaa756f0ea7f85e747c31ab212b8, tools/certify98_lines.py
+  579a60ac9ed4e329e83a137c2c5d4827c08bf0012c97766727e9fd5d79c87fd4 (8a's), and tools/certify98_dumpcheck.py
+  884e5cb415633eab53f89cb203b64a95d59b62e7106d8232daf09bda1c7d773f (its --gated mode; --incapture is not used).
+- **The fresh sets:** amendment 9's v2 manifest (12e2bf9a...) and capture list (bb721ff9...). The everyday pool is
+  amendment 3's, as amendment 9 amends it.
+
+### 2. The single look (Thursday by day, BigMoE)
+- TOPK as registered (layout 9f49e03), plus T8 at k 8 and 32 nodes (amendment 7a), offline from the stored fresh
+  files. T8 at 127 nodes stays DROPPED (Tue: early death KILLED, ADAPTIVE K's build stopped).
+- **One dump pair per set,** each file list from the v2 manifest:
+  - scored: heplus_gated (68), mbpp_fresh (300), everyday_reported (150);
+  - information: heplus_lineage_b5 (72), everyday_lineage_b5 (57).
+- BigMoE writes dumps_sha256.json with amendment 7's _run fields. EvalSuite commits a copy before scoring.
+
+### 3. The freeze and the integrity checks
+- **The freeze:** the capture writes files_sha256.json at its PASS end (amendment 5): manifest_sha256 = the v2
+  manifest's sha256, and one sha256 per placed file (<set>/<name>.npz). EvalSuite's watcher copies it to
+  results/certify98/ and commits it on the capture's end marker, then writes FILES_FROZEN (with the commit). The engine
+  check starts only after that marker, so the freeze precedes every pass.
+- **Before scoring:** tools/certify98_dumpcheck.py must PASS with `--gated <files_sha256.json> --pins <pins.json>
+  --fresh results/certify98/fresh_manifest_v2_2026-11-18.json`. pins.json carries exactly section 1's values and is
+  committed before scoring. Amendment 9's contamination check runs too.
+- The scorer runs only on dumps whose sha256 match the manifest, as registered. The RESULT quotes both manifests.
+
+### 4. Unchanged
+- Every line, bar and power of amendments 4 / 6 / 6a / 8 / 8a, with amendment 9's sets and its K 68 power; the metric
+  and its validity checks.
+- The 2B rows (MoonShots) and C2-4B.
+- LAB comes from TOPK's depth-0 cells.
+- wd stays stored. A later candidate may be scored on these files only under section 2's one-candidate-per-look rule
+  (a second candidate on the same sets uses a one-sided 97.5 % bound).
+
+## Amendment 10a (Wed 2026-11-18 11:4x, during the capture, before any candidate pass): the engine check runs chain-16
+- **Why** (BigMoE, received 11:4x): r57 cannot run the registered chain-32. The tree path holds at most 16 nodes
+  (tree_meta), and r57 has no plain MTP chain-32. BigMoE proposed chain-16, runnable on the capture's build today;
+  chain-32 needs a new build. EvalSuite's call, as BigMoE asked.
+- **The engine check** (amendment 10, section 1): R57_DRAFT=t30b R57_T30B_FMT=stored R57_TREE_K=1 R57_TREE_NODES=15
+  (the greedy 15-draft chain + the current token, kept/16's cap 15), exact acceptance, the same stored form, numerics,
+  precision, build, windows and freeze marker. The engine's tokens per check must be within +-3 % of kept_walk at cap 15
+  (certify98.py's kept_per_16) on the same windows.
+  - kept/16 is the cap that ships: K* = 16 on both sets (amendment 8a).
+  - Failing it voids the kept/16 claim.
+- **kept/32:** if a chain-32 engine path is built and checked the same way (+-3 % of kept_walk at cap 31, the same
+  windows) by Fri 12:00, it carries amendment 10's check. Otherwise kept/32 is quoted as the replay's, labelled "not
+  engine-checked".
+- **The dev rehearsal** moves to chain-16 the same way: heplus24 vs kept_walk at cap 15, draft identity up to each
+  check's first miss (>= 99 %, each mismatch with its margin).
+- **Unchanged:** everything else in amendments 9 and 10.
+- **Dated line, Wed 11:4x (operational; no line changes; BigMoE, received 11:4x):** the capture stopped once at
+  11:43 and resumed at 11:46 at C 160 (it started at C 224). 43 of the 647 windows were on disk at the stop. C is
+  numerically neutral: HumanEval_0 re-captured at C 160 is bitwise identical to its C 224 file in every array (ids, gen,
+  h, wd, tk, lp, asst). The stop's marker was moved aside (CERT98_CAPTURE_END.stopped_1143), and the freeze keys on
+  files_sha256.json, which is written only at the PASS end.

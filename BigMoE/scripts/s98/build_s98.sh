@@ -28,6 +28,7 @@ if [ "$C" != b4331e4 ]; then n=0
   echo "overlaid $n files from b4331e4..$C"; fi
 sed -e "s#frozen_X#frozen_$N#g" -e "s#/snap/X/#/snap/$N/#g" scripts/s98/r57_screen_s98_X.py > "$SD/r57_screen_$N.py" || exit 2
 cp $S/g1v3/inert_span.py $S/g1v3/pflm.py $S/g1v3/relax_delta.py $S/g1v3/relax_span.py scripts/tree16_draft.py scripts/tree16_commit.py scripts/tree16_loop.py "$SD/" || exit 2
+[ -f scripts/s98/diag95.py ] && { cp scripts/s98/diag95.py "$SD/" || exit 2; }
 find "$FZ" "$SD" -name __pycache__ -type d -prune -exec rm -rf {} + 2>/dev/null
 RW=(-e "s#~/Leap/scripts#$FZ/Leap_scripts#g" -e "s#/Users/kamen/Leap/scripts#$FZ/Leap_scripts#g"
     -e "s#~/Leap/third_party#$FZ/Leap_third_party#g" -e "s#/Users/kamen/Leap/third_party#$FZ/Leap_third_party#g"

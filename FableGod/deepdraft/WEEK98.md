@@ -7,6 +7,33 @@ unlocks 98% accuracy at 30 tokens deep. By then we must know what it is, and eit
 know the principles of how everything will work and it's certain, and we still have a week of building everything. I
 don't care about that. I just need to get that."
 
+## KAMEN, Wed 18 Nov 11:0x-11:1x (verbatim): DISK FLOOR 50 GB; THE REFERENCE CONTRACT YES (EXACT)
+- 11:1x: "You can get to 50gb of storage. Make sure you achieve 550 btw. That's important" -> the disk floor is 50 GB (alarms
+  ~55). CERTIFY98 runs FULL TONIGHT (BigMoE 23:35 -> ~01:45; EvalSuite's jsonl by 18:00 + the FULL amendment).
+  BigMoE's ops/HEALTH_REVIEW.md + health_review.py updated by the orchestrator (floor 50, stop big writes at 60).
+- 11:1x: "Yes you can adopt the reference contract into exact." -> CONTRACT_YES_PLAN (899926d) executes, in the EXACT
+  build only. Leap's refc for r57's exact paths today; BigMoE wires it + M4C in Thursday's key test (main share up to
+  the 95 % cap). Thursday night: (i) lossy timing -> (ii) contract chain-16 + tree-16 A/B + the NAX6-N insurance arm +
+  c2 -> (iii) count check -> EvalSuite's Part A. The exact tree-16 headline is valid Fri ~08:00. Exact under the
+  contract ~165-185 [P].
+
+- **11:1x EvalSuite, CERTIFY98 CONTAMINATION (before the look):** t30b's start checkpoint b5 (D-22) was trained on the
+  125B's answers to 72 of the 140 fresh HE+ problems and 57 of the 60 fresh IFEval prompts. MBPP 300 is clean.
+  - **Orchestrator: ACCEPTED (a)-(e)**, as one amendment before 23:35:
+    - the gated HE+ = the 68 outside b5's training (strict-80 dropped; power stated);
+    - all 140 captured, the 72 as information;
+    - 57 replacement IFEval drawn from dec_ifevalx;
+    - a lineage-wide contamination check;
+    - the count check on the first 24 of the 68.
+- **11:37 BigMoE: the CERTIFY98 FULL capture STARTED BY DAY** (Kamen away; EvalSuite filed amendments 9 / 10 / 5g first,
+  fac490e). ETA ~13:45-14:30.
+- **11:4x BigMoE M4C (contract ON, Leap's REF2_REFC 3ec85e8) = 15 / 16.**
+  - The contract fixed mbpp/16 and makes chain-16 == AR on 16 / 16.
+  - mbpp/30 still flips at token 95 on the TREE (its masked attention / GDN aren't row-invariant).
+  - So exact tree-16 is NO-GO as built. (ii) = the contract CHAIN-16 (~-2.6 ms).
+  - Asked of Leap: can the tree's masked attention + GDN be made row-invariant by Fri 12:00? Go if feasible.
+  - (iii): chain-32 can't run on r57 (the tree path's max is 16 nodes), so BigMoE recommends chain-16. EvalSuite's call.
+
 ## KAMEN, Wed 18 Nov 05:0x (verbatim): 550 ON LOSSY AND EXACT, PUSH IT AS HIGH AS POSSIBLE
 "Also, Twin, I forgot to tell you, you passed the test. Everything's perfect, so don't worry about that. Let's just get
 the 550 tokens per second mode to Saturday, and that would be fucking best. That's on lossy and exact, push it as high
@@ -1044,6 +1071,48 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
     (1) the fallback = lx45cc1 + the bitwise flags (blob 2u = it + tgl16eu); (2) blob 1's first bisect by the failing line (runaway -> CC(1)
     off; accuracy -> tgl16eu off); (3) a 104-key humanevalx identity check on (i)'s fallback arm. Cost if CC(1) fails on trees too: blob 1
     HE+ 204 -> 196, MBPP 144 -> 135; the tree line's top ~220-225 HE+ (NewIdeas, adaptk_sat).
+  - **11:0x-11:1x, CONTRACT YES + tonight re-placed (NewIdeas; approved by the orchestrator, clock-checked).** The orchestrator
+    postponed CERTIFY98 slim at 11:0x. Kamen then lowered the disk floor to 50 GB free (so FULL fits) and said YES to the reference
+    contract ("Yes you can adopt the reference contract into exact."), for the EXACT build only; lossy + CERTIFY98 stay on NAX6-N.
+    Thursday night as first set was ~9 h vs 23:35-08:00, so: TONIGHT = CERTIFY98 FULL 23:35 -> ~01:45 -> (iii) the count check on the
+    fresh windows -> (ii-b) the NAX6-N chain-16 insurance arm. THURSDAY NIGHT = (i) -> (ii) contract chain-16 + tree-16 Q8H32 vs c2 ->
+    Part A, ~7 h 45. BONUS if BigMoE's contract snapshot + EvalSuite's PREREG are ready by ~23:00: M4C + Part A tonight; Thursday then
+    gets a tier-1 slot back and the exact tree-16 headline counts as soon as (ii) measures it. Owner lines sent 11:1x (Leap: refc 1a-c
+    by ~17:00; BigMoE: env + snapshot + M4C + the follower behind the capture + c2's loop bit test; EvalSuite: PREREG + count check).
+    ALL_LEVERS_PLAN section 3a; CONTRACT_YES_PLAN header.
+  - 10:59 BigMoE (fda65e7e): PK + SF PASS its loop bit test (exact tokens identical HS / SF / SF / PK; verify logits 60 / 60 each),
+    so R57_TREE_PK=1 is in blob 1 + the exact headline. REF2_BOF / REF2_HC_B never engage on lossy-45's base path: out of blob 1, ON
+    in exact. 11:0x (d942e0e6): the fallback identity pre-check 6 / 6.
+  - 10:3x MTP Head: item 9 (S23 SMOE: the 1/4-active head loses 22-27 % kept, like pruning; 4e521d3) and item 10 (S24 VOCABCOV: a
+    dynamic 8K screen beats the static 8K, not the static 32K; 0b27cc4) FAIL. Item 2's S22 continuation is skipped, so c2's arm B is
+    dd_t30qa (353965c5), final.
+  - Disk re-check (11:1x): in the plan only TRL-3 and CERTIFY98's delete were disk-gated; TRL-3 now waits only on a builder.
+  - **11:2x-11:3x UPDATES (NewIdeas; each approved by the orchestrator):**
+    - (ii-b) stays THURSDAY night on BigMoE's runner (its exact runner isn't built; one runner for (ii) + (ii-b)): Thursday night =
+      (i) -> (ii) -> (ii-b) -> Part A, ~8 h 30, a late start pushing Part A into Friday's away window.
+    - THE MARKER CHAIN, each step on the previous end marker + Kamen's away gate: BigMoE's capture -> (iii) -> NIGHT1118_BIGMOE_END
+      -> Breakthrough's rec1a_c25 (moved from Thu 07:30) -> Leap's slot #4 (confirmed; ~3 min of GPU; moved from Thu 08:00) ->
+      ~/Leap/data/week98/NIGHT1118_SLOT4_END -> BigMoE's key test on blob 1 -> EvalSuite's ONE chain: tier 1 #1 -> Part A.
+      BigMoE proposed 11:29 to run the capture BY DAY (12:15-14:45; last night's NO-SWAP sat at 29-30 GB). That frees the night.
+    - DECIDED 11:3x, best effort: TIER 1 #1 ON BLOB 1 TONIGHT if BigMoE freezes blob 1 (s98b + PK) by ~20:00, EvalSuite files
+      amendment 6 first, and the key test passes. Plus the BONUS Part A if the contract snapshot reaches EvalSuite by ~19:00.
+      Thursday's day then takes 2u's tier 1 or blob 1's bisect: one extra tier-1 pass before Saturday (Kamen: every extra pass).
+    - Leap delivered refc a-c at 11:24 (3ec85e8): REF2_REFC=1, HC_B OFF under the contract, refc_rowinv.py 18 / 18, the drafter
+      untouched; ~-2.6 ms per 16-row exact check vs today's BOF + HC_B build [P].
+    - LINEAGE RULE: 72 of the timing's HE+ 164 are in t30b's lineage (b5's l120 train split; MBPP 100 and the 24 d16w windows are
+      clean). Every HE+ number (tok/s, tier-1 deltas) is quoted on the 92 outside it beside the 164, with MBPP as the clean
+      anchor, filed before stack data.
+    - OVERHEAD SPLIT (s98b records, research/week98/ovh/): commit + bookkeeping between checks ~0.1 ms per cycle, so the ~3 ms is
+      inside the check timer. The short runs are SSD-bound, so the real split waits for a warm R57_TCPU=1 run.
+  - **11:4x M4C 15 / 16 -> exact = CONTRACT CHAIN-16 (the orchestrator; BigMoE).** Under the contract chain-16 == AR on 16 / 16
+    and mbpp/16 is fixed, but the tree still flips mbpp/30's token-95 near-tie, so exact tree-16 is NO-GO this week. Exact (ii) =
+    contract chain-16 + GDN16 + tgl16e + the Q8H32 vs c2 A/B (PK / SF don't apply on chain; HC_B OFF; BOF inert). Part A certifies
+    chain-16. Trees only if BigMoE's 30-min diagnostic after the capture blames a GDN layer (Leap's tree-invariant GDN by Fri
+    12:00); if attention, after Saturday. The CERTIFY98 FULL capture started 11:37 BY DAY. c2's loop test PASS. (iii) can't run as
+    chain-32 (tree_meta holds 16 nodes): chain-16 proposed (EvalSuite's call). EvalSuite's amendment 6 section 8 confirmed:
+    tonight key test -> tier 1 #1 -> Part A (if ready by ~22:00); Thu day 2u's tier 1 or B1; Thu night (i) -> (ii) -> (ii-b) ->
+    Part A, or #2a's slot if Part A ran; the fallback drops BOF / HC_B (no engagement). Breakthrough re-armed rec1a_c25 on
+    NIGHT1118_BIGMOE_END (REC1A_END on any end).
 - Wed 18 02:2x (NewIdeas, for the orchestrator; NOTHING ARMED; ~/NewIdeas/research/week98/CONTRACT_YES_PLAN.md, 899926d): **A READY PLAN FOR
   A YES on Leap's reference contract (M4 = batch variance: mbpp/16 a 1-bf16-step near-tie, mbpp/30 an exact tie).** Scope: the EXACT build
   only; the lossy stack, its gates and CERTIFY98 stay on NAX6-N (one build for the capture + the count check), so EvalSuite runs Part A

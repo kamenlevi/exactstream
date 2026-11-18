@@ -606,3 +606,30 @@ Breakthrough accepted at 18:12. Fable B's design is ~/FableGod/fableb/REPLAYED_C
       arm, True. The windows were 4/4 again, and so were (a) and the RESULT line's repeats.
     - Timings are not quotable (a share lock, the GPU busy beside it). For the record only, they match the quiet run:
       the residency set 9 (3) us, useResources 28 (10) us.
+  - Wed 11:3x, **milestone 2's engine run (rec1a_c25) moves from Thu 07:30 to tonight** (NewIdeas 11:2x, for the
+    orchestrator: no idle GPU while Kamen sleeps). The run and its pre-registered checks are unchanged. Only the trigger
+    changes.
+    - The Thu 07:30 runner was stopped while it waited. It held nothing, left no process and wrote no marker.
+    - New wrapper scripts/m1/rec1a/run_rec1a_c25_on_marker.sh (frozen copy
+      data/m1/rec1a_engine/run_rec1a_c25_on_marker.frozen.sh, md5 1aa1a35a). It waits for BigMoE's end marker
+      ~/BigMoE/data/r57/NIGHT1118_BIGMOE_END (after BigMoE's CERTIFY98 capture + count check, ~02:40). Then it runs the
+      frozen runner run_rec1a_c25_1119.frozen.sh unchanged, with START = now and HARD = now + 90 min, no later than
+      Thu 09:30. All of that runner's gates and guards stay (MEM 35 GB share lock, NO-SWAP >= 43, Kamen away).
+    - If BigMoE's marker has not come by Thu 07:30, or HOLD appears while it waits, nothing runs and the wrapper writes
+      the END marker itself.
+    - Leap's slot #4 starts on the END marker data/m1/rec1a_engine/REC1A_END, which is written on any end.
+    - A stub simulation of the wrapper's 8 paths behaved as designed: the marker; no marker by the deadline; the marker
+      or the END marker present at arming; the runner ending without END; under 40 min before the cap; HOLD while
+      waiting; the cap setting HARD.
+    - Flag check against Leap's current c25 (b31dd1f): it reached the model load, with the flag line identical to
+      07:52's (data/m1/rec1a_engine/rec1a_1118fc2_flagcheck.txt).
+    - The timed arm (replayed vs MLX check) does not ride in tonight's slot. It needs the replay inside c25's decode
+      path, which is the installer itself, and that can't be engine-tested before the slot. It is also only worth timing
+      if tonight's run is bitwise. It waits for a later slot.
+    - Item 12's target, from NewIdeas' overhead split (11:2x; research/week98/ovh/ovh_split.py on BigMoE's s98b
+      records, 4 keys x 128 tokens, 6 arms):
+      - Between checks, outside the check and draft timers: ~0.05-0.2 ms per cycle. The ~3 ms is not there.
+      - Inside the check timer (medians): build 90-107 ms, wait 15-16 ms, remainder 3.4-6.7 ms.
+      - Those runs are SSD-bound (535-595 expert misses, ~650 MB per check), so build is mostly I/O there. The warm
+        split comes from BigMoE's Thursday key test with R57_TCPU=1 (main-thread CPU per check).
+      - So the installer targets the check timer's build + remainder, not the commit.

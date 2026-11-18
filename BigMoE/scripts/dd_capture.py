@@ -68,6 +68,8 @@ if SRC == "codemath":
     LANGS = ["code", "math"]
 if SRC == "magicoder":                                  # DEEPDRAFT: code only
     LANGS = ["code"]
+elif SRC == "cert98":                                   # CERTIFY98 (Wed 18 Nov): EvalSuite's fresh windows, one list
+    LANGS = ["c98"]
 elif SRC == "mbpp":                                       # 11-02: MBPP code only (E2 / D2, Kamen's download OK)
     LANGS = ["code"]
 TRUNC, R, K, TOPK = 0.3, 16, 16, 32
@@ -132,6 +134,17 @@ elif SRC == "mbpp":
     per["code"] = [(f"dlog/mbpp{x['task_id']}", "code", "mbpp", MB_USER.replace("{q}", x["text"].strip()).replace("{t}", "\n".join(x["test_list"])))
                    for x in random.Random(1103).sample(mb, len(mb))]
     excl = "MBPP all 974, none excluded"
+elif SRC == "cert98":
+    # CERTIFY98 (BigMoE, Wed 18 Nov; the orchestrator 11:2x GO): EvalSuite's 590 fresh windows (fresh_manifest_2026-11-15.json)
+    # as one jsonl, DLOG_C98_JSONL, in manifest order: {key, set, prompt_ids (EvalSuite's runner form, decoded as given),
+    # max_tokens (the PREREG's per-set cap)}. The 125B's own greedy answer is the data; tmpl = the set.
+    import hashlib as _h98
+    _p98 = H(os.environ["DLOG_C98_JSONL"])
+    c98 = [json.loads(l) for l in open(_p98) if l.strip()]
+    assert c98 and all({"key", "set", "prompt_ids", "max_tokens"} <= set(x) for x in c98), "DLOG_C98_JSONL rows need key / set / prompt_ids / max_tokens"
+    assert len({x["key"] for x in c98}) == len(c98), "duplicate keys"
+    per["c98"] = [(x["key"], "c98", x.get("src", x["set"]), x) for x in c98]   # tmpl = src (heplus | mbpp | agent | ifbench | ifeval)
+    excl = f"CERTIFY98 fresh {len(c98)} windows from {_p98} (sha256 {_h98.sha256(open(_p98, 'rb').read()).hexdigest()[:16]})"
 elif SRC == "magicoder":
     # DEEPDRAFT (BigMoE, Thu 12 Nov): Magicoder-OSS-Instruct-75K's Python problems (MIT; sha256 f988f14d...) minus the
     # overlap with EvalSuite's HumanEval / MBPP / LCB v6 items (BigMoE scripts/dd_prompts.py: word 10-grams + eval function
@@ -156,7 +169,7 @@ say(f"plan: {len(PLAN)} prompts ({', '.join(f'{l} {len(per[l])}' for l in LANGS)
     f"target {TARGET} answer tokens per language, cap {CAP} per answer, {CAP_GB} GB / free >= {MIN_FREE} GB; -> {OUTD}")
 if os.environ.get("DLOG_PLAN_ONLY"):                    # CPU check of the plan, no model
     for x in PLAN[:6]:
-        say(f"  {x[0]} [{x[2]}]: {x[3][:160]!r}")
+        say(f"  {x[0]} [{x[2]}]: " + (f"{len(x[3]['prompt_ids'])} prompt ids {x[3]['prompt_ids'][:12]}, cap {x[3]['max_tokens']}" if SRC == "cert98" else f"{x[3][:160]!r}"))
     sys.exit(0)
 
 # ---------------------------------------------------------------- the default's model (D-23's preset; no MTP head needed)
@@ -448,10 +461,10 @@ for key, lang, tmpl, user in PLAN:
     free = shutil.disk_usage(OUTD).free / 1e9
     if free < MIN_FREE:
         say(f"free disk {free:.1f} GB < {MIN_FREE}: stopping"); break
-    ids = ED.chat(TOKZ, user)
+    ids = list(user["prompt_ids"]) if SRC == "cert98" else ED.chat(TOKZ, user)   # cert98: EvalSuite's ids as given
     if n_new == 0:
         say(f"first prompt as tokenized: {TOKZ.decode(ids)!r}")
-    out, L, r = run(ids, CAP)
+    out, L, r = run(ids, int(user["max_tokens"]) if SRC == "cert98" else CAP)   # cert98: the per-window cap
     if r["bad"]:
         say(f"{key}: {r['bad']}: not saved, stopping (the gate check failed)"); break
     path, onp, nb = save(key, lang, tmpl, ids, out, L)

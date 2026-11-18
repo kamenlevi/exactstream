@@ -3,6 +3,24 @@
 The orchestrator asked at 02:3x. The decision is Kamen's (it changes the exact reference). Until a YES, the exact headline is chain-16
 on NAX6-N.
 
+> (a quote from the project owner, kept private)
+This plan runs, merged with today's changes and approved by the orchestrator (ALL_LEVERS_PLAN.md section 3a):
+- Scope as below: the EXACT build only; the lossy stack, its gates and CERTIFY98 stay on NAX6-N.
+- Wed night: CERTIFY98 goes FULL (the disk floor is 50 GB now), 23:35 -> ~02:10 (or by day, if the orchestrator takes
+  BigMoE's 11:29 proposal), then (iii) the count check's engine run on the fresh windows as BigMoE's follower. (ii-b) stays
+  Thursday night (11:2x, approved: BigMoE's exact runner isn't built; one runner for (ii) + (ii-b)), so Thursday night =
+  (i) -> (ii) -> (ii-b) -> Part A, ~8 h 30, and a late start pushes Part A into Friday's away window. Then: rec1a_c25 ->
+  Leap's slot #4 -> the bonus, on end markers (ALL_LEVERS_PLAN 3a).
+- 11:24 Leap delivered refc a-c (3ec85e8; recipe ~/Leap/data/week98/check25/REFC_CONTRACT_RECIPE.md): REF2_REFC=1; HC_B
+  OFF under the contract unless M4C runs with it; refc_rowinv.py 18 / 18; the drafter untouched by construction.
+- 11:4x M4C 15 / 16: chain-16 == AR under the contract, but the tree still flips mbpp/30's token-95 near-tie, so exact
+  tree-16 is NO-GO this week. The exact headline = contract chain-16 + GDN16 + tgl16e + the c2 A/B; Part A certifies
+  chain-16. Trees only if BigMoE's diagnostic blames a GDN layer and Leap's tree-invariant GDN lands by Fri 12:00
+  (ALL_LEVERS_PLAN item 5).
+- BONUS: Part A (chain-16) tonight after tier 1 #1, if ready by ~22:00 with room left (the orchestrator 11:4x). Thursday
+  night then gets #2a's slot (if slot #4 qualifies it), and the exact chain-16 headline counts as soon as (ii) measures it.
+- Section 2's Wed-night and Thu-night lines below are superseded by this block.
+
 ## Why
 - M4 (BigMoE, Wed 02:10, scripts/m4_night_1117e.sh): EXACT FAIL by BATCH VARIANCE, not a bug (diagnosed 02:2x from the bank's tk / lp).
   - mbpp/16 token 57 is a 1-bf16-step near-tie (C -0.7495 vs T -0.8745). mbpp/30 splits on an exact tie (-0.9839 both).

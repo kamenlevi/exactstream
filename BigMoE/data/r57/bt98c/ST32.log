@@ -1,0 +1,33 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=23.3 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=175 C_l=112 per layer, 21.21 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+[r57] TREE16 (t16b): {"files": {"tree16": ["/Users/kamen/BigMoE/data/r57/snap/frozen_s98c/Leap_scripts/week98/tree16.py", "0f36d1242636"], "tree_att": ["/Users/kamen/BigMoE/data/r57/snap/frozen_s98c/Leap_scripts/week98/tree_att.py", "4f4a4055989f"], "tree_gdn": ["/Users/kamen/BigMoE/data/r57/snap/frozen_s98c/Leap_scripts/week98/tree_gdn.py", "c580268dd382"], "tree_meta": ["/Users/kamen/BigMoE/data/r57/snap/frozen_s98c/Breakthrough_tree16/tree_meta.py", "ac7642d4fc87"], "tree16_draft": ["/Users/kamen/BigMoE/data/r57/snap/s98c/tree16_draft.py", "fec865c37be1"], "tree16_commit": ["/Users/kamen/BigMoE/data/r57/snap/s98c/tree16_commit.py", "3f15ed13b079"], "tree16_loop": ["/Users/kamen/BigMoE/data/r57/snap/s98c/tree16_loop.py", "3be2c4c7cb99"]}, "heads": {"Leap": "3ec85e8", "Breakthrough": "1be0c6f", "BigMoE": "d942e0e6"}}
+[r57_draft] install {"fmt": "stored", "weights": "/Users/kamen/datasets/deepdraft/ckpt/dd_t30b.safetensors", "weights_sha256": "790c42db393ad158f0f61e64962c868967995268babb816b27cbf8f4e215d502", "screen": null, "top_k": 10, "done": ["fc: head_train's fp32 sum -> stream dtype", "q / k / v / o: fp32 weights, outputs in the stream dtype", "MoE block: mtp125.moe_train -> stream dtype (top-10 as loaded)", "draft head: the full lm_head"], "env": {"MTPLX_COMPILED_TARGET_PREFIX": "0", "MTPLX_COMPILED_VERIFY": "0", "MTPLX_COMPILE_AR_FORWARD": "0", "MTPLX_DENSE_KV_BYTES_PER_TOKEN_DERIVED": "24576", "MTPLX_LOOP_GUARD": "1", "MTPLX_MOE_SORTED_GATHER_KERNEL": "0", "MTPLX_NGRAM_PREWARM": "off", "MTPLX_QSA_PREFILL": "0", "MTPLX_QWEN4EXP_COMPILE": "0", "R57_ARMS": "gate+t", "R57_CHATSW": "1", "R57_COMBINE": "1", "R57_DQ1": "1", "R57_DRAFT": "t30b", "R57_KEYS": "humaneval/HumanEval/68,mbpp/16", "R57_LOGHASH": "1", "R57_MTP_ALL": "1", "R57_NAX": "1", "R57_PRESET": "45", "R57_REPS": "1", "R57_S0CARRY": "1", "R57_T30B_FMT": "stored", "R57_TAG": "ST32", "R57_TIER": "1", "R57_TREE16": "1", "R57_TREE_K": "1", "R57_TREE_NODES": "31", "R57_TREE_SF": "1", "R57_TRUNC": "0.3", "R57_VTIER": "64/32", "R57_WARM": "1", "R57_WIRED": "1", "TL_INFER": "1", "TL_PLAIN_MIN": "1"}, "opdiet": {"rope": false, "resid": false, "bank": false}}
+[r57] R57_DRAFT=t30b fmt stored /Users/kamen/datasets/deepdraft/ckpt/dd_t30b.safetensors: {"fmt": "stored", "weights": "/Users/kamen/datasets/deepdraft/ckpt/dd_t30b.safetensors", "weights_sha256": "790c42db393ad158f0f61e64962c868967995268babb816b27cbf8f4e215d502", "screen": null, "top_k": 10, "done": ["fc: head_train's fp32 sum -> stream dtype", "q / k / v / o: fp32 weights, outputs in the stream dtype", "MoE block: mtp125.moe_train -> stream dtype (top-10 as loaded)", "draft head: the full lm_head"], "env": {"MTPLX_COMPILED_TARGET_PREFIX": "0", "MTPLX_COMPILED_VERIFY": "0", "MTPLX_COMPILE_AR_FORWARD": "0", "MTPLX_DENSE_KV_BYTES_PER_TOKEN_DERIVED": "24576", "MTPLX_LOOP_GUARD": "1", "MTPLX_MOE_SORTED_GATHER_KERNEL": "0", "MTPLX_NGRAM_PREWARM": "off", "MTPLX_QSA_PREFILL": "0", "MTPLX_QWEN4EXP_COMPILE": "0", "R57_ARMS": "gate+t", "R57_CHATSW": "1", "R57_COMBINE": "1", "R57_DQ1": "1", "R57_DRAFT": "t30b", "R57_KEYS": "humaneval/HumanEval/68,mbpp/16", "R57_LOGHASH": "1", "R57_MTP_ALL": "1", "R57_NAX": "1", "R57_PRESET": "45", "R57_REPS": "1", "R57_S0CARRY": "1", "R57_T30B_FMT": "stored", "R57_TAG": "ST32", "R57_TIER": "1", "R57_TREE16": "1", "R57_TREE_K": "1", "R57_TREE_NODES": "31", "R57_TREE_SF": "1", "R57_TRUNC": "0.3", "R57_VTIER": "64/32", "R57_WARM": "1", "R57_WIRED": "1", "TL_INFER": "1", "TL_PLAIN_MIN": "1"}, "opdiet": {"rope": false, "resid": false, "bank": false}}; check_install 15 / 15
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.45 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R57_WIRED: mx.set_wired_limit(55.66 GB), was 0.00 GB
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 160), loaded in 2 s, 27.0 GB active; REF2 + SB; gate rows MAXK 160 (ext build), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 128
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 26.8 tok/s; MLX peak prefill 29.0 / decode 29.3 GB, lifetime peak 29.9 -> 30.5 GB
+Traceback (most recent call last):
+  File "/Users/kamen/BigMoE/scripts/kt_launch.py", line 25, in <module>
+    runpy.run_path(screen, run_name="__main__")
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/kamen/BigMoE/data/r57/snap/s98c/r57_screen_s98c.py", line 2013, in <module>
+    r = run(list(it["prompt_ids"]), ARMS_[0], drafter="dfl" if dr_ == "d7b" else dr_)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/data/r57/snap/s98c/r57_screen_s98c.py", line 1636, in run
+    lg, hw16_ = T16L.verify(model, cache, tr16_, a, (list(ids[-T16L.PREV:]) + out[:-1])[-T16L.PREV:])
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/data/r57/snap/s98c/tree16_loop.py", line 75, in verify
+    meta = tree_meta(toks, [int(p) for p in tr["parents"]], a, [int(x) for x in prev][-PREV:])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/data/r57/snap/frozen_s98c/Breakthrough_tree16/tree_meta.py", line 59, in tree_meta
+    raise ValueError(f"{T} nodes > {tmax}")
+ValueError: 32 nodes > 16
+V3KT {"ref2": "/Users/kamen/BigMoE/data/r57/snap/frozen_s98c/Leap_scripts/ref2.py", "bof_cfg": false, "hc_b_cfg": false, "bofi": null, "bofi_on": null, "bofi_cnt": null, "hc_b_count": 0}
