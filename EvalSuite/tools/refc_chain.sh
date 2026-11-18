@@ -169,13 +169,17 @@ print(f"STEP0 tokens: the switch-off control == results/ref2tnax on {len(same)} 
 sys.exit(0 if len(same) == len(ks) else 1)
 S0
 }
-rowinv() {
-  [ "$DRY" = 1 ] && { say "DRY: ROWINV would run REFC_ROOT=$RIROOT $RIPY"; return 0; }
-  local o=results/refc/rowinv_$(date +%Y-%m-%d_%H%M).txt
-  REFC_ROOT="$RIROOT" "$HOME/BigMoE/.venv/bin/python" "$RIPY" > "$o" 2>&1
-  local f1 lz; f1=$(grep -m1 "^REFC ROW-INVARIANCE" "$o"); lz=$(tail -1 "$o")
-  say "ROWINV: $(echo "$f1" | cut -c1-160) / $lz"
-  echo "$f1" | grep -q "18 of 18 cases PASS; modules from ROOT $RIROOT: True" && [ "$lz" = "verdict: PASS" ]
+rowinv() {      # the snapshot's refc_rowinv.py, byte for byte: its stdout holds the header line, then PASS / FAIL. It always
+  # writes ~/Leap/data/week98/check25/refc_rowinv.txt (Leap's own record), so it runs with HOME set to an EvalSuite folder.
+  [ "$DRY" = 1 ] && { say "DRY: ROWINV would run REFC_ROOT=$RIROOT $RIPY (HOME results/refc/rowinv_home)"; return 0; }
+  local o=results/refc/rowinv_$(date +%Y-%m-%d_%H%M).txt h_=$PWD/results/refc/rowinv_home/$(date +%Y%m%d_%H%M%S) rc_ f1 lz
+  mkdir -p "$h_"; peer lock share 10m --cpu 100 --gpu 30 "evalsuite: the contract's row-invariance self-test (~2 GB)" > /dev/null 2>&1
+  HOME="$h_" REFC_ROOT="$RIROOT" "$HOME/BigMoE/.venv/bin/python" "$RIPY" > "$o" 2>&1; rc_=$?
+  peer unlock > /dev/null 2>&1
+  cp "$h_/Leap/data/week98/check25/refc_rowinv.txt" "${o%.txt}_out.txt" 2>/dev/null
+  f1=$(grep -m1 "^REFC ROW-INVARIANCE" "$o"); lz=$(tail -1 "$o")
+  say "ROWINV (rc $rc_): $(echo "$f1" | cut -c1-160) / $lz"
+  [ "$rc_" = 0 ] && echo "$f1" | grep -qF "18 of 18 cases PASS; modules from ROOT $RIROOT: True" && [ "$lz" = "PASS" ]
 }
 steps() {
   local r

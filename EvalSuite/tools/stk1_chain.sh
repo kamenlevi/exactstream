@@ -37,7 +37,7 @@ CUT="${CHAIN_CUTOFF:-2026-11-19 09:00}"; LASTS=$(ep "${CHAIN_LASTSTART:-2026-11-
 ARMED=$(date +%s); TICK=${CHAIN_TICK:-60}; REREAD=${CHAIN_REREAD:-30}
 KTMK=${CHAIN_KTMK:-$HOME/BigMoE/data/r57/BLOB1_KEYTEST_END}; PREREG=${CHAIN_PREREG:-docs/PREREG_lossygate_2026-11-15.md}
 AFTER=${CHAIN_AFTER-}
-RUNPAT=${CHAIN_RUNPAT:-tools/day_runner6[0-9]\.sh}         # a pgrep -f pattern
+RUNPAT=${CHAIN_RUNPAT:-tools/day_runner[67][0-9]\.sh}     # a pgrep -f pattern (runners 60-79: Part A runs runner 70)
 Q=${CHAIN_QDIR:-$HOME/.local/share/quiet}                  # HOLD and PAUSE live here
 AWAY=${CHAIN_AWAY:-$HOME/.local/share/quiet/away_secs.sh}; RUNNER=${CHAIN_RUNNER:-tools/day_runner69.sh}
 EX=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2; NAXN=ref2tnaxn.r6

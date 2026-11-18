@@ -164,6 +164,10 @@ Each: owner -> what lands -> its test -> ETA -> gain [P] -> odds of landing by S
      MoE-block arm by Wed 22:00). #2a and blob 2a happen only if that arm shows >= ~1 ms per 16-row check over tgl16eu,
      deterministic, with no extra expert GB: the bar tgl16eu cleared in slot #3. The decision is known by ~10:00 Thu.
      Odds of running: low.
+   - RESULT Wed 15:05 (slot #4 ran by day, on the marker chain): NO-GO on all three clauses. F16nw - F16nx = -0.55 ms
+     [IQR -0.78, -0.33] (< ~1 ms); expert GB +0.02; NOT deterministic (pass K re-run vs pass T: 9 / 16 rows in all 3
+     windows; tgl16eu / e / ef re-run bitwise). #2a and blob 2a are OUT. Breakthrough records knob_v2's w4a8u mode as
+     UNSAFE (Leap: the int8 path); the fix waits for main's reset.
 8. **TRL-3** (lossy weights, 3.07-bit down, -1.4 ms). The records: the trellis family stopped 11-0x (screen 7 KILL;
    TRL-RESCUE KILL; a down-only arm was underpowered). Leap's record says the encoder is done (CPU, bitwise; a full
    store ~1.1-1.5 h on 3-4 processes). The blocker was disk; Kamen lowered the floor to 50 GB free (Wed 11:1x), so it now
@@ -202,6 +206,10 @@ Each: owner -> what lands -> its test -> ETA -> gain [P] -> odds of landing by S
    by Fri 07:00 (section 1b). Odds ~25 %.
 14. **Small exact items (added):** tgl16ef (exact, ~-0.19 ms; Leap's slot #4) and REF2_GDN_LAZY on trees (<= -0.5 ms;
    BigMoE's Wednesday bit test). Each goes ON in exact timing #2 when bitwise.
+   - tgl16ef RESULT Wed 15:05 (slot #4): bitwise == tgl16e at 16 and 32 rows, deterministic; -0.11 ms [IQR -0.40, +0.05] at
+     16 rows (not separable from 0), -0.41 [-0.50, -0.30] at 32. NOT THIS WEEK (NewIdeas 15:1x): exact (ii) is chain-16, and
+     adding it would time code Part A didn't certify (s98n is pinned) for ~0.1 %. It goes into the first post-Saturday build
+     and any 32-row config frozen after this.
 
 Closed on the record, not reopened: LANDMARK-ANS (KILL Tue 09:4x), the pool drafter, prefix eyes, code || commentary,
 the SLC CPU fill, 1c tiers (V2 FAIL, so G1 stays out), close-call d2 (tier 1 FAIL).
@@ -216,7 +224,7 @@ the SLC CPU fill, 1c tiers (V2 FAIL, so G1 stays out), close-call d2 (tier 1 FAI
 | W3 Wed 23:35-Thu 07:25 | The marker chain's night part (section 3a): rec1a_c25 -> slot #4 -> blob 1's key test -> tier 1 #1 (~2 h 40 with the smoke) -> Part A (chain-16) if ready by ~22:00 and room remains, else TOPK / T8 |
 | W4 | merged into W3. rec1a_c25 starts by Thu 07:30 at the latest (hard stop <= 09:30). MTP Head doesn't use its 16 GB slot |
 | W5 Thu 08:00-15:00 | (Part A's tail, if it ran tonight) -> if tier 1 #1 ran tonight: 2u's tier 1 if #1 passed, or B1 (blob 1's bisect by the failing line) if it failed; else BigMoE's key test (blob 1; R57_TCPU=1 if neutral) ~11:30 -> tier 1 #1 12:00-14:30, as set. CERTIFY98's TOPK / T8 go around the tier-1 pass, never ahead of it; stage 2 here if Part A ran and needs it. Slot #4 moved to the night chain; PK's quiet timing was done Wed 08:50 (b5c7c80) |
-| W6 Thu 15:00-23:30 | main resets 17:00: ADAPTIVE K, the replayed-check flag if bitwise, blob 2a (w4a8u) by 22:00 only if slot #4's arm cleared ~1 ms |
+| W6 Thu 15:00-23:30 | main resets 17:00: ADAPTIVE K, the replayed-check flag if bitwise, blob 2a OUT (w4a8u NO-GO Wed 15:05) |
 | W7 Thu 23:35-08:00 | (i) lossy timing #1, blob 1 + the fallback in halves (~90 min) -> (ii) contract chain-16, Q8H32 vs c2 in halves (+ GDN16 + tgl16e; ~90 min) -> (ii-b) the NAX6-N chain-16 insurance arm (~45 min, the same runner as (ii)) -> Part A (~4 h, chain-16): ~7 h 45; a late start pushes Part A into Friday's away window. If Part A ran tonight, its place goes to #2a's key test + tier 1 if slot #4 qualifies w4a8u (amendment 6, section 8); else no tier-1 pass, and NewIdeas re-plans the time by Thu 18:00 (a 2u arm in (i) if 2u passed Thursday day, the tree-GDN path if ready, CERTIFY98 leftovers). M4C 15 / 16 failed trees only; the contract stays for chain-16 |
 | W8 Fri 08:00-15:00 | stage 2 if Part A needs it (<= 3.3 h) -> blob 2b key test + tier 1 #2b -> a bisect pass only if Part A ran tonight -> exact timing #2 ~13:45, else Fri 23:35 |
 | W9 Fri 15:00-23:30 | <= ~6 GB; the final lossy stack frozen 22:00 |
@@ -243,6 +251,38 @@ the SLC CPU fill, 1c tiers (V2 FAIL, so G1 stays out), close-call d2 (tier 1 FAI
      40) -> Part A (chain-16) if its contract PREREG is filed by ~22:00. If the key test hasn't passed by ~00:30, Part A
      starts on the slot-#4 marker and tier 1 #1 stays Thursday. Else BigMoE's TOPK / T8 if its tool is ready.
   MTP Head doesn't use its 16 GB slot; its S22 chain on NIGHT1118_BIGMOE_END is cancelled.
+- **15:1x STATUS: THE CHAIN RAN BY DAY.**
+  - NIGHT1118_BIGMOE_END 14:58 (BigMoE ee8847b7): the capture PASSED 647 / 647 (frozen by EvalSuite 69b304d; contamination
+    clean; scored HE+ 66 / MBPP 297 / everyday 150). Snapshot s98n = s98 + Leap ec06e43 (refc on all 7 shapes). M4C chain ==
+    AR on s98n: 16 / 16 keys and 2,604 / 2,604 kept-row logit hashes. (iii) chain-16 on the first 30 gated HE+: 27 / 30
+    answers equal the capture's, kept 14.18 per check (EvalSuite scores it vs kept_walk). The dev rehearsal ran (kept 11.35).
+  - DIAG95 (item 5's diagnostic): from one plain prefill of mbpp/30, the tree verify, the 'chain' commit and two side-branch
+    'tree' commits are bitwise to the chain route at every sublayer, and both routes pick 10598; in the loop, chain and AR
+    pick 364. So it is neither GDN nor attention: the flip comes from the loop's history (check boundaries / the loop's
+    prefill path). By the rule, NO EXACT TREE THIS WEEK. The cheapest localizer (after main's reset Thu 17:00; Leap and
+    BigMoE's call, sent 15:1x): the mbpp/30 tree arm with R57_LOGHASH_ROWS vs M4CA's AR hashes (data/r57/post1118). The
+    first differing answer index names the check; a DIAG95 sublayer diff there names the op. If it is one GDN / commit op
+    fixable by Fri 12:00, Thursday night's freed slot checks the fix.
+    Leap 15:13: YES (it takes a one-op fix by Fri 12:00: bitwise + the tree-mask self-test + an M4C re-run), ahead of S1;
+    the localizer was sent to BigMoE 15:1x for after its reset.
+  - rec1a_c25 14:59-15:02: NOT RUN (a harness bug: it read the gate's pass seq from the module, not the streamer's Gate
+    instance; the stub engine hid it). Fixed in adacf34 (fake-engine test PASS, same steps and lines). RE-RUN (NewIdeas
+    15:1x): today, in the first free share-lock window after 16:03. MEM 46 (43.06 measured + the 3 GB guard); start gate
+    free + purgeable >= 47 (measured peak + 4, Leap's convention for this harness); away >= 900; +2 GB swap stop; 20-min
+    cap. Latest start 18:30, else Thu 07:30 (hard stop 09:30).
+  - Slot #4 15:03-15:05 DONE (Leap; data/week98/c25/s4_run.txt): w4a8u NO-GO (item 7), so #2a is OUT; tgl16ef is bitwise
+    but ~0.1 ms at 16 rows, so not this week (item 14); tgl16eu repeats -2.70 ms (slot #3: -2.67).
+  - NEXT: MoonShots' PK bundle (~16:00) -> blob 1 -> BigMoE's one-key head test -> EvalSuite's b1head (lcb6 + ifbench) ->
+    the key test (~/BigMoE/data/r57/BLOB1_KEYTEST_END, '^BLOB1 KEYTEST PASS', newer than the env) -> EvalSuite's head test
+    + amendment 6 -> stk1_chain.sh (tier 1 #1; latest first start Thu 00:30). Part A: EvalSuite's word by ~21:00.
+  - PART A TONIGHT: YES (EvalSuite 15:1x; PREREG_refc filed f48c491; tools/refc_chain.sh ARMED, pid 92160). It starts on
+    results/STK1_CHAIN_END, or from Thu 00:45 if no tier 1 #1 chain is alive; latest first start 06:00, cutoff 09:00; if it
+    misses 06:00 it re-arms for Thursday night after (ii-b), and a cut resumes there. Pins: s98n at BigMoE ee8847b7 (screen
+    e9a6218c, .so 5333899c), EvalSuite's own env copies. Head test 18 / 18 PASS; the dry run on the real pins reaches every
+    step. End marker ~/EvalSuite/results/REFC_CHAIN_END. EvalSuite also rules tgl16ef out of Part A and (ii).
+    CERTIFY98: the dev rehearsal's tokens per check are 0.985x the replay's (inside +-3 %); (iii) 22 of the first 24
+    identical, the comparison waits for the TOPK dump. TOPK / T8 offered to BigMoE on REFC_CHAIN_END (latest start 05:00),
+    else Thursday. So THURSDAY NIGHT = (i) -> (ii) -> (ii-b) -> the freed slot, re-planned by Thu 18:00.
 - DECIDED 11:3x (the orchestrator, on NewIdeas' proposal; best effort, no corners cut; it needs the capture + (iii) by day):
   (1) TIER 1 #1 ON BLOB 1 TONIGHT if BigMoE freezes blob 1 (s98b + PK; GDN16 may join later, it's bitwise) and sends it to
   EvalSuite by ~20:00, EvalSuite files amendment 6 first, and BigMoE's key test PASSES (a PASS / FAIL marker). Thursday's
@@ -267,10 +307,12 @@ the SLC CPU fill, 1c tiers (V2 FAIL, so G1 stays out), close-call d2 (tier 1 FAI
   day keeps section 8.
 - BONUS (updated 11:4x): M4C ran by day: 15 / 16, so exact trees are NO-GO this week and Part A certifies the contract for
   chain-16. It runs tonight after tier 1 #1 if ready by ~22:00 and room remains (into Thursday morning's away window if
-  needed); else Thursday night as set. Then Thursday night's freed slot goes to #2a only if slot #4 qualifies w4a8u, and the
+  needed); else Thursday night as set. Then Thursday night's freed slot is non-gate work (#2a is out: w4a8u NO-GO 15:05), and the
   exact chain-16 headline counts as soon as (ii) measures it.
 - THURSDAY NIGHT: (i) -> (ii) contract chain-16 Q8H32 vs c2 -> (ii-b) -> Part A, ~7 h 45, a late start pushing Part A into
-  Friday's away window. If Part A ran tonight: (i) -> (ii) -> (ii-b) -> #2a's slot (only if slot #4 qualifies w4a8u).
+  Friday's away window. If Part A ran tonight: (i) -> (ii) -> (ii-b) -> the freed slot. #2a is OUT (w4a8u NO-GO 15:05),
+  so non-gate work, re-planned by Thu 18:00 (candidates: a fix check if the DIAG95 localizer finds one op, a warm
+  R57_TCPU=1 overhead-split run, TOPK / T8's remainder).
 - THURSDAY DAY (EvalSuite's amendment 6, section 8, confirmed 11:4x): if tier 1 #1 ran tonight, 2u's tier 1 if #1 passed,
   else B1 (blob 1's bisect by the failing line). FRIDAY: #2b at 08:00 (cut 07:30), one bisect 11:15-13:45 on a FAIL, timing
   #2 + the card gate as set. Blob 1 = BigMoE 10:59's composition (PK in; BOF / HC_B out; GDN16 only if in the ~20:00
@@ -329,7 +371,7 @@ the SLC CPU fill, 1c tiers (V2 FAIL, so G1 stays out), close-call d2 (tier 1 FAI
 - The contract snapshot + flags + EvalSuite's contract PREREG: by Wed ~22:00 for Part A tonight (after tier 1 #1); else Part
   A runs Thursday night. M4C ran Wed by day (15 / 16: chain-16 only).
 - The tree-invariant GDN (only if BigMoE's diagnostic blames GDN): Leap, by Fri 12:00.
-- Blob 2a (w4a8u): Thu 22:00, only if slot #4's arm cleared ~1 ms (decided ~10:00 Thu).
+- Blob 2a (w4a8u): OUT (slot #4, Wed 15:05: NO-GO).
 - Blob 2b (the bundle): Fri 07:30, holding only the flags whose bit or unit tests passed by Fri 07:00.
 - Exact flags for timing #2: bit test by Fri 12:00. If Kamen is back early, exact timing #2 moves to Fri 23:35 and the
   verdict slips to ~07:35.

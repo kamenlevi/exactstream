@@ -633,3 +633,59 @@ Breakthrough accepted at 18:12. Fable B's design is ~/FableGod/fableb/REPLAYED_C
       - Those runs are SSD-bound (535-595 expert misses, ~650 MB per check), so build is mostly I/O there. The warm
         split comes from BigMoE's Thursday key test with R57_TCPU=1 (main-thread CPU per check).
       - So the installer targets the check timer's build + remainder, not the commit.
+  - Wed 15:0x-15:2x, **the engine run happened at 14:59 and was a NOT-RUN. A bug in my harness stopped it at its first
+    record, so lines (1)-(4) were never tested.** This is not a replay verdict.
+    - BigMoE's end marker appeared at 14:58, not ~02:40 ("BigMoE NIGHT1118 END 11-18 14:58:40: capture + post sequence
+      done (diag95, M4C-chain s98n, (iii), dev)"). The wrapper fired at 14:59, and every gate was met:
+      - Kamen away 58,754 s;
+      - the flag check reached the model load;
+      - NO-SWAP 15 GB, then 46 GB at 15:01:51 (need 43);
+      - the share lock was taken, and swap was unchanged.
+    - c25's own window ran: 1 warm-up and 1 timed round of the 3 arms. Then the test stopped at record A of F32o, with
+      `AttributeError: module 'bigmoe.gated' has no attribute 'seq'` (rec1a_c25.py:131). The run printed
+      "RESULT: FAIL", with lines (1)-(4) False on both arms, 0 s, lifetime peak 43.06 GB.
+    - Data, all in data/m1/rec1a_engine/: rec1a_1119_run.txt, rec1a_1119_rec1a.json / .out, c25.json,
+      rec1a_1119_env.txt, rec1a_1119_flagcheck.txt, rec1a_1119_runner.log, rec1a_1119_wrapper.log, REC1A_END.
+    - **Cause.** In the real engine, G["BG"] is the bigmoe.gated MODULE (c25 reads its .ext).
+      - The per-pass seq, new_pass() and the tables / region / ring / status buffers live on the streamer's Gate
+        INSTANCE. Every streamed switch layer holds it as _bm["gate"] (bigmoe/stream.py, install).
+      - The stub engine passed the Gate itself, so the stub tests could not see the mismatch.
+      - The flag check stops at the model load, before G exists, so it could not see it either.
+    - **Fix (15:2x).** GateView takes the one Gate from the switch layers' _bm["gate"], with ext and MAXK from the
+      module. In the stub it uses G["BG"] as is. Nothing else in the test changed, and its first line now prints the gate
+      it found.
+    - **Tests of the fix (15:08-15:1x).**
+      - scripts/m1/rec1a/rec1a_gateview_test.py: PASS. It uses fake objects shaped like the engine's. It checks: the Gate
+        found through the layers, with a dense layer in between; seq read live; new_pass(); ext and MAXK taken from the
+        module; the ring family kept; the counters; the stub's shape; two Gates or none refused.
+      - The four stub cases (data/m1/rec1a_engine/stub_1118/) were all AS EXPECTED: ok PASS; unexplained, stale and
+        badrule FAIL on their expected lines.
+      - The other engine calls the test makes (snapshot_untrimmable_cache_lazy, verify_scope, commit_verified_window,
+        knobs / unknob / back / check, states) all exist by name in Leap's c25_engine.py.
+    - **Sizing.** The run's real lifetime peak is 43.06 GB, from the c25 harness itself (Leap locks the same harness at
+      MEM 43 with gate 46 = 42.4 + 4). The 35 GB lock was undersized. The re-run passes RJ_MEM / RJ_GATE to the frozen
+      runner, which reads both from env, so no edit is needed.
+    - Leap's slot #4 started at 15:03 on the END marker and is done.
+    - Next: a re-run slot (asked NewIdeas 15:2x). The pre-registered steps and lines are unchanged; only the gate lookup
+      is fixed.
+  - Wed 15:1x-15:2x, **re-run armed in NewIdeas' slot** (15:1x): today from 16:03 (latest start 18:30), else Thu 07:30
+    (latest start 09:10, so it ends by 09:30). The pre-registration stands: the same steps and lines, only the gate lookup
+    fixed.
+    - Runner scripts/m1/rec1a/run_rec1a_c25_slot.sh, frozen as data/m1/rec1a_engine/run_rec1a_c25_slot_1118.frozen.sh
+      (md5 ce1990b2). It is a new runner because the frozen one can't retry a refused share lock (peer lock share has
+      no queue) and its only stop is a fixed end time, not a cap from the job's start.
+    - Gates:
+      - no PAUSE, the lid open, no HEALTH ACT, no c25 / rec1a loop, Kamen away, all on two reads 30 s apart;
+      - the flag check;
+      - NO-SWAP >= 47 (the measured 43.06 + 4, Leap's convention for this harness; NewIdeas: peak + 8 is for unmeasured
+        jobs);
+      - a share lock "MEM 46 GB" (43.06 + the 3 GB retained-bytes guard), asked again each minute if refused;
+      - NO-SWAP read again 20 s after the lock.
+    - Guards: a 20-min wall cap, swap +2 GB, HOLD or the lid, and Kamen back (a yield that waits again). TERM only.
+    - END marker data/m1/rec1a_engine/REC1A_END on the final end only (overwritten, so gate on its mtime). Outputs go to
+      data/m1/rec1a_engine/rerun_1118/, tag rec1a_1118r. Pins: data/m1/rec1a_engine/pins_1118r.txt (rec1a_c25.py
+      5c1bc938).
+    - A stub simulation of 11 paths behaved as designed:
+      - a plain run; the lock refused twice; NO-SWAP dropping after the lock; the wall cap;
+      - a yield, then a re-run; window 1 missed, window 2 run; HOLD while waiting; neither window;
+      - the runner stopped by a signal (job killed, no END); HOLD during the run; the real flag check.

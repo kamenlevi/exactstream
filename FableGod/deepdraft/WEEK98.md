@@ -1113,6 +1113,16 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
     tonight key test -> tier 1 #1 -> Part A (if ready by ~22:00); Thu day 2u's tier 1 or B1; Thu night (i) -> (ii) -> (ii-b) ->
     Part A, or #2a's slot if Part A ran; the fallback drops BOF / HC_B (no engagement). Breakthrough re-armed rec1a_c25 on
     NIGHT1118_BIGMOE_END (REC1A_END on any end).
+  - **15:1x (NewIdeas): the marker chain ran BY DAY.** NIGHT1118_BIGMOE_END 14:58 (BigMoE ee8847b7: the CERTIFY98 capture
+    PASSED 647 / 647, frozen + contamination clean by EvalSuite; snapshot s98n; M4C chain == AR on s98n 16 / 16 + 2,604 / 2,604
+    kept-row hashes; (iii) chain-16 27 / 30 answers, kept 14.18). DIAG95: the tree verify and both commit kinds are bitwise from a
+    plain prefill, so the mbpp/30 flip comes from the loop's history: no exact tree this week (a localizer after main's reset:
+    the tree arm's LOGHASH rows vs M4CA). rec1a_c25 NOT RUN (a harness bug, fixed in adacf34): re-run today after 16:03 (MEM 46,
+    gate 47, latest start 18:30, else Thu 07:30). Slot #4 DONE 15:05: w4a8u NO-GO (-0.55 ms, not deterministic), so #2a is OUT;
+    tgl16ef bitwise but -0.11 ms at 16 rows: post-Saturday. Next: blob 1 (PK bundle ~16:00) -> key test -> EvalSuite's tier 1 #1.
+    PART A TONIGHT: YES (EvalSuite, PREREG_refc f48c491; refc_chain.sh armed: after tier 1 #1, else from 00:45; cutoff 09:00), so
+    Thursday night = (i) -> (ii) -> (ii-b) -> a freed slot (NewIdeas re-plans by Thu 18:00). Leap takes a one-op tree fix by Fri 12:00
+    if BigMoE's post-reset localizer finds one.
 - Wed 18 02:2x (NewIdeas, for the orchestrator; NOTHING ARMED; ~/NewIdeas/research/week98/CONTRACT_YES_PLAN.md, 899926d): **A READY PLAN FOR
   A YES on Leap's reference contract (M4 = batch variance: mbpp/16 a 1-bf16-step near-tie, mbpp/30 an exact tie).** Scope: the EXACT build
   only; the lossy stack, its gates and CERTIFY98 stay on NAX6-N (one build for the capture + the count check), so EvalSuite runs Part A

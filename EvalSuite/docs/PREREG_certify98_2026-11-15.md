@@ -872,3 +872,25 @@ tools/certify98_lines.py power: 2,000 draws of windows with replacement from the
     count check's 24 windows are unaffected.
   - Power at 66 / 297 (information; results/certify98/power_k66_2026-11-18.txt): within 0.02 of amendment 9's K 68
     figures on every line.
+- **Dated line, Wed 15:1x (operational; before Thursday's TOPK dump, so before any fresh replay number): the count
+  check's comparison.**
+  - **The tool:** tools/certify98_countcheck.py (985d054d...; selftest PASS). It reads r57's per-check records
+    (<run>_checks.json: each check's kept = accepted drafts + 1, uncut past the answer's end) and the replay's
+    kept_walk at cap 15 from the TOPK dump's cells (certify98.py's own walk), on the windows whose answers equal the
+    capture's.
+  - **The engine's count, on kept_walk's own convention:** each check's kept is clipped at the answer's end, and a
+    check whose bonus token is the answer's last is followed by the replay's terminal check of 1. Both sides then hold n
+    tokens per window, so the +-3 % line compares checks. r57's own 'kept' field counts drafts accepted past the answer's
+    end (HumanEval_1: 247 over 21 checks for a 244-token answer), so it is not used.
+  - **(iii)'s records** (BigMoE, 14:48-14:52; R57_DRAFT=t30b, stored form, weights sha256 790c42db... = section 1's
+    pin; chain-16): 22 of the first 24 gated windows have answers identical to the capture's (HumanEval 1 and 26
+    differ), so the comparison reads those 22, with no top-up.
+  - **The dev rehearsal** (BigMoE's c98dev records vs the dev TOPK dump; results/certify98/rehearsal_c16_2026-11-18.txt;
+    docs/RESULT_certify98_rehearsal_2026-11-18.md):
+    - 11 of the 24 bank windows are identical (one only up to the bank's 400-token cap). The other 13 answers differ
+      from the bank's, which was captured on another build.
+    - Tokens per check: engine 12.349 vs replay 12.542, ratio 0.985, inside +-3 %.
+    - The registered draft identity (>= 99 % of draft positions equal to dd_topk's top-1) is NOT READABLE: r57's records
+      hold each check's kept, not its drafts. At the acceptance level, 187 of 195 checks keep the same count. Each of
+      the 8 differences parts at a near-tie of the stored-form drafter: top-1 minus top-2 log margin 0.000-0.625 nats,
+      with the target's token at rank 0 or 1. 5 differences go against the engine and 3 go for it.

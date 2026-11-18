@@ -1,0 +1,72 @@
+TEST on window stubwin: arms ['F32o', 'F32c6i'], 16 rounds; MLX cache limit 0 (was 65283502899); BIGMOE_POST_SYS=None BIGMOE_SPIN_COHERENT=None
+gate: G['BG'] (a Gate); seq 1000, nl 6, maxk 32, ntab 64, nreg 16
+ARM F32o: 32 rows; one warm check, then records A and B
+  record A: seq 1001 -> 1002; {'ops': 385, 'encoders': 2, 'dispatches': 56, 'blits': 0, 'commits': 3, 'set_bytes_total': 877}; ops {'ENC': 2, 'END': 2, 'COMMIT': 3, 'PSO': 56, 'BUF': 159, 'BYTES': 88, 'DTG': 5, 'DT': 51, 'BAR': 16, 'FWAIT': 1, 'FUPD': 2}; evals inside the forward {'eval': 0, 'async_eval': 0, 'synchronize': 0}; wall 0.7 ms (encode-then-run: not a timing)
+  record B: seq 1002 -> 1003; {'ops': 385, 'encoders': 2, 'dispatches': 56, 'blits': 0, 'commits': 3, 'set_bytes_total': 877}; ops {'ENC': 2, 'END': 2, 'COMMIT': 3, 'PSO': 56, 'BUF': 159, 'BYTES': 88, 'DTG': 5, 'DT': 51, 'BAR': 16, 'FWAIT': 1, 'FUPD': 2}; evals inside the forward {'eval': 0, 'async_eval': 0, 'synchronize': 0}; wall 0.6 ms (encode-then-run: not a timing)
+  diff: 147 changed targets -> 6 rules, 0 ambiguous, 0 unexplained; 139 per-call words overwritten in the check (pre-run garbage) and 2 persistent state words the check rewrites, ignored; per-call buffers 57 of 69 (49 small, rewritten per replay); new bytes in A + B 0.000 GB
+    rule: setBytes k 19 off 0 (dispatch 13): ring.i32 L=3 -> {'a': 6, 'b': 3, 'd': 0, 'm': 40, 's': 32, 'c': 0}
+    rule: setBytes k 31 off 0 (dispatch 21): seq -> {'a': 1, 'b': 0, 'd': 0, 'm': 0, 's': 1, 'c': 0}
+    rule: bufoff BUF op 191 index 0: tab.bytes L=2 -> {'a': 6, 'b': 2, 'd': 0, 'm': 64, 's': 384, 'c': 0}
+    rule: bufword buffer c5 (BUF op 17, per-call) off 0: reg.i32 L=4 -> {'a': 6, 'b': 4, 'd': 0, 'm': 16, 's': 64, 'c': 0}
+    rule: bufword buffer c5 (BUF op 17, per-call) off 8: seq -> {'a': 1, 'b': 0, 'd': 0, 'm': 0, 's': 1, 'c': 0}
+    rule: bufword buffer c56 (BUF op 284, per-call) off 0: seq -> {'a': 1, 'b': 0, 'd': 0, 'm': 0, 's': 1, 'c': 0}
+    state (rewritten in the check): buffer c55 off 0: 1001 -> 1002
+    state (rewritten in the check): buffer c59 off 0: 1001 -> 1002
+  (1) record + diff: PASS
+  ICB: 56 commands, 2 segments 
+  (4) states(P): 2 arrays, 0.1 MB; hash before 87b6419508505989bc2adbb1f98985a7, after 87b6419508505989bc2adbb1f98985a7 -> equal
+  round  0: seq 1005; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 232 us
+  round  1: seq 1007; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 224 us
+  round  2: seq 1009; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 225 us
+  round  3: seq 1011; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 226 us
+  round  4: seq 1013; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 229 us
+  round  5: seq 1015; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 227 us
+  round  6: seq 1017; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 234 us
+  round  7: seq 1019; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 237 us
+  round  8: seq 1021; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 244 us
+  round  9: seq 1023; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 231 us
+  round 10: seq 1025; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 225 us
+  round 11: seq 1027; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 225 us
+  round 12: seq 1029; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 237 us
+  round 13: seq 1031; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 225 us
+  round 14: seq 1033; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 226 us
+  round 15: seq 1035; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 225 us
+  (2) replay == engine, bitwise: 16/16 -> PASS
+  (3) loader served each replay like the engine's check: 16/16 -> PASS
+  (4) states(P) unchanged by a replay: PASS
+ARM F32c6i: 32 rows; one warm check, then records A and B
+  record A: seq 1036 -> 1037; {'ops': 405, 'encoders': 2, 'dispatches': 59, 'blits': 0, 'commits': 3, 'set_bytes_total': 889}; ops {'ENC': 2, 'END': 2, 'COMMIT': 3, 'PSO': 59, 'BUF': 167, 'BYTES': 91, 'DTG': 5, 'DT': 54, 'BAR': 19, 'FWAIT': 1, 'FUPD': 2}; evals inside the forward {'eval': 0, 'async_eval': 0, 'synchronize': 0}; wall 0.8 ms (encode-then-run: not a timing)
+  record B: seq 1037 -> 1038; {'ops': 405, 'encoders': 2, 'dispatches': 59, 'blits': 0, 'commits': 3, 'set_bytes_total': 889}; ops {'ENC': 2, 'END': 2, 'COMMIT': 3, 'PSO': 59, 'BUF': 167, 'BYTES': 91, 'DTG': 5, 'DT': 54, 'BAR': 19, 'FWAIT': 1, 'FUPD': 2}; evals inside the forward {'eval': 0, 'async_eval': 0, 'synchronize': 0}; wall 0.8 ms (encode-then-run: not a timing)
+  diff: 147 changed targets -> 6 rules, 0 ambiguous, 0 unexplained; 139 per-call words overwritten in the check (pre-run garbage) and 2 persistent state words the check rewrites, ignored; per-call buffers 59 of 71 (50 small, rewritten per replay); new bytes in A + B 0.000 GB
+    rule: setBytes k 19 off 0 (dispatch 13): ring.i32 L=3 -> {'a': 6, 'b': 3, 'd': 0, 'm': 40, 's': 32, 'c': 0}
+    rule: setBytes k 31 off 0 (dispatch 21): seq -> {'a': 1, 'b': 0, 'd': 0, 'm': 0, 's': 1, 'c': 0}
+    rule: bufoff BUF op 191 index 0: tab.bytes L=2 -> {'a': 6, 'b': 2, 'd': 0, 'm': 64, 's': 384, 'c': 0}
+    rule: bufword buffer c5 (BUF op 17, per-call) off 0: reg.i32 L=4 -> {'a': 6, 'b': 4, 'd': 0, 'm': 16, 's': 64, 'c': 0}
+    rule: bufword buffer c5 (BUF op 17, per-call) off 8: seq -> {'a': 1, 'b': 0, 'd': 0, 'm': 0, 's': 1, 'c': 0}
+    rule: bufword buffer c56 (BUF op 284, per-call) off 0: seq -> {'a': 1, 'b': 0, 'd': 0, 'm': 0, 's': 1, 'c': 0}
+    state (rewritten in the check): buffer c55 off 0: 1036 -> 1037
+    state (rewritten in the check): buffer c59 off 0: 1036 -> 1037
+  (1) record + diff: PASS
+  ICB: 59 commands, 2 segments 
+  (4) states(P): 2 arrays, 0.1 MB; hash before 87b6419508505989bc2adbb1f98985a7, after 87b6419508505989bc2adbb1f98985a7 -> equal
+  round  0: seq 1040; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 249 us
+  round  1: seq 1042; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 247 us
+  round  2: seq 1044; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 243 us
+  round  3: seq 1046; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 242 us
+  round  4: seq 1048; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 256 us
+  round  5: seq 1050; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 241 us
+  round  6: seq 1052; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 249 us
+  round  7: seq 1054; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 244 us
+  round  8: seq 1056; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 242 us
+  round  9: seq 1058; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 242 us
+  round 10: seq 1060; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 241 us
+  round 11: seq 1062; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 242 us
+  round 12: seq 1064; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 255 us
+  round 13: seq 1066; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 244 us
+  round 14: seq 1068; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 242 us
+  round 15: seq 1070; replay rc 0, logits bitwise True (32/32 rows); gated / timeouts / fast hits: engine (1, 0, 0), replay (1, 0, 0) -> ok; replay GPU 241 us
+  (2) replay == engine, bitwise: 16/16 -> PASS
+  (3) loader served each replay like the engine's check: 16/16 -> PASS
+  (4) states(P) unchanged by a replay: PASS
+RESULT: PASS; per arm (lines 1-4): F32o [True, True, True, True]; F32c6i [True, True, True, True]; 1 s; lifetime peak 0.07 GB
+STUB ok: verdict PASS, lines {'F32o': [True, True, True, True], 'F32c6i': [True, True, True, True]}; expected PASS with lines [True, True, True, True] on every arm -> AS EXPECTED; toy loader served 70 rows

@@ -216,7 +216,7 @@ for Part A (the orchestrator, received 11:4x).
     cannot show CC(1) or the tree reliably, and a whole-run term at 0 would VOID a function check by chance. Tier 1
     checks engagement.
 - **The chain:** tools/stk1_chain.sh (smoke -> the card memory -> T1F -> the xrw check -> T1R pooled -> the xrw check;
-  DRY-tested Wed 11:5x on lx45cc1's sibling env with real pins). Its start gates are BigMoE's key test
+  DRY-tested Wed 11:5x on ccx45cc1's env with real pins). Its start gates are BigMoE's key test
   (~/BigMoE/data/r57/BLOB1_KEYTEST_END, first line '^BLOB1 KEYTEST PASS', newer than the env file), this amendment
   committed and naming the blob, the env file's blob, and no other EvalSuite runner. The EXACT union holds all 364
   tier-1 keys (checked Wed 11:5x).

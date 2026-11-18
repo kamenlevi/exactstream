@@ -576,3 +576,27 @@ w4a8u_check_v2_p0.txt, m32_w4a8u_knob_v2.txt (+ .stdout.txt), w4a8u_check_runner
   is the upgrade's, the same as tgl16eu's. It is NOT bitwise to anything: every pair moves by ~2.8 % rel L2. So blob 2a
   = blob 1 with R57_XRW=w4a8u is a release-checked swap, and its quality is tier 1 #2a's to judge. Priced gain over
   tgl16eu ~-0.3 / ~-0.6 ms per 16 / 32-row check [P] (above).
+
+## Wed 15:2x, CORRECTION: w4a8u is NOT deterministic in the engine (Leap's slot #4, 15:03, knob_v3, quiet, 36 paired rounds)
+Source: ~/Leap/data/week98/c25/s4_run.txt (Leap's data, its PASS K lines) and Leap's notes 15:05 / 15:06.
+- **Pass K vs pass T.** In pass K each class is flushed into its own command buffers, 3 times, in window
+  dd__mc_27921. Bits vs pass T:
+  - w4a8u (F16nw): (9, 16, 16, 0.3379) each time: 9 of 16 rows bitwise, argmax 16/16, max |logit diff| 0.34.
+  - tgl16e (F16ne), tgl16ef (F16nf) and tgl16eu (F16nx): (16, 16, 16, 0.0) each time.
+- So the bug is in w4a8's int8 path (quant64 or the int8 x int4b MMA), not in the grouping / upgrade it shares with
+  tgl16eu.
+- **My release check missed it.** The Wed 07:45 check (PASS) repeated w4a8u 2-3 times in ONE process with the same call
+  sequence, so it could not see a difference that depends on the command-buffer context. Its PASS covers same-process
+  repeats only.
+- **Likely cause (not tested yet).** The three pass K repeats give the SAME (9, 16, 16, 0.3379). That points to a read
+  of memory the kernels never wrote more than to a race. Its content would come from whatever MLX's allocator hands
+  back, which differs between pass K and pass T but repeats within one of them.
+- **Status.** MODE w4a8u in knob_v2 and knob_v3 is UNSAFE until fixed. tgl16e, tgl16eu and tgl16ef are unaffected.
+  - The fix ships as knob_v4 after main's reset, unless NewIdeas asks sooner.
+  - Its test: the release check with MLX's recycled buffers poisoned (or the MLX cache off vs on) must give identical
+    bits.
+- **Value (same slot).** F16nw - F16nx = -0.554 ms [IQR -0.782, -0.332] per 16-row check, +0.02 expert GB. That is
+  NO-GO for tier 1 #2a (bar >= ~1 ms), as Leap and NewIdeas read it.
+- **tgl16ef (knob_v3), same slot.** Bitwise == tgl16e at 16 and 32 rows in all 3 windows, deterministic; xfront fold
+  4,224, plain_* 0. Gains: -0.41 ms at 32 rows [IQR -0.50, -0.30]; F16nf - F16ne = -0.111 ms [IQR -0.400, +0.046] at 16
+  rows.

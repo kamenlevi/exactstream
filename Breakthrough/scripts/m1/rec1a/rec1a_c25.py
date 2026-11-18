@@ -107,6 +107,38 @@ class EvalCount:
         return False
 
 
+class GateView:
+    """The gate as this file uses it (Wed 18 Nov 15:2x fix: the first engine run, rec1a_1119, stopped at its first
+    record on BG.seq). In the real engine G["BG"] is the bigmoe.gated MODULE (c25 reads its .ext); the per-pass seq,
+    new_pass() and the tables / region / ring / status buffers live on the streamer's Gate INSTANCE, which every streamed
+    switch layer holds as _bm["gate"] (bigmoe/stream.py, install); ext and MAXK stay on the module. In the stub,
+    G["BG"] is the Gate itself (it has seq). Attributes not set here (seq, nl, ntab, tables, nreg, region, ring, status,
+    new_pass) are read live from the Gate."""
+
+    def __init__(self, G):
+        bg = G["BG"]
+        if hasattr(bg, "seq"):                                   # the stub: the Gate itself
+            g, mod, src = bg, sys.modules.get(type(bg).__module__), "G['BG'] (a Gate)"
+        else:                                                    # the engine: the module; the Gate is the streamer's
+            tm = getattr(G["model"], "language_model", G["model"])
+            gs = {}
+            for layer in tm.model.layers:
+                bm = getattr(getattr(getattr(layer, "mlp", None), "switch_mlp", None), "_bm", None)
+                if isinstance(bm, dict) and bm.get("gate") is not None:
+                    gs[id(bm["gate"])] = bm["gate"]
+            assert len(gs) == 1, f"expected ONE streamer Gate on the switch layers, found {len(gs)}"
+            g, mod, src = next(iter(gs.values())), bg, "the switch layers' _bm['gate']"
+        self.g, self.mod, self.src = g, mod, src
+        self.ext = getattr(g, "ext", None) or mod.ext
+        self.maxk = int(getattr(g, "maxk", 0) or getattr(mod, "MAXK", 0) or 0)
+
+    def __getattr__(self, k):
+        g = self.__dict__.get("g")
+        if g is None:
+            raise AttributeError(k)
+        return getattr(g, k)
+
+
 # ---------------------------------------------------------------- record, canonical buffers, diff, fit
 def canon(ops):
     """Canonical buffers in order of first binding: dict(c, ptr, op = first BUF op index, len)."""
@@ -123,7 +155,7 @@ def record(E, arm, n, toks, label):
     and back() outside it. Returns the record's dumps and the evaluated float32 logits array (kept: B's is the replay's
     output buffer)."""
     CE, G, P = E["CE"], E["G"], E["P"]
-    model, ref2, CS, states, BG = G["model"], G["ref2"], G["CS"], G["states"], G["BG"]
+    model, ref2, CS, states, BG = G["model"], G["ref2"], G["CS"], G["states"], E["BG"]
     CE.knobs(G, arm, n)
     try:
         sn = CS.snapshot_untrimmable_cache_lazy(P)
@@ -370,7 +402,7 @@ def lbits(a):
 
 
 def test_arm(E, arm, C):
-    CE, G, P, BG = E["CE"], E["G"], E["P"], E["G"]["BG"]
+    CE, G, P, BG = E["CE"], E["G"], E["P"], E["BG"]
     n = 16 if arm == "F16" else 32
     toks = E["gids"][E["gen"]:E["gen"] + n]
     res = dict(arm=arm, n=n)
@@ -470,6 +502,8 @@ def run_test(CE, G, key, P, S0, gids, gen, C=None):
         f"BIGMOE_POST_SYS={os.environ.get('BIGMOE_POST_SYS')} BIGMOE_SPIN_COHERENT={os.environ.get('BIGMOE_SPIN_COHERENT')}")
     t0 = time.time()
     try:
+        E["BG"] = BG = GateView(G)
+        say(f"gate: {BG.src}; seq {int(BG.seq)}, nl {int(BG.nl)}, maxk {BG.maxk}, ntab {int(BG.ntab)}, nreg {int(BG.nreg)}")
         for arm in C["arms"]:
             t_a = time.time()
             RESULT["arms"][arm] = res = test_arm(E, arm, C)
