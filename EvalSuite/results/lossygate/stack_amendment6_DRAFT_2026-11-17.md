@@ -70,7 +70,8 @@ for Part A (the orchestrator, received 11:4x).
 - **Blob 1's base** (the orchestrator with BigMoE, 07:5x Wed): the base path's exact-safe verify levers, as BigMoE's
   blob manifests them, with NO R2 / QOM. <The manifest's flag list, Thu midday.>
   - CC(1) runs on the tree walk with amendment 3's flags: R57_RELAX_DELTA=1,
-    R57_RELAX_DELTA_SETS=humaneval,humanevalx,mbpp.
+    R57_RELAX_DELTA_SETS=humaneval,humanevalx,mbpp,lcb6. lcb6 is there for the card gate (section 5: lcb6 in every
+    lever's sets); tier 1 has no lcb6 keys (asked of BigMoE Wed 12:0x).
   - On top: R57_DRAFT=t30b R57_T30B_FMT=q8h32 R57_TREE_NODES=15 R57_TREE_K=8 R57_TREE_SF=1 R57_TREE_PK=1
     R57_XRW=tgl16eu.
   - PK is IN (BigMoE 10:59 Wed: PK == SF bitwise in r57's loop; the Why section). This replaces Tuesday's "PK out"

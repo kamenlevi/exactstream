@@ -130,7 +130,10 @@ Written before any REFC row.
 - **When:** Wednesday night after blob 1's tier 1 #1, if this PREREG is filed by ~22:00 and there is room. Else
   Thursday night after (i), (ii) and (ii-b) (lossy amendment 6, section 8's placement). Stage 2, if triggered, runs
   Friday by day.
-- **The chain:** step 0 -> the 210 (~2 h, ~34 GB, share) -> exactness (~35 min). Every end writes a marker.
+- **The chain:** tools/refc_chain.sh (DRY Wed 12:1x): STEP0 (the switch-off control on results/refc/keys_step0.txt:
+  tokens == ref2tnax, refc off) -> ROWINV -> AR210 (~2 h, share; refc engaged) -> D4X -> EXACT (~35 min; refc engaged,
+  tokens and kept-row hashes == AR210's). A failed gate is VOID and ends it. Every end writes results/REFC_CHAIN_END
+  with the verdict.
 - **Code pin:** the snapshot, tools/d4x.py (5ddf9afd...), tools/r57rows.py (35913cec...), the key files and MLX /
   mtplx.
 - **Report:** results/refc_d4.txt and a RESULT doc.
