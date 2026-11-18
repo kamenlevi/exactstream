@@ -2844,3 +2844,27 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
   - xknob: tgl16eu 196 / 539 calls, 0 sent to today's kernel, 0 fallbacks (EvalSuite's VOID rules hold).
   - The builder found the knob's md5 changing under the freeze's path rewrite. It now checks the live knob against
     Breakthrough's knob_v2.md5 first, then pins the frozen copies in frozen.md5.
+- **Wed 10:5x-11:1x, s98b loop bit tests: the sync-free drafter and PK PASS; REF2_BOF / REF2_HC_B are inert on the lossy
+  path** (data/r57/bt98/; snapshot s98b = the s98 template + MoonShots' r57_draft at b5c7c80, q8h32; 4 keys x 128 tokens,
+  one process per arm; R57_LOGHASH).
+  - Exact, drafter (R57_DRAFT=t30b on x45rpl1 + tree-16):
+    - The tokens are identical across host-synced, sync-free (twice) and PK.
+    - Every check's verify logits match: sync-free vs sync-free 60 / 60, PK vs sync-free 60 / 60, sync-free vs
+      host-synced 60 / 60.
+    - check_install 18 / 18; the weights' sha256 is b5388cc4 (MTP Head's artifact).
+  - Lossy (blob 1's env), REF2_BOF + REF2_HC_B OFF vs ON:
+    - Tokens and all 55 checks' logits are identical, but the switches never engage (BOF 0 fires, HC_B 0). Lossy-45's
+      dense layers run native (R57_DNR / REF2_SMALL_NATIVE) and its HC read goes through HC8 / HCB, so neither wrapper
+      is reached.
+    - So they stay out of the lossy stack (no engagement) and ON in the exact headline (V3KT: 11,174 fires).
+    - CC(1) engaged on mbpp/16 and /30 (2 + 2 close calls), and tgl16eu ran with 0 calls to today's kernel.
+  - The first attempt failed at install (`fc_hidden.weight`): q8h32 takes weights=None (r57_draft loads its pinned
+    artifact). The template now defaults to that.
+- **Wed 11:2x, the fallback identity pre-check: PASS 6 / 6** (data/r57/bt98/fidF{A,B}*). lx45cc1's line verbatim (C 256, max
+  2048 tokens) on snapshot s98b, 6 humanevalx keys (HumanEval/0, 10, 100, 102, 103, 104), vs lx45cc1's stored completion
+  ids (EvalSuite results/card_lx45cc1_t1code/decode.jsonl):
+  - flags off: 6 / 6 identical;
+  - flags on (REF2_BOF + REF2_HC_B + R57_XRW=tgl16e): 6 / 6 identical, with tgl16e engaged (579-1,693 calls per key, 0
+    sent to today's kernel, 0 fallbacks).
+  The newer snapshot (merged screen, Leap b4331e4) leaves lx45cc1's answers unchanged on these keys. GDN16 is not in yet.
+  The full 104-key identity check runs in Thursday's timing (i).

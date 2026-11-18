@@ -5354,3 +5354,16 @@ Prediction [G]: PASS 50 % (code reuses its own identifiers; the 125B's recent to
 - So C5's lever (32K's coverage at 8K's bytes) fails as specified. A dynamic 16K might match the 32K (not tested;
   -10.5 MB per level vs 32K's -31, ~0.07 ms per level).
 - Script: sb98/vocab_cov.py; data/sb98/s24_vocabcov.json.
+### S23 SMOE RESULT (Wed 18 Nov 10:31; LAB sandbox): FAIL, the 1/4-active MoE head loses 22-27 % kept, like the 1/4-wide pruned head
+| arm, vs s30 | MBPP t16 | MBPP t32 | HE t16 | HE t32 |
+|---|---|---|---|---|
+| sm16 (16 experts, 4 active) | x0.809 | x0.782 | x0.766 | x0.743 |
+| sm32 (32 experts, 8 active) | x0.810 | x0.783 | x0.751 | x0.728 |
+| (S20) h2, MLP pruned to 1536 | x0.802 | x0.771 | x0.749 | x0.720 |
+- No collapse: every expert carries 1-58 % of tokens on an HE window. Training ran 630 / 579 s (0.31-0.33 s/step),
+  peak 3.4 GB.
+- Routing over the full width didn't beat pruning to the same active width. At this budget (1,889 steps from an
+  upcycled start) the ACTIVE capacity per token sets kept, not the total.
+- C4 (keep the capacity, cut the bytes via sparsity) fails its line (>= 0.97 x at tree-32). Together with S20, the
+  head's bytes per level can't drop ~4x through its MLP without ~25 % kept.
+- Caveats (untested): a load-balance loss, a longer budget, a from-scratch MoE, distillation from s30.

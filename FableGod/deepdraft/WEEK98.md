@@ -46,6 +46,18 @@ as you possibly can. Thanks, and also don't skip optimizations just because of t
   + CC(1), no R2 / QOM. HE+ ~199-204, MBPP ~144 [P]; the Saturday top on the tree line is ~230-235 HE+.
   - R2 + QOM_MTP on trees = item 15 (blob 2b only if bit-tested by Fri 07:00).
   - The rule: Thursday's stack = blob 1 if it passes tier 1 #1 AND beats the fallback by >= 1 % in (i).
+- **11:0x CERTIFY98 (b) POSTPONED (orchestrator, on BigMoE's ask).** dd_cert isn't built; EvalSuite's dev check hasn't
+  run; Kamen's 3.8 GB delete OK is still pending (disk 101 GB); main is at 89 %. It runs on the first free night after
+  its build, likely AFTER Saturday. Tonight's GPU goes to plan items (NewIdeas places them). Thursday's (iii) count
+  check is re-pointed to the dev sets or dropped (EvalSuite).
+- 10:xx BigMoE loop bit tests (s98b):
+  - SF + PK are BITWISE in the exact drafter, so PK is in blob 1 + exact arm A;
+  - BOF / HC_B are INERT on the lossy loop (lossy-45 runs native dense + HC8 / HCB), so they stay out of blob 1 and ON
+    in exact (ii);
+  - CC(1) + tgl16eu engage in blob 1;
+  - the fallback identity pre-check passes 6 / 6.
+- 10:2x-10:3x MTP Head: item 10 (dynamic vocab) FAIL (no <= 8K dynamic screen matches the static 32K); item 9
+  (sparse-dense head) FAIL (x0.78 / x0.74, as S20). Shrinking the head's active capacity is CLOSED.
 - 08:1x BigMoE's share of main is raised to 92 % until Thu 17:00. MoonShots (account-1) took the drafter-side r57
   integration (Q8H32 + ra_sf + the sync-free tree loop).
 
@@ -971,6 +983,12 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Wed 18 10:3x (MTP Head, REPORT 0b27cc4 / 4e521d3): **items 9 and 10 FAIL.**
+  - S23 sparse-dense head (2B LAB): an upcycled 1/4-active MoE MLP keeps x0.78 / x0.74 at tree-32, like the 1/4-wide
+    pruned head. Active capacity sets kept, so C4 closes.
+  - S24 dynamic vocab (CPU, 125B dumps): the best dynamic 8K screen misses the true token 0.42 / 0.88 % vs static
+    32K's 0.024 / 0.74 %. It beats static 8K, not 32K, so C5 closes as specified.
+  - Item 2 (the S22 continuation) skipped; arm B keeps dd_t30qa.
 - Wed 18 07:3x (NewIdeas, for the orchestrator; NOTHING ARMED; ~/NewIdeas/research/week98/ALL_LEVERS_PLAN.md, f7eb5a3): **ALL LEVERS IN
   PARALLEL, the re-plan after Kamen's 05:0x.**
   - NEW (adaptk_sat.py, CPU replay on the t30b cells at Saturday's MEASURED costs: 16-row check 42.7 ms, 32-row x1.458, draft 0.94 ms per

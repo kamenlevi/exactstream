@@ -494,19 +494,34 @@ if T16:                                                  # tree (root + 15 best-
     import tree16_loop as T16L
     T16S, T16P = T16L.new_stats(), T16L.provenance()
     print(f"[r57] TREE16 (t16b): {json.dumps(T16P)}", flush=True)
+RDR = os.environ.get("R57_DRAFT", "") == "t30b"         # s98: MoonShots' r57_draft (frozen at its pinned commit): the drafter
+T30B_FMT, TREE_SF = os.environ.get("R57_T30B_FMT", "q8h32"), os.environ.get("R57_TREE_SF", "1") != "0"   # format; sync-free
+_W0 = {"q8h32": "", "c2": "~/datasets/deepdraft/ckpt/dd_t30qa.safetensors",
+       "stored": "~/datasets/deepdraft/ckpt/dd_t30b.safetensors"}
+T30B_W = os.path.expanduser(os.environ.get("R57_T30B_W") or _W0.get(T30B_FMT, "")) or None   # q8h32: None = r57_draft's pinned artifact
+if RDR:                                                  # install(fmt) replaces the mtp125 install; draft() replaces T16D.draft;
+    assert MTPALL and T16 and T30B_FMT in _W0, "R57_DRAFT=t30b needs R57_MTP_ALL=1 + R57_TREE16=1 and a known R57_T30B_FMT"
+    sys.path.insert(0, "/Users/kamen/BigMoE/data/r57/snap/frozen_X/MoonShots_draft")   # begin_window per prompt; observe() on
+    import r57_draft as RD                               # fallback chain checks (M3's screen); R57_TREE_PK is read by r57_draft
 _MTP_MD5 = {"b5": "1f8de68a468b6ae16a9f42c62cbca39f"}   # D-23d's head, pinned like the M-17 sizes
 if CHATSW:                                               # the head's trained parts over the shipped MTP layer (D-22 b5: attention,
     import hashlib                                       # router, shared expert; experts, norms, lm_head as shipped)
     assert getattr(model.language_model, "mtp", None) is not None, "no MTP head loaded"
-    _hp = os.path.expanduser(os.environ.get("R57_MTP_CKPT") or f"~/TrainLab/ckpt/d22_{MTP_HEAD}.safetensors")   # t16a: R57_MTP_CKPT
-    assert os.environ.get("R57_MTP_CKPT") or MTP_HEAD not in _MTP_MD5 or hashlib.md5(open(_hp, "rb").read()).hexdigest() == _MTP_MD5[MTP_HEAD], f"{_hp}: md5"
-    print(f"[r57] MTP head {_hp} md5 {hashlib.md5(open(_hp, 'rb').read()).hexdigest()}", flush=True)   # t16a: provenance
-    sys.path.insert(0, os.path.expanduser("/Users/kamen/BigMoE/data/r57/snap/frozen_X/TrainLab_root"))
-    import mtp125 as _M                                  # its import-time env defaults = EvalSuite's forced ones (no-ops here)
-    _TH = _M.Trainable(model.language_model.mtp)
-    _TH.load_weights(_hp)
-    _M.install(model.language_model.mtp, _TH, dtype=mx.bfloat16)   # touches the head's own modules only
-    del _TH
+    if RDR:                                                # s98: the drafter format by MoonShots' r57_draft
+        _rdp = RD.install(model, T30B_FMT, weights=T30B_W)
+        _rdc = RD.check_install(model)
+        print(f"[r57] R57_DRAFT=t30b fmt {T30B_FMT} {T30B_W}: {json.dumps(_rdp, default=str)}; check_install {sum(map(bool, _rdc.values()))} / {len(_rdc)}", flush=True)
+        assert all(_rdc.values()), ("r57_draft.check_install", _rdc)
+    else:
+        _hp = os.path.expanduser(os.environ.get("R57_MTP_CKPT") or f"~/TrainLab/ckpt/d22_{MTP_HEAD}.safetensors")   # t16a: R57_MTP_CKPT
+        assert os.environ.get("R57_MTP_CKPT") or MTP_HEAD not in _MTP_MD5 or hashlib.md5(open(_hp, "rb").read()).hexdigest() == _MTP_MD5[MTP_HEAD], f"{_hp}: md5"
+        print(f"[r57] MTP head {_hp} md5 {hashlib.md5(open(_hp, 'rb').read()).hexdigest()}", flush=True)   # t16a: provenance
+        sys.path.insert(0, os.path.expanduser("/Users/kamen/BigMoE/data/r57/snap/frozen_X/TrainLab_root"))
+        import mtp125 as _M                                  # its import-time env defaults = EvalSuite's forced ones (no-ops here)
+        _TH = _M.Trainable(model.language_model.mtp)
+        _TH.load_weights(_hp)
+        _M.install(model.language_model.mtp, _TH, dtype=mx.bfloat16)   # touches the head's own modules only
+        del _TH
     if os.environ.get("R57_MTP_P4") == "1":              # D1 (MTP Head 2c7ce71, CHAT150 strike): the head's trained bf16 Linear
         import mlx.nn as _nnp4                           # modules (fc, q / k / v / o, router, shared expert: 19) -> 4-bit g64.
         _q0 = sum(1 for _, m_ in model.language_model.mtp.named_modules() if isinstance(m_, _nnp4.QuantizedLinear))
@@ -1182,6 +1197,8 @@ def prefill_p2(ids, arm, want_w=False, rows=16):
 
 def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=None):
     xc0_ = dict(xknob.COUNTS) if XRW else None          # s98: R57_XRW per-run counts
+    if RDR:
+        RD.begin_window(model, list(ids))                # s98: the screen's session extras for this prompt
     tcut = tcut or TRUNC                                 # R57_CHATTRUNC: this prompt's confidence cut
     while os.path.exists(PAUSE):
         time.sleep(5)
@@ -1429,13 +1446,15 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
             if t16_:
                 assert rp_ is None, "R57_TREE16 with R57_REPLAY"
                 tdr_ = time.perf_counter()
-                tr16_ = T16D.draft(model, head, tok, n=n16_, k=TREE_K)   # root + n16_ best-first pops (n16_ - 1 head forwards)
+                tr16_ = RD.draft(model, head, tok, n=n16_, k=TREE_K, sync_free=TREE_SF) if RDR else T16D.draft(model, head, tok, n=n16_, k=TREE_K)   # root + n16_ best-first pops (n16_ - 1 head forwards)
                 tdr_ = time.perf_counter() - tdr_
                 dr, mps_ = [int(x) for x in tr16_["tokens"][1:]], []   # the drafted nodes (preorder): the row counts
             else:
                 if T16:
                     T16S["fallback"] += 1                # past the dense budget: this check runs as a chain
                 dr, mps_ = head.draft_cut(min(MTP_K, maxd) if maxd else MTP_K, tcut)   # R57_CHATROWS: maxd = rows - 1
+                if RDR:
+                    RD.observe(model, [tok])             # s98: keep M3's screen on a chain check (MoonShots' must-know 2)
             if QOM_MTP and fz is not None and fz.get("q1u") and dr:   # R57_QOM_MTP (Sun 8 Nov, CHAT150 M1): the FAST row gate
                 sq_ = np.array([j_ < len(dr) and mps_[j_] >= fz["thr"] for j_ in range(len(dr) + 1)])   # on the MTP head's drafts
                 if QOM_MTP == 2 and len(mps_) > len(dr):  # (row j verifies dr[j]: its p, all at QOM's thr 0); the bonus row
