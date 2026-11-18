@@ -564,3 +564,45 @@ Breakthrough accepted at 18:12. Fable B's design is ~/FableGod/fableb/REPLAYED_C
       Kamen's return with unlock and a retry, and the end marker. A rerun with Kamen back just as the job ended gave
       no false yield.
     - It ends with data/m1/rec1a_quiet/REC_QUIET_END.
+- Wed 04:31, **MILESTONE 1, MODULE 1a: THE OFFICIAL NUMBER IS 9 us CPU PER LAYER REPLAY (ICB + residency set, median
+  of 200 repeats; min 3). PASS (line <= 50 us).** data/m1/rec1a_rset_layer_fast_quiet.out.
+  - The run (frozen runner, try 1; data/m1/rec1a_quiet/run_1118.log):
+    - slot #3's marker 04:29:35; gates open 04:30:50 (away 21,025 s on two reads, NO-SWAP 41 GB);
+    - the quiet ticket was granted at once (first in the queue); settle 20 s;
+    - run 04:31:10-04:31:15, python rc 0; unlocked 04:31:15;
+    - swap 7,635 MB at start and end; lifetime peak 3.27 GB.
+  - Pins, md5 checked after the run, all as pre-registered: rec_layer.py 21ad42c7; run_rec_quiet.sh 9f0314e9 (== the
+    frozen copy); mtlrec.py e3403349; mtlrec.m 99143b1a; libmtlrec.dylib 7a046e75.
+
+    | ICB replay of FAST layer 0 (123 commands), quiet, 200 repeats | new-input windows == MLX | CPU encode per replay, median (min) | command buffer | encoder | useResources | execute + end |
+    |---|---|---|---|---|---|---|
+    | + an MTLResidencySet built once (204 allocations): **official** | 4/4 | **9 (3) us** | 0.9 | 6.2 | 0.0 | 1.7 |
+    | + useResources over 203 buffers (info) | 4/4 (the mode-9 windows) | 28 (8) us | 0.8 | 6.1 | 18.7 | 1.8 |
+
+  - Bitwise, as pre-registered: the residency-set arm's 4 new-input windows equal MLX (4/4). The repeats stay bitwise:
+    the RESULT line's 200 mode-9 replays end with "repeats still bitwise: True" (min 9, median 28, max 41 us). And (a), the
+    replay on the recorded inputs, equals the record.
+  - Monday's rough 45 (31) us is not comparable: it ran under a share lock with Chrome busy and two other share runs,
+    using the older recorder (c56ada06).
+  - **A gap, found reading rec_layer.py after the run.** The mode-9 replays use useResources (mtlrec.m rec_replay_icb).
+    The residency-set arm's own 200 timed repeats are not checked afterwards. Its 4 windows are checked before them
+    (lines 289-307 of 21ad42c7), and "repeats still bitwise" comes from the useResources loop (lines 261-265). So the
+    pre-registered clause holds as written, but the official arm's repeats are unchecked.
+  - **Follow-up, pre-registered here before running.**
+    - rec_layer.py gets an end-of-repeats check for both arms: "outputs still bitwise after the 200 repeats", against
+      window 4's MLX outputs. It is the same test as the RESULT line's.
+    - One functional run: REC_SCOPE=layer REC_MODES=9 REC_WINDOWS=4 REC_REPS=200 REC_RSET=1, under a share lock
+      "MEM 4 GB", with NO-SWAP >= 12 and Kamen away. Output: data/m1/rec1a_rset_layer_fast_check.out. Its timings are
+      not quotable.
+    - If the residency-set line is True, the PASS stands. If it is False, the PASS is WITHDRAWN under the "not bitwise"
+      clause until there is a fix and a new quiet run.
+  - Wed 04:37, **follow-up check (functional, share lock): True for both arms. The PASS STANDS.**
+    data/m1/rec1a_rset_layer_fast_check.out; runner scripts/m1/rec1a/run_rec_check.sh (gates as pre-registered;
+    NO-SWAP 41 GB, away 21,449 s; rc 0, unlocked; swap unchanged).
+    - rec_layer.py is now bcc9759e (was 21ad42c7). Each arm's outputs are zeroed before its 200 timed repeats, then
+      checked against window 4's MLX outputs. So the check proves that the repeats WROTE the right values, which is
+      stronger than the pre-registered "still bitwise".
+    - "ICB + residency set: outputs still bitwise after the 200 repeats (window 4's MLX outputs): True"; the useResources
+      arm, True. The windows were 4/4 again, and so were (a) and the RESULT line's repeats.
+    - Timings are not quotable (a share lock, the GPU busy beside it). For the record only, they match the quiet run:
+      the residency set 9 (3) us, useResources 28 (10) us.

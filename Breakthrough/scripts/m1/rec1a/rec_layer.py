@@ -280,9 +280,15 @@ if 9 in MODES and os.environ.get("REC_RSET", "0") == "1":
         a_ = np.array(rows)
         return np.median(a_, axis=0), a_[:, 0].min()
     REPS = int(os.environ.get("REC_REPS", "20"))
+    for a in OUTS:
+        bits(a)[:] = 0                                       # (04:3x) so the end check proves the repeats WROTE them
     med, mn = split(0, REPS)
     print(f"[rec] ICB + useResources ({R.icb_nres()} buffers): encode median {med[0]:.0f} us (min {mn:.0f}) = command buffer "
           f"{med[1]:.1f} + encoder {med[2]:.1f} + useResources {med[3]:.1f} + execute/end {med[4]:.1f} us", flush=True)
+    # Wed 04:3x (MODULE1A.md 04:31 entry): each arm's timed repeats are checked too, against window NW's MLX outputs
+    ok_u = all(np.array_equal(bits(a), r) for a, r in zip(OUTS, REF))
+    print(f"[rec] ICB + useResources: outputs still bitwise after the {REPS} repeats (window {NW}'s MLX outputs): {ok_u}",
+          flush=True)
     nrs = R.build_rset()
     print(f"[rec] residency set: {nrs} allocations", flush=True)
     if nrs > 0:
@@ -305,6 +311,11 @@ if 9 in MODES and os.environ.get("REC_RSET", "0") == "1":
                 bits(a)[:] = 0
             rc, st = R.replay_icb2(1)
             okr.append(rc == 0 and all(np.array_equal(bits(a), r) for a, r in zip(OUTS, REF)))
+        for a in OUTS:
+            bits(a)[:] = 0                                   # (04:3x) so the end check proves the repeats WROTE them
         med, mn = split(1, REPS)
         print(f"[rec] ICB + residency set: {sum(okr)}/4 windows bitwise == MLX; encode median {med[0]:.0f} us (min {mn:.0f}) = "
               f"command buffer {med[1]:.1f} + encoder {med[2]:.1f} + useResources {med[3]:.1f} + execute/end {med[4]:.1f} us", flush=True)
+        ok_r = all(np.array_equal(bits(a), r) for a, r in zip(OUTS, REF))
+        print(f"[rec] ICB + residency set: outputs still bitwise after the {REPS} repeats (window 4's MLX outputs): {ok_r}",
+              flush=True)

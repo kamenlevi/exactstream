@@ -1,0 +1,45 @@
+EXCERPT of Leap's slot #3 engine A/B (~/Leap/data/week98/c25/s3_run.txt; run 11-18 04:28:25-04:29:35 per run_s3.log, quiet lock, power mode 2; 36 paired rounds = 3 windows x 12 rounds). Copied by Breakthrough 11-18 04:3x for the knob record (X5's engine value: tgl16eu without the 1c tiers, F16nx - F16ne); Leap's file is the source. Arms (Leap's c25_engine.py): F16g = F16's own config (a drift / noise check); F16gu = F16g + tgl16eu; F16gx = F16g + GDN16 + tgl16eu; F16n = the 1c tiers OFF (run with no keep masks: all 10 experts at 4-bit, an upper bound); F16ne = F16n + GDN16 + tgl16e (EXACT); F16nx = F16n + GDN16 + tgl16eu.
+== release + counters ==
+C25: xknob release knob_v2 (~/Breakthrough/data/xrw/knob_v2/xknob.py)
+C25: m16 COUNTS {'hc16p': 0, 'gdn16': 4824, 'hc32p': 8448}; one-launch HC spin-cap fails 0 (must be 0); int8fold COUNTS {'folds': 4176, 'hits': 5220, 'learned': 48, 'bad_plan': 0}; xknob COUNTS {'cand': 12672, 'orig': 12672, 'fallback_not_p11': 0}
+== bits pairs per window: (rows bitwise, argmax rows, rows, max |logit diff|) ==
+  dd__mc_27921: {'F32s_vs_F16': (0, 16, 16, 2.4219), 'F16g_vs_F16': (16, 16, 16, 0.0), 'F32c6x_vs_F32c6i': (32, 32, 32, 0.0), 'F16gu_vs_F16g': (0, 16, 16, 1.7891), 'F32c6u_vs_F32c6i': (0, 30, 32, 2.3125), 'F16gx_vs_F16gu': (16, 16, 16, 0.0), 'F32c6xu_vs_F32c6u': (32, 32, 32, 0.0), 'F16n_vs_F16': (0, 16, 16, 4.5), 'F16nx_vs_F16n': (0, 16, 16, 2.5781), 'F16ne_vs_F16n': (16, 16, 16, 0.0), 'F16nx_vs_F16ne': (0, 16, 16, 2.5781)}
+  dd__mc_2753: {'F32s_vs_F16': (0, 15, 16, 3.2344), 'F16g_vs_F16': (16, 16, 16, 0.0), 'F32c6x_vs_F32c6i': (32, 32, 32, 0.0), 'F16gu_vs_F16g': (0, 16, 16, 1.7109), 'F32c6u_vs_F32c6i': (0, 31, 32, 5.9688), 'F16gx_vs_F16gu': (16, 16, 16, 0.0), 'F32c6xu_vs_F32c6u': (32, 32, 32, 0.0), 'F16n_vs_F16': (0, 16, 16, 3.875), 'F16nx_vs_F16n': (0, 16, 16, 1.6953), 'F16ne_vs_F16n': (16, 16, 16, 0.0), 'F16nx_vs_F16ne': (0, 16, 16, 1.6953)}
+  dd__mc_28056: {'F32s_vs_F16': (0, 16, 16, 2.4688), 'F16g_vs_F16': (16, 16, 16, 0.0), 'F32c6x_vs_F32c6i': (32, 32, 32, 0.0), 'F16gu_vs_F16g': (0, 16, 16, 1.6094), 'F32c6u_vs_F32c6i': (0, 32, 32, 3.9219), 'F16gx_vs_F16gu': (16, 16, 16, 0.0), 'F32c6xu_vs_F32c6u': (32, 32, 32, 0.0), 'F16n_vs_F16': (0, 16, 16, 3.4062), 'F16nx_vs_F16n': (0, 16, 16, 2.5), 'F16ne_vs_F16n': (16, 16, 16, 0.0), 'F16nx_vs_F16ne': (0, 16, 16, 2.5)}
+== per-arm medians ==
+  F16    median    38.60 ms over 36 checks (build+submit 34.64, wait 3.69, commit 0.32); expert GB 2.41; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F16g   median    38.52 ms over 36 checks (build+submit 34.54, wait 3.68, commit 0.32); expert GB 2.41; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F16gu  median    36.32 ms over 36 checks (build+submit 32.59, wait 3.42, commit 0.32); expert GB 2.40; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F16gx  median    35.67 ms over 36 checks (build+submit 32.03, wait 3.39, commit 0.32); expert GB 2.40; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F16n   median    50.24 ms over 36 checks (build+submit 44.29, wait 5.60, commit 0.33); expert GB 0.00; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F16ne  median    48.34 ms over 36 checks (build+submit 42.59, wait 5.41, commit 0.33); expert GB 0.00; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F16nx  median    45.73 ms over 36 checks (build+submit 40.27, wait 5.15, commit 0.33); expert GB 0.00; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F32s   median    67.75 ms over 36 checks (build+submit 60.11, wait 7.28, commit 0.40); expert GB 3.98; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F32c6i median    56.19 ms over 36 checks (build+submit 50.73, wait 5.10, commit 0.32); expert GB 3.76; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F32c6x median    53.71 ms over 36 checks (build+submit 48.48, wait 4.89, commit 0.32); expert GB 3.76; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F32c6u median    52.46 ms over 36 checks (build+submit 47.44, wait 4.70, commit 0.32); expert GB 3.75; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+  F32c6xu median    50.09 ms over 36 checks (build+submit 45.26, wait 4.52, commit 0.32); expert GB 3.75; misses 0.0, SSD 0.00 ms; overflowed checks 0 (invalid if > 0)
+== paired deltas ==
+  F32s / F16: median +1.743 [IQR +1.725, +1.755] over 36 paired rounds
+  F32c6i / F16: median +1.443 [IQR +1.426, +1.456] over 36 paired rounds
+  F16g - F16: median -0.083 ms [IQR -0.179, -0.040] over 36 paired rounds
+  F32c6x - F32c6i: median -2.401 ms [IQR -2.484, -2.354] over 36 paired rounds
+  F32c6x / F16: median +1.380 [IQR +1.366, +1.392] over 36 paired rounds
+  F16gu - F16g: median -2.394 ms [IQR -2.530, -2.171] over 36 paired rounds
+  F32c6u - F32c6i: median -3.671 ms [IQR -3.732, -3.563] over 36 paired rounds
+  F16gx - F16g: median -2.883 ms [IQR -3.035, -2.809] over 36 paired rounds
+  F16gx - F16: median -3.014 ms [IQR -3.119, -2.897] over 36 paired rounds
+  F32c6xu - F32c6i: median -6.055 ms [IQR -6.109, -5.945] over 36 paired rounds
+  F32c6xu / F16: median +1.286 [IQR +1.274, +1.297] over 36 paired rounds
+  F16n - F16: median +11.688 ms [IQR +11.460, +13.626] over 36 paired rounds
+  F16nx - F16n: median -4.507 ms [IQR -4.724, -4.371] over 36 paired rounds
+  F16ne - F16n: median -1.903 ms [IQR -1.969, -1.758] over 36 paired rounds
+  F16nx - F16ne: median -2.667 ms [IQR -2.862, -2.543] over 36 paired rounds
+== pass K determinism (re-run vs pass T) ==
+  PASS K F16: class GPU sum 40.02 ms (pass K wall 41.26, 757 cbs) vs pass T GPU busy 37.49 -> scale 0.937; bits vs pass T [(16, 16, 16, 0.0), (16, 16, 16, 0.0), (16, 16, 16, 0.0)]
+  PASS K F16n: class GPU sum 54.26 ms (pass K wall 55.37, 784 cbs) vs pass T GPU busy 49.18 -> scale 0.906; bits vs pass T [(16, 16, 16, 0.0), (16, 16, 16, 0.0), (16, 16, 16, 0.0)]
+  PASS K F16ne: class GPU sum 52.33 ms (pass K wall 53.45, 784 cbs) vs pass T GPU busy 47.28 -> scale 0.904; bits vs pass T [(16, 16, 16, 0.0), (16, 16, 16, 0.0), (16, 16, 16, 0.0)]
+  PASS K F16nx: class GPU sum 49.31 ms (pass K wall 50.41, 783 cbs) vs pass T GPU busy 44.72 -> scale 0.907; bits vs pass T [(16, 16, 16, 0.0), (16, 16, 16, 0.0), (16, 16, 16, 0.0)]
+  PASS K F32c6i: class GPU sum 56.33 ms (pass K wall 57.94, 829 cbs) vs pass T GPU busy 54.20 -> scale 0.962; bits vs pass T [(32, 32, 32, 0.0), (32, 32, 32, 0.0), (32, 32, 32, 0.0)]
+  PASS K F32c6xu: class GPU sum 50.94 ms (pass K wall 52.29, 825 cbs) vs pass T GPU busy 48.96 -> scale 0.961; bits vs pass T [(32, 32, 32, 0.0), (32, 32, 32, 0.0), (32, 32, 32, 0.0)]
+G32TEST verdict: TIME MODE (T1 / T2 not run; C32 == B2x16 logits checked per window above); peak 31.4 GB

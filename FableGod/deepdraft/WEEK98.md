@@ -109,6 +109,13 @@ don't care about that. I just need to get that."
     - + tgl16eu F32c6xu -6.04: 56.54 -> 50.52 ms (argmax 30-32 / 32).
   - Every bitwise pair was exact; 0 fails.
   - Saturday's no-tier pricing comes from slot #3 at 07:15.
+- **04:29 Leap SLOT #3 (moved up from 07:15 by the orchestrator: the GPU was idle after 02:13; s3_run.txt):** on the
+  no-tier base path:
+  - tgl16eu vs tgl16e = -2.67 ms (argmax 16 / 16, deterministic): CLEARS the >= 1 ms line;
+  - GDN16 + tgl16e (exact) = -1.90 ms, bitwise;
+  - all three: 50.24 -> 45.73 ms (c25 upper bound: no live keep masks).
+  - **Per the rule, tgl16eu is BACK in the LOSSY stack (R57_XRW=tgl16eu; EvalSuite's amendment, before Thursday's
+    tier 1).** The exact headline keeps tgl16e. BigMoE's live key test records its ON / OFF ms + expert GB.
 > (a quote from the project owner, kept private)
   replies are BIG-only from now on.
 

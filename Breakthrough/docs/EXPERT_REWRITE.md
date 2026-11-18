@@ -495,3 +495,33 @@ Leap's run; the knob lines are excerpted in data/xrw/c25_n2_excerpt.txt (source 
   (F16gx == F16gu, F32c6xu == F32c6u). The 11:18 knob_v1 smoke (-2.1 / -2.6, ROUGH, 2 checks per arm) is not comparable.
 - Next (Leap): slot #3 at 07:15 runs the no-tier isolation (F16nx - F16ne), the engine value X5 left UNMEASURED above.
   Slot #4 (Thu) runs tgl16ef (knob_v3) beside tgl16e.
+
+## ENGINE A/B: Leap's slot #3 (s3, Wed 18 Nov 04:28-04:29, quiet lock, 36 paired rounds = 3 windows x 12; knob_v2)
+Leap's run. The orchestrator moved it up from 07:15 (04:2x). Excerpt: data/xrw/c25_s3_excerpt.txt (source
+~/Leap/data/week98/c25/s3_run.txt). It measures X5's engine value: the tier-4 upgrade with the 1c tiers OFF.
+- Provenance: "C25: xknob release knob_v2"; xknob COUNTS {cand 12672, orig 12672, fallback_not_p11 0}.
+- **X5 in the engine: tgl16eu - tgl16e on the no-tier path (F16nx - F16ne, both + GDN16) = -2.667 ms [IQR -2.862,
+  -2.543] per 16-row check.**
+  - Argmax 16 / 16 in all 3 windows; not bitwise (max |logit diff| 2.58 / 1.70 / 2.50), as expected of a FAST lever.
+    Pass K's re-run of F16nx is bitwise (deterministic).
+  - Leap's arm note: c25 runs F16n with no keep masks (all 10 experts at 4-bit), so this is an upper bound for the
+    no-tier path.
+  - The line in Leap's arm note (the orchestrator 15:3x): tgl16eu goes back in the stack if it saves >= ~1 ms. The
+    verdict is the orchestrator's.
+  - With the tiers, in the same run: F16gu - F16g = -2.394 ms [-2.530, -2.171]. X5's CPU count predicted a larger gap
+    without the tiers: 12.4 vs 9.1 segments saved per 16-row call (x1.36). The engine gives x1.11 (-2.667 / -2.394).
+- **tgl16e (EXACT) + GDN16 on the no-tier path: bitwise 3 / 3 (F16ne vs F16n, 16 / 16, 0.0); -1.903 ms [-1.969,
+  -1.758].** Pass K's class sums (one window, scaled ~0.90) put most of it in moe_experts (29.76 -> 28.39 ms) and
+  gdn_core (2.04 -> 1.52).
+- **Slot #2 replicated (tier path, knob_v2):**
+
+  | lever | slot #2 (02:12) | slot #3 (04:28) |
+  |---|---|---|
+  | tgl16eu, 16 rows (F16gu - F16g) | -2.301 [-2.503, -2.094] | -2.394 [-2.530, -2.171] |
+  | tgl16eu, 32 rows (F32c6u - F32c6i) | -3.715 [-3.823, -3.627] | -3.671 [-3.732, -3.563] |
+  | noise check: the same config twice (F16g - F16; bitwise 3 / 3 in both runs) | -0.151 [-0.246, -0.052] | -0.083 [-0.179, -0.040] |
+
+  - The IQRs overlap in each row.
+  - Argmax is again 16 / 16 at 16 rows and 30-32 / 32 at 32 rows.
+  - F16gx == F16gu and F32c6xu == F32c6u, bitwise.
+- Next (Leap): slot #4 (Thu) runs tgl16ef (knob_v3) beside tgl16e.

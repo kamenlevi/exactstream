@@ -1,7 +1,9 @@
-# DRAFT, not filed: PREREG_lossygate amendment 6, the GATED, MEASURED lossy stack for Saturday (lossy-45 + CC(1) + the t30b Q8H32 tree-16 drafter + the exact-safe engine levers)
+# DRAFT, not filed: PREREG_lossygate amendment 6, the GATED, MEASURED lossy stack for Saturday (lossy-45 + CC(1) + the t30b Q8H32 tree-16 drafter + tgl16eu + the exact-safe engine levers)
 
 Prepared Tue 2026-11-17 09:4x from the orchestrator's decisions of 09:3x and 09:4x (relayed by NewIdeas). Rewritten at
-15:0x for the orchestrator's 15:0x composition: G1 is skipped, tgl16eu is out, and tgl16e and GDN16 are in.
+15:0x for the orchestrator's 15:0x composition: G1 is skipped, tgl16eu is out, and tgl16e and GDN16 are in. Updated
+Wed 04:3x: tgl16eu is back IN (the orchestrator 04:3x, by its 15:3x rule). The base line, the format, sync-free and the
+CC cap are settled (section 1).
 - It is filed into docs/PREREG_lossygate_2026-11-15.md when BigMoE sends the stack's blob (Thu ~midday). That is
   BEFORE the smoke and before any stack data.
 - Placeholders are in <angle brackets>. The open points are listed at the end.
@@ -13,38 +15,56 @@ Prepared Tue 2026-11-17 09:4x from the orchestrator's decisions of 09:3x and 09:
   (plumbed from Wednesday).
   - It supersedes the chain-16 stk / stk0 plan. tools/stk_chain.sh (ede7aa9) was never armed and has no data.
 - **The orchestrator, 09:4x:**
-  - t30b runs at Q8 + the 32K screen if MoonShots' Wed ~07:30 Q8 read-out holds kept within its pre-registered line.
-    Otherwise it runs at bf16 + the 32K screen. It never runs as stored.
+  - t30b runs at Q8 + the 32K screen if MoonShots' Q8 cut holds kept within its pre-registered line (run Tue, PASS;
+    the format's evidence, section 1). Otherwise it runs at bf16 + the 32K screen. It never runs as stored.
   - Sync-free is BigMoE's default if MoonShots' bit test on BigMoE's ops passes by Wed evening. fused2 is out.
   - In lossy mode, tier 1 and the card gate run ON the chosen format, so the gate covers it. This amendment therefore
     pins the format and the screen, alongside the tree flags.
 - **The orchestrator, 15:0x (Tue): the composition.** The stack is lossy-45 + CC(1) + the exact-safe engine levers:
   GDN16, tgl16e, sync-free, and the Q8H32 drafter.
   - G1 is SKIPPED this week: every G1 env carries the 1c tiers that failed V2 on HumanEval+ (PREREG 5b, dated 15:0x).
-  - **tgl16eu is CONDITIONAL** (the orchestrator 15:3x, correcting 15:0x's premise). Breakthrough showed it does not need
+  - **tgl16eu was CONDITIONAL** (the orchestrator 15:3x, correcting 15:0x's premise). Breakthrough showed it does not need
     the 1c tiers: without them, one-call segments shrink 13.9 % at 16 rows, and the unchanged pairs stay bitwise
     (f09e1e6).
     - **The rule:** if Leap's slot #3 (Wed 07:15) prices tgl16eu at >= ~1 ms on the no-tier base path (F16nx vs the same
       arm without it), it goes BACK into this amendment before Thursday's tier 1, as a FAST lever judged inside the
       stack's gate. Otherwise it stays out, and tgl16e alone is in.
     - BigMoE's live key test gives the real ON / OFF number (information, beside the rule).
-    - <Slot #3's reading, with its file: IN (R57_XRW=tgl16eu) or OUT (R57_XRW=tgl16e).>
+    - **The reading: IN, R57_XRW=tgl16eu (the orchestrator Wed 04:3x).** Slot #3 ran Wed 04:28; the orchestrator moved
+      it up from 07:15 (Leap b016d71). The record is ~/Leap/data/week98/c25/s3_run.txt (Leap 15b274e), checked here
+      04:3x.
+      - F16nx - F16ne: median -2.667 ms [IQR -2.862, -2.543] over 36 paired rounds (3 windows x 12), at 16 rows (F16nx
+        45.73 ms per check). That is tgl16eu against exact tgl16e on the same no-tier path, so it clears the ~1 ms line.
+        Beside it: F16nx - F16n -4.507 ms and F16ne - F16n -1.903 ms.
+      - F16nx vs F16ne: argmax 16 / 16 rows in each window, 0 rows bitwise (max |logit diff| 1.70-2.58), as a lossy
+        lever reads. F16ne vs F16n: 16 / 16 rows bitwise in each window.
+      - Deterministic: F16nx's pass K bits equal its pass T bits, 16 / 16 rows in all 3 windows.
+      - The release: "C25: xknob release knob_v2" (line 21), as in slot #2 (n2_run.txt line 21).
 
 ### 1. The pins (from BigMoE's blob; the runner checks them at every start and per process)
 - **The env:** <path>, blob sha256 <...>, tag <...>. The snapshot trees, the screen and the .so are <...> (bm_pin).
-- **The base: lossy-45 + CC(1).** <BigMoE's base flags>.
+- **The base: lossy-45 + CC(1)** (BigMoE 15:32 Tue, checked here Wed 04:3x). It is ccx45cc1's line verbatim
+  (~/BigMoE/data/stack/ccx45cc1_env.txt line 2, 36 flags): lx45cc1 + R57_RELAX_DELTA=1 +
+  R57_RELAX_DELTA_SETS=humaneval,humanevalx,mbpp.
+  - lx45cc1's flags equal lx45g1b's (parsed with the comma lists whole).
+  - It has no R57_TIERS (so no 1c tiers), no R57_XRW and no R57_DRAFT. QOM is on humaneval,mbpp (R57_FAST=QOM).
+  - BigMoE adds on top: R57_DRAFT=t30b R57_T30B_FMT=q8h32 R57_TREE_NODES=15 R57_TREE_K=8 R57_TREE_SF=1
+    R57_XRW=tgl16eu, and GDN16's flag.
+  - REF2_BOF / REF2_HC_B (BigMoE's V3KT PASS, 15:00 Tue) are in the exact headline (ii) only. They enter this stack only
+    if the orchestrator says so. PK (R57_TREE_PK) is out (MoonShots' skeleton KILL, 15:29 Tue).
   - The CC(1) chain arm (ccx45cc1) PASSED tier 1 in both orders on Monday night (RESULT_lossygate_2026-11-17).
   - CC(1) uses amendment 3's flags unchanged: R57_RELAX_DELTA=1, R57_RELAX_DELTA_SETS=humaneval,humanevalx,mbpp.
 - **The drafter** (BigMoE's flags, 10:56 Tue; final unless a test forces a change, and BigMoE says so first):
   - **Code:** R57_DRAFT=t30b, i.e. code drafting by t30b over the shipped MTP layer (unset = DFlash, as today).
-    - **The format (Q8H32):** R57_T30B_FMT=<q8h32 | b16h32>.
-      - q8h32 is the default: MTP Head's t30b_q8h32.safetensors (b5388cc4...) + Leap's ScreenedHead 32K + session
-        extras.
-      - b16h32 is the fallback.
+    - **The format (Q8H32):** R57_T30B_FMT=q8h32, i.e. MTP Head's t30b_q8h32.safetensors (b5388cc4...) + Leap's
+      ScreenedHead 32K + session extras. The orchestrator's 09:4x rule settled it: MoonShots' Q8 cut held its line (the
+      format's evidence, below).
+      - b16h32 was the fallback. It is not used.
       - "stored" is CERTIFY98's count check only, never this stack.
     - **Tree-16:** R57_TREE_NODES=15 (best-first pops; check rows = nodes + 1 = 16) and R57_TREE_K=8 (top-8 children
       pushed per pop, as in the T8 dumps and tree_cc32).
-    - **Sync-free:** R57_TREE_SF=<1 | 0> (MoonShots' sync-free frontier; 0 = the host-synced heapq loop).
+    - **Sync-free:** R57_TREE_SF=1 (MoonShots' sync-free frontier, BigMoE's default since the bit test passed; 0 = the
+      host-synced heapq loop).
   - **Chat:** unchanged. R57_DRAFT changes code drafting only.
 - **CC(1) on the tree** follows BigMoE's rule, per check:
   - The 125B verifies the current token + the 15 popped nodes in one forward (tree mask), so each node's row is
@@ -56,7 +76,8 @@ Prepared Tue 2026-11-17 09:4x from the orchestrator's decisions of 09:3x and 09:
   - Close calls may occur at any depth and any number of times per check, exactly as in the gated chain rule
     (relax_delta.relaxed_k: no per-check cap; amendment 3's d1 = delta 1 nat, not a count). On a chain (k = 1) the rule
     reduces to the gated one.
-  - <R57_TREE_CC_MAX: unset (no cap), unless NewIdeas asks for a cap by Wed midday.>
+  - R57_TREE_CC_MAX is unset, so there is no per-check cap (NewIdeas 17:4x Tue, to BigMoE and EvalSuite;
+    ~/NewIdeas/HANDOVER.md, 4a07e04). Tier 1 and the card gate judge it.
 - **The exact-safe engine levers.** Each is bitwise against the path it replaces, by its owner's test, so it changes
   time, not tokens. The stack's gate still covers them.
   - **GDN16** (Leap's 16-row GDN module; code ~/Leap/scripts/week98/m16.py, the GDN16 switch, install()): <its r57
@@ -67,8 +88,11 @@ Prepared Tue 2026-11-17 09:4x from the orchestrator's decisions of 09:3x and 09:
     - In the real 16-row check: ~/Leap/data/week98/c25/wed3smoke_run.txt line 21 (Leap ae2363a):
       'F16gd_vs_F16g': (16, 16, 16, 0.0), i.e. all 16 rows' logits bitwise with GDN16 on vs off (216 engaged calls).
       Tonight's slot #2 repeats it over 3 windows (~/Leap/data/week98/c25/n2_run.txt).
-  - **tgl16e** (Breakthrough's expert rewrite, the exact part only): R57_XRW=<tgl16e, the value BigMoE wires>; xrw.mode
-    reads "tgl16e" (Breakthrough 15:0x).
+  - **tgl16e** (Breakthrough's expert rewrite, the exact part only). The stack no longer runs it alone: R57_XRW=tgl16eu
+    (the FAST lever, below) runs tgl16e's kernels plus the TIER-4 UPGRADE. tgl16e stays the EXACT headline's value (ii)
+    (BigMoE 04:30 Wed). Its records below cover tgl16eu's exact part.
+    - BigMoE 15:32 Tue: the flag's value goes straight into xknob.MODE[0], with xknob.ON for the whole run, and
+      runs.json's xrw.mode reads xknob.MODE[0].
     - The expert one-call's exact part is bitwise == today. There is no tier-4 upgrade.
     - **The code: knob_v2, Breakthrough commit 20eaaf3** (~/Breakthrough/data/xrw/knob_v2; Breakthrough 14:0x, and
       BigMoE's wiring matches). Checked here Tue 14:0x: the files equal 20eaaf3 (HEAD differs only in README.md,
@@ -102,26 +126,49 @@ Prepared Tue 2026-11-17 09:4x from the orchestrator's decisions of 09:3x and 09:
       7. Late slots / posts / late release: Leap's m32 scenarios passed 24 of 24 on tgl16 and on tgl16eu, which runs
          tgl16e's kernels (data/xrw/m32_tgl16.txt, m32_tgl16eu.txt). tgl16e alone was not run through m32.
   - **Sync-free** and **the Q8H32 drafter:** above.
+- **The FAST engine lever: tgl16eu** (the orchestrator Wed 04:3x). R57_XRW=tgl16eu, and xrw.mode reads "tgl16eu"
+  (BigMoE 04:30 Wed). It is the same knob_v2 release (20eaaf3) and the same files as tgl16e above.
+  - What it changes: knob_v2's TIER-4 UPGRADE grouping (xgrp.py), under which upgraded pairs run on 4-bit weights
+    (tgl16v.py's own comment). It is not bitwise, so the stack's tier 1 and card gate judge it, with no separate pass.
+  - Its price and its argmax record: slot #3 (the Why section).
+  - BigMoE's Thursday key test also records its ON vs OFF ms and its expert GB from r57's loop (c25's counter cannot see
+    no-tier bytes). That is information.
 - **Engagement (validity):** CARD_ENGAGE = close_call:accepted@run, tree:sib_accepted@run, xrw:cand@run <+ GDN16's
   field, if it has one>.
-  - If tgl16eu is back in, the tgl16e checks below apply with xrw.mode == "tgl16eu". Its upgrade changes outputs
-    (toward the 4-bit tier), so it is a FAST lever: the stack's tier 1 and card gate judge it, with no separate pass.
+  - tgl16eu is in (Wed 04:3x), so the expert-rewrite checks below apply with xrw.mode == "tgl16eu" (BigMoE 04:30: the
+    same VOID rules). Its upgrade changes outputs (toward the 4-bit tier), so it is a FAST lever: the stack's tier 1 and
+    card gate judge it, with no separate pass.
   - runs.json's "tree" block is {"nodes", "k", "checks", "sib_accepted"}. sib_accepted counts accepted nodes that are
     not their parent's head-top-1 child, i.e. what a chain could not have kept.
   - Runner 69's parser reads these as is. A term is field[:key+key][@run]; a dict field's listed keys are summed over
     the run's kept code answers. The DRY on BigMoE's env confirms it.
-  - **tgl16e:** it is also VOID unless all of these hold. EvalSuite checks them from runs.json and the per-process
-    modules manifests before the verdict:
+  - **The expert rewrite (tgl16eu):** it is also VOID unless all of these hold. EvalSuite checks them from runs.json and
+    the per-process modules manifests before the verdict:
     - every process's modules manifest shows xknob loaded from .../knob_v2/xknob.py, with the sha256 above;
-    - every run has xrw.mode == "tgl16e", ON for the whole run;
+    - every run has xrw.mode == "tgl16eu", ON for the whole run;
     - summed over the run, xrw.orig == 0 and xrw.fallback_not_p11 == 0.
+      - In knob_v2's xknob.py, a call run by the rewrite counts cand only. A call on a non-p11 store counts
+        fallback_not_p11 and orig, and a call with the knob off counts orig. So orig == 0 means the rewrite ran every
+        call (checked here Wed 04:3x; the five files still match the md5 table).
     - xrw.cand > 0 (the engagement term) also proves the one-call path is on (REF2_OOO_1C=1 + REF2_NAX_1CQ=1). The 1c
       tiers are a separate flag (R57_TIERS=1c), so dropping them keeps the knob active (Breakthrough 15:0x).
-  - The QOM sets are <...>.
+  - The QOM sets are humaneval,mbpp (R57_FAST=QOM and R57_QOM_SETS, in the base line).
 - **The format's evidence:**
   - MoonShots' Q8 PASS on Tue was the basis of the orchestrator's 09:4x choice (~/MoonShots/week98/draft/
-    DRAFT_PLAN_1117.md, STATUS Tue 11:1x). The registered read-out is Wed ~07:30, against its line: <result, file>.
-  - Sync-free: MoonShots' bit test on BigMoE's ops, bitwise on 176 + 120 trees: <file>.
+    DRAFT_PLAN_1117.md, STATUS Tue 11:1x). The Q8 run was moved up to Tuesday, so there is no Wed read-out (MoonShots
+    deleted the Wed crons once all cuts were done).
+  - The record: ~/MoonShots/week98/p3/q8_scores.txt (d8dc02c). It gives kept per check against the full head at rows
+    16 / 32. The line is within 1 % at 16 AND 32 on both sets.
+    - Q8 (the rule's cut): HE+ x0.9947 / x0.9975, MBPP x0.9962 / x1.0035. PASS.
+    - For information, the shipped combination Q8H32: HE+ x0.9775 / x0.9751 (outside 1 %), MBPP x0.9981 / x1.0046.
+      B16H32 reads HE+ x0.9912 / x0.9874. MoonShots sent these with the PASS (Tue 10:3x). Q8 stays, since bf16 adds
+      ~70 MB per pop.
+  - Sync-free: MoonShots' bit test compares the sync-free loop with the host-synced one, and every tree is identical.
+    - On BigMoE's dd_tree ops: 176 / 176 trees (HE+ and MBPP tree-16, HE+ tree-16 at Q8H32, HE+ tree-32). MoonShots
+      6d004d7, week98/draft/sf_bittest.log + sf_bit_*.json.
+    - On the r57 format (sf_tree.py --real: 8-bit g64 Linears + HC mixes, ScreenedHead 32K + extras): 120 / 120 trees
+      (HE+ 48, MBPP 48, HE+ tree-32 24; a HE+ repeat was 48 / 48 too). 85c5fcb, week98/draft/sf_real.log +
+      sf_bit_real_*.json.
 - **The scope:** CARD_SCOPE=code. CC and t30b act on the code sets, while IFEval runs r57's unchanged chat path; tier 1
   still reads IFEval by decision 4 against exact.
 
@@ -156,7 +203,7 @@ Prepared Tue 2026-11-17 09:4x from the orchestrator's decisions of 09:3x and 09:
   - One queued quiet lock (90 min) and no share locks.
   - HumanEval+ 164 + MBPP 100 (the code keys; IFEval dropped), in the panel's forward order, one order. No verdict.
 - **The number:** whole decode, n / decode wall (sum n / sum(n / tps)), per set and pooled.
-  - The config line goes beside it: format, screen, tree flags, CC(1), sync-free, the exact-safe levers.
+  - The config line goes beside it: format, screen, tree flags, CC(1), sync-free, tgl16eu, the exact-safe levers.
   - Tokens per second with prefill are reported beside it, never as the headline.
 - **Heat:** a heat pause inside a timed decode (the fanwatch log) taints that answer, and the answer is re-run (twice at
   most).
@@ -181,6 +228,8 @@ Prepared Tue 2026-11-17 09:4x from the orchestrator's decisions of 09:3x and 09:
 - **A tier-1 FAIL:** the stack is not adopted, and any number is information only.
   - A bisect is a NEW config. It needs its own dated amendment before its data, and its own tier 1 and card gate. This
     gate's runs are not reused as its reference.
+- **The first bisect** (the orchestrator Wed 04:3x): if the stack fails, the first bisect turns tgl16eu off
+  (R57_XRW=tgl16e, everything else unchanged). It is a new config under the rule above.
 
 ### 7. Carried over
 - **BREAK98_HOLD:** nothing starts while it exists. A running step yields at once and resumes when it is gone.
@@ -194,17 +243,15 @@ Prepared Tue 2026-11-17 09:4x from the orchestrator's decisions of 09:3x and 09:
 
 ## Open (to settle before filing)
 - **BigMoE:**
-  - the blob (Thu midday) and the lossy-45 base flags in it;
-  - the format after MoonShots' Wed ~07:30 read-out;
-  - sync-free on or off;
-  - tgl16e's R57_XRW value, and GDN16's flag;
+  - the blob (Thu midday): the env path, its sha256 and the snapshot, with the base line above in it;
+  - GDN16's flag and its runs.json counter, if any (Leap hands its 16-row modules over by Wed evening; BigMoE 15:32);
   - any flag change forced by a test.
-  - The tree flags, the CC-on-tree rule, the engagement field and chat's path are named (10:56 Tue).
-- **Leap (Wed 07:15, slot #3):** tgl16eu's price on the no-tier base path (F16nx vs the same arm without it). At >= ~1 ms
-  it is back in, by the orchestrator's 15:3x rule.
+  - DONE: the tree flags, the CC-on-tree rule, the engagement field and chat's path (10:56 Tue). Also the base line, the
+    format (q8h32), sync-free on and the R57_XRW value (15:32 Tue; tgl16eu since 04:30 Wed).
+- **Leap (slot #3):** DONE Wed 04:3x, tgl16eu IN (the Why section).
 - **Leap / Breakthrough:** DONE 15:0x, both bitwise records are cited above. Still open: GDN16's runs.json field, if
   r57 writes one (BigMoE).
-- **NewIdeas:** a per-check cap on close calls (R57_TREE_CC_MAX) or none, by Wed midday.
+- **NewIdeas:** DONE 17:4x Tue, no cap on close calls.
 - **EvalSuite:**
   - DONE Tue 11:1x (bd19455): runner 69's timing summary reads the tree flags (the shape and the draft flags). Its
     flag list also needs GDN16's flag once named.
