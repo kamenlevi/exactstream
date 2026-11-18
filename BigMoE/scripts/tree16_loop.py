@@ -83,6 +83,51 @@ def accept(tr, am):
     return path, int(bonus), len(path) - 1, new
 
 
+def accept_cc(tr, lg, am, delta, cc_max=0):
+    """CC(1) on the tree walk (BigMoE Wed 18 Nov; the rule sent to EvalSuite + NewIdeas Tue 17 Nov 10:5x). From the root, at
+    node u (the 125B's logits z_u = lg[u]):
+      (1) a child whose token is argmax z_u is accepted (exact, as TC.walk);
+      (2) else, with delta > 0, the child c with the largest z_u[c] (ties: the earlier node, the head's preferred sibling)
+          is accepted when z_u[c] >= max z_u - delta: a close call;
+      (3) else the walk stops and the check emits argmax z_u (the bonus).
+    Any number of close calls per check, as relax_delta.relaxed_k (cc_max > 0 caps them). delta 0 = TC.walk's result.
+    lg: [T, V] or [1, T, V] node logits; am: the per-node argmax. Returns path, bonus, k, new, close calls, sibling accepts
+    (accepted nodes that are not their parent's first child, i.e. not the head's top-1 there)."""
+    import mlx.core as mx
+    tok = [int(x) for x in tr["tokens"]]; par = [int(p) for p in tr["parents"]]; T = len(tok)
+    amv = [int(x) for x in (am.tolist() if hasattr(am, "tolist") else am)]
+    kids = {}
+    for n in range(1, T):
+        kids.setdefault(par[n], []).append(n)
+    dl = None
+    if delta > 0 and T > 1:
+        L = (lg[0] if lg.ndim == 3 else lg)[:T].astype(mx.float32)
+        pi, ti = mx.array(par[1:], dtype=mx.int32), mx.array(tok[1:], dtype=mx.int32)
+        rows = L[pi]
+        z = mx.take_along_axis(rows, ti[:, None], axis=1)[:, 0] - rows.max(axis=-1)
+        dl = [None] + z.tolist()
+    path, u, ncc = [0], 0, 0
+    while True:
+        ch = kids.get(u, [])
+        nxt = next((c for c in ch if tok[c] == amv[u]), None)
+        if nxt is None and dl is not None and ch and (cc_max <= 0 or ncc < cc_max):
+            c = max(ch, key=lambda c_: (dl[c_], -c_))
+            if dl[c] >= -delta:
+                nxt, ncc = c, ncc + 1
+        if nxt is None:
+            break
+        path.append(nxt)
+        u = nxt
+    bonus = amv[u]
+    nsib = sum(1 for n in path[1:] if kids[par[n]][0] != n)
+    return path, bonus, len(path) - 1, [tok[n] for n in path[1:]] + [bonus], ncc, nsib
+
+
+def tree_block(S, nodes, k):
+    """runs.json "tree" (EvalSuite's engagement term tree:sib_accepted@run)"""
+    return dict(nodes=nodes, k=k, checks=S["checks"], sib_accepted=S.get("sib", 0), close_calls=S.get("cc", 0))
+
+
 def commit(model, cache, states, path, tr, a, text, ref2):
     return TC.tree_commit(model, cache, states, path, int(tr["T"]), a, text=text, ref2=ref2)
 
@@ -102,7 +147,7 @@ def main_k(path):
 
 def new_stats():
     return dict(checks=0, fallback=0, T=0, D=0, k=0, k_main=0, side=0, main_end=0, chain=0, tree=0,
-                draft_ms=[], commit_ms=[], kd=[])
+                draft_ms=[], commit_ms=[], kd=[], sib=0, cc=0)
 
 
 def record(S, tr, path, kind, draft_ms, commit_ms):
@@ -121,7 +166,8 @@ def summary(S):
     out.update(T_mean=round(S["T"] / n, 3), D_mean=round(S["D"] / n, 3), kept_mean=round(1 + S["k"] / n, 3),
                kept_main_mean=round(1 + S["k_main"] / n, 3),
                draft_ms=float(np.median(S["draft_ms"])) if S["draft_ms"] else None,
-               commit_ms=float(np.median(S["commit_ms"])) if S["commit_ms"] else None, kd=S["kd"])
+               commit_ms=float(np.median(S["commit_ms"])) if S["commit_ms"] else None, kd=S["kd"],
+               sib_accepted=S.get("sib", 0), close_calls=S.get("cc", 0))
     return out
 
 

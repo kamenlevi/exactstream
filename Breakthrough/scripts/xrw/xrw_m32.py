@@ -5,7 +5,7 @@ ref2._ooo_sel with the candidate switched on by the knob (xknob: install, MODE, 
 two edits only: its OUT points into ~/Breakthrough/data/xrw, and the knob is installed right after its imports.
 Its lines per scenario: the 32-row call == two 16-row calls bit for bit, and the base posts cover every used expert;
 a hang would stop it (the late scenarios poll the release region).
-Usage: ~/BigMoE/.venv/bin/python -I -B scripts/xrw/xrw_m32.py <w4a8|tgl16>   (share lock ~3 GB)
+Usage: ~/BigMoE/.venv/bin/python -I -B scripts/xrw/xrw_m32.py <w4a8|tgl16|...> [frozen knob dir]   (share lock ~3 GB)
   -> data/xrw/m32_<cand>.txt"""
 import os
 import sys
@@ -21,9 +21,12 @@ def main():
     assert cand in ("w4a8", "tgl16", "tgl16e", "tgl16eu", "w4a8u"), cand
     src = open(SRC).read()
     assert src.count(OUT_LINE) == 1 and src.count(HOOK_AT) == 1, "Leap's m32 check changed: re-read it before running"
-    out = os.path.join(HERE, "..", "..", "data", "xrw", f"m32_{cand}.txt")
+    kd = os.path.abspath(sys.argv[2]) if len(sys.argv) > 2 else HERE      # (Wed 07:4x) optional: a FROZEN knob dir
+    tag = "" if kd == HERE else "_" + os.path.basename(kd)
+    out = os.path.join(HERE, "..", "..", "data", "xrw", f"m32_{cand}{tag}.txt")
     src = src.replace(OUT_LINE, f"OUT = {os.path.abspath(out)!r}")
-    src = src.replace(HOOK_AT, HOOK_AT + f"sys.path.insert(0, {HERE!r})\nimport xknob as XK\nXK.install()\n"
+    src = src.replace(HOOK_AT, HOOK_AT + f"sys.path.insert(0, {kd!r})\nimport xknob as XK\n"
+                      f"assert os.path.dirname(os.path.abspath(XK.__file__)) == {kd!r}, XK.__file__\nXK.install()\n"
                       f"XK.MODE[0] = {cand!r}\nXK.ON[0] = True\n"
                       f"print('KNOB: ooo1cq.tier_glu_nax6n_1cq -> {cand} (xknob ON)', flush=True)\n")
     src = src.replace('say(f"OOO1C M32: {n - bad} of {n} scenarios PASS")',

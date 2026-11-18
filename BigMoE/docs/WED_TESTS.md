@@ -2835,3 +2835,12 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
       paths of different shapes flip on near-ties here too. Its tree-vs-chain point (95) is not priced.
     - Tree-16 is therefore exact up to shape numerics. Making it bit-identical to chain needs the batch-invariant
       reference contract, which changes the exact reference (Kamen's call). The exact headline runs chain-16 meanwhile.
+- **Wed 08:0x, s98a functional smoke (dev, not a gate): tree-16 + CC(1) on the base-path screen runs end to end**
+  (scripts/s98/build_s98.sh, r57_screen_s98_X.py; data/r57/s98asmoke{.log,_runs.json,_tokens.json,_checks.json}).
+  - Env: ccx45cc1's line without the lossy levers the tree path cannot take yet (R57_FAST / FASTTAX / QOM_SETS /
+    RELAX_SPAN + rule) or DFlash code drafting (D7B / D7BNAX), plus t30b on every prompt (R57_MTP_ALL, dd_t30b),
+    R57_TREE16, R57_TREE_NODES 15 / R57_TREE_K 8, R57_XRW=tgl16eu. 2 keys x 64 tokens, rc 0, 61 s, peak 31.2 GB.
+  - HumanEval/68: 4 tree checks, 16 kept per check. mbpp/16: 11 tree checks, 6.8 kept, 2 close calls, 4 sibling accepts.
+  - xknob: tgl16eu 196 / 539 calls, 0 sent to today's kernel, 0 fallbacks (EvalSuite's VOID rules hold).
+  - The builder found the knob's md5 changing under the freeze's path rewrite. It now checks the live knob against
+    Breakthrough's knob_v2.md5 first, then pins the frozen copies in frozen.md5.

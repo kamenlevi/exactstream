@@ -25,6 +25,10 @@ Arms (C25_ARMS selects), each a set of components (CFG below):
   F16n     1c tiers OFF: lossy-45's base path (R57_FAST=QOM's U3), g1c on MBPP / HumanEval-X / IFEval; F16nx = + GDN16 + tgl16eu
            (c25 runs it with no keep masks: all 10 experts at 4-bit, an upper bound); F16ne = + GDN16 + tgl16e (EXACT), so
            F16nx - F16ne isolates tgl16eu's upgrade on the no-tier path (the orchestrator 15:3x: back in the stack if >= ~1 ms)
+  F16nf    F16ne with tgl16ef (knob_v3: tgl16e + the front fold, EXACT: == F16ne bit for bit); F32c6xe / F32c6xf = F32c6x +
+           tgl16e / tgl16ef (slot #4, Thu 11-19; C25_XKNOB=knob_v3; xfront.COUNTS in the report)
+  F16nw / F16gw   F16nx / F16gx with Breakthrough's w4a8u in place of tgl16eu (NewIdeas 11-18 07:4x, slot #4: tier 1 #2a runs
+           only if w4a8u beats tgl16eu by >= ~1 ms, deterministic, no extra expert GB; F16gw carries the GB counter)
   F16gd    F16g + GDN16 (m16.py: gdn_fast at 2-16 rows; bitwise: must equal F16g in every row)
   F32c6p   F32c6i + HC32P (m16.py: the 32-row HC read in one launch, per-call barrier slots; bitwise == F32c6i)
   F32c6x   F32c6i + the bitwise stack: FASTGDN + HC32P + seams at 32 rows (ref2 seam_hi 32) + int8fold (MODE bit)
@@ -48,7 +52,7 @@ import mlx.core as mx
 REC = []
 S = dict(ok=False, bits={}, notes=[])
 ALL = ["F16", "F32s", "F32o", "F32d", "F32df", "F32if", "F32if6", "F32c5", "F32c6i", "F32g", "F32c6g", "F16g", "F16gd",
-       "F32c6p", "F32c6x", "F16gk", "F16gu", "F32c6k", "F32c6u", "F16gx", "F32c6xu", "F16n", "F16nx", "F16ne"]
+       "F32c6p", "F32c6x", "F16gk", "F16gu", "F32c6k", "F32c6u", "F16gx", "F32c6xu", "F16n", "F16nx", "F16ne", "F16nw", "F16gw", "F16nf", "F32c6xe", "F32c6xf"]
 CFG = {"F16": {}, "F32s": {}, "F32o": dict(one=True, form="qmm32n"), "F32d": dict(one=True, form="dn32"),
        "F32df": dict(one=True, form="dn32", t1cf=True), "F32if": dict(one=True, form="dn32", t1cf=True, int8=True),
        "F32if6": dict(one=True, form="dn32", t1cf=True, int8=True, lam=0.018),
@@ -66,6 +70,12 @@ CFG = {"F16": {}, "F32s": {}, "F32o": dict(one=True, form="qmm32n"), "F32d": dic
        "F16gx": dict(lam=0.016, gdn16=True, xk="tgl16eu"),
        "F16n": dict(no1c=True), "F16nx": dict(no1c=True, gdn16=True, xk="tgl16eu"),
        "F16ne": dict(no1c=True, gdn16=True, xk="tgl16e"),
+       "F16nw": dict(no1c=True, gdn16=True, xk="w4a8u"), "F16gw": dict(lam=0.016, gdn16=True, xk="w4a8u"),
+       "F16nf": dict(no1c=True, gdn16=True, xk="tgl16ef"),
+       "F32c6xe": dict(one=True, form="dn32", t1cf=True, hc4=True, v1=True, int8=True, lam=0.018, fastgdn=True, hc32p=True,
+                      seam=True, fold=True, xk="tgl16e"),
+       "F32c6xf": dict(one=True, form="dn32", t1cf=True, hc4=True, v1=True, int8=True, lam=0.018, fastgdn=True, hc32p=True,
+                      seam=True, fold=True, xk="tgl16ef"),
        "F32c6xu": dict(one=True, form="dn32", t1cf=True, hc4=True, v1=True, int8=True, lam=0.018, fastgdn=True, hc32p=True,
                       seam=True, fold=True, xk="tgl16eu")}
 ARMS = [a for a in os.environ.get("C25_ARMS", ",".join(ALL[:9])).split(",") if a]   # the 11-16 nine by default
@@ -78,7 +88,9 @@ PAIRS = [("F32s", "F16", "ratio"), ("F32o", "F16", "ratio"), ("F32df", "F16", "r
          ("F32c6p", "F32c6i", "diff"), ("F32c6x", "F32c6i", "diff"), ("F32c6x", "F16", "ratio"), ("F16gd", "F16", "diff"),
          ("F16gk", "F16g", "diff"), ("F16gu", "F16g", "diff"), ("F32c6k", "F32c6i", "diff"), ("F32c6u", "F32c6i", "diff"),
          ("F16gx", "F16g", "diff"), ("F16gx", "F16", "diff"), ("F32c6xu", "F32c6i", "diff"), ("F32c6xu", "F16", "ratio"),
-         ("F16n", "F16", "diff"), ("F16nx", "F16n", "diff"), ("F16ne", "F16n", "diff"), ("F16nx", "F16ne", "diff")]
+         ("F16n", "F16", "diff"), ("F16nx", "F16n", "diff"), ("F16ne", "F16n", "diff"), ("F16nx", "F16ne", "diff"),
+         ("F16nw", "F16nx", "diff"), ("F16gw", "F16gx", "diff"), ("F16nf", "F16ne", "diff"), ("F32c6xe", "F32c6x", "diff"),
+         ("F32c6xf", "F32c6xe", "diff")]
 E4_MB, E3_MB = 2.784, 2.064                              # MB per expert READ: records3 pieces, 4-bit = MSB + LSB part, MSB-3 =
                                                          # the MSB part (corrected 11-16 13:4x from 2.135 / 1.661: check25_bound_real.py)
 
@@ -327,7 +339,8 @@ def window(G, key, P, S0, gids, gen, Greq, first):
                  ("F32c5", "F32df"), ("F32c6i", "F32c5"), ("F32s", "F16"), ("F32g", "F32o"), ("F32c6g", "F32c6i"),
                  ("F16g", "F16"), ("F16gd", "F16g"), ("F32c6p", "F32c6i"), ("F32c6x", "F32c6i"), ("F16gk", "F16g"),
                  ("F16gu", "F16g"), ("F32c6k", "F32c6i"), ("F32c6u", "F32c6i"), ("F16gx", "F16gu"), ("F32c6xu", "F32c6u"), ("F16n", "F16"), ("F16nx", "F16n"), ("F16ne", "F16n"),
-                 ("F16nx", "F16ne")):
+                 ("F16nx", "F16ne"), ("F16nw", "F16nx"), ("F16gw", "F16gx"), ("F16nf", "F16ne"),
+                 ("F32c6xe", "F32c6x"), ("F32c6xf", "F32c6xe")):
         if x in LG and y in LG:
             A, B = (LG[x][:16], LG[y]) if y == "F16" else (LG[x], LG[y])
             b[f"{x}_vs_{y}"] = cmp(A, B)                        # (rows bitwise, argmax rows, rows, max |diff|)
@@ -365,7 +378,8 @@ def finish(G):
     if S.get("m16") is not None:                         # 11-17: engagement + the barrier check (must be 0)
         _say(G, f"C25: m16 COUNTS {S['m16'].COUNTS}; one-launch HC spin-cap fails {S['m16'].fails()} (must be 0); "
                 f"int8fold COUNTS {S['int8fold'].COUNTS}; xknob COUNTS "
-                f"{S['xk'].COUNTS if S.get('xk') is not None else None}")
+                f"{S['xk'].COUNTS if S.get('xk') is not None else None}; xfront COUNTS "
+                f"{getattr(sys.modules.get('xfront'), 'COUNTS', None)} (knob_v3 only: fold > 0, plain_* == 0)")
     for a in ARMS:
         rs = [v[a] for v in W.values() if a in v]
         tot = [sum(r["w"]) for r in rs]

@@ -1,0 +1,123 @@
+[guard] pid 17289, MAXGB 14, swap at start 7627.06 MB (kill at +1 GB)
+../jcc_guard.sh: line 13: python: command not found
+[guard] exit 127, peak footprint 0 MB
+[guard] pid 17378, MAXGB 14, swap at start 7627.06 MB (kill at +1 GB)
+mtlprof: 13 hooks on AGXG17XFamilyComputeContext / AGXG17XFamilyCommandBuffer / AGXG17SDevice
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=31.6 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+q8h32: bytes per pop 178.8 MB (head params 125.3, screened head 53.1, prefix KV 0.37) -> floor 611 us @292.7, 688 us @260 GB/s
+tree: wall 13967 us | GPU busy 13460 us | cbs 152 | dispatches 2668
+forward: wall 1166 us | GPU busy 860 us | cbs 7 | dispatches 132
+topk: wall 252 us | GPU busy 58 us | cbs 2 | dispatches 19
+topk_step: wall 292 us | GPU busy 75 us | cbs 2 | dispatches 21
+forward pipelines:
+    12  gg2_copybfloat16bfloat16
+    11  affine_qmv_fast_bfloat16_t_gs_64_b_8_batch_0
+     7  v_Sigmoidbfloat16bfloat16
+     7  vv_Multiplybfloat16
+     6  vs_Dividebfloat16
+     6  rmsbfloat16
+     5  v_copybfloat16float32
+     5  vs_Multiplybfloat16
+     4  affine_qmv_bfloat16_t_gs_64_b_8_batch_0
+     4  gg1_copyfloat32float32
+     4  g2_Multiplyfloat32
+     4  col_reduce_small_1_reduce_sumbfloat16
+     3  g2_Multiplybfloat16
+     3  arangeuint32
+     3  v_copyfloat32bfloat16
+     3  vv_Addbfloat16
+     3  vv_Addfloat32
+     3  BV2ISigmoidACV2IBroadcastABDV2IBroadcastBAEV2OMultiplyCD_V_V2_11160318154034397263_contiguous
+     2  g2_copybfloat16bfloat16
+     2  g1_copybfloat16bfloat16
+     2  gn1_Negativebfloat16bfloat16
+     2  CV2ISigmoidADV2IBroadcastACEV2IBroadcastCAFV2IMultiplyDEGV2IBroadcastFBHV2IBroadcastBFIV2OMultiplyGH_VV_V2V2_1116031815
+     2  gemv_bfloat16_bm1_bn8_sm1_sn32_tm4_tn4_nc0_axpby0
+     2  affine_gather_qmv_fast_bfloat16_t_gs_32_b_4
+     2  gather_frontbfloat16_int32_int_2
+     2  g2_copybfloat16float32
+     2  affine_qmv_fast_bfloat16_t_gs_64_b_4_batch_0
+     1  dot_product_float32_it32_tg512_sg16
+     1  gather_axisbfloat16uint32_intcc
+     1  sv_Multiplyfloat32
+     1  v_Sinfloat32float32
+     1  all_reduce_sumfloat32
+     1  ss_Addint32
+     1  v_copyint32float32
+     1  affine_qmv_wide_bfloat16_t_gs_64_b_8_nv_4_kl_8_batch_0
+     1  arangeint32
+     1  block_softmax_precise_bfloat16
+     1  v_Cosfloat32float32
+     1  affine_gather_qmv_bfloat16_t_gs_32_b_4
+     1  sdpa_vector_bfloat16_t_256_256_nomask_qnt_nc_nosinks
+     1  g2_Addbfloat16
+     1  gather_frontuint32_int32_int_1
+     1  affine_dequantize_bfloat16_t_gs_64_b_4
+     1  row_reduce_small_1_reduce_sumbfloat16
+     1  sv_Multiplybfloat16
+     1  carg_block_sort_bfloat16_uint32_bn128_tn4
+     1  s_copyfloat32float32
+     1  rms_loopedbfloat16
+tree pipelines not in the forward: {'ss_Equalint32': 1, 'gather_frontint32_uint32_int_1': 42, 'custom_kernel_sf_step__120_15_8_uint64_t_int32_t_int32_t_int32_t_int32_tc_uint64_t_int32_t_int32_t_int32_t_float_int32_': 15, 'v_copyuint32int32': 15, 's_copybool_bool_': 26, 'row_reduce_small_1_reduce_orbool_': 12, 'sort_mbsort_float32_uint32_bn512_tn4': 15, 'custom_kernel_ra_sort__8_int32_t_float_int32_t_float': 15, 'g2_Equalint32': 12, 'gatherbfloat16int32_1_1_int': 1, 'partition_mbsort_float32_uint32_bn512_tn4': 75, 'vs_Subtractfloat32': 15, 's_copyint32int32': 6, 'merge_mbsort_float32_uint32_bn512_tn4': 75, 'gather_frontint32_int32_int_1': 15, 'v_Expfloat32float32': 15, 'gg1_copybool_bool_': 39, 'v_Negativefloat32float32': 15, 'v_copyuint32uint32': 15, 'sdpa_vector_bfloat16_t_256_256_boolmask_qnt_nc_nosinks': 13, 'looped_logsumexp_float32': 15, 'gg1_copybfloat16bfloat16': 104, 'gather_frontfloat32_uint32_int_1': 15, 's_copyuint64uint64': 2}
+      6.55 MB fc_embedding.weight [2560, 640] mlx.core.uint32
+      0.20 MB fc_embedding.scales [2560, 40] mlx.core.bfloat16
+      0.20 MB fc_embedding.biases [2560, 40] mlx.core.bfloat16
+      6.55 MB fc_hidden.weight [2560, 640] mlx.core.uint32
+      0.20 MB fc_hidden.scales [2560, 40] mlx.core.bfloat16
+      0.20 MB fc_hidden.biases [2560, 40] mlx.core.bfloat16
+     31.46 MB layers.0.self_attn.q_proj.weight [12288, 640] mlx.core.uint32
+      0.98 MB layers.0.self_attn.q_proj.scales [12288, 40] mlx.core.bfloat16
+      0.98 MB layers.0.self_attn.q_proj.biases [12288, 40] mlx.core.bfloat16
+      1.31 MB layers.0.self_attn.k_proj.weight [512, 640] mlx.core.uint32
+      1.31 MB layers.0.self_attn.v_proj.weight [512, 640] mlx.core.uint32
+     15.73 MB layers.0.self_attn.o_proj.weight [2560, 1536] mlx.core.uint32
+      0.49 MB layers.0.self_attn.o_proj.scales [2560, 96] mlx.core.bfloat16
+      0.49 MB layers.0.self_attn.o_proj.biases [2560, 96] mlx.core.bfloat16
+      1.64 MB (unused) layers.0.self_attn.indexer.index_qk_proj.weight [640, 640] mlx.core.uint32
+      0.05 MB (unused) layers.0.self_attn.indexer.index_qk_proj.scales [640, 40] mlx.core.bfloat16
+      0.05 MB (unused) layers.0.self_attn.indexer.index_qk_proj.biases [640, 40] mlx.core.bfloat16
+      0.00 MB (unused) layers.0.self_attn.indexer.q_layernorm.weight [128] mlx.core.bfloat16
+      0.00 MB (unused) layers.0.self_attn.indexer.k_layernorm.weight [128] mlx.core.bfloat16
+      1.31 MB layers.0.mlp.gate.weight [512, 640] mlx.core.uint32
+      8.19 MB layers.0.mlp.switch_mlp.gate_proj.weight [512, 640, 320] mlx.core.uint32
+      1.02 MB layers.0.mlp.switch_mlp.gate_proj.scales [512, 640, 80] mlx.core.bfloat16
+      1.02 MB layers.0.mlp.switch_mlp.gate_proj.biases [512, 640, 80] mlx.core.bfloat16
+      8.19 MB layers.0.mlp.switch_mlp.up_proj.weight [512, 640, 320] mlx.core.uint32
+      1.02 MB layers.0.mlp.switch_mlp.up_proj.scales [512, 640, 80] mlx.core.bfloat16
+      1.02 MB layers.0.mlp.switch_mlp.up_proj.biases [512, 640, 80] mlx.core.bfloat16
+      8.19 MB layers.0.mlp.switch_mlp.down_proj.weight [512, 2560, 80] mlx.core.uint32
+      1.02 MB layers.0.mlp.switch_mlp.down_proj.scales [512, 2560, 20] mlx.core.bfloat16
+      1.02 MB layers.0.mlp.switch_mlp.down_proj.biases [512, 2560, 20] mlx.core.bfloat16
+      1.64 MB layers.0.mlp.shared_expert.gate_proj.weight [640, 640] mlx.core.uint32
+      0.05 MB layers.0.mlp.shared_expert.gate_proj.scales [640, 40] mlx.core.bfloat16
+      0.05 MB layers.0.mlp.shared_expert.gate_proj.biases [640, 40] mlx.core.bfloat16
+      1.64 MB layers.0.mlp.shared_expert.down_proj.weight [2560, 160] mlx.core.uint32
+      0.05 MB layers.0.mlp.shared_expert.down_proj.scales [2560, 10] mlx.core.bfloat16
+      0.05 MB layers.0.mlp.shared_expert.down_proj.biases [2560, 10] mlx.core.bfloat16
+      1.64 MB layers.0.mlp.shared_expert.up_proj.weight [640, 640] mlx.core.uint32
+      0.05 MB layers.0.mlp.shared_expert.up_proj.scales [640, 40] mlx.core.bfloat16
+      0.05 MB layers.0.mlp.shared_expert.up_proj.biases [640, 40] mlx.core.bfloat16
+      3.28 MB layers.0.attn_hyper_connection.input_mix_weight_down.weight [320, 2560] mlx.core.uint32
+      0.10 MB layers.0.attn_hyper_connection.input_mix_weight_down.scales [320, 160] mlx.core.bfloat16
+      0.10 MB layers.0.attn_hyper_connection.input_mix_weight_down.biases [320, 160] mlx.core.bfloat16
+      3.28 MB layers.0.attn_hyper_connection.input_mix_weight_up.weight [10240, 80] mlx.core.uint32
+      0.10 MB layers.0.attn_hyper_connection.input_mix_weight_up.scales [10240, 5] mlx.core.bfloat16
+      0.10 MB layers.0.attn_hyper_connection.input_mix_weight_up.biases [10240, 5] mlx.core.bfloat16
+      0.08 MB layers.0.attn_hyper_connection.block_inject_weight.weight [4, 10240] mlx.core.bfloat16
+      3.28 MB layers.0.mlp_hyper_connection.input_mix_weight_down.weight [320, 2560] mlx.core.uint32
+      0.10 MB layers.0.mlp_hyper_connection.input_mix_weight_down.scales [320, 160] mlx.core.bfloat16
+      0.10 MB layers.0.mlp_hyper_connection.input_mix_weight_down.biases [320, 160] mlx.core.bfloat16
+      3.28 MB layers.0.mlp_hyper_connection.input_mix_weight_up.weight [10240, 80] mlx.core.uint32
+      0.10 MB layers.0.mlp_hyper_connection.input_mix_weight_up.scales [10240, 5] mlx.core.bfloat16
+      0.10 MB layers.0.mlp_hyper_connection.input_mix_weight_up.biases [10240, 5] mlx.core.bfloat16
+      0.08 MB layers.0.mlp_hyper_connection.block_inject_weight.weight [4, 10240] mlx.core.bfloat16
+      3.28 MB hyper_connection_mixer.input_mix_weight_down.weight [320, 2560] mlx.core.uint32
+      0.10 MB hyper_connection_mixer.input_mix_weight_down.scales [320, 160] mlx.core.bfloat16
+      0.10 MB hyper_connection_mixer.input_mix_weight_down.biases [320, 160] mlx.core.bfloat16
+      3.28 MB hyper_connection_mixer.input_mix_weight_up.weight [10240, 80] mlx.core.uint32
+      0.10 MB hyper_connection_mixer.input_mix_weight_up.scales [10240, 5] mlx.core.bfloat16
+      0.10 MB hyper_connection_mixer.input_mix_weight_up.biases [10240, 5] mlx.core.bfloat16
+[guard] exit 0, peak footprint 7 MB

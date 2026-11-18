@@ -3,7 +3,8 @@
 Prepared Tue 2026-11-17 09:4x from the orchestrator's decisions of 09:3x and 09:4x (relayed by NewIdeas). Rewritten at
 15:0x for the orchestrator's 15:0x composition: G1 is skipped, tgl16eu is out, and tgl16e and GDN16 are in. Updated
 Wed 04:3x: tgl16eu is back IN (the orchestrator 04:3x, by its 15:3x rule). The base line, the format, sync-free and the
-CC cap are settled (section 1).
+CC cap are settled (section 1). Wed 07:4x: section 8 adds the second tier-1 passes and the card gate's choice of stack
+(the orchestrator's GO on NewIdeas' ALL_LEVERS_PLAN), with NewIdeas' answers to its six open points (received 07:4x).
 - It is filed into docs/PREREG_lossygate_2026-11-15.md when BigMoE sends the stack's blob (Thu ~midday). That is
   BEFORE the smoke and before any stack data.
 - Placeholders are in <angle brackets>. The open points are listed at the end.
@@ -59,6 +60,9 @@ CC cap are settled (section 1).
     - **The format (Q8H32):** R57_T30B_FMT=q8h32, i.e. MTP Head's t30b_q8h32.safetensors (b5388cc4...) + Leap's
       ScreenedHead 32K + session extras. The orchestrator's 09:4x rule settled it: MoonShots' Q8 cut held its line (the
       format's evidence, below).
+      - The drafter's MoE block keeps MoonShots' CastLinear on the se_gatew output (ra_sf's live-head form), as do c2
+        and both exact arms (BigMoE 07:50 Wed, via NewIdeas). Only the count check's "stored" form mirrors dd_topk's
+        block-level cast instead.
       - b16h32 was the fallback. It is not used.
       - "stored" is CERTIFY98's count check only, never this stack.
     - **Tree-16:** R57_TREE_NODES=15 (best-first pops; check rows = nodes + 1 = 16) and R57_TREE_K=8 (top-8 children
@@ -241,7 +245,72 @@ CC cap are settled (section 1).
   - the yield to another session's run > 5 GB.
 - **Validity as registered:** the pins; engagement > 0 on every kept run; QOM; every key has exactly one uncut run.
 
+### 8. The second tier-1 passes and the card gate's stack (NewIdeas 07:4x Wed: the orchestrator's GO on ~/NewIdeas/research/week98/ALL_LEVERS_PLAN.md, f7eb5a3, sections 3-5; contract NO until Kamen answers)
+- **Why:** levers land as flags through Friday morning. A lossy lever that changes outputs needs a tier-1 pass before
+  the card gate may run it. The pin rule extends to every blob: the card gate runs exactly the blob that passed its
+  tier 1.
+- **Each pass:** BigMoE's key test, then the smoke (section 2; it sets that blob's memory gate), then tier 1 in both
+  orders against the EXACT references, with section 3's lines, interim and stops. Each pass is judged against exact on
+  its own, never against another pass. Its validity is section 1's, with its own pins and engagement terms.
+- **#2a (Thursday night, after (iii) the count check; ~02:20-05:20):** blob 2a = blob 1 with R57_XRW=w4a8u in place of
+  tgl16eu, and no other change. knob_v2 runs one mode at a time, and w4a8u is w4a8 with the same upgrade grouping
+  (tgl16v.py). BigMoE cuts it by Thu 22:00.
+  - **CONDITIONAL** (NewIdeas, received 07:4x Wed). #2a runs only if Leap's slot #4 w4a8u arm (Thu ~08:00-09:30) shows
+    >= ~1 ms per 16-row check over tgl16eu, deterministic, with no extra expert GB. That is the bar tgl16eu cleared.
+    The answer is known by ~10:00 Thu, so the filed amendment states it with its record: <runs | does not run; file>.
+  - Otherwise there is no #2a, and w4a8u stays out of 2b. Thursday night ends after (iii), or runs B1 if #1 failed.
+  - Why (Breakthrough's correction): w4a8u over tgl16eu is only ~-0.3 ms per 16-row check [P], not -1..-2 ms. It
+    moves every pair: rel L2 vs tgl16eu mean 0.028, max 0.075, ~6x tgl16eu's own error vs fp32. Its release check
+    through the frozen knob_v2 PASSES (Breakthrough 644f189).
+  - The GB clause: c25's expert-GB counter reads 0.00 on the no-tier arms (slot #3: F16n, F16ne, F16nx) and ~2.4 GB on
+    the tiered ones (F16 2.41, F16gu 2.40). So the no-tier pair cannot show it.
+  - **The reading** (NewIdeas, received 07:4x; Leap's arms at engine 27ee67c, checked here): #2a runs if BOTH hold.
+    - No-tier base (the ms and the determinism): F16nw (no-tier + GDN16 + w4a8u) vs F16nx (the same with tgl16eu),
+      36 paired checks. F16nx - F16nw >= ~1 ms per 16-row check, and F16nw is deterministic on the pass-K re-run.
+      Argmax rows are reported.
+    - Tier twin (the GB): F16gw's expert GB <= F16gx's.
+  - **The pin:** slot #4's w4a8u must be knob_v2's (20eaaf3), the code blob 2a would run. Its "C25: xknob release" line
+    names the release. If slot #4 loads knob_v3 (for tgl16ef), Breakthrough must show v3's w4a8u is bitwise v2's
+    (Wed night). Else the reading does not count for #2a.
+    - Leap verified it, and it is checked here 07:5x: knob_v3 = knob_v2 + xfront.py (new) + xknob.py's tgl16ef branch
+      and docstring line. tgl16.py, tgl16v.py, w4a8.py and xgrp.py keep v2's md5s, and the w4a8u dispatch is
+      unchanged. So v3's w4a8u is v2's code, and a knob_v3 reading counts.
+  - The chain compares blob 2a's flags with blob 1's before the smoke, and refuses any other difference.
+  - Validity as blob 1's, with xrw.mode == "w4a8u".
+  - It reads w4a8u ALONE, so its ~3 % expert-output error can't sink Friday's bundle.
+- **#2b (Friday 08:00; the blob is cut at 07:30):** blob 1 + the bundle's flags whose own bit or unit tests passed by
+  Fri 07:00. The candidates are c2 in lossy (if it won Thursday night's A/B), ADAPTIVE K, the MoE block (if FAST), DROP,
+  dynamic vocabulary, and w4a8u in place of tgl16eu (if #2a passed).
+  - BigMoE's cut list names, per flag: its passing test record, its runs.json engagement field (added to
+    CARD_ENGAGE), and its landing time. A flag without an engagement field stays out (NewIdeas, received 07:4x).
+  - EvalSuite files the 2b addendum (the list and the pins) before #2b's data, and the chain waits for that commit.
+  - BigMoE wakes EvalSuite at the 2b cut (Fri 07:30). It also wakes it at Thu 22:00, but only if 2a's diff is more
+    than R57_XRW=w4a8u (then 2a needs its own addendum before its data).
+- **The bisect (contract NO only):** if #2b fails tier 1, there is one pass, 11:15-13:45, on 2b minus its newest lever
+  (the latest landing time). It is a new config, with its own addendum before its data.
+- **If #1 fails** (NewIdeas, received 07:4x): the orchestrator's first bisect B1 (#1 with R57_XRW=tgl16e, 04:3x) takes
+  #2a's night slot. w4a8u is then out, since it shares tgl16eu's upgrade grouping. Timing #1 on Thursday night times B1
+  instead of #1, and 2b builds on whichever of #1 and B1 passed. If neither passed, nothing has passed (below).
+- **The card gate's stack (frozen Fri 22:00):** the last stack in time that passed tier 1, if it also won its timing;
+  else the stack timing #1 timed (Thursday's stack, or B1 if #1 failed).
+  - Timing #2 (runner 69, quiet, ~45 min, Fri 23:35) runs only if that stack differs from timing #1's.
+  - **"Won"** (NewIdeas, received 07:4x): timing #2's pooled whole-decode tok/s (HE+ 164 + MBPP 100; section 4's
+    definition) >= 1.01 x timing #1's. Under that, timing #1's stack goes to the card gate. Both numbers are quoted
+    either way. The reason: a card-gate FAIL leaves no time for a second card gate, and a sub-1 % edge is inside
+    cross-night noise.
+  - If nothing passed tier 1, there is no card gate, and the reading is "measured, not gated".
+- **Multiplicity:** up to four tier-1 passes read the same 364 keys. The choice among them is pre-registered (the
+  latest pass, then its timing), never by tier-1 score, and the card gate's benchmarks are separate from tier 1's. The
+  reading lists every pass and its verdict.
+- **The price** (EvalSuite 07:4x): one pass is ~3 h 10 of the whole Mac. That is BigMoE's key test (~30 min), the smoke
+  (~15 min) and tier 1 (~2 h 26: ccx45cc1's both orders ran 00:56-02:08 and 02:08-03:22 on Monday night, with no
+  yields). By day, at-Mac yields stretch it (V2's reverse order took 5 h 41 on Tuesday).
+- **Contract YES:** ~/NewIdeas/research/week98/CONTRACT_YES_PLAN.md (899926d) applies at once. Thursday night runs
+  Part A, there is no #2a, and #2b follows stage 2, with no bisect.
+
 ## Open (to settle before filing)
+- **NewIdeas:** DONE (received Wed 07:4x), section 8's six points, as written there. The 64-row clamp's gate is
+  pre-registered after the verdict.
 - **BigMoE:**
   - the blob (Thu midday): the env path, its sha256 and the snapshot, with the base line above in it;
   - GDN16's flag and its runs.json counter, if any (Leap hands its 16-row modules over by Wed evening; BigMoE 15:32);

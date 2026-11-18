@@ -150,6 +150,28 @@ is results/night1117_t0a.log.
   - The PREREG lines that quote "lx45cc1 (peak 42.2 GB)" carry a dated pointer to this correction.
 - Read-out: results/lossygate/peaks_2026-11-17.py and .txt (all seven full runs, per process).
 
+## Information, Wed 08:0x: the CC(1) arm and its base, scored against the EXACT references [K]
+This is post hoc, on the stored answers: no new runs, CPU graders under a share lock. Monday's registered gate compared
+ccx45cc1 with its lossy-45 base (amendment 3). This scores both against the exact references that blob 1's tier 1 uses
+(ref2tnax, ref2tnaxn.r3, ref2tnaxn.r2), both orders pooled, with tools/lossy_d4.py tier1 in code scope. The lines were
+applied after the data existed, so this is information, not a verdict.
+
+| Arm (both orders) | HE+ (n 328) | MBPP (n 200) | Pooled code (n 528) | Runaway guard (pooled) | IFEval (n 200) | By the lines |
+|---|---|---|---|---|---|---|
+| lx45cc1 (lossy-45) | 93.0 vs 92.7 %, +0.30 pt, p 1.00 | 77.0 vs 79.0 %, -2.00 pt, p 0.45 | -0.57 pt, p 0.70 | 16 / 9, p 0.23: PASS | +1.00 pt | PASS |
+| ccx45cc1 (+ CC(1)) | 91.5 vs 92.7 %, -1.22 pt, p 0.29 | 76.5 vs 79.0 %, -2.50 pt, p 0.33 | -1.70 pt, p 0.11 | 14 / 2, p 0.0042: FAIL | +1.00 pt | FAIL (runaway) |
+
+- **Runaways:** cap hits on HE+ / MBPP are 8 / 12 for exact, 10 / 16 for lossy-45 and 14 / 18 with CC(1). Loops are
+  0 / 0 for exact and 1 / 3 for both arms.
+- **The reading:** against exact, CC(1) tips the runaway guard. Against lossy-45 (Monday's registered comparison), it did
+  not (pooled 9 / 4).
+- **Why it matters for Saturday:**
+  - The fallback headline (ccx45cc1 + bitwise flags) carries Monday's PASS only against lossy-45.
+  - Blob 1 carries CC(1) on the tree walk and is judged against exact.
+- **Determinism:** Monday's two orders gave different answers on 29 / 60 humaneval and 68 / 100 mbpp keys (QOM's sets),
+  and identical ones on 104 / 104 humanevalx and 100 / 100 ifeval keys.
+- **Data:** results/lossygate/vsexact_lx45cc1_2026-11-18.txt and vsexact_ccx45cc1_2026-11-18.txt.
+
 ## Data
 - results/night1117_chain.log and results/CHAIN_1117_END; results/day64_ccx45cc1_runner.log,
   day64_ccx45cc1_rev_runner.log and day64_ccx45cc1d2_runner.log.

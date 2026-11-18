@@ -89,10 +89,29 @@ class CastLinear(nn.Module):
         return (x.astype(mx.float32) @ self.weight.T).astype(x.dtype)
 
 
-def install_format(lm, fmt, weights=None, extra_cap=4096):
-    """install the format on lm.mtp in place; returns (done, ScreenedHead factory, screen size)"""
+class SharedMLP(nn.Module):
+    """mtp125.SharedMLP's call (down(silu(gate(x)) * up(x))); its modules are set by install_format"""
+
+    def __call__(self, x):
+        return self.down_proj(nn.silu(self.gate_proj(x)) * self.up_proj(x))
+
+
+def install_format(lm, fmt, weights=None, extra_cap=4096, screen_order="rank"):
+    """install the format on lm.mtp in place; returns (done, ScreenedHead factory, screen size).
+    screen_order: 'rank' (FR-Spec frequency order, the default of every run so far) or 'id' (the base screen sorted by
+    token id: screened-row ties then break by token id, as M3's masked full rows and Route A's full-V rows do)."""
     head = lm.mtp
     done = []
+    att0 = head.layers[0].self_attn
+    if getattr(att0, "qkv_fused", None) is not None:          # a fused q / k / v would keep the old weights
+        att0.qkv_fused = None
+        done.append("qkv_fused reset (stale weights)")
+    if hasattr(head, "_prepare_inputs_eager"):                # a compiled prepare graph bakes the old fc weights in
+        object.__setattr__(head, "_mtp_prepare_inputs_impl", head._prepare_inputs_eager)
+        done.append("prepare = eager")
+    if hasattr(head.layers[0].mlp.shared_expert, "gu_weight"):   # MTPLX's fused gate+up: its call would keep the old
+        head.layers[0].mlp.shared_expert = SharedMLP()           # weights; gate / up / down are set below
+        done.append("fused shared expert -> gate / up / down")
     if fmt == "q8h32" and weights is None:
         W = mx.load(Q8H32_FILE)
         for name, path in P_TO_LIVE.items():
@@ -136,6 +155,9 @@ def install_format(lm, fmt, weights=None, extra_cap=4096):
     sys.path.insert(0, H("~/Leap/scripts"))
     from screened_head import ScreenedHead
     rank = np.load(RANK_F)[:screen]
+    if screen_order == "id":
+        rank = np.sort(rank)
+    done.append(f"screen order {screen_order}")
     V = int(lm.lm_head.weight.shape[0])
     state = {"sh": None}
 
@@ -149,9 +171,9 @@ def install_format(lm, fmt, weights=None, extra_cap=4096):
         sl = sh.logits(x)                                     # [n, NS] fp32
         if SCREENED["on"]:                                    # the screened row (ids via idmap())
             return sl.reshape(*lead, sl.shape[-1])
-        ids = mx.concatenate([sh.ids, sh.xids]) if sh.n_extra else sh.ids
-        full = mx.full((sl.shape[0], V), -float("inf"), mx.float32)
-        full[:, ids] = sl
+        ids = mx.concatenate([sh.ids, sh.xids[:sh.n_extra]]) if sh.n_extra else sh.ids   # used slots only: the unused
+        full = mx.full((sl.shape[0], V), -float("inf"), mx.float32)                     # ones hold id 0 (duplicates)
+        full[:, ids] = sl[:, :ids.shape[0]]
         return full.reshape(*lead, V)
     object.__setattr__(lm, "_mtp_draft_head_logits", draft_head)
     done.append(f"draft head: ScreenedHead FR-Spec top-{screen} + {extra_cap} extras "
@@ -204,6 +226,10 @@ def topk_ra(row, K):
     logsumexp / argpartition / take, then (value desc, id asc)); p in fp32 (Route A: float64 in numpy)"""
     l = row.astype(mx.float32)
     lse = mx.logsumexp(l)
+    if K == 1:                                                # chain drafts: argmax = the lowest index of the max,
+        tis = mx.argmax(l).astype(mx.int32).reshape(1)        # the same pick as the total order below
+        tvs = mx.take(l, tis)
+        return tis, tvs, mx.exp(tvs - lse)
     idx = mx.argpartition(-l, kth=K - 1)[:K]
     val = mx.take(l, idx)
     k = _K.setdefault("ra_sort", mx.fast.metal_kernel(name="ra_sort", input_names=["ti", "tv"],

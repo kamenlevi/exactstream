@@ -525,3 +525,54 @@ Leap's run. The orchestrator moved it up from 07:15 (04:2x). Excerpt: data/xrw/c
   - Argmax is again 16 / 16 at 16 rows and 30-32 / 32 at 32 rows.
   - F16gx == F16gu and F32c6xu == F32c6u, bitwise.
 - Next (Leap): slot #4 (Thu) runs tgl16ef (knob_v3) beside tgl16e.
+
+## Wed 07:4x, PRE-REGISTRATION: w4a8u through the frozen knob_v2 (ALL_LEVERS_PLAN item 7, before BigMoE wires blob 2a)
+- Context: the orchestrator GO'd ALL_LEVERS_PLAN (NewIdeas 07:4x). Item 7: blob 2a = blob 1 with R57_XRW=w4a8u in place
+  of tgl16eu (BigMoE by Thu 22:00); EvalSuite's tier 1 #2a reads it alone Thursday night.
+- Structure (from the code; EvalSuite read it the same way, per NewIdeas): w4a8u REPLACES tgl16eu. xknob runs one MODE per call
+  (tgl16v.tier_glu_nax6n_1cq_w4a8u). It is tgl16eu's grouping and tier-4 upgrade with int8 activations in an int8 x int4b
+  MMA. The activation scales are per (row, 64-value group) (w4a8.quant64), so int8 adds no cross-row dependence beyond the
+  upgrade's.
+- The gap: w4a8u never ran through knob_v1 or knob_v2. Tuesday's checks a / b / d ran the pre-release code. The robust
+  shapes and Leap's m32 scenarios with the upgrade never ran, and no engine arm ever ran w4a8u.
+- The check: scripts/xrw/run_w4a8u_check.sh. It uses the frozen knob_v2 (md5s gated against knob_v2.md5), a share lock
+  (MEM 4 GB) and Kamen away. One process at a time:
+  - (1) Real blocks, layers 20 / 44, 2 real 32-row blocks each (knob_check.py's): ON off == ooo1cq bitwise (y, rs_m,
+    rs_l); w4a8u 3 repeats identical (y, rs_m, rs_l); w4a8u's rs_m / rs_l == ooo1cq's.
+  - (2) xrw_robust.py's shapes (seed 1117; M = 1-32 x layers 20 / 44) at nolsb share 0.3 and 0: 2 repeats identical;
+    rs_m / rs_l == ooo1cq's; QOM-dropped pairs exactly 0; y finite.
+  - (3) Leap's m32 scenarios (xrw_m32.py w4a8u knob_v2, 24): base posts cover every used expert in 24 / 24, and the
+    run ends (late release, no hang). 32 == two 16-row halves is expected in 0 / 24 (the upgrade, as for tgl16eu).
+- PASS = (1), (2) at both shares, and (3). Info only: per-pair rel L2 of w4a8u vs tgl16eu on the real blocks (the same
+  tiers, so it is the int8 activations' own error).
+- A FAIL goes to BigMoE + NewIdeas at once. Blob 2a then waits for a fix shipped as knob_v4 (knob_v3 is slot #4's).
+- Gain, priced from the record [P] (no engine arm has run w4a8u):
+  - Tue's quiet kernel bench puts w4a8u at 0.810 vs tgl16eu's 0.830 of today's call (16 rows) and 0.816 vs 0.843
+    (32 rows).
+  - Times the EXPERT class (17.44 / 26.31 ms) times the engine's realization of tgl16eu's kernel gain:
+    - 16 rows: 0.80 (-2.39 of -2.97 ms) -> ~-0.3 ms per check.
+    - 32 rows: 0.89 (-3.67 of -4.13 ms) -> ~-0.6 ms per check.
+  - On the no-tier path, about x1.1 (X5's ratio).
+  - So w4a8u over tgl16eu is ~-0.3 / ~-0.6..-0.7 ms per 16 / 32-row check (~+1 %), not the plan's -1..-2 ms. That
+    figure only holds against a stack WITHOUT tgl16eu.
+  - The error side (Tue d): rel L2 vs fp32 at each pair's tier, mean 0.027-0.029, max 0.069-0.074. That is ~6x tgl16eu's
+    0.0044-0.0046, on EVERY pair.
+RESULT (Wed 07:45:25-07:45:31; share lock, NO-SWAP 37 GB, Kamen away 32,700 s; data/xrw/w4a8u_check_v2_p0.3.txt,
+w4a8u_check_v2_p0.txt, m32_w4a8u_knob_v2.txt (+ .stdout.txt), w4a8u_check_runner.log): **PASS, as pre-registered.**
+- The knob_v2 md5 gate passed before the lock. Calls: cand 52, orig 26, fallback_not_p11 0 per check run; m32: cand 72.
+- (1) PASS on all 4 real blocks: ON off == ooo1cq bitwise (y, rs_m, rs_l); w4a8u 3 repeats identical; w4a8u's rs_m /
+  rs_l == ooo1cq's.
+- (2) PASS in 18 / 18 cases at nolsb share 0.3, and 18 / 18 at 0 (the stack's form): 2 repeats identical (y, rs_m,
+  rs_l); rs_m / rs_l == ooo1cq's; QOM pairs exactly 0; y finite.
+- (3) PASS: base posts cover every used expert in 24 / 24 scenarios, and the run ended (late release, no hang).
+  32 == two 16-row halves holds in 0 / 24, as expected (the upgrade, as for tgl16eu). The script's own scenario count
+  includes that line, so it prints "0 of 24 scenarios PASS" and exits 1, exactly as tgl16eu's m32 run did.
+- Info: per-pair rel L2 of w4a8u vs tgl16eu on the real blocks (the same tiers, so the int8 activations alone): mean
+  0.0281, max 0.0745 (1,280 pairs; per block, means 0.027-0.031). This agrees with Tuesday's d) vs fp32
+  (0.027-0.029 / 0.069-0.074).
+- Each run took ~2 s, so the runner's 2 s RSS sampler caught no reading; peak not measured. knob3_check's same-size
+  run peaked at 3.2 GB.
+- Reading: w4a8u through knob_v2 is deterministic for the same call content. off == today's bits. Its batch dependence
+  is the upgrade's, the same as tgl16eu's. It is NOT bitwise to anything: every pair moves by ~2.8 % rel L2. So blob 2a
+  = blob 1 with R57_XRW=w4a8u is a release-checked swap, and its quality is tier 1 #2a's to judge. Priced gain over
+  tgl16eu ~-0.3 / ~-0.6 ms per 16 / 32-row check [P] (above).

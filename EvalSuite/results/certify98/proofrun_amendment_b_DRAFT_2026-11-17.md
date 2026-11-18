@@ -55,6 +55,11 @@ Placeholders are in <angle brackets>.
           248,320-row lm_head, no screen and no session tokens.
           - r57 loads them through its own model load, not mtp125.load, so identity is checked, not assumed (the
             rehearsal below).
+        - The numerics (BigMoE 07:50 Wed, via NewIdeas): the stored form mirrors dd_topk's own block-level cast, so
+          the count check's drafts match the dumps' TOPK numerics. TrainLab mtp125.py computes the shared expert and
+          its se_gatew gate in fp32 (lines 135-139), then casts the whole MoE block's output to the stream dtype
+          (line 172); checked here 07:5x. The shipping forms (Q8H32, c2) keep MoonShots' CastLinear on the se_gatew
+          output instead (ra_sf's live-head form). They are not certified here.
         - The precision: MLX_ENABLE_TF32 unset, i.e. TF32 on (MLX 0.32.2's default), as the dumps ran. runs.json
           prints it with the MLX version.
         - Per window: tokens, checks, kept per check, and an identity flag of the answer tokens against the capture's

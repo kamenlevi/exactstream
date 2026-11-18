@@ -7,6 +7,33 @@ unlocks 98% accuracy at 30 tokens deep. By then we must know what it is, and eit
 know the principles of how everything will work and it's certain, and we still have a week of building everything. I
 don't care about that. I just need to get that."
 
+## KAMEN, Wed 18 Nov 05:0x (verbatim): 550 ON LOSSY AND EXACT, PUSH IT AS HIGH AS POSSIBLE
+"Also, Twin, I forgot to tell you, you passed the test. Everything's perfect, so don't worry about that. Let's just get
+the 550 tokens per second mode to Saturday, and that would be fucking best. That's on lossy and exact, push it as high
+as you possibly can. Thanks, and also don't skip optimizations just because of time."
+- Orchestrator 05:0x: ALL LEVERS IN PARALLEL. Nothing is dropped for lack of time: each lands as a flag when it passes its
+  test. NewIdeas re-plans (owners, ETAs, GPU windows; account-1 / sub2 first, since main is at ~86 % of 95).
+  - The 12-item list is in the 05:0x message to NewIdeas: PK, C2-QAT exact, MoE block, S1 + 64-row clamped trees, the
+    reference contract (Kamen's call), expert-drop, W4A8, TRL-3, sparse-dense head, dynamic vocab, tree size per
+    headline, overhead.
+  - A second tier-1 pass is priced for late lossy levers.
+- **07:4x NewIdeas ALL_LEVERS_PLAN (f7eb5a3): GO (orchestrator).**
+  - Item 11 is answered by a replay at Saturday's measured costs: fixed tree-16 beats tree-32 (HE+ CC(1) 204 vs 199, MBPP
+    144 vs 120), so TREE-16 for both headlines. ADAPTIVE K is restarted as item 13 (HE+ +6.9..+8.7 %).
+  - Projection HE+ lossy [P]:
+    - Thursday's stack ~205-220;
+    - + PK + overhead ~225-245;
+    - + ADAPTIVE K ~245-265;
+    - + the MoE block ~265-290.
+    MBPP ~135-160. EXACT: chain-16 ~130-150; under the contract ~175-190.
+  - 550 needs the compiled check (~28-30 ms at 32 rows) + a draft of <= 3-4 ms. Neither lands by Saturday; both start now.
+  - Second tier-1 passes: #2a Thu night, #2b Fri AM (~3 h of the whole Mac each). Cut-offs: blob 2a Thu 22:00, blob 2b
+    Fri 07:30, exact flags bit-tested by Fri 12:00. The final lossy stack freezes Fri 22:00; the card gate verdict
+    ~Sat 07:00.
+  - Defaults until Kamen answers:
+    - the contract is NO (the exact headline = chain-16);
+    - the CERTIFY98 (b) capture files only with the 3.8 GB delete OK by Wed 15:00.
+
 ## KAMEN, Tue 17 Nov 14:1x (after the deep pass): "You've found 600-800. Then do it ... make sure it's done for Saturday"
 (He objects to every "physical limit" phrasing. The walls are the limits of the KNOWN methods, not of the Mac.)
 - **Orchestrator 14:1x: BUILD THE STACK NOW, all four pieces, not after Saturday.**
@@ -929,6 +956,56 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Wed 18 07:3x (NewIdeas, for the orchestrator; NOTHING ARMED; ~/NewIdeas/research/week98/ALL_LEVERS_PLAN.md, f7eb5a3): **ALL LEVERS IN
+  PARALLEL, the re-plan after Kamen's 05:0x.**
+  - NEW (adaptk_sat.py, CPU replay on the t30b cells at Saturday's MEASURED costs: 16-row check 42.7 ms, 32-row x1.458, draft 0.94 ms per
+    level): fixed tree-16 beats fixed tree-32 on both sets (HE+ CC(1) 204 vs 199, MBPP 144 vs 120), so BOTH HEADLINES STAY TREE-16 (item 11).
+    32 rows pay only inside ADAPTIVE K (HE+ +6.9..+8.7 %, MBPP +0.1 %): RESTARTED as item 13 (BigMoE after the Thu 17:00 reset; lossy via
+    tier 1 #2b, exact only under the contract).
+  - Projection, HE+ lossy [P]: Thursday's stack ~205-220 -> + PK + overhead ~225-245 -> + ADAPTIVE K ~245-265 -> + the MoE block ~265-290;
+    MBPP ~135-160. Exact: chain-16 ~130-150; under the contract ~175-190 with PK + c2 + overhead. 550 = the compiled check (~28-30 ms at
+    32 rows) + a <= 3-4 ms draft: neither by Saturday; both started.
+  - Owners: PK = MoonShots (bitwise, so no tier 1; flag Thu 18:00; ~50 %). c2 A/B as set (on chain-16 without the contract) + MTP Head's
+    16 GB window Thu 04:30-08:00. MoE block = Breakthrough (M2 on module 1a's replay; c25 arm in slot #4 Thu 08:00; r57 flag Fri 12:00;
+    ~25 %). S1 + clamp after Saturday. DROP rides with ADAPTIVE K (at 16 rows -0.25 GB, under its bar). W4A8 = w4a8u as blob 2a, tier 1
+    #2a alone Thursday night. TRL-3: the encoder is already DONE (Leap's record); the blockers are disk + a TRL tier + a gate; after
+    Saturday. Sparse-dense head: MTP Head's 2B analog today; after Saturday. Dynamic vocabulary: MTP Head's CPU screen (~20 %). Overhead:
+    NewIdeas' split + a Breakthrough installer (~35 %). tgl16ef + GDN_LAZY on trees go into exact timing #2.
+  - Second tier-1 pass, priced: ~3 h of the whole Mac per pass (key test 30 min + tier 1 ~2.5 h) + one lossy re-timing Fri 23:35. NO:
+    #2a Thursday night (~02:20-05:20) + #2b Fri 08:00 (+ one bisect). YES: #2b after stage 2, no bisect. The card gate runs the last stack
+    that passed tier 1 and won its timing, else Thursday's. Cut-offs: blob 2a Thu 22:00; blob 2b Fri 07:30; exact flags bit-tested by Fri
+    12:00; the final lossy stack frozen Fri 22:00.
+  - 07:4x orchestrator: GO as written. Defaults until Kamen answers: contract NO (exact = chain-16; the c2 A/B on chain-16; Thursday night
+    takes key test 2a + tier 1 #2a); CERTIFY98 (b) only if Kamen OKs the 3.8 GB delete by Wed 15:00. All owner lines sent 07:4x.
+  - **~07:40 orchestrator, HARD USAGE LINE through the Sat 07:00 verdict:** on the second research account every session except EvalSuite
+    stops at 85 % of its week (63 % now; this week's average burn would empty it ~Fri 04:00); EvalSuite keeps 85-100 % for the gates.
+    Breakthrough and MoonShots move their builds to their main-account sessions after main's Thu 17:00 reset (earlier at 85 %). MTP Head
+    takes the head work. NewIdeas stays coordination-only.
+  - 07:4x EvalSuite: the six gate rules (plan section 4) are in its amendment 6 draft (b881eb7); price ~3 h 10 per pass.
+  - **07:4x CORRECTION, PK (MoonShots' census of the live Q8H32 pop, pk_census_q8h32.json: 178.8 MB per pop, SF 0.93 ms; cold GEMVs
+    cap at ~260 GB/s, so >= ~0.69 ms per pop): PK is realistic 0.80 / best 0.76 ms per pop, not 0.66, so HE+ +3..+4 %, not +7 %**
+    (adaptk_sat re-run: fixed tree-16 204 -> 211 / 213; ADAPTIVE K 228 / 230). Projection, HE+ lossy: ~205-220 -> + PK + overhead
+    ~215-240 -> + ADAPTIVE K ~235-255 -> + the MoE block ~255-280; exact under the contract ~165-185. PK's first gate: skeleton v3 beats
+    the live 0.93 ms at all (~14:00).
+  - **07:4x CORRECTION, W4A8 (Breakthrough 07:4x; knob_v2 release check PASS, 644f189): w4a8u over tgl16eu is only ~-0.3 ms per 16-row
+    check / ~-0.6 per 32-row [P], not -1..-2 ms, and it is bitwise to nothing (rel L2 vs tgl16eu 0.028 mean, 0.075 max).** So tier 1 #2a
+    is CONDITIONAL: a w4a8u arm joins Leap's slot #4 (Thu 08:00), and #2a + blob 2a happen only if it shows >= ~1 ms per 16-row check,
+    deterministic, no extra expert GB (tgl16eu's bar). Decided ~10:00 Thu; else Thursday night ends after (iii). Told EvalSuite (amendment
+    6), Leap, BigMoE, the orchestrator.
+  - **07:5x CORRECTION, the MoE block (Breakthrough's record, MOEBLOCK.md): not -5 ms this week.** The removable glue is ~30 us per block
+    (the other ~80 us is the shared expert's weight traffic): ~-0.7 ms per 16-row check, ~-1.4 per 32-row [P], and it needs a megakernel
+    (pre-registered line BETWEEN; multi-day, after Saturday). The replay (module 1a M2) saves CPU time the GPU-paced check hides (GPU busy
+    96 % of 56.1 ms), so it is folded into item 12 as one lever; its bitwise engine test rec1a_c25 is armed Thu 07:30-07:50 (MTP Head's
+    optional W4 job must end by 07:25). No MoE-block arm in slot #4. **Saturday's realistic top: ~235-255 HE+ lossy** (Thursday's stack +
+    PK + overhead + ADAPTIVE K). Also closed: FMT=stored mirrors dd_topk's block-level cast (BigMoE), so the count check matches the dumps;
+    Leap verified that knob_v3's w4a8u is knob_v2's bit for bit (same kernel md5s).
+  - **07:5x orchestrator + BigMoE: the LOSSY HEADLINE CANDIDATES.** TREE16 is exact-only by construction (no FAST / RLX_D / SPAN / QOM_MTP /
+    INERT), so (a) BLOB 1 = exact-safe verify levers + tree-16 + CC(1) + tgl16eu, NO R2 / QOM: re-priced HE+ ~199-204, MBPP ~144 (the
+    42.7 ms check already had no QOM); tree-line top ~230-235 HE+ with PK + overhead + ADAPTIVE K. (c) FALLBACK = ccx45cc1 (tier 1 PASS
+    both orders, Mon) + bitwise flags only (BOF / HC_B, GDN16, tgl16e); tgl16eu is FAST, so it upgrades AUTOMATICALLY only through tier 1 on
+    blob 2u in #2a's Thursday-night slot when #2a doesn't run (orchestrator 07:5x). (b) R2 + QOM_MTP tree ports -> blob 2b if bit-tested by
+    Fri 07:00. (i) times blob 1 + the fallback in halves (~90 min). Thursday's stack = blob 1 if it passed tier 1 #1 and beats the fallback
+    by >= 1 % pooled; later stacks need >= 1 % over it; the card gate takes the winner.
 - Wed 18 02:2x (NewIdeas, for the orchestrator; NOTHING ARMED; ~/NewIdeas/research/week98/CONTRACT_YES_PLAN.md, 899926d): **A READY PLAN FOR
   A YES on Leap's reference contract (M4 = batch variance: mbpp/16 a 1-bf16-step near-tie, mbpp/30 an exact tie).** Scope: the EXACT build
   only; the lossy stack, its gates and CERTIFY98 stay on NAX6-N (one build for the capture + the count check), so EvalSuite runs Part A
