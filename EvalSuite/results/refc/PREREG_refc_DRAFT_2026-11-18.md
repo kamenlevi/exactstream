@@ -42,8 +42,14 @@ Written before any REFC row.
   refc_rowinv 18 / 18 PASS on its own files with REFC_ROOT). <Its trees, screen and .so sha256s, BigMoE's commit, and
   the env files' blobs: from BigMoE's manifest, ~19:00>.
   - `<refc>`'s env: ~/BigMoE/data/stack/c98kar_env.txt (x45rpl1 + REF2_REFC=1 + R57_XRW=tgl16e + t30b's mtp125
-    install + R57_MTP_K=0). The exactness loop's: c98kch_env.txt (the same with R57_MTP_K=15). `<ctl>`'s: c98kar with
-    REF2_REFC unset and nothing else changed (EvalSuite derives it; its blob is recorded).
+    install on every prompt + R57_MTP_K=0 + R57_LOGHASH_ROWS=1). The exactness loop's: c98kch_env.txt (the same with
+    R57_MTP_K=15). `<ctl>`'s: c98kar with REF2_REFC=1 removed and nothing else changed.
+  - **The registered env files are EvalSuite's** (tools/refc_envs.sh): results/refc/c98kctl_env.txt, c98kar_env.txt and
+    c98kch_env.txt. Each env line is BigMoE's byte for byte (the control's minus REF2_REFC=1). Each comment names the
+    snapshot's screen (data/r57/snap/s98n/r57_screen_s98n.py) and the run's tag, which runner 70 reads: it stops on a
+    comment that names no screen, or not its tag. BigMoE's own comments name neither. <Their blobs, and BigMoE's
+    sources' blobs.>
+  - The runs: card_c98kctl_ar (step 0), card_c98kar_ar (the 210), card_c98kch_ar (exactness).
 - **Where the rows come from** (BigMoE, received 11:5x): BigMoE's r57 screen, which wires refc, tgl16e and GDN16 at
   load. ref2.py itself never reads REF2_REFC, so EvalSuite's own loader would not install the contract.
   - AR = the screen's AR mode, R57_MTP_K=0 (a chain with 0 drafts; M4C used it: chain-16 == it on 16 / 16).

@@ -2887,3 +2887,29 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
   647-line list, sha256 bb721ff9; per-line cap 512) -> ~/datasets/deepdraft/certify98/<set>/<name>.npz +
   files_sha256.json at a PASS end; marker data/deepdraft/cert98/CERT98_CAPTURE_END on any end. The end-to-end head test
   passed (3 / 3 on-path 1.0000), and the simulations covered PASS placement and a mid-run yield.
+- **Wed 11:37-14:41, the CERTIFY98 FULL capture: PASS, 647 / 647 windows** (scripts/cert98_run.sh + dd_capture.py
+  DLOG_SRC=cert98; EvalSuite's 647-line list sha bb721ff9; data/deepdraft/cert98/; the files themselves, 12.03 GB, stay
+  local at ~/datasets/deepdraft/certify98/<set>/<name>.npz with files_sha256.json, frozen by EvalSuite in 69b304d).
+  - Every window passed dd_capture's on-path self-check (the 125B's logged top-1 == the next token on every answer row).
+  - 132,488 answer tokens, cap 512, greedy. Peak 34.8 GB.
+  - At 11:43 my +2 GB swap guard stopped the first part (43 windows, C 224, peak 37.7 GB beside idle chats). It resumed
+    at C 160, after HumanEval_0 re-captured at C 160 proved bitwise identical to its C 224 file in every array.
+- **Wed 14:42-14:58, the post-capture sequence (data/r57/post1118/):**
+  - **DIAG95 (Leap's question), s98n with the 7-shape contract (Leap ec06e43):** from one plain prefill of mbpp/30 (prompt
+    + answer 0-89), all of these are bitwise at every layer and sublayer (PLE, attn HC read, GDN / attention, mlp HC read,
+    MoE, layer out) and at the logits (s98p, diag95b.log):
+    - tree16.tree_verify of a 16-node tree == a chain forward of its main path;
+    - the main-chain commit ('chain' kind) + a 4-row probe == the chain route;
+    - two side-branch commits ('tree' kind) + the probe == the chain route.
+    So neither the tree's attention nor its GDN, nor the tree commit, explains M4C's mbpp/30 flip: it comes from the
+    loop's history (check boundaries / the loop's prefill path). With the plain prefill both arms pick 10598; with the
+    loop's prefill chain and AR picked 364.
+  - **M4C chain == AR re-run on s98n:** 16 / 16 keys token-identical, and every kept row's verify-logits hash (R57_LOGHASH_ROWS)
+    equal by answer index, 2,604 / 2,604. ref2_off_moves 0: the contract never fired while ref2 was off (the drafts).
+    Contract forms per shape (first run): 16384x2560 650, 96x2560 650, 2560x6144 866, 1281x2560 866, 2560x640 866, 248320x2560
+    18; 13312x2560 (QSA qkv_fused) 0, asked of Leap.
+  - **CERTIFY98 count check (iii), chain-16 stored t30b (amendment 10a), the first 30 gated HE+ windows:** rc 0. 27 / 30
+    answers are identical to the capture's; kept 14.18 per check (EvalSuite scores it against kept_walk).
+  - **Dev rehearsal (24 bank heplus24 windows):** rc 0. 10 / 24 answers match the bank's (those came from EvalSuite's
+    tf_gen records, another path); kept 11.35.
+  - NIGHT1118_BIGMOE_END was written at 14:58 (Breakthrough's rec1a_c25 -> Leap's slot #4 -> blob 1's key test).

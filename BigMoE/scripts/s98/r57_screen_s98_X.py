@@ -698,6 +698,7 @@ assert QOM_MTP in (0, 1, 2) and (not QOM_MTP or FAST == "QOM"), "R57_QOM_MTP=1|2
 # bit. R57_LOGHASH=1: each check's verify logits hashed (run record "lh"), for that comparison.
 CBB = os.environ.get("R57_CBB") == "1"
 LOGHASH = os.environ.get("R57_LOGHASH") == "1"
+LOGHASH_ROWS = os.environ.get("R57_LOGHASH_ROWS") == "1"   # s98 (11-18): one verify-logits hash per KEPT row, keyed by its answer index
 if CBB:
     _SWB = type(SW_[0]); _cbb_prev = _SWB.__call__
     def _cbb_call(self, x, indices, *a, **kw):
@@ -1129,12 +1130,19 @@ SB_LO = 1 if os.environ.get("R57_SB1") == "1" else 2     # Leap's C0 timeline (1
 SBN = int(os.environ.get("R57_SBN", "4") or "4")         # Leap S2 (Sat): submit every SBN layers on SB's 2-16-row checks (4 = today)
 SB_HI = 32 if os.environ.get("R57_G32TEST") else 16      # G32T (Leap 03:0x): SB on 17-32-row checks too under R57_G32TEST (scheduling
                                                          # only; the time mode's C32 / B2x16 logits are compared bitwise per round)
+REFC_DM, _RFS = [0], [None]                             # s98 (Leap ec06e43): refc must not move while ref2 is OFF (the drafts)
+def _rf_state():
+    return (tuple(sorted(refc.CNT.items())), tuple(sorted((str(k_), v_) for k_, v_ in refc.CNTS.items())))
 def ref_on(on):
     if on:
+        if REFC and _RFS[0] is not None and _rf_state() != _RFS[0]:
+            REFC_DM[0] += 1                              # a contract form fired between ref2.remove() and this apply()
         ref2.apply()
         Q._prefill_midloop_eval_layers = lambda rows: _midloop(rows) or (SBN if SB_LO <= int(rows) <= SB_HI else 0)   # SB
     else:
         ref2.remove()
+        if REFC:
+            _RFS[0] = _rf_state()
         Q._prefill_midloop_eval_layers = _midloop
 
 def states(cache):
@@ -1219,6 +1227,7 @@ def prefill_p2(ids, arm, want_w=False, rows=16):
 def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=None):
     xc0_ = dict(xknob.COUNTS) if XRW else None          # s98: R57_XRW per-run counts
     rc0_ = dict(refc.CNT) if REFC else None             # s98: REF2_REFC per-run forms taken
+    rcs0_, rdm0_ = (dict(refc.CNTS), REFC_DM[0]) if REFC else (None, None)
     if RDR:
         RD.begin_window(model, list(ids))                # s98: the screen's session extras for this prompt
     tcut = tcut or TRUNC                                 # R57_CHATTRUNC: this prompt's confidence cut
@@ -1409,6 +1418,7 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
         res0 = np.array([BS.ext.lookup(L, list(range(512))) for L in range(NL)], np.int32)   # pools at loop start
     out, cyc, ck_t, kept, sm, wl, cut, drf = [tok], [], [], [], [], [], False, []
     lh_ = []                                             # R57_LOGHASH: per check, the verify logits' hash
+    lhr_ = []                                            # R57_LOGHASH_ROWS: [answer index, hash] per kept row (chain / AR checks)
     q1c_ = []                                            # per check, R57_QCNT1C: [kept, dropped, groups computed, split drops]
     nw_ = []                                             # per check, R57_NEVERWAIT: ref2.NWCNT summed over the layer calls
     c0s_ = []                                            # per check: c0 - td in s (the full-period rate, NewIdeas Sat 04:5x)
@@ -1682,6 +1692,10 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
         if LOGHASH:                                      # R57_LOGHASH: this check's verify logits, bit for bit
             import hashlib as _hlg
             lh_.append(_hlg.sha1(np.array(lg[0].astype(mx.float32)).tobytes()).hexdigest()[:16])
+        if LOGHASH_ROWS:                                 # s98: each row's verify logits (EvalSuite Part A (c): kept rows vs AR)
+            import hashlib as _hlr
+            _l32 = np.array(lg[0].astype(mx.float32))
+            lhr0_ = [_hlr.sha1(_l32[j_].tobytes()).hexdigest()[:16] for j_ in range(_l32.shape[0])]
         ce = time.perf_counter()
         bld_.append(cb - c1); wt_.append(ce - cb)        # K-80's split: graph build vs the eval wait (+ the commit after)
         if TCPU:                                         # R57_TCPU: main-thread CPU ms of this check's build and wait
@@ -1833,6 +1847,8 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
             if x in EOS:
                 new = new[:j + 1]
                 break
+        if LOGHASH_ROWS and not t16_:                    # kept rows = rows 0 .. len(new) - 1 (accepted drafts + the bonus)
+            lhr_ += [[len(out) + j_, lhr0_[j_]] for j_ in range(len(new))]
         out += new
         if SV is not None:                               # SESSION-VOCAB: the committed ids (kept drafts + the target's token)
             SV.committed(new)
@@ -1951,7 +1967,8 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
                                  T_mean=float(np.mean(M1T["T"])) if M1T["T"] else None)} if M1T is not None else {}),   # t16a
                 **({"t16": dict(T16L.summary(T16S), prov=T16P), "tree": T16L.tree_block(T16S, TREE_NODES, TREE_K)} if T16 else {}),
                 **({"xrw": {"mode": xknob.MODE[0], **{k_: xknob.COUNTS[k_] - xc0_[k_] for k_ in xknob.COUNTS}}} if XRW else {}),
-                **({"refc": {str(k_): refc.CNT[k_] - rc0_.get(k_, 0) for k_ in refc.CNT}} if REFC else {}))   # t16b: per run, the tree checks
+                **({"refc": {**{str(k_): refc.CNT[k_] - rc0_.get(k_, 0) for k_ in refc.CNT}, "shapes": {f"{n_}x{k_}": refc.CNTS.get((n_, k_), 0) - rcs0_.get((n_, k_), 0) for (n_, k_) in refc.CON}, "ref2_off_moves": REFC_DM[0] - rdm0_}} if REFC else {}),
+                **({"lhr": lhr_} if LOGHASH_ROWS else {}))   # t16b: per run, the tree checks
 
 # R57_REPLAY=<rows.jsonl>[:margins.json] (Sun 15 Nov; EvalSuite docs/LOSSY_GATE_2026-11-15.md section 9, tier 0a): each
 # key's prompt prefilled as the variant does, then checks of the variant's normal width whose drafts are the next REFERENCE
@@ -2353,7 +2370,7 @@ for n_p, (s, key) in enumerate(PICK):
         RUNS.append(dict(key=key, arm=arm, type=typ, bad=r["bad"], cut=r["cut"], P=len(ids),
                          **{k_: r[k_] for k_ in ("drafter", "hist", "a6", "n", "tps", "tpsw", "kept", "checks", "cyc", "ck",
                                                  "drf", "miss", "io", "mb", "mpk", "mem", "copy", "fast", "pf", "lh", "inert")},
-                         d7b=draft is DRAFT4, replay=None if r.get("replay") is None else {k_: v_ for k_, v_ in r["replay"].items() if k_ != "pos"}, rlx=r.get("rlx"), **({"close_call": r["close_call"]} if r.get("close_call") is not None else {}), **{k_: r[k_] for k_ in ("lossy_check", "t1c_ck", "m1t", "t16", "tree", "xrw", "refc") if r.get(k_) is not None}, spn=r.get("spn"), nwk=r.get("nwk"), pfs=r.get("pfs"), pfst=r.get("pfst"), pflm=r.get("pflm"), pfd=r.get("pfd"), p2=r.get("p2")))   # Thu 18:5x / Fri 10:0x: relaxed / span / INERT
+                         d7b=draft is DRAFT4, replay=None if r.get("replay") is None else {k_: v_ for k_, v_ in r["replay"].items() if k_ != "pos"}, rlx=r.get("rlx"), **({"close_call": r["close_call"]} if r.get("close_call") is not None else {}), **{k_: r[k_] for k_ in ("lossy_check", "t1c_ck", "m1t", "t16", "tree", "xrw", "refc", "lhr") if r.get(k_) is not None}, spn=r.get("spn"), nwk=r.get("nwk"), pfs=r.get("pfs"), pfst=r.get("pfst"), pflm=r.get("pflm"), pfd=r.get("pfd"), p2=r.get("p2")))   # Thu 18:5x / Fri 10:0x: relaxed / span / INERT
                                                          # stats were computed but never written (the pre-flight's MISSING)
         m = min(len(want), r["n"])
         agree = same(r["out"], want)

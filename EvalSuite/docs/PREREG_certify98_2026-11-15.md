@@ -860,3 +860,15 @@ tools/certify98_lines.py power: 2,000 draws of windows with replacement from the
   numerically neutral: HumanEval_0 re-captured at C 160 is bitwise identical to its C 224 file in every array (ids, gen,
   h, wd, tk, lp, asst). The stop's marker was moved aside (CERT98_CAPTURE_END.stopped_1143), and the freeze keys on
   files_sha256.json, which is written only at the PASS end.
+- **Dated line, Wed 14:5x (operational; no line changes; after the freeze, before any pass):** the capture PASSED
+  647 / 647 (BigMoE, received 14:41). The freeze committed files_sha256.json at 69b304d (sha256 0064c6a6...; every file
+  re-hashed). Amendment 9's contamination check then ran on the frozen files (results/certify98/
+  contam_fresh_2026-11-18.txt; docs/RESULT_certify98_contam_2026-11-18.md): no set VOID.
+  - Against n1112's 3,072 captures, 2 of the gated 68 HE+ windows (HumanEval 94, 143) and 3 of the 300 MBPP windows
+    (152, 180, 367) share a 50-token run with a capture. They are dropped as registered (2.9 % and 1.0 %).
+  - Against b5's 246 windows, all three scored sets are CLEAN. everyday is CLEAN on both.
+  - **The scored lists:** HE+ 66, MBPP 297, everyday 150 (results/certify98/scored_lists_2026-11-18.json, sha256
+    c7ba5386...). Thursday's look dumps these lists for the scored sets, and the information sets as registered. The
+    count check's 24 windows are unaffected.
+  - Power at 66 / 297 (information; results/certify98/power_k66_2026-11-18.txt): within 0.02 of amendment 9's K 68
+    figures on every line.

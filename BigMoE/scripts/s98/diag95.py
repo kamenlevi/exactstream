@@ -145,37 +145,39 @@ def run(G):
     R["t1"] = dict(first_diff=d1, logits_bitwise=lg_same, decision=cand)
     say(f"T1 (check): {'ALL SUBLAYERS BITWISE' if d1 is None else 'FIRST DIFF ' + json.dumps(d1)}; logits bitwise {lg_same}; "
         f"decision row: tree {cand['tree']}, chain {cand['chain']}")
-    # T2
-    path = [0, 1, 2, 3, 4]
-    k = len(path)
+    # T2: the main-chain commit and two SIDE-branch commits (tree16_commit's 'tree' kind), each + the same 4-row probe
     probe = A[95:99]
+    R["t2"] = []
+    for path in ([0, 1, 2, 3, 4], [0, 1, 10, 11], [0, 1, 2, 3, 8]):
+        k = len(path)
 
-    def tree_route():
-        c1 = prefill(ids)
-        s1 = CS.snapshot_untrimmable_cache_lazy(c1)
-        with verify_scope():
-            lt_, ht_ = TV.tree_verify(model, c1, toks, meta)
-        mx.eval(lt_, ht_)
-        kind = TC.tree_commit(model, c1, s1.states, path, T, len(ids), text=inner, ref2=ref2)
-        mx.eval(states(c1))
-        return c1, kind
+        def tree_route():
+            c1 = prefill(ids)
+            s1 = CS.snapshot_untrimmable_cache_lazy(c1)
+            with verify_scope():
+                lt_, ht_ = TV.tree_verify(model, c1, toks, meta)
+            mx.eval(lt_, ht_)
+            kind = TC.tree_commit(model, c1, s1.states, path, T, len(ids), text=inner, ref2=ref2)
+            mx.eval(states(c1))
+            return c1, kind
 
-    def chain_route():
-        c2 = prefill(ids)
-        s2 = CS.snapshot_untrimmable_cache_lazy(c2)
-        fwd(c2, [toks[n] for n in path])
-        assert model.commit_verified_window(c2, s2.states, keep_tokens=k, verified_tokens=k)
-        mx.eval(states(c2))
-        return c2
-    c1, kind = tree_route()
-    (lp1, hp1), rp1 = record(lambda: fwd(c1, probe))
-    c2 = chain_route()
-    (lp2, hp2), rp2 = record(lambda: fwd(c2, probe))
-    d2 = first_diff(rp1, list(range(4)), rp2, list(range(4)))
-    p_same = bool(mx.all(lp1 == lp2).item())
-    R["t2"] = dict(commit_kind=kind, first_diff=d2, probe_logits_bitwise=p_same)
-    say(f"T2 (commit '{kind}' + probe): {'ALL SUBLAYERS BITWISE' if d2 is None else 'FIRST DIFF ' + json.dumps(d2)}; "
-        f"probe logits bitwise {p_same}")
+        def chain_route():
+            c2 = prefill(ids)
+            s2 = CS.snapshot_untrimmable_cache_lazy(c2)
+            fwd(c2, [toks[n] for n in path])
+            assert model.commit_verified_window(c2, s2.states, keep_tokens=k, verified_tokens=k)
+            mx.eval(states(c2))
+            return c2
+        c1, kind = tree_route()
+        (lp1, hp1), rp1 = record(lambda: fwd(c1, probe))
+        c2 = chain_route()
+        (lp2, hp2), rp2 = record(lambda: fwd(c2, probe))
+        d2 = first_diff(rp1, list(range(4)), rp2, list(range(4)))
+        p_same = bool(mx.all(lp1 == lp2).item())
+        R["t2"].append(dict(path=path, commit_kind=kind, first_diff=d2, probe_logits_bitwise=p_same))
+        say(f"T2 path {path} (commit '{kind}') + probe: {'ALL SUBLAYERS BITWISE' if d2 is None else 'FIRST DIFF ' + json.dumps(d2)}; "
+            f"probe logits bitwise {p_same}")
+    d2 = next((x["first_diff"] for x in R["t2"] if x["first_diff"] is not None), None)
     R.update(wall_s=round(time.time() - t0, 1), peak_gb=round(mx.get_peak_memory() / 1e9, 2))
     out = os.path.expanduser("~/BigMoE/data/r57/diag95")
     os.makedirs(out, exist_ok=True)

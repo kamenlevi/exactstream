@@ -16,6 +16,9 @@
 #   read). Mid-run, Kamen at the Mac on two reads 30 s apart makes the step yield; it resumes once nothing holds.
 #   EVERY end writes results/REFC_CHAIN_END ("REFC PART A ...: <verdict>"), after the runner and its children exit and
 #   peer unlock. Stop it by pid only, with a plain kill (TERM). kill -9 skips the marker.
+#   Runs card_c98kctl_ar (STEP0), card_c98kar_ar (AR210), card_c98kch_ar (EXACT). Runner 70 stops on an env file whose
+#   comment does not name its tag (a check its dry run skips) or names no data/r57/snap/<dir>/r57_screen*.py, so both are
+#   checked at the start, dry runs included, and the three envs must name the same screen.
 # CHAIN_DRY=1: every runner call as a dry run (CARD_DRY=1); no wait, no gate, no GPU, no marker; ROWINV is skipped.
 #   CHAIN_MYPID=<this session's Claude pid> [CHAIN_DRY=1] tools/refc_chain.sh
 # Pins, set at arming from the PREREG: CHAIN_CTL_ENV / _BLOB, CHAIN_AR_ENV / _BLOB, CHAIN_CH_ENV / _BLOB; CHAIN_TREES /
@@ -34,7 +37,9 @@ PREREG=${CHAIN_PREREG:-docs/PREREG_refc_2026-11-18.md}; AFTER=${CHAIN_AFTER-}
 RUNPAT=${CHAIN_RUNPAT:-tools/day_runner[67][0-9]\.sh}   # a pgrep -f pattern (runners 60-79)
 Q=${CHAIN_QDIR:-$HOME/.local/share/quiet}
 AWAY=${CHAIN_AWAY:-$HOME/.local/share/quiet/away_secs.sh}; RUNNER=${CHAIN_RUNNER:-tools/day_runner70.sh}
-CTLE=${CHAIN_CTL_ENV:?}; CTLB=${CHAIN_CTL_BLOB:?}; ARE=${CHAIN_AR_ENV:?}; ARB=${CHAIN_AR_BLOB:?}; CHE=${CHAIN_CH_ENV:?}; CHB=${CHAIN_CH_BLOB:?}
+abs() { case "$1" in /*) echo "$1" ;; *) echo "$PWD/$1" ;; esac; }   # runner 70 and blob() hash with git -C BigMoE
+CTLE=$(abs "${CHAIN_CTL_ENV:?}"); CTLB=${CHAIN_CTL_BLOB:?}; ARE=$(abs "${CHAIN_AR_ENV:?}"); ARB=${CHAIN_AR_BLOB:?}
+CHE=$(abs "${CHAIN_CH_ENV:?}"); CHB=${CHAIN_CH_BLOB:?}
 RIROOT=${CHAIN_ROWINV_ROOT:?}; RIPY=${CHAIN_ROWINV_PY:?}
 K0=results/refc/keys_step0.txt; K210=results/refc/keys_core210.txt; K36=results/refc/keys_r56.txt
 say() { echo "$(date '+%m-%d %H:%M:%S') [$TGL] $*" >> "$L"; }
@@ -71,6 +76,18 @@ back() {
   sleep "$REREAD"; a=$(away); [ "${a:-900}" -lt 900 ] 2>/dev/null
 }
 blob() { git -C "$HOME/BigMoE" hash-object "$1" 2>/dev/null; }
+named() {       # runner 70's comment reads (its line 633 + the snapshot regex): each env names its tag and the one screen
+  local t_ e_ c_ s_ s0_=""
+  for t_ in "c98kctl|$CTLE" "c98kar|$ARE" "c98kch|$CHE"; do
+    e_=${t_#*|}; c_=$(grep '^#' "$e_" 2>/dev/null | paste -sd' ' -)
+    echo "$c_" | tr -d '-' | grep -qi "${t_%%|*}" || { WHY="$e_'s comment does not name the tag ${t_%%|*}"; return 1; }
+    s_=$(echo "$c_" | grep -oE 'data/r57/snap/([A-Za-z0-9_.-]+/)*r57_screen[A-Za-z0-9_.-]*\.py' | head -1)
+    [ -n "$s_" ] && [ -f "$HOME/BigMoE/$s_" ] || { WHY="$e_'s comment names no BigMoE data/r57/snap/<dir>/r57_screen*.py on disk"; return 1; }
+    [ -z "$s0_" ] || [ "$s_" = "$s0_" ] || { WHY="$e_ names screen $s_, not $s0_"; return 1; }
+    s0_=$s_
+  done
+  WHY="the three envs name their tags and the screen $s0_"
+}
 gates() {       # 0 = the start gates hold; 1 = not yet; 5 = never
   pgrep -f "$RUNPAT" > /dev/null && { WHY="an EvalSuite runner is alive"; return 1; }
   local IFS_=$IFS a_ mk_ pt_ tm_ e_ b_; IFS=';'
@@ -145,7 +162,7 @@ same0() {       # STEP0's tokens: the control's rows == results/ref2tnax's on ev
 import json, sys
 ks = open(sys.argv[1]).read().split()
 ids = lambda r: {(x := json.loads(l))["key"]: x["completion_ids"] for l in open(f"results/{r}/decode.jsonl")}
-a, b = ids("card_refcctl_ar"), ids("ref2tnax")
+a, b = ids("card_c98kctl_ar"), ids("ref2tnax")
 same = [k for k in ks if k in a and a[k] == b.get(k)]
 print(f"STEP0 tokens: the switch-off control == results/ref2tnax on {len(same)} of {len(ks)} keys"
       + ("" if len(same) == len(ks) else f" (differ: {[k for k in ks if k not in same]})"))
@@ -162,17 +179,17 @@ rowinv() {
 }
 steps() {
   local r
-  STATUS="STEP0"; rows "STEP0 the switch-off control, 3 keys" refcctl "$K0" "$CTLE" "$CTLB"; r=$?; [ "$r" = 0 ] || return "$r"
-  [ "$DRY" = 1 ] || { check "STEP0 tokens" same0 && check "STEP0 refc off" .venv/bin/python tools/refc_check.py card_refcctl_ar --off; } \
+  STATUS="STEP0"; rows "STEP0 the switch-off control, 3 keys" c98kctl "$K0" "$CTLE" "$CTLB"; r=$?; [ "$r" = 0 ] || return "$r"
+  [ "$DRY" = 1 ] || { check "STEP0 tokens" same0 && check "STEP0 refc off" .venv/bin/python tools/refc_check.py card_c98kctl_ar --off; } \
     || { VERDICT="VOID (STEP0)"; return 9; }
   STATUS="ROWINV"; rowinv || { VERDICT="VOID (ROWINV)"; return 9; }
-  STATUS="AR210"; rows "AR210 the contract's AR on the 210" refc "$K210" "$ARE" "$ARB"; r=$?; [ "$r" = 0 ] || return "$r"
-  check "AR210 refc engaged" .venv/bin/python tools/refc_check.py card_refc_ar --on --shapes 7 || { VERDICT="VOID (AR210 not engaged)"; return 9; }
-  STATUS="D4X"; local d4; d4=$([ "$DRY" = 1 ] && echo DRY || .venv/bin/python tools/d4x.py card_refc_ar ref2tnax 2>&1 | tail -1)
+  STATUS="AR210"; rows "AR210 the contract's AR on the 210" c98kar "$K210" "$ARE" "$ARB"; r=$?; [ "$r" = 0 ] || return "$r"
+  check "AR210 refc engaged" .venv/bin/python tools/refc_check.py card_c98kar_ar --on --shapes 7 || { VERDICT="VOID (AR210 not engaged)"; return 9; }
+  STATUS="D4X"; local d4; d4=$([ "$DRY" = 1 ] && echo DRY || .venv/bin/python tools/d4x.py card_c98kar_ar ref2tnax 2>&1 | tail -1)
   say "D4X vs ref2tnax: $d4"
-  STATUS="EXACT"; rows "EXACT chain-16 on R-56d's 36" refcch "$K36" "$CHE" "$CHB"; r=$?; [ "$r" = 0 ] || return "$r"
-  check "EXACT refc engaged" .venv/bin/python tools/refc_check.py card_refcch_ar --on --shapes 7 || { VERDICT="VOID (EXACT not engaged)"; return 9; }
-  check "EXACT chain-16 == AR" .venv/bin/python tools/refc_check.py exact card_refcch_ar card_refc_ar; local ex=$?
+  STATUS="EXACT"; rows "EXACT chain-16 on R-56d's 36" c98kch "$K36" "$CHE" "$CHB"; r=$?; [ "$r" = 0 ] || return "$r"
+  check "EXACT refc engaged" .venv/bin/python tools/refc_check.py card_c98kch_ar --on --shapes 7 || { VERDICT="VOID (EXACT not engaged)"; return 9; }
+  check "EXACT chain-16 == AR" .venv/bin/python tools/refc_check.py exact card_c98kch_ar card_c98kar_ar; local ex=$?
   if [ "$DRY" = 1 ]; then VERDICT="DRY"
   elif [ "$ex" != 0 ]; then VERDICT="FAIL (the loop != its own AR; $d4)"
   else case "$d4" in "D4X: PASS"*) VERDICT="PASS ($d4; exactness PASS)" ;;
@@ -207,6 +224,8 @@ startwait() {
 P=(CARD_AR=1 CARD_TIER=1 CARD_SCOPE=all CARD_REF=ref2tnax CARD_C=192 "CARD_TREES=${CHAIN_TREES:?pin CHAIN_TREES}" \
    "CARD_SCREEN_SHA=${CHAIN_SCREEN_SHA:?pin CHAIN_SCREEN_SHA}" "CARD_SO_SHA=${CHAIN_SO_SHA:?pin CHAIN_SO_SHA}" "CARD_CUTOFF=$CUT" CARD_MEM=39)
 say "refc_chain (pid $$$([ "$DRY" = 1 ] && echo ', DRY'); session $MYPID): the contract's Part A through $(basename "$RUNNER"); cutoff $CUT, latest first start $(hm "$LASTS"); after [${AFTER:-none}]"
+named || { STATUS="no run: $WHY"; say "$STATUS"; exit 5; }
+say "$WHY"
 if [ "$DRY" = 1 ]; then steps; exit $?; fi
 STATUS="waiting"
 startwait; s=$?

@@ -1,0 +1,24 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=23.7 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=175 C_l=112 per layer, 21.21 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+[r57] R57_XRW=tgl16e: xknob /Users/kamen/BigMoE/data/r57/snap/frozen_s98p/Breakthrough_xrw_knob_v2/xknob.py (md5-pinned)
+[r57] REF2_REFC=1 (start): refc: ON True, installed True, targets scope ref2 (any array while ref2 is on), dense forms taken per shape {'16384x2560': 0, '96x2560': 0, '2560x6144': 0, '13312x2560': 0, '1281x2560': 0, '2560x640': 0, '248320x2560': 0}, totals {'c16': 0, 'c32': 0, 's4': 0, 's4x2': 0, 's4g': 0}
+[r57] TREE16 (t16b): {"files": {"tree16": ["/Users/kamen/BigMoE/data/r57/snap/frozen_s98p/Leap_scripts/week98/tree16.py", "a3656f0ddfb3"], "tree_att": ["/Users/kamen/BigMoE/data/r57/snap/frozen_s98p/Leap_scripts/week98/tree_att.py", "ad2a939b863a"], "tree_gdn": ["/Users/kamen/BigMoE/data/r57/snap/frozen_s98p/Leap_scripts/week98/tree_gdn.py", "3fab13e03abc"], "tree_meta": ["/Users/kamen/BigMoE/data/r57/snap/frozen_s98p/Breakthrough_tree16/tree_meta.py", "ac7642d4fc87"], "tree16_draft": ["/Users/kamen/BigMoE/data/r57/snap/s98p/tree16_draft.py", "fec865c37be1"], "tree16_commit": ["/Users/kamen/BigMoE/data/r57/snap/s98p/tree16_commit.py", "3f15ed13b079"], "tree16_loop": ["/Users/kamen/BigMoE/data/r57/snap/s98p/tree16_loop.py", "54c637150ff7"]}, "heads": {"Leap": "e91dbd5", "Breakthrough": "1be0c6f", "BigMoE": "37049db1"}}
+[r57] MTP head /Users/kamen/datasets/deepdraft/ckpt/dd_t30b.safetensors md5 66a48411fb0e54c5141e9ad1f0b5a052
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.45 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R57_WIRED: mx.set_wired_limit(55.66 GB), was 0.00 GB
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 160), loaded in 7 s, 26.9 GB active; REF2 + SB; gate rows MAXK 160 (ext build), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 128
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 19.1 tok/s; MLX peak prefill 28.8 / decode 29.2 GB, lifetime peak 29.7 -> 30.2 GB
+  warm-up (discarded): gsm8k/708 [gate+t, mtp] 64 tokens, 28.8 tok/s; MLX peak prefill 29.7 / decode 29.2 GB, lifetime peak 30.5 -> 30.5 GB
+[diag95] contract: refc: ON True, installed True, targets scope ref2 (any array while ref2 is on), dense forms taken per shape {'16384x2560': 809, '96x2560': 809, '2560x6144': 1073, '13312x2560': 0, '1281x2560': 1073, '2560x640': 1073, '248320x2560': 22}, totals {'c16': 4859, 'c32': 0, 's4': 2146, 's4x2': 0, 's4g': 0}
+[diag95] mbpp/30: prompt 108, prefill 198 tokens; main chain [11, 2583, 279, 1788, 2234, 364]; tree T 16
+[diag95] T1 (check): ALL SUBLAYERS BITWISE; logits bitwise True; decision row: tree {'argmax': 10598, 'l364': 21.125, 'l10598': 21.375}, chain {'argmax': 10598, 'l364': 21.125, 'l10598': 21.375}
+[diag95] T2 path [0, 1, 2, 3, 4] (commit 'chain') + probe: ALL SUBLAYERS BITWISE; probe logits bitwise True
+[diag95] T2 path [0, 1, 10, 11] (commit 'tree') + probe: ALL SUBLAYERS BITWISE; probe logits bitwise True
+[diag95] T2 path [0, 1, 2, 3, 8] (commit 'tree') + probe: ALL SUBLAYERS BITWISE; probe logits bitwise True
+[diag95] DIAG95 done (106 s, peak 30.7 GB): T1 bitwise; T2 bitwise
+V3KT {"ref2": "/Users/kamen/BigMoE/data/r57/snap/frozen_s98p/Leap_scripts/ref2.py", "bof_cfg": false, "hc_b_cfg": false, "bofi": null, "bofi_on": null, "bofi_cnt": null, "hc_b_count": 0}
