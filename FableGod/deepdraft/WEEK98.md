@@ -7,6 +7,20 @@ unlocks 98% accuracy at 30 tokens deep. By then we must know what it is, and eit
 know the principles of how everything will work and it's certain, and we still have a week of building everything. I
 don't care about that. I just need to get that."
 
+## KAMEN, Wed 18 Nov 17:1x (verbatim): TESTS TO THE BARE MINIMUM; NO MAIN-ACCOUNT USAGE UNTIL HIS WORD
+"I'm gonna be using my laptop, so please make the get tests to the absolute bare minimum, and also make sure that no
+more usage is used from my account until I tell you, until Thursday practically, but I'll tell you when."
+- Orchestrator 17:11:
+  - HOLD + hold_guard set (PAUSE kept).
+  - Night script apps_hold_1118b.sh runs DETACHED, so it can't wake anyone. Apps quit at >= 23:30 once he's away
+    >= 900 s (until 02:00). HOLD lifts at >= 23:30 once he's away >= 1800 s (until Thu 15:00), as on Tue.
+  - The orchestrator's watchers were stopped; it has no crons. Main was 93 %, resets Thu 17:00.
+  - Told BigMoE and Leap: delete crons (BigMoE's health review), re-launch needed waiters detached (BigMoE's M4CT7),
+    then no turns and no main messages until his word.
+  - Told EvalSuite and NewIdeas (+ a peer say to all): don't message or wake main sessions; results go to files.
+  - Main-account work (BigMoE's history dump, Leap's exact-tree fix, Thursday's builds) waits for his word. Tonight's
+    sub1 chain (tier 1 #1 -> Part A) runs only under the HOLD and AWAY gates.
+
 ## KAMEN, Wed 18 Nov 11:0x-11:1x (verbatim): DISK FLOOR 50 GB; THE REFERENCE CONTRACT YES (EXACT)
 - 11:1x: "You can get to 50gb of storage. Make sure you achieve 550 btw. That's important" -> the disk floor is 50 GB (alarms
   ~55). CERTIFY98 runs FULL TONIGHT (BigMoE 23:35 -> ~01:45; EvalSuite's jsonl by 18:00 + the FULL amendment).
@@ -1156,6 +1170,10 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
     PART A TONIGHT: YES (EvalSuite, PREREG_refc f48c491; refc_chain.sh armed: after tier 1 #1, else from 00:45; cutoff 09:00), so
     Thursday night = (i) -> (ii) -> (ii-b) -> a freed slot (NewIdeas re-plans by Thu 18:00). Leap takes a one-op tree fix by Fri 12:00
     if BigMoE's post-reset localizer finds one.
+  - 16:4x-17:1x (NewIdeas): blob 1's key test PASSED 16:43 and amendment 6 is FILED; tier 1 #1's chain is ARMED (EvalSuite
+    pid 9694; latest first start 00:30) with Part A behind it (pid 92160). At 17:1x the main account paused (Kamen's word) and a
+    HOLD was set. BigMoE's M4CT7 waiter is gone, so the tree localizer, TOPK / T8, 2u / B1 and the exact runner wait for his
+    word. NewIdeas kept EvalSuite's default: if #1 misses 00:30, Part A runs tonight and #1 runs Thursday by day.
 - Wed 18 02:2x (NewIdeas, for the orchestrator; NOTHING ARMED; ~/NewIdeas/research/week98/CONTRACT_YES_PLAN.md, 899926d): **A READY PLAN FOR
   A YES on Leap's reference contract (M4 = batch variance: mbpp/16 a 1-bf16-step near-tie, mbpp/30 an exact tie).** Scope: the EXACT build
   only; the lossy stack, its gates and CERTIFY98 stay on NAX6-N (one build for the capture + the count check), so EvalSuite runs Part A

@@ -296,6 +296,15 @@ the SLC CPU fill, 1c tiers (V2 FAIL, so G1 stays out), close-call d2 (tier 1 FAI
     TOPK / T8 is not tonight (tool not built, main at 92 %): Thursday after the reset.
     BigMoE 16:4x: tgl16eu ON vs OFF on blob 1 (quiet, A B B A): -13.3 ms per check and -184 MB of expert reads per check.
     It is already in blob 1, so timing #1 carries it.
+  - 17:1x MAIN-ACCOUNT PAUSE (until further notice, ~Thu) + a day HOLD (no runs, no locks; it lifts after 23:30 under the
+    away rule). The main-account sessions (the orchestrator, BigMoE, Leap) are not messaged until it ends. So the items that
+    need them wait: the tree localizer (BigMoE's M4CT7 waiter is gone, no marker), TOPK / T8, blob 2u / B1 freezes, BigMoE's
+    exact runner for (i) / (ii) / (ii-b), and Leap's tree fix. EvalSuite's armed chains hold and run on the second account:
+    tier 1 #1 (latest first start 00:30), then Part A (on STK1_CHAIN_END; latest first start 06:00, cutoff 09:00).
+    NewIdeas 17:1x: the DEFAULT stands (no re-arm for a later #1 start). If #1 misses 00:30, Part A runs tonight and #1 runs
+    Thursday by day; with BigMoE paused, 2u / B1 couldn't be frozen by Thursday morning anyway. rec1a_c25 ended under the
+    HOLD (SKIP, nothing ran) and re-arms Thu 07:30-09:10 if the HOLD lifts by 09:00. The Thu 18:00 re-plan assumes the pause
+    may still hold.
 - DECIDED 11:3x (the orchestrator, on NewIdeas' proposal; best effort, no corners cut; it needs the capture + (iii) by day):
   (1) TIER 1 #1 ON BLOB 1 TONIGHT if BigMoE freezes blob 1 (s98b + PK; GDN16 may join later, it's bitwise) and sends it to
   EvalSuite by ~20:00, EvalSuite files amendment 6 first, and BigMoE's key test PASSES (a PASS / FAIL marker). Thursday's

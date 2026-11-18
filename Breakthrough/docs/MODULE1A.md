@@ -704,3 +704,10 @@ Breakthrough accepted at 18:12. Fable B's design is ~/FableGod/fableb/REPLAYED_C
       (unchanged since 11-16 13:05) over BigMoE's t1cx45t1c1_env.txt (unchanged since 11-16 09:10).
     - END is written on the final end only: a run of any result, or a SKIP (HOLD while waiting, a failed flag check, or no
       start by 09:10). The pre-registration stands.
+  - Wed 17:1x, **the Thu runner ended on Kamen's HOLD**. HOLD and PAUSE appeared at 17:11:07 (tests to the bare minimum
+> (a quote from the project owner, kept private)
+    waiting" and wrote REC1A_END with that SKIP. Nothing ran.
+    - NewIdeas asked for no END marker unless the run ran, so the marker was renamed (kept) to
+      REC1A_END_1118_1711_HOLDSKIP. REC1A_END does not exist until a run ends.
+    - Nothing starts until the HOLD lifts. If it lifts before Thu 09:00, the same runner is re-armed for Thu 07:30-09:10
+      at gate 46.
