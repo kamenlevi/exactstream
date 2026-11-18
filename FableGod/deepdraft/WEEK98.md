@@ -90,6 +90,14 @@ don't care about that. I just need to get that."
   - The lossy tree-16 plumbing proceeds once a real bug is ruled out.
   - BigMoE: the tokens differ from answer token 57 (mbpp/16) and 95 (mbpp/30); 14 / 16 keys are identical. C1 == C2 and
     T1 == T2 bitwise, so each path is deterministic and the gap is a systematic tree-vs-chain difference.
+- **02:2x BigMoE M4 VERDICT: BATCH VARIANCE, not a bug.**
+  - mbpp/16 token 57: the 125B's top-2 are 0.125 nats apart (1 bf16 ulp at the logit scale); T took the runner-up.
+  - mbpp/30: the bank's own exact path splits from r57's chain at token 76 on an exact tie.
+  - Each path is deterministic; 14 / 16 keys identical.
+  - So tree-16 is exact up to shape numerics. Bit-identity with the chain needs Leap's REFERENCE CONTRACT
+    (batch-invariant K-chunks; E14: A16c -5.76 ms, C32c -7.04 ms), which changes the exact reference: KAMEN'S CALL,
+    asked 02:3x. NewIdeas prepares a YES plan (flags, EvalSuite's re-certification ~4-7 h, timing). Until then (ii) =
+    chain-16.
 - **02:13 Leap SLOT #2 (quiet, 36 paired checks per arm; n2_run.txt):**
   - 16-row (1c tiers 0.016, information):
     - GDN16 -0.58 ms (bitwise);
@@ -914,6 +922,14 @@ push it to its absolute limit regardless and reach that 49ms for exact). and we 
 - **GOAL B, the check:** a 32-row check under 25 ms (lossy, EvalSuite-gated), and the exact check pushed to its limit
   (floor 49.1 ms at 45 GB). Note: 100 % of memory bandwidth is not reachable by any kernel; dense decode reaches
   ~77-89 %, so ~55 ms is the realistic exact target.
+- Wed 18 02:2x (NewIdeas, for the orchestrator; NOTHING ARMED; ~/NewIdeas/research/week98/CONTRACT_YES_PLAN.md, 899926d): **A READY PLAN FOR
+  A YES on Leap's reference contract (M4 = batch variance: mbpp/16 a 1-bf16-step near-tie, mbpp/30 an exact tie).** Scope: the EXACT build
+  only; the lossy stack, its gates and CERTIFY98 stay on NAX6-N (one build for the capture + the count check), so EvalSuite runs Part A
+  (~4 h, + 1.6-3.3 h stage 2) and skips Part B's ~6 h rebase. Leap: refc.py as an opt-in installer for r57's exact paths + the lever set it
+  composes with + the row-invariance self-test with tree masks. BigMoE: one env (off == today's bits), one snapshot, M4C in Thursday's key
+  test. Thursday night: (i) lossy timing 45 -> (ii) contract chain-16 45 + tree-16 Q8H32 / c2 A/B 90 -> (ii-b) NAX6-N chain-16 insurance 45 ->
+  (iii) count check 30 -> (iv) Part A ~4 h: ~8 h 15 from 23:35. The exact tree-16 headline is measured Fri ~01:00-02:45, valid ~08:00 (~11:30
+  with stage 2). Fallbacks: M4C FAIL -> no contract runs; Part A FAIL -> (ii-b).
 - Tue 17 21:2x (NewIdeas, placement; Breakthrough 7ccfdd1, pre-reg 1b71659; routed by Leap 21:03): **tgl16ef (knob_v3: tgl16e with a faster exact
   grouping + rowsum64 in one dispatch; bitwise == tgl16e on G1 / G2 / G3) is NOT placed in Saturday's stack.** Its value [P] is ~-0.19 ms per
   16-row check (~0.4 % of a ~45-55 ms tree-16 cycle, not resolvable in one timing pass), against a knob change in the gated build on BigMoE's

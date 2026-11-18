@@ -473,3 +473,25 @@ of rank-0/1 pairs marked.
   - With the 1c tiers it was 48.0 -> 38.9 (-19.0 %) at 16 rows. Without them the call has ~85 % more segments (no
     drops), and the upgrade removes more in absolute terms (12.4 vs 9.1 per 16-row call).
   - Engine value without the tiers: UNMEASURED. All of Leap's tgl16eu arms sit on G1, which carries the tiers.
+
+## ENGINE A/B: Leap's slot #2 (n2, Wed 18 Nov 02:12-02:13, quiet lock, 36 paired rounds = 3 windows x 12; knob_v2)
+Leap's run; the knob lines are excerpted in data/xrw/c25_n2_excerpt.txt (source ~/Leap/data/week98/c25/n2_run.txt).
+- **Provenance: "C25: xknob release knob_v2" (data/xrw/knob_v2/xknob.py).** No v1 fallback note. EvalSuite's pin
+  20eaaf3 and BigMoE's knob_v2 wiring are confirmed. xknob COUNTS {cand 12672, orig 16704, fallback_not_p11 0}.
+- **tgl16e (EXACT; Saturday's stack): BITWISE in all 3 windows** (F16gk vs F16g 16 / 16 rows, F32c6k vs F32c6i
+  32 / 32, max |logit diff| 0.0).
+
+  | tgl16e | 16-row check | 32-row check |
+  |---|---|---|
+  | measured (paired median [IQR]) | -0.557 ms [-0.716, -0.400] | -0.822 ms [-0.949, -0.672] |
+  | priced on tue1 [P] (above) | ~-0.8 ms | ~-0.9 ms |
+  | measured / priced | 0.70 | 0.91 |
+
+  Both are inside the 1.5x replay-gap line; no bug hunt. Arm walls: F16g 39.06 -> F16gk 38.57; F32c6i 56.54 -> F32c6k
+  55.71 ms (medians over 36 checks).
+- **tgl16eu (OUT of Saturday's stack; its arms sit on G1, which carries the 1c tiers): -2.301 ms [-2.503, -2.094] at
+  16 rows, -3.715 ms [-3.823, -3.627] at 32** (priced ~-3.0 / ~-4.1: 0.77 / 0.91). Argmax 16 / 16 and 30-32 / 32;
+  expert GB 2.41 -> 2.40 and 3.76 -> 3.75; the pass K re-run is bitwise (deterministic). GDN16 on top changes no bits
+  (F16gx == F16gu, F32c6xu == F32c6u). The 11:18 knob_v1 smoke (-2.1 / -2.6, ROUGH, 2 checks per arm) is not comparable.
+- Next (Leap): slot #3 at 07:15 runs the no-tier isolation (F16nx - F16ne), the engine value X5 left UNMEASURED above.
+  Slot #4 (Thu) runs tgl16ef (knob_v3) beside tgl16e.

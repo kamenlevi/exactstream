@@ -2827,3 +2827,11 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
   - It ran at a lowered memory gate: NO-SWAP sat at 29-30 GB all night (idle chat sessions are never closed), so the
     orchestrator set gate 28 (26 after 20 min) with the +2 GB swap guard; it opened at 29 / 29 GB. An earlier arming
     ended NOT RUN at 23:45 (NO-SWAP 30-31 < 36 under the ticket).
+  - **Diagnosis (02:2x): batch variance, not a bug.** From the bank's exact-path top-32 log-probs (`~/datasets/deepdraft/
+    bank/<key>.npz` tk / lp, row = gen - 1 + answer index), with no GPU run:
+    - mbpp/16 (the bank's answer equals the chain's): at token 57 the 125B's top two are the chain's token (lp -0.7495) and
+      the tree's (-0.8745). That is 0.125 nats, one bf16 step at the logit scale, and the tree took the runner-up.
+    - mbpp/30: the bank's own exact path splits from r57's chain at token 76, on an exact tie (both -0.9839). So exact
+      paths of different shapes flip on near-ties here too. Its tree-vs-chain point (95) is not priced.
+    - Tree-16 is therefore exact up to shape numerics. Making it bit-identical to chain needs the batch-invariant
+      reference contract, which changes the exact reference (Kamen's call). The exact headline runs chain-16 meanwhile.

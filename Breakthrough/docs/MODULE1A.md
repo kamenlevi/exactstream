@@ -535,3 +535,32 @@ Breakthrough accepted at 18:12. Fable B's design is ~/FableGod/fableb/REPLAYED_C
     - The "a c25 / rec1a loop is running" test counts only Python processes. A monitor shell whose text names
       c25_loop.py no longer blocks it; tested both ways with fake processes.
   - BigMoE's T8-32 dumps (~12.5 GB) may overlap; the NO-SWAP gate waits them out.
+- Wed 02:2x, **MILESTONE 1's OFFICIAL NUMBER (module 1a): PRE-REGISTERED before any run.**
+  - The slot (NewIdeas 02:1x): after Leap's slot #3 ends, with Kamen away (>= 900 s), behind any quiet ticket already
+    queued; latest start 14:30.
+    - "Slot #3 ended": its marker C25_s3_DONE (written on any end), or past its 11:30 hard end with no slot #3 process.
+  - The run: scripts/m1/rec1a/run_rec_quiet.sh, i.e. rec_layer.py --fast with REC_SCOPE=layer, REC_MODES=9,
+    REC_WINDOWS=4, REC_REPS=200, REC_RSET=1. It replays FAST layer 0 (123 commands) as an ICB, once with useResources and
+    once with a residency set. Output: data/m1/rec1a_rset_layer_fast_quiet.out.
+  - Run conditions: inside `peer lock quiet` (reason "MEM 4 GB ..."); NO-SWAP >= 12 GB (peak 3.2 + 8); a swap guard
+    (+2 GB stops it); a yield if Kamen comes back (two reads 30 s apart); unlock right after.
+  - Pins (md5):
+    - rec_layer.py 21ad42c7, run_rec_quiet.sh 9f0314e9;
+    - mtlrec.py e3403349, mtlrec.m 99143b1a, libmtlrec.dylib 7a046e75. This is milestone 2's recorder; Monday's rough
+      run used mtlrec.m c56ada06 / dylib 2a63ad75.
+  - **The official number:** the "ICB + residency set" line, CPU encode per replay, MEDIAN over the 200 repeats. The
+    min and the split are reported with it.
+    - Monday's line applies: PASS <= 50 us; BETWEEN 50-200; KILL > 300 us, or not bitwise. Bitwise = the 4 windows
+      equal MLX and the repeats stay bitwise.
+    - The useResources arm is reported as info.
+  - Before the slot, a functional smoke under a share lock (REC_REPS=10; data/m1/rec1a_quiet/smoke_1118.out). It
+    checks only that the bench runs and stays bitwise with milestone 2's recorder. Its timings are not quotable.
+  - Runner: data/m1/rec1a_quiet/run_rec_quiet_1118.frozen.sh, simulated DRY before arming.
+  - Wed 02:23, **smoke (functional, share lock, 10 repeats): PASS.** 4/4 windows bitwise, the repeats bitwise,
+    (a) bitwise; peak 3.37 GB lifetime (data/m1/rec1a_quiet/smoke_1118.out). Its timings are not quotable (pre-registered).
+  - Wed 02:26, **ARMED**: data/m1/rec1a_quiet/run_rec_quiet_1118.frozen.sh (md5 d2a725cf, read-only; pid 34206).
+    - It calls the frozen bench copy run_rec_quiet.frozen.sh (md5 9f0314e9 == scripts/m1/rec1a/run_rec_quiet.sh).
+    - DRY simulation: data/m1/rec1a_quiet/run_1118_dry.log. It covers slot #3's marker, the gates, a yield on
+      Kamen's return with unlock and a retry, and the end marker. A rerun with Kamen back just as the job ended gave
+      no false yield.
+    - It ends with data/m1/rec1a_quiet/REC_QUIET_END.
