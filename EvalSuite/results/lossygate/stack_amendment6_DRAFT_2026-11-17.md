@@ -1,4 +1,4 @@
-# DRAFT, not filed: PREREG_lossygate amendment 6, the GATED, MEASURED lossy stack for Saturday (blob 1: the t30b Q8H32 tree-16 drafter + CC(1) + tgl16eu on the exact-safe base; the fallback: lossy-45 + bitwise flags)
+# FILED Wed 2026-11-18 16:4x into docs/PREREG_lossygate_2026-11-15.md (its "## Amendment 6" section is this file's, with the heading's time filled in); kept as the draft's history. PREREG_lossygate amendment 6, the GATED, MEASURED lossy stack for Saturday (blob 1: the t30b Q8H32 tree-16 drafter + CC(1) + tgl16eu on the exact-safe base; the fallback: lossy-45 + bitwise flags)
 
 Prepared Tue 2026-11-17 09:4x from the orchestrator's decisions of 09:3x and 09:4x (relayed by NewIdeas). Rewritten at
 15:0x for the orchestrator's 15:0x composition: G1 is skipped, tgl16eu is out, and tgl16e and GDN16 are in. Updated
@@ -64,11 +64,43 @@ for Part A (the orchestrator, received 11:4x).
   - REF2_BOF / REF2_HC_B are bitwise but INERT on this base path (BOF fires 0 times, HC_B 0: the native dense and the
     HC8 / HCB paths bypass both wrappers). With no engagement they stay out of blob 1, and stay in exact (ii).
   - Blob 1's CC(1) and tgl16eu engage (close calls 2 + 2; sib_accepted 1 / 11 / 7; xrw orig 0, fallback 0).
+- **Blob 1 arrived Wed 16:35** (BigMoE 91d728e9; its manifest received 16:40, checked here 16:4x): snapshot s98q and the
+  env data/stack/blob1_env.txt. Section 1's pins come from it.
+  - BigMoE's one-key head test passed at 16:37 (HumanEval/45 x 512, rc 0, 60 tokens to EOS in 4 checks; xrw tgl16eu
+    cand 196, orig 0, fallback 0).
+  - Its key test (scripts/s98/blob1_keytest.sh, C 160) PASSED at 16:43:49 (~/BigMoE/data/r57/BLOB1_KEYTEST_END: 4 keys
+    decoded, code sib_accepted 4, close calls 1, xrw tgl16eu on every run with orig 0 and fallback 0). The marker is the
+    smoke's start gate (section 2).
+  - As information: tgl16eu ON vs OFF in the key test's timing (A B B A, 4 code keys x 256 tokens, C 160, quiet), median
+    per check 122.30 vs 135.62 ms (-13.32), expert MB per check 707 vs 891 (-184).
 
 ### 1. The pins (from BigMoE's blob; the runner checks them at every start and per process)
-- **The env:** <path>, blob sha256 <...>, tag <...>. The snapshot trees, the screen and the .so are <...> (bm_pin).
+- **The env:** results/lossygate/stkb1_env.txt, git blob 4be579d02f64f3fca69cf24c8592af0417da550a, tag stkb1, C 256.
+  - Its env line is BigMoE's data/stack/blob1_env.txt line byte for byte (git blob
+    6e629ea52046e5e5123ef81c6b98e878d522eab1, BigMoE 91d728e9). tools/stkb1_env.sh writes the copy and checks it.
+  - Only the comment differs. Runner 69 reads the tag, the screen and C from the comment. BigMoE's comment names none of
+    them, and it says "snapshot" without the screen's path, which stops the runner.
+  - C 256 is the 45 GB release C, as in ccx45cc1's and lx45cc1's env comments. BigMoE's key test runs at C 160 (its own
+    memory gate). The smoke and tier 1 run at C 256.
+- **The code** (BigMoE 91d728e9; bm_pin and the runner's pins, at every start and per process):
+  - trees: data/r57/snap/s98q b0d02d3300c3ac385a7d07425ef17fed8bb4eece, data/r57/snap/frozen_s98q
+    8245a18b376421c6c4502aa2811796bb908cd869, bigmoe d92cdb4b9e81d386e4170323d50f11b34147aa5f;
+  - the screen: data/r57/snap/s98q/r57_screen_s98q.py, sha256 94cdd2a6323c27beab4fd52317f98b8d2a0921cde520d77b9563d54d6f62dd80;
+  - the .so: ext/build_qom's, sha256 ff69fa24a745... (the env's BIGMOE_EXT_BUILD=build_qom). Part A's pins (ext/build's
+    .so 5333899c, s98n) are untouched by this commit (BigMoE 16:40).
+  - s98q = the s98 screen + Leap ec06e43 + MoonShots' r57_draft bundle b5c7c80, frozen byte for byte (frozen_s98q/
+    MoonShots_draft; its MANIFEST sha256 62f59761..., all 23 .py checked at build). The screen points R57_LEAP_SCRIPTS
+    at the snapshot's frozen Leap scripts.
 - **Blob 1's base** (the orchestrator with BigMoE, 07:5x Wed): the base path's exact-safe verify levers, as BigMoE's
-  blob manifests them, with NO R2 / QOM. <The manifest's flag list, Thu midday.>
+  blob manifests them, with NO R2 / QOM.
+  - **The flag list** (39 flags; BigMoE's manifest, received Wed 16:40, checked here against ccx45cc1's line): ccx45cc1's
+    36 flags minus 7 and plus 10, with lcb6 added to R57_RELAX_DELTA_SETS. The common flags keep ccx45cc1's order.
+    - Out: R57_FAST, R57_FASTTAX, R57_QOM_SETS, R57_RELAX_SPAN and R57_RELAX_SPAN_RULE (the lossy levers the tree path
+      cannot take), and R57_D7B and R57_D7BNAX (DFlash code drafting).
+    - In: R57_CHATSW=1, R57_MTP_ALL=1, R57_TREE16=1, R57_TREE_NODES=15, R57_TREE_K=8, R57_XRW=tgl16eu, R57_DRAFT=t30b,
+      R57_T30B_FMT=q8h32, R57_TREE_SF=1, R57_TREE_PK=1.
+    - D7BNAX_32=2 stays. It is Leap's kernel pick for 17-32-row matmuls, not the DFlash drafter (BigMoE 16:40).
+    - The runner adds R57_PRESET=45 R57_REPS=1 R57_WARM=1, R57_TAG and R57_KEYS.
   - CC(1) runs on the tree walk with amendment 3's flags: R57_RELAX_DELTA=1,
     R57_RELAX_DELTA_SETS=humaneval,humanevalx,mbpp,lcb6. lcb6 is there for the card gate (section 5: lcb6 in every
     lever's sets); tier 1 has no lcb6 keys (asked of BigMoE Wed 12:0x).
@@ -77,8 +109,8 @@ for Part A (the orchestrator, received 11:4x).
   - PK is IN (BigMoE 10:59 Wed: PK == SF bitwise in r57's loop; the Why section). This replaces Tuesday's "PK out"
     (MoonShots' skeleton KILL, 15:29 Tue).
   - REF2_BOF / REF2_HC_B are OUT: inert on this path (BigMoE 10:59 Wed).
-  - GDN16 is in blob 1 only if BigMoE's frozen blob carries it (<GDN16's flag | not in blob 1>). If it lands after the
-    freeze, it can ride #2b, never blob 1's pin.
+  - GDN16 is in blob 1 only if BigMoE's frozen blob carries it. It does not: blob 1 has no GDN16 flag (BigMoE's env
+    comment: "no GDN16 yet"). If it lands later, it can ride #2b, never blob 1's pin.
   - Superseded at 07:5x: until then this bullet named lossy-45 + CC(1) (ccx45cc1's line, checked here 04:3x) as the
     base. lx45cc1's line is now the fallback's (section 8).
 - **The drafter** (BigMoE's flags, 10:56 Tue; final unless a test forces a change, and BigMoE says so first):
@@ -95,7 +127,14 @@ for Part A (the orchestrator, received 11:4x).
       pushed per pop, as in the T8 dumps and tree_cc32).
     - **Sync-free:** R57_TREE_SF=1 (MoonShots' sync-free frontier, BigMoE's default since the bit test passed; 0 = the
       host-synced heapq loop).
-  - **Chat:** unchanged. R57_DRAFT changes code drafting only.
+    - **The code:** the snapshot's frozen copy of MoonShots' bundle b5c7c80 (section 1's code). BigMoE's one-key head
+      test (16:37 Wed, HumanEval/45 x 512) installed the q8h32 weights b5388cc4 and screen f7b9dc9b, PK ran 13 trees
+      with 0 fallbacks, and every bundle module loaded from the frozen bundle (tree16_draft from s98q's own,
+      byte-identical copy).
+  - **Chat (corrected at filing):** blob 1 carries R57_MTP_ALL=1 and R57_CHATSW=1, so t30b drafts every prompt, IFEval's
+    included (BigMoE's env comment: t30b "on every prompt"). CC(1) stays on its four code sets. This replaces the
+    draft's "Chat: unchanged; R57_DRAFT changes code drafting only" (BigMoE's flags, 10:56 Tue). Tier 1 reads IFEval by
+    decision 4 against exact either way. The engagement checks below allow for it.
 - **CC(1) on the tree** follows BigMoE's rule, per check:
   - The 125B verifies the current token + the 15 popped nodes in one forward (tree mask), so each node's row is
     conditioned on its own path. The walk starts at the current token's row. At node u, with the 125B's logits z_u:
@@ -110,8 +149,8 @@ for Part A (the orchestrator, received 11:4x).
     ~/NewIdeas/HANDOVER.md, 4a07e04). Tier 1 and the card gate judge it.
 - **The exact-safe engine levers.** Each is bitwise against the path it replaces, by its owner's test, so it changes
   time, not tokens. The stack's gate still covers them.
-  - **GDN16** (Leap's 16-row GDN module; code ~/Leap/scripts/week98/m16.py, the GDN16 switch, install()): <its r57
-    flag>. Its bitwise records (Leap 15:02, checked here 15:0x):
+  - **GDN16** (Leap's 16-row GDN module; code ~/Leap/scripts/week98/m16.py, the GDN16 switch, install()): NOT in blob 1
+    (no r57 flag in BigMoE's blob; above). Its bitwise records (Leap 15:02, checked here 15:0x), for a later blob:
     - Kernel level: ~/Leap/data/week98/check25/m16_check.txt (Leap 65a85da). The 14 GDN16 cases (the hooked
       gated_delta_kernel, gdn_fast C 2 / U 4, vs mlx_lm's kernel) match in y AND state, bit for bit, at T 2 / 3 / 5 / 8
       / 12 / 15 / 16 with 2 seeds each, engagement counted. Verdict PASS.
@@ -163,13 +202,15 @@ for Part A (the orchestrator, received 11:4x).
   - Its price and its argmax record: slot #3 (the Why section).
   - BigMoE's Thursday key test also records its ON vs OFF ms and its expert GB from r57's loop (c25's counter cannot see
     no-tier bytes). That is information.
-- **Engagement (validity):** CARD_ENGAGE = close_call:accepted@run, tree:sib_accepted@run <+ xrw:cand@run only if
-  R57_XRW acts on code runs alone (BigMoE, asked 11:4x)>.
-  - In CODE-ONLY mode, runner 69 VOIDs a process if any CARD_ENGAGE term is > 0 on a chat (IFEval) key. CC(1) and the
-    tree act on the code sets only. The expert rewrite acts on every forward in the process, IFEval's included, which
-    is legitimate: tier 1 judges IFEval against exact. So the xrw rules below are checked apart, by
-    tools/xrw_check.py over every kept run (code and chat), before each order's verdict is used: xrw.cand > 0 summed
-    over the code runs, and the rules below on every run.
+- **Engagement (validity):** CARD_ENGAGE = close_call:accepted@run, on runner 69 (> 0 over the run's kept code answers,
+  0 on IFEval). tree.sib_accepted and xrw.cand are checked apart, by tools/xrw_check.py.
+  - In CODE-ONLY mode, runner 69 VOIDs a process if any CARD_ENGAGE term is > 0 on a chat (IFEval) key. CC(1) acts on
+    the code sets only. The expert rewrite acts on every forward in the process, IFEval's included (BigMoE 11:47 Wed),
+    and t30b's tree drafts IFEval too (R57_MTP_ALL=1, above). Both are legitimate, since tier 1 judges IFEval against
+    exact, but neither can be a CARD_ENGAGE term.
+  - So tools/xrw_check.py checks them over every kept run (code and chat), before each order's verdict is used:
+    xrw.cand > 0 and tree.sib_accepted > 0, each summed over the code runs (--code-sum tree:sib_accepted), and the xrw
+    rules below on every run.
   - tgl16eu is in (Wed 04:3x), so the expert-rewrite checks below apply with xrw.mode == "tgl16eu" (BigMoE 04:30: the
     same VOID rules). Its upgrade changes outputs (toward the 4-bit tier), so it is a FAST lever: the stack's tier 1 and
     card gate judge it, with no separate pass.
@@ -179,7 +220,11 @@ for Part A (the orchestrator, received 11:4x).
     the run's kept code answers. The DRY on BigMoE's env confirms it.
   - **The expert rewrite (tgl16eu):** it is also VOID unless all of these hold. EvalSuite checks them from runs.json and
     the per-process modules manifests before the verdict:
-    - every process's modules manifest shows xknob loaded from .../knob_v2/xknob.py, with the sha256 above;
+    - every process's modules manifest shows xknob loaded from the snapshot's frozen copy,
+      /Users/kamen/BigMoE/data/r57/snap/frozen_s98q/Breakthrough_xrw_knob_v2/xknob.py, with the sha256 above (6474eab8...,
+      knob_v2's). In that copy xknob.py, tgl16v.py and tgl16.py are byte-identical to knob_v2 (20eaaf3). xgrp.py and
+      w4a8.py differ only in one sys.path line each: BigMoE's snapshot builder points their Leap imports at the
+      snapshot's frozen Leap scripts (checked here 16:4x by diff);
     - every run has xrw.mode == "tgl16eu", ON for the whole run;
     - summed over the run, xrw.orig == 0 and xrw.fallback_not_p11 == 0.
       - In knob_v2's xknob.py, a call run by the rewrite counts cand only. A call on a non-p11 store counts
@@ -204,10 +249,16 @@ for Part A (the orchestrator, received 11:4x).
     - On the r57 format (sf_tree.py --real: 8-bit g64 Linears + HC mixes, ScreenedHead 32K + extras): 120 / 120 trees
       (HE+ 48, MBPP 48, HE+ tree-32 24; a HE+ repeat was 48 / 48 too). 85c5fcb, week98/draft/sf_real.log +
       sf_bit_real_*.json.
-- **The scope:** CARD_SCOPE=code. CC and t30b act on the code sets, while IFEval runs r57's unchanged chat path; tier 1
-  still reads IFEval by decision 4 against exact.
+- **The scope:** CARD_SCOPE=code. CC(1) acts on the code sets. t30b's tree and tgl16eu act on IFEval too (above). Tier
+  1 reads IFEval by decision 4 against exact.
 
 ### 2. The smoke (first, after BigMoE's key test on the blob; for blob 1, tonight)
+- **Before it, for blob 1 only: a head test by day** (BigMoE's YES, 13:50 Wed). Runner 69 runs blob 1's env and pins on
+  tools/stk_b1head_keys.txt (lcb6/3692 + ifbench/124; CARD_SETS=ifbench,lcb6), both orders, CARD_RUNSUF=_b1head, with no
+  engagement terms. tools/xrw_check.py reads its records.
+  - Like the smoke, it is a function check, not a verdict. It catches faults that only a real run reaches (Part A's
+    four, Wed), with time left to fix them. Its records are information. A fault it finds is fixed by a dated line
+    here, before the smoke.
 - **What runs:** runner 69's card tier on tools/stk_smoke_keys.txt (gpqad/rec2ZTsqazBZ3LTWZ, ifbench/124, lcb6/3692),
   both orders, CARD_RUNSUF=_smoke.
 - **The check:** a function check, not a verdict. It needs rc 0 and a "(tier 2" DONE line that is not VOID or
@@ -216,7 +267,7 @@ for Part A (the orchestrator, received 11:4x).
     cannot show CC(1) or the tree reliably, and a whole-run term at 0 would VOID a function check by chance. Tier 1
     checks engagement.
 - **The chain:** tools/stk1_chain.sh (smoke -> the card memory -> T1F -> the xrw check -> T1R pooled -> the xrw check;
-  DRY-tested Wed 11:5x on ccx45cc1's env with real pins). Its start gates are BigMoE's key test
+  DRY-tested Wed 11:5x on ccx45cc1's env with real pins, and on blob 1's env with section 1's pins before arming). Its start gates are BigMoE's key test
   (~/BigMoE/data/r57/BLOB1_KEYTEST_END, first line '^BLOB1 KEYTEST PASS', newer than the env file), this amendment
   committed and naming the blob, the env file's blob, and no other EvalSuite runner. The EXACT union holds all 364
   tier-1 keys (checked Wed 11:5x).
@@ -250,7 +301,7 @@ for Part A (the orchestrator, received 11:4x).
 - **What runs:** runner 69, CARD_TIMING=1, in two arms (the orchestrator with BigMoE, 07:5x): blob 1 (B1 if #1
   failed) and the fallback, each on its pinned env. They run in order-balanced halves (half 1: blob 1, then the
   fallback; half 2: the reverse), ~90 min, and everything after shifts ~45 min.
-  - One queued quiet lock (<~2 h>) and no share locks.
+  - One queued quiet lock (~2 h: the two arms in halves, ~90 min, plus the loads) and no share locks.
   - The fallback arm also gives its identity check (section 8).
   - HumanEval+ 164 + MBPP 100 (the code keys; IFEval dropped), in the panel's forward order, one order. No verdict.
 - **The number:** whole decode, n / decode wall (sum n / sum(n / tps)), per set and pooled.
@@ -269,7 +320,8 @@ for Part A (the orchestrator, received 11:4x).
 ### 5. The card gate (A) (Friday night)
 - **Tier 2:** IFBench 150, GPQA 100 and LCB v6 131, both orders, against NAX6-N (ref2tnaxn.r6).
   - Decision 4 per benchmark and per order.
-  - Amendment 1's PENDING / extension rule applies (CARD_EXTEND). The identity sets are <CARD_IDENTSETS, if any>.
+  - Amendment 1's PENDING / extension rule applies (CARD_EXTEND). No set is judged by identity (CARD_IDENTSETS unset):
+    t30b's tree and tgl16eu act on the chat sets too, so every benchmark takes decision 4.
 - **The scope:** the full (A) scope, with lcb6 in every lever's sets.
 - **Memory:** CARD_MEM comes from the smoke (section 2).
 - **Typing (information):** IFBench chat 141 / math 6 / code 2 / agent 1; GPQA chat 67 / math 33; LCB code 131.

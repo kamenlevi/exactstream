@@ -689,3 +689,18 @@ Breakthrough accepted at 18:12. Fable B's design is ~/FableGod/fableb/REPLAYED_C
       - a plain run; the lock refused twice; NO-SWAP dropping after the lock; the wall cap;
       - a yield, then a re-run; window 1 missed, window 2 run; HOLD while waiting; neither window;
       - the runner stopped by a signal (job killed, no END); HOLD during the run; the real flag check.
+  - Wed 16:4x-16:5x, **today's slot yielded; re-armed for Thu 07:30-09:10 at start gate 46** (NewIdeas 16:4x).
+    - Blob 1's key test passed at 16:43 and EvalSuite's tier 1 #1 starts at once (~17:05, Saturday's critical path). The
+      waiter never started: NO-SWAP read 35-46 GB against its 47 gate from 16:04 to 16:44. Its 16:03 flag check reached
+      the model load (rec1a_1118r_flagcheck.txt).
+    - The waiter (pid 88522) was stopped by TERM at 16:52:22, holding no lock ("runner stopped by a signal: no END
+      marker"). REC1A_END is unchanged (11-18 15:02:21).
+    - Re-armed at 16:52:39 (pid 8347): the same frozen runner (ce1990b2) and rec1a_c25.py (5c1bc938), with RJ_GATE=46 and
+      RJ_MEM=46. Window 1: Thu 07:30, latest start 09:10 (so a 20-min run ends by 09:30). Window 2 is empty (09:10-09:10).
+      The log and outputs are unchanged (rec1a_1118r_runner.log, rerun_1118/).
+    - Start gate NO-SWAP >= 46 (NewIdeas): the 14:59 run started at 46 and loaded to 43.06 GB with no swap. The +2 GB swap
+      stop and the 20-min cap bound the risk. The lock stays MEM 46.
+    - The run's env matches the 14:59 run's 55 recorded lines, apart from REC1A_OUT. It comes from Leap's c25_env.py
+      (unchanged since 11-16 13:05) over BigMoE's t1cx45t1c1_env.txt (unchanged since 11-16 09:10).
+    - END is written on the final end only: a run of any result, or a SKIP (HOLD while waiting, a failed flag check, or no
+      start by 09:10). The pre-registration stands.

@@ -2913,3 +2913,23 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
   - **Dev rehearsal (24 bank heplus24 windows):** rc 0. 10 / 24 answers match the bank's (those came from EvalSuite's
     tf_gen records, another path); kept 11.35.
   - NIGHT1118_BIGMOE_END was written at 14:58 (Breakthrough's rec1a_c25 -> Leap's slot #4 -> blob 1's key test).
+- **Wed 16:34-16:43, blob 1 (data/stack/blob1_env.txt; snapshot s98q, BigMoE 91d728e9):** s98q = the s98 screen + Leap ec06e43
+  + MoonShots' r57_draft bundle at b5c7c80, frozen byte for byte (the builder checks its 23 .py against MoonShots' MANIFEST;
+  MoonShots' live-vs-bundle bit check PASS 16:35). data/r57/blob1kt/.
+  - **Head test b1head1** (HumanEval/45 x 512, through scripts/s98/audit_launch.py): rc 0; r57_draft installed q8h32
+    (weights b5388cc4, screen f7b9dc9b); the persistent-kernel level drafted all 13 trees, 0 fallbacks; at exit all 11
+    loaded bundle modules came from the frozen bundle except tree16_draft (s98q's own copy, imported first, byte-identical
+    fec865c3); tgl16eu on every check (cand 196, orig 0, fallback 0); 60 tokens (EOS) in 4 checks; swap +0.
+  - **Key test (scripts/s98/blob1_keytest.sh): PASS 16:43:49.** Engagement: the 4 keys decoded (HumanEval/45 60 tokens,
+    humanevalx/HumanEval/23 53, mbpp/16 84, ifeval/2239 11, the same 11 tokens as six earlier configs); side-branch
+    accepts 4 and close calls 1 over the code keys (both on mbpp/16); tgl16eu on every run with orig 0 and fallback 0; no
+    close calls on IFEval.
+  - **Timing (information; quiet lock; A B B A; 4 code keys x 256; one process per arm):** tgl16eu ON vs OFF, median per
+    check 122.30 vs 135.62 ms (-13.32 ms) and expert MB per check 707 vs 891 (-184). The arms decode different tokens on
+    the two mbpp keys (first differences at 86 and 59), so this is a per-check comparison, not a tok/s headline.
+  - **Order dependence (blob 1 is lossy):** mbpp/16 decoded 84 tokens in the engagement process (after HumanEval/45 and
+    humanevalx/HumanEval/23, cap 512) but 256 in both ON timing processes (after HumanEval/68 and HumanEval/16, cap 256).
+    The two agree through check 3 and split at token 28 inside check 4. The likely cause is CC(1): which near-tie it
+    accepts depends on the drafts, and r57_draft's screen keeps every prompt and root token the process has seen. The
+    same order and cap reproduce bitwise (ON == ON and OFF == OFF on all 4 keys). EvalSuite's forward + reverse pooling
+    covers this; a per-key replay needs the same order.

@@ -523,6 +523,7 @@ T30B_W = os.path.expanduser(os.environ.get("R57_T30B_W") or _W0.get(T30B_FMT, ""
 if RDR:                                                  # install(fmt) replaces the mtp125 install; draft() replaces T16D.draft;
     assert MTPALL and T30B_FMT in _W0, "R57_DRAFT=t30b needs R57_MTP_ALL=1 and a known R57_T30B_FMT (chain checks: observe())"
     sys.path.insert(0, "/Users/kamen/BigMoE/data/r57/snap/frozen_X/MoonShots_draft")   # begin_window per prompt; observe() on
+    os.environ.setdefault("R57_LEAP_SCRIPTS", "/Users/kamen/BigMoE/data/r57/snap/frozen_X/Leap_scripts")   # the bundle reads screened_head.py there
     import r57_draft as RD                               # fallback chain checks (M3's screen); R57_TREE_PK is read by r57_draft
 _MTP_MD5 = {"b5": "1f8de68a468b6ae16a9f42c62cbca39f"}   # D-23d's head, pinned like the M-17 sizes
 if CHATSW:                                               # the head's trained parts over the shipped MTP layer (D-22 b5: attention,

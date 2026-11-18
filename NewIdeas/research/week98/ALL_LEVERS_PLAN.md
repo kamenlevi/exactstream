@@ -283,6 +283,19 @@ the SLC CPU fill, 1c tiers (V2 FAIL, so G1 stays out), close-call d2 (tier 1 FAI
     CERTIFY98: the dev rehearsal's tokens per check are 0.985x the replay's (inside +-3 %); (iii) 22 of the first 24
     identical, the comparison waits for the TOPK dump. TOPK / T8 offered to BigMoE on REFC_CHAIN_END (latest start 05:00),
     else Thursday. So THURSDAY NIGHT = (i) -> (ii) -> (ii-b) -> the freed slot, re-planned by Thu 18:00.
+  - 16:4x: BLOB 1 IN (s98q = PK bundle_b5c7c80 frozen; BigMoE 91d728e9) and its KEY TEST PASSED 16:43 (~7 h ahead).
+    Amendment 6 FILED (EvalSuite 787590b), with a correction: blob 1 carries R57_MTP_ALL=1 + R57_CHATSW=1, so t30b drafts
+    IFEval too (tier 1 judges IFEval by decision 4 vs exact either way). 39 flags, no GDN16. NewIdeas 16:4x: TIER 1 #1
+    STARTS AT ONCE after EvalSuite's runner-69 head test (~17:05; ~2 h 40), not after REC1A_END / 18:30: it's the critical
+    path, and it uses more of the away window. rec1a_c25 couldn't start anyway (NO-SWAP 35-46 vs its 47 gate), so it moves
+    to Thu 07:30-09:10 with the start gate at 46 (it loaded to 43.06 GB at 46 with no swap; the +2 GB swap stop and the
+    20-min cap stay).
+    NIGHT ORDER: tier 1 #1 -> STK1_CHAIN_END -> Part A -> REFC_CHAIN_END -> BigMoE's M4CT7 (4 min, armed pid 4557: M4C's
+    tree arm on the 7-shape contract with kept-row hashes vs M4CA; marker data/r57/post1118/M4CT7_END). If tree == AR there,
+    the 3 shapes s98n added fixed the flip; if not, the first differing row names the check (the localizer's step 1, early).
+    TOPK / T8 is not tonight (tool not built, main at 92 %): Thursday after the reset.
+    BigMoE 16:4x: tgl16eu ON vs OFF on blob 1 (quiet, A B B A): -13.3 ms per check and -184 MB of expert reads per check.
+    It is already in blob 1, so timing #1 carries it.
 - DECIDED 11:3x (the orchestrator, on NewIdeas' proposal; best effort, no corners cut; it needs the capture + (iii) by day):
   (1) TIER 1 #1 ON BLOB 1 TONIGHT if BigMoE freezes blob 1 (s98b + PK; GDN16 may join later, it's bitwise) and sends it to
   EvalSuite by ~20:00, EvalSuite files amendment 6 first, and BigMoE's key test PASSES (a PASS / FAIL marker). Thursday's

@@ -1,0 +1,22 @@
+bundle_b5c7c80 verification (MoonShots, Wed 18 Nov 2026 16:3x; share lock MEM 14 GB; logs in week98/draft/bundle_check_*.log)
+
+1. ISOLATION IMPORT (python -I -B, sys.path = [bundle] + venv, R57_LEAP_SCRIPTS = a dir holding only Leap b4331e4's
+   screened_head.py): import r57_draft, ra_sf, pk_level, pk_ops, s22_format, p3_dd_tree, sf_tree, tree16_draft,
+   fta_kernel, fta_match, sf_tail, dd_ttt (-> dd_d22_ttt -> mtp125), dd_ceiling, dd_tree, dd_topk, dd_manifest,
+   screened_head: modules from the bundle 23, from R57_LEAP_SCRIPTS 1, from the venv 709, from anywhere else 0.
+
+2. BIT CHECK, bundle vs the live b5c7c80 tree (bundle_check.py + bundle_check.sh / bundle_check2.sh): the live harness
+   r57_draft_test.py (HE+ windows 2,3, 12 anchors, n 15) with every draft() output digested (sha256 over all fields but
+   'ms', in call order: per tree the sync-free draft twice + the host-synced Route A draft = 72 drafts per run).
+   In the bundle runs a meta-path finder serves every bundle module name from the bundle (audit: 0 bundle names loaded
+   from elsewhere; harness-only extra: ~/BigMoE/bigmoe for mtp125.load()).
+     fmt                     check_install   SF == HS   SF twice   cache kept   digest live        digest bundle
+     q8h32, R57_TREE_PK=1    18 / 18         24 / 24    24 / 24    24 / 24      6cff08fa83ef95be   6cff08fa83ef95be
+     c2 (dd_t30qa)           18 / 18         23 / 24    24 / 24    24 / 24      c80c953eeb7346b9   c80c953eeb7346b9
+     stored (k 1)            15 / 15         24 / 24    24 / 24    24 / 24      8189e6cd1599325a   8189e6cd1599325a
+   => the bundle drafts bit-identically to the live b5c7c80 tree in all three formats.
+   c2's SF == HS 23 / 24 is a property of b5c7c80 itself (live == bundle); see week98/draft/r57_c2_diag.json.
+   c2 weights used: ~/datasets/deepdraft/ckpt/dd_t30qa.safetensors (passed by the caller, e.g. R57_T30B_W).
+   dd_t30qa.safetensors sha256 353965c596dc363001913fc9ccf22bf1a72bd2f9d6ecbe562d7acd671d346ad7.
+   c2's one SF != HS tree (r57_c2_diag.json: fi 2, s 666): the same 16 tokens, popped in a different order (token 2796
+   at node 9 sync-free vs node 14 host-synced): a frontier tie-order difference (exact path-p tie), not a bundle effect.

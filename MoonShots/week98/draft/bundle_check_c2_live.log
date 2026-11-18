@@ -1,0 +1,19 @@
+[guard] pid 85347, MAXGB 14, swap at start 9753.19 MB (kill at +1 GB)
+Traceback (most recent call last):
+  File "/Users/kamen/MoonShots/week98/draft/bundle_check.py", line 37, in <module>
+    import r57_draft as R  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'r57_draft'
+[guard] exit 1, peak footprint 6 MB
+[guard] pid 85958, MAXGB 14, swap at start 9753.19 MB (kill at +1 GB)
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=31.0 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[r57_draft] install {"fmt": "c2", "weights": "/Users/kamen/datasets/deepdraft/ckpt/dd_t30qa.safetensors", "weights_sha256": "353965c596dc363001913fc9ccf22bf1a72bd2f9d6ecbe562d7acd671d346ad7", "screen_file": "/Users/kamen/Leap/data/frspec_rank.npy", "screen_sha256": "f7b9dc9bf6e9748e8539bd8e2622a5e40875093b3143e6c670afb401c2c0a353", "screen": 8192, "screen_order": "id", "extra_cap": 4096, "top_k": 4, "done": ["prepare = eager", "fc_hidden 4-bit", "fc_embedding 4-bit", "q_proj 4-bit", "k_proj 4-bit", "v_proj 4-bit", "o_proj 4-bit", "router 8-bit", "se_gate 4-bit", "se_up 4-bit", "se_down 4-bit", "se_gatew fp32 weight, output in the stream's dtype", "attn_hc.input_mix_weight_down 4-bit", "attn_hc.input_mix_weight_up 4-bit", "mlp_hc.input_mix_weight_down 4-bit", "mlp_hc.input_mix_weight_up 4-bit", "mixer.input_mix_weight_down 4-bit", "mixer.input_mix_weight_up 4-bit", "experts top-4", "screen order id", "draft head: ScreenedHead FR-Spec top-8192 + 4096 extras (scattered to V 248320)"], "env": {"MTPLX_COMPILED_TARGET_PREFIX": "0", "MTPLX_COMPILED_VERIFY": "0", "MTPLX_COMPILE_AR_FORWARD": "0", "MTPLX_DENSE_KV_BYTES_PER_TOKEN_DERIVED": "24576", "MTPLX_LOOP_GUARD": "1", "MTPLX_MOE_SORTED_GATHER_KERNEL": "0", "MTPLX_NGRAM_PREWARM": "off", "MTPLX_QWEN4EXP_COMPILE": "0", "MTPLX_QWEN4_HC_PREFILL_READ": "0", "R57_TREE_PK": "0", "TL_PLAIN_MIN": "1"}, "opdiet": {"rope": false, "resid": false, "bank": false}}
+[r57_draft_test] check_install: 18 / 18 
+[mtplx] verify SDPA head-chunked: q_len=32 heads_per_chunk=1 chunks=24
+[r57_draft_test] c2 heplus24 w 2,3 n 15 k 8: trees 24, SF == HS 23, SF twice bitwise 24, cache kept 24, bad 0; ms per pop SF 0.594 HS 1.080
+  diff {'fi': 2, 's': 666, 'first_node': 9, 'sf': [328, 5618, 1367, 1, 1332, 2796, 957, 60, 835, 2796, 442, 72887, 1, 7247, 1332, 1], 'hs': [328, 5618, 1367, 1, 1332, 2796, 957, 60, 835, 442, 72887, 1, 7247, 1332, 2796, 1]}
+[bundle_check] live: drafts 72 digest c80c953eeb7346b9; modules {'bundle': 0, 'leap_env': 0, 'venv': 793}; bundle names loaded elsewhere []; other ['__main__:~/MoonShots/week98/draft/bundle_check.py', 'bigmoe:~/BigMoE/bigmoe/__init__.py', 'bigmoe.fuse:~/BigMoE/bigmoe/fuse.py', 'bigmoe.gated:~/BigMoE/bigmoe/gated.py', 'bigmoe.loader:~/BigMoE/bigmoe/loader.py', 'bigmoe.stream:~/BigMoE/bigmoe/stream.py', 'bigmoe.tier:~/BigMoE/bigmoe/tier.py', 'bigmoe_ext:~/BigMoE/ext/build/bigmoe_ext.cpython-312-darwin.so', 'dd_ceiling:~/BigMoE/scripts/dd_ceiling.py', 'dd_d22_ttt:~/BigMoE/scripts/dd_d22_ttt.py', 'dd_tree:~/BigMoE/scripts/dd_tree.py', 'dd_ttt:~/BigMoE/scripts/dd_ttt.py', 'mtp125:~/TrainLab/mtp125.py', 'p3_dd_tree:~/MoonShots/week98/p3_dd_tree.py', 'r57_draft:~/MoonShots/week98/draft/r57_draft.py', 'ra_sf:~/MoonShots/week98/draft/ra_sf.py', 's22_format:~/MoonShots/week98/draft/s22_format.py', 'screened_head:~/Leap/scripts/screened_head.py', 'sf_tree:~/MoonShots/week98/draft/sf_tree.py', 'tree16_draft:~/BigMoE/scripts/tree16_draft.py']
+[guard] exit 0, peak footprint 6 MB

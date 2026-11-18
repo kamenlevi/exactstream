@@ -19,7 +19,11 @@ cp -R $S/frozen_g1b/TrainLab_root $S/frozen_g1b/TrainLab_sticky $S/frozen_g1b/Br
 cp -R $S/frozen_t16b/Breakthrough_tree16 "$FZ/" && \
 ( cd "$HOME/Breakthrough/data/xrw/knob_v2" && md5 -r $(awk '{print $2}' ../knob_v2.md5) | diff -q - <(awk '{print $1" "$2}' ../knob_v2.md5) > /dev/null ) || { echo "live knob_v2 != knob_v2.md5"; exit 2; }
 cp -R "$HOME/Breakthrough/data/xrw/knob_v2" "$FZ/Breakthrough_xrw_knob_v2" && cp "$HOME/Breakthrough/data/xrw/knob_v2.md5" "$FZ/Breakthrough_xrw_knob_v2/" || exit 2
-if [ -f "$HOME/MoonShots/week98/draft/r57_draft.py" ]; then mkdir -p "$FZ/MoonShots_draft"
+MSB=${MSB:-$HOME/MoonShots/week98/draft/bundle_b5c7c80}   # MoonShots' self-contained r57_draft bundle (MANIFEST shas; frozen byte for byte)
+if [ -f "$MSB/MANIFEST" ]; then mkdir -p "$FZ/MoonShots_draft" && cp "$MSB"/* "$FZ/MoonShots_draft/" || exit 2
+  BAD=$(awk -F'\t' '!/^#/ && NF >= 2 && $1 ~ /\.py$/ {print $1, $2}' "$MSB/MANIFEST" | while read f h; do [ "$(shasum -a 256 "$FZ/MoonShots_draft/$f" | cut -d' ' -f1)" = "$h" ] || echo "$f"; done)
+  [ -z "$BAD" ] || { echo "bundle sha mismatch: $BAD"; exit 2; }; echo "bundle: $(ls "$FZ/MoonShots_draft" | grep -c '\.py$') .py, every MANIFEST sha matches"
+elif [ -f "$HOME/MoonShots/week98/draft/r57_draft.py" ]; then mkdir -p "$FZ/MoonShots_draft"
   for f in r57_draft.py ra_sf.py sf_tree.py s22_format.py; do [ -f "$HOME/MoonShots/week98/draft/$f" ] && cp "$HOME/MoonShots/week98/draft/$f" "$FZ/MoonShots_draft/"; done; fi
 if [ "$C" != b4331e4 ]; then n=0
   for f in $(git -C $L diff --name-only --diff-filter=AM b4331e4 $C -- scripts third_party | grep -v "__pycache__/"); do
@@ -37,8 +41,8 @@ RW=(-e "s#~/Leap/scripts#$FZ/Leap_scripts#g" -e "s#/Users/kamen/Leap/scripts#$FZ
     -e "s#~/Breakthrough/keepset#$FZ/Breakthrough_keepset#g" -e "s#/Users/kamen/Breakthrough/keepset#$FZ/Breakthrough_keepset#g"
     -e "s#~/Breakthrough/scripts/m1/tree16#$FZ/Breakthrough_tree16#g" -e "s#/Users/kamen/Breakthrough/scripts/m1/tree16#$FZ/Breakthrough_tree16#g"
     -e "s#/snap/frozen_g1v3/#/snap/frozen_$N/#g" -e "s#/snap/frozen_g1b/#/snap/frozen_$N/#g" -e "s#/snap/frozen_t16b/#/snap/frozen_$N/#g")
-find "$FZ" "$SD" -name '*.py' -exec sed -i '' "${RW[@]}" {} +
-LEFT=$(grep -rnE --include='*.py' "(~|/Users/kamen)/Leap/(scripts|third_party)|(~|/Users/kamen)/TrainLab/sticky|[\"']~/TrainLab[\"']|(~|/Users/kamen)/Breakthrough/(keepset|scripts/m1/tree16)|frozen_(X|g1v3|g1b|t16b)/" "$FZ" "$SD" | grep -v '^\S*:[0-9]*:\s*#' | wc -l | tr -d ' ')
+find "$FZ" "$SD" -name '*.py' -not -path "*/MoonShots_draft/*" -exec sed -i '' "${RW[@]}" {} +   # the bundle stays byte for byte
+LEFT=$(grep -rnE --include='*.py' --exclude-dir=MoonShots_draft "(~|/Users/kamen)/Leap/(scripts|third_party)|(~|/Users/kamen)/TrainLab/sticky|[\"']~/TrainLab[\"']|(~|/Users/kamen)/Breakthrough/(keepset|scripts/m1/tree16)|frozen_(X|g1v3|g1b|t16b)/" "$FZ" "$SD" | grep -v '^\S*:[0-9]*:\s*#' | wc -l | tr -d ' ')
 echo "live / foreign paths left: $LEFT"; [ "$LEFT" = 0 ] || { grep -rnE --include='*.py' "frozen_(X|g1v3|g1b|t16b)/|(~|/Users/kamen)/(Leap|TrainLab|Breakthrough)/" "$FZ" "$SD" | head -5; exit 2; }
 ( cd "$FZ/Breakthrough_xrw_knob_v2" && md5 -r $(awk '{print $2}' knob_v2.md5) > frozen.md5 ) || exit 2
 .venv/bin/python -m py_compile "$SD"/*.py && echo "BUILT $N (Leap $C; $(find "$FZ" -type f | wc -l | tr -d ' ') frozen files; MoonShots_draft: $( [ -d "$FZ/MoonShots_draft" ] && echo yes || echo no))"

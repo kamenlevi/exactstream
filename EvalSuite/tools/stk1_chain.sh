@@ -16,9 +16,10 @@
 #   amendment 6 FILED: the committed PREREG (HEAD) holds "## Amendment 6 (" and names the blob sha.
 #   One window: no first start after CHAIN_LASTSTART (default Thu 00:30: then tier 1 #1 runs Thursday as set), runner
 #   cutoff CHAIN_CUTOFF (default Thu 09:00).
-#   Nothing starts while HOLD, PAUSE, a shut lid (no external display) or Kamen at the Mac (away_secs.sh < 900, one
-#   read; no reading counts as away). Mid-run, Kamen at the Mac on two reads 30 s apart makes the step yield (the runner
-#   and its children TERM, peer unlock); it resumes once nothing holds. Runner 69 gates each process on NO-SWAP
+#   Nothing starts while HOLD, PAUSE, NewIdeas' BREAK98_HOLD, a shut lid (no external display) or Kamen at the Mac
+#   (away_secs.sh < 900, one read; no reading counts as away). Mid-run, Kamen at the Mac on two reads 30 s apart, or
+#   BREAK98_HOLD appearing (amendment 6 section 7, as g1_chain.sh), makes the step yield (the runner and its children TERM,
+#   peer unlock); it resumes once nothing holds. Runner 69 gates each process on NO-SWAP
 #   CARD_MEM + 4 GB (43), keeps the +2 GB swap guard, and yields at each process start to another session's run > 5 GB.
 #   EVERY end writes results/STK1_CHAIN_END (Part A's chain follows it), after the runner and its children exit and peer
 #   unlock. Stop it by pid only, with a plain kill (TERM). kill -9 skips the marker.
@@ -39,6 +40,7 @@ KTMK=${CHAIN_KTMK:-$HOME/BigMoE/data/r57/BLOB1_KEYTEST_END}; PREREG=${CHAIN_PRER
 AFTER=${CHAIN_AFTER-}
 RUNPAT=${CHAIN_RUNPAT:-tools/day_runner[67][0-9]\.sh}     # a pgrep -f pattern (runners 60-79: Part A runs runner 70)
 Q=${CHAIN_QDIR:-$HOME/.local/share/quiet}                  # HOLD and PAUSE live here
+BHOLD=${CHAIN_BHOLD:-$HOME/NewIdeas/research/week98/BREAK98_HOLD}   # NewIdeas: while it exists, no process starts
 AWAY=${CHAIN_AWAY:-$HOME/.local/share/quiet/away_secs.sh}; RUNNER=${CHAIN_RUNNER:-tools/day_runner69.sh}
 EX=ref2tnax,ref2tnaxn.r3,ref2tnaxn.r2; NAXN=ref2tnaxn.r6
 CC1=close_call:accepted@run                               # CC(1), an accept rule on the code sets: > 0 over the run's kept code answers
@@ -69,6 +71,7 @@ away() { "$AWAY" 2>/dev/null; }
 held() {        # 0 = held: Kamen's HOLD, the PAUSE file, Kamen at the Mac (one read; no reading counts as away), or the
   [ -e "$Q/HOLD" ] && { HELD="HOLD"; return 0; }          # lid shut with no external display (runner 64's lid_shut)
   [ -e "$Q/PAUSE" ] && { HELD="PAUSE"; return 0; }
+  [ -e "$BHOLD" ] && { HELD="BREAK98_HOLD ($(head -1 "$BHOLD" 2>/dev/null | cut -c1-80))"; return 0; }
 > (a quote from the project owner, kept private)
   ioreg -r -k AppleClamshellState -d 4 2>/dev/null | grep -m1 '"AppleClamshellState"' | grep -q Yes || return 1
   (( $(system_profiler SPDisplaysDataType -detailLevel mini 2>/dev/null | grep -c "Resolution:") > 1 )) && return 1
@@ -102,6 +105,7 @@ gates() {       # 0 = the start gates hold; 1 = not yet; 5 = never
 run() {         # label, the run's TG (for its DONE file), then runner 69's K=V settings; the runner is a stoppable child.
   local lab=$1 tg=$2 rc; shift 2                   # 75: it yielded to Kamen (not started, or stopped; nothing left running)
   [ -e "$Q/HOLD" ] && { STATUS="stopped by HOLD before: $STATUS"; say "HOLD: $lab not started"; exit 8; }
+  if [ "$DRY" != 1 ] && [ -e "$BHOLD" ]; then say "$lab: not started: BREAK98_HOLD ($(head -1 "$BHOLD" 2>/dev/null | cut -c1-80))"; return 75; fi
 > (a quote from the project owner, kept private)
   say "$lab: $*"
   RSTART=$(date +%s)
@@ -109,6 +113,10 @@ run() {         # label, the run's TG (for its DONE file), then runner 69's K=V 
   RPID=$!
   while kill -0 "$RPID" 2>/dev/null; do     # a HOLD mid-run: the finish trap stops the runner and its children
     [ -e "$Q/HOLD" ] && { STATUS="stopped by HOLD during: $STATUS"; say "HOLD: stopping $lab"; exit 8; }
+    if [ "$DRY" != 1 ] && [ -e "$BHOLD" ] && kill -0 "$RPID" 2>/dev/null; then   # the BREAK98 hold: a clean handoff (as g1_chain.sh)
+      say "BREAK98_HOLD ($(head -1 "$BHOLD" 2>/dev/null | cut -c1-80)): $lab yields"
+      stoprunner; peer unlock > /dev/null 2>&1; return 75
+    fi
     if [ "$DRY" != 1 ] && back && kill -0 "$RPID" 2>/dev/null; then
 > (a quote from the project owner, kept private)
       stoprunner; peer unlock > /dev/null 2>&1; return 75

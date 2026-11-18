@@ -33,6 +33,39 @@ don't care about that. I just need to get that."
   - So exact tree-16 is NO-GO as built. (ii) = the contract CHAIN-16 (~-2.6 ms).
   - Asked of Leap: can the tree's masked attention + GDN be made row-invariant by Fri 12:00? Go if feasible.
   - (iii): chain-32 can't run on r57 (the tree path's max is 16 nodes), so BigMoE recommends chain-16. EvalSuite's call.
+- **14:41-14:58 BigMoE: CERTIFY98 FULL capture PASS 647 / 647** (frozen by EvalSuite 69b304d; contamination clean;
+  scored HE+ 66 / MBPP 297 / everyday 150). Snapshot s98n (Leap ec06e43, contract on all 7 shapes): M4C chain == AR
+  16 / 16 keys, 2,604 / 2,604 kept-row logit hashes. (iii) chain-16: 27 / 30 identical, kept 14.18 per check. EvalSuite:
+  the dev rehearsal's tokens per check are 0.985x the replay's (inside +-3 %). The verdict needs the TOPK dump.
+- **15:0x DIAG95:** from one prefill, the tree verify and both commit kinds are bitwise == the chain at every sublayer, so
+  mbpp/30's flip comes from the loop's HISTORY. No exact tree this week by the rule. Leap takes a one-op fix by Fri 12:00
+  (the localizer runs after main's Thu 17:00 reset).
+- 15:05 Leap slot #4: w4a8u NO-GO (blob 2a OUT). tgl16ef is bitwise but ~0.1 ms at 16 rows, so not this week. tgl16eu
+  repeats -2.70 ms. rec1a_c25 NOT RUN 14:59 (a harness bug, fixed adacf34); re-run window 16:03-18:30, else Thu 07:30.
+- 15:1x EvalSuite: contract PREREG filed (f48c491); Part A ARMED (refc_chain.sh). It starts after tier 1 #1, or from
+  Thu 00:45 if no tier 1 #1 chain is alive (checked by the orchestrator in its gates()). Latest first start 06:00, cutoff
+  09:00.
+- **16:2x Orchestrator: BLOB 1 STALLED.** BigMoE is idle waiting on MoonShots' self-contained bundle
+  (~/MoonShots/week98/draft/bundle_b5c7c80/, asked for ~16:00). It is not on disk, and MoonShots (account-1) is on standby.
+  Asked MoonShots to build it now: tier 1 #1 needs blob 1 at EvalSuite by ~20:00.
+- 16:2x Kamen asked for a summary + predictions. Projections unchanged [P]:
+  - lossy HE+ ~213-235, MBPP ~150-155;
+  - exact (contract chain-16) ~135-160.
+  550 needs the compiled check + a <= 3-4 ms draft; on the plan, neither lands by Saturday.
+- **16:43 BigMoE: BLOB 1 FROZEN + KEY TEST PASS, ~7 h early.**
+  - Snapshot s98q (91d728e9) = s98 + Leap ec06e43 + MoonShots' bundle byte for byte (the bundle was built 16:30, after
+    the orchestrator's 16:2x nudge).
+  - PK on all 13 drafts, 0 fallbacks.
+  - tgl16eu ON vs OFF: -13.3 ms per check (122.3 vs 135.6) and -184 MB of expert reads (707 vs 891).
+  - The key test ran at C 160 (~30 GB; 55.3 tok/s, demand SSD 60 % of each check), so it tests function, not the 45 GB
+    speed.
+  - EvalSuite started tier 1 #1 at ~16:45; Part A follows.
+- 16:5x BigMoE armed M4CT7 (m4ct7_wait.sh): M4C's TREE arm re-run on the 7-shape contract, vs M4CA's AR hashes. It
+  starts after REFC_CHAIN_END (latest start 07:00, ~4 min, 34 GB share lock); marker data/r57/post1118/M4CT7_END.
+  - tree == AR -> exact takes tree-16 (~165-185 [P]); BIG, tell Kamen.
+  - Else it names the first differing check for Thursday's history dump.
+  - TOPK + T8 + T16 (the CERTIFY98 verdict data, ~2.2-2.5 h) is NOT armed tonight; it runs Thursday by day after
+    EvalSuite's proof-run amendment.
 
 ## KAMEN, Wed 18 Nov 05:0x (verbatim): 550 ON LOSSY AND EXACT, PUSH IT AS HIGH AS POSSIBLE
 "Also, Twin, I forgot to tell you, you passed the test. Everything's perfect, so don't worry about that. Let's just get

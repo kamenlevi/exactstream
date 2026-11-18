@@ -1,0 +1,228 @@
+--- MoonShots/week98/draft/r57_draft.py@b5c7c80089
++++ bundle/r57_draft.py
+@@ -37,9 +37,9 @@
+ import numpy as np
+ 
+ H = os.path.expanduser
+-sys.path.insert(0, H("~/MoonShots/week98/draft"))
+-sys.path.insert(0, H("~/MoonShots/week98"))
+-sys.path.insert(0, H("~/BigMoE/scripts"))
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+ import mlx.core as mx  # noqa: E402
+ import mlx.nn as nn  # noqa: E402
+ import ra_sf as RA  # noqa: E402
+--- MoonShots/week98/draft/ra_sf.py@b5c7c80089
++++ bundle/ra_sf.py
+@@ -30,9 +30,9 @@
+ import numpy as np
+ 
+ H = os.path.expanduser
+-sys.path.insert(0, H("~/BigMoE/scripts"))                  # read-only imports
+-sys.path.insert(0, H("~/MoonShots/week98"))
+-sys.path.insert(0, H("~/MoonShots/week98/draft"))
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))                  # read-only imports
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+ import mlx.core as mx                                      # noqa: E402
+ import mlx.nn as nn                                        # noqa: E402
+ 
+@@ -152,7 +152,7 @@
+     head.layers[0].mlp.top_k = top
+     done.append(f"experts top-{top}")
+     mx.eval(head.parameters())
+-    sys.path.insert(0, H("~/Leap/scripts"))
++    sys.path.insert(0, os.environ["R57_LEAP_SCRIPTS"])
+     from screened_head import ScreenedHead
+     rank = np.load(RANK_F)[:screen]
+     if screen_order == "id":
+--- MoonShots/week98/draft/pk_level.py@b5c7c80089
++++ bundle/pk_level.py
+@@ -16,8 +16,8 @@
+ import numpy as np
+ 
+ H = os.path.expanduser
+-sys.path.insert(0, H("~/MoonShots/week98/draft"))
+-sys.path.insert(0, H("~/MoonShots/week98/bet7"))
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+ import mlx.core as mx  # noqa: E402
+ import pk_ops  # noqa: E402
+ import sf_tree as SFT  # noqa: E402
+--- MoonShots/week98/draft/pk_ops.py@b5c7c80089
++++ bundle/pk_ops.py
+@@ -13,7 +13,7 @@
+ import re
+ import sys
+ 
+-sys.path.insert(0, os.path.expanduser("~/MoonShots/week98/bet7"))
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+ from fl_qmatch import QHEADER, KDIR  # noqa: E402
+ 
+ _Q = open(os.path.join(KDIR, "quantized.h")).read()
+@@ -114,7 +114,7 @@
+ HEADER = QHEADER + "\n" + PF                      # QHEADER already carries qmv_wide_impl
+ 
+ # ---------------------------------------------------------------------------------------------------- the HC read
+-sys.path.insert(0, os.path.expanduser("~/MoonShots/week98/bet7"))
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+ import fl_hc  # noqa: E402
+ from fl_exact import EW_HEADER  # noqa: E402
+ 
+--- MoonShots/week98/draft/pk_skel2.py@b5c7c80089
++++ bundle/pk_skel2.py
+@@ -17,8 +17,8 @@
+ import sys
+ import time
+ 
+-sys.path.insert(0, os.path.expanduser("~/MoonShots/week98/bet7"))
+-sys.path.insert(0, os.path.expanduser("~/MoonShots/week98/draft"))
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+ import mlx.core as mx                                      # noqa: E402
+ from fl_qmatch import QHEADER                              # noqa: E402
+ 
+--- MoonShots/week98/draft/sf_tree.py@b5c7c80089
++++ bundle/sf_tree.py
+@@ -30,9 +30,9 @@
+ import numpy as np
+ 
+ H = os.path.expanduser
+-sys.path.insert(0, H("~/BigMoE/scripts"))                  # read-only imports (run with -I -B: no bytecode written there)
+-sys.path.insert(0, H("~/MoonShots/week98"))
+-sys.path.insert(0, H("~/MoonShots/week98/draft"))
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))                  # read-only imports (run with -I -B: no bytecode written there)
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+ import mlx.core as mx                                      # noqa: E402
+ 
+ PAD = -1
+@@ -307,7 +307,7 @@
+         done.append(f"FORMAT CHECK {a.fmt}: {n_ok} / {n_mod} modules == M3's fake quant bitwise{' BAD ' + str(n_bad) if n_bad else ''}")
+         del fmt_orig
+         mx.eval(P.parameters(), head.parameters())
+-        sys.path.insert(0, H("~/Leap/scripts"))
++        sys.path.insert(0, os.environ["R57_LEAP_SCRIPTS"])
+         from screened_head import ScreenedHead as SHC     # read-only import
+         RANK = np.load(P3.RANK_F)
+         done.append(f"head: ScreenedHead FR-Spec top-{a.screen} + {a.extra_cap} extras")
+--- MoonShots/week98/draft/fta_kernel.py@b5c7c80089
++++ bundle/fta_kernel.py
+@@ -157,7 +157,7 @@
+     ap = argparse.ArgumentParser()
+     ap.add_argument("--reps", type=int, default=200)
+     a = ap.parse_args()
+-    sys.path.insert(0, os.path.expanduser("~/BigMoE/scripts"))
++    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+     import dd_tree as DT
+     D = os.path.dirname(os.path.abspath(__file__))
+     tot = eqn = 0
+--- MoonShots/week98/draft/fta_match.py@b5c7c80089
++++ bundle/fta_match.py
+@@ -13,7 +13,7 @@
+ import numpy as np
+ import mlx.core as mx
+ 
+-KDIR = os.path.expanduser("~/BigMoE/.venv/lib/python3.12/site-packages/mlx/include/mlx/backend/metal/kernels")
++KDIR = os.path.join(os.path.dirname(mx.__file__), "include", "mlx", "backend", "metal", "kernels")  # [bundle] the running mlx's headers (was ~/BigMoE/.venv/.../kernels)
+ _S = open(os.path.join(KDIR, "gemv.h")).read()
+ 
+ 
+@@ -106,7 +106,7 @@
+     D = os.path.dirname(os.path.abspath(__file__))
+     caps = [np.load(os.path.join(D, f)) for f in ("attn_cap_he32.npz", "attn_cap_mb16.npz")]
+     import sys
+-    sys.path.insert(0, os.path.expanduser("~/BigMoE/scripts"))
++    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+     for which in (sys.argv[1:] or ["A", "B"]):
+         alive = cands()
+         print(f"== {which}: {len(alive)} candidates", flush=True)
+--- MoonShots/week98/p3_dd_tree.py@b5c7c80089
++++ bundle/p3_dd_tree.py
+@@ -29,7 +29,7 @@
+ import numpy as np
+ 
+ H = os.path.expanduser
+-sys.path.insert(0, H("~/BigMoE/scripts"))                  # read-only imports (run with -I -B: no bytecode written there)
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))                  # read-only imports (run with -I -B: no bytecode written there)
+ import dd_tree as DT                                        # noqa: E402  (Forest, tree_attn, NKS, AKS)
+ 
+ OUT = H("~/MoonShots/week98/p3")
+@@ -167,7 +167,7 @@
+         RANK = np.load(RANK_F)
+         base = np.zeros(lm.lm_head.weight.shape[0], bool)
+         base[np.asarray(RANK[:c["nh"]], np.int64)] = True
+-        sys.path.insert(0, H("~/Leap/scripts"))
++        sys.path.insert(0, os.environ["R57_LEAP_SCRIPTS"])
+         from screened_head import ScreenedHead           # the kernel check only (read-only import)
+         sh = ScreenedHead(lm.lm_head, RANK[:c["nh"]], extra_cap=EXTRA_CAP)
+     NEGINF = mx.array(float("-inf"), mx.float32)
+--- MoonShots/week98/bet7/fl_qmatch.py@b5c7c80089
++++ bundle/fl_qmatch.py
+@@ -11,7 +11,7 @@
+ 
+ import mlx.core as mx
+ 
+-KDIR = os.path.expanduser("~/BigMoE/.venv/lib/python3.12/site-packages/mlx/include/mlx/backend/metal/kernels")
++KDIR = os.path.join(os.path.dirname(mx.__file__), "include", "mlx", "backend", "metal", "kernels")  # [bundle] the running mlx's headers (was ~/BigMoE/.venv/.../kernels)
+ _Q = open(os.path.join(KDIR, "quantized.h")).read()
+ 
+ 
+--- MoonShots/week98/bet7/fl_hc.py@b5c7c80089
++++ bundle/fl_hc.py
+@@ -23,7 +23,7 @@
+ 
+ from fl_exact import RMS_HEADER, EW_HEADER
+ 
+-KDIR = os.path.expanduser("~/BigMoE/.venv/lib/python3.12/site-packages/mlx/include/mlx/backend/metal/kernels")
++KDIR = os.path.join(os.path.dirname(mx.__file__), "include", "mlx", "backend", "metal", "kernels")  # [bundle] the running mlx's headers (was ~/BigMoE/.venv/.../kernels)
+ 
+ 
+ def _gemv_tg_struct():
+--- MoonShots/week98/bet7/fl_attn.py@b5c7c80089
++++ bundle/fl_attn.py
+@@ -9,7 +9,7 @@
+ 
+ import mlx.core as mx
+ 
+-KDIR = os.path.expanduser("~/BigMoE/.venv/lib/python3.12/site-packages/mlx/include/mlx/backend/metal/kernels")
++KDIR = os.path.join(os.path.dirname(mx.__file__), "include", "mlx", "backend", "metal", "kernels")  # [bundle] the running mlx's headers (was ~/BigMoE/.venv/.../kernels)
+ _S = open(os.path.join(KDIR, "sdpa_vector.h")).read()
+ 
+ 
+--- BigMoE/scripts/dd_ttt.py@ee8847b7ce
++++ bundle/dd_ttt.py
+@@ -25,7 +25,7 @@
+   eval finds a run's branch in its checkpoint (xb_down.weight)."""
+ import argparse, glob, json, os, signal, sys, time
+ 
+-sys.path.insert(0, os.path.expanduser("~/TrainLab/sticky"))          # mtp125 and its imports, read-only
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))          # mtp125 and its imports, read-only
+ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+ import dd_d22_ttt as T                                               # noqa: E402  (verbatim d22_ttt.py)
+ import numpy as np                                                   # noqa: E402
+--- BigMoE/scripts/dd_d22_ttt.py@ee8847b7ce
++++ bundle/dd_d22_ttt.py
+@@ -23,7 +23,7 @@
+ Usage: [BigMoE venv] python sticky/d22_ttt.py CMD ...   (outputs data/d22_*.txt / .npz, checkpoints ckpt/d22_*)"""
+ import argparse, glob, json, os, signal, sys, time
+ os.environ.setdefault("TL_PLAIN_MIN", "1")                 # MTPLX's NAX sorted gather has no VJP (mtp125.py)
+-sys.path.insert(0, os.path.expanduser("~/TrainLab"))
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+ import mtp125 as M                                          # sets MTPLX's env (eager HC read for the VJP), imports mlx
+ import numpy as np
+ import mlx.core as mx
+--- TrainLab/mtp125.py@72cd5d4cb9
++++ bundle/mtp125.py
+@@ -30,8 +30,8 @@
+                                                              # NAX sorted gather (no VJP) must go for the head's MoE
+ for k in ("MTPLX_COMPILED_VERIFY", "MTPLX_QWEN4EXP_COMPILE", "MTPLX_COMPILE_AR_FORWARD", "MTPLX_COMPILED_TARGET_PREFIX"):
+     os.environ.setdefault(k, "0")
+-sys.path.insert(0, os.path.expanduser("~/BigMoE"))
+-sys.path.insert(0, os.path.expanduser("~/SpecDecode"))
++# [bundle] dropped (only load() / samples() import from there): sys.path.insert(0, os.path.expanduser("~/BigMoE"))
++# [bundle] dropped (only load() / samples() import from there): sys.path.insert(0, os.path.expanduser("~/SpecDecode"))
+ import numpy as np
+ import mlx.core as mx
+ import mlx.nn as nn
