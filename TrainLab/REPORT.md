@@ -5302,3 +5302,55 @@ Prediction [G]: qa PASS 30 % (HE+ is capped near x0.976 by H8 alone at t16 befor
 - Next levers (none run): a longer QAT (two passes / from b5), the qc control, or 8-bit Linears + top-4 (drop only
   the experts).
 - Weights: ~/datasets/deepdraft/ckpt/dd_t30qa.safetensors (latent fp32; the engine applies C2's cut), sha256 353965c596dc363001913fc9ccf22bf1a72bd2f9d6ecbe562d7acd671d346ad7.
+
+## WEEK98 S23 SMOE: the sparse-dense head, 2B analog (GRANDMA_1117 C4 = ALL_LEVERS item 9; the orchestrator 09:5x; pre-registered Wed 18 Nov 09:56, before any run)
+Why: S20 showed the head needs its capacity (a 2x smaller head lost 20-30 % kept). C4 keeps the capacity and cuts the
+bytes per level: the dense MLP becomes a fine-grained MoE of the SAME total parameters with ~1/4 active.
+Lever smoe (sb98/levers/smoe.py):
+- 16 (or 32) experts of contiguous native neurons, UPCYCLED (no new expert weights), top-1/4 active per token.
+- A router Linear(d -> E) on its own Adam at 1e-4, softmax gates x K. At init the output differs from the dense MLP
+  by 0.886 relative, the closest start four of 16 slices allow.
+- Compute is dense with masking (this measures kept, not speed).
+Arms (train_multi, s30's full recipe from native: base files, seed 1114, depth 30, 1,889 steps, cosine; <= 4 GB each):
+- sm16: E 16, K 4.
+- sm32: E 32, K 8 (finer-grained).
+Read-out: sb98/tree8.py vs s30 (bitwise f30), MBPP-50 / HE-30. Kept under the walk at chain-32 / tree-16 / tree-32
+(S9b proxy, gamma 1) + the expert usage histogram on a read-out window (collapse check).
+Line (the orchestrator / NewIdeas): PASS if kept >= 0.97 x s30 at tree-32 on BOTH sets (tree-16 beside). On a PASS: the
+125B head in the first free 16 GB window (likely after Saturday); MoonShots builds the engine after PK.
+Prediction [G]: sm16 PASS 35 %, sm32 PASS 40 % (S20's pruning lost 20-30 %; routing keeps every neuron reachable).
+Disk: sm16 / sm32 overwrite mhx_h2 / mhx_h3 (S20, read).
+
+## WEEK98 S24 VOCABCOV: per-check dynamic vocab screen coverage (GRANDMA_1117 C5 = ALL_LEVERS item 10; pre-registered Wed 18 Nov 09:57, before any data; CPU)
+Why: the static 32K screen costs +31 MB per level over 8K (+0.11 ms), and the static 8K costs 1.5-2.4 pt of kept. A
+per-check screen at 8K's bytes with 32K's coverage would save the bytes at 32K's kept.
+Data (read-only):
+- BigMoE's TOPK dumps (topk_t30b_{heplus24,mbppbank}.npz: per cell the true token y and the head's top-8 ids, the
+  walk layout);
+- the bank (ids, gen, the 125B's top-32 per committed row tk);
+- Leap's frspec_rank.npy (the static screens' rank).
+Walk = tree_kprice's (certify98 layout, R0 = 1). Every visited check's cells with a target, depths 0-30.
+Screens per check at anchor a (session = every id of ids[0 .. a + 1]):
+- static S_N = FR-Spec top-N + session (M3's), N = 8K / 16K / 32K;
+- dynamic D(B; R, k) = session + the 125B's top-k at the last R committed rows (rows >= gen - 1, <= a) + FR-Spec's top
+  ids filling up to B. B = 4K / 8K; (R, k) = (64, 8), (256, 8), (all, 32).
+Metrics: m1 = the true token's miss rate (y outside the screen); m2 = the share of the head's top-8 outside.
+Line: PASS if some dynamic D with B <= 8K has m1 <= m1(S_32K) AND m2 <= m2(S_32K) on BOTH sets. Then MoonShots'
+per-check screen engine is worth building (exact needs only a timing; lossy goes through tier 1 #2b).
+Prediction [G]: PASS 50 % (code reuses its own identifiers; the 125B's recent top-k covers the rest).
+### S24 VOCABCOV RESULT (Wed 18 Nov 09:58; CPU, 125B TOPK dumps): FAIL, no dynamic <= 8K screen matches the static 32K
+| screen | MBPP true miss | MBPP top-8 out | HE+ true miss | HE+ top-8 out |
+|---|---|---|---|---|
+| static 8K | 0.650 % | 9.51 % | 2.067 % | 13.90 % |
+| static 16K | 0.033 % | 5.33 % | 1.140 % | 8.04 % |
+| static 32K (the bar) | 0.024 % | 2.70 % | 0.743 % | 4.34 % |
+| dynamic 8K, session + the 125B's top-32 at every committed row + core | 0.424 % | 5.07 % | 0.883 % | 7.27 % |
+| dynamic 4K, same | 1.025 % | 6.61 % | 1.236 % | 8.92 % |
+- The dynamic 8K beats the static 8K everywhere, and beats the static 16K on HE+ true-token misses, but it stays well
+  above the static 32K on both sets.
+- On MBPP the global rank alone at 16K already covers almost everything (0.033 %). There the per-check additions don't
+  replace the global core.
+- The 125B's top-32 at all committed rows is the useful part: R 64 / k 8 is much worse than all rows / k 32.
+- So C5's lever (32K's coverage at 8K's bytes) fails as specified. A dynamic 16K might match the 32K (not tested;
+  -10.5 MB per level vs 32K's -31, ~0.07 ms per level).
+- Script: sb98/vocab_cov.py; data/sb98/s24_vocabcov.json.

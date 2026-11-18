@@ -197,3 +197,6 @@ Verdicts come from results. Where a line says "pre-registered", that names the t
 2026-11-17 17:35 MTP Head: S22 qa launched now (orchestrator 17:3x: GPU idle to 23:35); marker = data/s22/GO_1117 instead of the Wed-night END.
 2026-11-17 19:39 MTP Head: S22 QATC2 qa (125B, M3 TRUE-STATE): HE+ t16 x0.9513 / t32 x0.8849, MBPP t16 x0.9393 / t32 x0.9097 vs full t30b (post-hoc C2 x0.874 / x0.854 at t16): FAIL by the line (MBPP < 0.95); ~60 % of C2's loss recovered; dd_t30qa sha256 353965c596dc3630.
 2026-11-17 20:19 MTP Head: dd_t30qa pinned (read-only, sha256 353965c5) + handed to BigMoE for Thursday's exact A/B vs Q8H32 (orchestrator 19:4x); HANDOFF gains MoonShots' se_gatew cast note.
+2026-11-18 09:56 MTP Head: S23 SMOE pre-registered (item 9 / C4): upcycled fine-grained MoE MLP (E16/K4, E32/K8, same params, 1/4 active), s30's recipe; PASS >= 0.97x s30 at tree-32 both sets.
+2026-11-18 09:58 MTP Head: S24 VOCABCOV FAIL (CPU, 125B dumps): best dynamic 8K (session + the 125B's top-32 at all rows + core) true miss 0.42 % / 0.88 % (MBPP / HE+) vs static 32K 0.024 % / 0.74 %; head top-8 outside 5.1 % / 7.3 % vs 2.7 % / 4.3 %. Beats static 8K, not 32K.
+2026-11-18 09:58 MTP Head: item 2 (Thu W4 S22 continuation) SKIPPED: ~+1 % at best, and the arm-B entry depends on MoonShots' bit test + BigMoE re-pin; arm B keeps dd_t30qa.
