@@ -80,6 +80,27 @@ don't care about that. I just need to get that."
     - ADD 1 (orchestrator YES): REF2_BOF + REF2_HC_B in the LOSSY headline too, ~-3 ms per 16-row check, after the same
       bit test on the lossy loop (Wed).
     - ADD 2 (YES if Leap confirms + it bit-tests): REF2_GDN_LAZY (Leap's lazy GDN commit).
+- **Wed 18 02:10 BigMoE M4 (TREE16-M4AB, runs C1 T1 T2 C2 at gate 28; NO-SWAP was flat ~30 overnight from Kamen's
+  evening) = EXACT FAIL: 16 keys, differ ['mbpp/16', 'mbpp/30'].** The tree-16 verify on the full model is NOT
+  token-identical to the chain.
+  - Saturday's EXACT headline falls back to CHAIN-16 until it's fixed.
+  - BigMoE's first job Wed: a bug vs batch-variance diagnosis (the logit gap at the first differing token).
+  - If it's batch-variance, the cure is Leap's reference contract (batch-invariant K-chunks; E14 -5.8 ms), which is
+    KAMEN'S CALL (it changes the exact reference).
+  - The lossy tree-16 plumbing proceeds once a real bug is ruled out.
+  - BigMoE: the tokens differ from answer token 57 (mbpp/16) and 95 (mbpp/30); 14 / 16 keys are identical. C1 == C2 and
+    T1 == T2 bitwise, so each path is deterministic and the gap is a systematic tree-vs-chain difference.
+- **02:13 Leap SLOT #2 (quiet, 36 paired checks per arm; n2_run.txt):**
+  - 16-row (1c tiers 0.016, information):
+    - GDN16 -0.58 ms (bitwise);
+    - tgl16e -0.56 (bitwise);
+    - tgl16eu -2.30 (argmax 16 / 16, deterministic);
+    - all three: 39.06 -> 36.16 ms.
+  - 32-row:
+    - the bitwise stack F32c6x -2.47 (gdn_fast -1.21, HC32P -0.57);
+    - + tgl16eu F32c6xu -6.04: 56.54 -> 50.52 ms (argmax 30-32 / 32).
+  - Every bitwise pair was exact; 0 fails.
+  - Saturday's no-tier pricing comes from slot #3 at 07:15.
 > (a quote from the project owner, kept private)
   replies are BIG-only from now on.
 

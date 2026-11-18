@@ -2815,3 +2815,15 @@ The arms are t30b's exact run plus one change each: t30f adds a feature loss, an
     Scope: 16-row checks only. BOF2 (17-32 rows) never fired.
   - Cost: two runs of about 1 min each (load 2 s, 26.9 GB active) under a share lock "MEM 34 GB"; NO-SWAP 37.3 GB and
     away_secs 54,652 at the start; gates and a mid-run at-Mac yield as in mid_run.sh (sims: a full pass and a yield).
+- **Wed 02:00-02:10, TREE16 M4 (the engine A/B, C T T C on snapshot t16b, exact-45 at C 160, 16 keys x 256 tokens):
+  EXACT FAIL** (scripts/m4_night_1117e.sh; data/r57/m4_1117.log, m4_1117_runs.log, t16b{C1,T1,T2,C2}_{runs,tokens,
+  checks}.json, NIGHT1117_BIGMOE_END; verdict by scripts/tree16_m4ab.py per docs/TREE16_M4_PREREG.md).
+  - All four runs rc 0 (138 / 164 / 145 / 135 s). 14 of 16 keys are token-identical across all four runs; mbpp/16 and
+    mbpp/30 differ tree vs chain, from answer token 57 and token 95.
+  - Each path is deterministic: C1 == C2 and T1 == T2 bitwise on every key. So the gap is systematic tree vs chain, not
+    run-to-run noise. Whether it is a near-tie flip from shape-dependent numerics (batch variance) or a real mask /
+    position / commit bug needs the verify logits at those positions: the next job. Until then the exact headline runs
+    chain-16 (the orchestrator).
+  - It ran at a lowered memory gate: NO-SWAP sat at 29-30 GB all night (idle chat sessions are never closed), so the
+    orchestrator set gate 28 (26 after 20 min) with the +2 GB swap guard; it opened at 29 / 29 GB. An earlier arming
+    ended NOT RUN at 23:45 (NO-SWAP 30-31 < 36 under the ticket).
