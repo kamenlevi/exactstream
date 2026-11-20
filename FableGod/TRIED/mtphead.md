@@ -202,3 +202,4 @@ Verdicts come from results. Where a line says "pre-registered", that names the t
 2026-11-18 09:58 MTP Head: item 2 (Thu W4 S22 continuation) SKIPPED: ~+1 % at best, and the arm-B entry depends on MoonShots' bit test + BigMoE re-pin; arm B keeps dd_t30qa.
 2026-11-18 10:31 MTP Head: S23 SMOE FAIL (item 9 / C4, sandbox LAB): upcycled fine-grained MoE MLP, 1/4 active (E16/K4, E32/K8), s30's recipe: kept x0.73-0.81 of s30 at tree-16/32 (no collapse), same as the 1/4-wide pruned head (S20).
 2026-11-18 11:40 MTP Head: answered EvalSuite's b5 lineage question (l120 99 + d22c 147 = 246 windows, no --init, native-head start, no other HE / MBPP 11-510 / IFBench); told BigMoE no S22 poller of mine is keyed on NIGHT1118.
+2026-11-20 05:36 MTP Head: project PAUSED by Kamen (11-19 22:2x); idle, no wake-ups, all data kept.
