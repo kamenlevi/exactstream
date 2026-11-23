@@ -34,12 +34,13 @@ on macOS 26.5 (25F71).
   and prompts, and the whole request at 24.4 against Strata's 20.3-21.0 tok/s. On the other sets we have not timed P2:
   there, from the 1.1.0 runs, Strata gives the first token 1.9-2.5x faster, while our decode is ahead on code (3.3-5.0x).
 - Coding agents were tested at 32 and 45 GB only. EvalSuite's Claude Code agent test passed with the conversation cache
-  at 32 GB (two runs) and at 45 GB; without the cache, at 32 GB, it failed its tool-call probe line (27 of 30 against
-  28). At 24 GB only a three-task smoke test ran. Codex was only smoke-tested (three tasks at 24 GB).
-- The conversation cache is on at 45 and 32 GB and off at 24 GB, where it is unchecked. It holds up to 2.5 GB by default.
-  In the agent tests the server's lifetime peak was 36.17 GB at 32 GB and 49.43 GB at 45 GB. Agent prompts at 24 GB
-  take it over 24 GB (27.3 GB at 12.6K tokens), and without the cache every turn there prefills its whole prompt (about
-  31 s to the first token at 12.6K tokens).
+  at 32 GB (three runs, the last on 1.2.0 itself) and at 45 GB; without the cache, at 32 GB, it failed its tool-call
+  probe line (27 of 30 against 28). At 24 GB only a three-task smoke test ran. Codex was only smoke-tested (three tasks
+  at 24 GB).
+- The conversation cache is on at 45 and 32 GB and off at 24 GB, where it is unchecked. It holds up to 2.5 GB by
+  default. In the agent tests the server's lifetime peak was up to 36.50 GB at 32 GB (the 1.2.0 run; 36.17 GB in the
+  earlier runs) and 49.43 GB at 45 GB. Agent prompts at 24 GB take it over 24 GB (27.3 GB at 12.6K tokens), and without
+  the cache every turn there prefills its whole prompt (about 31 s to the first token at 12.6K tokens).
 - `serve.py` runs one request at a time. Every turn in `chat.py` prefills the whole conversation.
 - The lossy configs are gated on the named benchmarks only. On a multilingual chat set, M1-B (the `chat` configs' lossy
   part) fails our own blunder check, which is information only.

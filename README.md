@@ -8,6 +8,8 @@ On a MacBook Pro with an M5 Pro (18-core CPU, 20-core GPU), 64 GB of memory and 
 
 This is research code, released as measured, and it has only been tested on that one MacBook Pro.
 
+Research on this project paused on 19 November 2026. Version 1.3.0 (23 November) publishes everything measured and estimated up to then; the engine is unchanged from 1.2.0.
+
 ## Install
 
 You need an Apple-silicon Mac with 64 GB of memory (36 GB or more for the 24 GB setting, which we have not tested on such a Mac; see [INSTALL.md](INSTALL.md)), macOS 26, Python 3.12, CMake, the Xcode command-line tools and about 206 GB of free disk. One command checks the Mac, downloads the model and the drafters (about 108 GB, no account needed), converts the expert store and installs:
@@ -36,6 +38,8 @@ starts the local server and runs Claude Code on it, with a status line that show
 The whole project is written up in [What It Takes to Run a 125B LLM Fast on a 64 GB Mac, and How to Go Faster](docs/pdf/complete.pdf). The parts are also available separately: [main paper](docs/pdf/main.pdf), [kernels](docs/pdf/kernels.pdf), [evaluation](docs/pdf/evaluation.pdf), [drafter](docs/pdf/drafter.pdf) and [release](docs/pdf/release.pdf).
 
 The 24 GB and 12 GB lines are written up in [A 125B mixture-of-experts model in 32, 24 and 12 GB of memory on one Mac](docs/pdf/small-ram.pdf).
+
+The latest results and predictions, up to the pause, are in [Latest results](docs/pdf/latest-results.pdf), and the 30-token exact drafter in [How deep can an exact drafter go?](docs/pdf/exact-drafter.pdf).
 
 Research data (every measurement, script and record the papers cite): the [`research` branch](https://github.com/kamenlevi/exactstream/tree/research).
 

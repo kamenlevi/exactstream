@@ -9,13 +9,13 @@
 <body>
 <h1>Papers</h1>
 <p class="author">Kamen Levi</p>
-<p class="date">11 November 2026</p>
+<p class="date">23 November 2026</p>
 <div class="paper">
-<h2><a href="complete.html">What It Takes to Run a 125B LLM Fast on a 64 GB Mac, and How to Go Faster (complete report, Parts I-VI)</a></h2>
+<h2><a href="complete.html">What It Takes to Run a 125B LLM Fast on a 64 GB Mac, and How to Go Faster (complete report, Parts I-VIII)</a></h2>
 <p class="author">Kamen Levi</p>
-<p class="date">11 November 2026</p>
+<p class="date">23 November 2026</p>
 <div class="abstract">
-<p>Complete report: the main paper and five companion papers as Parts I-VI.</p>
+<p>Complete report: the main paper and seven companion papers as Parts I-VIII.</p>
 <ol class="parts">
 <li>Part I: <a href="main.html">What It Takes to Run a 125B LLM Fast on a 64 GB Mac, and How to Go Faster</a> (from page 3; <a href="pdf/main.pdf">separate PDF</a>)</li>
 <li>Part II: <a href="kernels.html">Batch-invariant kernels on Apple&#x27;s M5 GPU and its matrix units</a> (from page 38; <a href="pdf/kernels.pdf">separate PDF</a>)</li>
@@ -23,6 +23,8 @@
 <li>Part IV: <a href="drafter.html">Drafting for a 125B mixture-of-experts model that does not fit in RAM: training its own MTP head, one drafter per text type, and the levers that failed</a> (from page 65; <a href="pdf/drafter.pdf">separate PDF</a>)</li>
 <li>Part V: <a href="release.html">Running a 125B mixture-of-experts model on a 64 GB Mac: the engine package</a> (from page 82; <a href="pdf/release.pdf">separate PDF</a>)</li>
 <li>Part VI: <a href="small-ram.html">A 125B mixture-of-experts model in 32, 24 and 12 GB of memory on one Mac</a> (from page 92; <a href="pdf/small-ram.pdf">separate PDF</a>)</li>
+<li>Part VII: <a href="exact-drafter.html">How deep can an exact drafter go? A 30-token draft head for a 125B mixture-of-experts model on a 64 GB Mac</a> (from page 113; <a href="pdf/exact-drafter.pdf">separate PDF</a>)</li>
+<li>Part VIII: <a href="latest-results.html">Latest results and predictions: a 125B mixture-of-experts model on a 64 GB Mac (November 2026)</a> (from page 124; <a href="pdf/latest-results.pdf">separate PDF</a>)</li>
 </ol>
 </div>
 <p><a href="pdf/complete.pdf">PDF</a> &middot; <a href="complete.html">Abstract page</a></p>
@@ -359,6 +361,85 @@ instead of 210.2 [P]</li>
 </ul>
 </div>
 <p><a href="pdf/small-ram.pdf">PDF</a> &middot; <a href="small-ram.html">Abstract page</a></p>
+</div>
+<div class="paper">
+<h2><a href="exact-drafter.html">How deep can an exact drafter go? A 30-token draft head for a 125B mixture-of-experts model on a 64 GB Mac</a></h2>
+<p class="author">Kamen Levi</p>
+<p class="date">23 November 2026</p>
+<div class="abstract">
+<p>Speculative decoding makes a large model faster by letting a small
+drafter guess several tokens that the large model then checks in one
+pass. In exact mode the output must stay bit-identical to one-token
+greedy decoding, so the drafter can change only the speed, never the
+text. We ask how far ahead an exact drafter can usefully guess for
+Qwen3.8-Flash-Next, a 125B mixture-of-experts model (48 layers, 512
+routed experts per layer, 10 per token, hybrid gated-delta-net and
+attention layers) whose experts stream from the internal SSD of a
+MacBook Pro (M5 Pro, 64 GB).</p>
+<p>We train the model's own multi-token-prediction (MTP) layer to chain
+30 tokens deep with a 30-step training-time test. We call this head
+t30b. We measure it on 24 held-out HumanEval+ problems and 100 held-out
+MBPP problems. Five findings:</p>
+<ol type="1">
+<li><strong>The deep loss is drift, not missing knowledge.</strong>
+Drafting from its own carried state, the head's per-guess accuracy on
+HumanEval+ falls from 97.95 % at the first guess to 89.65 % at guesses
+23-30 (MBPP: 94.01 % to 72.13 %) [K]. Given the 125B's true state at
+each drafted position, every guess is as good as a first guess:
+97.7-98.0 % at every depth on HumanEval+ and 93.6-94.0 % on MBPP [LAB].
+About 5x more training data added 2.3 points at guesses 23-30, and twice
+the trainable capacity added nothing [K].</li>
+<li><strong>Accuracy must be measured where checks start.</strong> A
+check starts right after the previous check's first miss, and misses
+cluster. There the first guess is right only 91.97 % of the time on
+HumanEval+ and 89.70 % on MBPP [K]; about half of this dip comes from
+the 125B's own close calls. The first 15 guesses decide the total:
+raising them to 98 % gives 22.63 of the 23.81 tokens a flat 98 % drafter
+keeps per 32-row check, while raising guesses 15-30 alone adds 0.6
+[P].</li>
+<li><strong>The right token is usually close, and trees use
+that.</strong> At check starts the 125B's token is in the head's top 4
+in 98.5 % of cases on HumanEval+ (99.0 % on MBPP), and the head's own
+confidence separates easy starts from hard ones [K]. A 16-node
+EAGLE-2-style tree keeps 6.0 % more tokens per check than a 16-token
+chain on HumanEval+ and 13.6 % more on MBPP [K]. No tree up to 128 nodes
+holds 98 % per depth band to depth 30 [P].</li>
+<li><strong>The 125B decides late.</strong> A lens on its partial state
+locates the head's misses well only in its last 4 of 48 layers [K], so
+no cheap partial-depth readout can stand in for the true state. No drift
+fix we screened closed more than a small part of the gap; the best, a
+second small model (2B or 4B) that audits the head's drafts, raised kept
+tokens by 5-12 % [K].</li>
+<li><strong>Exact tree checks are harder on a hybrid model.</strong> A
+16-node tree flipped one near-tie at token 95 of one MBPP answer. A
+16-token chain under a fixed, row-count-invariant kernel set (the
+"reference contract") matched its own one-token decoding on 16 of 16
+prompts: 2,604 of 2,604 kept-row logit hashes [K].</li>
+</ol>
+<p>An exact 32-row check on this Mac cannot cost less than about 58 ms
+on code (its byte floor [P]; it measures 90-102 ms today [K]). At that
+floor, with free drafting, a drafter that held 98 % to depth 30 would
+cap near 410 tok/s on code and a perfect one near 550 [P]. With t30b the
+exact 16-token chain is priced at about 130-160 tok/s on code; it was
+not timed at the 45 GB setting [P].</p>
+<hr />
+</div>
+<p><a href="pdf/exact-drafter.pdf">PDF</a> &middot; <a href="exact-drafter.html">Abstract page</a></p>
+</div>
+<div class="paper">
+<h2><a href="latest-results.html">Latest results and predictions: a 125B mixture-of-experts model on a 64 GB Mac (November 2026)</a></h2>
+<p class="author">Kamen Levi</p>
+<p class="date">23 November 2026</p>
+<div class="abstract">
+<p>The project paused on 19 November 2026. This report collects every
+result and projection recorded after the last public release
+(ExactStream v1.2.0 with papers v1.1.0, 12 November). Nothing was
+re-run. Each number is copied from a saved record in the public research
+snapshot github.com/kamenlevi/350-tps, cited by path and line. The
+30-token exact drafter (t30b) has its own paper, "the exact-drafter
+paper"; here it gets one short section.</p>
+</div>
+<p><a href="pdf/latest-results.pdf">PDF</a> &middot; <a href="latest-results.html">Abstract page</a></p>
 </div>
 
 </body>
