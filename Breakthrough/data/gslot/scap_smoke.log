@@ -1,0 +1,16 @@
+[gslot scap_smoke] armed: env DM_OUT=/Users/kamen/Breakthrough/data/scap_smoke /Users/kamen/BigMoE/.venv/bin/python /Users/kamen/Breakthrough/scripts/dm_s7/scap_pass.py smoke; est 3 min, MEM 16 GB; last start Thu 11:15, hard stop Thu 11:45 Thu 10:29:08
+shared run reserved until 10:48 (about 200% CPU, 100% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done.
+Free for it now: about 13 cores (1305% CPU) and about 100% of the GPU after other shared runs (MoonShots: unusual-place idea hunt for local LLM speed: 400% CPU, 0% GPU). It fits: use about 2 workers or -j 2.
+[gslot scap_smoke] go (NO-SWAP 47 GB, swap 10637 MB) Thu 10:29:29
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=45.0 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[dm] loaded in 1s (C 51)
+[dm] discover_layers: 48 layers, {'gdn': 36, 'hc': 96, 'moe': 48, 'att': 12}; missing []
+[dm] MoE block: top_k 10, norm_topk_prob True
+scapture code tf_code_HumanEval_135.npz 144 positions 7s; routing 282 rows; scores (281, 48, 10)
+[scap] smoke: 1 windows in 7s (load 1s), MLX peak 12.5 GB
+[scap] checks: 1/1 windows formed; routing ids == the map's stored routing on 100.0000% of (row, layer) cells; baseline top-1 == the map's baseline on 100.0000% of 144 rows; answer rows vs the 11-03 xcapture max |diff| 0.00e+00; PASS
+lock released
+[gslot scap_smoke] done (rc 0); unlocked Thu 10:29:44

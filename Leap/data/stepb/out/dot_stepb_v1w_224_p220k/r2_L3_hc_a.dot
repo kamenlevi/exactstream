@@ -1,0 +1,98 @@
+digraph {
+{ rank=source; "A"; }
+{ 50664005144 [label ="Reshape", shape=rectangle]; }
+"A" -> 50664005144
+{ "B"; }
+50664005144 -> "B"
+{ rank=source; "C"; }
+{ 50663999256 [label ="Broadcast", shape=rectangle]; }
+"C" -> 50663999256
+{ "D"; }
+50663999256 -> "D"
+{ 50773297192 [label ="Full", shape=rectangle]; }
+"D" -> 50773297192
+{ "E"; }
+50773297192 -> "E"
+{ 50773303816 [label ="Concatenate", shape=rectangle]; }
+"B" -> 50773303816
+"E" -> 50773303816
+{ "F"; }
+50773303816 -> "F"
+{ 50664001944 [label ="Reshape", shape=rectangle]; }
+"F" -> 50664001944
+{ "G"; }
+50664001944 -> "G"
+{ 50663999384 [label ="Reshape", shape=rectangle]; }
+"G" -> 50663999384
+{ "H"; }
+50663999384 -> "H"
+{ rank=source; "I"; }
+{ rank=source; "J"; }
+{ rank=source; "K"; }
+{ rank=source; "L"; }
+{ rank=source; "M"; }
+{ 50627683992 [label ="CustomKernel", shape=rectangle]; }
+"H" -> 50627683992
+"H" -> 50627683992
+"H" -> 50627683992
+"I" -> 50627683992
+"J" -> 50627683992
+"K" -> 50627683992
+"L" -> 50627683992
+"M" -> 50627683992
+{ "N"; }
+50627683992 -> "N"
+{ "O"; }
+50627683992 -> "O"
+{ "P"; }
+50627683992 -> "P"
+{ 50627683768 [label ="CustomKernel", shape=rectangle]; }
+"N" -> 50627683768
+"O" -> 50627683768
+{ "Q"; }
+50627683768 -> "Q"
+{ "R"; }
+50627683768 -> "R"
+{ "S"; }
+50627683768 -> "S"
+{ "T"; }
+50627683768 -> "T"
+{ rank=source; "U"; }
+{ rank=source; "V"; }
+{ rank=source; "W"; }
+{ 50627683544 [label ="CustomKernel", shape=rectangle]; }
+"Q" -> 50627683544
+"U" -> 50627683544
+"V" -> 50627683544
+"W" -> 50627683544
+"P" -> 50627683544
+"S" -> 50627683544
+"I" -> 50627683544
+"T" -> 50627683544
+{ "X"; }
+50627683544 -> "X"
+{ 50625864472 [label ="Slice", shape=rectangle]; }
+"X" -> 50625864472
+{ "Y"; }
+50625864472 -> "Y"
+{ 50664010008 [label ="Reshape", shape=rectangle]; }
+"Y" -> 50664010008
+{ rank=sink; "Z"; }
+50664010008 -> "Z"
+{ 50625863832 [label ="Slice", shape=rectangle]; }
+"P" -> 50625863832
+{ "AA"; }
+50625863832 -> "AA"
+{ 50664011032 [label ="Reshape", shape=rectangle]; }
+"AA" -> 50664011032
+{ rank=sink; "AB"; }
+50664011032 -> "AB"
+{ 50625864792 [label ="Slice", shape=rectangle]; }
+"R" -> 50625864792
+{ "AC"; }
+50625864792 -> "AC"
+{ 50664002840 [label ="Reshape", shape=rectangle]; }
+"AC" -> 50664002840
+{ rank=sink; "AD"; }
+50664002840 -> "AD"
+}

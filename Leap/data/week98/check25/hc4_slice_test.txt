@@ -1,0 +1,49 @@
+HC4 SLICE TEST Mon 16 Nov 14:25:00: MLX 0.32.2; slice GGGA; DENSE-N-RAM 15 weights; hc4.prepare -> ({'mix': 18, 'inject': 8, 'ple': 2}, 51.79392); HC8 18 mixers; SVH base 98304; hc4 1794828002 (/Users/kamen/Breakthrough/scripts/m1/g2/hc4.py); 6.9 GB active
+(3) never engaged, 16 rows: hc4i {'hc4_16': 0, 'hc4_32': 0, 'passthru': 18} (hc4 reads must be 0)
+(1) 16 rows: 8 reads served by hc4i at rows [16]; max rel vs the eager 4-bit read: mixed 0.00638, written 0, inject 0.0103 (tolerance mixed 1.8e-03); hc4i {'hc4_16': 8, 'hc4_32': 0, 'passthru': 18}
+(2) 16 rows, engaged, hc4i vs every HC read eager (4-bit modules through MTPLX): rows bitwise 0 / 16, max |logit diff| 0.2692, argmax agrees 16 / 16
+    vs the never-engaged 8-bit run (first 16 rows): rows bitwise 0 / 16, max |logit diff| 0.9375, argmax agrees 11 / 16
+(1) 32 rows, v32: 8 reads served by hc4i at rows [32]; max rel vs the eager 4-bit read: mixed 0.0101, written 0, inject 0.0103 (tolerance mixed 1.8e-03); hc4i {'hc4_16': 0, 'hc4_32': 8, 'passthru': 18}
+(2) 32 rows, v32, engaged, hc4i vs every HC read eager (4-bit modules through MTPLX): rows bitwise 0 / 32, max |logit diff| 0.5, argmax agrees 29 / 32
+    vs the never-engaged 8-bit run (first 16 rows): rows bitwise 0 / 16, max |logit diff| 0.9141, argmax agrees 10 / 16
+(1) 32 rows, f32one dn32: 8 reads served by hc4i at rows [32]; max rel vs the eager 4-bit read: mixed 0.00939, written 0, inject 0.0103 (tolerance mixed 1.8e-03); hc4i {'hc4_16': 0, 'hc4_32': 8, 'passthru': 18}
+(2) 32 rows, f32one dn32, engaged, hc4i vs every HC read eager (4-bit modules through MTPLX): rows bitwise 0 / 32, max |logit diff| 0.1797, argmax agrees 32 / 32
+    vs the never-engaged 8-bit run (first 16 rows): rows bitwise 0 / 16, max |logit diff| 0.9297, argmax agrees 11 / 16
+(3) engage(False) after engaged items, 16 rows vs never engaged: rows bitwise 16 / 16, max |logit diff| 0, argmax agrees 16 / 16
+(4) hc4.COUNTS {'hc4': 0, 'swaps': 12, 'engaged_items': 6}
+VERDICT: FAIL: 16 rows: mixed rel 0.00638 > 1.8e-03; 32 rows, v32: mixed rel 0.0101 > 1.8e-03; 32 rows, f32one dn32: mixed rel 0.00939 > 1.8e-03; done in 5 s; peak 8.4 GB
+HC4 SLICE TEST Mon 16 Nov 14:26:38: MLX 0.32.2; slice GGGA; DENSE-N-RAM 15 weights; hc4.prepare -> ({'mix': 18, 'inject': 8, 'ple': 2}, 51.79392); HC8 18 mixers; SVH base 98304; hc4 1794828002 (/Users/kamen/Breakthrough/scripts/m1/g2/hc4.py); 6.9 GB active
+(3) never engaged, 16 rows: hc4i {'hc4_16': 0, 'hc4_32': 0, 'passthru': 18} (hc4 reads must be 0)
+(1) 16 rows: 8 reads served by hc4i at rows [16]; max rel vs the eager 4-bit read: mixed 0.00638, written 0, inject 0.0103 (tolerance mixed 1.8e-03); hc4i {'hc4_16': 8, 'hc4_32': 0, 'passthru': 26}
+    the same reads vs the eager read with the inject dequantized to bf16 (as hc4i holds it): mixed 0.00638, written 0, inject 0.0098
+(2) 16 rows, engaged, hc4i vs every HC read eager (4-bit modules through MTPLX): rows bitwise 0 / 16, max |logit diff| 0.2692, argmax agrees 16 / 16
+    vs the never-engaged 8-bit run (first 16 rows): rows bitwise 0 / 16, max |logit diff| 0.9375, argmax agrees 11 / 16
+(1) 32 rows, v32: 8 reads served by hc4i at rows [32]; max rel vs the eager 4-bit read: mixed 0.0101, written 0, inject 0.0103 (tolerance mixed 1.8e-03); hc4i {'hc4_16': 0, 'hc4_32': 8, 'passthru': 26}
+    the same reads vs the eager read with the inject dequantized to bf16 (as hc4i holds it): mixed 0.0101, written 0, inject 0.0103
+(2) 32 rows, v32, engaged, hc4i vs every HC read eager (4-bit modules through MTPLX): rows bitwise 0 / 32, max |logit diff| 0.5, argmax agrees 29 / 32
+    vs the never-engaged 8-bit run (first 16 rows): rows bitwise 0 / 16, max |logit diff| 0.9141, argmax agrees 10 / 16
+(1) 32 rows, f32one dn32: 8 reads served by hc4i at rows [32]; max rel vs the eager 4-bit read: mixed 0.00939, written 0, inject 0.0103 (tolerance mixed 1.8e-03); hc4i {'hc4_16': 0, 'hc4_32': 8, 'passthru': 26}
+    the same reads vs the eager read with the inject dequantized to bf16 (as hc4i holds it): mixed 0.00939, written 0, inject 0.0103
+(2) 32 rows, f32one dn32, engaged, hc4i vs every HC read eager (4-bit modules through MTPLX): rows bitwise 0 / 32, max |logit diff| 0.1797, argmax agrees 32 / 32
+    vs the never-engaged 8-bit run (first 16 rows): rows bitwise 0 / 16, max |logit diff| 0.9297, argmax agrees 11 / 16
+(3) engage(False) after engaged items, 16 rows vs never engaged: rows bitwise 16 / 16, max |logit diff| 0, argmax agrees 16 / 16
+(4) hc4.COUNTS {'hc4': 0, 'swaps': 12, 'engaged_items': 6}
+VERDICT: FAIL: 16 rows: mixed rel 0.00638 > 1.8e-03; 32 rows, v32: mixed rel 0.0101 > 1.8e-03; 32 rows, f32one dn32: mixed rel 0.00939 > 1.8e-03; done in 7 s; peak 8.4 GB
+HC4 SLICE TEST Mon 16 Nov 14:27:52: MLX 0.32.2; slice GGGA; DENSE-N-RAM 15 weights; hc4.prepare -> ({'mix': 18, 'inject': 8, 'ple': 2}, 51.79392); HC8 18 mixers; SVH base 98304; hc4 1794828002 (/Users/kamen/Breakthrough/scripts/m1/g2/hc4.py); 6.9 GB active
+(3) never engaged, 16 rows: hc4i {'hc4_16': 0, 'hc4_32': 0, 'passthru': 36} (hc4 reads must be 0)
+(0) HC8 (8-bit, ref2's hc8_fast, the FAST stack's own form) vs MTPLX's eager 8-bit read, 18 reads at 16 rows: max rel mixed 0.00926, written 0, inject 0.00926
+(1) 16 rows: 8 reads served by hc4i at rows [16]; max rel vs the eager 4-bit read: mixed 0.00638, written 0, inject 0.0103 (tolerance mixed 1.8e-03); hc4i {'hc4_16': 8, 'hc4_32': 0, 'passthru': 26}
+    the same reads vs the eager read with the inject dequantized to bf16 (as hc4i holds it): mixed 0.00638, written 0, inject 0.0098
+(2) 16 rows, engaged, hc4i vs every HC read eager (4-bit modules through MTPLX): rows bitwise 0 / 16, max |logit diff| 0.2692, argmax agrees 16 / 16
+    vs the never-engaged 8-bit run (first 16 rows): rows bitwise 0 / 16, max |logit diff| 0.9375, argmax agrees 11 / 16
+(1) 32 rows, v32: 8 reads served by hc4i at rows [32]; max rel vs the eager 4-bit read: mixed 0.0101, written 0, inject 0.0103 (tolerance mixed 1.8e-03); hc4i {'hc4_16': 0, 'hc4_32': 8, 'passthru': 26}
+    the same reads vs the eager read with the inject dequantized to bf16 (as hc4i holds it): mixed 0.0101, written 0, inject 0.0103
+(2) 32 rows, v32, engaged, hc4i vs every HC read eager (4-bit modules through MTPLX): rows bitwise 0 / 32, max |logit diff| 0.5, argmax agrees 29 / 32
+    vs the never-engaged 8-bit run (first 16 rows): rows bitwise 0 / 16, max |logit diff| 0.9141, argmax agrees 10 / 16
+(1) 32 rows, f32one dn32: 8 reads served by hc4i at rows [32]; max rel vs the eager 4-bit read: mixed 0.00939, written 0, inject 0.0103 (tolerance mixed 1.8e-03); hc4i {'hc4_16': 0, 'hc4_32': 8, 'passthru': 26}
+    the same reads vs the eager read with the inject dequantized to bf16 (as hc4i holds it): mixed 0.00939, written 0, inject 0.0103
+(2) 32 rows, f32one dn32, engaged, hc4i vs every HC read eager (4-bit modules through MTPLX): rows bitwise 0 / 32, max |logit diff| 0.1797, argmax agrees 32 / 32
+    vs the never-engaged 8-bit run (first 16 rows): rows bitwise 0 / 16, max |logit diff| 0.9297, argmax agrees 11 / 16
+(3) engage(False) after engaged items, 16 rows vs never engaged: rows bitwise 16 / 16, max |logit diff| 0, argmax agrees 16 / 16
+(4) hc4.COUNTS {'hc4': 0, 'swaps': 12, 'engaged_items': 6}
+VERDICT: FAIL: 16 rows: mixed rel 0.00638 > 1.8e-03; 32 rows, v32: mixed rel 0.0101 > 1.8e-03; 32 rows, f32one dn32: mixed rel 0.00939 > 1.8e-03; done in 7 s; peak 8.4 GB

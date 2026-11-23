@@ -1,0 +1,68 @@
+M-17 LAYSZ45: cap45 humaneval_HumanEval_68 5, math500_test_prealgebra_1640 48, humaneval_HumanEval_91 25, math500_test_algebra_694 32, math500_test_algebra_1282 34, gsm8k_708 32 checks; kept tokens (prompts 2-6) 1045, 6.11 per check; router top-10 agreement with the captured ids 98.16 %; load 17 s
+  checks 16: rows 16.00 per check; needs per layer: base pool 70.1, sidecar 16.9
+  checks SHORT: rows 8.01 per check; needs per layer: base pool 42.4, sidecar 9.6
+  replays: 13248 (40 s)
+16-row checks, P30, C 224 (246 + 112, 29.68 GB of pools): uniform 116.9 MB per kept token (base misses 47.1 + sidecar misses 19.4 per kept token)
+    FLOOR: held-out 116.9 -> 92.7 MB per kept token (-20.7 %; per prompt -26.1, -17.1, -18.6, -25.0, -15.8)
+    FREE: held-out 116.9 -> 92.7 MB per kept token (-20.6 %; per prompt -26.0, -17.1, -18.8, -25.1, -15.3)
+    RESPLIT: held-out 116.9 -> 113.4 MB per kept token (-3.0 %; per prompt -4.6, -2.4, -2.8, -2.3, -2.4); one size for all: C_m 264, C_l 56 (last fold)
+    FLOOR sizes (calibrated on prompts 2-6, in-sample -21.9 %; pools 29.68 of 29.68 GB): C_m 160-408 (median 252), C_l 32-128 (median 72); MSB share of pool bytes 90.8 % (uniform 86.1 %)
+      C_m by layer: 400 408 376 288 312 344 360 352 288 256 312 246 320 296 246 160 168 232 304 248 232 280 352 240 256 192 256 208 272 240 216 160 160 200 272 208 184 240 312 184 184 246 264 216 224 224 256 272
+      C_l by layer: 128 112 112 72 96 112 120 112 72 40 80 48 104 72 72 32 40 48 120 64 56 80 120 56 72 40 80 56 88 56 56 32 40 56 104 48 56 80 112 32 40 56 88 48 72 72 88 88
+      wrote /Users/kamen/MoonShots/data/laysz45_224.json (BIGMOE_TIER_SIZES format)
+    FREE sizes (calibrated on prompts 2-6, in-sample -22.1 %; pools 29.68 of 29.68 GB): C_m 128-408 (median 256), C_l 32-128 (median 72); MSB share of pool bytes 90.8 % (uniform 86.1 %)
+      C_m by layer: 400 408 376 304 312 352 360 352 288 256 312 248 320 296 246 144 168 232 312 256 232 280 352 240 256 192 256 208 272 240 216 128 136 216 272 208 184 240 312 184 184 246 264 224 224 224 256 272
+      C_l by layer: 128 112 112 72 96 112 120 112 72 40 80 48 104 72 72 32 40 48 120 64 56 80 120 56 72 40 80 56 104 56 56 32 40 56 104 48 56 80 112 32 40 56 88 48 72 72 88 88
+16-row checks, P30, C 256 (287 + 112, 33.93 GB of pools): uniform 85.0 MB per kept token (base misses 32.4 + sidecar misses 19.4 per kept token)
+    FLOOR: held-out 85.0 -> 68.6 MB per kept token (-19.3 %; per prompt -20.0, -15.9, -19.9, -27.6, -13.0)
+    FREE: held-out 85.0 -> 68.6 MB per kept token (-19.3 %; per prompt -19.9, -15.9, -20.0, -27.7, -12.9)
+    RESPLIT: held-out 85.0 -> 84.5 MB per kept token (-0.6 %; per prompt -1.4, -0.1, -0.6, -1.1, +0.2); one size for all: C_m 304, C_l 64 (last fold)
+    FLOOR sizes (calibrated on prompts 2-6, in-sample -21.0 %; pools 33.93 of 33.93 GB): C_m 160-448 (median 284), C_l 32-160 (median 84); MSB share of pool bytes 90.3 % (uniform 87.8 %)
+      C_m by layer: 440 440 448 344 336 376 408 424 376 264 392 288 360 400 280 160 192 264 360 280 264 328 376 280 328 208 288 224 304 272 232 160 168 232 288 224 208 272 352 200 208 272 296 264 248 256 296 288
+      C_l by layer: 136 160 136 80 96 128 136 136 72 64 112 72 128 112 88 40 40 72 136 80 64 96 152 64 80 56 96 72 112 88 64 32 40 64 112 64 56 96 144 40 56 72 112 56 80 88 96 96
+      wrote /Users/kamen/MoonShots/data/laysz45_256.json (BIGMOE_TIER_SIZES format)
+    FREE sizes (calibrated on prompts 2-6, in-sample -21.0 %; pools 33.93 of 33.93 GB): C_m 144-448 (median 284), C_l 32-160 (median 84); MSB share of pool bytes 90.3 % (uniform 87.8 %)
+      C_m by layer: 440 440 448 344 336 376 408 424 376 264 392 288 360 400 280 160 192 264 360 280 264 328 376 280 328 208 288 224 304 272 232 144 176 240 288 224 208 272 352 200 208 272 296 264 248 256 296 288
+      C_l by layer: 136 160 136 80 96 128 136 136 72 64 112 72 128 112 88 40 40 72 136 80 64 96 152 64 80 56 96 72 112 88 64 32 40 64 112 64 56 96 144 40 56 72 112 56 80 88 96 96
+16-row checks, LRU, C 224 (246 + 112, 29.68 GB of pools): uniform 128.2 MB per kept token (base misses 52.1 + sidecar misses 20.0 per kept token)
+    FLOOR: held-out 128.2 -> 101.4 MB per kept token (-20.9 %; per prompt -24.0, -16.8, -20.8, -25.5, -16.3)
+    FREE: held-out 128.2 -> 101.5 MB per kept token (-20.8 %; per prompt -24.2, -16.9, -20.8, -25.8, -15.6)
+    RESPLIT: held-out 128.2 -> 124.2 MB per kept token (-3.1 %; per prompt -3.5, -2.8, -3.1, -2.6, -3.2); one size for all: C_m 256, C_l 80 (last fold)
+    FLOOR sizes (calibrated on prompts 2-6, in-sample -22.1 %; pools 29.68 of 29.68 GB): C_m 160-416 (median 252), C_l 32-128 (median 72); MSB share of pool bytes 90.9 % (uniform 86.1 %)
+      C_m by layer: 408 416 376 296 304 344 352 352 280 246 312 264 328 287 246 160 160 240 304 246 216 288 360 224 248 192 256 200 272 232 216 160 160 200 272 192 184 272 320 176 192 246 272 208 224 224 264 280
+      C_l by layer: 128 112 120 72 88 104 112 112 80 40 96 48 96 88 64 32 32 64 120 64 56 80 104 48 64 40 80 56 96 64 56 32 40 56 96 64 48 72 104 32 40 64 96 40 72 72 80 88
+    FREE sizes (calibrated on prompts 2-6, in-sample -22.2 %; pools 29.68 of 29.68 GB): C_m 136-416 (median 252), C_l 24-128 (median 72); MSB share of pool bytes 90.8 % (uniform 86.1 %)
+      C_m by layer: 408 416 376 296 304 344 352 352 280 246 320 264 328 288 246 136 160 240 304 246 216 288 360 224 248 200 256 200 272 232 216 136 160 208 272 192 184 272 328 176 192 248 272 216 224 224 264 280
+      C_l by layer: 128 112 120 72 88 104 112 112 80 40 96 48 96 88 64 32 32 64 120 64 56 80 104 48 72 40 80 56 96 64 56 24 40 56 96 64 48 80 104 32 40 64 96 40 72 72 88 88
+16-row checks, LRU, C 256 (287 + 112, 33.93 GB of pools): uniform 92.8 MB per kept token (base misses 35.8 + sidecar misses 20.0 per kept token)
+    FLOOR: held-out 92.8 -> 73.4 MB per kept token (-21.0 %; per prompt -21.0, -18.6, -21.6, -29.1, -14.3)
+    FREE: held-out 92.8 -> 73.4 MB per kept token (-20.9 %; per prompt -21.0, -18.5, -21.5, -29.1, -14.2)
+    RESPLIT: held-out 92.8 -> 91.8 MB per kept token (-1.2 %; per prompt -1.6, -1.8, -0.8, -1.4, -0.3); one size for all: C_m 304, C_l 64 (last fold)
+    FLOOR sizes (calibrated on prompts 2-6, in-sample -22.4 %; pools 33.93 of 33.93 GB): C_m 168-440 (median 288), C_l 32-160 (median 84); MSB share of pool bytes 90.5 % (uniform 87.8 %)
+      C_m by layer: 440 440 432 328 320 392 400 408 360 280 368 288 368 344 272 176 176 272 368 288 248 336 384 256 320 216 288 246 336 287 240 168 176 246 304 224 208 280 360 184 208 264 304 264 264 264 304 304
+      C_l by layer: 136 160 136 88 96 120 136 144 88 64 104 64 128 104 80 32 40 80 128 72 56 104 152 64 80 48 88 56 104 96 72 32 40 64 120 64 56 88 128 40 48 72 104 56 80 80 88 96
+    FREE sizes (calibrated on prompts 2-6, in-sample -22.5 %; pools 33.93 of 33.93 GB): C_m 136-440 (median 288), C_l 32-160 (median 84); MSB share of pool bytes 90.5 % (uniform 87.8 %)
+      C_m by layer: 440 440 432 328 320 392 400 416 360 280 368 288 368 344 272 176 176 272 368 288 272 336 384 256 320 216 288 246 336 287 240 136 176 246 304 224 208 280 360 184 208 264 304 264 264 264 304 304
+      C_l by layer: 136 160 136 88 96 120 136 144 88 64 104 64 128 104 80 32 40 80 128 72 56 104 152 64 80 48 88 56 104 96 72 32 40 64 120 64 56 88 128 40 48 72 104 56 80 80 88 96
+SHORT-row checks, P30, C 224 (246 + 112, 29.68 GB of pools): uniform 85.5 MB per kept token (base misses 34.4 + sidecar misses 14.4 per kept token)
+    FLOOR: held-out 85.5 -> 69.3 MB per kept token (-19.0 %; per prompt -21.5, -15.2, -18.5, -26.1, -13.5)
+    FREE: held-out 85.5 -> 69.3 MB per kept token (-19.0 %; per prompt -21.5, -15.5, -18.3, -26.6, -13.1)
+    RESPLIT: held-out 85.5 -> 82.6 MB per kept token (-3.4 %; per prompt -5.4, -3.3, -3.0, -2.2, -2.5); one size for all: C_m 264, C_l 56 (last fold)
+    FLOOR sizes (calibrated on prompts 2-6, in-sample -20.5 %; pools 29.68 of 29.68 GB): C_m 160-424 (median 247), C_l 32-120 (median 60); MSB share of pool bytes 91.4 % (uniform 86.1 %)
+      C_m by layer: 424 424 368 287 296 328 376 360 288 240 360 224 344 287 224 160 160 232 352 240 224 312 360 248 248 192 256 192 272 240 208 160 160 216 256 176 176 246 336 184 184 240 272 216 232 232 264 272
+      C_l by layer: 112 120 112 64 80 104 104 96 56 40 88 40 96 80 56 32 32 56 104 48 48 88 120 48 56 32 88 56 88 72 56 32 40 48 80 48 40 80 112 32 40 48 80 40 56 72 88 88
+    FREE sizes (calibrated on prompts 2-6, in-sample -20.7 %; pools 29.68 of 29.68 GB): C_m 120-424 (median 247), C_l 24-120 (median 64); MSB share of pool bytes 91.4 % (uniform 86.1 %)
+      C_m by layer: 424 424 368 287 320 328 368 360 288 240 360 224 344 287 224 144 160 232 352 240 224 312 360 248 248 192 256 192 312 240 208 120 144 216 256 176 176 246 336 184 184 240 272 224 232 232 264 272
+      C_l by layer: 112 120 112 64 80 104 104 96 56 40 88 40 96 80 56 24 32 56 104 64 48 88 120 48 56 32 88 56 88 72 56 24 40 48 96 48 40 80 120 32 40 48 80 40 56 72 88 88
+SHORT-row checks, P30, C 256 (287 + 112, 33.93 GB of pools): uniform 64.1 MB per kept token (base misses 24.5 + sidecar misses 14.4 per kept token)
+    FLOOR: held-out 64.1 -> 52.6 MB per kept token (-18.1 %; per prompt -16.2, -16.7, -17.7, -26.5, -14.5)
+    FREE: held-out 64.1 -> 52.6 MB per kept token (-18.0 %; per prompt -16.1, -17.2, -17.7, -26.5, -13.9)
+    RESPLIT: held-out 64.1 -> 62.7 MB per kept token (-2.3 %; per prompt -3.7, -2.9, -1.7, -1.3, -1.5); one size for all: C_m 304, C_l 64 (last fold)
+    FLOOR sizes (calibrated on prompts 2-6, in-sample -20.4 %; pools 33.93 of 33.93 GB): C_m 160-440 (median 300), C_l 32-144 (median 80); MSB share of pool bytes 91.3 % (uniform 87.8 %)
+      C_m by layer: 440 424 432 328 320 416 392 424 352 320 400 320 384 392 296 160 176 232 392 304 248 328 408 288 312 216 296 200 320 336 232 160 160 256 320 224 200 280 344 208 216 264 272 232 256 248 288 304
+      C_l by layer: 128 136 112 80 96 104 120 128 88 40 88 64 96 96 72 32 40 56 120 72 48 104 144 56 72 56 88 56 88 88 72 32 40 64 112 56 48 80 120 40 48 80 104 48 88 72 88 88
+    FREE sizes (calibrated on prompts 2-6, in-sample -20.4 %; pools 33.93 of 33.93 GB): C_m 136-440 (median 300), C_l 24-144 (median 80); MSB share of pool bytes 91.3 % (uniform 87.8 %)
+      C_m by layer: 440 424 432 328 320 416 392 424 352 320 408 328 384 392 296 160 176 232 392 304 248 328 408 288 312 224 296 216 320 336 232 136 152 256 320 224 200 280 344 208 216 264 272 232 256 248 288 304
+      C_l by layer: 128 136 112 80 96 104 120 128 88 40 88 64 96 96 72 24 40 56 120 72 48 104 144 56 72 56 88 56 88 88 64 24 40 64 112 56 48 80 120 40 48 80 104 48 88 72 88 88
+Lines: FLOOR (P30, 16-row checks) held-out C 224 -20.7 %, C 256 -19.3 % -> PASS (PASS <= -8 % at both, KILL > -3 % at both); SHORT checks: C 224 -19.0 %, C 256 -18.1 %
+(41 s)

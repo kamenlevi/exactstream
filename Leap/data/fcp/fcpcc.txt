@@ -1,0 +1,33 @@
+[fcp] installed: 16 checks per prompt, sampler 1000 Hz, MTLCompilerService pids [2314], NOCLEAR False
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=15.3 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=440 C_l=136 per layer, 32.32 GB pools
+[r57] model dir /Users/kamen/BigMoE/models/bare: converted layers all 48 native+p11+pad
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.45 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R57_WIRED: mx.set_wired_limit(55.66 GB), was 0.00 GB
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 256), loaded in 2 s, 38.0 GB active; REF2 + SB; gate rows MAXK 160 (ext build_qom), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 64
+[r57] DENSE-N-RAM: 180 weights native (1531 MB, in place)
+[r57] HC8: 194 mixers 8-bit (1271 -> 675 MB), hc8_fast v4
+[r57] FAST-TAX: gdn_inproj skipped under R57_DNR=1 (K-83's gdn_inproj_x stays)
+[r57] FAST-TAX: att on (ref2 att_single True, gdn_inproj False, fatt_verify False)
+[fcp] wrapped: tier True, stream True, gated True
+Traceback (most recent call last):
+  File "/Users/kamen/Leap/data/fcp/snap/r57_screen_fcp.py", line 1552, in <module>
+    r = run(list(it["prompt_ids"]), ARMS_[0], drafter="dfl" if dr_ == "d7b" else dr_)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/Leap/data/fcp/snap/r57_screen_fcp.py", line 1311, in run
+    mx.eval(am, tp, *((dlv_, rkv_) if rx2 else ()))
+  File "/Users/kamen/Leap/scripts/fcp/fcprobe.py", line 141, in w
+    return fn(*a, **k)
+           ^^^^^^^^^^^
+RuntimeError: [eval] Attempting to eval an array without a primitive.
+If you are compiling a function, make sure all the inputs and outputs are captured:
+https://ml-explore.github.io/mlx/build/html/usage/compile.html#pure-functions.
+If you are not using compile, this may be a bug. Please file an issue here:
+https://github.com/ml-explore/mlx/issues.
+[fcp] 0 check windows, 98 calls, 30 samples -> /Users/kamen/Leap/data/fcp/fcpcc_fcp.json
+[fcp] ref2 COUNTS tier: tier_calls 0, tier_chunk 0, groups 0
+[fcp] ref2 COUNTS seams: sb_first 0, ple_late 0, ple_late_stale 0, commit_sub 0
+[fcp] ref2 COUNTS: gdn_tg 0, eprep 0, ooo_1c 48, ooo_1c_qom 0; CFG gdn_tg False, eprep False

@@ -1,0 +1,19 @@
+[guard] pid 39484, MAXGB 14, swap at start 7627.06 MB (kill at +1 GB)
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=31.8 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[r57_draft] install {"fmt": "q8h32", "weights": "/Users/kamen/datasets/deepdraft/q8h32/t30b_q8h32.safetensors", "weights_sha256": "b5388cc460006cccf0c77b5a502b67e6145af5d245a825706adbeeb1b459e9c4", "screen_file": "/Users/kamen/Leap/data/frspec_rank.npy", "screen_sha256": "f7b9dc9bf6e9748e8539bd8e2622a5e40875093b3143e6c670afb401c2c0a353", "screen": 32768, "screen_order": "id", "extra_cap": 4096, "top_k": 10, "done": ["prepare = eager", "fc_hidden 8-bit (artifact)", "fc_embedding 8-bit (artifact)", "q_proj 8-bit (artifact)", "k_proj 8-bit (artifact)", "v_proj 8-bit (artifact)", "o_proj 8-bit (artifact)", "router 8-bit (artifact)", "se_gate 8-bit (artifact)", "se_up 8-bit (artifact)", "se_down 8-bit (artifact)", "se_gatew fp32 weight (t30b), output in the stream's dtype", "attn_hc.input_mix_weight_down 8-bit (artifact)", "attn_hc.input_mix_weight_up 8-bit (artifact)", "mlp_hc.input_mix_weight_down 8-bit (artifact)", "mlp_hc.input_mix_weight_up 8-bit (artifact)", "mixer.input_mix_weight_down 8-bit (artifact)", "mixer.input_mix_weight_up 8-bit (artifact)", "experts top-10", "screen order id", "draft head: ScreenedHead FR-Spec top-32768 + 4096 extras (scattered to V 248320)"], "env": {"MTPLX_COMPILED_TARGET_PREFIX": "0", "MTPLX_COMPILED_VERIFY": "0", "MTPLX_COMPILE_AR_FORWARD": "0", "MTPLX_DENSE_KV_BYTES_PER_TOKEN_DERIVED": "24576", "MTPLX_LOOP_GUARD": "1", "MTPLX_MOE_SORTED_GATHER_KERNEL": "0", "MTPLX_NGRAM_PREWARM": "off", "MTPLX_QWEN4EXP_COMPILE": "0", "MTPLX_QWEN4_HC_PREFILL_READ": "0", "TL_PLAIN_MIN": "1"}, "opdiet": {"rope": false, "resid": false, "bank": false}}
+  w2 s336 Lc 337: IDENTICAL | ms per pop SF 0.936 PK 0.761
+  w2 s402 Lc 403: IDENTICAL | ms per pop SF 0.935 PK 0.773
+  w2 s468 Lc 469: IDENTICAL | ms per pop SF 0.945 PK 0.780
+  w2 s534 Lc 535: IDENTICAL | ms per pop SF 0.948 PK 0.768
+  w2 s600 Lc 601: IDENTICAL | ms per pop SF 0.943 PK 0.775
+  w2 s666 Lc 667: DIFFERENT | ms per pop SF 0.950 PK 0.774
+    fields differ: ['path_p', 'p']
+    SF pop [-1, 0, 1, 2, 3, 5, 12, 4, 6, 7, 8, 9, 10, 11, 13, 14] par [-1, 0, 1, 2, 3, 4, 5, 3, 7, 8, 9, 10, 11, 12, 13, 0]
+    PK pop [-1, 0, 1, 2, 3, 5, 12, 4, 6, 7, 8, 9, 10, 11, 13, 14] par [-1, 0, 1, 2, 3, 4, 5, 3, 7, 8, 9, 10, 11, 12, 13, 0]
+    SF path_p [1.0, 0.5556101202964783, 0.5533489947209667, 0.5445228670109631, 0.2630259226853647, 0.20417777745282506, 0.14908532984106487, 0.20484479126916572, 0.20018049012519273, 0.19408931618245567, 0.19006175732034525, 0.15207709513125736, 0.1519758899749823, 0.1504599370815408, 0.12432357003157739, 0.12397337704896927]
+    PK path_p [1.0, 0.5556101202964783, 0.5533489947209667, 0.5445228670109631, 0.2630259226853647, 0.20417777745282506, 0.14908532984106487, 0.20484479126916572, 0.20018049012519273, 0.19408931618245567, 0.19006175732034525, 0.15207709513125736, 0.1519758899749823, 0.1504599370815408, 0.12441134093493925, 0.12397337704896927]
+[pk_tree_test] trees 6, identical 5, fallback 0; ms per pop median SF 0.944 PK 0.774
+[guard] exit 0, peak footprint 6 MB

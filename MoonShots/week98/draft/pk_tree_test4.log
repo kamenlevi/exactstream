@@ -1,0 +1,56 @@
+[guard] pid 40112, MAXGB 14, swap at start 7627.06 MB (kill at +1 GB)
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=31.7 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[r57_draft] install {"fmt": "q8h32", "weights": "/Users/kamen/datasets/deepdraft/q8h32/t30b_q8h32.safetensors", "weights_sha256": "b5388cc460006cccf0c77b5a502b67e6145af5d245a825706adbeeb1b459e9c4", "screen_file": "/Users/kamen/Leap/data/frspec_rank.npy", "screen_sha256": "f7b9dc9bf6e9748e8539bd8e2622a5e40875093b3143e6c670afb401c2c0a353", "screen": 32768, "screen_order": "id", "extra_cap": 4096, "top_k": 10, "done": ["prepare = eager", "fc_hidden 8-bit (artifact)", "fc_embedding 8-bit (artifact)", "q_proj 8-bit (artifact)", "k_proj 8-bit (artifact)", "v_proj 8-bit (artifact)", "o_proj 8-bit (artifact)", "router 8-bit (artifact)", "se_gate 8-bit (artifact)", "se_up 8-bit (artifact)", "se_down 8-bit (artifact)", "se_gatew fp32 weight (t30b), output in the stream's dtype", "attn_hc.input_mix_weight_down 8-bit (artifact)", "attn_hc.input_mix_weight_up 8-bit (artifact)", "mlp_hc.input_mix_weight_down 8-bit (artifact)", "mlp_hc.input_mix_weight_up 8-bit (artifact)", "mixer.input_mix_weight_down 8-bit (artifact)", "mixer.input_mix_weight_up 8-bit (artifact)", "experts top-10", "screen order id", "draft head: ScreenedHead FR-Spec top-32768 + 4096 extras (scattered to V 248320)"], "env": {"MTPLX_COMPILED_TARGET_PREFIX": "0", "MTPLX_COMPILED_VERIFY": "0", "MTPLX_COMPILE_AR_FORWARD": "0", "MTPLX_DENSE_KV_BYTES_PER_TOKEN_DERIVED": "24576", "MTPLX_LOOP_GUARD": "1", "MTPLX_MOE_SORTED_GATHER_KERNEL": "0", "MTPLX_NGRAM_PREWARM": "off", "MTPLX_QWEN4EXP_COMPILE": "0", "MTPLX_QWEN4_HC_PREFILL_READ": "0", "TL_PLAIN_MIN": "1"}, "opdiet": {"rope": false, "resid": false, "bank": false}}
+  w2 s336 Lc 337: IDENTICAL | ms per pop SF 0.978 PK 0.963
+  w2 s386 Lc 387: IDENTICAL | ms per pop SF 0.960 PK 0.943
+  w2 s436 Lc 437: IDENTICAL | ms per pop SF 0.942 PK 0.969
+  w2 s486 Lc 487: IDENTICAL | ms per pop SF 0.939 PK 0.951
+  w2 s536 Lc 537: IDENTICAL | ms per pop SF 1.020 PK 1.097
+  w2 s586 Lc 587: IDENTICAL | ms per pop SF 0.967 PK 0.953
+  w2 s636 Lc 637: DIFFERENT | ms per pop SF 0.956 PK 0.952
+    fields differ: ['path_p', 'p']
+    SF pop [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] par [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+    PK pop [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] par [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+    SF path_p [1.0, 0.9999122619628906, 0.9992620919426827, 0.8614111434239333, 0.8614111434239333, 0.7932331545042295, 0.7929971781256616, 0.7928383633068918, 0.7740956826508023, 0.674825476046634, 0.6746169613998758, 0.6023099879229602, 0.6020193735950385, 0.6019722949010433, 0.6008103099346239, 0.5997866858780956]
+    PK path_p [1.0, 0.9999122619628906, 0.9992620919426827, 0.8614111434239333, 0.8614111434239333, 0.7932331545042295, 0.7929971781256616, 0.7928383633068918, 0.7740336344080532, 0.6843772691358306, 0.684152749615469, 0.6186077066264576, 0.6183529218485309, 0.6183045658499274, 0.6171110547593478, 0.6160631528405169]
+  w2 s686 Lc 687: IDENTICAL | ms per pop SF 0.958 PK 0.956
+  w3 s185 Lc 186: IDENTICAL | ms per pop SF 0.926 PK 0.938
+  w3 s222 Lc 223: IDENTICAL | ms per pop SF 0.946 PK 0.960
+  w3 s259 Lc 260: IDENTICAL | ms per pop SF 1.065 PK 1.023
+  w3 s296 Lc 297: IDENTICAL | ms per pop SF 0.937 PK 0.944
+  w3 s333 Lc 334: IDENTICAL | ms per pop SF 0.942 PK 0.946
+  w3 s370 Lc 371: IDENTICAL | ms per pop SF 0.944 PK 0.951
+  w3 s407 Lc 408: IDENTICAL | ms per pop SF 0.947 PK 0.952
+  w3 s444 Lc 445: IDENTICAL | ms per pop SF 0.938 PK 0.949
+  w4 s133 Lc 134: IDENTICAL | ms per pop SF 0.927 PK 0.930
+[mtplx] verify SDPA head-chunked: q_len=17 heads_per_chunk=1 chunks=24
+  w4 s151 Lc 152: IDENTICAL | ms per pop SF 0.930 PK 0.940
+  w4 s169 Lc 170: IDENTICAL | ms per pop SF 0.926 PK 0.928
+  w4 s187 Lc 188: IDENTICAL | ms per pop SF 0.925 PK 0.927
+  w4 s205 Lc 206: IDENTICAL | ms per pop SF 0.926 PK 0.936
+  w4 s223 Lc 224: IDENTICAL | ms per pop SF 0.933 PK 0.936
+  w4 s241 Lc 242: DIFFERENT | ms per pop SF 0.930 PK 0.937
+    fields differ: ['path_p', 'p']
+    SF pop [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] par [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+    PK pop [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] par [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+    SF path_p [1.0, 0.9999885559082031, 0.9999217994700302, 0.9763898187213559, 0.8702413689684999, 0.8236969449446223, 0.8235790650553241, 0.7058634603170009, 0.7058392264182931, 0.6428553404213454, 0.6399754606766531, 0.6399412441541844, 0.5675169397715114, 0.5192920162998034, 0.5119671124396289, 0.5099331854771146]
+    PK path_p [1.0, 0.9999885559082031, 0.9999217994700302, 0.9763898187213559, 0.8701782830212549, 0.8178217348964414, 0.8176922655895025, 0.6880722861696471, 0.6880565374448355, 0.6215989730274959, 0.6181784628076316, 0.6181430903522555, 0.5553928870724023, 0.5078319129300095, 0.4998910157314637, 0.49795351232273644]
+  w4 s259 Lc 260: IDENTICAL | ms per pop SF 0.929 PK 0.938
+  w5 s323 Lc 324: IDENTICAL | ms per pop SF 0.931 PK 0.949
+  w5 s373 Lc 374: IDENTICAL | ms per pop SF 0.931 PK 0.943
+  w5 s423 Lc 424: IDENTICAL | ms per pop SF 0.946 PK 0.961
+  w5 s473 Lc 474: IDENTICAL | ms per pop SF 0.938 PK 0.961
+  w5 s523 Lc 524: DIFFERENT | ms per pop SF 0.946 PK 0.951
+    fields differ: ['path_p', 'p']
+    SF pop [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] par [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+    PK pop [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] par [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+    SF path_p [1.0, 0.9999885559082031, 0.9999885559082031, 0.9998683347155293, 0.9998606467287275, 0.9998244121548142, 0.9997462245920656, 0.9995840815120031, 0.9995840815120031, 0.999523071741403, 0.9995097266686526, 0.9995097266686526, 0.9991475676770524, 0.9991113589448558, 0.9955331963937983, 0.9954818686756072]
+    PK path_p [1.0, 0.9999885559082031, 0.9999885559082031, 0.9998683347155293, 0.9998606467287275, 0.9998244121548142, 0.9997462245920656, 0.9995840815120031, 0.9995840815120031, 0.9995040061880904, 0.9994887549672928, 0.9994887549672928, 0.999002689296339, 0.998958864028826, 0.9946657838744463, 0.9946088686417569]
+  w5 s573 Lc 574: IDENTICAL | ms per pop SF 0.942 PK 0.948
+  w5 s623 Lc 624: IDENTICAL | ms per pop SF 0.957 PK 0.947
+  w5 s673 Lc 674: IDENTICAL | ms per pop SF 0.948 PK 0.955
+[pk_tree_test] trees 32, identical 29, fallback 0; ms per pop median SF 0.942 PK 0.949
+[guard] exit 0, peak footprint 6 MB

@@ -1,0 +1,14 @@
+M-11 BIASCORR: REF2-T tiers with / without bias correction; layers [2, 12, 24, 36, 46]; calibration tokens 0-4095, scored on 4096-8191; CPU fp32
+  layer  2: input mean energy 40.8 % (within-group part 40.7 %); REF2-T block error 0.00178 -> corrL 0.00152, corrE 0.00149 (56 s)
+  layer 12: input mean energy 28.9 % (within-group part 29.0 %); REF2-T block error 0.00795 -> corrL 0.00673, corrE 0.00658 (106 s)
+  layer 24: input mean energy 27.8 % (within-group part 27.9 %); REF2-T block error 0.01355 -> corrL 0.01166, corrE 0.01142 (155 s)
+  layer 36: input mean energy 24.7 % (within-group part 24.8 %); REF2-T block error 0.01593 -> corrL 0.01415, corrE 0.01387 (206 s)
+  layer 46: input mean energy 39.5 % (within-group part 39.5 %); REF2-T block error 0.01232 -> corrL 0.00925, corrE 0.00888 (254 s)
+block error, 5 layers pooled, out of sample (vs all-4-bit):
+  plan          none      corrL     corrE
+  4433333333  0.01210  0.00978  0.00949   (x REF2-T none: 1.00 / 0.81 / 0.78)
+  4333333333  0.01936  0.01571  0.01518   (x REF2-T none: 1.60 / 1.30 / 1.25)
+  4433332222  0.02343  0.01871  0.01824   (x REF2-T none: 1.94 / 1.55 / 1.51)
+  4433333300  0.02825  0.02611  0.02583   (x REF2-T none: 2.33 / 2.16 / 2.13)
+Lines: correction cuts REF2-T's block error by 21.6 % (PASS >= 25, KILL < 10); best cheaper corrected plan 1.25x uncorrected REF2-T (PASS <= 1.00, KILL > 1.20) -> BETWEEN
+(254 s)

@@ -1,0 +1,19 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=25.5 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (1320628 > 262144). Running this sequence through the model will result in indexing errors
+TREE16-L3+B2 Sun 15 Nov 15:01:02: MLX 0.32.2; slice layers 0-3 (GGGA, PLE layer in), 6.7 GB active
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (512, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  chain        T 16, 1 paths: ALL BITWISE (tree16 counts {'att': 1, 'gdn': 3, 'ple': 1, 'ple_chain': 0})
+  bushy3       T 16, 3 paths: ALL BITWISE (tree16 counts {'att': 2, 'gdn': 6, 'ple': 2, 'ple_chain': 0})
+  bushy-deep   T 16, 4 paths: ALL BITWISE (tree16 counts {'att': 3, 'gdn': 9, 'ple': 3, 'ple_chain': 0})
+  deep-narrow  T 16, 2 paths: ALL BITWISE (tree16 counts {'att': 4, 'gdn': 12, 'ple': 4, 'ple_chain': 0})
+  random0      T 16, 4 paths: ALL BITWISE (tree16 counts {'att': 5, 'gdn': 15, 'ple': 5, 'ple_chain': 0})
+  random1      T 16, 7 paths: ALL BITWISE (tree16 counts {'att': 6, 'gdn': 18, 'ple': 6, 'ple_chain': 0})
+  random2      T 16, 5 paths: ALL BITWISE (tree16 counts {'att': 7, 'gdn': 21, 'ple': 7, 'ple_chain': 0})
+  small7       T  7, 3 paths: ALL BITWISE (tree16 counts {'att': 8, 'gdn': 24, 'ple': 8, 'ple_chain': 0})
+  bushy3-eos   T 16, 3 paths: ALL BITWISE (tree16 counts {'att': 9, 'gdn': 27, 'ple': 9, 'ple_chain': 0})
+  deep-eos     T 16, 2 paths: ALL BITWISE (tree16 counts {'att': 10, 'gdn': 30, 'ple': 10, 'ple_chain': 0})
+TREE16-L3+B2 verdict: ALL BITWISE (logits + hidden_w of every node == its path chain row); B2 staged calls 10, graph calls 0 (29 s; peak 8.1 GB)

@@ -1,0 +1,13 @@
+M-12 RARE2 step 1: rare experts at ranks 2-9 on a 2-bit tier, with / without M-11's mean correction; layers [2, 12, 24, 36, 46]; calibration tokens 0-4095, scored on 4096-8191; CPU fp32
+  layer  2: ref2t 0.00178 / corr 0.00149  rare20 0.00223 / corr 0.00191  rare40 0.00290 / corr 0.00252 (46 s)
+  layer 12: ref2t 0.00795 / corr 0.00658  rare20 0.00971 / corr 0.00813  rare40 0.01294 / corr 0.01115 (87 s)
+  layer 24: ref2t 0.01355 / corr 0.01142  rare20 0.01601 / corr 0.01359  rare40 0.02039 / corr 0.01801 (128 s)
+  layer 36: ref2t 0.01593 / corr 0.01387  rare20 0.02160 / corr 0.01907  rare40 0.02624 / corr 0.02396 (170 s)
+  layer 46: ref2t 0.01232 / corr 0.00888  rare20 0.01356 / corr 0.01005  rare40 0.01462 / corr 0.01108 (209 s)
+block error, 5 layers pooled, out of sample (vs all-4-bit); x = multiple of uncorrected REF2-T:
+  ref2t   none 0.01210 (1.00x)   corrected 0.00949 (0.78x)
+  rare20  none 0.01455 (1.20x)   corrected 0.01174 (0.97x)
+  rare40  none 0.01674 (1.38x)   corrected 0.01397 (1.15x)
+  share of rank 2-9 picks (scored tokens) that go 2-bit: rare-20 % 4.9 %, rare-40 % 12.4 %
+Lines: rare-40 % corrected 1.15x (PASS <= 1.00); rare-20 % corrected 0.97x (KILL > 1.20) -> BETWEEN
+(209 s)

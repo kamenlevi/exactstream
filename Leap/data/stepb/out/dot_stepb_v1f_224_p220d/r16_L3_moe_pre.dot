@@ -1,0 +1,92 @@
+digraph {
+{ rank=source; "A"; }
+{ 32290477848 [label ="Reshape", shape=rectangle]; }
+"A" -> 32290477848
+{ "B"; }
+32290477848 -> "B"
+{ rank=source; "C"; }
+{ rank=source; "D"; }
+{ rank=source; "E"; }
+{ 32287272280 [label ="QuantizedMatmul", shape=rectangle]; }
+"B" -> 32287272280
+"C" -> 32287272280
+"D" -> 32287272280
+"E" -> 32287272280
+{ "F"; }
+32287272280 -> "F"
+{ 32290471960 [label ="Reshape", shape=rectangle]; }
+"F" -> 32290471960
+{ "G"; }
+32290471960 -> "G"
+{ 32290479384 [label ="Reshape", shape=rectangle]; }
+"G" -> 32290479384
+{ "H"; }
+32290479384 -> "H"
+{ 32326195128 [label ="CustomKernel", shape=rectangle]; }
+"H" -> 32326195128
+{ "I"; }
+32326195128 -> "I"
+{ "J"; }
+32326195128 -> "J"
+{ 32290479896 [label ="Reshape", shape=rectangle]; }
+"I" -> 32290479896
+{ rank=sink; "K"; }
+32290479896 -> "K"
+{ 32290477080 [label ="Reshape", shape=rectangle]; }
+"J" -> 32290477080
+{ rank=sink; "L"; }
+32290477080 -> "L"
+{ 32290476184 [label ="Reshape", shape=rectangle]; }
+"A" -> 32290476184
+{ "M"; }
+32290476184 -> "M"
+{ rank=source; "N"; }
+{ rank=source; "O"; }
+{ rank=source; "P"; }
+{ 32326195352 [label ="CustomKernel", shape=rectangle]; }
+"M" -> 32326195352
+"N" -> 32326195352
+"O" -> 32326195352
+"P" -> 32326195352
+{ "Q"; }
+32326195352 -> "Q"
+{ 32322327576 [label ="Slice", shape=rectangle]; }
+"Q" -> 32322327576
+{ "R"; }
+32322327576 -> "R"
+{ 32290484888 [label ="Reshape", shape=rectangle]; }
+"R" -> 32290484888
+{ "S"; }
+32290484888 -> "S"
+{ 32322328536 [label ="Slice", shape=rectangle]; }
+"S" -> 32322328536
+{ "T"; }
+32322328536 -> "T"
+{ 32322328856 [label ="Slice", shape=rectangle]; }
+"S" -> 32322328856
+{ "U"; }
+32322328856 -> "U"
+{ 32274341656 [label ="CompiledSigmoidBroadcastBroadcastMultiplyBroadcastBroadcastMultiply", shape=rectangle]; }
+"T" -> 32274341656
+"U" -> 32274341656
+{ "V"; }
+32274341656 -> "V"
+{ 32290488088 [label ="Reshape", shape=rectangle]; }
+"V" -> 32290488088
+{ "W"; }
+32290488088 -> "W"
+{ rank=source; "X"; }
+{ rank=source; "Y"; }
+{ rank=source; "Z"; }
+{ 32326194904 [label ="CustomKernel", shape=rectangle]; }
+"W" -> 32326194904
+"X" -> 32326194904
+"Y" -> 32326194904
+"Z" -> 32326194904
+{ "AA"; }
+32326194904 -> "AA"
+{ 32290483224 [label ="Reshape", shape=rectangle]; }
+"AA" -> 32290483224
+{ rank=sink; "AB"; }
+32290483224 -> "AB"
+}

@@ -1,0 +1,11 @@
+R-16 W24-ec (Tue 27 Oct 19:58:52), MLX 0.32.2: interleaved rANS on MSB-3 codes, layers (24,), 32 experts each, chunk 65536 symbols, 10-bit table per layer
+PASS = decode >= 25 GB/s of codes AND <= 2.80 b / weight (all stored bytes); KILL = < 10 GB/s or > 2.90 b; any decoded byte != records3 -> KILL
+L24: experts [6, 10, 22, 35, 45, 66]...; H0 2.7240 b; freqs [30, 50, 119, 208, 249, 201, 111, 56]; coded 2.7201 b + states 0.0156 + offsets/table 0.0005 = 2.7362 b / weight (3.0 s, CPU ref decode of 2 chunks OK)
+  GPU decode, 1 simdgroup(s) per threadgroup: 2400 chunks, 59.0 MB of codes in 2.36 ms = 25.0 GB/s (min 20.2, max 39.8); mismatching bytes 0
+  GPU decode, 2 simdgroup(s) per threadgroup: 2400 chunks, 59.0 MB of codes in 2.34 ms = 25.2 GB/s (min 22.9, max 38.6); mismatching bytes 0
+  GPU decode, 4 simdgroup(s) per threadgroup: 2400 chunks, 59.0 MB of codes in 2.53 ms = 23.3 GB/s (min 22.8, max 38.0); mismatching bytes 0
+  GPU decode, 8 simdgroup(s) per threadgroup: 2400 chunks, 59.0 MB of codes in 2.20 ms = 26.8 GB/s (min 24.2, max 38.6); mismatching bytes 0
+VERDICT: PASS: 2.7362 b / weight over 157.3 M weights (8.79 % fewer code bytes than 3 b), best decode 26.8 GB/s at 8 simdgroup(s) / threadgroup; 3 s
+  latency, one expert (75 chunks of 65536): median 1.334 ms, min 1.293 (includes MLX dispatch + eval overhead)
+  latency, one chunk (1 chunks of 65536): median 1.283 ms, min 0.531 (includes MLX dispatch + eval overhead)
+  latency, 8 experts (600 chunks of 65536): median 0.659 ms, min 0.589 (includes MLX dispatch + eval overhead)

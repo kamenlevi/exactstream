@@ -1,0 +1,256 @@
+digraph {
+{ rank=source; "A"; }
+{ rank=source; "B"; }
+{ 50775736824 [label ="View bfloat16", shape=rectangle]; }
+"B" -> 50775736824
+{ "C"; }
+50775736824 -> "C"
+{ rank=source; "D"; }
+{ 50775738184 [label ="View bfloat16", shape=rectangle]; }
+"D" -> 50775738184
+{ "E"; }
+50775738184 -> "E"
+{ 50706553240 [label ="Quantize", shape=rectangle]; }
+"A" -> 50706553240
+"C" -> 50706553240
+"E" -> 50706553240
+{ "F"; }
+50706553240 -> "F"
+{ 50663999128 [label ="Reshape", shape=rectangle]; }
+"F" -> 50663999128
+{ "G"; }
+50663999128 -> "G"
+{ 50664002712 [label ="Reshape", shape=rectangle]; }
+"G" -> 50664002712
+{ "H"; }
+50664002712 -> "H"
+{ rank=source; "I"; }
+{ 50664003992 [label ="Broadcast", shape=rectangle]; }
+"I" -> 50664003992
+{ "J"; }
+50664003992 -> "J"
+{ 50773305736 [label ="Full", shape=rectangle]; }
+"J" -> 50773305736
+{ "K"; }
+50773305736 -> "K"
+{ 50773305832 [label ="Concatenate", shape=rectangle]; }
+"H" -> 50773305832
+"K" -> 50773305832
+{ "L"; }
+50773305832 -> "L"
+{ rank=source; "M"; }
+{ 50628165976 [label ="Transpose", shape=rectangle]; }
+"M" -> 50628165976
+{ "N"; }
+50628165976 -> "N"
+{ 50783691128 [label ="Matmul", shape=rectangle]; }
+"L" -> 50783691128
+"N" -> 50783691128
+{ "O"; }
+50783691128 -> "O"
+{ 50625864792 [label ="Slice", shape=rectangle]; }
+"O" -> 50625864792
+{ "P"; }
+50625864792 -> "P"
+{ 50664007192 [label ="Reshape", shape=rectangle]; }
+"P" -> 50664007192
+{ "Q"; }
+50664007192 -> "Q"
+{ 50628165816 [label ="ExpandDims", shape=rectangle]; }
+"Q" -> 50628165816
+{ "R"; }
+50628165816 -> "R"
+{ 50664011928 [label ="Reshape", shape=rectangle]; }
+"G" -> 50664011928
+{ "S"; }
+50664011928 -> "S"
+{ rank=source; "T"; }
+{ 50664000024 [label ="Broadcast", shape=rectangle]; }
+"T" -> 50664000024
+{ "U"; }
+50664000024 -> "U"
+{ 50773303528 [label ="Full", shape=rectangle]; }
+"U" -> 50773303528
+{ "V"; }
+50773303528 -> "V"
+{ 50773305640 [label ="Concatenate", shape=rectangle]; }
+"S" -> 50773305640
+"V" -> 50773305640
+{ "W"; }
+50773305640 -> "W"
+{ rank=source; "X"; }
+{ 50628166136 [label ="Transpose", shape=rectangle]; }
+"X" -> 50628166136
+{ "Y"; }
+50628166136 -> "Y"
+{ 50783688536 [label ="Matmul", shape=rectangle]; }
+"W" -> 50783688536
+"Y" -> 50783688536
+{ "Z"; }
+50783688536 -> "Z"
+{ 50625864472 [label ="Slice", shape=rectangle]; }
+"Z" -> 50625864472
+{ "AA"; }
+50625864472 -> "AA"
+{ 50664001944 [label ="Reshape", shape=rectangle]; }
+"AA" -> 50664001944
+{ "AB"; }
+50664001944 -> "AB"
+{ 50664003608 [label ="Reshape", shape=rectangle]; }
+"AB" -> 50664003608
+{ "AC"; }
+50664003608 -> "AC"
+{ rank=source; "AD"; }
+{ 50734166904 [label ="RMSNorm", shape=rectangle]; }
+"AC" -> 50734166904
+"AD" -> 50734166904
+{ "AE"; }
+50734166904 -> "AE"
+{ 50664010776 [label ="Reshape", shape=rectangle]; }
+"AE" -> 50664010776
+{ "AF"; }
+50664010776 -> "AF"
+{ rank=source; "AG"; }
+{ 50664011032 [label ="Broadcast", shape=rectangle]; }
+"AG" -> 50664011032
+{ "AH"; }
+50664011032 -> "AH"
+{ 50628134376 [label ="Multiply", shape=rectangle]; }
+"AF" -> 50628134376
+"AH" -> 50628134376
+{ "AI"; }
+50628134376 -> "AI"
+{ 50664008600 [label ="Reshape", shape=rectangle]; }
+"AI" -> 50664008600
+{ "AJ"; }
+50664008600 -> "AJ"
+{ rank=source; "AK"; }
+{ 50663998488 [label ="Reshape", shape=rectangle]; }
+"AK" -> 50663998488
+{ "AL"; }
+50663998488 -> "AL"
+{ rank=source; "AM"; }
+{ 50734165176 [label ="RMSNorm", shape=rectangle]; }
+"AL" -> 50734165176
+"AM" -> 50734165176
+{ "AN"; }
+50734165176 -> "AN"
+{ 50663997720 [label ="Reshape", shape=rectangle]; }
+"AN" -> 50663997720
+{ "AO"; }
+50663997720 -> "AO"
+{ rank=source; "AP"; }
+{ 50664007576 [label ="Broadcast", shape=rectangle]; }
+"AP" -> 50664007576
+{ "AQ"; }
+50664007576 -> "AQ"
+{ 50628139368 [label ="Multiply", shape=rectangle]; }
+"AO" -> 50628139368
+"AQ" -> 50628139368
+{ "AR"; }
+50628139368 -> "AR"
+{ 50664013592 [label ="Reshape", shape=rectangle]; }
+"AR" -> 50664013592
+{ "AS"; }
+50664013592 -> "AS"
+{ 50628141384 [label ="Multiply", shape=rectangle]; }
+"AJ" -> 50628141384
+"AS" -> 50628141384
+{ "AT"; }
+50628141384 -> "AT"
+{ 50742698136 [label ="Sum", shape=rectangle]; }
+"AT" -> 50742698136
+{ "AU"; }
+50742698136 -> "AU"
+{ rank=source; "AV"; }
+{ 50663999640 [label ="Broadcast", shape=rectangle]; }
+"AV" -> 50663999640
+{ "AW"; }
+50663999640 -> "AW"
+{ 50628137160 [label ="Divide", shape=rectangle]; }
+"AU" -> 50628137160
+"AW" -> 50628137160
+{ "AX"; }
+50628137160 -> "AX"
+{ 50775653208 [label ="Abs", shape=rectangle]; }
+"AX" -> 50775653208
+{ "AY"; }
+50775653208 -> "AY"
+{ rank=source; "AZ"; }
+{ 50664005912 [label ="Broadcast", shape=rectangle]; }
+"AZ" -> 50664005912
+{ "BA"; }
+50664005912 -> "BA"
+{ 50773305928 [label ="Maximum", shape=rectangle]; }
+"AY" -> 50773305928
+"BA" -> 50773305928
+{ "BB"; }
+50773305928 -> "BB"
+{ 50775650904 [label ="Sqrt", shape=rectangle]; }
+"BB" -> 50775650904
+{ "BC"; }
+50775650904 -> "BC"
+{ 50783687720 [label ="Sign", shape=rectangle]; }
+"AX" -> 50783687720
+{ "BD"; }
+50783687720 -> "BD"
+{ 50628133512 [label ="Multiply", shape=rectangle]; }
+"BC" -> 50628133512
+"BD" -> 50628133512
+{ "BE"; }
+50628133512 -> "BE"
+{ 50625600280 [label ="CompiledBroadcastAsTypeAsTypeSigmoidBroadcastMultiply", shape=rectangle]; }
+"R" -> 50625600280
+"BE" -> 50625600280
+{ "BF"; }
+50625600280 -> "BF"
+{ 50664010008 [label ="Reshape", shape=rectangle]; }
+"BF" -> 50664010008
+{ "BG"; }
+50664010008 -> "BG"
+{ rank=source; "BH"; }
+{ 50664001048 [label ="Reshape", shape=rectangle]; }
+"BG" -> 50664001048
+{ "BI"; }
+50664001048 -> "BI"
+{ rank=source; "BJ"; }
+{ 50734167192 [label ="RMSNorm", shape=rectangle]; }
+"BI" -> 50734167192
+"BJ" -> 50734167192
+{ "BK"; }
+50734167192 -> "BK"
+{ 50664012568 [label ="Reshape", shape=rectangle]; }
+"BK" -> 50664012568
+{ "BL"; }
+50664012568 -> "BL"
+{ rank=source; "BM"; }
+{ 50663997592 [label ="Broadcast", shape=rectangle]; }
+"BM" -> 50663997592
+{ "BN"; }
+50663997592 -> "BN"
+{ 50628145272 [label ="Multiply", shape=rectangle]; }
+"BL" -> 50628145272
+"BN" -> 50628145272
+{ "BO"; }
+50628145272 -> "BO"
+{ 50773306024 [label ="Concatenate", shape=rectangle]; }
+"BH" -> 50773306024
+"BO" -> 50773306024
+{ "BP"; }
+50773306024 -> "BP"
+{ rank=source; "BQ"; }
+{ 50722408344 [label ="Convolution", shape=rectangle]; }
+"BP" -> 50722408344
+"BQ" -> 50722408344
+{ "BR"; }
+50722408344 -> "BR"
+{ 50706000408 [label ="CompiledSigmoidBroadcastBroadcastMultiply", shape=rectangle]; }
+"BR" -> 50706000408
+{ "BS"; }
+50706000408 -> "BS"
+{ 50773301464 [label ="Add", shape=rectangle]; }
+"BG" -> 50773301464
+"BS" -> 50773301464
+{ rank=sink; "BT"; }
+50773301464 -> "BT"
+}

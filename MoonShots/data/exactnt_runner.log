@@ -1,0 +1,95 @@
+start Sun Nov  1 09:06:36 EET 2026
+clear after 21 min: nothing on this Mac blocks heavy work now.
+shared run reserved until 09:40 (about 150% CPU, 40% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done.
+Free for it now: about 11 cores (1120% CPU) and about 52% of the GPU after other shared runs (ojox-12: 400% CPU, 80% GPU). It fits: use about 1 workers or -j 1.
+running scripts/exactnt.py: free 37 GB, swap 17214 MB Sun Nov  1 09:28:12 EET 2026
+stage 1: fresh blocks at every position of 54 chat answers (model load 4 s)
+tf_ifeval_1005: 504 positions, 15 s
+tf_ifeval_1148: 80 positions, 17 s
+tf_ifeval_1377: 511 positions, 27 s
+tf_ifeval_1481: 275 positions, 32 s
+tf_ifeval_163: 48 positions, 33 s
+tf_ifeval_1643: 511 positions, 43 s
+tf_ifeval_1793: 337 positions, 54 s
+tf_ifeval_1939: 216 positions, 62 s
+tf_ifeval_2015: 19 positions, 62 s
+tf_ifeval_2069: 146 positions, 70 s
+tf_ifeval_2070: 511 positions, 87 s
+tf_ifeval_2071: 251 positions, 289 s
+tf_ifeval_2100: 111 positions, 294 s
+tf_ifeval_2162: 412 positions, 312 s
+tf_ifeval_2265: 511 positions, 332 s
+tf_ifeval_2309: 4 positions, 332 s
+tf_ifeval_2323: 348 positions, 344 s
+tf_ifeval_2380: 61 positions, 346 s
+tf_ifeval_2398: 96 positions, 351 s
+tf_ifeval_2482: 171 positions, 357 s
+tf_ifeval_2571: 168 positions, 365 s
+tf_ifeval_2736: 155 positions, 374 s
+tf_ifeval_2752: 47 positions, 376 s
+tf_ifeval_2785: 511 positions, 388 s
+tf_ifeval_3079: 409 positions, 586 s
+tf_ifeval_349: 29 positions, 588 s
+tf_ifeval_3534: 299 positions, 603 s
+tf_ifeval_3633: 152 positions, 612 s
+tf_ifeval_3669: 42 positions, 614 s
+tf_ifeval_3703: 18 positions, 615 s
+tf_multi_ar21: 175 positions, 623 s
+tf_multi_ar22: 383 positions, 645 s
+tf_multi_ar23: 300 positions, 661 s
+tf_multi_bg0: 377 positions, 681 s
+tf_multi_bg1: 335 positions, 698 s
+tf_multi_bg2: 383 positions, 906 s
+tf_multi_de3: 347 positions, 926 s
+tf_multi_de4: 158 positions, 934 s
+tf_multi_de5: 252 positions, 948 s
+tf_multi_es10: 89 positions, 952 s
+tf_multi_es11: 383 positions, 973 s
+tf_multi_es9: 383 positions, 994 s
+tf_multi_fr6: 383 positions, 1013 s
+tf_multi_fr7: 343 positions, 1208 s
+tf_multi_fr8: 146 positions, 1215 s
+tf_multi_ja18: 138 positions, 1221 s
+tf_multi_ja19: 383 positions, 1243 s
+tf_multi_ja20: 383 positions, 1263 s
+tf_multi_ru12: 383 positions, 1284 s
+tf_multi_ru13: 100 positions, 1289 s
+tf_multi_ru14: 129 positions, 1297 s
+tf_multi_zh15: 333 positions, 1314 s
+tf_multi_zh16: 86 positions, 1577 s
+tf_multi_zh17: 383 positions, 1598 s
+M-15 EXACT-NT: R-61N's chat chain (block 16, L1-20 + cand21's selector at t 0.0, teacher-forced on D-02a), 6145 blocks from 54 answers; fresh T at every position (1598 s)
+self-check: the chain's depth-1 token == fresh T at the same position in 6021 / 6145 blocks (97.98 %); captured top-1 == the greedy text in 73.98 % of blocks; T outside the 125B's top-32 where it could matter: 0 positions
+first misses 6099: block token == fresh T at 53.8 % (depth 1: 97.1 % of 2691; depth >= 2: 19.7 % of 3408); fresh T == the 125B's top-1 (the fresh block would have hit) at 28.2 %
+
+== chat (ifeval + multi): 6145 blocks; exact greedy tokens per pass 2.23
+   rho   rule        forgiven  rule-made misses / block  tokens per pass LB        MOD
+   0.5   R-61N        8.8 %        0.000              2.32 ( +3.9 %)  2.46 (+10.1 %)
+   0.5   EXACT-NT     6.1 %        0.017              2.26 ( +1.4 %)  2.35 ( +5.3 %)
+   0.25  R-61N       17.7 %        0.000              2.41 ( +7.8 %)  2.74 (+22.9 %)
+   0.25  EXACT-NT    12.3 %        0.024              2.31 ( +3.6 %)  2.51 (+12.5 %)
+   0.1   R-61N       26.7 %        0.000              2.49 (+11.8 %)  3.10 (+38.8 %)
+   0.1   EXACT-NT    18.3 %        0.030              2.36 ( +5.8 %)  2.69 (+20.5 %)
+
+== ifeval: 2850 blocks; exact greedy tokens per pass 2.44
+   rho   rule        forgiven  rule-made misses / block  tokens per pass LB        MOD
+   0.5   R-61N       11.6 %        0.000              2.55 ( +4.6 %)  2.77 (+13.4 %)
+   0.5   EXACT-NT     8.0 %        0.024              2.48 ( +1.6 %)  2.61 ( +7.1 %)
+   0.25  R-61N       23.7 %        0.000              2.67 ( +9.5 %)  3.22 (+32.1 %)
+   0.25  EXACT-NT    16.3 %        0.031              2.55 ( +4.5 %)  2.86 (+17.2 %)
+   0.1   R-61N       35.1 %        0.000              2.78 (+14.2 %)  3.81 (+56.1 %)
+   0.1   EXACT-NT    23.5 %        0.039              2.61 ( +6.9 %)  3.12 (+27.8 %)
+
+== multi: 3295 blocks; exact greedy tokens per pass 2.05
+   rho   rule        forgiven  rule-made misses / block  tokens per pass LB        MOD
+   0.5   R-61N        6.3 %        0.000              2.11 ( +3.1 %)  2.20 ( +7.1 %)
+   0.5   EXACT-NT     4.5 %        0.012              2.07 ( +1.1 %)  2.13 ( +3.7 %)
+   0.25  R-61N       12.6 %        0.000              2.18 ( +6.1 %)  2.36 (+15.1 %)
+   0.25  EXACT-NT     8.8 %        0.018              2.11 ( +2.8 %)  2.22 ( +8.5 %)
+   0.1   R-61N       19.6 %        0.000              2.24 ( +9.4 %)  2.57 (+25.3 %)
+   0.1   EXACT-NT    13.8 %        0.022              2.15 ( +4.8 %)  2.35 (+14.4 %)
+
+Lines (QUEUE M-15): EXACT-NT chat MOD at rho 0.25 +12.5 % (PASS >= +15 %, KILL < +8 %) -> BETWEEN. The rule is a served-model change (strict gate + Kamen); the loop stays bit-exact vs its own AR decode.
+(1608 s)
+done rc 0 Sun Nov  1 09:55:04 EET 2026
+lock released

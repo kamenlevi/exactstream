@@ -1,0 +1,44 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=24.6 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] fusions: {'compiled_hc': 96}
+[bigmoe] tier 4433333333: C_m=51 C_l=20 per layer, 6.00 GB pools
+b12: hc (196, 1336.9344, 376.0128)
+b12: C_m=51 C_l=20 (10 %), HC 4, late rank 1 off, pools 6.00 GB, active 8.98 GB
+Traceback (most recent call last):
+  File "/Users/kamen/Breakthrough/scripts/bt_b12.py", line 262, in <module>
+    out, s = generate(chat_ids(PROMPTS["code"]()), 48)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/Breakthrough/scripts/bt_b12.py", line 246, in generate
+    lg = model(mx.array([[y]]), cache=cache)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 7032, in __call__
+    return self.language_model(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6772, in __call__
+    out = self.model(inputs, cache, input_embeddings)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6454, in __call__
+    return self._forward(inputs, cache, input_embeddings)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6489, in _forward
+    h = layer(h, input_ids=inputs, ssm_mask=ssm_mask, cache=c)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6277, in __call__
+    block_out = self.mlp(mixed)
+                ^^^^^^^^^^^^^^^
+  File "/Users/kamen/Breakthrough/scripts/bt_b12.py", line 135, in block
+    mx.async_eval(x)
+RuntimeError: [metal::Device] Unable to build metal library from source
+mlx/backend/metal/kernels/utils.h:636:17: error: cannot initialize a parameter of type 'const device bfloat *' with an lvalue of type 'const device uint32_t *' (aka 'const device unsigned int *')
+                w_down, normed, no_bias, down_raw, HCD, LOWRANK, ROWS, HCD, HCD,
+                ^~~~~~
+mlx/backend/metal/kernels/utils.h:665:366: note: in instantiation of function template specialization 'custom_kernel_mtplx_hc_verify_down_h4_d2560_l320_r2_i1__bfloat16_t_bfloat16_t_uint32_t_bfloat16_t_bfloat16_t_bfloat16_t_bfloat16_t_bfloat16_t_bfloat16_t<bfloat>' requested here
+template [[host_name("custom_kernel_mtplx_hc_verify_down_h4_d2560_l320_r2_i1__bfloat16_t_bfloat16_t_uint32_t_bfloat16_t_bfloat16_t_bfloat16_t_bfloat16_t_bfloat16_t_bfloat16_t")]] [[kernel]] decltype(custom_kernel_mtplx_hc_verify_down_h4_d2560_l320_r2_i1__bfloat16_t_bfloat16_t_uint32_t_bfloat16_t_bfloat16_t_bfloat16_t_bfloat16_t_bfloat16_t_bfloat16_t<bfloat16_t>) custom_kernel_mtplx_hc_verify_down_h4_d2560_l320_r2_i1__bfloat16_t_bfloat16_t_uint32_t_bfloat16_t_bfloat16_t_bfloat16_t_bfloat16_t_bfloat16_t_bfloat16_t<bfloat16_t>;
+                                                                                                                                                                                                                                                                                                                                                                             ^
+mlx/backend/metal/kernels/utils.h:501:23: note: passing argument to parameter 'mat' here
+      const device T* mat,
+                      ^
+
+
