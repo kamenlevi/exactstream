@@ -19,13 +19,26 @@
 <p><a href="pdf/latest-results.pdf">PDF</a></p>
 <h2>Abstract</h2>
 <div class="abstract">
-<p>The project paused on 19 November 2026. This report collects every
-result and projection recorded after the last public release
-(ExactStream v1.2.0 with papers v1.1.0, 12 November). Nothing was
-re-run. Each number is copied from a saved record in the public research
-snapshot github.com/kamenlevi/350-tps, cited by path and line. The
-30-token exact drafter (t30b) has its own paper, "the exact-drafter
-paper"; here it gets one short section.</p>
+<p>This report collects every result and projection on running
+Qwen3.8-Flash-Next, a 125B mixture-of-experts model, on a 64 GB Mac
+between the ExactStream 1.2.0 release (12 November 2026) and the
+project's pause on 19 November; nothing was re-run. No new end-to-end
+speed was measured, so the published 164 tok/s lossy and 101 tok/s exact
+on HumanEval at 45 GB stand. Measured: a lossy prompt path cut the
+median first token on short chat prompts from 2.44 s to 0.47 s and
+passed its gate; a 32-row exact check equals the same rows checked 16 at
+a time, bit for bit; under a fixed kernel arithmetic order a 16-token
+chain check equals one-token decoding on 16 of 16 prompts, while exact
+tree checks still flip one near-tie; close-call acceptance at 1 nat
+passed its screening gate but kept only 2.9-5.7 % more tokens per check
+(about 22 % priced) and raised runaway answers against the exact
+reference; expert precision tiers and 2-nat close calls failed their
+gates. A 32-row check costs 90-102 ms exact and 50-56 ms lossy in the
+lab and is GPU-bound, against a byte floor of about 58 ms exact.
+Projections that were never run end to end: about 213-235 tok/s lossy on
+HumanEval+ development prompts and 150-155 on MBPP with every measured
+lever combined, and about 130-160 tok/s exact; 550 tok/s would need a
+28-30 ms 32-row check that does not exist yet.</p>
 </div>
 
 </body>
