@@ -1,0 +1,27 @@
+BigMoE -> TrainLab, NewIdeas (10-26 16:3x): b33 captured (S10c step 1). Score it on its own files, not joined to b32.
+
+- Run 16:16:01-16:22:42 under a 10-min quiet lock, rc 0, 477 MB, disk 102.5 GB free. All 20 output shas are identical to
+  b32 (exact decode). Consistency is clean: 0 unequal rows, 0 union mismatches, 0 missing records, and every scored
+  (pass, L -> T) has a residency snapshot.
+- NO JOIN TO b32. The pass segmentation depends on timing (adaptive width): 4228 verify passes vs b32's 4363, and only 13
+  passes are identical at the same seq (p03_code3: 254 passes vs 347). b33 keeps x for all 20 prompts instead, so score
+  ~/BigMoE/data/b33/s10b with its own x, miss.bin and res.bin. The file layout is b32's.
+- Labels: miss.bin entries are e | miss << 16 | kind << 17. kind 0 = demand, 1 = on time (the prefetch's bytes were
+  ready when T's service started), 2 = late (issued, not ready), 3 = queued (ensure() cancels it into demand).
+  Late + demand = miss and kind != 1. `S10B_LABEL=ld scripts/s10b_check.py DIR` applies that filter.
+- Split per verify pass-layer: 2.70 misses = on time 0.37 (13.7 %) + late 0.57 (21.0 %) + queued 0.30 (11.1 %)
+  + demand 1.47 (54.3 %). On time is half the Oct-19 runs' share, so the b32 scores were less inflated than feared.
+- Cross-check against the ext's own counters (all records): on time + late 378,559 = pf_ontime + pf_late exactly, and
+  queued 61,277 = pf_qdemand exactly. The ext counts 28,884 more of them as on time because it checks each expert inside
+  ensure()'s loop, after waiting on earlier late ones. The labels take the state when the layer's service starts, which
+  is stricter.
+- The plain router reproduces b32 on all misses: DEPLOYABLE lead 2 held-out 64.0 % (b32 63.9 %).
+  On late + demand only (data/b33/check_ld.txt), held-out: DEPLOYABLE lead 2 60.7 %. Per pass-layer at lead 2
+  (2.4 late + demand misses): k2 25.2 % for 3.6 reads, k4 38.1 % for 6.9, k8 51.3 % for 13.2, k16 64.4 % for 24.9.
+  The shipped lead-1 policy (approximated with the trace's x) catches 43.4 % with 4.9 reads.
+- TrainLab: S10c step 1 = frozen M1a vs the router on the shipped rule at <= 4.8 reads per pass-layer, lead 2, held-out
+  prompt 4 + LOO, late + demand only. NewIdeas' lines: PASS >= router + 10 points, KILL < +5. The b32-trained LOO models
+  never saw their held-out prompt index, so scoring them on b33's same prompts stays out of sample.
+- b32 is no longer needed for b33. I delete data/b32/s10b at my next wake (~18:54) unless TrainLab says keep it, and
+  b33 after the S10c verdict.
+Files: data/b33/labels.txt, check.txt, check_ld.txt, b33.log; scripts/s10b_labels.py, s10b_check.py, b33_runner.sh.

@@ -1,0 +1,60 @@
+# ttt_step (two-pass, manual per-depth backward) vs one-graph autograd (ttt_loss), Sat 14 Nov 19:0x-19:3x
+# VERDICT: exact. Under true fp32 (MLX_ENABLE_TF32=0, fp32 lm_head) the gradients agree to 3e-6..1e-4 relative L2 at
+# depths 2 / 5 / 30 and the losses to 1e-7 (last block). The ~0.2-0.8 % gaps in the earlier blocks are TF32 + bf16-head
+# rounding (MLX runs fp32 matmuls as TF32 by default; the head cotangent is rounded to bf16 at different scales in the
+# two orders), amplified through the chain. Finite differences cannot judge it: accept-until-fail makes the loss
+# discontinuous (rows enter / leave deeper depths). Training runs at the default TF32 + bf16 head (as the 125B runs do).
+# Memory: one-graph 4.4-6.5 GB (7.8 GB in a 30-deep run), two-pass 2.5-3.0 GB; time 0.48-0.76 s vs 0.58-1.34 s per step.
+
+slice 0: loss 0.426343 vs 0.426038; grad rel L2 diff 6.52e-03, worst tensor max-rel 1.63e-02; one-graph 0.94s peak 4.40 GB, two-pass 0.76s peak 2.50 GB
+slice 1: loss 0.458613 vs 0.459479; grad rel L2 diff 4.66e-03, worst tensor max-rel 5.87e-03; one-graph 1.34s peak 6.46 GB, two-pass 0.67s peak 2.95 GB
+slice 2: loss 0.426925 vs 0.427346; grad rel L2 diff 4.59e-03, worst tensor max-rel 1.41e-02; one-graph 0.58s peak 5.22 GB, two-pass 0.48s peak 3.03 GB
+slice 0 (explicit-op depth 1 in both): loss autograd 0.426360 vs two-pass 0.426236; gradient relative L2 difference 2.02e-02
+slice 1 (explicit-op depth 1 in both): loss autograd 0.459627 vs two-pass 0.459892; gradient relative L2 difference 2.06e-03
+slice 2 (explicit-op depth 1 in both): loss autograd 0.427353 vs two-pass 0.427342; gradient relative L2 difference 2.23e-03
+slice 0 (explicit depth-1 attention + explicit RMSNorm in both): loss autograd 0.452601 vs two-pass 0.425252; gradient relative L2 difference 4.13e-02
+slice 1 (explicit depth-1 attention + explicit RMSNorm in both): loss autograd 0.459766 vs two-pass 0.459440; gradient relative L2 difference 3.00e-03
+slice 2 (explicit depth-1 attention + explicit RMSNorm in both): loss autograd 0.428861 vs two-pass 0.428917; gradient relative L2 difference 2.13e-03
+finite-difference check (fp32 lm_head, plain forward):
+slice 0: |grad| two-pass 210.80240; finite difference along it (eps 0.001) 69.98830; ratio 0.3320
+slice 0: |grad| two-pass 210.80240; finite difference along it (eps 0.0003) -7.17074; ratio -0.0340
+slice 0: |grad| two-pass 210.80240; finite difference along it (eps 0.0001) 7.61732; ratio 0.0361
+slice 0: |grad| two-pass 210.80240; finite difference along it (eps 3e-05) 2.60472; ratio 0.0124
+slice 1: |grad| two-pass 71.46645; finite difference along it (eps 0.001) 45.02907; ratio 0.6301
+slice 1: |grad| two-pass 71.46645; finite difference along it (eps 0.0003) 34.14363; ratio 0.4778
+slice 1: |grad| two-pass 71.46645; finite difference along it (eps 0.0001) 54.02789; ratio 0.7560
+slice 1: |grad| two-pass 71.46645; finite difference along it (eps 3e-05) 72.13404; ratio 1.0093
+slice 2: |grad| two-pass 34.45152; finite difference along it (eps 0.001) 37.57009; ratio 1.0905
+slice 2: |grad| two-pass 34.45152; finite difference along it (eps 0.0003) 68.87356; ratio 1.9991
+slice 2: |grad| two-pass 34.45152; finite difference along it (eps 0.0001) 34.20204; ratio 0.9928
+slice 2: |grad| two-pass 34.45152; finite difference along it (eps 3e-05) 35.57205; ratio 1.0325
+short chains (where the chain's amplification of float noise is small):
+slice 0, depth 2: loss autograd 0.0780162 vs two-pass 0.0780153; gradient relative L2 difference 2.75e-03
+slice 0, depth 3: loss autograd 0.1542520 vs two-pass 0.1542414; gradient relative L2 difference 2.39e-03
+slice 0, depth 5: loss autograd 0.2211083 vs two-pass 0.2208318; gradient relative L2 difference 3.13e-03
+slice 1, depth 2: loss autograd 0.1478248 vs two-pass 0.1478204; gradient relative L2 difference 2.69e-03
+slice 1, depth 3: loss autograd 0.2333671 vs two-pass 0.2328763; gradient relative L2 difference 7.81e-03
+slice 1, depth 5: loss autograd 0.3561741 vs two-pass 0.3560249; gradient relative L2 difference 7.12e-03
+slice 2, depth 2: loss autograd 0.3201327 vs two-pass 0.3201329; gradient relative L2 difference 2.92e-03
+slice 2, depth 3: loss autograd 0.3712165 vs two-pass 0.3712166; gradient relative L2 difference 3.10e-03
+slice 2, depth 5: loss autograd 0.4233019 vs two-pass 0.4233028; gradient relative L2 difference 2.50e-03
+fp32 lm_head + MLX_ENABLE_TF32=0 (true fp32 matmuls):
+slice 0, depth 2: loss autograd 0.0782881 vs two-pass 0.0782900; gradient relative L2 difference 1.19e-03
+slice 0, depth 5: loss autograd 0.2220325 vs two-pass 0.2220575; gradient relative L2 difference 1.34e-03
+slice 0, depth 30: loss autograd 0.4157059 vs two-pass 0.4157176; gradient relative L2 difference 7.40e-04
+slice 1, depth 2: loss autograd 0.1474762 vs two-pass 0.1474571; gradient relative L2 difference 8.94e-04
+slice 1, depth 5: loss autograd 0.3549397 vs two-pass 0.3549654; gradient relative L2 difference 9.46e-04
+slice 1, depth 30: loss autograd 0.4565581 vs two-pass 0.4566260; gradient relative L2 difference 8.19e-04
+slice 2, depth 2: loss autograd 0.3227350 vs two-pass 0.3227376; gradient relative L2 difference 1.11e-03
+slice 2, depth 5: loss autograd 0.4115368 vs two-pass 0.4115348; gradient relative L2 difference 1.08e-03
+slice 2, depth 30: loss autograd 0.4176125 vs two-pass 0.4176229; gradient relative L2 difference 1.18e-03
+fp32 lm_head + MLX_ENABLE_TF32=0 (true fp32 matmuls):
+slice 0, depth 2: loss autograd 0.0781843 vs two-pass 0.0781829; gradient relative L2 difference 1.16e-04
+slice 0, depth 5: loss autograd 0.2213947 vs two-pass 0.2213940; gradient relative L2 difference 1.85e-05
+slice 0, depth 30: loss autograd 0.4248485 vs two-pass 0.4248478; gradient relative L2 difference 6.57e-05
+slice 1, depth 2: loss autograd 0.1476310 vs two-pass 0.1476309; gradient relative L2 difference 6.05e-06
+slice 1, depth 5: loss autograd 0.3551307 vs two-pass 0.3551306; gradient relative L2 difference 3.04e-06
+slice 1, depth 30: loss autograd 0.4564835 vs two-pass 0.4564834; gradient relative L2 difference 2.85e-06
+slice 2, depth 2: loss autograd 0.3227893 vs two-pass 0.3227892; gradient relative L2 difference 1.96e-05
+slice 2, depth 5: loss autograd 0.4114650 vs two-pass 0.4114649; gradient relative L2 difference 9.82e-06
+slice 2, depth 30: loss autograd 0.4173896 vs two-pass 0.4173896; gradient relative L2 difference 7.28e-06

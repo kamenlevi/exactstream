@@ -1,0 +1,26 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=22.0 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'verify_rows_sdpa': True, 'duprow': True, 'compiled_hc': 96, 'frspec': True, 'scout_bundle': {'sc2_sharedfirst': True, 'sc3b_vreadchunk_classes': 1, 'sc3_glue': {'qsa_rope': True, 'qsa_rope_idx': True}}}
+[math430] ar2   C=128:   17.4 tok/s decode, sha 56dfaf91c1 (expect c09a8163f9 at 0.50/64)
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[math430] spec k=1 max_draft=1 lookup=0 p_min=0.0:   22.1 tok/s, 1.90 tok/pass, commit refused 0, prefill 3.34s, draft 2.51s / verify 66.83s, sha 56dfaf91c1 IDENTICAL
+[math430] spec k=3 max_draft=5 lookup=0 p_min=0.0:   24.1 tok/s, 3.27 tok/pass, commit refused 0, prefill 3.57s, draft 4.20s / verify 59.28s, sha 56dfaf91c1 IDENTICAL
+[math430] adaptive alpha=2.0 step=2.2:   21.8 tok/s, 2.66 tok/pass, lookup 198/578 passes, draft 3.42s / verify 66.77s, sha b1726a55b2 DIFFERS at 1112
+repetition guard: {'armed': 0, 'steered': 0, 'penalized': 0}
+peak 23.4 GB
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=23.4 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'verify_rows_sdpa': True, 'duprow': True, 'compiled_hc': 96, 'frspec': True, 'scout_bundle': {'sc2_sharedfirst': True, 'sc3b_vreadchunk_classes': 1, 'sc3_glue': {'qsa_rope': True, 'qsa_rope_idx': True}}}
+[bigmoe] tier 4433333333: C_m=147 C_l=46 per layer, 17.07 GB pools
+[math430] ar2   C=128:   22.4 tok/s decode, sha 304145912c (expect c09a8163f9 at 0.50/64)
+[mtplx] verify SDPA head-chunked: q_len=4 heads_per_chunk=8 chunks=4
+[math430] spec k=3 max_draft=5 lookup=0 p_min=0.0:   30.2 tok/s, 3.31 tok/pass, commit refused 0, prefill 3.13s, draft 4.22s / verify 46.37s, sha d0185758cb DIFFERS at 1399
+[math430] adaptive alpha=2.0 step=2.2:   25.5 tok/s, 1.84 tok/pass, lookup 250/836 passes, draft 3.33s / verify 56.59s, sha 304145912c IDENTICAL
+repetition guard: {'armed': 0, 'steered': 0, 'penalized': 0}
+peak 23.2 GB

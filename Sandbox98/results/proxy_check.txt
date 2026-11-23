@@ -1,0 +1,13 @@
+# Which proxy orders stand-in quality? (Sat 14 Nov 19:5x, MBPP 100 answer rows, s30's read-out at 23-30)
+# direction error = RMS-normalized relative error (fitmap.py's rel_err_normalized), what the head's input norm sees
+predictor                   R2      direction error   MBPP 23-30 %
+map: all five taps          0.939   0.226             87.41
+map: tap 22                 0.934   0.234             87.30
+true W + noise 0.3          0.913   0.255             87.34
+true W + noise 0.5          0.758   0.407             85.60
+true W + noise 0.7          0.525   0.540             82.66
+map: tap 12                 0.444   0.775             59.19
+map: tap 2                  0.369   0.837             47.75
+(the stale chain: 57.32; the true W: 88.35)
+R2 does not order the two families (noise at R2 0.53 drafts 82.7 %, a map at R2 0.44 drafts 59.2 %); the direction
+error orders all seven monotonically (87.30 vs 87.34 is a tie within noise). Noise R2 here uses per-file means.

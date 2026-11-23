@@ -1,0 +1,16 @@
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.45 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 224), loaded in 2 s, 33.9 GB active; REF2 + SB; gate rows MAXK 160 (ext build_qom), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 1024
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 25.0 tok/s; MLX peak prefill 36.5 / decode 36.4 GB, lifetime peak 37.8 -> 37.8 GB
+  warm-up (discarded): gsm8k/708 [gate+t, mtp] 64 tokens, 46.1 tok/s; MLX peak prefill 36.7 / decode 36.4 GB, lifetime peak 37.8 -> 37.8 GB
+  warm-up (discarded): gsm8k/708 [gate+t, d7b] 64 tokens, 55.7 tok/s; MLX peak prefill 36.7 / decode 36.4 GB, lifetime peak 37.8 -> 37.8 GB
+  agentlong/edit10 [gate+t] [agent: dfl]: 93 tokens in 10 checks (kept 9.30), 60.5 tok/s (steady state, checks >= 2: 74.1), median cycle 128.5 ms, check + commit 111.0 ms; per check (medians) 213 misses, demand SSD 44.2 ms, gate service 45.6 ms (80 calls with misses), draft 12.4 ms; per kept token SSD 50.5 MB, 26.7 misses; tokens == REF2 row 0 / 0; FAST QOM: 123 of 123 rows gated, kept 93 vs exact 93; JOINT reads 344; demand bursts 445: after >= 0.25 ms idle 445, >= 1 ms 365; keepalive reads 6923; tier: 2 hits (copied back, no SSD read), 144 copied in, 0 dropped, 49 slabs found purged; filled 0.29 of 7.45 GB (volatile, beside the footprint); QOM: 37007 optional uses, 11255 optional-only misses not read (dropped)
+    mem: MLX peak prefill 38.4 / decode 36.8 GB; at the end active 36.7, cache 1.0, footprint 38.3 GB; lifetime peak after prefill 39.7 -> after decode 39.7 GB
+  gate+t: tok/s 60.5 (steady state 74.1), cycle 128.5 ms, check + commit 111.0 ms, misses 213, demand SSD 44.2 ms per check (medians over valid runs, then prompts)
+  gate+t where the time goes (medians per check): check + commit 111.0 ms, demand SSD busy 44.2 ms (40% of the check), gate service on misses 45.6 ms (the GPU's spin bound; OOO overlaps part of it), draft 12.4 ms (SSD idle)
+  gate+t per kept token (pooled over valid runs): SSD 50.5 MB, misses 26.7 (93 kept tokens; median per prompt 50.5 MB, 26.7 misses)
+  tier flags: TIER_COMBINE True, OOO True (2287 OOO calls); EVICT_PRIOR None; REFTOK : every token equal True
+  K-73 engagement: exact MoE block calls 2287; ref2 att_rope 564, idx_prep 1248, hc_write 2287 (counted at graph build); K-83: hc_gate / hc_read 0, gdn_inproj_x 1723, drafter forms + chain_fused
+  build-day engagement (ref2 counts at graph build): dense_native 6861, dense_native_repack 0, dense_native_unpack 540, hc8_fast 4574, hc_b 0, ooo_1c 2287, ooo_1c_qom 480
+  C1 NAX6 (ref2 tier_nax_ooo): engagement nax6_ooo 2287 OOO calls, nax6 0 other tier calls (counted at graph build); tokens are NAX6's own reference: compare across NAX processes only
+  chat switch: MTP head d22_b5 (md5 pinned) resident, K15, cut t 0.3 with early exit; type rule runs: {'chat': 0, 'code': 0, 'math': 0, 'agent': 1} (chat -> MTP, the rest -> DFlash2)
+  footprint now 37.6 GB, lifetime peak 39.7 GB; 34 s

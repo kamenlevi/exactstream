@@ -1,0 +1,20 @@
+BIGMOE_RECORDS=3 pools == safetensors pools (96 experts, layer 7): True
+read_rebuilt rows == safetensors pools: True
+msb part pool == record bytes: True
+lsb part pool == record bytes: True
+PASS
+1. rebuild4 gate_proj: bit-exact
+1. rebuild4 up_proj: bit-exact
+1. rebuild4 down_proj: bit-exact
+2. T=1 gate_proj 4-bit ranks: bit-exact
+3. T=1 gate_proj 3-bit ranks vs _tier_proj(3): max |d| 0.0234 (rel 0.0086)
+2. T=1 up_proj 4-bit ranks: bit-exact
+3. T=1 up_proj 3-bit ranks vs _tier_proj(3): max |d| 0.0234 (rel 0.01)
+2. T=4 gate_proj 4-bit ranks: bit-exact
+3. T=4 gate_proj 3-bit ranks vs _tier_proj(3): max |d| 0.0332 (rel 0.012)
+2. T=4 up_proj 4-bit ranks: bit-exact
+3. T=4 up_proj 3-bit ranks vs _tier_proj(3): max |d| 0.0352 (rel 0.014)
+4. gate_proj MSB-3 dequant == masked 4-bit dequant (planes125): bit-exact
+4. up_proj MSB-3 dequant == masked 4-bit dequant (planes125): bit-exact
+4. down_proj MSB-3 dequant == masked 4-bit dequant (planes125): bit-exact
+PASS

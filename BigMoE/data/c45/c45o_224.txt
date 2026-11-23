@@ -1,0 +1,25 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=15.4 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=246 C_l=112 per layer, 29.52 GB pools
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 224), loaded in 1 s, 33.4 GB active; REF2 + SB; gate rows MAXK 160 (ext build), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 256
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  warm-up (discarded): gsm8k/708 [gate+t] 64 tokens, 22.6 tok/s; MLX peak prefill 35.4 / decode 35.6 GB, lifetime peak 36.0 -> 36.4 GB
+  humaneval/HumanEval/68 [gate+t]: 256 tokens in 17 checks (kept 15.41), 69.8 tok/s (steady state, checks >= 2: 80.2), median cycle 201.4 ms, check + commit 183.5 ms; per check (medians) 822 misses, demand SSD 133.5 ms, gate service 134.6 ms (95 calls with misses), draft 12.1 ms; per kept token SSD 104.1 MB, 60.8 misses; tokens == REF2 row 256 / 256; tokens == REFTOK 256 / 256
+    mem: MLX peak prefill 36.8 / decode 35.8 GB; at the end active 35.7, cache 0.9, footprint 37.0 GB; lifetime peak after prefill 37.4 -> after decode 37.4 GB
+  math500/test/prealgebra/1640.json [gate+t]: 256 tokens in 50 checks (kept 5.20), 43.1 tok/s (steady state, checks >= 2: 46.2), median cycle 109.1 ms, check + commit 97.8 ms; per check (medians) 238 misses, demand SSD 52.3 ms, gate service 52.9 ms (74 calls with misses), draft 11.4 ms; per kept token SSD 100.4 MB, 55.3 misses; tokens == REF2 row 55 / 256; tokens == REFTOK 256 / 256
+    mem: MLX peak prefill 36.1 / decode 35.6 GB; at the end active 35.6, cache 0.5, footprint 36.6 GB; lifetime peak after prefill 37.4 -> after decode 37.4 GB
+  humaneval/HumanEval/91 [gate+t]: 256 tokens in 38 checks (kept 6.97), 48.8 tok/s (steady state, checks >= 2: 51.8), median cycle 111.5 ms, check + commit 103.8 ms; per check (medians) 304 misses, demand SSD 60.0 ms, gate service 60.6 ms (76 calls with misses), draft 11.6 ms; per kept token SSD 105.2 MB, 59.7 misses; tokens == REF2 row 193 / 256; tokens == REFTOK 256 / 256
+    mem: MLX peak prefill 36.3 / decode 35.7 GB; at the end active 35.6, cache 0.6, footprint 36.6 GB; lifetime peak after prefill 37.4 -> after decode 37.4 GB
+  math500/test/algebra/694.json [gate+t]: 256 tokens in 35 checks (kept 7.43), 53.6 tok/s (steady state, checks >= 2: 57.6), median cycle 133.4 ms, check + commit 123.0 ms; per check (medians) 382 misses, demand SSD 76.0 ms, gate service 76.7 ms (83 calls with misses), draft 11.5 ms; per kept token SSD 93.8 MB, 51.9 misses; tokens == REF2 row 6 / 256; tokens == REFTOK 256 / 256
+    mem: MLX peak prefill 36.2 / decode 35.6 GB; at the end active 35.6, cache 0.4, footprint 36.5 GB; lifetime peak after prefill 37.4 -> after decode 37.4 GB
+  math500/test/algebra/1282.json [gate+t]: 256 tokens in 42 checks (kept 6.07), 51.0 tok/s (steady state, checks >= 2: 54.2), median cycle 105.0 ms, check + commit 93.6 ms; per check (medians) 198 misses, demand SSD 47.3 ms, gate service 47.8 ms (64 calls with misses), draft 11.5 ms; per kept token SSD 77.9 MB, 41.8 misses; tokens == REF2 row 86 / 256; tokens == REFTOK 256 / 256
+    mem: MLX peak prefill 36.0 / decode 35.6 GB; at the end active 35.6, cache 0.3, footprint 36.4 GB; lifetime peak after prefill 37.4 -> after decode 37.4 GB
+  gsm8k/708 [gate+t]: 198 tokens in 31 checks (kept 6.39), 48.3 tok/s (steady state, checks >= 2: 53.5), median cycle 112.7 ms, check + commit 102.0 ms; per check (medians) 253 misses, demand SSD 57.1 ms, gate service 57.7 ms (78 calls with misses), draft 11.4 ms; per kept token SSD 93.1 MB, 51.7 misses; tokens == REF2 row 48 / 197; tokens == REFTOK 198 / 198
+    mem: MLX peak prefill 36.0 / decode 35.6 GB; at the end active 35.6, cache 0.5, footprint 36.5 GB; lifetime peak after prefill 37.4 -> after decode 37.4 GB
+  gate+t: tok/s 49.9 (steady state 53.9), cycle 112.1 ms, check + commit 102.9 ms, misses 279, demand SSD 58.6 ms per check (medians over valid runs, then prompts)
+  gate+t where the time goes (medians per check): check + commit 102.9 ms, demand SSD busy 58.6 ms (57% of the check), gate service on misses 59.1 ms (the GPU's spin bound; OOO overlaps part of it), draft 11.5 ms (SSD idle)
+  gate+t per kept token (pooled over valid runs): SSD 96.0 MB, misses 53.7 (1500 kept tokens; median per prompt 97.1 MB, 53.6 misses)
+  tier flags: TIER_COMBINE True, OOO True (11035 OOO calls); EVICT_PRIOR None; REFTOK /Users/kamen/BigMoE/data/r57/s45t_B_tokens.json:gate+t: every token equal True
+  footprint now 36.1 GB, lifetime peak 37.4 GB; 59 s

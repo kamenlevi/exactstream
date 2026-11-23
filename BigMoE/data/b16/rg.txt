@@ -1,0 +1,62 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=24.8 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'duprow': True, 'compiled_hc': 96, 'frspec': True, 'scout_bundle': {'sc2_sharedfirst': True, 'sc3b_vreadchunk_classes': 1, 'sc3_glue': {'qsa_rope': True, 'qsa_rope_idx': True}}}
+[bigmoe] tier 4433333333: C_m=147 C_l=46 per layer, 17.07 GB pools
+[mtplx] verify SDPA head-chunked: q_len=31 heads_per_chunk=1 chunks=24
+math500/test/prealgebra/1640.json off: 1048 tok eos, armed 0, penalized steps 0 (38s)
+math500/test/prealgebra/1640.json R0: 1042 tok eos, armed 1, penalized steps 27 (43s)
+math500/test/prealgebra/1640.json R1: 1048 tok eos, armed 0, penalized steps 0 (77s)
+math500/test/intermediate_algebra/1422.json off: 1536 tok length, armed 0, penalized steps 0 (51s)
+math500/test/intermediate_algebra/1422.json R0: 1536 tok length, armed 2, penalized steps 42 (67s)
+math500/test/intermediate_algebra/1422.json R1: 1536 tok length, armed 0, penalized steps 0 (130s)
+math500/test/intermediate_algebra/101.json off: 1536 tok length, armed 0, penalized steps 0 (54s)
+math500/test/intermediate_algebra/101.json R0: 1536 tok length, armed 1, penalized steps 53 (73s)
+math500/test/intermediate_algebra/101.json R1: 1536 tok length, armed 0, penalized steps 0 (129s)
+math500/test/precalculus/323.json off: 1186 tok eos, armed 0, penalized steps 0 (39s)
+math500/test/precalculus/323.json R0: 1536 tok length, armed 1, penalized steps 127 (67s)
+math500/test/precalculus/323.json R1: 1186 tok eos, armed 0, penalized steps 0 (99s)
+math500/test/intermediate_algebra/607.json off: 1536 tok length, armed 0, penalized steps 0 (54s)
+math500/test/intermediate_algebra/607.json R0: 1536 tok length, armed 0, penalized steps 0 (51s)
+math500/test/intermediate_algebra/607.json R1: 1536 tok length, armed 0, penalized steps 0 (118s)
+math500/test/number_theory/634.json off: 978 tok eos, armed 0, penalized steps 0 (35s)
+math500/test/number_theory/634.json R0: 978 tok eos, armed 1, penalized steps 33 (44s)
+math500/test/number_theory/634.json R1: 978 tok eos, armed 0, penalized steps 0 (80s)
+math500/test/algebra/509.json off: 1063 tok eos, armed 0, penalized steps 0 (39s)
+math500/test/algebra/509.json R0: 1063 tok eos, armed 0, penalized steps 0 (41s)
+math500/test/algebra/509.json R1: 1063 tok eos, armed 0, penalized steps 0 (89s)
+math500/test/algebra/733.json off: 1536 tok length, armed 0, penalized steps 0 (54s)
+math500/test/algebra/733.json R0: 1536 tok length, armed 1, penalized steps 14 (64s)
+math500/test/algebra/733.json R1: 1536 tok length, armed 0, penalized steps 0 (116s)
+math500/test/prealgebra/1139.json off: 1536 tok length, armed 0, penalized steps 0 (52s)
+math500/test/prealgebra/1139.json R0: 1536 tok length, armed 2, penalized steps 35 (73s)
+math500/test/prealgebra/1139.json R1: 1536 tok length, armed 0, penalized steps 0 (127s)
+math500/test/counting_and_probability/430.json off: 1536 tok length, armed 0, penalized steps 0 (53s)
+math500/test/counting_and_probability/430.json R0: 1536 tok length, armed 0, penalized steps 0 (53s)
+math500/test/counting_and_probability/430.json R1: 1536 tok length, armed 0, penalized steps 0 (122s)
+ifeval/1219 R0: 202 tok eos, armed 0, penalized steps 0 (11s)
+ifeval/1219 R1: 202 tok eos, armed 0, penalized steps 0 (10s)
+ifeval/3223 R0: 1024 tok length, armed 1, penalized steps 7 (37s)
+ifeval/3223 R1: 1024 tok length, armed 1, penalized steps 7 (67s)
+ifeval/3439 R0: 1024 tok length, armed 1, penalized steps 9 (35s)
+ifeval/3439 R1: 1024 tok length, armed 1, penalized steps 9 (68s)
+ifeval/3326 R0: 94 tok eos, armed 0, penalized steps 0 (6s)
+ifeval/3326 R1: 94 tok eos, armed 0, penalized steps 0 (6s)
+
+summary (tokens identical to guard-off on math rows):
+  math500/test/prealgebra/1640.json: R0 CHANGED (1042 vs 1048), R1 same (1048)
+  math500/test/intermediate_algebra/1422.json: R0 CHANGED (1536 vs 1536), R1 CHANGED (1536)
+  math500/test/intermediate_algebra/101.json: R0 CHANGED (1536 vs 1536), R1 CHANGED (1536)
+  math500/test/precalculus/323.json: R0 CHANGED (1536 vs 1186), R1 same (1186)
+  math500/test/intermediate_algebra/607.json: R0 CHANGED (1536 vs 1536), R1 same (1536)
+  math500/test/number_theory/634.json: R0 CHANGED (978 vs 978), R1 same (978)
+  math500/test/algebra/509.json: R0 same (1063 vs 1063), R1 same (1063)
+  math500/test/algebra/733.json: R0 CHANGED (1536 vs 1536), R1 same (1536)
+  math500/test/prealgebra/1139.json: R0 CHANGED (1536 vs 1536), R1 CHANGED (1536)
+  math500/test/counting_and_probability/430.json: R0 CHANGED (1536 vs 1536), R1 CHANGED (1536)
+  ifeval/1219: R0 202 tok armed 0 / R1 202 tok armed 0, R0 == R1 True
+  ifeval/3223: R0 1024 tok armed 1 / R1 1024 tok armed 1, R0 == R1 True
+  ifeval/3439: R0 1024 tok armed 1 / R1 1024 tok armed 1, R0 == R1 True
+  ifeval/3326: R0 94 tok armed 0 / R1 94 tok armed 0, R0 == R1 True

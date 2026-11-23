@@ -1,0 +1,47 @@
+PASS QD=0 SEGALL=0 layer 0: experts read once each, slices [16] (want [16])
+PASS QD=0 SEGALL=0 layer 0: no waits (as before)
+PASS QD=0 SEGALL=0 layer 1: experts read once each, slices [16] (want [16])
+PASS QD=0 SEGALL=0 layer 1: no waits (as before)
+PASS QD=0 SEGALL=0: router token counts [6, 7] (want [6, 7])
+PASS QD=1 SEGALL=0 layer 0: experts read once each, slices [4, 4, 4, 4] (want [4, 4, 4, 4])
+PASS QD=1 SEGALL=0 layer 0: in flight max 2, after waits [1, 1, 1, 1]
+PASS QD=1 SEGALL=0 layer 1: experts read once each, slices [4, 4, 4, 4] (want [4, 4, 4, 4])
+PASS QD=1 SEGALL=0 layer 1: in flight max 2, after waits [1, 1, 1, 1]
+PASS QD=1 SEGALL=0: router token counts [6, 7] (want [6, 7])
+PASS QD=2 SEGALL=0 layer 0: experts read once each, slices [4, 4, 4, 4] (want [4, 4, 4, 4])
+PASS QD=2 SEGALL=0 layer 0: in flight max 3, after waits [2, 2, 2]
+PASS QD=2 SEGALL=0 layer 1: experts read once each, slices [4, 4, 4, 4] (want [4, 4, 4, 4])
+PASS QD=2 SEGALL=0 layer 1: in flight max 3, after waits [2, 2, 2]
+PASS QD=2 SEGALL=0: router token counts [6, 7] (want [6, 7])
+PASS QD=3 SEGALL=0 layer 0: experts read once each, slices [4, 4, 4, 4] (want [4, 4, 4, 4])
+PASS QD=3 SEGALL=0 layer 0: in flight max 4, after waits [3, 3]
+PASS QD=3 SEGALL=0 layer 1: experts read once each, slices [4, 4, 4, 4] (want [4, 4, 4, 4])
+PASS QD=3 SEGALL=0 layer 1: in flight max 4, after waits [3, 3]
+PASS QD=3 SEGALL=0: router token counts [6, 7] (want [6, 7])
+PASS QD=0 SEGALL=1 layer 0: experts read once each, slices [16] (want [16])
+PASS QD=0 SEGALL=1 layer 0: no waits (as before)
+PASS QD=0 SEGALL=1 layer 1: experts read once each, slices [16] (want [16])
+PASS QD=0 SEGALL=1 layer 1: no waits (as before)
+PASS QD=0 SEGALL=1: router token counts [3, 3, 3, 3, 1] (want [3, 3, 3, 3, 1])
+PASS QD=1 SEGALL=1 layer 0: experts read once each, slices [4, 4, 4, 4] (want [4, 4, 4, 4])
+PASS QD=1 SEGALL=1 layer 0: in flight max 2, after waits [1, 1, 1, 1]
+PASS QD=1 SEGALL=1 layer 1: experts read once each, slices [4, 4, 4, 4] (want [4, 4, 4, 4])
+PASS QD=1 SEGALL=1 layer 1: in flight max 2, after waits [1, 1, 1, 1]
+PASS QD=1 SEGALL=1: router token counts [3, 3, 3, 3, 1] (want [3, 3, 3, 3, 1])
+PASS QD=2 SEGALL=1 layer 0: experts read once each, slices [4, 4, 4, 4] (want [4, 4, 4, 4])
+PASS QD=2 SEGALL=1 layer 0: in flight max 3, after waits [2, 2, 2]
+PASS QD=2 SEGALL=1 layer 1: experts read once each, slices [4, 4, 4, 4] (want [4, 4, 4, 4])
+PASS QD=2 SEGALL=1 layer 1: in flight max 3, after waits [2, 2, 2]
+PASS QD=2 SEGALL=1: router token counts [3, 3, 3, 3, 1] (want [3, 3, 3, 3, 1])
+PASS QD=3 SEGALL=1 layer 0: experts read once each, slices [4, 4, 4, 4] (want [4, 4, 4, 4])
+PASS QD=3 SEGALL=1 layer 0: in flight max 4, after waits [3, 3]
+PASS QD=3 SEGALL=1 layer 1: experts read once each, slices [4, 4, 4, 4] (want [4, 4, 4, 4])
+PASS QD=3 SEGALL=1 layer 1: in flight max 4, after waits [3, 3]
+PASS QD=3 SEGALL=1: router token counts [3, 3, 3, 3, 1] (want [3, 3, 3, 3, 1])
+PASS SEGALL=0: outputs with QD=1 bitwise == QD=0
+PASS SEGALL=0: outputs with QD=2 bitwise == QD=0
+PASS SEGALL=0: outputs with QD=3 bitwise == QD=0
+PASS SEGALL=1: outputs with QD=1 bitwise == QD=0
+PASS SEGALL=1: outputs with QD=2 bitwise == QD=0
+PASS SEGALL=1: outputs with QD=3 bitwise == QD=0
+ALL PASS

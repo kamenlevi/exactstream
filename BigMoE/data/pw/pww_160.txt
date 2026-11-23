@@ -1,0 +1,231 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=21.1 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=164 C_l=112 per layer, 21.06 GB pools
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 160), loaded in 1 s, 25.0 GB active; REF2 + SB; gate rows MAXK 160 (ext build), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 64
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 31.2 tok/s; MLX peak prefill 26.9 / decode 27.2 GB, lifetime peak 27.7 -> 28.0 GB
+  humaneval/HumanEval/68 [gate+t]: 64 tokens in 4 checks (kept 16.00), 52.8 tok/s (steady state, checks >= 2: 59.4), median cycle 333.7 ms, check + commit 299.7 ms; per check (medians) 1367 misses, demand SSD 223.9 ms, gate service 225.4 ms (94 calls with misses), draft 11.5 ms; per kept token SSD 163.6 MB, 85.3 misses; tokens == REF2 row 64 / 64
+    mem: MLX peak prefill 28.4 / decode 27.4 GB; at the end active 27.4, cache 0.7, footprint 28.5 GB; lifetime peak after prefill 29.0 -> after decode 29.0 GB
+    A6 warm: pre-loop {'warm_ms': 885.7, 'warm_miss': 7339.0, 'warm_mb': 11167.6}; first checks (draft, build, wait, check + commit ms, misses, demand SSD ms, gate service ms, rows): [(27.5, 275.2, 37.5, 313.0, 1313, 217.5, 219.1, 16), (11.5, 294.9, 27.1, 322.2, 1652, 262.1, 263.5, 16), (11.3, 260.6, 25.5, 286.4, 1421, 230.4, 231.6, 16), (11.5, 207.3, 21.6, 229.2, 1074, 178.5, 179.6, 16)]; prompt 367 tokens
+  humaneval/HumanEval/91 [gate+t]: 64 tokens in 4 checks (kept 15.75), 58.5 tok/s (steady state, checks >= 2: 64.1), median cycle 289.0 ms, check + commit 257.1 ms; per check (medians) 1088 misses, demand SSD 186.4 ms, gate service 187.6 ms (94 calls with misses), draft 12.1 ms; per kept token SSD 143.6 MB, 71.8 misses; tokens == REF2 row 64 / 64
+    mem: MLX peak prefill 28.0 / decode 27.3 GB; at the end active 27.2, cache 0.3, footprint 28.0 GB; lifetime peak after prefill 29.0 -> after decode 29.0 GB
+    A6 warm: pre-loop {'warm_ms': 723.7, 'warm_miss': 5036.0, 'warm_mb': 9050.2}; first checks (draft, build, wait, check + commit ms, misses, demand SSD ms, gate service ms, rows): [(25.0, 230.3, 33.4, 264.0, 972, 172.5, 174.1, 16), (11.4, 262.2, 29.3, 294.0, 1377, 235.7, 237.1, 16), (12.9, 201.2, 23.7, 225.1, 1028, 176.1, 177.2, 16), (11.2, 223.6, 26.3, 250.1, 1147, 196.8, 198.0, 16)]; prompt 144 tokens
+  humaneval/HumanEval/16 [gate+t]: 64 tokens in 4 checks (kept 15.75), 53.7 tok/s (steady state, checks >= 2: 51.9), median cycle 299.3 ms, check + commit 286.5 ms; per check (medians) 1328 misses, demand SSD 222.9 ms, gate service 224.3 ms (93 calls with misses), draft 11.9 ms; per kept token SSD 159.5 MB, 81.0 misses; tokens == REF2 row 64 / 64
+    mem: MLX peak prefill 27.9 / decode 27.3 GB; at the end active 27.2, cache 0.2, footprint 27.9 GB; lifetime peak after prefill 29.0 -> after decode 29.0 GB
+    A6 warm: pre-loop {'warm_ms': 638.0, 'warm_miss': 4169.0, 'warm_mb': 7906.3}; first checks (draft, build, wait, check + commit ms, misses, demand SSD ms, gate service ms, rows): [(24.1, 253.3, 33.6, 287.2, 1040, 194.3, 195.8, 16), (11.0, 242.7, 27.5, 270.5, 1280, 216.7, 218.1, 16), (11.3, 260.5, 25.2, 288.0, 1376, 229.1, 230.5, 16), (12.5, 259.6, 26.1, 285.9, 1409, 230.9, 232.1, 16)]; prompt 103 tokens
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (480, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (489, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (477, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (476, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (467, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (486, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (487, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (490, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (479, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (482, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (469, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (470, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (471, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (472, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (449, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (460, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (488, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (474, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (485, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (464, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (462, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (437, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (453, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (440, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (468, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (427, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (451, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (414, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (406, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (407, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (438, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (456, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (424, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (446, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (387, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (392, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (411, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (420, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (386, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (359, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (396, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (357, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (379, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (400, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (384, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (278, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (307, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (362, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (354, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (412, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (435, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (401, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (381, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (341, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (371, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (342, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (388, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (370, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (291, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (416, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (397, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (383, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (403, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (372, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (382, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (364, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (343, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (361, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (368, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (351, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (374, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (399, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (425, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (345, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (363, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (365, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (380, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (283, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (327, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (350, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (429, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (439, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (358, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (335, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (366, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (356, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (394, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (389, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (318, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (336, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (413, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (408, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (432, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (405, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (463, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (433, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (378, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (395, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (376, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (404, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (314, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (436, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (344, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (428, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (441, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (430, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (431, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (373, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (391, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (444, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (385, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (398, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (418, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (367, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (300, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (323, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (415, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (419, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (402, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (423, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (447, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (443, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (442, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (458, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (452, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (434, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (422, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (454, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (409, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (459, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (455, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (353, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (417, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (410, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (457, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (421, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (426, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (377, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (393, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (390, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (461, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (338, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (325, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (450, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (369, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (339, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (355, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (332, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (317, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (326, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (242, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (255, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (313, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (334, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (349, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (311, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (316, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (285, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (352, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+  agent/bash18 [gate+t]: 64 tokens in 25 checks (kept 2.60), 22.8 tok/s (steady state, checks >= 2: 25.4), median cycle 103.4 ms, check + commit 91.2 ms; per check (medians) 136 misses, demand SSD 35.0 ms, gate service 35.3 ms (62 calls with misses), draft 12.4 ms; per kept token SSD 111.3 MB, 59.0 misses; tokens == REF2 row 0 / 0
+    mem: MLX peak prefill 30.4 / decode 28.6 GB; at the end active 28.0, cache 0.9, footprint 29.4 GB; lifetime peak after prefill 31.7 -> after decode 31.7 GB
+    A6 warm: pre-loop {'warm_ms': 1079.4, 'warm_miss': 8299.0, 'warm_mb': 13231.3}; first checks (draft, build, wait, check + commit ms, misses, demand SSD ms, gate service ms, rows): [(59.4, 164.4, 17.8, 184.6, 135, 39.4, 40.1, 3), (12.5, 61.4, 9.2, 72.4, 71, 21.6, 22.0, 2), (12.2, 73.1, 10.9, 85.9, 137, 35.0, 35.3, 3), (12.2, 72.0, 12.5, 86.3, 141, 35.7, 36.0, 3), (12.4, 67.7, 8.9, 78.4, 97, 28.1, 28.5, 2), (12.4, 77.2, 10.9, 88.3, 155, 38.1, 38.5, 4), (12.6, 62.3, 10.7, 75.1, 77, 23.7, 24.0, 2), (12.3, 12.9, 78.0, 91.2, 38, 12.5, 12.7, 1)]; prompt 9687 tokens
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (483, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (481, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (466, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (478, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (465, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (360, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (274, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (294, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (284, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (328, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (292, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (322, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (375, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (312, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (337, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (320, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (253, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (280, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (308, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (445, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (237, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (258, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (301, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (333, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (347, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (299, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+  agent/text23 [gate+t]: 64 tokens in 10 checks (kept 6.60), 32.4 tok/s (steady state, checks >= 2: 37.4), median cycle 193.8 ms, check + commit 184.1 ms; per check (medians) 692 misses, demand SSD 121.8 ms, gate service 122.6 ms (90 calls with misses), draft 12.6 ms; per kept token SSD 188.6 MB, 98.8 misses; tokens == REF2 row 0 / 0
+    mem: MLX peak prefill 30.2 / decode 28.4 GB; at the end active 27.9, cache 1.0, footprint 29.4 GB; lifetime peak after prefill 31.7 -> after decode 31.7 GB
+    A6 warm: pre-loop {'warm_ms': 604.3, 'warm_miss': 4270.0, 'warm_mb': 7048.2}; first checks (draft, build, wait, check + commit ms, misses, demand SSD ms, gate service ms, rows): [(45.7, 230.4, 28.0, 260.5, 870, 155.1, 156.4, 9), (13.0, 156.8, 21.5, 180.7, 673, 118.5, 119.4, 8), (12.8, 116.0, 13.8, 132.2, 366, 74.7, 75.3, 7), (14.0, 66.9, 9.1, 77.9, 95, 25.9, 26.2, 3), (12.2, 109.9, 15.5, 127.3, 358, 71.6, 72.2, 7), (12.4, 182.4, 25.5, 209.9, 852, 146.5, 147.3, 9), (12.5, 194.0, 26.8, 221.1, 933, 158.9, 159.7, 8), (12.2, 161.0, 24.2, 187.5, 711, 125.1, 125.8, 10)]; prompt 8582 tokens
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (448, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (491, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (473, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (275, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (289, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (348, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (297, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (295, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (302, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (303, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (330, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (319, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (309, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+[moe-sorted-gather] tensor-unit kernel on for (mlx.core.bfloat16, 64, 4, (331, 640, 320), True, True, 'SwiGLU', 'narrow'): its first call equals the stock sorted gather bit for bit
+  agent/bash17 [gate+t]: 64 tokens in 24 checks (kept 2.71), 20.6 tok/s (steady state, checks >= 2: 23.1), median cycle 112.6 ms, check + commit 102.1 ms; per check (medians) 219 misses, demand SSD 49.0 ms, gate service 49.5 ms (70 calls with misses), draft 12.4 ms; per kept token SSD 205.1 MB, 106.5 misses; tokens == REF2 row 0 / 0
+    mem: MLX peak prefill 30.1 / decode 28.7 GB; at the end active 28.1, cache 0.9, footprint 29.5 GB; lifetime peak after prefill 31.7 -> after decode 31.7 GB
+    A6 warm: pre-loop {'warm_ms': 712.3, 'warm_miss': 5018.0, 'warm_mb': 8459.8}; first checks (draft, build, wait, check + commit ms, misses, demand SSD ms, gate service ms, rows): [(45.0, 149.5, 20.7, 172.3, 363, 77.8, 78.7, 3), (12.2, 154.0, 22.0, 177.9, 660, 118.1, 118.9, 4), (12.3, 10.8, 75.3, 86.4, 101, 27.4, 27.7, 1), (12.0, 85.2, 13.4, 100.5, 221, 49.0, 49.5, 3), (12.5, 72.4, 12.5, 87.0, 143, 36.1, 36.5, 2), (12.5, 74.4, 9.7, 86.1, 144, 34.1, 34.5, 3), (12.2, 113.6, 11.9, 125.7, 365, 73.1, 73.6, 5), (12.5, 82.4, 9.6, 92.2, 175, 42.6, 43.0, 2)]; prompt 8969 tokens
+  gate+t: tok/s 42.6 (steady state 44.6), cycle 241.4 ms, check + commit 220.6 ms, misses 890, demand SSD 154.1 ms per check (medians over valid runs, then prompts)
+  gate+t where the time goes (medians per check): check + commit 220.6 ms, demand SSD busy 154.1 ms (69% of the check), gate service on misses 155.1 ms (the GPU's spin bound; OOO overlaps part of it), draft 12.3 ms (SSD idle)
+  gate+t per kept token (pooled over valid runs): SSD 162.1 MB, misses 83.8 (386 kept tokens; median per prompt 161.6 MB, 83.2 misses)
+  tier flags: TIER_COMBINE True, OOO True (4132 OOO calls); EVICT_PRIOR None; REFTOK : every token equal True
+  K-73 engagement: exact MoE block calls 4132; ref2 att_rope 1020, idx_prep 2808, hc_write 4132 (counted at graph build)
+  footprint now 28.7 GB, lifetime peak 31.7 GB; 256 s

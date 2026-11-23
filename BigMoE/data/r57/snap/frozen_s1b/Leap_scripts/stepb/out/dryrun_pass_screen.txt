@@ -1,0 +1,24 @@
+  PATCH WARNING: the live check's FG.update (source line 1095) has keys the probe does not copy: qcnt=(qcl_ := ([] if fz and fz.get('qom') and (sq_ is not None) else None)) (probe forwards leave them as the loop's reset does)
+  PATCH WARNING: the live check's FG reset (source line 1109) has keys the probe does not copy: qcnt=None (probe forwards leave them as the loop's reset does)
+FLAT-2 on /Users/kamen/BigMoE/scripts/r57_screen.py (md5 fa8bee48444630969e9266d4b146780e; hooks at source lines {'run': 847, 'main': 1245, 'after_prefill': 955, 'c0': 984, 'stash': 1021, 'gate': 1095, 'before_commit': 1154, 'after_commit': 1156, 'end': 1187}); HEADs {}
+  levers (env): {}
+  prompt humaneval/HumanEval/68 (150 tokens, type code, drafter D7b 4-bit), arm gate+t, FAST QOM split 0.9, C 208; 100 tokens per pass, 5 measured passes, probes at checks [8, 16, 24, 32], 2 real-block passes of 60 tokens
+  FLAT-2 run FAILED: NameError("name 'QC1C' is not defined")
+Traceback (most recent call last):
+  File "/Users/kamen/Leap/scripts/stepb/flat2_driver.py", line 148, in main
+    runs.append(one_pass(ns, H, ids, arm, fset, "meas", "pass 1 (cold, discarded)"))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/Leap/scripts/stepb/flat2_driver.py", line 64, in one_pass
+    r = ns["run"](ids, arm, None, "dfl", False, 1, fset, TC)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/Leap/scripts/stepb/out/dryrun_generated.py", line 1106, in run
+    if QC1C:
+       ^^^^
+NameError: name 'QC1C' is not defined
+
+  step B t_sync chains (threads x tg: us per dependent kernel): 32x32: 0.00, 256x256: 0.00, 1024x1024: 0.00, 16384x1024: 0.00, 20480x1024: 0.00, 20480x256: 0.00, 131072x256: 0.00, 655360x256: 0.00
+  step B calibration: round trip 0 us (p10-p90 0-0), dependent dispatch 0.00 us; read floor (KB: cold / warm GB/s) 16: 16384 / 16384, 64: 65536 / 65536, 256: 262144 / 262144, 1024: 1048576 / 1048576, 2048: 2097152 / 2097152, 4096: 4194304 / 4194304, 8192: 8388608 / 8388608, 16384: 16777216 / 16777216, 65536: 67108864 / 67108864, 262144: 268435456 / 268435456
+  one eval sync costs 0 us (taken off every synced record)
+FLAT-2 VERDICT: NO RUN (no measured pass)
+  engagement (ref2 counts at graph build, whole process): stub 1
+  footprint now 0.0 GB, lifetime peak 0.0 GB; 0 s

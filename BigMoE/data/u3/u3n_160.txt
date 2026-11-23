@@ -1,0 +1,50 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=19.9 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=164 C_l=112 per layer, 21.06 GB pools
+Traceback (most recent call last):
+  File "/Users/kamen/BigMoE/data/r57/snap/r57_screen_u3.py", line 384, in <module>
+    _BT3._lp1_patch()                                 # >= 0) and tier._ooo_call with the sure rows' sidecar reads off
+    ^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/bigmoe/tier.py", line 108, in _lp1_patch
+    import tierglu as TG
+ModuleNotFoundError: No module named 'tierglu'
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=23.3 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=164 C_l=112 per layer, 21.06 GB pools
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 160), loaded in 1 s, 25.0 GB active; REF2 + SB; gate rows MAXK 160 (ext build), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 256
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+  warm-up (discarded): gsm8k/708 [gate+t, dfl] 64 tokens, 23.1 tok/s; MLX peak prefill 26.9 / decode 27.2 GB, lifetime peak 27.6 -> 28.1 GB
+  humaneval/HumanEval/68 [gate+t]: 256 tokens in 17 checks (kept 15.41), 52.3 tok/s (steady state, checks >= 2: 57.5), median cycle 276.8 ms, check + commit 260.2 ms; per check (medians) 1300 misses, demand SSD 204.4 ms, gate service 205.7 ms (95 calls with misses), draft 11.7 ms; per kept token SSD 162.9 MB, 88.0 misses; tokens == REF2 row 256 / 256; tokens == REFTOK 256 / 256; FAST U3: 0 of 272 rows gated, kept 262 vs exact 262
+    mem: MLX peak prefill 28.4 / decode 27.4 GB; at the end active 27.4, cache 0.8, footprint 28.7 GB; lifetime peak after prefill 29.1 -> after decode 29.1 GB
+  humaneval/HumanEval/16 [gate+t]: 81 tokens in 6 checks (kept 13.50), 42.2 tok/s (steady state, checks >= 2: 44.1), median cycle 332.1 ms, check + commit 301.1 ms; per check (medians) 1464 misses, demand SSD 240.8 ms, gate service 242.2 ms (96 calls with misses), draft 11.7 ms; per kept token SSD 204.4 MB, 107.1 misses; tokens == REF2 row 81 / 81; tokens == REFTOK 0 / 1; FAST U3: 0 of 89 rows gated, kept 81 vs exact 81
+    mem: MLX peak prefill 27.9 / decode 27.3 GB; at the end active 27.2, cache 0.3, footprint 28.0 GB; lifetime peak after prefill 29.1 -> after decode 29.1 GB
+  humaneval/HumanEval/91 [gate+t]: 256 tokens in 38 checks (kept 6.97), 40.2 tok/s (steady state, checks >= 2: 41.4), median cycle 143.1 ms, check + commit 131.8 ms; per check (medians) 450 misses, demand SSD 86.7 ms, gate service 87.4 ms (82 calls with misses), draft 11.4 ms; per kept token SSD 163.7 MB, 84.7 misses; tokens == REF2 row 193 / 256; tokens == REFTOK 256 / 256; FAST U3: 0 of 320 rows gated, kept 265 vs exact 265
+    mem: MLX peak prefill 28.0 / decode 27.3 GB; at the end active 27.2, cache 0.6, footprint 28.3 GB; lifetime peak after prefill 29.1 -> after decode 29.1 GB
+  humaneval/HumanEval/6 [gate+t]: 216 tokens in 19 checks (kept 11.42), 48.8 tok/s (steady state, checks >= 2: 50.8), median cycle 223.2 ms, check + commit 214.3 ms; per check (medians) 932 misses, demand SSD 162.7 ms, gate service 163.9 ms (90 calls with misses), draft 11.7 ms; per kept token SSD 164.7 MB, 85.0 misses; tokens == REF2 row 117 / 214; tokens == REFTOK 0 / 1; FAST U3: 0 of 252 rows gated, kept 217 vs exact 217
+    mem: MLX peak prefill 28.0 / decode 27.3 GB; at the end active 27.2, cache 0.5, footprint 28.2 GB; lifetime peak after prefill 29.1 -> after decode 29.1 GB
+  humaneval/HumanEval/79 [gate+t]: 224 tokens in 21 checks (kept 10.67), 48.1 tok/s (steady state, checks >= 2: 49.5), median cycle 233.5 ms, check + commit 220.7 ms; per check (medians) 971 misses, demand SSD 165.7 ms, gate service 166.8 ms (91 calls with misses), draft 11.5 ms; per kept token SSD 160.3 MB, 83.7 misses; tokens == REF2 row 224 / 224; tokens == REFTOK 0 / 1; FAST U3: 0 of 275 rows gated, kept 224 vs exact 224
+    mem: MLX peak prefill 28.1 / decode 27.3 GB; at the end active 27.3, cache 0.6, footprint 28.4 GB; lifetime peak after prefill 29.1 -> after decode 29.1 GB
+  humaneval/HumanEval/19 [gate+t]: 256 tokens in 28 checks (kept 9.21), 50.5 tok/s (steady state, checks >= 2: 51.6), median cycle 174.5 ms, check + commit 160.7 ms; per check (medians) 624 misses, demand SSD 113.8 ms, gate service 114.7 ms (84 calls with misses), draft 11.7 ms; per kept token SSD 137.7 MB, 70.9 misses; tokens == REF2 row 256 / 256; tokens == REFTOK 0 / 1; FAST U3: 0 of 297 rows gated, kept 258 vs exact 258
+    mem: MLX peak prefill 27.9 / decode 27.3 GB; at the end active 27.2, cache 0.5, footprint 28.3 GB; lifetime peak after prefill 29.1 -> after decode 29.1 GB
+  humaneval/HumanEval/161 [gate+t]: 243 tokens in 21 checks (kept 11.57), 49.5 tok/s (steady state, checks >= 2: 50.9), median cycle 229.3 ms, check + commit 219.7 ms; per check (medians) 958 misses, demand SSD 164.5 ms, gate service 165.4 ms (90 calls with misses), draft 11.5 ms; per kept token SSD 161.6 MB, 83.3 misses; tokens == REF2 row 150 / 218; tokens == REFTOK 0 / 1; FAST U3: 0 of 291 rows gated, kept 243 vs exact 243
+    mem: MLX peak prefill 28.0 / decode 27.3 GB; at the end active 27.2, cache 0.5, footprint 28.3 GB; lifetime peak after prefill 29.1 -> after decode 29.1 GB
+  humaneval/HumanEval/17 [gate+t]: 256 tokens in 20 checks (kept 12.80), 50.8 tok/s (steady state, checks >= 2: 52.6), median cycle 244.9 ms, check + commit 238.8 ms; per check (medians) 1095 misses, demand SSD 183.6 ms, gate service 184.7 ms (92 calls with misses), draft 11.6 ms; per kept token SSD 162.7 MB, 84.8 misses; tokens == REF2 row 256 / 256; tokens == REFTOK 0 / 1; FAST U3: 0 of 282 rows gated, kept 256 vs exact 256
+    mem: MLX peak prefill 28.2 / decode 27.3 GB; at the end active 27.3, cache 0.6, footprint 28.4 GB; lifetime peak after prefill 29.1 -> after decode 29.1 GB
+  humaneval/HumanEval/56 [gate+t]: 157 tokens in 12 checks (kept 13.08), 54.0 tok/s (steady state, checks >= 2: 57.5), median cycle 242.9 ms, check + commit 212.5 ms; per check (medians) 916 misses, demand SSD 159.2 ms, gate service 160.3 ms (90 calls with misses), draft 12.2 ms; per kept token SSD 149.2 MB, 76.4 misses; tokens == REF2 row 157 / 157; tokens == REFTOK 0 / 1; FAST U3: 0 of 185 rows gated, kept 157 vs exact 157
+    mem: MLX peak prefill 27.9 / decode 27.3 GB; at the end active 27.2, cache 0.4, footprint 28.1 GB; lifetime peak after prefill 29.1 -> after decode 29.1 GB
+  humaneval/HumanEval/141 [gate+t]: 256 tokens in 21 checks (kept 12.38), 40.8 tok/s (steady state, checks >= 2: 43.3), median cycle 299.5 ms, check + commit 280.4 ms; per check (medians) 1084 misses, demand SSD 229.2 ms, gate service 230.3 ms (92 calls with misses), draft 11.6 ms; per kept token SSD 165.5 MB, 85.7 misses; tokens == REF2 row 224 / 256; tokens == REFTOK 0 / 1; FAST U3: 0 of 279 rows gated, kept 260 vs exact 260
+    mem: MLX peak prefill 28.2 / decode 27.4 GB; at the end active 27.3, cache 0.8, footprint 28.6 GB; lifetime peak after prefill 29.1 -> after decode 29.1 GB
+  humaneval/HumanEval/101 [gate+t]: 180 tokens in 21 checks (kept 8.62), 43.6 tok/s (steady state, checks >= 2: 44.4), median cycle 185.0 ms, check + commit 177.1 ms; per check (medians) 700 misses, demand SSD 125.6 ms, gate service 126.4 ms (88 calls with misses), draft 11.7 ms; per kept token SSD 166.9 MB, 86.6 misses; tokens == REF2 row 180 / 180; tokens == REFTOK 0 / 1; FAST U3: 0 of 211 rows gated, kept 181 vs exact 181
+    mem: MLX peak prefill 28.0 / decode 27.3 GB; at the end active 27.2, cache 0.5, footprint 28.3 GB; lifetime peak after prefill 29.1 -> after decode 29.1 GB
+  humaneval/HumanEval/63 [gate+t]: 256 tokens in 21 checks (kept 12.33), 0.9 tok/s (steady state, checks >= 2: 0.8), median cycle 221.3 ms, check + commit 209.6 ms; per check (medians) 930 misses, demand SSD 156.6 ms, gate service 157.8 ms (91 calls with misses), draft 11.6 ms; per kept token SSD 157.8 MB, 82.9 misses; tokens == REF2 row 256 / 256; tokens == REFTOK 0 / 1 PAUSED (282.3 s waited, 0 gaps); FAST U3: 0 of 282 rows gated, kept 259 vs exact 259
+    mem: MLX peak prefill 28.2 / decode 27.3 GB; at the end active 27.3, cache 0.6, footprint 28.4 GB; lifetime peak after prefill 29.1 -> after decode 29.1 GB
+  gate+t: tok/s 48.8 (steady state 50.8), cycle 233.5 ms, check + commit 219.7 ms, misses 958, demand SSD 164.5 ms per check (medians over valid runs, then prompts)
+  gate+t where the time goes (medians per check): check + commit 219.7 ms, demand SSD busy 164.5 ms (75% of the check), gate service on misses 165.4 ms (the GPU's spin bound; OOO overlaps part of it), draft 11.7 ms (SSD idle)
+  gate+t per kept token (pooled over valid runs): SSD 161.1 MB, misses 83.8 (2404 kept tokens; median per prompt 162.9 MB, 84.8 misses)
+  tier flags: TIER_COMBINE True, OOO True (12557 OOO calls); EVICT_PRIOR None; REFTOK /Users/kamen/BigMoE/data/r57/chat23_ref_tokens.json:gate+t: every token equal False
+  K-73 engagement: exact MoE block calls 12557; ref2 att_rope 3108, idx_prep 6528, hc_write 12557 (counted at graph build)
+  footprint now 27.9 GB, lifetime peak 29.1 GB; 400 s

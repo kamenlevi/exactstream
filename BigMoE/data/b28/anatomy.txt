@@ -1,0 +1,24 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=22.2 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'verify_rows_sdpa': True, 'duprow': True, 'compiled_hc': 96, 'frspec': True, 'scout_bundle': {'sc2_sharedfirst': True, 'sc3b_vreadchunk_classes': 1, 'sc3_glue': {'qsa_rope': True, 'qsa_rope_idx': True}}}
+[bigmoe] tier 4433333333: C_m=147 C_l=46 per layer, 17.07 GB pools
+[mtplx] verify SDPA head-chunked: q_len=12 heads_per_chunk=2 chunks=12
+   joint: tried 4368 paired 4368 reads 6543 wait 35.7 ms (cumulative)
+[code] 13.8 tok/s, 2.94 tok/pass, S 3.20, verify 77.0 ms/pass x 87 passes, sha 0b6ad61220
+   87 traced verify passes: span 72.9 ms = gate wait 43.5 + GPU 29.3; SSD busy 67.8 ms; reads/pass demand 141.1 + joint 70.6 + prefetch 159.3
+   reads in flight: during gate waits 4.6 (>= 8: 14 % of the time), during GPU time 2.8 (>= 8: 0 %, SSD idle 14 %)
+   experts/pass 1327.3: resident 1037.2, misses 290.1 = prefetched on time 106.5 + late 42.5 + predicted-unissued 28.5 + unpredicted 112.6 (queued-then-cancelled 24.0); known >= 1 layer ahead 61 %, read in time 37 %
+   joint: tried 11616 paired 11616 reads 16531 wait 94.3 ms (cumulative)
+[prose] 12.3 tok/s, 1.70 tok/pass, S 2.16, verify 63.7 ms/pass x 151 passes, sha 7b3cf8f87d
+   151 traced verify passes: span 60.0 ms = gate wait 33.7 + GPU 26.3; SSD busy 53.7 ms; reads/pass demand 93.1 + joint 66.1 + prefetch 135.1
+   reads in flight: during gate waits 4.0 (>= 8: 8 % of the time), during GPU time 2.6 (>= 8: 0 %, SSD idle 17 %)
+   experts/pass 1002.8: resident 779.7, misses 223.1 = prefetched on time 83.3 + late 46.6 + predicted-unissued 28.5 + unpredicted 64.7 (queued-then-cancelled 23.6); known >= 1 layer ahead 71 %, read in time 37 %
+   joint: tried 13296 paired 13296 reads 25978 wait 107.9 ms (cumulative)
+[edit] 13.9 tok/s, 7.31 tok/pass, S 7.40, verify 225.5 ms/pass x 35 passes, sha 8b72b3d757
+   35 traced verify passes: span 206.1 ms = gate wait 153.3 + GPU 52.8; SSD busy 202.3 ms; reads/pass demand 687.0 + joint 269.9 + prefetch 342.0
+   reads in flight: during gate waits 11.1 (>= 8: 68 % of the time), during GPU time 3.7 (>= 8: 0 %, SSD idle 4 %)
+   experts/pass 2744.1: resident 1593.5, misses 1150.7 = prefetched on time 414.4 + late 49.3 + predicted-unissued 122.6 + unpredicted 564.4 (queued-then-cancelled 43.7); known >= 1 layer ahead 51 %, read in time 36 %
+saved /Users/kamen/BigMoE/data/b28/anatomy_joint.json

@@ -1,0 +1,49 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=25.0 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] tier 4433333333: C_m=82 C_l=112 per layer, 12.59 GB pools
+R57_VTIER: 64 / 32 slots per base / sidecar pool = 7.79 GB volatile (purgeable: NOT in phys_footprint; macOS reclaims it before compression or swap)
+R-57 harness (REF2-T tiers 4433333333, C_l 112): full 125B via load_streamed (C = 96), loaded in 2 s, 18.3 GB active; REF2 + SB; gate rows MAXK 160 (ext build_l2), PRED_LINES 1 (ranked list <= 61), PF_B 96, PF_JIT None, PF_QD None, PF_VICTIM None; 47 look-ahead layers; CAP 256
+[mtplx] verify SDPA head-chunked: q_len=16 heads_per_chunk=2 chunks=12
+Traceback (most recent call last):
+  File "/Users/kamen/BigMoE/data/r57/snap/r57_screen_bd96.py", line 1156, in <module>
+    r = run(list(it["prompt_ids"]), ARMS_[0], drafter="dfl" if dr_ == "d7b" else dr_)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/data/r57/snap/r57_screen_bd96.py", line 1004, in run
+    lg = model(mx.array([[tok] + dr]), cache=cache)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 7032, in __call__
+    return self.language_model(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6772, in __call__
+    out = self.model(inputs, cache, input_embeddings)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6454, in __call__
+    return self._forward(inputs, cache, input_embeddings)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6489, in _forward
+    h = layer(h, input_ids=inputs, ssm_mask=ssm_mask, cache=c)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/data/r57/snap/r57_screen_bd96.py", line 619, in _layer
+    out = _layer_pr(self, *a, **kw) if PR["on"] else _layer_call(self, *a, **kw)
+                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6277, in __call__
+    block_out = self.mlp(mixed)
+                ^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/data/r57/snap/r57_screen_bd96.py", line 341, in _exact_block
+    y = self.switch_mlp(x, inds)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/data/r57/snap/r57_screen_bd96.py", line 457, in _fast_call
+    return _sw_call(self, x, indices, *a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/bigmoe/stream.py", line 126, in __call__
+    return _sync_call(cls, self, x, indices, bm, *a, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/Leap/scripts/ref2.py", line 973, in _sync_slots
+    return _tier_slots(self, x, indices, bm)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/Leap/scripts/ref2.py", line 944, in _tier_slots
+    assert len(uniq) <= bm["C"], ("REF2-T: more experts than base slots", len(uniq), bm["C"])
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('REF2-T: more experts than base slots', 119, 82)

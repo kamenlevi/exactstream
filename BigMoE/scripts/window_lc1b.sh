@@ -8,3 +8,6 @@ for e in "BIGMOE_DUPROW_CHUNK=5 BIGMOE_MAXK=80" "MTPLX_FUSED_GDN_CONVNORM=1 MTPL
   until [ "$(memory_pressure | tail -1 | grep -o "[0-9]*")" -ge 85 ]; do sleep 5; done
   sh -c "env $B $e .venv/bin/python ~/MoonShots/patches/lc1/lc1_fresh.py plain 32768 128 2>&1 | grep -vi warn | tail -1 | sed 's|^|[$e] |'"
 done
+# MoonShots discriminator 1: one poisoned plain generation at 32K, old env (fresh baseline a67851027e)
+until [ "$(memory_pressure | tail -1 | grep -o "[0-9]*")" -ge 85 ]; do sleep 5; done
+sh -c "env $B .venv/bin/python ~/MoonShots/patches/lc1/lc1_leak.py poison-nan-plain 32768 128 2>&1 | grep -vi warn | grep -E 'sha|poison|Error|Traceback' | tail -3 | sed 's|^|[poison-nan-plain 32K] |'"

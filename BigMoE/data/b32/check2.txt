@@ -1,0 +1,33 @@
+res.bin: 602646 (pass, L -> T) residency records; scored (pass, L -> T) without one: 0
+miss.bin: 424865 (pass, layer) records, 0 duplicates; verify passes with unequal rows: 0; trace/ext union mismatches: 0; (pass, layer) without an ext record: 0; later calls of a layer in the same pass (commit re-runs, skipped): 605
+[code] 5 prompts, 984 verify passes, 2167 rows; 15.5 % of routed ids missed; lead 1: recall@16 of misses 60.8 % (of all routed 72.9 %); lead 2: recall@16 of misses 53.8 % (of all routed 63.6 %); lead 3: recall@16 of misses 50.7 % (of all routed 65.3 %)
+[prose] 5 prompts, 1433 verify passes, 2225 rows; 12.1 % of routed ids missed; lead 1: recall@16 of misses 63.9 % (of all routed 77.5 %); lead 2: recall@16 of misses 53.4 % (of all routed 66.2 %); lead 3: recall@16 of misses 53.7 % (of all routed 72.4 %)
+[edit] 5 prompts, 775 verify passes, 2149 rows; 16.4 % of routed ids missed; lead 1: recall@16 of misses 53.8 % (of all routed 65.2 %); lead 2: recall@16 of misses 45.1 % (of all routed 50.8 %); lead 3: recall@16 of misses 41.2 % (of all routed 49.1 %)
+[math] 5 prompts, 1171 verify passes, 2320 rows; 14.4 % of routed ids missed; lead 1: recall@16 of misses 57.9 % (of all routed 69.6 %); lead 2: recall@16 of misses 49.6 % (of all routed 57.6 %); lead 3: recall@16 of misses 47.2 % (of all routed 58.6 %)
+all domains, lead 1: plain router recall@16 of misses 58.5 %
+all domains, lead 2: plain router recall@16 of misses 50.3 %
+all domains, lead 3: plain router recall@16 of misses 47.7 %
+held-out (prompt 4 of each domain), lead 1: plain router recall@16 of misses 58.7 %
+held-out (prompt 4 of each domain), lead 2: plain router recall@16 of misses 49.4 %
+held-out (prompt 4 of each domain), lead 3: plain router recall@16 of misses 47.1 %
+DEPLOYABLE lead 1 (top-16 among non-resident at the decision): all prompts 74.9 %, held-out 75.3 %; code 76.0, prose 78.9, edit 70.1, math 76.9
+DEPLOYABLE lead 2 (top-16 among non-resident at the decision): all prompts 64.1 %, held-out 63.9 %; code 67.8, prose 66.6, edit 58.9, math 63.8
+DEPLOYABLE lead 3 (top-16 among non-resident at the decision): all prompts 63.5 %, held-out 63.1 %; code 66.7, prose 70.6, edit 55.9, math 63.3
+BUDGET (plain router; per pass and target layer: recall of the pass's misses, unique non-resident reads (of them never routed at T in the pass), precision = caught / reads; all prompts | held-out):
+  lead 1 engine12: recall  51.2 % |  50.4 %, reads   4.8 (  3.7 unused) vs misses  2.1 per pass-layer, precision 22.6 %
+  lead 1       k2: recall  36.9 % |  36.5 %, reads   3.5 (  2.7 unused) vs misses  2.1 per pass-layer, precision 22.1 %
+  lead 1       k4: recall  52.3 % |  52.4 %, reads   6.8 (  5.7 unused) vs misses  2.1 per pass-layer, precision 16.2 %
+  lead 1       k8: recall  66.6 % |  66.7 %, reads  13.1 ( 11.7 unused) vs misses  2.1 per pass-layer, precision 10.7 %
+  lead 1      k12: recall  73.6 % |  74.2 %, reads  19.1 ( 17.5 unused) vs misses  2.1 per pass-layer, precision  8.1 %
+  lead 1      k16: recall  77.9 % |  78.2 %, reads  24.8 ( 23.2 unused) vs misses  2.1 per pass-layer, precision  6.6 %
+  lead 2       k2: recall  29.3 % |  28.4 %, reads   3.5 (  2.7 unused) vs misses  2.6 per pass-layer, precision 21.9 %
+  lead 2       k4: recall  42.3 % |  41.4 %, reads   6.8 (  5.7 unused) vs misses  2.6 per pass-layer, precision 16.5 %
+  lead 2       k8: recall  55.3 % |  54.3 %, reads  12.9 ( 11.5 unused) vs misses  2.6 per pass-layer, precision 11.2 %
+  lead 2      k12: recall  62.4 % |  61.6 %, reads  18.8 ( 17.2 unused) vs misses  2.6 per pass-layer, precision  8.7 %
+  lead 2      k16: recall  67.2 % |  66.7 %, reads  24.5 ( 22.8 unused) vs misses  2.6 per pass-layer, precision  7.2 %
+  lead 3       k2: recall  27.6 % |  26.7 %, reads   3.4 (  2.7 unused) vs misses  2.5 per pass-layer, precision 20.4 %
+  lead 3       k4: recall  40.0 % |  38.8 %, reads   6.6 (  5.6 unused) vs misses  2.5 per pass-layer, precision 15.3 %
+  lead 3       k8: recall  53.7 % |  52.8 %, reads  12.7 ( 11.4 unused) vs misses  2.5 per pass-layer, precision 10.6 %
+  lead 3      k12: recall  61.8 % |  61.0 %, reads  18.7 ( 17.1 unused) vs misses  2.5 per pass-layer, precision  8.3 %
+  lead 3      k16: recall  67.3 % |  66.4 %, reads  24.4 ( 22.7 unused) vs misses  2.5 per pass-layer, precision  6.9 %
+total: 4363 verify passes, 8861 verify rows

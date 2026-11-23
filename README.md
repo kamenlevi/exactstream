@@ -3,6 +3,9 @@
 This branch holds the research behind ExactStream: the measurements, tests, ideas, scripts and records the papers cite.
 The engine is on the `main` branch. The papers are at https://kamenlevi.github.io/exactstream.
 
+Research paused on 19 November 2026. The 23 November snapshot holds everything measured up to the pause; the latest
+results and predictions are written up at https://kamenlevi.github.io/exactstream/latest-results.html.
+
 It is a snapshot of the research folders, refreshed every hour while the work goes on. Session notes, personal notes and
 third-party code are left out, and private details are removed before each push.
 
@@ -13,6 +16,7 @@ The papers' source keys are paths below this root. For example, LP:data/x.md is 
 - `Leap`: kernels, prefill and the release builds
 - `EvalSuite`: the quality gates, with every pre-registration and result
 - `Breakthrough`, `NewIdeas`, `MoonShots`, `Fit12`, `TrainLab`: the research tracks
+- `Sandbox98`: a 2B model with its own draft head, a minutes-long sandbox for drafter tests (from 23 November)
 - `FableGod`: mission analyses, dated findings, and the TRIED ledger (one line per idea, with its number and verdict)
 - `StrataEval`, `PrefillKernels`: the head-to-head harness and the prefill kernel findings
 

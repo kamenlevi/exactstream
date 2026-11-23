@@ -1,0 +1,25 @@
+THE COMBINED EXACT DEFAULT at C 160 (data/d45; dfb = R57_CHATSW=1,BIGMOE_SSD_KEEPALIVE_US=50,R57_VTIER=64/32,K83_EXACT=1; dfc = dfb + BIGMOE_JOINT=1,BIGMOE_COPY_PAR=1,BIGMOE_SPIN_COHERENT=1,BIGMOE_POST_SYS=1)
+tokens dfa: 14 / 14 == REF2-T
+tokens dfb: 14 / 14 == REF2-T
+tokens dfc: 14 / 14 == REF2-T
+tokens dfc2: 14 / 14 == REF2-T
+tokens dfb2: 14 / 14 == REF2-T
+tokens dfa2: 14 / 14 == REF2-T
+  humaneval/HumanEval/68: control 52.4 -> stack 57.8 tok/s steady (+10.4 %)
+  math500/test/prealgebra/1640.json: control 37.3 -> stack 42.2 tok/s steady (+13.2 %)
+  humaneval/HumanEval/91: control 41.9 -> stack 46.7 tok/s steady (+11.5 %)
+  math500/test/algebra/694.json: control 43.8 -> stack 51.0 tok/s steady (+16.6 %)
+  math500/test/algebra/1282.json: control 42.5 -> stack 47.8 tok/s steady (+12.3 %)
+  gsm8k/708: control 40.0 -> stack 43.7 tok/s steady (+9.2 %)
+  humaneval/HumanEval/16: control 44.9 -> stack 50.4 tok/s steady (+12.2 %)
+  humaneval/HumanEval/6: control 51.3 -> stack 59.3 tok/s steady (+15.6 %)
+  ifeval/1220: control 25.6 -> stack 26.4 tok/s steady (+3.5 %)
+  ifeval/1561: control 38.5 -> stack 46.4 tok/s steady (+20.6 %)
+  multi/de3: control 26.1 -> stack 30.7 tok/s steady (+17.5 %)
+  multi/zh15: control 26.6 -> stack 34.4 tok/s steady (+29.4 %)
+  agent/bash18: control 22.2 -> stack 21.2 tok/s steady (-4.5 %)
+  agent/text23: control 28.0 -> stack 29.6 tok/s steady (+5.8 %)
+geo-mean steady tok/s: +12.1 % over 14 prompts; by domain: agent +0.5 %, chat +17.3 %, code +12.4 %, math +12.8 %
+Verdict (pre-registered): ADOPT (ADOPT: all tokens == REF2-T AND geo-mean >= +3 % AND no domain < -3 %; KEEP: a token differs or < +1 %; heat-paused runs are not timed, >= 12 prompts must be)
+lever 1 on top (dfc vs dfb): geo-mean steady tok/s +6.4 % over 14 prompts; by domain: agent +3.2 %, chat +3.8 %, code +11.7 %, math +5.4 %
+Lever 1 verdict (pre-registered 07:5x): ADD lever 1 (ADD: every dfb and dfc token == REF2-T AND dfc / dfb geo-mean >= +3 % AND no domain < -3 %; LEAVE OUT: a token differs or < +1 %)

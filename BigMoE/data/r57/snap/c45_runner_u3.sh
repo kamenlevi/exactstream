@@ -36,6 +36,9 @@ d["active_at"] = time.time(); t = "%s.tmp%d" % (p, os.getpid()); json.dump(d, op
 source "$HOME/BigMoE/scripts/ssd_gate.sh"
 noswap() { vm_stat | awk '/page size of/ {ps=$8} /^Pages (free|speculative|purgeable):/ || /^File-backed pages:/ {v=$NF; sub("[.]","",v); s+=v} END {printf "%d", s*ps/1e9}'; }
 swap_gb() { sysctl -n vm.swapusage | awk '{gsub("M","",$6); print $6 / 1024}'; }
+SWAP_RUN0=${C45_SWAP0:-$(swap_gb)}   # the swap rule is per RUN (health review Wed 04:4x: mission 20's C 224 arms grew swap
+# 4.11 -> 7.50 GB in steps of +1.7 / +0.7 / +1.0, under the per-arm guard): growth > 2 GB since this runner (or the chain's
+# exported C45_SWAP0) started stops the list before the next arm, and inside an arm next to the per-arm guard
 one() {  # one C TAG ENV...: a run at C if NO-SWAP fits its peak + MG (default 4); returns 9 when skipped, 1 when the lock is gone
   local C=$1 tag=$2; shift 2
   local need; need=$(awk -v c=$C -v m=${MG:-4} 'BEGIN { printf "%d", 38.0 + (c - 224) * 0.1325 + m + 0.5 }')
@@ -54,6 +57,8 @@ one() {  # one C TAG ENV...: a run at C if NO-SWAP fits its peak + MG (default 4
   if [ -n "$C45_DEADLINE" ] && [ "$(date +%H%M)" -ge "$C45_DEADLINE" ]; then say "$tag: past $C45_DEADLINE, stop (a run must end before 12:00)"; return 1; fi
   keepalive || { say "lost the lock before $tag: stop"; return 1; }
   ssd_wait 66
+  if awk -v s="$(swap_gb)" -v r0="$SWAP_RUN0" 'BEGIN { exit !(s - r0 > 2) }'; then
+    say "$tag: swap grew > 2 GB since the run's start ($SWAP_RUN0 -> $(swap_gb) GB): stop (the swap rule)"; return 1; fi
   local a; a=$(noswap)
   if [ "$a" -lt "$need" ]; then say "$tag skipped: NO-SWAP $a GB < $need"; return 9; fi
   local S0; S0=$(swap_gb); say "run $tag (NO-SWAP $a GB, swap $S0 GB)"
@@ -65,7 +70,7 @@ one() {  # one C TAG ENV...: a run at C if NO-SWAP fits its peak + MG (default 4
   local jp=$! k=0
   while kill -0 $jp 2>/dev/null; do
     sleep 5; k=$((k + 1))
-    if awk -v s="$(swap_gb)" -v s0="$S0" 'BEGIN { exit !(s - s0 > 2) }'; then say "SWAP GUARD in $tag"; kill -TERM -- -$jp; sleep 3; kill -9 -- -$jp 2>/dev/null; break; fi
+    if awk -v s="$(swap_gb)" -v s0="$S0" -v r0="$SWAP_RUN0" 'BEGIN { exit !(s - s0 > 2 || s - r0 > 2) }'; then say "SWAP GUARD in $tag"; kill -TERM -- -$jp; sleep 3; kill -9 -- -$jp 2>/dev/null; break; fi
     [ $((k % 36)) -eq 0 ] && { keepalive || { say "lost the lock during $tag: stop"; kill -TERM -- -$jp; sleep 3; kill -9 -- -$jp 2>/dev/null; return 1; }; }
   done
   wait $jp; local rc=$?; kill -9 -- -$jp 2>/dev/null

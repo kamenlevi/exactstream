@@ -64,6 +64,8 @@ sys.path.insert(0, os.path.expanduser("~/Leap/scripts"))
 sys.path.insert(0, os.path.expanduser("~/EvalSuite"))
 sys.path.insert(1, os.path.expanduser("~/Leap/third_party"))
 import evalsuite.env                                     # EvalSuite's forced / refused env (read-only use), before mlx
+if os.environ.get("R57_MODEL_DIR"):                      # a scratch model dir (scratch/model_mix: records3 with converted layers,
+    evalsuite.env.REF_MODEL = os.path.expanduser(os.environ["R57_MODEL_DIR"])   # the rest symlinks; PLAN_records3_convert.md)
 if os.environ.get("R57_SPARE"):                          # R-57b: reserved prefetch slots per layer (EvalSuite forces 0); the
     os.environ["BIGMOE_SPARE"] = os.environ["R57_SPARE"]  # ext reads it when bigmoe loads (EM.load), so set it here
 from evalsuite import model as EM, data as ED
@@ -139,8 +141,8 @@ if FAST:
     import importlib.util as _ilu2
     _sp2 = _ilu2.spec_from_file_location("relax_core", os.path.expanduser("~/BigMoE/scripts/relax_core.py"))
     RXC = _ilu2.module_from_spec(_sp2); _sp2.loader.exec_module(RXC)
-    _S = lambda thr=None, copy=False, rules=(), loop=None, q1u=False, t3=False: dict(thr=thr, copy=copy, rules=tuple(rules),
-                                                                                    loop=loop, q1u=q1u, t3=t3)
+    _S = lambda thr=None, copy=False, rules=(), loop=None, q1u=False, t3=False, cold=False: dict(thr=thr, copy=copy,
+                                                                    rules=tuple(rules), loop=loop, q1u=q1u, t3=t3, cold=cold)
     _G99 = dict(thr=0.99, copy=True)
     FASTARMS = {                                         # ~/EvalSuite/pending/relax.py ARMS (PLAN_relax sec 9), sets only
         "A": dict(humaneval=_S(**_G99), math=_S(**_G99), agent=_S(**_G99)),
@@ -158,18 +160,33 @@ if FAST:
     FASTARMS["U3"] = dict(humaneval=_S(thr=_U3T, q1u=True, t3=True))
     FASTARMS["U3A"] = dict(humaneval=_S(thr=_U3T, q1u=True, t3=True), math=_S(thr=_U3T, q1u=True, t3=True),
                            agent=_S(thr=_U3T, q1u=True, t3=True))
+    # U3C (Breakthrough's P1, ~/Breakthrough/WED_PLAN.md b800a4b; ~/FableGod/decision_map/dm_cold_masks.py hyb_cold4_pmtc_t3,
+    # R57_U3C_LEN=1: hyb_cold4_len_t3): U3 with the per-request COLD table. A row's base set: unsure = ranks 0-3 + the ranks
+    # whose expert is warm for this request (its prompt routed to it at any rank, OR pop_cap45 >= 0.05; LEN: the footprint
+    # alone when the prompt has >= 128 tokens); sure = ranks 0-1 (3 bits, as U3). Every row keeps its base set + any rank
+    # whose expert is in the union of ALL rows' base sets. No domain switch: every prompt set. FAST (task results decide).
+    FASTARMS["U3C"] = {s_: _S(thr=_U3T, q1u=True, t3=True, cold=True) for s_ in ("humaneval", "math", "ifeval", "multi", "agent")}
     FASTARMS["BE"] = dict(FASTARMS["B"], **FASTARMS["E"])   # the code mode + chat R1: one process for every domain
     FASTARMS["CE"] = dict(FASTARMS["C"], **FASTARMS["E"])
     assert FAST in FASTARMS and R == 16, (FAST, R)
 # R57_PREROUTE=1 (the orchestrator 11-02 22:2x; Fable A's ~/FableGod/NEWIDEAS_SCREEN.md 1, cloud's pick #1 "pre-route on the
 # partial sum", exact): a capture. At every MoE layer L of a check, OOO's combine runs again with the scores of ranks >= 3
-# (and >= 6) zeroed = L's partial output (+ the shared expert); L+1's HC read and router on the residual written with it ->
-# top-10 ("p3", "p6"); also with L's full output ("full": only L+1's attention skipped) and R-57's forecast ("r57": L+1's
-# router on L's MoE input); each vs L+1's true top-10. Side computations only: tokens stay REF2-T's. Per run: recall@10 per
+# (and >= 6) zeroed = L's partial output (+ the shared expert); L+1's MLP-side HC read (the read its router sees, without
+# its attention write) and router on the residual written with it -> top-10 ("p3", "p6"); also on L+1's own pre-attention
+# stream ("full": L's full output, PLE included, only L+1's attention write missing; read at L+1's start) and R-57's
+# forecast ("r57": L+1's router on L's MoE input); each vs L+1's true top-10. "fullA" = L+1's ATTENTION-side read of L's
+# full output: the pr_160 night's "full" / p3 / p6 read that (MTP Head's catch Wed 05:3x: qwen4_exp has one hc_norm + read
+# mix per side, the router sees the MLP side), kept as the control. p3 / p6 on pair 0 -> 1 miss layer 1's PLE term (PLE
+# writes the cache: it runs once, at layer 1's start). Side computations only: tokens stay REF2-T's. Per run: recall@10 per
 # row and of the union (the reads) per variant -> {TAG}_preroute.json. Needs K-73's block and OOO (R57_PRESET=45).
+# R57_PR_DUMP=1 (MTP Head's SAMELAYER-T data): per row and layer pair, "full"'s input X (L+1's MLP-side read of its
+# pre-attention stream) and L+1's true MoE input Y, float32 x 2560 -> data/r57/pr_dump/{TAG}_{run:02d}.npz (key, typ, L =
+# L+1's layer, chk, row, X, Y; ~140 MB per run).
 PREROUTE = os.environ.get("R57_PREROUTE") == "1"
-PR = dict(on=False, cur=None, y={}, blk={}, cap={})     # this check's partial combines / block outputs / pre-routes
+PRDUMP = PREROUTE and os.environ.get("R57_PR_DUMP") == "1"
+PR = dict(on=False, cur=None, y={}, blk={}, cap={}, dump=None)   # this check's partial combines / block outputs / pre-routes
 PRS = {}                                                 # this run's samples: variant -> [layer, rows, row recall, union recall]
+PRD = dict(n=0, L=[], chk=[], row=[], X=[], Y=[])        # R57_PR_DUMP: this run's rows
 # A6 (DAY9 condition 7, start-up; Leap's K-80 read-out 11-02: the first cycle after a ~9K agent prefill pays ~130 ms = a miss
 # burst when the pools hold another prompt's experts + a one-time non-SSD cost in the first check's graph build + the
 # drafter's window prefill). R57_A6 = comma flags, one process per arm, every token still checked:
@@ -224,10 +241,21 @@ rt, st = EM.load(EM.variant("ref"), C=C)
 if CHATSW:
     BL.load_streamed = _ls
 model = rt.model
+_CONV = []                                               # records3 layers converted in place (native / native+p11; the
+if TIER and getattr(st, "_tier_idx", None):              # engine's layout patch + Leap's ref2 router run them per layer)
+    _CONV = sorted((int(L), r.get("layout")) for L, r in st._tier_idx["layers"].items() if r.get("layout", "row-major") != "row-major")
+if _CONV or os.environ.get("R57_MODEL_DIR"):
+    import bigmoe.tier as _BTL
+    assert not _CONV or hasattr(_BTL, "LAYOUTS"), "converted records3 layers on an engine without the layout patch"
+    print(f"[r57] model dir {evalsuite.env.REF_MODEL}: converted layers {_CONV if len(_CONV) < 48 else 'all 48 ' + _CONV[0][1]}",
+          flush=True)
 import ref2
 if os.environ.get("R57_NAX") == "1":                     # C1 (DAY9 #4; Leap 101573d): NAX6 on every tier call, OOO's two phases
     assert "tier_nax_ooo" in ref2.CFG, "Leap's ref2 has no tier_nax_ooo (needs ~/Leap 101573d)"   # included; a NEW reference:
     ref2.CFG["tier_nax_ooo"] = True                      # tokens != REF2-T, so determinism across NAX processes only
+    if _CONV:                                            # converted layers: NAX6-N (== NAX6 on row-major records, bitwise;
+        assert len(_CONV) == 48, "R57_NAX on a part-converted store (nax_native is per store, not per layer)"
+        ref2.CFG["nax_native"] = True                    # p11 found from the pools' dtype; Leap N7-13 / P11 90456ce)
 if os.environ.get("R57_H1C") == "1":                     # H-1c / the in-kernel hybrid (Leap 11-02 23:1x; FAST only: a pair's bits
     assert os.environ.get("R57_NAX") == "1" and "nax_hybrid" in ref2.CFG, "R57_H1C needs R57_NAX=1 and Leap's ref2 nax_hybrid"
     ref2.CFG["nax_hybrid"] = True                        # depend on whether it is alone in its group): NAX6's one-pair groups
@@ -347,12 +375,33 @@ SW_ = [l.mlp.switch_mlp for l in lay]
 VTIER = os.environ.get("R57_VTIER", "")                  # "base,sidecar" slots per tier layer (BIGMOE_EXT_BUILD=build_vt;
 if VTIER:                                                # NewIdeas' RANKED 33, the orchestrator's Wed #1): a purgeable
     assert hasattr(BG.ext, "set_vtier"), "R57_VTIER needs BIGMOE_EXT_BUILD=build_vt"   # victim tier behind each LRU pool
-    _vb, _vs = (int(x) for x in VTIER.split(","))
+    _vb, _vs = (int(x) for x in VTIER.replace("/", ",").split(","))   # "64/32" too: c45_runner turns arm commas into spaces
     VT_BYTES = sum(BG.ext.set_vtier(sw._bm["L"], _vb) + (BG.ext.set_vtier(sw._bm["tier"]["side"], _vs)
                    if (sw._bm.get("tier") or {}).get("side") is not None else 0) for sw in SW_ if not sw._bm["full"])
+    VT_MAP = [[sw._bm["L"], (sw._bm.get("tier") or {}).get("side")] for sw in SW_]
     say(f"R57_VTIER: {_vb} / {_vs} slots per base / sidecar pool = {VT_BYTES / 1e9:.2f} GB volatile (purgeable: NOT in "
         f"phys_footprint; macOS reclaims it before compression or swap)")
-FG = dict(on=False, keep=None, sure=None, sure_np=None, t3=False)   # R57_FAST: this check's keep mask [rows, top-k] / U3's
+FG = dict(on=False, keep=None, sure=None, sure_np=None, t3=False,   # R57_FAST: this check's keep mask [rows, top-k] / U3's
+          cold=False, warm=None, cap=None, dump=None, chk=0)   # U3C: the request's warm table [48, 512], prefill capture, dump
+# R57_CBB=1 (the stale-slot check, the orchestrator 11-03 22:5x on Leap's S7B-PROBE 50de28c / fb999be: a slot the GPU read
+# earlier in the SAME command buffer can be re-read stale after the CPU rewrites it; across buffers it is fresh): every MoE
+# layer call starts a new command buffer (its input and routing evaluated first), so each earlier read of any slot sits in
+# a finished buffer. Same kernels, same bytes: with no stale reads, tokens and logits equal the sync-free engine's bit for
+# bit. R57_LOGHASH=1: each check's verify logits hashed (run record "lh"), for that comparison.
+CBB = os.environ.get("R57_CBB") == "1"
+LOGHASH = os.environ.get("R57_LOGHASH") == "1"
+if CBB:
+    _SWB = type(SW_[0]); _cbb_prev = _SWB.__call__
+    def _cbb_call(self, x, indices, *a, **kw):
+        mx.eval(x, indices)
+        return _cbb_prev(self, x, indices, *a, **kw)
+    _SWB.__call__ = _cbb_call
+U3C_LEN = os.environ.get("R57_U3C_LEN") == "1"
+U3C_DUMP = os.environ.get("R57_U3C_DUMP", "")           # a directory: one .npz per prompt for Breakthrough's mask check
+POP45 = None
+if FAST and any(v.get("cold") for v in FASTARMS[FAST].values()):
+    POP45 = np.load(os.path.expanduser("~/FableGod/fablec/masks/pop_cap45.npy"))   # [48, 512] share of cap45's checks
+    assert POP45.shape == (48, 512), POP45.shape
                                                          # sure rows [rows] (mx + numpy) while it verifies
 if FAST:                                                 # EvalSuite's install_gate (route mode), for any row count <= 16
     _SWC = type(SW_[0])
@@ -361,12 +410,22 @@ if FAST:                                                 # EvalSuite's install_g
     def _fast_call(self, x, indices, *a, **kw):
         km = FG["keep"]
         sr = FG["sure"]
+        if FG["cap"] is not None and self._bm["L"] < 48:  # U3C: the prompt's footprint, every prefill call of a trunk layer
+            FG["cap"][self._bm["L"], np.unique(np.array(indices).reshape(-1))] = True
         if FG["on"] and sr is not None and indices.ndim >= 2 and indices.shape[-2] == sr.shape[0]:   # U3: Q1-UNION
             K_ = indices.shape[-1]; ids2 = indices.reshape(-1, K_); uns = ~sr   # a sure row keeps ranks 0-1 and the ranks
             top2 = mx.arange(K_)[None, :] < 2                # whose expert is in the check's union (dm_q1u_masks.py: every
-            cand = uns[:, None] | top2                       # rank of the unsure rows, ranks 0-1 of the sure ones)
-            inU = ((ids2[:, :, None, None] == ids2[None, None, :, :]) & cand[None, None, :, :]).any(axis=(2, 3))
-            km = (uns[:, None] | top2 | inU).reshape(indices.shape)
+            if FG["cold"]:                                   # U3C: the base sets (unsure: ranks 0-3 + warm; sure: 0-1)
+                rk = mx.arange(K_)[None, :]
+                cand = mx.where(uns[:, None], (rk < 4) | FG["warm"][self._bm["L"]][ids2], top2)
+                inU = ((ids2[:, :, None, None] == ids2[None, None, :, :]) & cand[None, None, :, :]).any(axis=(2, 3))
+                km = (cand | inU).reshape(indices.shape)
+                if FG["dump"] is not None:                   # kept as graph arrays, read out after the check evaluates
+                    FG["dump"].append((FG["chk"], self._bm["L"], ids2, sr, cand | inU))
+            else:
+                cand = uns[:, None] | top2                   # rank of the unsure rows, ranks 0-1 of the sure ones)
+                inU = ((ids2[:, :, None, None] == ids2[None, None, :, :]) & cand[None, None, :, :]).any(axis=(2, 3))
+                km = (uns[:, None] | top2 | inU).reshape(indices.shape)
             if FG["t3"]:
                 self._bm["tier"]["nolsb"] = (sr, FG["sure_np"])   # _ooo_call_t3: those rows' ranks 0-1 at 3 bits
         if FG["on"] and km is not None and indices.ndim >= 2 and indices.shape[-2] == km.shape[-2]:
@@ -381,7 +440,8 @@ if FAST:                                                 # EvalSuite's install_g
     _SWC.__call__ = _fast_call
     if any(v.get("t3") for v in FASTARMS[FAST].values()):   # U3's 3-bit sure rows: LP1's kernel test (a pair at a 4-bit
         import bigmoe.tier as _BT3                        # rank whose LSB slot is < 0 runs at tier 3; unchanged for slots
-        _BT3._lp1_patch()                                 # >= 0) and tier._ooo_call with the sure rows' sidecar reads off
+        _BT3._tier_glu()                                  # >= 0) and tier._ooo_call with the sure rows' sidecar reads off;
+        _BT3._lp1_patch()                                 # _tier_glu first puts tierglu on sys.path (U3 crashed Wed 01:02)
         _osrc = open(_BT3.__file__).read(); _osrc = _osrc[_osrc.index("def _ooo_call("):_osrc.index("def tier_call(")]
         import hashlib as _hl3
         assert _hl3.md5(_osrc.encode()).hexdigest() == "d5bf5acd2a3f5db315852ee86a59f84a", "tier._ooo_call changed: re-copy"
@@ -489,28 +549,34 @@ TAP = {"on": False, "x": [[] for _ in TAPS]}
 TAP_OF = {id(lay[L]): i for i, L in enumerate(TAPS)}
 _layer_call = Q.DecoderLayer.__call__
 PR_IDX = {id(l_): i_ for i_, l_ in enumerate(lay)}
+def _pr_top(lay_, z):                                    # lay_'s router on z: per row top-10, and the ranked unique list of 96
+    lg = lay_.mlp.gate(z).astype(mx.float32)             # (each expert by its best row log-prob: the look-ahead's PF_RANKED
+    best = (lg - mx.logsumexp(lg, axis=-1, keepdims=True)).reshape(-1, lg.shape[-1]).max(axis=0)   # list at PF_B 96)
+    return mx.argpartition(-lg, kth=9, axis=-1)[..., :10], mx.argsort(-best)[:96]
 def _layer_pr(self, hidden, *, input_ids, ssm_mask, cache):   # R57_PREROUTE: qwen4_exp DecoderLayer.__call__ verbatim
     if "ple" in self:                                         # (REF2's patched HC read / write looked up at call time)
         hidden = hidden + self.ple(hidden, input_ids, cache)
+    i = PR_IDX.get(id(self))
+    pre = None
+    if i is not None and (i - 1) in PR["cap"]:           # "full": this layer's router on its MLP-side read of the stream
+        pre = self.mlp_hyper_connection(hidden)[0]       # before its attention (pending None: no attention write)
+        PR["cap"][i - 1]["full"] = _pr_top(self, pre)
     mixed, hyper, inject = self.attn_hyper_connection(hidden)
     if self.is_linear:
         block_out = self.linear_attn(mixed, ssm_mask, cache)
     else:
         block_out = self.self_attn(mixed, cache)
     mixed, hyper, inject = self.mlp_hyper_connection(hyper, pending=(block_out, inject))
+    if pre is not None and PR["dump"] is not None:       # R57_PR_DUMP: "full"'s input and this layer's true MoE input
+        PR["dump"].append((i, pre, mixed))
     block_out = self.mlp(mixed)
     hidden = Q._hyper_residual_write(hyper, block_out, inject)
-    i = PR_IDX.get(id(self))
-    if i is not None and i + 1 < NL and not SW_[i]._bm["full"]:   # the capture: L+1's router on four inputs
-        nxt = lay[i + 1]
-        def top(z):                                      # per row top-10, and the ranked unique list of 96 (each expert by
-            lg = nxt.mlp.gate(z).astype(mx.float32)      # its best row log-prob: the look-ahead's PF_RANKED list at PF_B 96)
-            best = (lg - mx.logsumexp(lg, axis=-1, keepdims=True)).reshape(-1, lg.shape[-1]).max(axis=0)
-            return mx.argpartition(-lg, kth=9, axis=-1)[..., :10], mx.argsort(-best)[:96]
-        caps = dict(r57=top(mixed), full=top(nxt.attn_hyper_connection(hidden)[0]))
-        for nm, bo in zip(("p3", "p6"), PR["blk"].pop(SW_[i]._bm["L"], [])):
-            caps[nm] = top(nxt.attn_hyper_connection(Q._hyper_residual_write(hyper, bo, inject))[0])
-        PR["cap"][i] = caps
+    if i is not None and i + 1 < NL and not SW_[i]._bm["full"]:   # the capture: L+1's router on L's MoE input (r57), on
+        nxt = lay[i + 1]                                 # its attention-side read of L's output (fullA, the control) and
+        caps = dict(r57=_pr_top(nxt, mixed), fullA=_pr_top(nxt, nxt.attn_hyper_connection(hidden)[0]))   # on its MLP-side
+        for nm, bo in zip(("p3", "p6"), PR["blk"].pop(SW_[i]._bm["L"], [])):   # read of L's partial outputs; "full"
+            caps[nm] = _pr_top(nxt, nxt.mlp_hyper_connection(Q._hyper_residual_write(hyper, bo, inject))[0])   # joins
+        PR["cap"][i] = caps                              # at L+1's start
     return hidden
 def pr_eval(capd):                                       # R57_PREROUTE: recall@10 of each variant vs L+1's true top-10
     got = [(i, capd[SW_[i + 1]._bm["L"]][-1], c) for i, c in PR["cap"].items() if capd.get(SW_[i + 1]._bm["L"])]
@@ -522,6 +588,13 @@ def pr_eval(capd):                                       # R57_PREROUTE: recall@
             PRS.setdefault(nm, []).append([i, len(T), float(np.mean([len(set(a) & set(b)) / 10 for a, b in zip(P_, T)])),
                                            len({e for r_ in P_ for e in r_} & Tu) / len(Tu), h96 / 96, h96 / len(Tu)])
     PR["cap"].clear()
+    if PR["dump"]:                                       # R57_PR_DUMP: this check's rows (float32: exact for bf16 / f16)
+        mx.eval([a for _, a, _ in PR["dump"]] + [b for _, _, b in PR["dump"]])
+        for j, a, b in PR["dump"]:
+            a = np.array(a.astype(mx.float32)).reshape(-1, a.shape[-1]); b = np.array(b.astype(mx.float32)).reshape(-1, b.shape[-1])
+            PRD["L"].append(np.full(len(a), j, np.int16)); PRD["chk"].append(np.full(len(a), PRD["n"], np.int32))
+            PRD["row"].append(np.arange(len(a), dtype=np.int16)); PRD["X"].append(a); PRD["Y"].append(b)
+        PRD["n"] += 1; PR["dump"].clear()
 def _layer(self, *a, **kw):
     out = _layer_pr(self, *a, **kw) if PR["on"] else _layer_call(self, *a, **kw)
     i = TAP_OF.get(id(self))
@@ -667,7 +740,14 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
         cg = CGM.CopyGate(list(ids), len(ids), COPYMODE[COPY])
         cg_t = threading.Thread(target=cg.commit, args=(len(ids) - 1,), daemon=True)
         cg_t.start()
+    cold_ = bool(FAST and (FASTARMS[FAST].get(fset) or {}).get("cold")) and not mtp
+    if cold_:                                            # U3C: the prompt's own footprint per layer, during its prefill
+        FG["cap"] = np.zeros((48, 512), bool)
     cache, last, T, ws = prefill(ids, mtp)
+    if cold_:
+        cap_, FG["cap"] = FG["cap"], None
+        warm_ = cap_ if (U3C_LEN and len(ids) >= 128) else (cap_ | (POP45 >= 0.05))
+        FG.update(warm=mx.array(warm_), dump=[] if U3C_DUMP else None, chk=0)
     mem = [mx.get_peak_memory() / 1e9, footprint_peak_gb()]
     mx.reset_peak_memory()
     P = len(ids)
@@ -689,7 +769,7 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
     if scan is not None:
         scan.feed(_TKZ.decode([tok]))
     fst = dict(rows=0, gated=0, kx=0, k=0)               # R57_FAST per run: rows checked / gated, kept exact / relaxed
-    PRS.clear()
+    PRS.clear(); PRD.update(n=0, L=[], chk=[], row=[], X=[], Y=[])
     cst = dict(pos=0, used=0, chg=0, ok=0, ms=0.0)       # R57_COPY per run: drafted positions checked, copies used / that
     if cg is not None:                                   # changed the draft / accepted, host ms (join + propose + learn)
         t_ = time.perf_counter()
@@ -755,6 +835,7 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
         BS._S10B.drop()                                  # only the live loop's checks + commit replays
         res0 = np.array([BS.ext.lookup(L, list(range(512))) for L in range(NL)], np.int32)   # pools at loop start
     out, cyc, ck_t, kept, sm, wl, cut, drf = [tok], [], [], [], [], [], False, []
+    lh_ = []                                             # R57_LOGHASH: per check, the verify logits' hash
     rows_, cb_, bld_, wt_, wsf_ = [], [], [], [], []     # per check: verified rows, SSD bytes (the per-row cost split, 11-01
                                                          # lead), graph-build s, eval-wait s (A6 / K-80's split), warm-split flag
     WSPL = []                                            # this run's warm-split samples
@@ -878,14 +959,16 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
         if not mtp:
             tap_reset(); TAP["on"] = True
         FG.update(on=fk_ is not None or sq_ is not None, keep=mx.array(fk_) if fk_ is not None else None,   # R57_FAST
-                  sure=mx.array(sq_) if sq_ is not None else None, sure_np=sq_, t3=bool(fz and fz.get("t3")))   # (in the graph)
+                  sure=mx.array(sq_) if sq_ is not None else None, sure_np=sq_, t3=bool(fz and fz.get("t3")),   # (in the graph)
+                  cold=bool(fz and fz.get("cold")) and sq_ is not None)
         if PREROUTE and not mtp:                         # R57_PREROUTE: this check's capture; EvalSuite's block records
-            PR.update(on=True, cur=None, y={}, blk={}, cap={}); EM.STATE.capture = {}   # each layer's true top-10
+            PR.update(on=True, cur=None, y={}, blk={}, cap={}, dump=[] if PRDUMP else None)   # each layer's true top-10
+            EM.STATE.capture = {}
         try:
             with ref2.verify_scope(model):
                 lg = model(mx.array([[tok] + dr]), cache=cache)
         finally:
-            FG.update(on=False, keep=None, sure=None, sure_np=None, t3=False)
+            FG.update(on=False, keep=None, sure=None, sure_np=None, t3=False, cold=False, chk=FG["chk"] + 1)
             PR["on"] = False
         cb = time.perf_counter()                         # graph built: the sync-free gate waits on each layer's router ids
         TAP["on"] = False
@@ -896,6 +979,9 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
         else:
             tp = taps()
             mx.eval(am, tp)
+        if LOGHASH:                                      # R57_LOGHASH: this check's verify logits, bit for bit
+            import hashlib as _hlg
+            lh_.append(_hlg.sha1(np.array(lg[0].astype(mx.float32)).tobytes()).hexdigest()[:16])
         ce = time.perf_counter()
         bld_.append(cb - c1); wt_.append(ce - cb)        # K-80's split: graph build vs the eval wait (+ the commit after)
         am = am.tolist()
@@ -962,6 +1048,10 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
                                                        "ka_reads", "bursts", "burst_gap025", "burst_gap1",
                                                        "vt_hits", "vt_ins", "vt_purged", "vt_drops")}   # (ext/build_la / _vt)
     pfx["vt_used_gb"] = px1.get("vt_used_bytes", 0) / 1e9   # the tier's filled part at the run's end
+    if VTIER and "vt_hits_layer" in px1:                 # per ext layer (NewIdeas 15:46: its replay of the victim policy),
+        pfx["vt_hits_layer"] = [a_ - b_ for a_, b_ in zip(px1["vt_hits_layer"], px0["vt_hits_layer"])]   # this run's
+        pfx["vt_ins_layer"] = [a_ - b_ for a_, b_ in zip(px1["vt_ins_layer"], px0["vt_ins_layer"])]
+        pfx["vt_laymap"] = VT_MAP                         # model layer -> [base ext id, sidecar ext id]
     mem += [mx.get_peak_memory() / 1e9, mx.get_active_memory() / 1e9, mx.get_cache_memory() / 1e9, footprint_now_gb(),
             footprint_peak_gb()]
     if S10B_DIR and name:
@@ -979,7 +1069,18 @@ def run(ids, arm, name=None, drafter="dfl", cpy=False, maxd=0, fset=None, tcut=N
     if "keep" not in A6:                                 # A6 keep: MLX's buffer cache stays warm for the next request
         mx.clear_cache()
     sm = np.array(sm)
-    return dict(out=out[:CAP], n=min(len(out), CAP), tps=min(len(out), CAP) / dec, drafter=drafter, hist=hist, a6=a6,
+    if cold_ and U3C_DUMP and FG["dump"]:               # U3C: per (check, layer) ids / sure / keep, -1 / False padded to 17 rows
+        os.makedirs(U3C_DUMP, exist_ok=True)
+        recs = [(c_, L_, np.array(i_), np.array(s_), np.array(k_)) for c_, L_, i_, s_, k_ in FG["dump"]]
+        n_ = len(recs); RW = max(r_[2].shape[0] for r_ in recs)
+        I_ = np.full((n_, RW, 10), -1, np.int16); S_ = np.zeros((n_, RW), bool); K2 = np.zeros((n_, RW, 10), bool)
+        for j_, (c_, L_, i_, s_, k_) in enumerate(recs):
+            I_[j_, :i_.shape[0]] = i_; S_[j_, :s_.shape[0]] = s_; K2[j_, :k_.shape[0]] = k_
+        np.savez(os.path.join(U3C_DUMP, (name or "p").replace("/", "_") + ".npz"), check=np.array([r_[0] for r_ in recs]),
+                 layer=np.array([r_[1] for r_ in recs]), rows=np.array([r_[2].shape[0] for r_ in recs]), ids=I_, sure=S_,
+                 keep=K2, warm=np.array(FG["warm"]), prompt_len=len(ids), len_rule=U3C_LEN)
+        FG["dump"] = None
+    return dict(lh=lh_, out=out[:CAP], n=min(len(out), CAP), tps=min(len(out), CAP) / dec, drafter=drafter, hist=hist, a6=a6,
                 cyc=1e3 * med(cyc), ck=1e3 * med(ck_t),
                 kept=float(np.mean(kept)), checks=len(kept), miss=float(np.median(sm[:, 0])), io=1e3 * float(np.median(sm[:, 1])),
                 svc=1e3 * float(np.median(sm[:, 2])), slow=float(np.median(sm[:, 3])), drf=1e3 * med(drf), mem=mem,
@@ -1053,11 +1154,17 @@ for n_p, (s, key) in enumerate(PICK):
             PRALL.append(dict(key=key, arm=arm, typ=typ, samples=r["preroute"]))
             say("    pre-route recall@10 (per row / of the union): " + ", ".join(
                 f"{nm} {np.mean([x[2] for x in v]):.3f} / {np.mean([x[3] for x in v]):.3f}" for nm, v in r["preroute"].items()))
+        if PRDUMP and PRD["X"]:                          # R57_PR_DUMP: this run's rows -> data/r57/pr_dump/{TAG}_{run}.npz
+            os.makedirs(os.path.join(OUT, "pr_dump"), exist_ok=True)
+            fn_ = os.path.join(OUT, "pr_dump", f"{TAG}_{len(PRALL) - 1:02d}.npz")
+            np.savez(fn_, key=key, arm=arm, typ=typ, **{k_: np.concatenate(PRD[k_]) for k_ in ("L", "chk", "row", "X", "Y")})
+            say(f"    pr dump: {sum(len(x) for x in PRD['X'])} rows x layers, {PRD['n']} checks -> {fn_}")
+            PRD.update(n=0, L=[], chk=[], row=[], X=[], Y=[])
         if r["wspl"]:
             WSALL.append(dict(key=key, arm=arm, samples=r["wspl"]))
         RUNS.append(dict(key=key, arm=arm, type=typ, bad=r["bad"], cut=r["cut"], P=len(ids),
                          **{k_: r[k_] for k_ in ("drafter", "hist", "a6", "n", "tps", "tpsw", "kept", "checks", "cyc", "ck",
-                                                 "drf", "miss", "io", "mb", "mpk", "mem", "copy", "fast", "pf")},
+                                                 "drf", "miss", "io", "mb", "mpk", "mem", "copy", "fast", "pf", "lh")},
                          d7b=draft is DRAFT4))
         m = min(len(want), r["n"])
         agree = same(r["out"], want)

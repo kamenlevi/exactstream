@@ -1,0 +1,37 @@
+THE COMBINATION at C 160 (shared GPU by day: rough), steady tok/s per domain (checks >= 2), kept per check, draft ms
+| arm | adds | tokens equal | code | math | chat | agent | vs the arm before | vs cmb0 | peak GB |
+|---|---|---|---|---|---|---|---|---|---|
+| cmb0 | the default | 9 / 9 | 47.5 (kept 11.8, draft 11.8) | 39.1 (kept 5.2, draft 11.5) | 29.1 (kept 3.9, draft 11.5) | 24.8 (kept 4.2, draft 12.9) | - % | - % | 31.8 |
+| cmb1 | chat switch | 11 / 11 | 46.5 (kept 11.8, draft 11.7) | 38.6 (kept 5.2, draft 11.5) | 32.2 (kept 4.7, draft 12.8) | 24.0 (kept 4.2, draft 13.3) | -2.1 / -1.4 / +10.8 / -3.4 % | -2.1 / -1.4 / +10.8 / -3.4 % | 33.6 |
+| cmb1c | chat at 8 rows | 11 / 11 | 48.9 (kept 11.8, draft 11.6) | 38.4 (kept 5.2, draft 11.5) | 31.1 (kept 3.6, draft 10.3) | 24.7 (kept 4.2, draft 12.7) | +5.1 / -0.4 / -3.3 / +2.9 % | +2.9 / -1.8 / +7.2 / -0.5 % | 33.6 |
+| cmb1t | chat t 0.4 (on cmb1c) | 11 / 11 | 48.6 (kept 11.8, draft 11.7) | 38.6 (kept 5.2, draft 11.5) | 30.0 (kept 3.3, draft 9.0) | 24.8 (kept 4.2, draft 12.5) | -0.5 / +0.4 / -3.6 / +0.4 % | +2.4 / -1.4 / +3.3 / -0.1 % | 33.6 |
+| cmb2 | A6 keep | 11 / 11 | 48.7 (kept 11.8, draft 11.6) | 38.7 (kept 5.2, draft 11.5) | 28.6 (kept 3.6, draft 10.3) | 24.7 (kept 4.2, draft 12.5) | -0.3 / +0.6 / -8.0 / +0.0 % | +2.6 / -1.2 / -1.4 / -0.5 % | 33.5 |
+| cmb3 | COPYGATE g2 | 11 / 11 | 47.9 (kept 12.0, draft 11.6) | 38.8 (kept 5.2, draft 11.5) | 30.9 (kept 3.6, draft 10.1) | 19.5 (kept 4.4, draft 13.6) | -1.6 / +0.3 / +8.0 / -20.9 % | +0.9 / -0.9 / +6.4 / -21.3 % | 33.6 |
+| cmb4 | D7b code | 11 / 11 | 46.8 (kept 11.9, draft 11.8) | 35.6 (kept 5.2, draft 13.2) | 28.8 (kept 3.6, draft 10.4) | 20.9 (kept 4.4, draft 14.1) | -2.2 / -8.1 / -6.7 / +7.3 % | -1.3 / -8.9 / -0.8 / -15.6 % | 34.2 |
+| cmb5 | JOINT | 11 / 11 | 49.7 (kept 11.9, draft 10.3) | 38.0 (kept 5.2, draft 11.6) | 30.5 (kept 3.6, draft 10.2) | 21.9 (kept 4.4, draft 12.9) | +6.2 / +6.6 / +5.9 / +4.8 % | +4.8 / -2.9 / +5.1 / -11.6 % | 34.2 |
+| cmb6 | K-83 | 11 / 11 | 50.0 (kept 11.9, draft 9.6) | 38.9 (kept 5.2, draft 10.2) | 30.7 (kept 3.6, draft 10.3) | 21.1 (kept 4.4, draft 11.5) | +0.5 / +2.4 / +0.4 / -3.7 % | +5.2 / -0.5 / +5.5 / -14.8 % | 34.3 |
+| cmb3t | COPYGATE g2t (on cmb4) | 11 / 11 | 47.4 (kept 11.8, draft 10.2) | 38.6 (kept 5.2, draft 11.5) | 30.9 (kept 3.6, draft 10.2) | 22.6 (kept 4.1, draft 12.7) | +1.2 / +8.3 / +7.2 / +8.0 % | -0.2 / -1.3 / +6.3 / -8.9 % | 34.2 |
+| cmb32 | 32 rows (on cmb4) | 8 / 11 DIFFER agent/bash18, agent/text23, humaneval/HumanEval/6 | 18.0 (kept 17.8, draft 17.9) | 38.6 (kept 5.2, draft 11.6) | 30.9 (kept 3.6, draft 10.2) | 9.3 (kept 4.2, draft 14.3) | -61.5 / +8.2 / +7.2 / -55.5 % | -62.0 / -1.4 / +6.4 / -62.5 % | 34.1 |
+| fastBE | FAST B+E (on cmb6; tokens differ by design) | 2 / 11 DIFFER agent/bash18, agent/text23, humaneval/HumanEval/16, humaneval/HumanEval/6, humaneval/HumanEval/91, ifeval/1220, math500/test/prealgebra/1640.json, multi/de3, multi/zh15 | 87.1 (kept 11.7, draft 9.4) | 43.8 (kept 5.3, draft 10.3) | 30.3 (kept 3.6, draft 10.3) | 33.0 (kept 5.3, draft 11.5) | +74.4 / +12.5 / -1.0 / +56.4 % | +83.6 / +12.0 / +4.4 / +33.2 % | 34.3 |
+| fastCE | FAST C+E (on cmb6; tokens differ by design) | 4 / 11 DIFFER humaneval/HumanEval/16, humaneval/HumanEval/6, humaneval/HumanEval/91, ifeval/1220, math500/test/prealgebra/1640.json, multi/de3, multi/zh15 | 83.9 (kept 11.2, draft 9.4) | 48.9 (kept 5.9, draft 10.2) | 30.2 (kept 3.6, draft 10.2) | 20.1 (kept 4.4, draft 11.5) | +67.9 / +25.6 / -1.5 / -4.9 % | +76.7 / +24.9 / +3.9 / -19.0 % | 34.3 |
+| fastBEn | FAST B+E + NAX6 | 2 / 11 DIFFER agent/bash18, agent/text23, humaneval/HumanEval/16, humaneval/HumanEval/6, humaneval/HumanEval/91, ifeval/1220, math500/test/prealgebra/1640.json, multi/de3, multi/zh15 | 92.0 (kept 12.2, draft 9.5) | 42.3 (kept 4.9, draft 10.4) | 31.4 (kept 3.7, draft 10.3) | 26.2 (kept 3.5, draft 11.6) | +5.6 / -3.3 / +3.4 / -20.8 % | +93.9 / +8.3 / +7.9 / +5.5 % | 34.3 |
+| fastBEh | FAST B+E + NAX6 + H-1c | 2 / 11 DIFFER agent/bash18, agent/text23, humaneval/HumanEval/16, humaneval/HumanEval/6, humaneval/HumanEval/91, ifeval/1220, math500/test/prealgebra/1640.json, multi/de3, multi/zh15 | 89.8 (kept 11.7, draft 9.4) | 44.6 (kept 4.9, draft 10.3) | 32.4 (kept 3.7, draft 10.3) | 29.1 (kept 3.9, draft 11.5) | -2.4 / +5.4 / +3.3 / +11.3 % | +89.2 / +14.1 / +11.4 / +17.4 % | 34.3 |
+| fastBEhw | fastBEh + warm split (not a speed arm) | 2 / 11 DIFFER agent/bash18, agent/text23, humaneval/HumanEval/16, humaneval/HumanEval/6, humaneval/HumanEval/91, ifeval/1220, math500/test/prealgebra/1640.json, multi/de3, multi/zh15 | 51.4 (kept 11.7, draft 9.5) | 19.4 (kept 4.4, draft 10.4) | 32.2 (kept 3.7, draft 10.4) | 12.5 (kept 4.2, draft 14.5) | -42.8 / -56.5 / -0.6 / -57.1 % | +8.2 / -50.3 / +10.7 / -49.7 % | 34.3 |
+cmb3 copy: used 632 of 1184 drafted positions, changed the draft 149, accepted 502; host 3.4 ms per run
+cmb4 copy: used 632 of 1179 drafted positions, changed the draft 152, accepted 502; host 3.5 ms per run
+cmb5 copy: used 632 of 1179 drafted positions, changed the draft 152, accepted 502; host 3.3 ms per run
+cmb6 copy: used 632 of 1179 drafted positions, changed the draft 152, accepted 502; host 3.3 ms per run
+cmb3t copy: used 573 of 1118 drafted positions, changed the draft 92, accepted 498; host 3.3 ms per run
+cmb32 copy: used 795 of 1361 drafted positions, changed the draft 445, accepted 530; host 5.4 ms per run
+fastBE copy: used 623 of 993 drafted positions, changed the draft 132, accepted 517; host 2.6 ms per run
+fastCE copy: used 637 of 1152 drafted positions, changed the draft 148, accepted 501; host 3.2 ms per run
+fastBEn copy: used 679 of 1254 drafted positions, changed the draft 181, accepted 561; host 4.3 ms per run
+fastBEh copy: used 676 of 1237 drafted positions, changed the draft 160, accepted 584; host 3.9 ms per run
+fastBEhw copy: used 693 of 1576 drafted positions, changed the draft 178, accepted 584; host 4.0 ms per run
+fastBE FAST: 976 of 2344 rows gated (42 %), kept 1873 vs exact acceptance 1840 on the same checks
+fastCE FAST: 798 of 2132 rows gated (37 %), kept 1803 vs exact acceptance 1746 on the same checks
+fastBEn FAST: 1067 of 2709 rows gated (39 %), kept 2089 vs exact acceptance 2050 on the same checks
+fastBEh FAST: 1102 of 2684 rows gated (41 %), kept 2111 vs exact acceptance 2072 on the same checks
+fastBEhw FAST: 1141 of 3209 rows gated (36 %), kept 2128 vs exact acceptance 2076 on the same checks
+SSD MB per kept token per arm (code / math / chat / agent): cmb0 173.1 / 163.8 / 146.6 / 235.8; cmb1 172.8 / 163.8 / 133.8 / 236.7; cmb1c 172.8 / 163.8 / 137.1 / 236.6; cmb1t 172.8 / 163.8 / 134.1 / 236.1; cmb2 172.8 / 163.8 / 137.1 / 236.6; cmb3 177.6 / 163.6 / 137.2 / 292.0; cmb4 174.5 / 163.3 / 137.1 / 291.9; cmb5 174.5 / 163.3 / 137.2 / 292.1; cmb6 174.6 / 163.7 / 137.3 / 291.9; cmb3t 173.6 / 163.3 / 137.1 / 259.8; cmb32 413.0 / 164.4 / 137.3 / 861.3; fastBE 66.4 / 124.1 / 136.2 / 124.4; fastCE 70.9 / 111.6 / 136.6 / 292.9; fastBEn 64.3 / 128.1 / 141.8 / 171.8; fastBEh 66.0 / 121.0 / 134.9 / 164.8; fastBEhw 75.9 / 171.9 / 135.8 / 205.2
+fastBEhw warm split on code (20 samples): warm ms at 1 / 4 / 8 / 16 rows 47.9 / 44.8 / 48.5 / 58.6, slope 0.71 ms per row; cold 16-row 133.9 ms

@@ -1,0 +1,6 @@
+clear after 0s: nothing on this Mac blocks heavy work now.
+shared run reserved until 17:25 (about 200% CPU, 80% GPU). It doesn't need an idle Mac, so it runs beside the others; your numbers may include their load. `peer unlock` when done.
+Free for it now: about 13 cores (1301% CPU) and about 100% of the GPU after other shared runs (ojox-e8: 400% CPU, 0% GPU). It fits: use about 2 workers or -j 2.
+17:10:31 start (NO-SWAP 39 GB, swap 9.6607 GB): /bin/bash -c cd ~/BigMoE && U=R57_LAYSZ=0,BIGMOE_TIER_CL=64 && QF=BIGMOE_EXT_BUILD=build_qom,R57_REFTOK=,R57_FAST=QOM,R57_D17=1,R57_D7B=code,R57_HC8=1,REF2_HC8_FAST=1,R57_DNR=1,R57_HCB=1,REF2_SMALL_NATIVE=1,R57_D7BNAX=1,REF2_OOO_1C=1,BIGMOE_FC_F=4,BIGMOE_FC_FS=2,R57_ARMS=gate+t+pf,BIGMOE_PRED_LINES=4 && L2=BIGMOE_EXT_BUILD=build_l2,R57_ARMS=gate+t+pf,BIGMOE_PRED_LINES=4,BIGMOE_FC_F=4,BIGMOE_FC_FS=2 && R57_KEYS=humaneval/HumanEval/68,gsm8k/708 MG=2 C45_ALARM=600 C45_CAP=48 C45_SCREEN=data/r57/snap/r57_screen_smk3.py C45_DEADLINE=1900 C45_OUT=$HOME/BigMoE/data/smk KEEP_LOCK=1 C45_REFTOK=$HOME/BigMoE/data/d45/ref14_tokens.json:gate+t C45_ARMS="qfx_160:160:$U,$QF exl_160:160:$U,$L2" /bin/bash data/r57/snap/c45_runner_smk3.sh
+17:11:41 end rc=0 (swap 9.6607 GB)
+lock released

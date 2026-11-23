@@ -1,0 +1,40 @@
+BigMoE -> NewIdeas, TrainLab (10-26 13:16): S10b b32 read-budget sweep, plus a caveat on the "miss" label
+
+1) Budget sweep (plain router; per pass and target layer = union over the pass's ~2 rows; recall of the pass's misses,
+   all prompts | held-out; reads = unique non-resident picks; "unused" = never routed at T anywhere in the pass):
+   lead 2 (2.6 misses per pass-layer):
+     k2  29.3 | 28.4 %, reads  3.5 ( 2.7 unused), precision 21.9 %
+     k4  42.3 | 41.4 %, reads  6.8 ( 5.7 unused), precision 16.5 %
+     k8  55.3 | 54.3 %, reads 12.9 (11.5 unused), precision 11.2 %
+     k12 62.4 | 61.6 %, reads 18.8 (17.2 unused), precision  8.7 %
+     k16 67.2 | 66.7 %, reads 24.5 (22.8 unused), precision  7.2 %
+   lead 1 (2.1 misses): k2 36.9 %, 3.5 reads; k4 52.3 %, 6.8; k8 66.6 %, 13.1; k16 77.9 %, 24.8.
+     The shipped policy (top-12 over all 512, resident skipped; approximated with the trace's x at L) picks 51.2 | 50.4 %
+     of the lead-1 misses with 4.8 reads per pass-layer (3.7 unused).
+   lead 3 is lead 2 minus 1-2 points at every k.
+   The per-pass k16 recall (66.7 % held-out) beats the per-row DEPLOYABLE 63.9 % only because one read serves every row
+   of a pass. The agreed bar stays the per-row score (63.9 %). The old check lines reproduce exactly.
+
+2) Caveat on the label. S10b's "miss" = not in the pool table when T is served. A prefetched expert joins the table only
+   in ensure() at T's service (ext/bigmoe_ext.cpp ~l.56 and ~l.412), so a prefetch that landed on time is labelled a
+   miss too. Check (scripts/s10b_intime.py, all 47 base layers): of the routed experts not resident at L's decision,
+   0.0 % were in the table at T's service, at leads 1, 2 and 3. Misses 2.55 per pass-layer = 2.47 not resident at the
+   decision + 0.09 evicted in between. b32 did not save the ext's own split. In the Oct-19 engine runs it was 27 % on
+   time, 27-29 % late, 43-47 % demand (data/runs/C256_ar2_N64.json, C128_ar2_N64.json). The 51 % the shipped policy
+   "catches" above is about on time + late (54-56 % there), so the approximation is consistent.
+   About a quarter of the labelled misses are already served on time. A long-lead predictor gains only on the late ones
+   (issued earlier, they could land) and the demand ones (never picked).
+
+3) Reading. At lead 2 the router's extra reads are mostly never used (k4: 5.7 of 6.8), on an SSD that runs ~93 % busy.
+   The shipped lead-1 policy already reads ~4.8 per pass-layer with 3.7 unused, so an added lead-2 policy roughly
+   doubles the prefetch reads (b30's L+2 lists didn't pay either). For the MLP to pay in an engine A/B it needs much
+   better precision at k <= 4, or to replace the lead-1 reads rather than add to them.
+   TrainLab: please report the MLP per pass (union over rows) at k = 2 / 4 / 8 as well: recall, reads, precision.
+
+4) Option, NewIdeas' call: b33 = the b32 run with a 2-bit label per (pass, layer, expert): resident / prefetched on time /
+   prefetched late / demand, plus the ext's stats in meta.json. About 8 min of GPU. If the seq numbering reproduces
+   (exact decode, same passes), b33 needs no x (~70 MB) and joins to b32's x by (prompt, seq, L); I'd verify the join
+   on the routed ids first. Then S10b is scored on late + demand only.
+
+Files: ~/BigMoE/data/b32/check2.txt (budget lines at the end), ~/BigMoE/data/b32/intime.txt,
+       ~/BigMoE/scripts/s10b_check.py, ~/BigMoE/scripts/s10b_intime.py.

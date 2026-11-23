@@ -1,0 +1,55 @@
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=25.4 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'verify_rows_sdpa': True, 'duprow': True, 'compiled_hc': 96, 'frspec': True, 'scout_bundle': {'sc2_sharedfirst': True, 'sc3b_vreadchunk_classes': 1, 'sc3_glue': {'qsa_rope': True, 'qsa_rope_idx': True}}}
+[bigmoe] tier 4433333333: C_m=147 C_l=46 per layer, 17.07 GB pools
+Traceback (most recent call last):
+  File "/Users/kamen/BigMoE/scripts/s10b_trace.py", line 189, in <module>
+    spec125.generate(rt.model, ids_of("Hi"), 8, k_mtp=1, max_draft=7, lookup=1)   # warm-up
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/SpecDecode/spec125.py", line 412, in generate
+    cache, head = _prefill(model, prompt_ids, k_mtp > 0, prefill_chunk)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/SpecDecode/spec125.py", line 253, in _prefill
+    _, hid = _split(_prefill_call(model, prompt_ids[i:j], cache, phase_on))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/SpecDecode/spec125.py", line 67, in _prefill_call
+    return model(mx.array([ids]), cache=cache, return_hidden=True, emit_logits=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 7032, in __call__
+    return self.language_model(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6772, in __call__
+    out = self.model(inputs, cache, input_embeddings)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6454, in __call__
+    return self._forward(inputs, cache, input_embeddings)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6489, in _forward
+    h = layer(h, input_ids=inputs, ssm_mask=ssm_mask, cache=c)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/.venv/lib/python3.12/site-packages/mtplx/models/qwen4_exp.py", line 6277, in __call__
+    block_out = self.mlp(mixed)
+                ^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/bigmoe/tier.py", line 463, in _call
+    return (y if fused else (y * scores[..., None]).sum(axis=-2)) + shared
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~
+ValueError: [broadcast_shapes] Shapes (1,12,10,2560) and (1,12,2560) cannot be broadcast.
+[tokenizer] restored the pre-tokenizer regex from tokenizer.json: the loaded tokenizer split combining marks off their letters (Devanagari, Thai, vowelled Arabic tokenized 25-90% longer than the model was trained on)
+[mtplx] n-gram table pre-read plan: mode=off source=env table=29.8 GiB free=26.1 GiB reserved=0.0 GiB margin=6.0 GiB budget=0.0 GiB order=none
+[mtplx] n-gram table pre-read skipped: disabled
+[qwen4_exp] ngram table: streamed from SSD (file-backed pages, hot cache 1023M, prefetch on)
+[bigmoe] MTP experts streamed as gate layer 48
+[bigmoe] fusions: {'verify_rows_sdpa': True, 'duprow': True, 'compiled_hc': 96, 'frspec': True, 'scout_bundle': {'sc2_sharedfirst': True, 'sc3b_vreadchunk_classes': 1, 'sc3_glue': {'qsa_rope': True, 'qsa_rope_idx': True}}}
+[bigmoe] tier 4433333333: C_m=147 C_l=46 per layer, 17.07 GB pools
+[mtplx] verify SDPA head-chunked: q_len=12 heads_per_chunk=2 chunks=12
+[p00_humaneval0] 256 tok, 39.8 tok/s, 33 passes, verify rows 259, x rows 2072, sha c96b655e9d
+[p01_humaneval1] 256 tok, 34.4 tok/s, 66 passes, verify rows 292, x rows 2336, sha effd2e4cb3
+[p02_math0] 256 tok, 33.4 tok/s, 77 passes, verify rows 280, x rows 2240, sha 94299fdbf1
+[p03_math1] 256 tok, 5.0 tok/s, 197 passes, verify rows 277, x rows 2216, sha 9d24495e2d
+[p04_math2] 256 tok, 34.2 tok/s, 85 passes, verify rows 321, x rows 2568, sha ec3c6f2ded
+[p05_math3] 256 tok, 33.6 tok/s, 79 passes, verify rows 304, x rows 2432, sha 5b752aebfd
+saved /Users/kamen/BigMoE/data/w1b24/w24t: 6 prompts, 1733 verify rows, 108 s (miss.bin follows at exit)
+[bigmoe] s10b: 879364 ints -> /Users/kamen/BigMoE/data/w1b24/w24t/miss.bin

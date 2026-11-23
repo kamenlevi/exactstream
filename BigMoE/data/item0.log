@@ -1,0 +1,41 @@
+11-04 07:41:44 item 0 start (pid 14326)
+patching file 'bigmoe/tier.py'
+patching file 'bigmoe/stream.py'
+patching file 'bigmoe/tier.py'
+patching file 'bigmoe/stream.py'
+11-04 07:41:45 patch live: tier.py / stream.py == the staged copies
+(1) load_index: converted store refused without layout_ok (/Users/kamen/BigMoE/scratch/model_mix/records3 holds convert...); unknown layout refused; today's OK
+Traceback (most recent call last):
+  File "/Users/kamen/BigMoE/scripts/test_layout_engine.py", line 64, in <module>
+    Ls, sideP, PS = T.make_sidecar(ext, 512, 8, SH4, d, r20)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kamen/BigMoE/./bigmoe/tier.py", line 288, in make_sidecar
+    assert hasattr(ext, "set_direct_split"), "native+p11+pad needs an ext from the lever-1 build"   # slots, the b's via a bounce
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: native+p11+pad needs an ext from the lever-1 build
+11-04 07:41:45 test_layout_engine on the live package (build_nat) FAILED
+11-04 07:41:45 RESTORED the pre-live tier.py / stream.py (md5 8b7f50ac / 3e122775)
+11-04 07:50:50 item 0 start (pid 21740)
+patching file 'bigmoe/tier.py'
+patching file 'bigmoe/stream.py'
+patching file 'bigmoe/tier.py'
+patching file 'bigmoe/stream.py'
+11-04 07:50:50 patch live: tier.py / stream.py == the staged copies
+(1) load_index: converted store refused without layout_ok (/Users/kamen/BigMoE/scratch/model_mix/records3 holds convert...); unknown layout refused; today's OK
+(2) pools: packed pieces (8, 9216) uint32; 48 part loads, every slot == its record's part
+(3) prefill L20 (native+p11+pad): 64 experts' 4-bit pieces == records3's
+(3) prefill L5 (row-major): 64 experts' 4-bit pieces == records3's
+(3) prefill L47 (native+p11+pad): 64 experts' 4-bit pieces == records3's
+(4) guards: tier_call refuses a converted layer without a router (tier layer 20: records3 layout 2 needs TIER_GLU 3c...) and with 3b; M-01 and mismatched pieces refuse
+PASS
+11-04 07:50:51 test_layout_engine on the live package (build_w1): PASS
+11-04 07:51:05 ext/build rebuilt in 14 s
+(1) load_index: converted store refused without layout_ok (/Users/kamen/BigMoE/scratch/model_mix/records3 holds convert...); unknown layout refused; today's OK
+(2) pools: packed pieces (8, 9216) uint32; 48 part loads, every slot == its record's part
+(3) prefill L20 (native+p11+pad): 64 experts' 4-bit pieces == records3's
+(3) prefill L5 (row-major): 64 experts' 4-bit pieces == records3's
+(3) prefill L47 (native+p11+pad): 64 experts' 4-bit pieces == records3's
+(4) guards: tier_call refuses a converted layer without a router (tier layer 20: records3 layout 2 needs TIER_GLU 3c...) and with 3b; M-01 and mismatched pieces refuse
+PASS
+11-04 07:51:06 test_layout_engine on ext/build: PASS; layout_max 2
+11-04 07:51:06 ITEM 0 LIVE: ext/build sha256 5333899cb514, Leap 7f43a3f, bigmoe tier.py 8fd375c8 stream.py 5e72de3c

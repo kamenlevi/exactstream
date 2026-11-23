@@ -1,0 +1,53 @@
+DAY9 report (BigMoE), C 160; data /Users/kamen/BigMoE/data/r57
+
+== B2 (condition 9): C 300 / 320 with per-layer sizes vs C 256
+  c45l_300: not run (skipped by its NO-SWAP gate, or not reached)
+  c45l_320: not run (skipped by its NO-SWAP gate, or not reached)
+
+== chat switch (Kamen 'Yes, 1-3'): A = the default (DFlash2), B = R57_CHATSW=1, C 160
+  not run
+
+== C1 (condition 4): NAX6 live (ref2 tier_nax_ooo) vs the default; warm split; P on L
+  c1d_160: not run
+  c1k_160: not run
+  c1n_160: not run
+  c1n_160r: not run
+  ws_160: not run
+  wsn_160: not run
+  c45p_160: not run
+
+== A6 (condition 7) at C 160: first cycle after a long prefill, excess over the median of checks 2-8
+  a6c_160 (tokens == reference 3 / 3):
+    agent/bash18: excess 465 ms = SSD 117 (25 %) + draft 142 (31 %) + other 205 (44 %); 1st check 442 vs 119 ms (build 395 vs 104), misses 856 vs 296; pre-loop {}
+      end to end: pre-loop 0 + 1st cycle 597 ms (draft + check + commit); excess incl. pre-paid 465 ms
+    agent/text23: excess 1131 ms = SSD 194 (17 %) + draft 145 (13 %) + other 793 (70 %); 1st check 1179 vs 192 ms (build 1109 vs 167), misses 1202 vs 713; pre-loop {}
+      end to end: pre-loop 0 + 1st cycle 1337 ms (draft + check + commit); excess incl. pre-paid 1131 ms
+    agent/bash18: excess 1681 ms = SSD 30 (2 %) + draft 45 (3 %) + other 1606 (96 %); 1st check 1728 vs 92 ms (build 1417 vs 78), misses 127 vs 134; pre-loop {}
+      end to end: pre-loop 0 + 1st cycle 1786 ms (draft + check + commit); excess incl. pre-paid 1681 ms
+  a6r_160 (tokens == reference 3 / 3):
+    agent/bash18: excess 22 ms = SSD -67 (-307 %) + draft 86 (392 %) + other 3 (15 %); 1st check 58 vs 122 ms (build 48 vs 106), misses 0 vs 296; pre-loop {}; rep: copy 1 765 ms (856 misses, SSD 208) vs copy 2 56 ms (0 misses) -> one-time 502 ms beyond SSD
+    agent/text23: excess 22 ms = SSD -130 (-601 %) + draft 139 (646 %) + other 12 (55 %); 1st check 77 vs 195 ms (build 65 vs 169), misses 0 vs 713; pre-loop {}; rep: copy 1 909 ms (1202 misses, SSD 292) vs copy 2 75 ms (0 misses) -> one-time 543 ms beyond SSD
+    agent/bash18: excess 305 ms = SSD -37 (-12 %) + draft 163 (53 %) + other 179 (59 %); 1st check 231 vs 89 ms (build 221 vs 73), misses 0 vs 134; pre-loop {}; rep: copy 1 1774 ms (127 misses, SSD 67) vs copy 2 229 ms (0 misses) -> one-time 1478 ms beyond SSD
+  a6k_160 (tokens == reference 3 / 3):
+    agent/bash18: excess 211 ms = SSD 115 (55 %) + draft 30 (14 %) + other 65 (31 %); 1st check 300 vs 120 ms (build 257 vs 105), misses 856 vs 296; pre-loop {}
+      end to end: pre-loop 0 + 1st cycle 343 ms (draft + check + commit); excess incl. pre-paid 211 ms
+    agent/text23: excess 154 ms = SSD 82 (53 %) + draft 28 (18 %) + other 44 (28 %); 1st check 319 vs 193 ms (build 272 vs 167), misses 1202 vs 713; pre-loop {}
+      end to end: pre-loop 0 + 1st cycle 360 ms (draft + check + commit); excess incl. pre-paid 154 ms
+    agent/bash18: excess 130 ms = SSD 3 (2 %) + draft 32 (24 %) + other 96 (73 %); 1st check 187 vs 88 ms (build 152 vs 72), misses 127 vs 134; pre-loop {}
+      end to end: pre-loop 0 + 1st cycle 231 ms (draft + check + commit); excess incl. pre-paid 130 ms
+  a6p_160 (tokens == reference 3 / 3):
+    agent/bash18: excess 163 ms = SSD 81 (50 %) + draft 39 (24 %) + other 43 (26 %); 1st check 240 vs 117 ms (build 197 vs 101), misses 737 vs 283; pre-loop {'pools_ms': 138.7, 'pools_miss': 724.0, 'pools_mb': 1565.8}
+      end to end: pre-loop 139 + 1st cycle 292 ms (draft + check + commit); excess incl. pre-paid 302 ms
+    agent/text23: excess 134 ms = SSD 44 (33 %) + draft 28 (21 %) + other 62 (46 %); 1st check 307 vs 200 ms (build 273 vs 174), misses 970 vs 743; pre-loop {'pools_ms': 92.9, 'pools_miss': 433.0, 'pools_mb': 936.4}
+      end to end: pre-loop 93 + 1st cycle 348 ms (draft + check + commit); excess incl. pre-paid 227 ms
+    agent/bash18: excess 168 ms = SSD 11 (7 %) + draft 32 (19 %) + other 125 (74 %); 1st check 228 vs 92 ms (build 207 vs 71), misses 141 vs 123; pre-loop {'pools_ms': 105.1, 'pools_miss': 503.0, 'pools_mb': 1087.8}
+      end to end: pre-loop 105 + 1st cycle 272 ms (draft + check + commit); excess incl. pre-paid 273 ms
+  A6 line on the control: largest share per prompt [44, 70, 96] % -> PASS (the split names a cause >= 30 %)
+  end to end a6c: excess incl. pre-paid [465, 1131, 1681] ms; lifetime peak 31.7 GB
+  end to end a6k: excess incl. pre-paid [211, 154, 130] ms vs a6c [465, 1131, 1681] ms (-55, -86, -92 %); lifetime peak 31.7 GB
+  end to end a6p: excess incl. pre-paid [302, 227, 273] ms vs a6c [465, 1131, 1681] ms (-35, -80, -84 %); lifetime peak 31.7 GB
+  condition 7 (start-up <= 2-5 ms, end to end): best arm a6k, worst prompt 211 ms -> not met
+
+== SSD wait per check (lead step 3), 2421 checks with misses: demand SSD ms ~ reads: 0.155 ms per miss (R^2 0.946); ~ MB: 0.088 ms per MB = 11.3 GB/s (R^2 0.945); both: 0.088 ms/miss + 0.038 ms/MB (R^2 0.946) -> no separation (reads and MB collinear)
+
+== W18: SSD GB/s per check, median over the window / while reading, in run order (heat throttling = a falling second figure): c45_224 3.98 / 8.6; c45l_224 3.83 / 7.2; c45o_224 4.83 / 8.5; c45k_224 4.90 / 8.4; c45_224r 3.92 / 8.1; c45p_224 4.54 / 8.3; c45o_256 3.72 / 7.3; c45o_240 4.10 / 7.7; c45l_256 3.07 / 6.3; c45u_256 3.88 / 7.4; chsw_160 3.71 / 7.3; wss_160 9.53 / 11.9; naxs_160 9.14 / 11.8; a6c_160 3.42 / 7.6; a6r_160 3.46 / 7.8; a6k_160 3.58 / 8.0; a6p_160 3.74 / 7.8
